@@ -88,8 +88,23 @@ const styles = {
         lineHeight: 14,
     },
 
+    textMicroSupportingBold: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
+    },
+
+    textXXXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: fontWeightBold,
     },
 
     textStrong: {
@@ -322,6 +337,64 @@ const styles = {
             top: 12,
             right: 12,
             pointerEvents: 'none',
+        },
+    },
+
+    pickerSmall: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            appearance: 'none',
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            cursor: 'pointer',
+            backgroundColor: 'transparent',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+        },
+        iconContainer: {
+            top: 7,
+            right: 9,
+            pointerEvents: 'none',
+        },
+        icon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
         },
     },
 
@@ -792,8 +865,8 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 18,
-        lineHeight: 18,
+        height: 20,
+        lineHeight: 20,
         ...whiteSpace.noWrap,
     },
 
@@ -1051,7 +1124,6 @@ const styles = {
     },
 
     emojiItem: {
-        flex: 1,
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
@@ -1183,14 +1255,12 @@ const styles = {
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
     avatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
     },
 
@@ -1810,6 +1880,10 @@ const styles = {
         right: -36,
         top: 0,
         bottom: 0,
+    },
+
+    communicationsLinkHeight: {
+        height: 20,
     },
 };
 

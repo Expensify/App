@@ -19,6 +19,12 @@ Onyx.connect({
     },
 });
 
+let currentPreferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.PREFERRED_LOCALE,
+    callback: val => currentPreferredLocale = val,
+});
+
 /**
  * Clears the Onyx store and redirects to the sign in page.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
@@ -28,6 +34,7 @@ Onyx.connect({
 function redirectToSignIn(errorMessage) {
     UnreadIndicatorUpdater.stopListeningForReportChanges();
     PushNotification.deregister();
+    PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
 
@@ -36,12 +43,16 @@ function redirectToSignIn(errorMessage) {
     }
 
     const activeClients = currentActiveClients;
+    const preferredLocale = currentPreferredLocale;
 
     // We must set the authToken to null so we can navigate to "signin" it's not possible to navigate to the route as
     // it only exists when the authToken is null.
     Onyx.set(ONYXKEYS.SESSION, {authToken: null})
         .then(() => {
             Onyx.clear().then(() => {
+                if (preferredLocale) {
+                    Onyx.set(ONYXKEYS.PREFERRED_LOCALE, preferredLocale);
+                }
                 if (errorMessage) {
                     Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
                 }

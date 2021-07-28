@@ -135,7 +135,7 @@ function fetchAccountDetails(login) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessage')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessageRetry')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -299,6 +299,15 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
     });
 }
 
+/**
+ * Sets the redirectToWorkspaceNewAfterSignIn flag in the session variable
+ *
+ * @param {Boolean} shouldRedirect
+ */
+function setRedirectToWorkspaceNewAfterSignIn(shouldRedirect) {
+    Onyx.merge(ONYXKEYS.SESSION, {redirectToWorkspaceNewAfterSignIn: shouldRedirect});
+}
+
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -309,4 +318,5 @@ export {
     resendValidationLink,
     resetPassword,
     restartSignin,
+    setRedirectToWorkspaceNewAfterSignIn,
 };

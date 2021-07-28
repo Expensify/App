@@ -26,6 +26,7 @@ export default {
         and: 'y',
         details: 'Detalles',
         delete: 'Eliminar',
+        deleted: 'eliminado',
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
@@ -53,7 +54,8 @@ export default {
         notifications: 'Notificaciones',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
-        deletedCommentMessage: 'Comentario borrado',
+        timePrefix: 'Son las',
+        conjunctionFor: 'para',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -102,7 +104,7 @@ export default {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
-        localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        roomIsArchived: 'Esta sala de chat ha sido eliminada',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -191,7 +193,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'Expensify.cash está desarrollado por una comunidad de desarrolladores open source de todo el mundo. Ayúdanos a construir la próxima generación de Expensify.',
+            description: 'El nuevo Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
@@ -232,10 +234,14 @@ export default {
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar Cuenta de Paypal',
     },
+    paymentsPage: {
+        paymentMethodsTitle: 'Métodos de pago',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
@@ -322,6 +328,7 @@ export default {
             website: 'Ingrese un sitio web válido',
             zipCode: 'Ingrese un código postal válido',
             addressStreet: 'Ingrese una calle de dirección válida que no sea un apartado postal',
+            addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingrese una fecha de incorporación válida',
             incorporationState: 'Ingrese un estado de incorporación válido',
             industryCode: 'Ingrese un código de clasificación de industria válido',
@@ -333,6 +340,14 @@ export default {
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
+            existingOwners: {
+                unableToAddBankAccount: 'No ha sido posible añadir la cuenta bancaria',
+                alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
+                pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
+                alternatively: 'En su defecto, puedes ',
+                setUpThisAccountByYourself: 'añadir la cuenta tú mismo',
+                validationProcessAgain: ' y completar el proceso de validación de nuevo (lo cual puede tardar hasta una semana).',
+            },
         },
     },
     addPersonalBankAccountPage: {
@@ -373,7 +388,8 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessage: 'Parece que estás desconectado.',
     },
     workspace: {
         common: {
