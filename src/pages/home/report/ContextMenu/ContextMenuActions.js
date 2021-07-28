@@ -13,7 +13,7 @@ import ReportActionComposeFocusManager from '../../../../libs/ReportActionCompos
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /**
- * Gets the markdown version of the message in an action.
+ * Gets the HTML version of the message in an action.
  * @param {Object} reportAction
  * @return {String}
  */

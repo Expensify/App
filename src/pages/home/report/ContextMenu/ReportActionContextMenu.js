@@ -61,7 +61,7 @@ function hideDeleteModal() {
     if (!contextMenuRef.current) {
         return;
     }
-    return contextMenuRef.current.hideDeleteModal();
+    contextMenuRef.current.hideDeleteModal();
 }
 
 /**

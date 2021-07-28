@@ -81,6 +81,12 @@ class PopoverReportActionContextMenu extends React.Component {
         });
     }
 
+    /**
+     * Whether Context Menu is active for the Report Action.
+     *
+     * @param {Number|String} actionID
+     * @return {Boolean}
+     */
     isActiveReportAction(actionID) {
         return this.state.reportAction.reportActionID === actionID;
     }
@@ -94,8 +100,8 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Number} reportID - Active Report Id
      * @param {Object} reportAction - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
-     * @param {Function} [onShow=() => {}] - Run a callback when Menu is shown
-     * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
+     * @param {Function} [onShow] - Run a callback when Menu is shown
+     * @param {Function} [onHide] - Run a callback when Menu is hidden
      */
     showContextMenu(
         event,
@@ -149,7 +155,10 @@ class PopoverReportActionContextMenu extends React.Component {
         });
     }
 
-    runAfterContextMenuHide() {
+    /**
+     * After Popover hides, call the registered onPopoverHide callback and reset it
+     */
+    runAndResetOnPopoverHide() {
         this.onPopoverHide();
 
         // After we have called the action, reset it.
