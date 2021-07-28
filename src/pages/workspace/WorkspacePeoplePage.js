@@ -31,7 +31,7 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string),
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
@@ -293,7 +293,7 @@ export default compose(
         session: {
             key: ONYXKEYS.SESSION,
         },
-        betas : {
+        betas: {
             key: ONYXKEYS.BETAS,
         },
     }),
