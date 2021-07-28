@@ -70,6 +70,7 @@ export default {
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',
+        sizeExceeded: 'Attachment size is larger than 50 MB limit',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
