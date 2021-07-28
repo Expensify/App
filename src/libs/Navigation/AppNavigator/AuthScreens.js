@@ -25,7 +25,6 @@ import {fetchCountryCodeByRequestIP} from '../../actions/GeoLocation';
 import KeyboardShortcut from '../../KeyboardShortcut';
 import Navigation from '../Navigation';
 import * as User from '../../actions/User';
-import * as App from '../../actions/App';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
 import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
