@@ -429,7 +429,7 @@ export default {
             inNetwork: 'In-network',
             outOfNetwork: 'out-of-network',
             atmBalanceInquiry: 'ATM balance inquiry',
-            inOrOutOfNetwork: 'in-network or out-of-network',
+            inOrOutOfNetwork: 'In-network or out-of-network',
             customerService: 'Customer Service',
             automatedOrLive: 'Automated or live agent',
             afterTwelveMonths: 'After 12 months with no transactions',
@@ -449,8 +449,7 @@ export default {
             openingAccountTitle: 'Opening An Account',
             openingAccountDetails: 'There is no fee to create an account.',
             monthlyFeeDetails: 'There is no monthly fee',
-            customerServiceAutomatedTitle: 'Customer service (automated)',
-            customerServiceLiveTitle: 'Customer service (live agent)',
+            customerServiceTitle: 'Customer service',
             customerServiceDetails: 'There are no customer service fees.',
             inactivityDetails: 'There is no inactivity fee.',
             sendingFundsTitle: 'Sending funds to another account holder',
@@ -474,6 +473,8 @@ export default {
             generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial '
                 + 'Protection Bureau at 1-855-411-2372 or visit',
             printerFriendlyView: 'Printer Friendly View',
+            automated: 'Automated',
+            liveAgent: 'Live Agent',
         },
     },
     activateStep: {

@@ -1861,7 +1861,7 @@ const styles = {
         padding: 12,
     },
 
-    shortTermsCenterRight: {
+    termsCenterRight: {
         margin: 'auto',
         textAlign: 'right',
     },
@@ -1870,6 +1870,11 @@ const styles = {
         paddingRight: 12,
         paddingLeft: 12,
         marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
     },
 
     termsRowBold: {

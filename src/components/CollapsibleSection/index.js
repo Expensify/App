@@ -30,15 +30,14 @@ class CollapsibleSection extends React.Component {
         const src = this.state.isExpanded ? Close : DownArrow;
 
         return (
-            <View style={[styles.mt4, styles.termsSection]}>
+            <View style={styles.mt4}>
                 <TouchableOpacity onPress={this.toggleExpanded} style={[styles.pb4, styles.flexRow]}>
                     <Text style={[styles.flex1, styles.textStrong]}>
                         {this.props.title}
                     </Text>
-                    <View style={[styles.mr4]}>
-                        <Icon src={src} />
-                    </View>
+                    <Icon src={src} />
                 </TouchableOpacity>
+                <View style={styles.termsSection} />
 
                 <Collapsible isOpened={this.state.isExpanded}>
                     <View>
