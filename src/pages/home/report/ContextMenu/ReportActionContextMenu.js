@@ -73,7 +73,6 @@ function showDeleteModal(reportID, reportAction) {
     if (!contextMenuRef.current) {
         return;
     }
-    console.debug(reportID, reportAction);
     contextMenuRef.current.showDeleteModal(reportID, reportAction);
 }
 
