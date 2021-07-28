@@ -19,6 +19,7 @@ export default function () {
             [ONYXKEYS.IOU]: {
                 loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
             },
+            [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
         },
         registerStorageEventListener: (onStorageEvent) => {
             listenToStorageEvents(onStorageEvent);
