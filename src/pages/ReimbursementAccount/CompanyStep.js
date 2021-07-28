@@ -65,18 +65,8 @@ class CompanyStep extends React.Component {
      * @returns {Boolean}
      */
     validate() {
-        if (!this.state.password.trim()) {
-            Growl.error(this.props.translate('common.passwordCannotBeBlank'));
-            return false;
-        }
-
         if (!isValidAddress(this.state.addressStreet)) {
             Growl.error(this.props.translate('bankAccount.error.addressStreet'));
-            return false;
-        }
-
-        if (this.state.addressState === '') {
-            Growl.error(this.props.translate('bankAccount.error.addressState'));
             return false;
         }
 
