@@ -7,6 +7,6 @@ export default {
         currentStep: PropTypes.string,
 
         /** Status of wallet - e.g. SILVER or GOLD */
-        status: PropTypes.string,
+        tierName: PropTypes.string,
     }),
 };

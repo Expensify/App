@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -71,8 +72,19 @@ class PasswordForm extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>{this.props.translate('common.password')}</Text>
+                <View style={[styles.mv3]}>
+                    <View style={[styles.dFlex, styles.flexRow]}>
+                        <Text style={[styles.formLabel]}>{this.props.translate('common.password')}</Text>
+                        <TouchableOpacity
+                            style={[styles.ml2]}
+                            onPress={resetPassword}
+                            underlayColor={themeColors.componentBG}
+                        >
+                            <Text style={[styles.link, styles.h4]}>
+                                {this.props.translate('passwordForm.forgot')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                     <TextInput
                         style={[styles.textInput]}
                         secureTextEntry
@@ -84,17 +96,9 @@ class PasswordForm extends React.Component {
                         autoFocus
                     />
                 </View>
-                <TouchableOpacity
-                    style={[styles.link, styles.mb4]}
-                    onPress={resetPassword}
-                    underlayColor={themeColors.componentBG}
-                >
-                    <Text style={[styles.link]}>
-                        {this.props.translate('passwordForm.forgot')}
-                    </Text>
-                </TouchableOpacity>
+
                 {this.props.account.requiresTwoFactorAuth && (
-                    <View style={[styles.mb4]}>
+                    <View style={[styles.mv3]}>
                         <Text style={[styles.formLabel]}>{this.props.translate('passwordForm.twoFactorCode')}</Text>
                         <TextInput
                             style={[styles.textInput]}
@@ -107,21 +111,28 @@ class PasswordForm extends React.Component {
                         />
                     </View>
                 )}
+
+                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
+                    </Text>
+                )}
+
+                {this.state.formError && (
+                    <Text style={[styles.formError]}>
+                        {this.state.formError}
+                    </Text>
+                )}
                 <View>
                     <Button
                         success
-                        style={[styles.mb2]}
+                        style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.state.formError}
-                    </Text>
-                )}
             </>
         );
     }

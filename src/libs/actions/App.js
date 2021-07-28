@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as API from '../API';
 
 /**
  * @param {String} url
@@ -9,10 +10,11 @@ function setCurrentURL(url) {
 }
 
 /**
- * @param {String} locale
- */
+* @param {String} locale
+*/
 function setLocale(locale) {
-    Onyx.set(ONYXKEYS.PREFERRED_LOCALE, locale);
+    API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
 export {

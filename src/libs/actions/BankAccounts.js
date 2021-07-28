@@ -310,7 +310,7 @@ function activateWallet(currentStep, parameters) {
  * @property {Number} availableBalance
  * @property {Number} currentBalance
  * @property {String} currentStep - used to track which step of the "activate wallet" flow a user is in
- * @property {('SILVER'|'GOLD')} status - will be GOLD when fully activated. SILVER is able to recieve funds only.
+ * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
  */
 function fetchUserWallet() {
     API.Get({returnValueList: 'userWallet'})
@@ -553,6 +553,7 @@ function validateBankAccount(bankAccountID, validateCode) {
             if (response.jsonCode === 200) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
                 Navigation.dismissModal();
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
                 return;
             }
 
@@ -616,8 +617,20 @@ function setupWithdrawalAccount(data) {
 
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
-                    // @TODO Show better error in UI about existing owners
-                    console.error('Cannot set up withdrawal account due to existing owners');
+                    console.error('Cannot set up withdrawal account due to existing owners', response);
+                    const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
+                        let separator = ',\n';
+                        if (i === 0) {
+                            separator = '\n';
+                        } else if (i === ownersArr.length - 1) {
+                            separator = ' and\n';
+                        }
+                        return `${ownersStr}${separator}${owner}`;
+                    }, '');
+                    Onyx.merge(
+                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                        {existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS},
+                    );
                     return;
                 }
 
@@ -721,6 +734,10 @@ function setupWithdrawalAccount(data) {
         });
 }
 
+function hideExistingOwnersError() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -733,4 +750,5 @@ export {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     validateBankAccount,
+    hideExistingOwnersError,
 };

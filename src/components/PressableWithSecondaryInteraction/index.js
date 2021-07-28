@@ -30,7 +30,9 @@ class PressableWithSecondaryInteraction extends Component {
      */
     executeSecondaryInteractionOnContextMenu(e) {
         const selection = window.getSelection().toString();
-        e.preventDefault();
+        if (this.props.preventDefaultContentMenu) {
+            e.preventDefault();
+        }
         this.props.onSecondaryInteraction(e, selection);
     }
 
@@ -39,6 +41,7 @@ class PressableWithSecondaryInteraction extends Component {
         return (
             <Pressable
                 onPressIn={this.props.onPressIn}
+                delayLongPress={200}
                 onLongPress={this.props.onSecondaryInteraction}
                 onPressOut={this.props.onPressOut}
                 ref={el => this.pressableRef = el}

@@ -4,6 +4,7 @@ export default {
         cancel: 'Cancel',
         yes: 'Yes',
         no: 'No',
+        ok: 'OK',
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
@@ -30,6 +31,7 @@ export default {
         privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
         delete: 'Delete',
+        deleted: 'deleted',
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
@@ -56,7 +58,8 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
-        deletedCommentMessage: 'Comment deleted',
+        timePrefix: 'It\'s',
+        conjunctionFor: 'for',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -95,7 +98,7 @@ export default {
     hello: 'Hello',
     phoneCountryCode: '1',
     welcomeText: {
-        phrase1: 'With Expensify.cash, chat and payments are the same thing.',
+        phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
     },
@@ -106,7 +109,7 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
-        localTime: ({user, time}) => `It's ${time} for ${user}`,
+        roomIsArchived: 'This chat room has been deleted',
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
@@ -197,7 +200,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'Expensify.cash is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'The New Expensify is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -239,10 +242,14 @@ export default {
         addPayPalAccount: 'Add PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
+    paymentsPage: {
+        paymentMethodsTitle: 'Payment Methods',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Add Payment Method',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
+        addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
@@ -259,17 +266,26 @@ export default {
     },
     signInPage: {
         expensifyDotCash: 'Expensify.cash',
-        expensifyIsOpenSource: 'Expensify.cash is open source',
+        expensifyIsOpenSource: 'The New Expensify is open source',
         theCode: 'the code',
         openJobs: 'open jobs',
+        heroHeading: 'Split bills\nand chat with friends.',
+        heroDescription: {
+            phrase1: 'Money talks. And now that chat and payments are in one place, it\'s also easy. Your payments get to you as fast as you can get your point across.',
+            phrase2: 'The New Expensify is open source. View',
+            phrase3: 'the code',
+            phrase4: 'View',
+            phrase5: 'open jobs',
+        },
     },
     termsOfUse: {
         phrase1: 'By logging in, you agree to the',
         phrase2: 'terms of service',
         phrase3: 'and',
         phrase4: 'privacy policy',
-        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS ID:2017010) pursuant to its',
-        phrase6: 'licenses',
+        phrase5: 'Money transmission is provided by Expensify Payments LLC (NMLS',
+        phrase6: 'ID:2017010) pursuant to its',
+        phrase7: 'licenses',
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
@@ -333,6 +349,7 @@ export default {
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
             addressStreet: 'Please enter a valid address street that is not a PO Box',
+            addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
             incorporationState: 'Please enter a valid Incorporation State',
             industryCode: 'Please enter a valid industry classification code',
@@ -344,6 +361,14 @@ export default {
             dob: 'Please enter a valid date of birth',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
+            existingOwners: {
+                unableToAddBankAccount: 'Unable to add bank account',
+                alreadyInUse: 'This bank account is already in use by ',
+                pleaseAskThemToShare: 'Please ask them to share it with you.',
+                alternatively: 'Alternatively, you can ',
+                setUpThisAccountByYourself: 'set up this account by yourself',
+                validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
+            },
         },
     },
     addPersonalBankAccountPage: {
@@ -425,7 +450,8 @@ export default {
         maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
-        verifyingDescription: 'We\'re taking a look at your information and will have you onto next steps in just a few seconds.',
+        reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
+        forNextSteps: ' for next steps to finish setting up your bank account.',
     },
     beneficialOwnersStep: {
         beneficialOwners: 'Beneficial Owners',
@@ -445,7 +471,8 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Looks like you\'re offline. Please check your connection and try again.',
+        offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
+        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {
@@ -473,6 +500,7 @@ export default {
             publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
             privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
             getStarted: 'Get Started',
+            finishSetup: 'Finish Setup',
             manageCards: 'Manage Cards',
             cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },
