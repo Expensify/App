@@ -96,4 +96,22 @@ export default {
             isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
+
+    /**
+     * React Navigation is failing to parse urls with dot in the path segment.
+     * This method enable pasring of urls with dot in path Segment
+     * @param {String} path - Path for the config
+     * @returns {Object}
+     */
+    getEmailRouteLinkingConfig: path => ({
+        path,
+        parse: {
+            login: l => (l
+                ? decodeURIComponent(l).replace('@dot@', '.').replace(encodeURIComponent('@dot@'), '@dot@')
+                : undefined),
+        },
+        stringify: {
+            login: l => (l ? l.replace('@dot@', encodeURIComponent('@dot@')).replace('.', '@dot@') : undefined),
+        },
+    }),
 };
