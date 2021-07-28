@@ -266,7 +266,6 @@ export default {
     },
     signInPage: {
         expensifyDotCash: 'New Expensify',
-        expensifyIsOpenSource: 'New Expensify is open source',
         theCode: 'the code',
         openJobs: 'open jobs',
         heroHeading: 'Split bills\nand chat with friends.',
