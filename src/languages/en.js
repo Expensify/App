@@ -71,7 +71,7 @@ export default {
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',
         attachmentTooLarge: 'Attachment too large',
-        sizeExceeded: 'Attachment size is larger than 50 MB limit',
+        sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No extension found for mime type',

@@ -66,7 +66,7 @@ export default {
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir Documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grandes',
-        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB',
+        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
