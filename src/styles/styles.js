@@ -1861,7 +1861,12 @@ const styles = {
         borderTopWidth: 1,
     },
 
-    termsCenterRight: {
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    shortTermsCenterRight: {
         margin: 'auto',
         textAlign: 'right',
     },
