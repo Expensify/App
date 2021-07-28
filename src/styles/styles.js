@@ -1871,6 +1871,12 @@ const styles = {
         textAlign: 'right',
     },
 
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
     termsRowBold: {
         borderTopWidth: 3,
         borderTopColor: themeColors.shadow,
