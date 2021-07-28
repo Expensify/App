@@ -31,8 +31,10 @@ class CollapsibleSection extends React.Component {
 
         return (
             <View style={[styles.mt4, styles.termsSection]}>
-                <TouchableOpacity onPress={this.toggleExpanded} style={[styles.pb4, styles.pl4, styles.flexRow]}>
-                    <Text style={styles.flex1}>{this.props.title}</Text>
+                <TouchableOpacity onPress={this.toggleExpanded} style={[styles.pb4, styles.flexRow]}>
+                    <Text style={[styles.flex1, styles.textStrong]}>
+                        {this.props.title}
+                    </Text>
                     <View style={[styles.mr4]}>
                         <Icon src={src} />
                     </View>

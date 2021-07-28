@@ -466,7 +466,7 @@ export default {
             conditionsPhone: 'o llamando al +1 833-400-0904.',
         },
         longTermsForm: {
-            listOfAllFees: 'Una lista de todas las tarifas de la cuenta Expensify Payments:',
+            listOfAllFees: 'All Expensify Payments account fees:',
             typeOfFeeHeader: 'Tipo de tarifa',
             feeAmountHeader: 'Importe de la tarifa',
             moreDetailsHeader: 'Más detalles',

@@ -442,7 +442,7 @@ export default {
             conditionsPhone: 'or calling +1 833-400-0904.',
         },
         longTermsForm: {
-            listOfAllFees: 'A list of all Expensify Payments Account fees:',
+            listOfAllFees: 'All Expensify Payments account fees:',
             typeOfFeeHeader: 'Type of Fee',
             feeAmountHeader: 'Fee Amount',
             moreDetailsHeader: 'More Details',

@@ -1856,11 +1856,6 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
-    termsRow: {
-        borderTopColor: themeColors.border,
-        borderTopWidth: 1,
-    },
-
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -1888,7 +1883,7 @@ const styles = {
     },
 
     termsSection: {
-        borderBottomWidth: 4,
+        borderBottomWidth: 2,
         borderBottomColor: themeColors.border,
     },
 
