@@ -44,16 +44,15 @@ const CommunicationsLink = props => (
                 >
                     {props.children}
                 </Pressable>
-            )
-            : props.children}
-        {!props.isSmallScreenWidth
-            && (
+            ) : (
                 <View style={[
-                    styles.pAbsolute,
+                    styles.flexRow,
                     styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                    styles.communicationsLinkIcon]}
+                    styles.w100,
+                    styles.communicationsLinkHeight,
+                ]}
                 >
+                    {props.children}
                     <ContextMenuItem
                         icon={ClipboardIcon}
                         text={props.translate('contextMenuItem.copyToClipboard')}

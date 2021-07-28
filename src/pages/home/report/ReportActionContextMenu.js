@@ -14,7 +14,6 @@ import {
 import ContextMenuItem from '../../../components/ContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
-import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -197,6 +196,4 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-)(ReportActionContextMenu);
+export default withLocalize(ReportActionContextMenu);
