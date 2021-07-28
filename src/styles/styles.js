@@ -1862,7 +1862,8 @@ const styles = {
     },
 
     termsCenterRight: {
-        margin: 'auto',
+        marginTop: 'auto',
+        marginBottom: 'auto',
         textAlign: 'right',
     },
 
