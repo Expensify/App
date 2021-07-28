@@ -4,6 +4,7 @@ import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
+import ROUTES from '../../ROUTES';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -37,7 +38,7 @@ function setLocale(locale) {
 function openSignedInLink(url) {
     API.GetAccountValidateCode().then((response) => {
         Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM
-            + this.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
+            + ROUTES.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
     });
 }
 
