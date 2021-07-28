@@ -15,6 +15,7 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
 
@@ -30,6 +31,7 @@ import com.urbanairship.util.ImageUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -73,6 +75,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     private static final String REPORT_COMMENT_TYPE = "reportComment";
 
     private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final HashMap<Integer, NotificationCache> cache = new HashMap<>();
 
     public CustomNotificationProvider(@NonNull Context context, @NonNull AirshipConfigOptions configOptions) {
         super(context, configOptions);
@@ -97,7 +100,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                 JsonMap payload = JsonValue.parseString(message.getExtra(PAYLOAD_KEY)).optMap();
 
                 if (REPORT_COMMENT_TYPE.equals(payload.get(TYPE_KEY).getString())) {
-                        applyExpensifyMessageStyle(builder, payload);
+                        applyExpensifyMessageStyle(builder, payload, arguments);
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Failed to parse conversation", e);
@@ -107,8 +110,10 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         return builder;
     }
 
-    private void applyExpensifyMessageStyle(NotificationCompat.Builder builder, JsonMap payload) {
+    private void applyExpensifyMessageStyle(NotificationCompat.Builder builder, JsonMap payload, NotificationArguments arguments) {
         int reportID = payload.get("reportID").getInt(-1);
+        NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
+
         JsonMap reportAction = payload.get("reportAction").getMap();
         String name = reportAction.get("person").getList().get(0).getMap().get("text").getString();
         String avatar = reportAction.get("avatar").getString();
@@ -124,13 +129,37 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                 .setName(name)
                 .build();
 
+        if (!notificationCache.people.containsKey(accountID)) {
+            notificationCache.people.put(accountID, person);
+        }
+
+        notificationCache.messages.add(new NotificationCache.Message(person, message, time));
+
         NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                .setGroupConversation(false)
+                .setGroupConversation(notificationCache.people.size() > 2)
                 .setConversationTitle("Chat with " + name);
 
-        messagingStyle.addMessage(message, time, person);
+        for (NotificationCache.Message cachedMessage : notificationCache.messages) {
+            messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
+        }
+
+        if (notificationCache.prevNotificationId != -1) {
+            NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationId);
+        }
 
         builder.setStyle(messagingStyle);
+        notificationCache.prevNotificationId = arguments.getNotificationId();
+    }
+
+    private NotificationCache findOrCreateNotificationCache(int reportID) {
+        NotificationCache notificationCache = cache.get(reportID);
+
+        if (notificationCache == null) {
+            notificationCache = new NotificationCache();
+            cache.put(reportID, notificationCache);
+        }
+
+        return notificationCache;
     }
 
 
@@ -245,5 +274,23 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
 
         return fallbackId == 0 ? null : IconCompat.createWithResource(context, fallbackId);
+    }
+
+    private static class NotificationCache {
+        public Map<String, Person> people = new HashMap<>();
+        public ArrayList<Message> messages = new ArrayList<>();
+        public int prevNotificationId = -1;
+
+        public static class Message {
+            public Person person;
+            public String text;
+            public long time;
+
+            Message(Person person, String text, long time) {
+                this.person = person;
+                this.text = text;
+                this.time = time;
+            }
+        }
     }
 }
