@@ -184,6 +184,7 @@ const OptionRow = ({
                                                 : undefined,
                                         ]}
                                         isDefaultChatRoom={option.isDefaultChatRoom}
+                                        isArchivedRoom={option.isArchivedRoom}
                                     />
                                 )
                             }

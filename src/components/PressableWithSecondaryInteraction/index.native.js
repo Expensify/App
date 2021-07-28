@@ -14,6 +14,7 @@ const PressableWithSecondaryInteraction = props => (
     <Pressable
         ref={props.forwardedRef}
         onPressIn={props.onPressIn}
+        delayLongPress={200}
         onLongPress={(e) => {
             e.preventDefault();
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(() => {
