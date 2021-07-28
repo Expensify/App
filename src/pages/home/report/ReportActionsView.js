@@ -99,6 +99,7 @@ class ReportActionsView extends React.Component {
         this.state = {
             isLoadingMoreChats: false,
         };
+
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
@@ -162,8 +163,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        // ContextMenu props check
-        return this.state.contextMenuContext !== nextState.contextMenuContext;
+        return false;
     }
 
     componentDidUpdate(prevProps) {
@@ -206,6 +206,7 @@ class ReportActionsView extends React.Component {
         }
 
         AppState.removeEventListener('change', this.onVisibilityChange);
+
         unsubscribeFromReportChannel(this.props.reportID);
     }
 
@@ -216,10 +217,6 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             updateLastReadActionID(this.props.reportID);
         }
-    }
-
-    updateContextMenuContext(value) {
-        this.setState({contextMenuContext: value});
     }
 
     /**
