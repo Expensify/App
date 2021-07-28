@@ -91,10 +91,6 @@ class PopoverWithMeasuredContent extends Component {
         ) || !_.isEqual(this.state, nextState);
     }
 
-    setContentMeasured(isContentMeasured) {
-        this.setState({isContentMeasured});
-    }
-
     /**
      * Measure the size of the popover's content.
      *
@@ -103,7 +99,7 @@ class PopoverWithMeasuredContent extends Component {
     measurePopover({nativeEvent}) {
         this.popoverWidth = nativeEvent.layout.width;
         this.popoverHeight = nativeEvent.layout.height;
-        this.setContentMeasured(true);
+        this.setState({isContentMeasured: true});
     }
 
     /**
