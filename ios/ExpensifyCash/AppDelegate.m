@@ -5,6 +5,7 @@
 #import <React/RCTLinkingManager.h>
 #import <React/RCTRootView.h>
 #import <Firebase.h>
+#import "RCTStartupTimer.h"
 
 #import "RNBootSplash.h"
 
@@ -74,6 +75,10 @@ static void InitializeFlipper(UIApplication *application) {
 
   [RNBootSplash initWithStoryboard:@"BootSplash" rootView:rootView]; // <- initialization using the storyboard file name
 
+  // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
+  // module in the JS so we can measure total time starting in the native layer and ending in
+  // the JS layer.
+  [RCTStartupTimer start];
   return YES;
 }
 

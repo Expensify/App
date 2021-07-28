@@ -39,6 +39,7 @@ class PressableWithSecondaryInteraction extends Component {
         return (
             <Pressable
                 onPressIn={this.props.onPressIn}
+                delayLongPress={200}
                 onLongPress={this.props.onSecondaryInteraction}
                 onPressOut={this.props.onPressOut}
                 ref={el => this.pressableRef = el}
