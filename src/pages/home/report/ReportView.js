@@ -47,6 +47,7 @@ const ReportView = ({reportID, session}) => (
 
 ReportView.propTypes = propTypes;
 ReportView.defaultProps = defaultProps;
+ReportView.displayName = 'ReportView';
 
 export default withOnyx({
     session: {

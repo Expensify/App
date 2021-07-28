@@ -7,19 +7,16 @@ import withLocalize, {
     withLocalizePropTypes,
 } from '../../../../components/withLocalize';
 import LogoWordmark from '../../../../../assets/images/expensify-wordmark.svg';
+import LocalePicker from '../../../../components/LocalePicker';
 
 const TermsWithLicenses = ({translate}) => (
     <View>
-        <View style={[styles.mt1, styles.alignItemsCenter, styles.mb3]}>
-            <LogoWordmark height={30} width={80} />
-        </View>
         <View
             style={[
                 styles.dFlex,
                 styles.flexColumn,
                 styles.flexWrap,
                 styles.textAlignCenter,
-                styles.alignItemsCenter,
                 styles.justifyContentCenter,
             ]}
         >
@@ -66,6 +63,12 @@ const TermsWithLicenses = ({translate}) => (
                 </TextLink>
                 <Text style={[styles.textAlignCenter, styles.loginTermsText]}>.</Text>
             </View>
+        </View>
+        <View style={[
+            styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}
+        >
+            <LogoWordmark height={30} width={80} />
+            <LocalePicker size="small" />
         </View>
     </View>
 );
