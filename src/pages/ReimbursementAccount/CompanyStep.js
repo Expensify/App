@@ -53,6 +53,7 @@ class CompanyStep extends React.Component {
             'addressCity',
             'addressState',
             'addressZipCode',
+            'website',
             'companyTaxID',
             'incorporationDate',
             'industryCode',
