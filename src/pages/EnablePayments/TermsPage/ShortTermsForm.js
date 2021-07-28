@@ -8,6 +8,25 @@ import {translateLocal} from '../../../libs/translate';
 const ShortTermsForm = () => (
     <>
         <View style={styles.mb5}>
+            <Text style={styles.mb5}>
+                {translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
+            </Text>
+            <View style={[styles.border, styles.pl4, styles.pr4]}>
+                <View style={[styles.flexRow, styles.pt4, styles.pb4]}>
+                    <View style={[styles.flex4]}>
+                        <Text>{translateLocal('termsStep.shortTermsForm.atmBalanceInquiry')}</Text>
+                        <Text style={[styles.textMicro]}>
+                            {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
+                        </Text>
+                    </View>
+                    <View style={[styles.flex1, styles.termsCenterRight]}>
+                        <Text style={styles.textStrong}>
+                            {translateLocal('common.na')}
+                        </Text>
+                    </View>
+                </View>
+            </View>
+
             <View style={[styles.flex1, styles.flexRow, styles.mb3]}>
                 <View style={styles.flex1}>
                     <Text>{translateLocal('termsStep.monthlyFee')}</Text>

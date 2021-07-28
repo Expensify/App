@@ -1861,6 +1861,11 @@ const styles = {
         borderTopWidth: 1,
     },
 
+    termsCenterRight: {
+        margin: 'auto',
+        textAlign: 'right',
+    },
+
     termsRowBold: {
         borderTopWidth: 3,
         borderTopColor: themeColors.shadow,
