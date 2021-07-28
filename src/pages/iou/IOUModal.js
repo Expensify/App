@@ -20,6 +20,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -129,6 +130,7 @@ class IOUModal extends Component {
     }
 
     componentDidMount() {
+        PersonalDetails.fetchLocalCurrency();
         setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
     }
 
@@ -287,9 +289,9 @@ class IOUModal extends Component {
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
+                                visible={!didScreenTransitionEnd}
                             />
-                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
+                            {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage

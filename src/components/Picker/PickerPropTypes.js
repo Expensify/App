@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
+import styles from '../../styles/styles';
 import {DownArrow} from '../Icon/Expensicons';
 
 const propTypes = {
@@ -36,13 +37,32 @@ const propTypes = {
 
     /** An icon to display with the picker */
     icon: PropTypes.func,
+
+    /** Size of a picker component */
+    size: PropTypes.oneOf(['normal', 'small']),
 };
 const defaultProps = {
     useDisabledStyles: false,
     disabled: false,
     placeholder: {},
     value: null,
-    icon: () => <Icon src={DownArrow} />,
+    icon: size => (
+        <>
+            {size === 'small'
+                ? (
+                    <Icon
+                        width={styles.pickerSmall.icon.width}
+                        height={styles.pickerSmall.icon.height}
+                        src={DownArrow}
+                    />
+                )
+                : (
+                    <Icon
+                        src={DownArrow}
+                    />
+                )}
+        </>
+    ),
 };
 
 export {
