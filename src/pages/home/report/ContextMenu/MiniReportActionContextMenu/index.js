@@ -6,9 +6,8 @@ import {
     propTypes as ReportActionContextMenuPropsTypes,
     defaultProps as ReportActionContextMenuDefaultProps,
 } from '../ReportActionContextMenuPropsTypes';
-import withLocalize from '../../../../../components/withLocalize';
 import {getMiniReportActionContextMenuWrapperStyle} from '../../../../../styles/getReportActionItemStyles';
-import ReportActionContextMenu from '../ReportActionContextMenu';
+import BaseReportActionContextMenu from '../BaseReportActionContextMenu';
 
 const propTypes = {
     ..._.omit(ReportActionContextMenuPropsTypes, ['isMini']),
@@ -25,7 +24,7 @@ const defaultProps = {
 const MiniReportActionContextMenu = props => (
     <View style={getMiniReportActionContextMenuWrapperStyle(props.displayAsGroup)}>
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <ReportActionContextMenu isMini {...props} />
+        <BaseReportActionContextMenu isMini {...props} />
     </View>
 );
 
@@ -33,4 +32,4 @@ MiniReportActionContextMenu.propTypes = propTypes;
 MiniReportActionContextMenu.defaultProps = defaultProps;
 MiniReportActionContextMenu.displayName = 'MiniReportActionContextMenu';
 
-export default withLocalize(MiniReportActionContextMenu);
+export default MiniReportActionContextMenu;

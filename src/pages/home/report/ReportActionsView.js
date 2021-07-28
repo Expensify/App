@@ -34,7 +34,7 @@ import withDrawerState, {withDrawerPropTypes} from '../../../components/withDraw
 import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import {ContextMenuContext, ContextMenuContextDefaultValue} from './ContextMenu/ContextMenuContext';
+import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 
 const propTypes = {
@@ -98,13 +98,10 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isLoadingMoreChats: false,
-            contextMenuContext: ContextMenuContextDefaultValue,
         };
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
-
-        this.updateContextMenuContext = this.updateContextMenuContext.bind(this);
     }
 
     componentDidMount() {
@@ -410,7 +407,7 @@ class ReportActionsView extends React.Component {
         }
 
         return (
-            <ContextMenuContext.Provider value={this.state.contextMenuContext}>
+            <>
                 <InvertedFlatList
                     ref={flatListRef}
                     data={this.sortedReportActions}
@@ -431,8 +428,8 @@ class ReportActionsView extends React.Component {
                     keyboardShouldPersistTaps="handled"
                     onLayout={this.recordTimeToMeasureItemLayout}
                 />
-                <PopoverReportActionContextMenu setValue={this.updateContextMenuContext} />
-            </ContextMenuContext.Provider>
+                <PopoverReportActionContextMenu ref={contextMenuRef} />
+            </>
         );
     }
 }

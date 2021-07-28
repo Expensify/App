@@ -23,12 +23,6 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /** Function to show the delete Action confirmation modal */
-    showDeleteConfirmModal: PropTypes.func.isRequired,
-
-    /** Function to dismiss the popover containing this menu */
-    hidePopover: PropTypes.func.isRequired,
-
     ...withLocalizePropTypes,
 };
 

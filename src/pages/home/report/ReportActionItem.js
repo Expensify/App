@@ -23,7 +23,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
-import {ContextMenuContext} from './ContextMenu/ContextMenuContext';
+import {isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -64,6 +64,9 @@ class ReportActionItem extends Component {
         super(props);
         this.popoverAnchor = undefined;
         this.showPopover = this.showPopover.bind(this);
+        this.state = {
+            isContextMenuActive: isActiveReportAction(props.action.reportActionID),
+        };
     }
 
     shouldComponentUpdate(nextProps) {
@@ -86,7 +89,7 @@ class ReportActionItem extends Component {
         if (this.props.draftMessage) {
             return;
         }
-        this.context.showContextMenu(
+        showContextMenu(
             event,
             selection,
             this.popoverAnchor,
@@ -94,8 +97,8 @@ class ReportActionItem extends Component {
             this.props.action,
             this.props.draftMessage,
             () => {
-                // ForceUpdate to hide the Mini menu when PopoverMenu is shown
-                this.forceUpdate();
+                // Update to hide the Mini menu when PopoverMenu is shown
+                this.setState({isContextMenuActive: isActiveReportAction(this.props.action.reportActionID)});
             },
         );
     }
@@ -140,7 +143,7 @@ class ReportActionItem extends Component {
                             <View
                                 style={getReportActionItemStyle(
                                     hovered
-                                    || this.context.isActiveReportAction(this.props.action.reportActionID)
+                                    || this.state.isContextMenuActive
                                     || this.props.draftMessage,
                                 )}
                             >
@@ -162,13 +165,11 @@ class ReportActionItem extends Component {
                                 displayAsGroup={this.props.displayAsGroup}
                                 isVisible={
                                     hovered
-                                    && !this.context.isActiveReportAction(this.props.action.reportActionID)
+                                    && !this.state.isContextMenuActive
                                     && !this.props.draftMessage
 
                                 }
                                 draftMessage={this.props.draftMessage}
-                                hidePopover={this.context.hideContextMenu}
-                                showDeleteConfirmModal={this.context.showDeleteConfirmModal}
                             />
                         </View>
                     )}
@@ -177,7 +178,6 @@ class ReportActionItem extends Component {
         );
     }
 }
-ReportActionItem.contextType = ContextMenuContext;
 ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 
