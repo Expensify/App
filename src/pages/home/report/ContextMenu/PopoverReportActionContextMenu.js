@@ -20,7 +20,7 @@ class PopoverReportActionContextMenu extends React.Component {
         super(props);
 
         this.state = {
-            reportID: null,
+            reportID: 0,
             reportAction: {},
             selection: '',
             reportActionDraftMessage: '',
@@ -70,7 +70,6 @@ class PopoverReportActionContextMenu extends React.Component {
      * We calculate the achor coordinates from measureInWindow async method
      *
      * @returns {Promise<Object>}
-     * @memberof PopoverReportActionContextMenu
      */
     getContextMenuMeasuredLocation() {
         return new Promise((resolve) => {
@@ -82,8 +81,8 @@ class PopoverReportActionContextMenu extends React.Component {
         });
     }
 
-    isActiveReportAction(actionId) {
-        return this.state.reportAction.reportActionID === actionId;
+    isActiveReportAction(actionID) {
+        return this.state.reportAction.reportActionID === actionID;
     }
 
     /**
@@ -96,7 +95,6 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Object} reportAction - ReportAction for ContextMenu
      * @param {String} draftMessage - ReportAction Draftmessage
      * @param {Function} [onShown=() => {}] - Run a callback when Menu is shown
-     * @memberof PopoverReportActionContextMenu
      */
     showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShown = () => {}) {
         const nativeEvent = event.nativeEvent || {};
@@ -168,7 +166,6 @@ class PopoverReportActionContextMenu extends React.Component {
      * Used to calculate the Context Menu Dimensions
      *
      * @returns {JSX}
-     * @memberof PopoverReportActionContextMenu
      */
     measureContent() {
         return (
@@ -198,7 +195,6 @@ class PopoverReportActionContextMenu extends React.Component {
      * Opens the Confirm delete action modal
      * @param {Number} reportID
      * @param {Object} reportAction
-     * @memberof PopoverReportActionContextMenu
      */
     showDeleteModal(reportID, reportAction) {
         this.setState({reportID, reportAction, isDeleteCommentConfirmModalVisible: true});

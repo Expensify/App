@@ -61,6 +61,7 @@ class PopoverWithMeasuredContent extends Component {
         this.popoverHeight = 0;
 
         this.measurePopover = this.measurePopover.bind(this);
+        this.setContentMeasured = this.setContentMeasured.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -81,9 +82,12 @@ class PopoverWithMeasuredContent extends Component {
     componentDidUpdate(prevProps) {
         // When Popover is shown recalculate
         if (!prevProps.isVisible && this.props.isVisible) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({isContentMeasured: false});
+            this.setContentMeasured(false);
         }
+    }
+
+    setContentMeasured(isContentMeasured) {
+        this.setState({isContentMeasured});
     }
 
     /**
@@ -94,7 +98,7 @@ class PopoverWithMeasuredContent extends Component {
     measurePopover({nativeEvent}) {
         this.popoverWidth = nativeEvent.layout.width;
         this.popoverHeight = nativeEvent.layout.height;
-        this.setState({isContentMeasured: true});
+        this.setContentMeasured(true);
     }
 
     /**

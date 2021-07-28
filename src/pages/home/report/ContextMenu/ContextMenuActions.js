@@ -10,7 +10,7 @@ import {
 import Clipboard from '../../../../libs/Clipboard';
 import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../../libs/ReportActionComposeFocusManager';
-import {hideContextMenu, showDeleteConfirmModal} from './ReportActionContextMenu';
+import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /**
  * Gets the markdown version of the message in an action.
@@ -104,13 +104,13 @@ export default [
                 // Hide popover, then call showDeleteConfirmModal
                 hideContextMenu(
                     false,
-                    () => showDeleteConfirmModal(reportID, reportAction),
+                    () => showDeleteModal(reportID, reportAction),
                 );
                 return;
             }
 
             // No popover to hide, call showDeleteConfirmModal immediately
-            showDeleteConfirmModal(reportID, reportAction);
+            showDeleteModal(reportID, reportAction);
         },
     },
 ];

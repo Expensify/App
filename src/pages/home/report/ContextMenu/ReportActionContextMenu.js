@@ -12,9 +12,16 @@ const contextMenuRef = React.createRef();
  * @param {Object} reportAction - ReportAction for ContextMenu
  * @param {String} draftMessage - ReportAction Draftmessage
  * @param {Function} [onShown=() => {}] - Run a callback when Menu is shown
- * @memberof PopoverReportActionContextMenu
  */
-function showContextMenu(event, selection, contextMenuAnchor, reportID, reportAction, draftMessage, onShown = () => {}) {
+function showContextMenu(
+    event,
+    selection,
+    contextMenuAnchor,
+    reportID,
+    reportAction,
+    draftMessage,
+    onShown = () => {},
+) {
     if (!contextMenuRef.current) {
         return;
     }
@@ -30,11 +37,11 @@ function showContextMenu(event, selection, contextMenuAnchor, reportID, reportAc
 }
 
 /**
-     * Hide the ReportActionContextMenu modal popover.
-     * Hides the popover menu with an optional delay
-     * @param {Boolean} shouldDelay - whether the menu should close after a delay
-     * @param {Function} [onHideCallback=() => {}] - Callback to be called after Context Menu is completely hidden
-     */
+ * Hide the ReportActionContextMenu modal popover.
+ * Hides the popover menu with an optional delay
+ * @param {Boolean} shouldDelay - whether the menu should close after a delay
+ * @param {Function} [onHideCallback=() => {}] - Callback to be called after Context Menu is completely hidden
+ */
 function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
     if (!contextMenuRef.current) {
         return;
@@ -47,30 +54,31 @@ function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
     setTimeout(() => contextMenuRef.current.hideContextMenu(onHideCallback), 800);
 }
 
-function hideDeleteConfirmModal() {
+function hideDeleteModal() {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.hideDeleteConfirmModal();
+    contextMenuRef.current.hideDeleteModal();
 }
 
 /**
  * Opens the Confirm delete action modal
  * @param {Number} reportID
  * @param {Object} reportAction
- * @memberof PopoverReportActionContextMenu
  */
-function showDeleteConfirmModal(reportID, reportAction) {
+function showDeleteModal(reportID, reportAction) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.showDeleteConfirmModal(reportID, reportAction);
+    console.debug(reportID, reportAction);
+    contextMenuRef.current.showDeleteModal(reportID, reportAction);
 }
-function isActiveReportAction(actionId) {
+
+function isActiveReportAction(actionID) {
     if (!contextMenuRef.current) {
         return;
     }
-    contextMenuRef.current.isActiveReportAction(actionId);
+    contextMenuRef.current.isActiveReportAction(actionID);
 }
 
 export {
@@ -78,6 +86,6 @@ export {
     showContextMenu,
     hideContextMenu,
     isActiveReportAction,
-    showDeleteConfirmModal,
-    hideDeleteConfirmModal,
+    showDeleteModal,
+    hideDeleteModal,
 };
