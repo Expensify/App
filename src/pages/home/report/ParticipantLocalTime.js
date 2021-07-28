@@ -35,6 +35,10 @@ class ParticipantLocalTime extends React.Component {
         }, 1000));
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextState.localTime !== this.state.localTime;
+    }
+
     componentWillUnmount() {
         clearInterval(this.timer);
         clearInterval(this.readyTimer);
@@ -42,6 +46,7 @@ class ParticipantLocalTime extends React.Component {
 
     getParticipantLocalTime() {
         const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', {});
+        moment.locale(this.props.preferredLocale);
         const reportRecipientDay = moment().tz(reportRecipientTimezone.selected).format('dddd');
         const currentUserDay = moment().tz(this.props.currentUserTimezone.selected).format('dddd');
 
@@ -52,38 +57,32 @@ class ParticipantLocalTime extends React.Component {
     }
 
     render() {
-        // Moment.format does not return AM or PM values immediately.
-        // So we have to wait until we are ready before showing the time to the user
-        const isReportRecipientLocalTimeReady = this.state.localTime.toString().match(/(A|P)M/ig);
         const reportRecipientDisplayName = this.props.participant.firstName
             || (Str.isSMSLogin(this.props.participant.login)
                 ? this.props.toLocalPhone(this.props.participant.displayName)
                 : this.props.participant.displayName);
 
         return (
-            isReportRecipientLocalTimeReady ? (
-                <View style={[styles.chatItemComposeSecondaryRow]}>
-                    <View style={[
-                        styles.chatItemComposeSecondaryRowOffset,
-                        styles.flexRow,
-                        styles.alignItemsCenter]}
-                    >
-                        <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
-                            {this.props.translate('common.timePrefix')}
-                        </ExpensiText>
-                        <ExpensiText style={[styles.textMicroSupportingBold, styles.mr1]}>
-                            {this.state.localTime}
-                        </ExpensiText>
-                        <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
-                            {this.props.translate('common.conjunctionFor')}
-                        </ExpensiText>
-                        <ExpensiText style={[styles.textMicroSupportingBold]}>
-                            {reportRecipientDisplayName}
-                        </ExpensiText>
-                    </View>
+            <View style={[styles.chatItemComposeSecondaryRow]}>
+                <View style={[
+                    styles.chatItemComposeSecondaryRowOffset,
+                    styles.flexRow,
+                    styles.alignItemsCenter]}
+                >
+                    <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
+                        {this.props.translate('common.timePrefix')}
+                    </ExpensiText>
+                    <ExpensiText style={[styles.textMicroSupportingBold, styles.mr1]}>
+                        {this.state.localTime}
+                    </ExpensiText>
+                    <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
+                        {this.props.translate('common.conjunctionFor')}
+                    </ExpensiText>
+                    <ExpensiText style={[styles.textMicroSupportingBold]}>
+                        {reportRecipientDisplayName}
+                    </ExpensiText>
                 </View>
-            )
-                : <View style={[styles.chatItemComposeSecondaryRow]} />
+            </View>
         );
     }
 }
