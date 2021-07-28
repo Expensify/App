@@ -44,7 +44,7 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
  */
 function getDeployMessage(deployer, deployVerb) {
     let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
-    message += ` by ${deployer} in version: ${version} 🚀`;
+    message += ` by @${deployer} in version: ${version} 🚀`;
     message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
     message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
     return message;
