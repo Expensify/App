@@ -7,16 +7,12 @@ const clientID = Str.guid();
 const maxClients = 20;
 
 let activeClients;
-
-// Whether the current clientID is set
-let didInitialize = false;
-
-let resolveReadyPromise = null;
+let isInitialized;
 
 // Keeps track of the ActiveClientManager's readiness in one place
 // so that multiple calls of isReady resolve the same promise
-const readyPromise = new Promise((resolve) => {
-    resolveReadyPromise = resolve;
+const isInitializedPromise = new Promise((resolve) => {
+    isInitialized = resolve;
 });
 
 Onyx.connect({
@@ -25,11 +21,7 @@ Onyx.connect({
         activeClients = !val ? [] : val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
-            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients).then(() => {
-                if (didInitialize) {
-                    resolveReadyPromise();
-                }
-            });
+            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
         }
     },
 });
@@ -38,17 +30,11 @@ Onyx.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    didInitialize = true;
-    Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]);
+    Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]).then(isInitialized);
 }
 
-/**
- * Allow to run any task after ActiveClientManager has successfully initialized
- *
- * @returns {Promise<void>}
- */
 function isReady() {
-    return readyPromise;
+    return isInitializedPromise;
 }
 
 /**
@@ -62,6 +48,6 @@ function isClientTheLeader() {
 
 export {
     init,
-    isReady,
     isClientTheLeader,
+    isReady,
 };

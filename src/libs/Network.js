@@ -46,6 +46,8 @@ ActiveClientManager.isReady().then(() => {
     Onyx.connect({
         key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
         callback: (persistedRequests) => {
+            console.debug('leader', ActiveClientManager.isClientTheLeader());
+
             // NETWORK_REQUEST_QUEUE is shared across clients, thus every client will have similiar copy of
             // NETWORK_REQUEST_QUEUE. It is very important to only process the queue from leader client
             // otherwise requests will be duplicated.
@@ -61,6 +63,7 @@ ActiveClientManager.isReady().then(() => {
                 || !persistedRequests.length) {
                 return;
             }
+            console.debug('process', persistedRequests.length);
 
             // Queue processing expects handlers but due to we are loading the requests from Storage
             // we just noop them to ignore the errors.
@@ -77,6 +80,7 @@ ActiveClientManager.isReady().then(() => {
         },
     });
 });
+
 
 // Subscribe to the user's session so we can include their email in every request and include it in the server logs
 let email;
