@@ -5,94 +5,70 @@ import Text from '../../../components/Text';
 import {translateLocal} from '../../../libs/translate';
 import CONST from '../../../CONST';
 
+const termsData = [
+    {
+        title: translateLocal('termsStep.monthlyFee'),
+        rightText: translateLocal('termsStep.feeAmountZero'),
+    },
+    {
+        title: translateLocal('termsStep.shortTermsForm.perPurchase'),
+        rightText: translateLocal('termsStep.feeAmountZero'),
+    },
+    {
+        title: translateLocal('termsStep.shortTermsForm.atmWithdrawal'),
+        subTitle: translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork'),
+        rightText: translateLocal('common.na'),
+    },
+    {
+        title: translateLocal('termsStep.shortTermsForm.cashReload'),
+        rightText: translateLocal('common.na'),
+    },
+    {
+        title: translateLocal('termsStep.shortTermsForm.atmBalanceInquiry'),
+        subTitle: translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork'),
+        rightText: translateLocal('common.na'),
+    },
+    {
+        title: translateLocal('termsStep.shortTermsForm.customerService'),
+        subTitle: translateLocal('termsStep.shortTermsForm.automatedOrLive'),
+        rightText: translateLocal('termsStep.feeAmountZero'),
+    },
+    {
+        title: translateLocal('termsStep.inactivity'),
+        subTitle: translateLocal('termsStep.shortTermsForm.afterTwelveMonths'),
+        rightText: translateLocal('termsStep.feeAmountZero'),
+    },
+];
+
+const getTermsSections = () => termsData.map(data => (
+    <View style={styles.shortTermsRow} key={data.title}>
+        <View style={[styles.flex4]}>
+            <Text>{data.title}</Text>
+            {
+                data.subTitle
+                && (
+                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
+                        {data.subTitle}
+                    </Text>
+                )
+            }
+        </View>
+        <View style={[styles.flex1, styles.termsCenterRight]}>
+            <Text style={[styles.textStrong, styles.textAlignRight]}>
+                {data.rightText}
+            </Text>
+        </View>
+    </View>
+));
+
 const ShortTermsForm = () => (
     <>
         <Text style={styles.mb5}>
             {translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
         </Text>
         <View style={[styles.border, styles.p2, styles.mb6]}>
-            <View style={[styles.shortTermsRow]}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.monthlyFee')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('termsStep.feeAmountZero')}
-                    </Text>
-                </View>
-            </View>
-            <View style={[styles.shortTermsRow]}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('termsStep.feeAmountZero')}
-                    </Text>
-                </View>
-            </View>
-            <View style={styles.shortTermsRow}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.atmWithdrawal')}</Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
-                    </Text>
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('common.na')}
-                    </Text>
-                </View>
-            </View>
-            <View style={[styles.shortTermsRow]}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.cashReload')}</Text>
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('common.na')}
-                    </Text>
-                </View>
-            </View>
-            <View style={styles.shortTermsRow}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.atmBalanceInquiry')}</Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork')}
-                    </Text>
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('common.na')}
-                    </Text>
-                </View>
-            </View>
-            <View style={styles.shortTermsRow}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.shortTermsForm.customerService')}</Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {translateLocal('termsStep.shortTermsForm.automatedOrLive')}
-                    </Text>
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('termsStep.feeAmountZero')}
-                    </Text>
-                </View>
-            </View>
-            <View style={styles.shortTermsRow}>
-                <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.inactivity')}</Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {translateLocal('termsStep.shortTermsForm.afterTwelveMonths')}
-                    </Text>
-                </View>
-                <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('termsStep.feeAmountZero')}
-                    </Text>
-                </View>
-            </View>
+            {getTermsSections()}
+
             <View style={styles.shortTermsBoldHeadingSection}>
                 <Text style={styles.textStrong}>
                     {translateLocal('termsStep.shortTermsForm.weChargeOneFee')}
@@ -109,7 +85,7 @@ const ShortTermsForm = () => (
                     <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.electronicFundsInstantFee')}
                     </Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
+                    <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
                         {translateLocal('termsStep.electronicFundsInstantFeeMin')}
                     </Text>
                 </View>
