@@ -521,6 +521,7 @@ export default {
             inputLabel: 'Name',
             helpText: 'This is the name you will see on your Workspace.',
             save: 'Save',
+            genericFailureMessage: 'An error occurred changing the name of the workspace, please try again.',
         },
     },
     requestCallPage: {
