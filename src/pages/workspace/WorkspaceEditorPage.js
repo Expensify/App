@@ -15,7 +15,9 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
-import {setName, updateAvatar, setAvatarURL} from '../../libs/actions/Policy';
+import {
+    uploadAvatar, update,
+} from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
 import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
@@ -38,16 +40,37 @@ class WorkspaceEditorPage extends React.Component {
         this.state = {
             name: props.policy.name,
             avatarURL: props.policy.avatarURL,
+            previewAvatarURL: props.policy.avatarURL,
         };
 
         this.submit = this.submit.bind(this);
+        this.onImageSelected = this.onImageSelected.bind(this);
+        this.onImageRemoved = this.onImageRemoved.bind(this);
+        this.uploadAvatarPromise = Promise.resolve();
+    }
+
+    onImageSelected(image) {
+        this.setState({previewAvatarURL: image.uri});
+
+        // Store the upload avatar promise so we can wait for it to finish before updating the policy
+        this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
+            this.setState({avatarURL: url}, resolve);
+        }));
+    }
+
+    onImageRemoved() {
+        this.setState({previewAvatarURL: '', avatarURL: ''});
     }
 
     submit() {
-        const name = this.state.name.trim();
-        const policyID = this.props.policy.id;
+        // Wait for the upload avatar promise to finish before updating the policy
+        this.uploadAvatarPromise.then(() => {
+            const name = this.state.name.trim();
+            const avatarURL = this.state.avatarURL;
+            const policyID = this.props.policy.id;
 
-        setName(policyID, name);
+            update(policyID, {name, avatarURL});
+        });
     }
 
     render() {
@@ -72,7 +95,7 @@ class WorkspaceEditorPage extends React.Component {
                 <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
                     <View style={[styles.w100, styles.flex1]}>
                         <AvatarWithImagePicker
-                            avatarURL={this.state.avatarURL}
+                            avatarURL={this.state.previewAvatarURL}
                             DefaultAvatar={() => (
                                 <Icon
                                     src={Workspace}
@@ -83,11 +106,9 @@ class WorkspaceEditorPage extends React.Component {
                             )}
                             style={[styles.mb3]}
                             anchorPosition={{top: 172, right: 18}}
-                            isUsingDefaultAvatar={!this.state.avatarURL}
-                            onImageSelected={(image) => {
-                                this.setState({avatarURL: image.uri});
-                            }}
-                            onImageRemoved={() => this.setState({avatarURL: ''})}
+                            isUsingDefaultAvatar={!this.state.previewAvatarURL}
+                            onImageSelected={this.onImageSelected}
+                            onImageRemoved={this.onImageRemoved}
                         />
 
                         <TextInputWithLabel
