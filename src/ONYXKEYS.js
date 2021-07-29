@@ -16,6 +16,9 @@ export default {
     // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
     IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
 
+    // Boolean flag set whenever the sidebar has loaded
+    IS_SIDEBAR_LOADED: 'isSidebarLoaded',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.

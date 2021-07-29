@@ -42,15 +42,13 @@ class TextInputAutoWidth extends React.Component {
     render() {
         const propsWithoutStyles = _.omit(this.props, ['inputStyle', 'textStyle']);
         return (
-            <>
-                <View>
-                    <TextInputFocusable
-                        style={[this.props.inputStyle, getAutoGrowTextInputStyle(this.state.textInputWidth)]}
-                        ref={this.props.forwardedRef}
-                        /* eslint-disable-next-line react/jsx-props-no-spreading */
-                        {...propsWithoutStyles}
-                    />
-                </View>
+            <View>
+                <TextInputFocusable
+                    style={[this.props.inputStyle, getAutoGrowTextInputStyle(this.state.textInputWidth)]}
+                    ref={this.props.forwardedRef}
+                    /* eslint-disable-next-line react/jsx-props-no-spreading */
+                    {...propsWithoutStyles}
+                />
                 {/*
                 Text input component doesn't support auto grow by default.
                 We're using a hidden text input to achieve that.
@@ -63,7 +61,7 @@ class TextInputAutoWidth extends React.Component {
                 >
                     {this.props.value || this.props.placeholder}
                 </Text>
-            </>
+            </View>
         );
     }
 }

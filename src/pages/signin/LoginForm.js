@@ -89,15 +89,6 @@ class LoginForm extends React.Component {
                         translateX={-18}
                     />
                 </View>
-                <View style={[styles.mt5]}>
-                    <Button
-                        success
-                        text={this.props.translate('common.continue')}
-                        isLoading={this.props.account.loading}
-                        onPress={this.validateAndSubmitForm}
-                    />
-                </View>
-
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
                         {this.state.formError}
@@ -114,6 +105,15 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
+                <View style={[styles.mt5]}>
+                    <Button
+                        success
+                        text={this.props.translate('common.continue')}
+                        isLoading={this.props.account.loading}
+                        onPress={this.validateAndSubmitForm}
+                    />
+                </View>
+
             </>
         );
     }

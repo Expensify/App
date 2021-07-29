@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import LocalePicker from '../../components/LocalePicker';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -17,7 +18,6 @@ import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiPicker from '../../components/ExpensiPicker';
-import {setLocale} from '../../libs/actions/App';
 
 const propTypes = {
     /** The chat priority mode */
@@ -29,20 +29,16 @@ const propTypes = {
         expensifyNewsStatus: PropTypes.bool,
     }),
 
-    /** Indicates which locale the user currently has selected */
-    preferredLocale: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
     user: {},
-    preferredLocale: CONST.DEFAULT_LOCALE,
 };
 
 const PreferencesPage = ({
-    priorityMode, user, translate, preferredLocale,
+    priorityMode, user, translate,
 }) => {
     const priorityModes = {
         default: {
@@ -54,17 +50,6 @@ const PreferencesPage = ({
             value: CONST.PRIORITY_MODE.GSD,
             label: translate('preferencesPage.focus'),
             description: translate('preferencesPage.focusModeDescription'),
-        },
-    };
-
-    const localesToLanguages = {
-        default: {
-            value: 'en',
-            label: translate('preferencesPage.languages.english'),
-        },
-        es: {
-            value: 'es',
-            label: translate('preferencesPage.languages.spanish'),
         },
     };
 
@@ -107,17 +92,8 @@ const PreferencesPage = ({
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[priorityMode].description}
                     </Text>
-                    <View style={[styles.mb2, styles.w100]}>
-                        <ExpensiPicker
-                            label={translate('preferencesPage.language')}
-                            onChange={(locale) => {
-                                if (locale !== preferredLocale) {
-                                    setLocale(locale);
-                                }
-                            }}
-                            items={Object.values(localesToLanguages)}
-                            value={preferredLocale}
-                        />
+                    <View style={[styles.mb2]}>
+                        <LocalePicker />
                     </View>
                 </View>
             </View>
@@ -137,9 +113,6 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
-        },
-        preferredLocale: {
-            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
     }),
 )(PreferencesPage);

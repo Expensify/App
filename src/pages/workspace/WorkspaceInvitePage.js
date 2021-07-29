@@ -15,7 +15,6 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {invite} from '../../libs/actions/Policy';
 import TextLink from '../../components/TextLink';
-import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import Growl from '../../libs/Growl';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
@@ -104,7 +103,6 @@ class WorkspaceInvitePage extends React.Component {
                                 autoCorrect={false}
                                 autoCapitalize="none"
                                 value={this.state.userLogins}
-                                keyboardType={getEmailKeyboardType()}
                                 onChangeText={text => this.setState({userLogins: text})}
                             />
                         </View>

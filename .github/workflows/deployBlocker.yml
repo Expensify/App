@@ -24,7 +24,7 @@ jobs:
         run: |
           echo "DEPLOY_BLOCKER_URL=${{ github.event.issue.html_url }}" >> $GITHUB_ENV
           echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
-          echo "DEPLOY_BLOCKER_TITLE=${{ github.event.issue.title }}" >> $GITHUB_ENV
+          echo "DEPLOY_BLOCKER_TITLE=$(sed -e "s/'/'\\\\''/g; s/\`/\\\\\`/g; 1s/^/'/; \$s/\$/'/" <<< ${{ github.event.issue.title }})" >> $GITHUB_ENV
 
       - name: Get URL, title, & number of new deploy blocker (pull request)
         if: ${{ github.event_name == 'pull_request' }}

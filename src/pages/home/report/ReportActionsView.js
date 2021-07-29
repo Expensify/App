@@ -34,6 +34,8 @@ import withDrawerState, {withDrawerPropTypes} from '../../../components/withDraw
 import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
+import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -100,6 +102,7 @@ class ReportActionsView extends React.Component {
 
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
+        this.keyExtractor = this.keyExtractor.bind(this);
     }
 
     componentDidMount() {
@@ -214,6 +217,17 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             updateLastReadActionID(this.props.reportID);
         }
+    }
+
+    /**
+     * Create a unique key for Each Action in the FlatList.
+     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
+     * shouldn't happen, but might be possible in some rare cases.
+     * @param {Object} item
+     * @return {String}
+     */
+    keyExtractor(item) {
+        return `${item.action.sequenceNumber}${item.action.clientID}`;
     }
 
     /**
@@ -365,7 +379,7 @@ class ReportActionsView extends React.Component {
         index,
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
-                && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+            && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
             <ReportActionItem
                 reportID={this.props.reportID}
@@ -397,26 +411,25 @@ class ReportActionsView extends React.Component {
         }
 
         return (
-            <InvertedFlatList
-                ref={flatListRef}
-                data={this.sortedReportActions}
-                renderItem={this.renderItem}
-                CellRendererComponent={this.renderCell}
-                contentContainerStyle={[styles.chatContentScrollView]}
-
-                // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-                // shouldn't happen, but might be possible in some rare cases.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
-                initialRowHeight={32}
-                onEndReached={this.loadMoreChats}
-                onEndReachedThreshold={0.75}
-                ListFooterComponent={this.state.isLoadingMoreChats
-                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
-                    : null}
-                keyboardShouldPersistTaps="handled"
-                onLayout={this.recordTimeToMeasureItemLayout}
-            />
+            <>
+                <InvertedFlatList
+                    ref={flatListRef}
+                    data={this.sortedReportActions}
+                    renderItem={this.renderItem}
+                    CellRendererComponent={this.renderCell}
+                    contentContainerStyle={styles.chatContentScrollView}
+                    keyExtractor={this.keyExtractor}
+                    initialRowHeight={32}
+                    onEndReached={this.loadMoreChats}
+                    onEndReachedThreshold={0.75}
+                    ListFooterComponent={this.state.isLoadingMoreChats
+                        ? <ActivityIndicator size="small" color={themeColors.spinner} />
+                        : null}
+                    keyboardShouldPersistTaps="handled"
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                />
+                <PopoverReportActionContextMenu ref={contextMenuRef} />
+            </>
         );
     }
 }

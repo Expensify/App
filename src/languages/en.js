@@ -70,6 +70,8 @@ export default {
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',
+        attachmentTooLarge: 'Attachment too large',
+        sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
@@ -240,6 +242,7 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
+        editPayPalAccount: 'Update PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
     paymentsPage: {
