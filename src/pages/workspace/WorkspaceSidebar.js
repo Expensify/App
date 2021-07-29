@@ -108,7 +108,11 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                     style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
                                     onPress={() => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id))}
                                 >
-                                    <Icon src={Pencil} fill={themedefault.iconReversed} />
+                                    <Icon
+                                        src={Pencil}
+                                        style={[styles.smallEditIconPencil]}
+                                        fill={themedefault.iconReversed}
+                                    />
                                 </Pressable>
                             </View>
 

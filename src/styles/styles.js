@@ -1788,19 +1788,23 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
         borderColor: themeColors.textReversed,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 3,
         color: themeColors.textReversed,
-        height: 32,
-        width: 32,
+        height: 28,
+        width: 28,
         justifyContent: 'center',
         padding: 4,
+    },
+
+    smallEditIconPencil: {
+        width: 20,
+        height: 20,
     },
 
     smallAvatarEditIcon: {
         position: 'absolute',
         right: -4,
-        width: 32,
         bottom: -4,
     },
 
