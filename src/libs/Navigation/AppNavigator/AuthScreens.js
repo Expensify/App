@@ -178,24 +178,23 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        let searchShortcutModifiers = ['control'];
+        let groupShortcutModifiers = ['control', 'shift'];
+
+        if (getOperatingSystem() === CONST.OS.MAC_OS) {
+            searchShortcutModifiers = ['meta'];
+            groupShortcutModifiers = ['meta', 'shift'];
+        }
+
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.SEARCH);
-            }, ['meta'], true);
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            }, ['meta', 'shift'], true);
-        } else {
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.SEARCH);
-            }, ['control'], true);
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            }, ['control', 'shift'], true);
-        }
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe('K', () => {
+            Navigation.navigate(ROUTES.SEARCH);
+        }, searchShortcutModifiers, true);
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
+            Navigation.navigate(ROUTES.NEW_GROUP);
+        }, groupShortcutModifiers, true);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -215,7 +214,12 @@ class AuthScreens extends React.Component {
     }
 
     componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
+        if (this.unsubscribeSearchShortcut) {
+            this.unsubscribeSearchShortcut();
+        }
+        if (this.unsubscribeGroupShortcut) {
+            this.unsubscribeGroupShortcut();
+        }
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;
