@@ -411,7 +411,7 @@ export default {
         headerTitle: 'Terms and Fees',
         haveReadAndAgree: 'I have read and agree to receive ',
         electronicDisclosures: 'electronic disclosures',
-        agreeToThe: 'I agree to the ',
+        agreeToThe: 'I agree to the',
         walletAgreement: 'Wallet Agreement',
         enablePayments: 'Enable Payments',
         termsMustBeAccepted: 'Terms must be accepted',
