@@ -69,43 +69,43 @@ class TermsStep extends React.Component {
                     <ScrollView style={styles.mb4}>
                         <ShortTermsForm />
                         <LongTermsForm />
-                    </ScrollView>
-                    <CheckboxWithLabel
-                        style={styles.mb4}
-                        isChecked={this.state.hasAcceptedDisclosure}
-                        onPress={this.toggleDisclosure}
-                        LabelComponent={() => (
-                            <Text>
-                                {`${this.props.translate('termsStep.haveReadAndAgree')} `}
-
-                                <TextLink href="https://use.expensify.com/fees">
-                                    {`${this.props.translate('termsStep.electronicDisclosures')}.`}
-                                </TextLink>
-                            </Text>
-                        )}
-                    />
-                    <CheckboxWithLabel
-                        style={styles.mb4}
-                        isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
-                        onPress={this.togglePrivacyPolicy}
-                        LabelComponent={() => (
-                            <>
+                        <CheckboxWithLabel
+                            style={[styles.mb4, styles.mt4]}
+                            isChecked={this.state.hasAcceptedDisclosure}
+                            onPress={this.toggleDisclosure}
+                            LabelComponent={() => (
                                 <Text>
-                                    {`${this.props.translate('termsStep.agreeToThe')} `}
+                                    {`${this.props.translate('termsStep.haveReadAndAgree')} `}
+
+                                    <TextLink href="https://use.expensify.com/fees">
+                                        {`${this.props.translate('termsStep.electronicDisclosures')}.`}
+                                    </TextLink>
                                 </Text>
+                            )}
+                        />
+                        <CheckboxWithLabel
+                            style={styles.mb4}
+                            isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
+                            onPress={this.togglePrivacyPolicy}
+                            LabelComponent={() => (
+                                <>
+                                    <Text>
+                                        {`${this.props.translate('termsStep.agreeToThe')} `}
+                                    </Text>
 
-                                <TextLink href="https://use.expensify.com/privacy">
-                                    {`${this.props.translate('common.privacyPolicy')} `}
-                                </TextLink>
+                                    <TextLink href="https://use.expensify.com/privacy">
+                                        {`${this.props.translate('common.privacyPolicy')} `}
+                                    </TextLink>
 
-                                <Text>{`${this.props.translate('common.and')} `}</Text>
+                                    <Text>{`${this.props.translate('common.and')} `}</Text>
 
-                                <TextLink href="https://use.expensify.com/personalpaymentsterms">
-                                    {`${this.props.translate('termsStep.walletAgreement')}.`}
-                                </TextLink>
-                            </>
-                        )}
-                    />
+                                    <TextLink href="https://use.expensify.com/personalpaymentsterms">
+                                        {`${this.props.translate('termsStep.walletAgreement')}.`}
+                                    </TextLink>
+                                </>
+                            )}
+                        />
+                    </ScrollView>
                     {this.state.error && (
                         <Text style={[styles.formError, styles.mb2]}>
                             {this.props.translate('termsStep.termsMustBeAccepted')}
