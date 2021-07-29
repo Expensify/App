@@ -70,14 +70,14 @@ describe('Translation Keys', () => {
     }
     const excludeLanguages = ['en', 'es-ES'];
     const languages = _.without(_.keys(originalTranslations.default), ...excludeLanguages);
-    const parentLanguage = originalTranslations.default.en;
-    const parentLanguageKeys = traverseKeyPath(parentLanguage);
+    const mainLanguage = originalTranslations.default.en;
+    const mainLanguageKeys = traverseKeyPath(mainLanguage);
 
-    _.every(languages, (ln) => {
+    _.each(languages, (ln) => {
         const languageKeys = traverseKeyPath(originalTranslations.default[ln]);
 
         it(`Does ${ln} locale has all the keys`, () => {
-            const hasAllKeys = _.difference(parentLanguageKeys, languageKeys);
+            const hasAllKeys = _.difference(mainLanguageKeys, languageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
             }
@@ -85,7 +85,7 @@ describe('Translation Keys', () => {
         });
 
         it(`Does ${ln} locale has unused keys`, () => {
-            const hasAllKeys = _.difference(languageKeys, parentLanguageKeys);
+            const hasAllKeys = _.difference(languageKeys, mainLanguageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
             }
