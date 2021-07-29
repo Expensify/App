@@ -228,7 +228,7 @@ function setAvatarURL(policyID, avatarURL = '') {
  * @param {String} policyID
  * @param {String} name
  */
-function setName(policyID, name ) {
+function setName(policyID, name) {
     API.UpdatePolicy({policyID, value: JSON.stringify({name}), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
