@@ -14,6 +14,8 @@ Onyx.connect({
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
+});
+
 let isSidebarLoaded;
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
