@@ -65,7 +65,7 @@ class TermsStep extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.mh5, styles.flex1]}>
-                    <ScrollView style={styles.mb4}>
+                    <ScrollView>
                         <ShortTermsForm />
                         <LongTermsForm />
                         <CheckboxWithLabel
@@ -110,7 +110,7 @@ class TermsStep extends React.Component {
                             {this.props.translate('termsStep.termsMustBeAccepted')}
                         </Text>
                     )}
-                    <View style={[styles.mv5]}>
+                    <View style={[styles.mb5]}>
                         <Button
                             success
                             text={this.props.translate('termsStep.enablePayments')}
