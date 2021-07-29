@@ -2,6 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -9,13 +11,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
-import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
-import {create} from '../../libs/actions/Policy';
-import defaultTheme from '../../styles/themes/default';
+import {setName} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** List of betas */
@@ -32,7 +32,7 @@ class WorkspaceNameEditorPage extends React.Component {
         super(props);
 
         this.state = {
-            name: '',
+            name: props.policy.name,
         };
 
         this.submit = this.submit.bind(this);
@@ -40,39 +40,43 @@ class WorkspaceNameEditorPage extends React.Component {
 
     submit() {
         const name = this.state.name.trim();
-        create(name);
+        const policyID = this.props.policy.id;
+
+        setName(policyID, name);
     }
 
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
-            console.debug('Not showing new workspace page because user is not on free plan beta');
+            console.debug('Not showing workspace name editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
+        }
+
+        if (_.isEmpty(this.props.policy)) {
+            return null;
         }
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.new.welcome')}
+                    title={this.props.translate('workspace.nameEditor.title')}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
 
                 <View style={[styles.pageWrapper, styles.flex1]}>
-                    <WorkspaceDefaultAvatar height={80} width={80} fill={defaultTheme.iconSuccessFill} />
-
-                    <View style={[styles.mt6, styles.w100, styles.flex1]}>
+                    <View style={[styles.w100, styles.flex1]}>
                         <TextInputWithLabel
-                            label={this.props.translate('workspace.new.chooseAName')}
+                            label={this.props.translate('workspace.nameEditor.inputLabel')}
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                             onSubmitEditting={this.submit}
                         />
-                        <Text style={[styles.mt6]}>{this.props.translate('workspace.new.helpText')}</Text>
+                        <Text style={[styles.mt2]}>{this.props.translate('workspace.nameEditor.helpText')}</Text>
                     </View>
 
                     <Button
                         success
                         style={[styles.w100]}
-                        text={this.props.translate('workspace.new.getStarted')}
+                        text={this.props.translate('workspace.nameEditor.save')}
                         onPress={this.submit}
                         pressOnEnter
                     />
@@ -89,6 +93,14 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        policy: {
+            key: (props) => {
+                const routes = lodashGet(props.navigation.getState(), 'routes', []);
+                const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
+                const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
+                return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+            },
         },
     }),
     withLocalize,
