@@ -3,7 +3,9 @@ import {Linking} from 'react-native';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
+import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
+import Firebase from '../Firebase';
 import ROUTES from '../../ROUTES';
 
 let currentUserAccountID;
@@ -12,6 +14,11 @@ Onyx.connect({
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
     },
+let isSidebarLoaded;
+Onyx.connect({
+    key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    callback: val => isSidebarLoaded = val,
+    initWithStoredValues: false,
 });
 
 /**
@@ -42,8 +49,18 @@ function openSignedInLink(url) {
     });
 }
 
+function setSidebarLoaded() {
+    if (isSidebarLoaded) {
+        return;
+    }
+
+    Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
+    Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
+}
+
 export {
     setCurrentURL,
     setLocale,
     openSignedInLink,
+    setSidebarLoaded,
 };

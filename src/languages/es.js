@@ -65,6 +65,8 @@ export default {
         takePhoto: 'Hacer una Foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir Documento',
+        attachmentTooLarge: 'Archivo adjunto demasiado grande',
+        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
@@ -231,7 +233,8 @@ export default {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
-        addPayPalAccount: 'Agregar Cuenta de Paypal',
+        addPayPalAccount: 'Agregar cuenta de PayPal',
+        editPayPalAccount: 'Actualizar cuenta de PayPal',
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
