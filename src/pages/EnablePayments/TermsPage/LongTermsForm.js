@@ -120,8 +120,8 @@ const LongTermsForm = () => (
         <Text style={[styles.mb6, styles.textMicroSupporting]}>
             {translateLocal('termsStep.longTermsForm.generalInformation')}
             {' '}
-            { CONST.TERMS.CFPB_PREPAID }
-            {' '}
+            {CONST.TERMS.CFPB_PREPAID}
+            {'. '}
             {translateLocal('termsStep.longTermsForm.generalInformation2')}
             {' '}
             {CONST.TERMS.CFPB_COMPLAINT}
