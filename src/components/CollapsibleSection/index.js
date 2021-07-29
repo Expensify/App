@@ -5,7 +5,7 @@ import Text from '../Text';
 import {propTypes, defaultProps} from './CollapsibleSectionPropTypes';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
-import {Close, DownArrow} from '../Icon/Expensicons';
+import {DownArrow, UpArrow} from '../Icon/Expensicons';
 
 class CollapsibleSection extends React.Component {
     constructor(props) {
@@ -26,8 +26,7 @@ class CollapsibleSection extends React.Component {
     }
 
     render() {
-        // TODO: Get an UpArrow SVG
-        const src = this.state.isExpanded ? Close : DownArrow;
+        const src = this.state.isExpanded ? UpArrow : DownArrow;
 
         return (
             <View style={styles.mt4}>
