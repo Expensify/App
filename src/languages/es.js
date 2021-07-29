@@ -30,6 +30,7 @@ export default {
         privacy: 'Intimidad',
         privacyPolicy: 'Política de privacidad',
         delete: 'Eliminar',
+        deleted: 'eliminado',
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
@@ -56,7 +57,6 @@ export default {
         send: 'Enviar',
         notifications: 'Notificaciones',
         noResultsFound: 'No se han encontrado resultados',
-        deletedCommentMessage: 'Comentario borrado',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
     },
@@ -69,6 +69,8 @@ export default {
         takePhoto: 'Hacer una Foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir Documento',
+        attachmentTooLarge: 'Archivo adjunto demasiado grande',
+        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
@@ -108,6 +110,7 @@ export default {
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
+        roomIsArchived: 'Esta sala de chat ha sido eliminada',
     },
     contextMenuItem: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -240,10 +243,14 @@ export default {
         addPayPalAccount: 'Agregar Cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
     },
+    paymentsPage: {
+        paymentMethodsTitle: 'Métodos de pago',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
@@ -355,6 +362,14 @@ export default {
             dob: 'Ingrese una fecha de nacimiento válida',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
+            existingOwners: {
+                unableToAddBankAccount: 'No ha sido posible añadir la cuenta bancaria',
+                alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
+                pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
+                alternatively: 'En su defecto, puedes ',
+                setUpThisAccountByYourself: 'añadir la cuenta tú mismo',
+                validationProcessAgain: ' y completar el proceso de validación de nuevo (lo cual puede tardar hasta una semana).',
+            },
         },
     },
     addPersonalBankAccountPage: {
@@ -457,7 +472,8 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
+        offlineMessage: 'Parece que estás desconectado.',
     },
     workspace: {
         common: {

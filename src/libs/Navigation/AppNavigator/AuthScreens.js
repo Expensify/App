@@ -96,6 +96,22 @@ const modalScreenListeners = {
     },
 };
 
+let hasLoadedPolicies = false;
+
+/**
+ * We want to only load policy info if you are in the freePlan beta.
+ * @param {Array} betas
+ */
+function loadPoliciesBehindBeta(betas) {
+    // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
+    // Policy info loading should not be blocked behind the defaultRooms beta alone.
+    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
+        getPolicyList();
+        getPolicySummaries();
+        hasLoadedPolicies = true;
+    }
+}
+
 const propTypes = {
     /** Information about the network */
     network: PropTypes.shape({
@@ -129,23 +145,24 @@ class AuthScreens extends React.Component {
             appKey: CONFIG.PUSHER.APP_KEY,
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
-        }).then(subscribeToUserEvents);
+        }).then(() => {
+            subscribeToUserEvents();
+            User.subscribeToUserEvents();
+        });
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
+        NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
         User.getDomainInfo();
-        PersonalDetails.fetchCurrencyPreferences();
+        PersonalDetails.fetchLocalCurrency();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
 
-        if (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas)) {
-            getPolicyList();
-            getPolicySummaries();
-        }
+        loadPoliciesBehindBeta(this.props.betas);
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -161,24 +178,23 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        let searchShortcutModifiers = ['control'];
+        let groupShortcutModifiers = ['control', 'shift'];
+
+        if (getOperatingSystem() === CONST.OS.MAC_OS) {
+            searchShortcutModifiers = ['meta'];
+            groupShortcutModifiers = ['meta', 'shift'];
+        }
+
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.SEARCH);
-            }, ['meta'], true);
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            }, ['meta', 'shift'], true);
-        } else {
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.SEARCH);
-            }, ['control'], true);
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            }, ['control', 'shift'], true);
-        }
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe('K', () => {
+            Navigation.navigate(ROUTES.SEARCH);
+        }, searchShortcutModifiers, true);
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
+            Navigation.navigate(ROUTES.NEW_GROUP);
+        }, groupShortcutModifiers, true);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -186,11 +202,24 @@ class AuthScreens extends React.Component {
             return true;
         }
 
+        if (nextProps.betas !== this.props.betas) {
+            return true;
+        }
+
         return false;
     }
 
+    componentDidUpdate() {
+        loadPoliciesBehindBeta(this.props.betas);
+    }
+
     componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
+        if (this.unsubscribeSearchShortcut) {
+            this.unsubscribeSearchShortcut();
+        }
+        if (this.unsubscribeGroupShortcut) {
+            this.unsubscribeGroupShortcut();
+        }
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;

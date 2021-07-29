@@ -100,6 +100,7 @@ class AddPayPalMePage extends React.Component {
                         <Button
                             success
                             onPress={this.setPayPalMeUsername}
+                            pressOnEnter
                             style={[styles.mt3]}
                             text={this.props.translate('addPayPalMePage.addPayPalAccount')}
                         />
