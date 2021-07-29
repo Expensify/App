@@ -23,6 +23,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
+import Firebase from '../../../libs/Firebase';
 
 const propTypes = {
     /** Beta features list */
@@ -45,6 +46,10 @@ class SidebarScreen extends Component {
         this.state = {
             isCreateMenuActive: false,
         };
+    }
+
+    componentDidMount() {
+        Firebase.startTrace(CONST.TIMING.SIDEBAR_LOADED);
     }
 
     /**

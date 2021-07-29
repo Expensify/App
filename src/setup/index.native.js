@@ -1,4 +1,10 @@
-// No additional setup required for native platforms
+// Setup Flipper plugins when on dev
 export default function () {
-    return null;
+    // eslint-disable-next-line no-undef
+    if (__DEV__) {
+        require('flipper-plugin-bridgespy-client');
+        const RNAsyncStorageFlipper = require('rn-async-storage-flipper').default;
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        RNAsyncStorageFlipper(AsyncStorage);
+    }
 }
