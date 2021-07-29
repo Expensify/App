@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -13,6 +13,7 @@ import {
     Users,
     ExpensifyCard,
     Workspace,
+    Pencil,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -105,17 +106,27 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                 }}
                                 onImageRemoved={() => setAvatarURL(policy.id)}
                             />
-                            <Text
-                                numberOfLines={1}
-                                style={[
-                                    styles.displayName,
-                                    styles.alignSelfCenter,
-                                    styles.mt1,
-                                    styles.mb6,
-                                ]}
+
+                            <View style={[
+                                styles.alignSelfCenter, styles.pRelative]}
                             >
-                                {policy.name}
-                            </Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[
+                                        styles.displayName,
+                                        styles.mt1,
+                                        styles.mb6,
+                                    ]}
+                                >
+                                    {policy.name}
+                                </Text>
+                                <Pressable
+                                    style={[styles.smallEditIcon, styles.smallNameEditIcon]}
+                                    onPress={() => alert('edit')}
+                                >
+                                    <Icon src={Pencil} fill={themedefault.iconReversed} />
+                                </Pressable>
+                            </View>
                         </View>
                     </View>
                     {menuItems.map(item => (
