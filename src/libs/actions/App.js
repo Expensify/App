@@ -1,8 +1,10 @@
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import Firebase from '../Firebase';
 import CONST from '../../CONST';
+import Log from '../Log';
 
 let isSidebarLoaded;
 
@@ -35,6 +37,14 @@ function setSidebarLoaded() {
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
 }
+
+let appState;
+AppState.addEventListener('change', (nextAppState) => {
+    if (nextAppState.match(/inactive|background/) && appState === 'active') {
+        Log.info('Flushing logs as app is going inactive', true, {}, true);
+    }
+    appState = nextAppState;
+});
 
 export {
     setCurrentURL,
