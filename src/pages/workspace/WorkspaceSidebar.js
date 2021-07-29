@@ -24,6 +24,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Policy for the current route */
@@ -110,7 +111,8 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                 >
                                     <Icon
                                         src={Pencil}
-                                        style={[styles.smallEditIconPencil]}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
                                         fill={themedefault.iconReversed}
                                     />
                                 </Pressable>
