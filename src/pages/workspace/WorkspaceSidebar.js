@@ -68,8 +68,6 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
         return null;
     }
 
-    console.debug(policy);
-
     return (
         <ScreenWrapper>
             <ScrollView
