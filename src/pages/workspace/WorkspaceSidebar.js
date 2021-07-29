@@ -23,8 +23,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
-import {updateAvatar, setAvatarURL} from '../../libs/actions/Policy';
+import Avatar from '../../components/Avatar';
 
 const propTypes = {
     /** Policy for the current route */
@@ -88,45 +87,42 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                         )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                            <AvatarWithImagePicker
-                                avatarURL={policy.avatarURL}
-                                DefaultAvatar={() => (
-                                    <Icon
-                                        src={Workspace}
-                                        height={80}
-                                        width={80}
-                                        fill={themedefault.icon}
-                                    />
-                                )}
-                                style={[styles.mb3]}
-                                anchorPosition={{top: 116, left: 20}}
-                                isUsingDefaultAvatar={!policy.avatarURL}
-                                onImageSelected={(image) => {
-                                    updateAvatar(policy.id, image);
-                                }}
-                                onImageRemoved={() => setAvatarURL(policy.id)}
-                            />
-
-                            <View style={[
-                                styles.alignSelfCenter, styles.pRelative]}
-                            >
-                                <Text
-                                    numberOfLines={1}
-                                    style={[
-                                        styles.displayName,
-                                        styles.mt1,
-                                        styles.mb6,
-                                    ]}
-                                >
-                                    {policy.name}
-                                </Text>
+                            <View style={[styles.pRelative, styles.avatarLarge]}>
+                                {policy.avatarURL
+                                    ? (
+                                        <Avatar
+                                            containerStyles={styles.avatarLarge}
+                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                            source={policy.avatarURL}
+                                        />
+                                    )
+                                    : (
+                                        <Icon
+                                            src={Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={themedefault.icon}
+                                        />
+                                    )}
                                 <Pressable
-                                    style={[styles.smallEditIcon, styles.smallNameEditIcon]}
+                                    style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
                                     onPress={() => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id))}
                                 >
                                     <Icon src={Pencil} fill={themedefault.iconReversed} />
                                 </Pressable>
                             </View>
+
+                            <Text
+                                numberOfLines={1}
+                                style={[
+                                    styles.alignSelfCenter,
+                                    styles.displayName,
+                                    styles.mt4,
+                                    styles.mb6,
+                                ]}
+                            >
+                                {policy.name}
+                            </Text>
                         </View>
                     </View>
                     {menuItems.map(item => (
