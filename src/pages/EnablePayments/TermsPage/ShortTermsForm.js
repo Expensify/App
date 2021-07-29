@@ -104,7 +104,7 @@ const ShortTermsForm = () => (
                         style={styles.link}
                         onPress={() => Linking.openURL(CONST.CFPB_PREPAID_URL)}
                     >
-                        cfpb.gov/prepaid
+                        {CONST.TERMS.CFPB_PREPAID}
                     </Text>
                     .
                 </Text>
@@ -115,7 +115,7 @@ const ShortTermsForm = () => (
                         style={styles.link}
                         onPress={() => Linking.openURL(CONST.FEES_URL)}
                     >
-                        use.expensify.com/fees
+                        {CONST.TERMS.USE_EXPENSIFY_FEES}
                     </Text>
                     {' '}
                     {translateLocal('termsStep.shortTermsForm.conditionsPhone')}

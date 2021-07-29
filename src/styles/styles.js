@@ -1881,20 +1881,9 @@ const styles = {
         marginTop: 20,
     },
 
-    termsRowBold: {
-        borderTopWidth: 3,
-        borderTopColor: themeColors.shadow,
-    },
-
     collapsibleSectionBorder: {
         borderBottomWidth: 2,
         borderBottomColor: themeColors.border,
-    },
-
-    communicationsLinkIcon: {
-        right: -36,
-        top: 0,
-        bottom: 0,
     },
 
     communicationsLinkHeight: {

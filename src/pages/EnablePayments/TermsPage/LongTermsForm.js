@@ -100,7 +100,7 @@ const LongTermsForm = () => (
         <Text style={[styles.mb4, styles.mt6, styles.textMicroSupporting]}>
             {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp')}
             {' '}
-            fdic.gov/deposit/deposits/prepaid.html
+            {CONST.TERMS.FDIC_PREPAID}
             {' '}
             {translateLocal('termsStep.longTermsForm.fdicInsuranceBancorp2')}
         </Text>
@@ -114,16 +114,18 @@ const LongTermsForm = () => (
             {' '}
             {translateLocal('termsStep.longTermsForm.contactExpensifyPayments2')}
             {' '}
-            new.expensify.com.
+            {CONST.NEWDOT}
+            .
         </Text>
         <Text style={[styles.mb6, styles.textMicroSupporting]}>
             {translateLocal('termsStep.longTermsForm.generalInformation')}
             {' '}
-            cfpb.gov/prepaid
+            { CONST.TERMS.CFPB_PREPAID }
             {' '}
             {translateLocal('termsStep.longTermsForm.generalInformation2')}
             {' '}
-            cfpb.gov/complaint.
+            {CONST.TERMS.CFPB_COMPLAINT}
+            .
         </Text>
 
         <View style={styles.flexRow}>
