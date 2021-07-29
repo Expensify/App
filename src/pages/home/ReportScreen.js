@@ -1,4 +1,5 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
@@ -8,6 +9,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import {updateCurrentlyViewedReportID} from '../../libs/actions/Report';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -18,6 +20,13 @@ const propTypes = {
             reportID: PropTypes.string,
         }).isRequired,
     }).isRequired,
+
+    /** Tells us if the sidebar has rendered */
+    isSidebarLoaded: PropTypes.bool,
+};
+
+const defaultProps = {
+    isSidebarLoaded: false,
 };
 
 class ReportScreen extends React.Component {
@@ -84,6 +93,10 @@ class ReportScreen extends React.Component {
     }
 
     render() {
+        if (!this.props.isSidebarLoaded) {
+            return null;
+        }
+
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -100,4 +113,10 @@ class ReportScreen extends React.Component {
 }
 
 ReportScreen.propTypes = propTypes;
-export default ReportScreen;
+ReportScreen.defaultProps = defaultProps;
+
+export default withOnyx({
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+})(ReportScreen);
