@@ -7,7 +7,7 @@ import {translateLocal} from '../../../libs/translate';
 import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import Icon from '../../../components/Icon';
-import {Receipt} from '../../../components/Icon/Expensicons';
+import {Printer} from '../../../components/Icon/Expensicons';
 
 const LongTermsForm = () => (
     <>
@@ -175,8 +175,7 @@ const LongTermsForm = () => (
         </Text>
 
         <View style={styles.flexRow}>
-            {/* TODO: Get printer icon */}
-            <Icon style={styles.flex1} src={Receipt} />
+            <Icon style={styles.flex1} src={Printer} />
             <TextLink style={styles.ml1} href="https://expensify-use2.squarespace.com/fees">
                 {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
             </TextLink>
