@@ -1,10 +1,7 @@
 const expensiPickerDefaultProps = {
     label: '',
     value: '',
-    placeholder: {
-        value: '',
-        label: '',
-    },
+    placeholder: {},
     useDisabledStyles: false,
     size: 'normal',
 };
