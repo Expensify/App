@@ -113,6 +113,7 @@ class OptionsList extends Component {
         this.renderSectionHeader = this.renderSectionHeader.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
+        this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
         this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
         this.didLayout = false;
     }
@@ -135,6 +136,15 @@ class OptionsList extends Component {
         }
 
         return false;
+    }
+
+    onViewableItemsChanged() {
+        if (this.didLayout || !this.props.onLayout) {
+            return;
+        }
+
+        this.didLayout = true;
+        this.props.onLayout();
     }
 
     /**
@@ -238,14 +248,7 @@ class OptionsList extends Component {
                     maxToRenderPerBatch={5}
                     windowSize={5}
                     viewabilityConfig={this.viewabilityConfig}
-                    onViewableItemsChanged={() => {
-                        if (this.didLayout) {
-                            return;
-                        }
-
-                        this.didLayout = true;
-                        this.props.onLayout();
-                    }}
+                    onViewableItemsChanged={this.onViewableItemsChanged}
                 />
             </View>
         );
