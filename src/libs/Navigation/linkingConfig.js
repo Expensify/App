@@ -143,9 +143,9 @@ export default {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
-            NewWorkspace: {
+            EditWorkspace: {
                 screens: {
-                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
+                    EditWorkspace_Root: ROUTES.WORKSPACE_EDIT,
                 },
             },
 
