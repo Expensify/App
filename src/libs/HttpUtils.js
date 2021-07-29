@@ -31,7 +31,12 @@ function processHTTPRequest(url, method = 'get', body = null) {
  */
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     if (command !== 'Log') {
-        info('Making API request', false, {command, type, shouldUseSecure, rvl: data.returnValueList});
+        info('Making API request', false, {
+            command,
+            type,
+            shouldUseSecure,
+            rvl: data.returnValueList,
+        });
     }
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
