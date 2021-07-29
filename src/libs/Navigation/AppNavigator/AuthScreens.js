@@ -58,7 +58,7 @@ import {
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    WorkspaceNameEditorNavigator,
+    WorkspaceEditorNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -410,9 +410,9 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="WorkspaceNameEditor"
+                    name="WorkspaceEditor"
                     options={modalScreenOptions}
-                    component={WorkspaceNameEditorNavigator}
+                    component={WorkspaceEditorNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

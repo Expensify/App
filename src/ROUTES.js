@@ -80,8 +80,8 @@ export default {
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     REQUEST_CALL: 'request-call',
-    getWorkspaceNameEditorRoute: policyID => `workspace/${policyID}/edit-name`,
-    WORKSPACE_NAME_EDITOR: 'workspace/:policyID/edit-name',
+    getWorkspaceEditorRoute: policyID => `workspace/${policyID}/edit`,
+    WORKSPACE_EDITOR: 'workspace/:policyID/edit',
 
     /**
      * @param {String} route
