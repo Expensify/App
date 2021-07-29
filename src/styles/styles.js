@@ -428,7 +428,7 @@ const styles = {
     },
 
     badgeText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
@@ -2098,17 +2098,21 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Generate a style for the background color of the IOU badge
+ * Generate a style for the background color of the Badge
  *
- * @param {Boolean} isOwner
- * @param {Boolean} [isPressed]
- * @returns {Object}
+ * @param {Boolean} success
+ * @param {Boolean} error
+ * @param {boolean} [isPressed=false]
+ * @return {Object}
  */
-function getBadgeColorStyle(isOwner, isPressed = false) {
-    if (isOwner) {
+function getBadgeColorStyle(success, error, isPressed = false) {
+    if (success) {
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    if (error) {
+        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    }
+    return {};
 }
 
 /**

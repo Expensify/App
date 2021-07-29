@@ -69,7 +69,7 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: [CONST.NVP.BLOCKED_FROM_CONCIERGE, CONST.NVP.PAYPAL_ME_ADDRESS].join(','),
+        nvpNames: CONST.NVP.PAYPAL_ME_ADDRESS,
     })
         .then((response) => {
             // Update the User onyx key
