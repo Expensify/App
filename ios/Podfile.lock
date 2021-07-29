@@ -917,10 +917,10 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 124e8f99992490d0d13e0649d950d3e1aae06fe9
   React-jsinspector: 500a59626037be5b3b3d89c5151bc3baa9abf1a9
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
-  react-native-document-picker: 0e3602a4064da040321bafad6848d8b0edcb1d55
+  react-native-document-picker: f2f73db94328c84e22144e369fb4a3ede47bc1f5
   react-native-flipper: 1943b82f2e494c77b741eb1ed257b6734a334b83
-  react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
-  react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
+  react-native-image-picker: 474cf2c33c2b6671da53d293a16c97995f0aec15
+  react-native-netinfo: 30fb89fa913c342be82a887b56e96be6d71201dd
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-plaid-link-sdk: 59b7376efca9f00e9693321c5cf7c6ab2c567635
   react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
