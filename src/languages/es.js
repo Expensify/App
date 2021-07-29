@@ -178,9 +178,7 @@ export default {
     profilePage: {
         profile: 'Perfil',
         tellUsAboutYourself: '¡Cuéntanos algo sobre tí, nos encantaría conocerte!',
-        firstName: 'Nombre',
         john: 'Juan',
-        lastName: 'Apellidos',
         doe: 'Nadie',
         preferredPronouns: 'Pronombres preferidos',
         selectYourPronouns: 'Selecciona tus pronombres',
@@ -429,7 +427,6 @@ export default {
         isMyDataSafe: '¿Están seguros mis datos?',
         onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',
         onFidoFacialScan: 'Onfido’s Facial Scan Policy and Release',
-        facialScan: 'la política de reconocimiento facial y la exención de Onfido',
         isControllingOfficer: 'Estoy autorizado a utilizar la cuenta bancaria de mi compañía para gastos de empresa',
         isControllingOfficerError: 'Debe ser un oficial controlador con autorización para operar la cuenta bancaria de la compañía',
     },
