@@ -58,25 +58,25 @@ class WorkspaceEditorPage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.nameEditor.title')}
+                    title={this.props.translate('workspace.editor.title')}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
 
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flex1]}>
                         <TextInputWithLabel
-                            label={this.props.translate('workspace.nameEditor.inputLabel')}
+                            label={this.props.translate('workspace.editor.inputLabel')}
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                             onSubmitEditting={this.submit}
                         />
-                        <Text style={[styles.mt2]}>{this.props.translate('workspace.nameEditor.helpText')}</Text>
+                        <Text style={[styles.mt2]}>{this.props.translate('workspace.editor.helpText')}</Text>
                     </View>
 
                     <Button
                         success
                         style={[styles.w100]}
-                        text={this.props.translate('workspace.nameEditor.save')}
+                        text={this.props.translate('workspace.editor.save')}
                         onPress={this.submit}
                         pressOnEnter
                     />

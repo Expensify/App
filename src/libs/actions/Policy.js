@@ -250,7 +250,7 @@ function setName(policyID, name) {
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = translateLocal('workspace.nameEditor.genericFailureMessage');
+                const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
                 return;
             }

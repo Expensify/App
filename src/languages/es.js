@@ -432,7 +432,7 @@ export default {
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
-        nameEditor: {
+        editor: {
             title: 'Editar nombre',
             inputLabel: 'Nombre',
             helpText: 'Este es el nombre que verás en tu espacio de trabajo.',

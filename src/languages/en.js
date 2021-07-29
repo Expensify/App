@@ -516,7 +516,7 @@ export default {
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },
-        nameEditor: {
+        editor: {
             title: 'Edit name',
             inputLabel: 'Name',
             helpText: 'This is the name you will see on your Workspace.',
