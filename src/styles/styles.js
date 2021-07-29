@@ -1804,11 +1804,6 @@ const styles = {
         bottom: -4,
     },
 
-    smallNameEditIcon: {
-        position: 'absolute',
-        right: -36,
-    },
-
     workspaceCard: {
         width: '100%',
         height: 400,
