@@ -40,22 +40,22 @@ const termsData = [
     },
 ];
 
-const getTermsSections = () => termsData.map(data => (
-    <View style={styles.shortTermsRow} key={data.title}>
+const getShortTermsSections = () => termsData.map(section => (
+    <View style={styles.shortTermsRow} key={section.title}>
         <View style={[styles.flex4]}>
-            <Text>{data.title}</Text>
+            <Text>{section.title}</Text>
             {
-                data.subTitle
+                section.subTitle
                 && (
                     <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {data.subTitle}
+                        {section.subTitle}
                     </Text>
                 )
             }
         </View>
         <View style={[styles.flex1, styles.termsCenterRight]}>
             <Text style={[styles.textStrong, styles.textAlignRight]}>
-                {data.rightText}
+                {section.rightText}
             </Text>
         </View>
     </View>
@@ -67,7 +67,7 @@ const ShortTermsForm = () => (
             {translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
         </Text>
         <View style={[styles.border, styles.p2, styles.mb6]}>
-            {getTermsSections()}
+            {getShortTermsSections()}
 
             <View style={styles.shortTermsBoldHeadingSection}>
                 <Text style={styles.textStrong}>
