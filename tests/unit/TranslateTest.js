@@ -56,36 +56,40 @@ describe('translate', () => {
 });
 
 describe('Translation Keys', () => {
-    let activeLanguage;
-    let path = '';
-    function matchKeys(source, target, key) {
-        path += key ? `${key}.` : '';
-        const pathLevel = path;
-        if (key && !_.has(target, key)) {
-            console.debug(`🏹 ${path.slice(0, -1)} is missing from ${activeLanguage}.js`);
-            return;
-        }
-        const sourceOBJ = key ? source[key] : source;
-        const targetOBJ = key ? target[key] : target;
-        if (_.isObject(sourceOBJ) && !_.isFunction(sourceOBJ)) {
-            return _.every(_.keys(sourceOBJ), (subKey) => {
-                path = pathLevel;
-                return matchKeys(sourceOBJ, targetOBJ, subKey);
-            });
-        }
-        if (key) {
-            path = path.slice(0, -(key.length - 1));
-        }
-        return true;
-    }
-    it('Does each locale has all the keys', () => {
-        const excludeLanguages = ['en', 'es-ES'];
-        const languages = _.without(_.keys(originalTranslations.default), ...excludeLanguages);
-        const parentLanguage = originalTranslations.default.en;
-        const hasAllKeys = _.every(languages, (ln) => {
-            activeLanguage = ln;
-            return matchKeys(parentLanguage, originalTranslations.default[ln]);
+    function traverseKeyPath(source, path, keyPaths) {
+        const pathArray = keyPaths || [];
+        const keyPath = path ? `${path}.` : '';
+        _.each(_.keys(source), (key) => {
+            if (_.isObject(source[key]) && !_.isFunction(source[key])) {
+                traverseKeyPath(source[key], keyPath + key, pathArray);
+            } else {
+                pathArray.push(keyPath + key);
+            }
         });
-        expect(hasAllKeys).toBeTruthy();
+        return pathArray;
+    }
+    const excludeLanguages = ['en', 'es-ES'];
+    const languages = _.without(_.keys(originalTranslations.default), ...excludeLanguages);
+    const parentLanguage = originalTranslations.default.en;
+    const parentLanguageKeys = traverseKeyPath(parentLanguage);
+
+    _.every(languages, (ln) => {
+        const languageKeys = traverseKeyPath(originalTranslations.default[ln]);
+
+        it(`Does ${ln} locale has all the keys`, () => {
+            const hasAllKeys = _.difference(parentLanguageKeys, languageKeys);
+            if (hasAllKeys.length) {
+                console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
+            }
+            expect(hasAllKeys.length).toBe(0);
+        });
+
+        it(`Does ${ln} locale has unused keys`, () => {
+            const hasAllKeys = _.difference(languageKeys, parentLanguageKeys);
+            if (hasAllKeys.length) {
+                console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
+            }
+            expect(hasAllKeys.length).toBe(0);
+        });
     });
 });
