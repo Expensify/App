@@ -157,9 +157,9 @@ export default {
                 },
             },
 
-            WorkspaceNameEditor: {
+            WorkspaceEditor: {
                 screens: {
-                    WorkspaceNameEditor_Root: ROUTES.WORKSPACE_NAME_EDITOR,
+                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
                 },
             },
 
