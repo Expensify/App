@@ -218,12 +218,6 @@ export default {
             desktop: {
                 label: 'Desktop',
             },
-            window: {
-                label: 'Desktop',
-            },
-            Rajat: {
-                label: 'Desktop',
-            },
         },
         signOut: 'Desconectar',
         versionLetter: 'v',
@@ -261,6 +255,7 @@ export default {
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
     },
     preferencesPage: {
+        mostRecent: 'Más Recientes',
         mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',
         focus: '#concentración',
         focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
@@ -302,6 +297,7 @@ export default {
         twoFactorCode: 'Autenticación de 2 factores',
         requiredWhen2FAEnabled: 'Obligatorio cuando A2F está habilitado',
         error: {
+            incorrectLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo',
             twoFactorAuthenticationEnabled: 'Tienes autenticación de 2 factores activada en esta cuenta. Por favor conéctate usando su email o número de teléfono',
             invalidLoginOrPassword: 'Usuario o clave incorrectos. Por favor inténtalo de nuevo o resetea tu clave',
             unableToResetPassword: 'No pudimos cambiar tu clave. Probablemente porque el enlace para resetear la clave ha expirado. Te hemos enviado un nuevo enlace. Chequea tu bandeja de entrada y tu carpeta de Spam',

@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const {error: AnnotationError} = require('@actions/core');
 const translate = require('../../src/libs/translate');
 const CONFIG = require('../../src/CONFIG');
 const translations = require('../../src/languages/translations');
@@ -80,16 +81,18 @@ describe('Translation Keys', () => {
             const hasAllKeys = _.difference(mainLanguageKeys, languageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
+                AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
             }
-            expect(hasAllKeys.length).toBe(0);
+            expect(hasAllKeys).toEqual([]);
         });
 
         it(`Does ${ln} locale has unused keys`, () => {
             const hasAllKeys = _.difference(languageKeys, mainLanguageKeys);
             if (hasAllKeys.length) {
                 console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
+                AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
             }
-            expect(hasAllKeys.length).toBe(0);
+            expect(hasAllKeys).toEqual([]);
         });
     });
 });
