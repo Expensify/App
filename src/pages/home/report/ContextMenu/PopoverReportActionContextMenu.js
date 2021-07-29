@@ -46,7 +46,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteModal = this.hideDeleteModal.bind(this);
         this.showDeleteModal = this.showDeleteModal.bind(this);
-        this.runAfterContextMenuHide = this.runAfterContextMenuHide.bind(this);
+        this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
     }
@@ -226,7 +226,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hideContextMenu}
-                    onModalHide={this.runAfterContextMenuHide}
+                    onModalHide={this.runAndResetOnPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     animationOutTiming={1}
