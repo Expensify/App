@@ -67,6 +67,12 @@ const propTypes = {
         role: PropTypes.string,
     })),
 
+    /** The user's wallet account */
+    userWallet: PropTypes.shape({
+        /** The user's current wallet balance */
+        availableBalance: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -75,6 +81,9 @@ const defaultProps = {
     network: {},
     session: {},
     policies: {},
+    userWallet: {
+        availableBalance: 0,
+    },
 };
 
 const defaultMenuItems = [
@@ -113,10 +122,17 @@ const defaultMenuItems = [
 const InitialSettingsPage = ({
     myPersonalDetails,
     network,
+    numberFormat,
     session,
     policies,
     translate,
+    userWallet,
 }) => {
+    const walletBalance = numberFormat(
+        userWallet.availableBalance,
+        {style: 'currency', currency: 'USD'},
+    );
+
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
@@ -167,17 +183,19 @@ const InitialSettingsPage = ({
                             </Text>
                         )}
                     </View>
-                    {menuItems.map((item) => {
+                    {_.map(menuItems, (item, index) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        const isPaymentItem = item.translationKey === 'common.payments';
                         return (
                             <MenuItem
-                                key={keyTitle}
+                                key={`${keyTitle}_${index}`}
                                 title={keyTitle}
                                 icon={item.icon}
                                 onPress={item.action}
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
+                                badgeText={isPaymentItem ? walletBalance : undefined}
                             />
                         );
                     })}
@@ -205,6 +223,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(InitialSettingsPage);

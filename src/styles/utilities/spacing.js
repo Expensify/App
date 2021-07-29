@@ -69,6 +69,10 @@ export default {
         marginRight: 16,
     },
 
+    mr5: {
+        marginRight: 20,
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -111,6 +115,10 @@ export default {
 
     mt6: {
         marginTop: 24,
+    },
+
+    mt40Percentage: {
+        marginTop: '40%',
     },
 
     mb1: {
@@ -169,6 +177,10 @@ export default {
         padding: 20,
     },
 
+    p20: {
+        padding: 80,
+    },
+
     pv1: {
         paddingVertical: 4,
     },
@@ -207,6 +219,10 @@ export default {
 
     ph5: {
         paddingHorizontal: 20,
+    },
+
+    ph6: {
+        paddingHorizontal: 24,
     },
 
     pr1: {
@@ -255,5 +271,9 @@ export default {
 
     pb5: {
         paddingBottom: 20,
+    },
+
+    pb10Percentage: {
+        paddingBottom: '10%',
     },
 };

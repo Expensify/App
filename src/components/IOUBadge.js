@@ -1,14 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Text, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
-import styles, {getBadgeColorStyle} from '../styles/styles';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import CONST from '../CONST';
+import Badge from './Badge';
 
 const propTypes = {
     /** IOU Report data object */
@@ -52,24 +51,16 @@ const IOUBadge = (props) => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(props.iouReport.chatReportID, props.iouReport.reportID));
     };
     return (
-        <Pressable
-            style={({pressed}) => ([
-                styles.badge,
-                styles.ml2,
-                getBadgeColorStyle(props.session.email === props.iouReport.ownerEmail, pressed),
-            ])}
-        >
-            <Text
-                style={styles.badgeText}
-                numberOfLines={1}
-                onPress={launchIOUDetailsModal}
-            >
-                {props.numberFormat(
-                    props.iouReport.total / 100,
-                    {style: 'currency', currency: props.iouReport.currency},
-                )}
-            </Text>
-        </Pressable>
+        <Badge
+            pressable
+            onPress={launchIOUDetailsModal}
+            success={props.session.email === props.iouReport.ownerEmail}
+            error={props.session.email !== props.iouReport.ownerEmail}
+            text={props.numberFormat(
+                props.iouReport.total / 100,
+                {style: 'currency', currency: props.iouReport.currency},
+            )}
+        />
     );
 };
 

@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {
-    Text, View, Pressable, ActivityIndicator,
+    View, Pressable, ActivityIndicator,
 } from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -12,6 +12,7 @@ import themeColors from '../styles/themes/default';
 import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
+import Text from './Text';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -92,7 +93,7 @@ class ReportTransaction extends Component {
                                 styles.buttonSmall,
                                 styles.chatItemComposeSecondaryRowOffset,
                                 styles.mb3,
-                                styles.w20,
+                                styles.wAuto,
                             ]}
                             onPress={this.rejectTransaction}
                         >

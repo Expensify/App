@@ -1,14 +1,19 @@
 import React from 'react';
 import {
-    View, Text, Pressable,
+    View, Pressable,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import Text from './Text';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
+import Badge from './Badge';
 
 const propTypes = {
+    /** Text to be shown as badge near the right end. */
+    badgeText: PropTypes.string,
+
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     wrapperStyle: PropTypes.object,
@@ -57,6 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    badgeText: undefined,
     shouldShowRightIcon: false,
     wrapperStyle: {},
     success: false,
@@ -73,6 +79,7 @@ const defaultProps = {
 };
 
 const MenuItem = ({
+    badgeText,
     onPress,
     icon,
     iconRight,
@@ -140,6 +147,7 @@ const MenuItem = ({
                     </View>
                 </View>
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
+                    {badgeText && <Badge text={badgeText} badgeStyles={[styles.alignSelfCenter]} />}
                     {subtitle && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text
