@@ -68,6 +68,8 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
         return null;
     }
 
+    console.debug(policy);
+
     return (
         <ScreenWrapper>
             <ScrollView
@@ -122,7 +124,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                 </Text>
                                 <Pressable
                                     style={[styles.smallEditIcon, styles.smallNameEditIcon]}
-                                    onPress={() => alert('edit')}
+                                    onPress={() => Navigation.navigate(ROUTES.getWorkspaceNameEditorRoute(policy.id))}
                                 >
                                     <Icon src={Pencil} fill={themedefault.iconReversed} />
                                 </Pressable>
