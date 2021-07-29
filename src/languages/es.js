@@ -437,6 +437,7 @@ export default {
             inputLabel: 'Nombre',
             helpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             save: 'Guardar',
+            genericFailureMessage: 'Se ha producido un error al intentar cambiar el nombre del espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
     },
     companyStep: {
