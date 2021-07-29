@@ -434,7 +434,7 @@ export default {
         },
         edit: {
             // TODO
-            editWorkspace: 'Edit Workspace',
+            editWorkspace: 'Editar espacio de trabajo',
             growlMessageOnSave: 'Your workspace was successfully saved',
         },
     },
