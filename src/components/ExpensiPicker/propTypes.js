@@ -13,7 +13,11 @@ const propTypes = {
         label: PropTypes.string,
     }),
 
+    /** Picker disabled style */
     useDisabledStyles: PropTypes.boolean,
+
+    /** Picker size */
+    size: PropTypes.oneOf(['normal', 'small']),
 };
 
 export default propTypes;

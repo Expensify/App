@@ -6,6 +6,7 @@ const expensiPickerDefaultProps = {
         label: '',
     },
     useDisabledStyles: false,
+    size: 'normal',
 };
 
 export default expensiPickerDefaultProps;

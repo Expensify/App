@@ -30,7 +30,9 @@ class ExpensiPicker extends PureComponent {
                     useDisabledStyles && styles.expensiPickerContainerDisabled,
                 ]}
             >
-                <Text style={styles.expensiPickerLabel}>{label}</Text>
+                {label && (
+                    <Text style={styles.expensiPickerLabel}>{label}</Text>
+                )}
                 <Picker
                     placeholder={placeholder}
                     value={value}
