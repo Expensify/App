@@ -35,6 +35,10 @@ class ParticipantLocalTime extends React.Component {
         }, 1000));
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextState.localTime !== this.state.localTime;
+    }
+
     componentWillUnmount() {
         clearInterval(this.timer);
         clearInterval(this.readyTimer);
@@ -42,6 +46,7 @@ class ParticipantLocalTime extends React.Component {
 
     getParticipantLocalTime() {
         const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', {});
+        moment.locale(this.props.preferredLocale);
         const reportRecipientDay = moment().tz(reportRecipientTimezone.selected).format('dddd');
         const currentUserDay = moment().tz(this.props.currentUserTimezone.selected).format('dddd');
 
@@ -52,35 +57,29 @@ class ParticipantLocalTime extends React.Component {
     }
 
     render() {
-        // Moment.format does not return AM or PM values immediately.
-        // So we have to wait until we are ready before showing the time to the user
-        const isReportRecipientLocalTimeReady = this.state.localTime.toString().match(/(A|P)M/ig);
         const reportRecipientDisplayName = this.props.participant.firstName
             || (Str.isSMSLogin(this.props.participant.login)
                 ? this.props.toLocalPhone(this.props.participant.displayName)
                 : this.props.participant.displayName);
 
         return (
-            isReportRecipientLocalTimeReady ? (
-                <View style={[styles.chatItemComposeSecondaryRow]}>
-                    <ExpensiText
-                        style={[
-                            styles.chatItemComposeSecondaryRowSubText,
-                            styles.chatItemComposeSecondaryRowOffset,
-                        ]}
-                        numberOfLines={1}
-                    >
-                        {this.props.translate(
-                            'reportActionCompose.localTime',
-                            {
-                                user: reportRecipientDisplayName,
-                                time: this.state.localTime,
-                            },
-                        )}
-                    </ExpensiText>
-                </View>
-            )
-                : <View style={[styles.chatItemComposeSecondaryRow]} />
+            <View style={[styles.chatItemComposeSecondaryRow]}>
+                <ExpensiText
+                    style={[
+                        styles.chatItemComposeSecondaryRowSubText,
+                        styles.chatItemComposeSecondaryRowOffset,
+                    ]}
+                    numberOfLines={1}
+                >
+                    {this.props.translate(
+                        'reportActionCompose.localTime',
+                        {
+                            user: reportRecipientDisplayName,
+                            time: this.state.localTime,
+                        },
+                    )}
+                </ExpensiText>
+            </View>
         );
     }
 }
