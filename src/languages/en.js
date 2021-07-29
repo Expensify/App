@@ -517,11 +517,12 @@ export default {
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },
         editor: {
-            title: 'Edit name',
-            inputLabel: 'Name',
-            helpText: 'This is the name you will see on your Workspace.',
+            title: 'Edit Workspace',
+            nameInputLabel: 'Name',
+            nameInputHelpText: 'This is the name you will see on your Workspace.',
             save: 'Save',
-            genericFailureMessage: 'An error occurred changing the name of the workspace, please try again.',
+            genericFailureMessage: 'An error occurred updating the workspace, please try again.',
+            avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
     },
     requestCallPage: {

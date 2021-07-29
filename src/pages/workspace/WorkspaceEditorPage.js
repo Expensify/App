@@ -77,7 +77,7 @@ class WorkspaceEditorPage extends React.Component {
         const {policy} = this.props;
 
         if (!Permissions.canUseFreePlan(this.props.betas)) {
-            console.debug('Not showing workspace name editor page because user is not on free plan beta');
+            console.debug('Not showing workspace editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
 
@@ -112,12 +112,12 @@ class WorkspaceEditorPage extends React.Component {
                         />
 
                         <TextInputWithLabel
-                            label={this.props.translate('workspace.editor.inputLabel')}
+                            label={this.props.translate('workspace.editor.nameInputLabel')}
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                             onSubmitEditting={this.submit}
                         />
-                        <Text style={[styles.mt2]}>{this.props.translate('workspace.editor.helpText')}</Text>
+                        <Text style={[styles.mt2]}>{this.props.translate('workspace.editor.nameInputHelpText')}</Text>
                     </View>
 
                     <Button
