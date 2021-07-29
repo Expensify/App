@@ -4,6 +4,7 @@ export default {
         cancel: 'Cancel',
         yes: 'Yes',
         no: 'No',
+        ok: 'OK',
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
@@ -30,6 +31,7 @@ export default {
         privacy: 'Privacy',
         privacyPolicy: 'Privacy Policy',
         delete: 'Delete',
+        deleted: 'deleted',
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
@@ -56,7 +58,6 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
-        deletedCommentMessage: 'Comment deleted',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
     },
@@ -69,6 +70,8 @@ export default {
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',
+        attachmentTooLarge: 'Attachment too large',
+        sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
@@ -108,6 +111,7 @@ export default {
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
+        roomIsArchived: 'This chat room has been deleted',
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
@@ -240,10 +244,14 @@ export default {
         addPayPalAccount: 'Add PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
+    paymentsPage: {
+        paymentMethodsTitle: 'Payment Methods',
+    },
     paymentMethodList: {
         addPaymentMethod: 'Add Payment Method',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
+        addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app',
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
@@ -355,6 +363,14 @@ export default {
             dob: 'Please enter a valid date of birth',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
+            existingOwners: {
+                unableToAddBankAccount: 'Unable to add bank account',
+                alreadyInUse: 'This bank account is already in use by ',
+                pleaseAskThemToShare: 'Please ask them to share it with you.',
+                alternatively: 'Alternatively, you can ',
+                setUpThisAccountByYourself: 'set up this account by yourself',
+                validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
+            },
         },
     },
     addPersonalBankAccountPage: {
@@ -457,7 +473,8 @@ export default {
         },
     },
     session: {
-        offlineMessage: 'Looks like you\'re offline. Please check your connection and try again.',
+        offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
+        offlineMessage: 'Looks like you\'re offline.',
     },
     workspace: {
         common: {
