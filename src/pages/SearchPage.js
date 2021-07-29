@@ -128,7 +128,7 @@ class SearchPage extends Component {
         } = getSearchOptions(
             this.props.reports,
             this.props.personalDetails,
-            this.state.searchValue,
+            this.state.searchValue.trim(),
             this.props.betas,
         );
         this.setState({

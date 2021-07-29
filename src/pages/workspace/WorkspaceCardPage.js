@@ -20,11 +20,15 @@ import themeDefault from '../../styles/themes/default';
 import ROUTES from '../../ROUTES';
 import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
+import Permissions from '../../libs/Permissions';
 import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
 import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
 
 const propTypes = {
     /* Onyx Props */
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
@@ -65,6 +69,7 @@ const publicLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.ADD_SECONDARY_LOGI
 const manageCardLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.MANAGE_CARDS_URL;
 
 const WorkspaceCardPage = ({
+    betas,
     user,
     translate,
     isSmallScreenWidth,
@@ -91,6 +96,11 @@ const WorkspaceCardPage = ({
             Navigation.navigate(ROUTES.getBankAccountRoute());
         }
     };
+
+    if (!Permissions.canUseFreePlan(betas)) {
+        console.debug('Not showing workspace card page because user is not on free plan beta');
+        return <Navigation.DismissModal />;
+    }
 
     return (
         <ScreenWrapper style={[styles.defaultModalContainer]}>
@@ -192,6 +202,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(WorkspaceCardPage);
