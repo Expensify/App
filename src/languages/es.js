@@ -39,7 +39,7 @@ export default {
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         addressNoPO: 'Dirección (sin Apartado Postal)',
-        companyAddressNoPO: 'Dirección de la Empresa (sin Apartado Postal)',
+        companyAddressNoPO: 'Dirección física de la empresa (no se aceptan apartados ni direcciones postales)',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código Postal',
