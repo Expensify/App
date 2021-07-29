@@ -1794,12 +1794,6 @@ const styles = {
         height: 28,
         width: 28,
         justifyContent: 'center',
-        padding: 4,
-    },
-
-    smallEditIconPencil: {
-        width: 20,
-        height: 20,
     },
 
     smallAvatarEditIcon: {

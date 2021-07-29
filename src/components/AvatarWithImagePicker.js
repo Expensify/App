@@ -12,6 +12,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -119,7 +120,8 @@ class AvatarWithImagePicker extends React.Component {
                                 >
                                     <Icon
                                         src={Pencil}
-                                        style={[styles.smallEditIconPencil]}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
                                         fill={themeColors.iconReversed}
                                     />
                                 </Pressable>
