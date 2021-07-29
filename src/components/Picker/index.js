@@ -13,21 +13,23 @@ const Picker = ({
     disabled,
     onOpen,
     onClose,
+    size,
 }) => (
     <RNPickerSelect
         onValueChange={onChange}
         items={items}
-        style={styles.expensiPicker(disabled)}
+        style={styles.expensiPicker(disabled, size)}
         useNativeAndroidPickerStyle={false}
         placeholder={placeholder}
         value={value}
-        Icon={icon}
+        Icon={() => icon(size)}
         disabled={disabled}
         fixAndroidTouchableBug
         onOpen={onOpen}
         onClose={onClose}
     />
 );
+
 
 Picker.propTypes = pickerPropTypes.propTypes;
 Picker.defaultProps = pickerPropTypes.defaultProps;

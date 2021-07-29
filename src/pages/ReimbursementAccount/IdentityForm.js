@@ -96,7 +96,7 @@ const IdentityForm = ({
                 onChangeText={val => onFieldChange('ssnLast4', val)}
             />
             <ExpensiTextInput
-                label={translate('common.companyAddressNoPO')}
+                label={translate('common.addressNoPO')}
                 containerStyles={[styles.mt4]}
                 value={street}
                 onChangeText={val => onFieldChange('street', val)}

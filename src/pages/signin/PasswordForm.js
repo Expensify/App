@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -109,6 +110,18 @@ class PasswordForm extends React.Component {
                         />
                     </View>
                 )}
+
+                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
+                    </Text>
+                )}
+
+                {this.state.formError && (
+                    <Text style={[styles.formError]}>
+                        {this.state.formError}
+                    </Text>
+                )}
                 <View>
                     <Button
                         success
@@ -119,11 +132,6 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.state.formError}
-                    </Text>
-                )}
             </>
         );
     }

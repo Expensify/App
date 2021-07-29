@@ -189,8 +189,8 @@ class ProfilePage extends Component {
                 && this.props.myPersonalDetails.pronouns === this.state.selfSelectedPronouns);
 
         // Disables button if none of the form values have changed
-        const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName)
-            && (this.props.myPersonalDetails.lastName === this.state.lastName)
+        const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
+            && (this.props.myPersonalDetails.lastName === this.state.lastName.trim())
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
             && arePronounsUnchanged;
