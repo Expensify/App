@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line import/no-cycle
 import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
