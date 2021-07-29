@@ -403,7 +403,7 @@ export default {
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
             welcome: 'Bienvenido/a',
             chooseAName: 'Elige un nombre',
-            helpText: '¡Dale un nombre a tu espacio de trabajo antes de activar tus tarjetas Expensify!\n',
+            helpText: 'Elige un nombre para el espacio de trabajo antes de activar las tarjetas Expensify\n',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
