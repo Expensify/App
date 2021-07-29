@@ -98,10 +98,7 @@ class AttachmentModal extends PureComponent {
      * @returns {Boolean}
      */
     isValidSize(file) {
-        if (!file) {
-            return true;
-        }
-        return parseInt(file.size, 10) < CONST.API_MAX_ATTACHMENT_SIZE;
+        return !file || parseInt(file.size, 10) < CONST.API_MAX_ATTACHMENT_SIZE;
     }
 
     render() {
