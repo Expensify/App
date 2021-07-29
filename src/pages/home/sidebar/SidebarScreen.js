@@ -114,9 +114,7 @@ class SidebarScreen extends Component {
                                 {
                                     icon: ChatBubble,
                                     text: this.props.translate('sidebarScreen.newChat'),
-
-                                    // TODO: set back to ROUTES.NEW_CHAT
-                                    onSelected: () => Navigation.navigate(ROUTES.ENABLE_PAYMENTS),
+                                    onSelected: () => Navigation.navigate(ROUTES.NEW_CHAT),
                                 },
                                 {
                                     icon: Users,

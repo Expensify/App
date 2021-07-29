@@ -233,10 +233,6 @@ export default {
         paddingRight: 8,
     },
 
-    pr4: {
-        paddingRight: 16,
-    },
-
     pr5: {
         paddingRight: 20,
     },
@@ -245,16 +241,8 @@ export default {
         paddingRight: 32,
     },
 
-    pl4: {
-        paddingLeft: 16,
-    },
-
     pl5: {
         paddingLeft: 20,
-    },
-
-    pt1: {
-        paddingTop: 4,
     },
 
     pt2: {
