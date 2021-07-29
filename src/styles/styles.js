@@ -1790,14 +1790,23 @@ const styles = {
         borderColor: themeColors.textReversed,
         borderRadius: 16,
         borderWidth: 3,
-        bottom: -4,
         color: themeColors.textReversed,
         height: 32,
+        width: 32,
         justifyContent: 'center',
         padding: 4,
+    },
+
+    smallAvatarEditIcon: {
         position: 'absolute',
         right: -4,
         width: 32,
+        bottom: -4,
+    },
+
+    smallNameEditIcon: {
+        position: 'absolute',
+        right: -36,
     },
 
     workspaceCard: {

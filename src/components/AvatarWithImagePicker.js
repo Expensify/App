@@ -114,7 +114,7 @@ class AvatarWithImagePicker extends React.Component {
                         {({openPicker}) => (
                             <>
                                 <Pressable
-                                    style={[styles.smallEditIcon]}
+                                    style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
                                     onPress={() => this.setState({isMenuVisible: true})}
                                 >
                                     <Icon src={Pencil} fill={themeColors.iconReversed} />
