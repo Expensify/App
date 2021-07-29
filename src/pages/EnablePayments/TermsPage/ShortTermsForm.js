@@ -1,9 +1,9 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Linking} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
-import TextLink from '../../../components/TextLink';
 import {translateLocal} from '../../../libs/translate';
+import CONST from '../../../CONST';
 
 const ShortTermsForm = () => (
     <>
@@ -124,17 +124,23 @@ const ShortTermsForm = () => (
                 <Text style={styles.mb3}>
                     {translateLocal('termsStep.shortTermsForm.generalInfo')}
                     {' '}
-                    <TextLink href="https://cfpb.gov/prepaid">
+                    <Text
+                        style={styles.link}
+                        onPress={() => Linking.openURL(CONST.CFPB_PREPAID_URL)}
+                    >
                         cfpb.gov/prepaid
-                    </TextLink>
+                    </Text>
                     .
                 </Text>
                 <Text>
                     {translateLocal('termsStep.shortTermsForm.conditionsDetails')}
                     {' '}
-                    <TextLink href="https://use.expensify.com/fees">
+                    <Text
+                        style={styles.link}
+                        onPress={() => Linking.openURL(CONST.FEES_URL)}
+                    >
                         use.expensify.com/fees
-                    </TextLink>
+                    </Text>
                     {' '}
                     {translateLocal('termsStep.shortTermsForm.conditionsPhone')}
                 </Text>
