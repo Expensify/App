@@ -125,7 +125,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
-                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.hoverComponentBG : undefined}
+                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.activeComponentBG : undefined}
                             focused={item.isActive}
                             shouldShowRightIcon
                         />
