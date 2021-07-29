@@ -140,8 +140,8 @@ function getChatReportName(fullReport, chatType) {
     if (isDefaultRoom({chatType})) {
         return `#${fullReport.reportName}${(isArchivedRoom({
             chatType,
-            stateNum: fullReport.stateNum,
-            statusNum: fullReport.reportStatus,
+            stateNum: fullReport.state,
+            statusNum: fullReport.status,
         })
             ? ` (${translateLocal('common.deleted')})`
             : '')}`;
