@@ -15,7 +15,11 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
-import {setName} from '../../libs/actions/Policy';
+import {setName, updateAvatar, setAvatarURL} from '../../libs/actions/Policy';
+import Icon from '../../components/Icon';
+import {Workspace} from '../../components/Icon/Expensicons';
+import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
+import defaultTheme from '../../styles/themes/default';
 
 const propTypes = {
     /** List of betas */
@@ -33,6 +37,7 @@ class WorkspaceEditorPage extends React.Component {
 
         this.state = {
             name: props.policy.name,
+            avatarURL: props.policy.avatarURL,
         };
 
         this.submit = this.submit.bind(this);
@@ -46,12 +51,14 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     render() {
+        const {policy} = this.props;
+
         if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing workspace name editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
 
-        if (_.isEmpty(this.props.policy)) {
+        if (_.isEmpty(policy)) {
             return null;
         }
 
@@ -62,8 +69,27 @@ class WorkspaceEditorPage extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
 
-                <View style={[styles.pageWrapper, styles.flex1]}>
+                <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
                     <View style={[styles.w100, styles.flex1]}>
+                        <AvatarWithImagePicker
+                            avatarURL={this.state.avatarURL}
+                            DefaultAvatar={() => (
+                                <Icon
+                                    src={Workspace}
+                                    height={80}
+                                    width={80}
+                                    fill={defaultTheme.icon}
+                                />
+                            )}
+                            style={[styles.mb3]}
+                            anchorPosition={{top: 172, right: 18}}
+                            isUsingDefaultAvatar={!this.state.avatarURL}
+                            onImageSelected={(image) => {
+                                this.setState({avatarURL: image.uri});
+                            }}
+                            onImageRemoved={() => this.setState({avatarURL: ''})}
+                        />
+
                         <TextInputWithLabel
                             label={this.props.translate('workspace.editor.inputLabel')}
                             value={this.state.name}
