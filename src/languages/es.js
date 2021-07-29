@@ -433,9 +433,8 @@ export default {
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         edit: {
-            // TODO
             editWorkspace: 'Editar espacio de trabajo',
-            growlMessageOnSave: 'Your workspace was successfully saved',
+            growlMessageOnSave: 'Tu espacio de trabajo fue guardado correctemente',
         },
     },
     companyStep: {
