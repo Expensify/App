@@ -127,6 +127,8 @@ const CONST = {
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
     ADD_SECONDARY_LOGIN_URL: 'settings?param={%22section%22:%22account%22}',
     MANAGE_CARDS_URL: 'domain_companycards',
+    FEES_URL: 'https://use.expensify.com/fees',
+    CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',

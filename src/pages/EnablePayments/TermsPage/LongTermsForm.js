@@ -1,10 +1,9 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, Linking} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import CollapsibleSection from '../../../components/CollapsibleSection';
 import {translateLocal} from '../../../libs/translate';
-import TextLink from '../../../components/TextLink';
 import CONST from '../../../CONST';
 import Icon from '../../../components/Icon';
 import {Printer} from '../../../components/Icon/Expensicons';
@@ -176,9 +175,12 @@ const LongTermsForm = () => (
 
         <View style={styles.flexRow}>
             <Icon style={styles.flex1} src={Printer} />
-            <TextLink style={styles.ml1} href="https://expensify-use2.squarespace.com/fees">
+            <Text
+                style={[styles.link, styles.ml1]}
+                onPress={() => Linking.openURL(CONST.FEES_URL)}
+            >
                 {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
-            </TextLink>
+            </Text>
         </View>
     </>
 );
