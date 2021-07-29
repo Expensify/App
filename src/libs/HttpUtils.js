@@ -52,6 +52,7 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
                     requestID: response.requestID,
                 });
             }
+            return response;
         });
 }
 
