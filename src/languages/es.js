@@ -4,6 +4,7 @@ export default {
         cancel: 'Cancelar',
         yes: 'Si',
         no: 'No',
+        ok: 'OK',
         attachment: 'Archivo Adjunto',
         to: 'A',
         optional: 'Opcional',
