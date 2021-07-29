@@ -434,7 +434,7 @@ export default {
         },
         edit: {
             editWorkspace: 'Editar espacio de trabajo',
-            growlMessageOnSave: 'Tu espacio de trabajo fue guardado correctemente',
+            growlMessageOnSave: 'El espacio de trabajo se ha guardado correctamente',
         },
     },
     companyStep: {
