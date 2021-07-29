@@ -399,13 +399,13 @@ export default {
             workspace: 'Espacio de trabajo',
         },
         new: {
-            newWorkspace: 'Nuevo Workspace',
+            newWorkspace: 'Nuevo espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
             welcome: 'Bienvenido/a',
             chooseAName: 'Elige un nombre',
-            helpText: '¡Dale un nombre a tu Workspace antes de activar tus Expensify Cards!',
+            helpText: '¡Dale un nombre a tu espacio de trabajo antes de activar tus tarjetas Expensify!\n',
             getStarted: '¡Empezar!',
-            genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+            genericFailureMessage: 'Se ha producido un error al intentar crear el espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
         people: {
             assignee: 'Persona asignada',
