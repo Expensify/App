@@ -2,6 +2,7 @@ import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import Modal from './Modal';
 import AttachmentView from './AttachmentView';
@@ -98,7 +99,7 @@ class AttachmentModal extends PureComponent {
      * @returns {Boolean}
      */
     isValidSize(file) {
-        return !file || parseInt(file.size, 10) < CONST.API_MAX_ATTACHMENT_SIZE;
+        return !file || lodashGet(file, 'size', 0) < CONST.API_MAX_ATTACHMENT_SIZE;
     }
 
     render() {
