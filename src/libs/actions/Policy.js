@@ -239,6 +239,27 @@ function updateAvatar(policyID, file) {
         });
 }
 
+/**
+ * Sets the name of the policy
+ *
+ * @param {String} policyID
+ * @param {String} name
+ */
+function setName(policyID, name) {
+    API.UpdatePolicy({policyID, value: JSON.stringify({name}), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.nameEditor.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {name});
+            Navigation.dismissModal();
+        });
+}
+
 export {
     getPolicySummaries,
     getPolicyList,
@@ -247,4 +268,5 @@ export {
     create,
     updateAvatar,
     setAvatarURL,
+    setName,
 };
