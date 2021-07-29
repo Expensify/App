@@ -526,6 +526,7 @@ const styles = {
     },
     expensiTextInputDesktop: {
         outline: 'none',
+        boxShadow: 'none',
     },
     expensiTextInputAndroid: left => ({
         padding: 0,
