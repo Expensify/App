@@ -182,9 +182,9 @@ function invite(logins, welcomeNote, policyID) {
 /**
  * Merges the passed in login into the specified policy
  *
- * @param {String} name
+ * @param {String} [name]
  */
-function create(name) {
+function create(name = '') {
     API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -224,6 +224,23 @@ function setAvatarURL(policyID, avatarURL = '') {
 }
 
 /**
+ * Sets the name of the policy.
+ * @param {String} policyID
+ * @param {String} name
+ */
+function setName(policyID, name ) {
+    API.UpdatePolicy({policyID, value: JSON.stringify({name}), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {name});
+            Growl.success(translateLocal('workspace.edit.growlMessageOnSave'));
+        });
+}
+
+/**
  * @param {String} policyID
  * @param {Object} file
  */
@@ -247,4 +264,5 @@ export {
     create,
     updateAvatar,
     setAvatarURL,
+    setName,
 };
