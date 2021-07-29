@@ -65,6 +65,8 @@ export default {
         takePhoto: 'Hacer una Foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir Documento',
+        attachmentTooLarge: 'Archivo adjunto demasiado grande',
+        sizeExceeded: 'El archivo adjunto supera el límite de 50 MB.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
