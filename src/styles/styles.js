@@ -58,6 +58,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -1864,7 +1868,6 @@ const styles = {
     termsCenterRight: {
         marginTop: 'auto',
         marginBottom: 'auto',
-        textAlign: 'right',
     },
 
     shortTermsBoldHeadingSection: {

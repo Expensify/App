@@ -16,7 +16,7 @@ const LongTermsForm = () => (
                     <Text>{translateLocal('termsStep.longTermsForm.openingAccountTitle')}</Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
@@ -30,7 +30,7 @@ const LongTermsForm = () => (
                     <Text>{translateLocal('termsStep.monthlyFee')}</Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
@@ -49,7 +49,7 @@ const LongTermsForm = () => (
                     </Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
@@ -68,7 +68,7 @@ const LongTermsForm = () => (
                     </Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
@@ -82,7 +82,7 @@ const LongTermsForm = () => (
                     <Text>{translateLocal('termsStep.inactivity')}</Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
@@ -96,7 +96,7 @@ const LongTermsForm = () => (
                     <Text>{translateLocal('termsStep.longTermsForm.sendingFundsTitle')}</Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
@@ -113,7 +113,7 @@ const LongTermsForm = () => (
                     </Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.feeAmountZero')}
                     </Text>
                 </View>
@@ -130,10 +130,10 @@ const LongTermsForm = () => (
                     </Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={styles.textStrong}>
+                    <Text style={[styles.textStrong, styles.textAlignRight]}>
                         {translateLocal('termsStep.electronicFundsInstantFee')}
                     </Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
+                    <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
                         {translateLocal('termsStep.electronicFundsInstantFeeMin')}
                     </Text>
                 </View>
