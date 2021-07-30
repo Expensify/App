@@ -44,7 +44,7 @@ export default {
         dob: 'Date of Birth',
         ssnLast4: 'Last 4 Digits of SSN',
         addressNoPO: 'Address (no P.O. boxes)',
-        companyAddressNoPO: 'Company Address (no P.O. boxes)',
+        companyAddressNoPO: 'Company Address (PO Boxes and mail drop addresses are NOT allowed)',
         city: 'City',
         state: 'State',
         zip: 'Zip Code',
@@ -58,8 +58,6 @@ export default {
         send: 'Send',
         notifications: 'Notifications',
         noResultsFound: 'No results found',
-        timePrefix: 'It\'s',
-        conjunctionFor: 'for',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -112,6 +110,7 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
+        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
