@@ -1,8 +1,7 @@
 import React from 'react';
 import styles from '../../styles/styles';
 import ExpensiTextInput from './index.ios';
-import expensiTextInputPropTypes from './ExpensiTextInputPropTypes';
-import expensiTextInputDefaultProps from './ExpensiTextInputDefaultProps';
+import {propTypes, defaultProps} from './propTypes';
 
 const ExpensiTextInputAndroid = ({
     androidStyles,
@@ -17,7 +16,7 @@ const ExpensiTextInputAndroid = ({
     />
 );
 
-ExpensiTextInputAndroid.propTypes = expensiTextInputPropTypes;
-ExpensiTextInputAndroid.defaultProps = expensiTextInputDefaultProps;
+ExpensiTextInputAndroid.propTypes = propTypes;
+ExpensiTextInputAndroid.defaultProps = defaultProps;
 
 export default ExpensiTextInputAndroid;

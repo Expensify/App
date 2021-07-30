@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import {Animated} from 'react-native';
 
-const expensiTextInputLabelPropTypes = {
+const propTypes = {
+    /** Label */
     label: PropTypes.string,
 
     /** Label vertical translate */
@@ -14,4 +15,4 @@ const expensiTextInputLabelPropTypes = {
     labelScale: PropTypes.instanceOf(Animated.Value).isRequired,
 };
 
-export default expensiTextInputLabelPropTypes;
+export default propTypes;

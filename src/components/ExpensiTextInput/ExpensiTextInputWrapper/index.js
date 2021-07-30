@@ -1,11 +1,7 @@
 import React, {PureComponent} from 'react';
 import {TouchableWithoutFeedback, View} from 'react-native';
-import expensiTextInputWrapperPropTypes from './ExpensiTextInputWrapperPropTypes';
+import {propTypes, defaultProps} from './propTypes';
 import styles from '../../../styles/styles';
-
-const defaultProps = {
-    containerStyles: [],
-};
 
 class ExpensiTextInputWrapper extends PureComponent {
     render() {
@@ -32,7 +28,7 @@ class ExpensiTextInputWrapper extends PureComponent {
     }
 }
 
-ExpensiTextInputWrapper.propTypes = expensiTextInputWrapperPropTypes;
+ExpensiTextInputWrapper.propTypes = propTypes;
 ExpensiTextInputWrapper.defaultProps = defaultProps;
 
 export default ExpensiTextInputWrapper;

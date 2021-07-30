@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const expensiTextInputWrapperPropTypes = {
+const propTypes = {
     /** Input label */
     children: PropTypes.node.isRequired,
 
@@ -20,4 +20,8 @@ const expensiTextInputWrapperPropTypes = {
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
-export default expensiTextInputWrapperPropTypes;
+const defaultProps = {
+    containerStyles: [],
+};
+
+export {propTypes, defaultProps};
