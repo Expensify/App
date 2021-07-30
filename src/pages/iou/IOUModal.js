@@ -9,7 +9,7 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction, setIOUSelectedCurrency} from '../../libs/actions/IOU';
+import {createIOUSplit, createIOUTransaction, payIOUReport, setIOUSelectedCurrency} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -101,6 +101,7 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
+        this.updatePaymentType = this.updatePaymentType.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
@@ -114,6 +115,7 @@ class IOUModal extends Component {
         this.state = {
             currentStepIndex: 0,
             participants: participantsWithDetails,
+            paymentType: props.iouType,
 
             // amount is currency in decimal format
             amount: '',
@@ -223,6 +225,17 @@ class IOUModal extends Component {
     }
 
     /**
+     * Update the payment type
+     *
+     * @param {String} paymentType
+     */
+    updatePaymentType(paymentType) {
+        this.setState({
+            paymentType,
+        });
+    }
+
+    /**
      * @param {Array} [splits]
      */
     createTransaction(splits) {
@@ -245,6 +258,24 @@ class IOUModal extends Component {
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: this.state.participants[0].login,
+        });
+    }
+
+    /**
+     * Create the payIOU report with 'fake' reportID 0
+     *
+     * @param {Array} [splits]
+     */
+    createAndPayIOU() {
+        // This is WIP
+        payIOUReport({
+            chatReportID: this.props.route.params.chatReportID,
+            reportID: 0,
+            paymentMethodType: this.state.paymentType,
+            amount: this.props.iouReport.total,
+            currency: this.props.iouReport.currency,
+            submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+            submitterPhoneNumber: this.submitterPhoneNumber,
         });
     }
 
@@ -321,6 +352,7 @@ class IOUModal extends Component {
                                             iouAmount={this.state.amount}
                                             comment={this.state.comment}
                                             onUpdateComment={this.updateComment}
+                                            onUpdatePaymentType={this.updatePaymentType}
                                         />
                                     )}
                                 </>

@@ -9,6 +9,9 @@ const propTypes = {
     /** Callback to update comment from IOUModal */
     onUpdateComment: PropTypes.func,
 
+    /** Callback to update payment type in IOUModal */
+    onUpdatePaymentType: PropTypes.func,
+
     /** Comment value from IOUModal */
     comment: PropTypes.string,
 
