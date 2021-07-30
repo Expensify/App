@@ -10,7 +10,7 @@ import {DownArrow, UpArrow} from '../Icon/Expensicons';
 class CollapsibleSection extends React.Component {
     constructor(props) {
         super(props);
-        this.toggleExpanded = this.toggleExpanded.bind(this);
+        this.toggleSection = this.toggleSection.bind(this);
         this.state = {
             isExpanded: this.props.isExpanded,
         };
@@ -19,7 +19,7 @@ class CollapsibleSection extends React.Component {
     /**
      * Expands/collapses the section
      */
-    toggleExpanded() {
+    toggleSection() {
         this.setState(prevState => ({
             isExpanded: !prevState.isExpanded,
         }));
@@ -30,7 +30,7 @@ class CollapsibleSection extends React.Component {
 
         return (
             <View style={styles.mt4}>
-                <TouchableOpacity onPress={this.toggleExpanded} style={[styles.pb4, styles.flexRow]}>
+                <TouchableOpacity onPress={this.toggleSection} style={[styles.pb4, styles.flexRow]}>
                     <Text style={[styles.flex1, styles.textStrong]}>
                         {this.props.title}
                     </Text>
