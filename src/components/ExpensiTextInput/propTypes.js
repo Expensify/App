@@ -19,7 +19,7 @@ const propTypes = {
     /** Input with error  */
     error: PropTypes.bool,
 
-    /** Styles for the outermost container for this component. */
+    /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** label translate x */
