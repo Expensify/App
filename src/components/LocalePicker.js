@@ -79,7 +79,7 @@ export default compose(
     withLocalize,
     withOnyx({
         preferredLocale: {
-            key: ONYXKEYS.PREFERRED_LOCALE,
+            key: ONYXKEYS.NVP_PREFERRED_LOCALE,
         },
         betas: {
             key: ONYXKEYS.BETAS,

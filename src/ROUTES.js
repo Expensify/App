@@ -80,6 +80,10 @@ export default {
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     REQUEST_CALL: 'request-call',
+    VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
+        const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
+        return `v/${accountID}/${validateCode}${exitToURL}`;
+    },
 
     /**
      * @param {String} route

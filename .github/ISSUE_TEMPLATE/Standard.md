@@ -20,13 +20,16 @@ Describe what actually happened
 Can the user still use Expensify without this being fixed? Have you informed them of the workaround?
 
 ## Platform:
+<!--- 
+Remove any platforms that aren't affected by this issue
+--->
 Where is this issue occurring?
 
-- [ ] Web
-- [ ] iOS
-- [ ] Android
-- [ ] Desktop App
-- [ ] Mobile Web
+- Web
+- iOS
+- Android
+- Desktop App
+- Mobile Web
 
 **Version Number:**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856

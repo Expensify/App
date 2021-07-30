@@ -618,18 +618,12 @@ function setupWithdrawalAccount(data) {
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
                     console.error('Cannot set up withdrawal account due to existing owners', response);
-                    const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
-                        let separator = ',\n';
-                        if (i === 0) {
-                            separator = '\n';
-                        } else if (i === ownersArr.length - 1) {
-                            separator = ' and\n';
-                        }
-                        return `${ownersStr}${separator}${owner}`;
-                    }, '');
                     Onyx.merge(
                         ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS},
+                        {
+                            existingOwners: response.existingOwners,
+                            error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS,
+                        },
                     );
                     return;
                 }
