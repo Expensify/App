@@ -12,10 +12,6 @@ class ExpensiPicker extends PureComponent {
         };
     }
 
-    toggleFocus = open => this.setState({
-        isOpen: open,
-    })
-
     render() {
         const {
             label, value, placeholder, useDisabledStyles, ...pickerProps
@@ -35,8 +31,8 @@ class ExpensiPicker extends PureComponent {
                 <Picker
                     placeholder={placeholder}
                     value={value}
-                    onOpen={() => this.toggleFocus(true)}
-                    onClose={() => this.toggleFocus(false)}
+                    onOpen={() => this.setState({isOpen: true})}
+                    onClose={() => this.setState({isOpen: false})}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...pickerProps}
                 />
