@@ -114,9 +114,9 @@ function removeMembers(members, policyID) {
     // Optimistically remove the members from the policy
     Onyx.set(key, policy);
 
-    // Make the API call to remove a login from the policy
+    // Make the API call to merge the login into the policy
     API.Policy_Employees_Remove({
-        emailList: members.join(','),
+        emailList: members,
         policyID,
     })
         .then((data) => {
