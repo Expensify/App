@@ -1,6 +1,8 @@
 import React, {createContext} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
+import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const propTypes = {
     /** Rendered child component */
@@ -16,7 +18,7 @@ export default (onyxKeyName) => {
     );
 
     Provider.propTypes = propTypes;
-    Provider.displayName = `${onyxKeyName.toUpperCase()}Provider`;
+    Provider.displayName = `${Str.UCFirst(onyxKeyName)}Provider`;
 
     const ProviderWithOnyx = withOnyx({
         [onyxKeyName]: {
@@ -24,18 +26,22 @@ export default (onyxKeyName) => {
         },
     })(Provider);
 
-    const withOnyxKey = WrappedComponent => props => (
-        <Context.Consumer>
-            {(value) => {
-                const propsToPass = {...props, [onyxKeyName]: value};
-                return (
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    <WrappedComponent {...propsToPass} />
-                );
-            }}
-        </Context.Consumer>
-    );
+    const withOnyxKey = (WrappedComponent) => {
+        const Consumer = props => (
+            <Context.Consumer>
+                {(value) => {
+                    const propsToPass = {...props, [onyxKeyName]: value};
+                    return (
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        <WrappedComponent {...propsToPass} />
+                    );
+                }}
+            </Context.Consumer>
+        );
 
-    withOnyxKey.displayName = `with${onyxKeyName.toUpperCase()}`;
+        Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
+        return Consumer;
+    };
+
     return [withOnyxKey, ProviderWithOnyx];
 };
