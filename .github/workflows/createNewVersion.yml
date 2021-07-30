@@ -10,7 +10,7 @@ on:
 jobs:
   createNewVersion:
     if: github.actor == 'OSBotify'
-    runs-on: macos-11
+    runs-on: macos-11.0
 
     steps:
       # Version: 2.3.4
