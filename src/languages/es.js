@@ -57,6 +57,7 @@ export default {
         dateFormat: 'AAAA-MM-DD',
         send: 'Enviar',
         notifications: 'Notificaciones',
+        na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
@@ -422,6 +423,68 @@ export default {
         walletAgreement: 'Acuerdo de billetera',
         enablePayments: 'Habilitar pagos',
         termsMustBeAccepted: 'Se deben aceptar los términos',
+        feeAmountZero: '$0',
+        monthlyFee: 'Cuota mensual',
+        inactivity: 'Inactividad',
+        electronicFundsInstantFee: '1.5%',
+        electronicFundsInstantFeeMin: 'Mínimo $0.25',
+        noOverdraftOrCredit: 'Sin función de sobregiro / crédito',
+        electronicFundsWithdrawal: 'Retiro electrónico de fondos',
+        instant: 'Instantáneo',
+        standard: 'Estándar',
+        shortTermsForm: {
+            expensifyPaymentsAccount: 'La cuenta Expensify Payments es emitida por The Bancorp Bank.',
+            perPurchase: 'Por compra',
+            atmWithdrawal: 'Retiro de cajero automático',
+            cashReload: 'Recarga de efectivo',
+            inNetwork: 'En la red',
+            outOfNetwork: 'fuera de la red',
+            atmBalanceInquiry: 'Consulta de saldo de cajero automático',
+            inOrOutOfNetwork: 'Dentro o fuera de la red',
+            customerService: 'Servicio al cliente',
+            automatedOrLive: 'Agente automatizado o en vivo',
+            afterTwelveMonths: 'Después de 12 meses sin transacciones',
+            weChargeOneFee: 'Cobramos 1 tipo de tarifa.',
+            fdicInsurance: 'Sus fondos son elegibles para el seguro de la FDIC.',
+            generalInfo: 'Para obtener información general sobre cuentas prepagas, visite',
+            conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
+            conditionsPhone: 'o llamando al +1 833-400-0904.',
+        },
+        longTermsForm: {
+            listOfAllFees: 'Todas las tarifas de la cuenta Expensify Payments:',
+            typeOfFeeHeader: 'Tipo de tarifa',
+            feeAmountHeader: 'Importe de la tarifa',
+            moreDetailsHeader: 'Más detalles',
+            openingAccountTitle: 'Abrir una cuenta',
+            openingAccountDetails: 'No hay tarifa para crear una cuenta.',
+            monthlyFeeDetails: 'No hay tarifa mensual',
+            customerServiceTitle: 'Servicio al cliente',
+            customerServiceDetails: 'No hay tarifas de servicio al cliente.',
+            inactivityDetails: 'No hay tarifa de inactividad.',
+            sendingFundsTitle: 'Enviar fondos a otro titular de cuenta',
+            sendingFundsDetails: 'No se aplica ningún cargo por enviar fondos a otro titular de cuenta utilizando su '
+                + 'saldo cuenta bancaria o tarjeta de débito',
+            electronicFundsStandardDetails: 'No hay cargo por transferir fondos desde su cuenta Expensify Payments'
+                + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
+                + '1-3 negocios días.',
+            electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
+                + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia'
+                + ' generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
+                + 'transferencia (con una tarifa mínima de $ 0.25). ',
+            fdicInsuranceBancorp: 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o '
+                + 'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos '
+                + 'están asegurados a $ 250,000 por la FDIC en caso de que The Bancorp Bank quiebre. Ver',
+            fdicInsuranceBancorp2: 'para detalles.',
+            contactExpensifyPayments: 'Comuníquese con Expensify Payments llamando al + 1833-400-0904, por correo'
+                + 'electrónico a',
+            contactExpensifyPayments2: 'o inicie sesión en',
+            generalInformation: 'Para obtener información general sobre cuentas prepagas, visite',
+            generalInformation2: 'Si tiene una queja sobre una cuenta prepaga, llame al Consumer Financial Oficina de '
+                + 'Protección al 1-855-411-2372 o visite',
+            printerFriendlyView: 'Ver versión para imprimir',
+            automated: 'Automatizado',
+            liveAgent: 'Agente en vivo',
+        },
     },
     activateStep: {
         headerTitle: 'Habilitar pagos',

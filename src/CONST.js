@@ -129,6 +129,9 @@ const CONST = {
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
     ADD_SECONDARY_LOGIN_URL: '/settings?param={%22section%22:%22account%22}',
     MANAGE_CARDS_URL: '/domain_companycards',
+    FEES_URL: 'https://use.expensify.com/fees',
+    CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
+    NEWDOT: 'new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -351,6 +354,13 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+    },
+
+    TERMS: {
+        CFPB_PREPAID: 'cfpb.gov/prepaid',
+        CFPB_COMPLAINT: 'cfpb.gov/complaint',
+        FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
+        USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
     },
 
     REGEX: {
