@@ -19,7 +19,7 @@ const propTypes = {
     /** Has error? */
     error: PropTypes.bool.isRequired,
 
-    /** Styles for the outermost container for this component. */
+    /** ExpensiTextInput. */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 };
 
