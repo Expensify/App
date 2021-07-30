@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    View, ScrollView, Linking, StyleSheet,
+    View, ScrollView, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -18,11 +18,11 @@ import Button from '../../components/Button';
 import variables from '../../styles/variables';
 import themeDefault from '../../styles/themes/default';
 import ROUTES from '../../ROUTES';
-import CONFIG from '../../CONFIG';
 import CONST from '../../CONST';
 import Permissions from '../../libs/Permissions';
 import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
 import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
+import {openSignedInLink} from '../../libs/actions/App';
 
 const propTypes = {
     /* Onyx Props */
@@ -65,9 +65,6 @@ const defaultProps = {
     },
 };
 
-const publicLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.ADD_SECONDARY_LOGIN_URL;
-const manageCardLink = CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + CONST.MANAGE_CARDS_URL;
-
 const WorkspaceCardPage = ({
     betas,
     user,
@@ -89,9 +86,9 @@ const WorkspaceCardPage = ({
 
     const onPress = () => {
         if (user.isFromPublicDomain) {
-            Linking.openURL(publicLink);
+            openSignedInLink(CONST.ADD_SECONDARY_LOGIN_URL);
         } else if (user.isUsingExpensifyCard) {
-            Linking.openURL(manageCardLink);
+            openSignedInLink(CONST.MANAGE_CARDS_URL);
         } else {
             Navigation.navigate(ROUTES.getBankAccountRoute());
         }
