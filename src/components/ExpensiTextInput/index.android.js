@@ -18,5 +18,6 @@ const ExpensiTextInputAndroid = ({
 
 ExpensiTextInputAndroid.propTypes = propTypes;
 ExpensiTextInputAndroid.defaultProps = defaultProps;
+ExpensiTextInputAndroid.displayName = 'ExpensiTextInput';
 
 export default ExpensiTextInputAndroid;
