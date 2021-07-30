@@ -58,8 +58,6 @@ export default {
         send: 'Enviar',
         notifications: 'Notificaciones',
         noResultsFound: 'No se han encontrado resultados',
-        timePrefix: 'Son las',
-        conjunctionFor: 'para',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -112,6 +110,7 @@ export default {
         youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
+        localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
     contextMenuItem: {
         copyToClipboard: 'Copiar al Portapapeles',
