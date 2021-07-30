@@ -116,7 +116,7 @@ function removeMembers(members, policyID) {
 
     // Make the API call to merge the login into the policy
     API.Policy_Employees_Remove({
-        emailList: members,
+        emailList: members.join(','),
         policyID,
     })
         .then((data) => {
