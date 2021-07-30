@@ -1,5 +1,11 @@
 import React, {createContext} from 'react';
+import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+
+const propTypes = {
+    /** Rendered child component */
+    children: PropTypes.node.isRequired,
+};
 
 export default (onyxKeyName) => {
     const Context = createContext();
@@ -8,6 +14,9 @@ export default (onyxKeyName) => {
             {props.children}
         </Context.Provider>
     );
+
+    Provider.propTypes = propTypes;
+    Provider.displayName = `${onyxKeyName.toUpperCase()}Provider`;
 
     const ProviderWithOnyx = withOnyx({
         [onyxKeyName]: {
@@ -27,5 +36,6 @@ export default (onyxKeyName) => {
         </Context.Consumer>
     );
 
+    withOnyxKey.displayName = `with${onyxKeyName.toUpperCase()}`;
     return [withOnyxKey, ProviderWithOnyx];
 };
