@@ -43,8 +43,8 @@ export default {
         here: 'here',
         dob: 'Date of Birth',
         ssnLast4: 'Last 4 Digits of SSN',
-        addressNoPO: 'Address (no P.O. boxes)',
-        companyAddressNoPO: 'Company Address (no P.O. boxes)',
+        addressNoPO: 'Personal Address (PO Boxes and mail drop addresses are NOT allowed)',
+        companyAddressNoPO: 'Company Address (PO Boxes and mail drop addresses are NOT allowed)',
         city: 'City',
         state: 'State',
         zip: 'Zip Code',
@@ -60,6 +60,10 @@ export default {
         noResultsFound: 'No results found',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
+        todayAt: 'Today at',
+        tomorrowAt: 'Tomorrow at',
+        yesterdayAt: 'Yesterday at',
+        conjunctionAt: 'at',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -70,6 +74,8 @@ export default {
         takePhoto: 'Take Photo',
         chooseFromGallery: 'Choose from Gallery',
         chooseDocument: 'Choose Document',
+        attachmentTooLarge: 'Attachment too large',
+        sizeExceeded: 'Attachment size is larger than 50 MB limit.',
     },
     textInputFocusable: {
         noExtentionFoundForMimeType: 'No extension found for mime type',
@@ -110,6 +116,7 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
+        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     contextMenuItem: {
         copyToClipboard: 'Copy to Clipboard',
@@ -240,6 +247,7 @@ export default {
         payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal Account',
+        editPayPalAccount: 'Update PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
     paymentsPage: {
