@@ -10,7 +10,7 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
-  DEVELOPER_DIR: /Applications/Xcode_12.3.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
 
 jobs:
   android:
