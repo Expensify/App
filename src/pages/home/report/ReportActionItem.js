@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -23,6 +22,7 @@ import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
+import withReportActionsDrafts from '../../../components/withReportActionsDrafts';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -47,13 +47,15 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
-    draftMessage: PropTypes.string,
+    // eslint-disable-next-line react/require-default-props
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: PropTypes.shape({}),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    draftMessage: '',
+    // eslint-disable-next-line react/default-props-match-prop-types
+    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: {},
     hasOutstandingIOU: false,
 };
 
@@ -70,12 +72,25 @@ class ReportActionItem extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         return this.props.displayAsGroup !== nextProps.displayAsGroup
-            || this.props.draftMessage !== nextProps.draftMessage
+            || this.getDraftMessage() !== this.getDraftMessage(nextProps)
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
+    }
+
+    /**
+     * @param {Object} props
+     * @returns {String}
+     */
+    getDraftMessage(props) {
+        const propsToUse = props || this.props;
+        const drafts = propsToUse[ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS] || {};
+        // eslint-disable-next-line max-len
+        const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${propsToUse.reportID}_${propsToUse.action.reportActionID}`;
+        const draft = drafts[draftKey];
+        return draft || '';
     }
 
     /**
@@ -86,7 +101,7 @@ class ReportActionItem extends Component {
      */
     showPopover(event, selection) {
         // Block menu on the message being Edited
-        if (this.props.draftMessage) {
+        if (this.getDraftMessage()) {
             return;
         }
         showContextMenu(
@@ -95,7 +110,7 @@ class ReportActionItem extends Component {
             this.popoverAnchor,
             this.props.reportID,
             this.props.action,
-            this.props.draftMessage,
+            this.getDraftMessage(),
             this.checkIfContextMenuActive,
             this.checkIfContextMenuActive,
         );
@@ -106,6 +121,7 @@ class ReportActionItem extends Component {
     }
 
     render() {
+        const draftMessage = this.getDraftMessage();
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -116,12 +132,12 @@ class ReportActionItem extends Component {
                 />
             );
         } else {
-            children = !this.props.draftMessage
+            children = !draftMessage
                 ? <ReportActionItemMessage action={this.props.action} />
                 : (
                     <ReportActionItemMessageEdit
                             action={this.props.action}
-                            draftMessage={this.props.draftMessage}
+                            draftMessage={draftMessage}
                             reportID={this.props.reportID}
                             index={this.props.index}
                     />
@@ -133,7 +149,7 @@ class ReportActionItem extends Component {
                 onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
-                preventDefaultContentMenu={!this.props.draftMessage}
+                preventDefaultContentMenu={!draftMessage}
 
             >
                 <Hoverable resetsOnClickOutside={false}>
@@ -146,7 +162,7 @@ class ReportActionItem extends Component {
                                 style={getReportActionItemStyle(
                                     hovered
                                     || this.state.isContextMenuActive
-                                    || this.props.draftMessage,
+                                    || draftMessage,
                                 )}
                             >
                                 {!this.props.displayAsGroup
@@ -168,10 +184,10 @@ class ReportActionItem extends Component {
                                 isVisible={
                                     hovered
                                     && !this.state.isContextMenuActive
-                                    && !this.props.draftMessage
+                                    && !draftMessage
 
                                 }
-                                draftMessage={this.props.draftMessage}
+                                draftMessage={draftMessage}
                             />
                         </View>
                     )}
@@ -185,12 +201,5 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withOnyx({
-        draftMessage: {
-            key: ({
-                reportID,
-                action,
-            }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
-        },
-    }),
+    withReportActionsDrafts,
 )(ReportActionItem);

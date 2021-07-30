@@ -4,6 +4,9 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import {NetworkProvider} from './components/withNetwork';
+import {PersonalDetailsProvider} from './components/withPersonalDetails';
+import {ReportActionsDraftsProvider} from './components/withReportActionsDrafts';
+
 import Expensify from './Expensify';
 import ComposeProviders from './components/ComposeProviders';
 
@@ -22,6 +25,8 @@ const App = () => (
         components={[
             NetworkProvider,
             SafeAreaProvider,
+            PersonalDetailsProvider,
+            ReportActionsDraftsProvider,
         ]}
     >
         <CustomStatusBar />

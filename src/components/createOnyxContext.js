@@ -10,7 +10,9 @@ export default (onyxKeyName) => {
     );
 
     const ProviderWithOnyx = withOnyx({
-        key: onyxKeyName,
+        [onyxKeyName]: {
+            key: onyxKeyName,
+        },
     })(Provider);
 
     const withOnyxKey = WrappedComponent => props => (
