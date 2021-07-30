@@ -12,47 +12,27 @@ import styles from '../../styles/styles';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
+import Text from '../../components/Text';
 import compose from '../../libs/compose';
-import {setName, setAvatarURL, updateAvatar} from '../../libs/actions/Policy';
+import {create} from '../../libs/actions/Policy';
 import defaultTheme from '../../styles/themes/default';
-import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
-
-    /** Policy being edited */
-    policy: PropTypes.shape({
-        /** ID of the policy */
-        id: PropTypes.string,
-
-        /** Name of the policy */
-        name: PropTypes.string,
-
-        /** Avatar url of the policy */
-        avatarURL: PropTypes.string,
-    }).isRequired,
-
-    /** URL Route params */
-    route: PropTypes.shape({
-        /** Params from the URL path */
-        params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/edit */
-            policyID: PropTypes.string,
-        }),
-    }).isRequired,
 };
 const defaultProps = {
     betas: [],
 };
 
-class EditWorkspacePage extends React.Component {
+class NewWorkspacePage extends React.Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            name: props.policy.name,
+            name: '',
         };
 
         this.submit = this.submit.bind(this);
@@ -60,7 +40,7 @@ class EditWorkspacePage extends React.Component {
 
     submit() {
         const name = this.state.name.trim();
-        setName(this.props.policy.id, name);
+        create(name);
     }
 
     render() {
@@ -72,21 +52,12 @@ class EditWorkspacePage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.edit.editWorkspace')}
+                    title={this.props.translate('workspace.new.welcome')}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
 
                 <View style={[styles.pageWrapper, styles.flex1]}>
-                    <AvatarWithImagePicker
-                        avatarURL={this.props.policy.avatarURL}
-                        DefaultAvatar={() => <WorkspaceDefaultAvatar height={80} width={80} fill={defaultTheme.icon} />}
-                        anchorPosition={{top: 176, right: 20}}
-                        isUsingDefaultAvatar={!this.props.policy.avatarURL}
-                        onImageSelected={(image) => {
-                            updateAvatar(this.props.policy.id, image);
-                        }}
-                        onImageRemoved={() => setAvatarURL(this.props.policy.id)}
-                    />
+                    <WorkspaceDefaultAvatar height={80} width={80} fill={defaultTheme.iconSuccessFill} />
 
                     <View style={[styles.mt6, styles.w100, styles.flex1]}>
                         <TextInputWithLabel
@@ -95,15 +66,15 @@ class EditWorkspacePage extends React.Component {
                             onChangeText={name => this.setState({name})}
                             onSubmitEditting={this.submit}
                         />
+                        <Text style={[styles.mt6]}>{this.props.translate('workspace.new.helpText')}</Text>
                     </View>
 
                     <Button
                         success
                         style={[styles.w100]}
-                        text={this.props.translate('common.save')}
+                        text={this.props.translate('workspace.new.getStarted')}
                         onPress={this.submit}
                         pressOnEnter
-                        isDisabled={!this.state.name}
                     />
                 </View>
             </ScreenWrapper>
@@ -111,18 +82,14 @@ class EditWorkspacePage extends React.Component {
     }
 }
 
-EditWorkspacePage.propTypes = propTypes;
-EditWorkspacePage.defaultProps = defaultProps;
-EditWorkspacePage.displayName = 'EditWorkspacePage';
+NewWorkspacePage.propTypes = propTypes;
+NewWorkspacePage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        policy: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
-        },
     }),
     withLocalize,
-)(EditWorkspacePage);
+)(NewWorkspacePage);

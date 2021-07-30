@@ -114,9 +114,9 @@ function removeMembers(members, policyID) {
     // Optimistically remove the members from the policy
     Onyx.set(key, policy);
 
-    // Make the API call to merge the login into the policy
+    // Make the API call to remove a login from the policy
     API.Policy_Employees_Remove({
-        emailList: members,
+        emailList: members.join(','),
         policyID,
     })
         .then((data) => {
@@ -203,6 +203,7 @@ function create(name = '') {
             });
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
+            Growl.success(translateLocal('workspace.new.successMessage'));
         });
 }
 
@@ -220,23 +221,6 @@ function setAvatarURL(policyID, avatarURL = '') {
             }
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL});
-        });
-}
-
-/**
- * Sets the name of the policy.
- * @param {String} policyID
- * @param {String} name
- */
-function setName(policyID, name) {
-    API.UpdatePolicy({policyID, value: JSON.stringify({name}), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {name});
-            Growl.success(translateLocal('workspace.edit.growlMessageOnSave'));
         });
 }
 
@@ -264,5 +248,4 @@ export {
     create,
     updateAvatar,
     setAvatarURL,
-    setName,
 };
