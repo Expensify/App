@@ -1,7 +1,7 @@
 import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import expensiTextInputLabelPropTypes from './ExpensiTextInputLabelPropTypes';
+import propTypes from './propTypes';
 
 class ExpensiTextInputLabel extends PureComponent {
     render() {
@@ -26,6 +26,6 @@ class ExpensiTextInputLabel extends PureComponent {
     }
 }
 
-ExpensiTextInputLabel.propTypes = expensiTextInputLabelPropTypes;
+ExpensiTextInputLabel.propTypes = propTypes;
 
 export default ExpensiTextInputLabel;

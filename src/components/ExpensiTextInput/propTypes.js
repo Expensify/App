@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-const expensiTextInputPropTypes = {
+const propTypes = {
     /** Input label */
     label: PropTypes.string,
 
@@ -29,4 +29,15 @@ const expensiTextInputPropTypes = {
     androidStyle: PropTypes.arrayOf(PropTypes.object),
 };
 
-export default expensiTextInputPropTypes;
+const defaultProps = {
+    label: '',
+    placeholder: '',
+    error: false,
+    onFocusExtra: null,
+    onBlurExtra: null,
+    containerStyles: [],
+    translateX: -22,
+    androidStyle: [],
+};
+
+export {propTypes, defaultProps};

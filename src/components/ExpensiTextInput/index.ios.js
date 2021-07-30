@@ -4,8 +4,7 @@ import {
 } from 'react-native';
 import ExpensiTextInputWrapper from './ExpensiTextInputWrapper';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
-import expensiTextInputPropTypes from './ExpensiTextInputPropTypes';
-import expensiTextInputDefaultProps from './ExpensiTextInputDefaultProps';
+import {propTypes, defaultProps} from './propTypes';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 
@@ -120,7 +119,7 @@ class ExpensiTextInput extends Component {
     }
 }
 
-ExpensiTextInput.propTypes = expensiTextInputPropTypes;
-ExpensiTextInput.defaultProps = expensiTextInputDefaultProps;
+ExpensiTextInput.propTypes = propTypes;
+ExpensiTextInput.defaultProps = defaultProps;
 
 export default ExpensiTextInput;
