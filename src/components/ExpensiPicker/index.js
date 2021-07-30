@@ -14,15 +14,14 @@ class ExpensiPicker extends PureComponent {
 
     render() {
         const {
-            label, value, placeholder, useDisabledStyles, ...pickerProps
+            label, value, placeholder, isDisabled, ...pickerProps
         } = this.props;
-        const {isOpen} = this.state;
         return (
             <View
                 style={[
                     styles.expensiPickerContainer,
-                    isOpen && styles.expensiPickerContainerOnFocus,
-                    useDisabledStyles && styles.expensiPickerContainerDisabled,
+                    this.state.isOpen && styles.expensiPickerContainerOnFocus,
+                    isDisabled && styles.expensiPickerContainerDisabled,
                 ]}
             >
                 {label && (

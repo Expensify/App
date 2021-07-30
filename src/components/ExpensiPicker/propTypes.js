@@ -1,7 +1,10 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    /** Picker label */
     label: PropTypes.string,
+
+    /** Picker value */
     value: PropTypes.string,
 
     /** Something to show as the placeholder before something is selected */
@@ -13,8 +16,8 @@ const propTypes = {
         label: PropTypes.string,
     }),
 
-    /** Picker disabled style */
-    useDisabledStyles: PropTypes.boolean,
+    /** Should the picker appear disabled? */
+    isDisabled: PropTypes.boolean,
 
     /** Picker size */
     size: PropTypes.oneOf(['normal', 'small']),
@@ -24,7 +27,7 @@ const defaultProps = {
     label: '',
     value: '',
     placeholder: {},
-    useDisabledStyles: false,
+    isDisabled: false,
     size: 'normal',
 };
 

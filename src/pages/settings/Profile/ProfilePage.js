@@ -259,7 +259,7 @@ class ProfilePage extends Component {
                                 label={this.props.translate('profilePage.timezone')}
                                 onChange={selectedTimezone => this.setState({selectedTimezone})}
                                 items={timezones}
-                                useDisabledStyles={this.state.isAutomaticTimezone}
+                                isDisabled={this.state.isAutomaticTimezone}
                                 value={this.state.selectedTimezone}
                                 disabled={this.state.isAutomaticTimezone}
                             />
