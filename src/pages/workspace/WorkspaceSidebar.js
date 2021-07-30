@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, ScrollView, Pressable} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -12,7 +12,7 @@ import Icon from '../../components/Icon';
 import {
     Users,
     ExpensifyCard,
-    Workspace, Pencil,
+    Workspace,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -22,7 +22,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import Avatar from '../../components/Avatar';
+import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
+import {updateAvatar, setAvatarURL} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Policy for the current route */
@@ -86,17 +87,9 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                         )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                            <Pressable
-                                style={[styles.alignItemsCenter, styles.mb3]}
-                                onPress={() => Navigation.navigate(ROUTES.getWorkspaceEditRoute(policy.id))}
-                            >
-                                {policy.avatarURL ? (
-                                    <Avatar
-                                        containerStyles={styles.avatarLarge}
-                                        imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                        source={policy.avatarURL}
-                                    />
-                                ) : (
+                            <AvatarWithImagePicker
+                                avatarURL={policy.avatarURL}
+                                DefaultAvatar={() => (
                                     <Icon
                                         src={Workspace}
                                         height={80}
@@ -104,12 +97,14 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                         fill={themedefault.icon}
                                     />
                                 )}
-                                <View
-                                    style={[styles.smallEditIcon]}
-                                >
-                                    <Icon src={Pencil} fill={themedefault.iconReversed} />
-                                </View>
-                            </Pressable>
+                                style={[styles.mb3]}
+                                anchorPosition={{top: 116, left: 20}}
+                                isUsingDefaultAvatar={!policy.avatarURL}
+                                onImageSelected={(image) => {
+                                    updateAvatar(policy.id, image);
+                                }}
+                                onImageRemoved={() => setAvatarURL(policy.id)}
+                            />
                             <Text
                                 numberOfLines={1}
                                 style={[
