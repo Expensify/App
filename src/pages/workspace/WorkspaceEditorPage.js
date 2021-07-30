@@ -117,7 +117,9 @@ class WorkspaceEditorPage extends React.Component {
                             onChangeText={name => this.setState({name})}
                             onSubmitEditting={this.submit}
                         />
-                        <Text style={[styles.mt2]}>{this.props.translate('workspace.editor.nameInputHelpText')}</Text>
+                        <Text style={[styles.mt2, styles.formHint]}>
+                            {this.props.translate('workspace.editor.nameInputHelpText')}
+                        </Text>
                     </View>
 
                     <Button
