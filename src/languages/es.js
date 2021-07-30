@@ -44,7 +44,7 @@ export default {
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         addressNoPO: 'Dirección (sin Apartado Postal)',
-        companyAddressNoPO: 'Dirección de la Empresa (sin Apartado Postal)',
+        companyAddressNoPO: 'Dirección física de la empresa (no se aceptan apartados ni direcciones postales)',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código Postal',
@@ -64,7 +64,6 @@ export default {
         tomorrowAt: 'Mañana a las',
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
-
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -117,6 +116,7 @@ export default {
         youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
+        localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
     contextMenuItem: {
         copyToClipboard: 'Copiar al Portapapeles',
