@@ -81,7 +81,7 @@ class ReportScreen extends React.Component {
         this.setState({isLoading: true});
 
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 150);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
     }
 
     /**
@@ -104,7 +104,7 @@ class ReportScreen extends React.Component {
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
 
-                <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                {/* <FullScreenLoadingIndicator visible={this.shouldShowLoader()} /> */}
 
                 {!this.shouldShowLoader() && <ReportView reportID={this.getReportID()} />}
             </ScreenWrapper>
