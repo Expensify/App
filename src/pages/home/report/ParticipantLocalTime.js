@@ -64,24 +64,21 @@ class ParticipantLocalTime extends React.Component {
 
         return (
             <View style={[styles.chatItemComposeSecondaryRow]}>
-                <View style={[
-                    styles.chatItemComposeSecondaryRowOffset,
-                    styles.flexRow,
-                    styles.alignItemsCenter]}
+                <ExpensiText
+                    style={[
+                        styles.chatItemComposeSecondaryRowSubText,
+                        styles.chatItemComposeSecondaryRowOffset,
+                    ]}
+                    numberOfLines={1}
                 >
-                    <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
-                        {this.props.translate('common.timePrefix')}
-                    </ExpensiText>
-                    <ExpensiText style={[styles.textMicroSupportingBold, styles.mr1]}>
-                        {this.state.localTime}
-                    </ExpensiText>
-                    <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
-                        {this.props.translate('common.conjunctionFor')}
-                    </ExpensiText>
-                    <ExpensiText style={[styles.textMicroSupportingBold]}>
-                        {reportRecipientDisplayName}
-                    </ExpensiText>
-                </View>
+                    {this.props.translate(
+                        'reportActionCompose.localTime',
+                        {
+                            user: reportRecipientDisplayName,
+                            time: this.state.localTime,
+                        },
+                    )}
+                </ExpensiText>
             </View>
         );
     }
