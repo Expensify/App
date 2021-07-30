@@ -2,8 +2,7 @@ import React, {PureComponent} from 'react';
 import {Text, View} from 'react-native';
 import Picker from '../Picker';
 import styles from '../../styles/styles';
-import propTypes from './propTypes';
-import defaultProps from './defaultProps';
+import {propTypes, defaultProps} from './propTypes';
 
 class ExpensiPicker extends PureComponent {
     constructor() {
