@@ -20,4 +20,12 @@ const propTypes = {
     size: PropTypes.oneOf(['normal', 'small']),
 };
 
-export default propTypes;
+const defaultProps = {
+    label: '',
+    value: '',
+    placeholder: {},
+    useDisabledStyles: false,
+    size: 'normal',
+};
+
+export {propTypes, defaultProps};
