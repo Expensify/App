@@ -524,10 +524,7 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
     },
-    expensiTextInputDesktop: {
-        outline: 'none',
-        boxShadow: 'none',
-    },
+    expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
         padding: 0,
         left,
