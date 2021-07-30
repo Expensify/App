@@ -2,11 +2,10 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import ReportActionPropTypes from './ReportActionPropTypes';
+import withNetwork from '../../../components/withNetwork';
 
 const propTypes = {
     /** The report action */
@@ -43,8 +42,4 @@ ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default withOnyx({
-    network: {
-        key: ONYXKEYS.NETWORK,
-    },
-})(ReportActionItemMessage);
+export default withNetwork(ReportActionItemMessage);
