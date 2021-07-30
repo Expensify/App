@@ -27,8 +27,5 @@ export default (onyxKeyName) => {
         </Context.Consumer>
     );
 
-    return {
-        withOnyxKey,
-        Provider: ProviderWithOnyx,
-    };
+    return [withOnyxKey, ProviderWithOnyx];
 };

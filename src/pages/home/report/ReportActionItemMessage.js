@@ -5,7 +5,7 @@ import _ from 'underscore';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import withNetwork from '../../../components/withNetwork';
+import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** The report action */

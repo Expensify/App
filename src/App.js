@@ -3,11 +3,8 @@ import {LogBox} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
-import {NetworkProvider} from './components/withNetwork';
 import {LocaleContextProvider} from './components/withLocalize';
-import {PersonalDetailsProvider} from './components/withPersonalDetails';
-import {ReportActionsDraftsProvider} from './components/withReportActionsDrafts';
-
+import OnyxProvider from './components/OnyxProvider';
 import Expensify from './Expensify';
 import ComposeProviders from './components/ComposeProviders';
 
@@ -24,11 +21,9 @@ LogBox.ignoreLogs([
 const App = () => (
     <ComposeProviders
         components={[
-            NetworkProvider,
+            OnyxProvider,
             SafeAreaProvider,
             LocaleContextProvider,
-            PersonalDetailsProvider,
-            ReportActionsDraftsProvider,
         ]}
     >
         <CustomStatusBar />
