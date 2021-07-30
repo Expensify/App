@@ -4,7 +4,6 @@ import {
     Keyboard,
     AppState,
     ActivityIndicator,
-    Platform,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
