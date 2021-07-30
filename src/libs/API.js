@@ -426,6 +426,15 @@ function GetAccountStatus(parameters) {
 }
 
 /**
+ * Returns a validate code for this account
+ * @returns {Promise}
+ */
+function GetAccountValidateCode() {
+    const commandName = 'GetAccountValidateCode';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
@@ -1072,6 +1081,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetAccountValidateCode,
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,
