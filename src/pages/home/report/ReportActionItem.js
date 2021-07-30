@@ -22,7 +22,7 @@ import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
-import withReportActionsDrafts from '../../../components/withReportActionsDrafts';
+import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** The ID of the report this action is on. */

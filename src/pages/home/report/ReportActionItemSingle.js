@@ -14,7 +14,7 @@ import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import withPersonalDetails from '../../../components/withPersonalDetails';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** All the data of the action */
