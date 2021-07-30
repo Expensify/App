@@ -21,7 +21,6 @@ import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
-import withNetwork from '../../../components/withNetwork';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -193,7 +192,6 @@ SidebarLinks.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withNetwork,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -206,6 +204,9 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        network: {
+            key: ONYXKEYS.NETWORK,
         },
         currentlyViewedReportID: {
             key: ONYXKEYS.CURRENTLY_VIEWED_REPORTID,

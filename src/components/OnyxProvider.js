@@ -12,6 +12,7 @@ const [
 ] = createOnyxContext(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS);
 
 const propTypes = {
+    /** Rendered child component */
     children: PropTypes.node.isRequired,
 };
 
