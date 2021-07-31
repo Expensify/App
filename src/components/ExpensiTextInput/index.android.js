@@ -1,23 +1,26 @@
 import React from 'react';
 import styles from '../../styles/styles';
-import ExpensiTextInput from './index.ios';
+import BaseExpensiTextInput from './BaseExpensiTextInput';
 import {propTypes, defaultProps} from './propTypes';
 
-const ExpensiTextInputAndroid = ({
+const ExpensiTextInput = ({
     androidStyles,
     translateX,
     ...props
 }) => (
-    <ExpensiTextInput
-        androidStyles={styles.expensiTextInputAndroid(Math.abs(translateX))}
-        translateX={translateX}
-            // eslint-disable-next-line react/jsx-props-no-spreading
+    <BaseExpensiTextInput
+        // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
+        inputStyle={[
+            styles.expensiTextInput,
+            styles.expensiTextInputAndroid(Math.abs(translateX)),
+        ]}
+        translateX={translateX}
     />
 );
 
-ExpensiTextInputAndroid.propTypes = propTypes;
-ExpensiTextInputAndroid.defaultProps = defaultProps;
-ExpensiTextInputAndroid.displayName = 'ExpensiTextInput';
+ExpensiTextInput.propTypes = propTypes;
+ExpensiTextInput.defaultProps = defaultProps;
+ExpensiTextInput.displayName = 'ExpensiTextInput';
 
-export default ExpensiTextInputAndroid;
+export default ExpensiTextInput;

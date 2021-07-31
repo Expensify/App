@@ -25,8 +25,11 @@ const propTypes = {
     /** label translate x */
     translateX: PropTypes.number,
 
-    /** android specific styles */
-    androidStyle: PropTypes.arrayOf(PropTypes.object),
+    /** input style */
+    inputStyle: PropTypes.arrayOf(PropTypes.object),
+
+    /** should ignore labels translate x? */
+    ignoreLabelTranslateX: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -37,7 +40,8 @@ const defaultProps = {
     onBlurExtra: null,
     containerStyles: [],
     translateX: -22,
-    androidStyle: [],
+    inputStyle: [],
+    ignoreLabelTranslateX: false,
 };
 
 export {propTypes, defaultProps};
