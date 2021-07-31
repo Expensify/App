@@ -32,7 +32,27 @@ class ExpensiTextInput extends Component {
         this.input = null;
     }
 
-    animateLabel = (translateY, translateX, scale) => {
+    onFocus() {
+        if (this.props.onFocusExtra) { this.props.onFocusExtra(); }
+        this.setState({isFocused: true});
+        if (this.props.value.length === 0) {
+            this.animateLabel(
+                ACTIVE_LABEL_TRANSLATE_Y,
+                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
+                ACTIVE_LABEL_SCALE,
+            );
+        }
+    }
+
+    onBlur() {
+        if (this.props.onBlurExtra) { this.props.onBlurExtra(); }
+        this.setState({isFocused: false});
+        if (this.props.value.length === 0) {
+            this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
+        }
+    }
+
+    animateLabel(translateY, translateX, scale) {
         Animated.parallel([
             Animated.spring(this.state.labelTranslateY, {
                 toValue: translateY,
@@ -52,54 +72,33 @@ class ExpensiTextInput extends Component {
         ]).start();
     }
 
-    onFocus = () => {
-        if (this.props.onFocusExtra) { this.props.onFocusExtra(); }
-        this.setState({isFocused: true});
-        if (this.props.value.length === 0) {
-            this.animateLabel(
-                ACTIVE_LABEL_TRANSLATE_Y,
-                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
-                ACTIVE_LABEL_SCALE,
-            );
-        }
-    }
-
-    onBlur = () => {
-        if (this.props.onBlurExtra) { this.props.onBlurExtra(); }
-        this.setState({isFocused: false});
-        if (this.props.value.length === 0) {
-            this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
-        }
-    }
-
-    focus = () => this.input.focus()
-
     render() {
         const {
             label, value, placeholder, error, containerStyles, inputStyle, ignoreLabelTranslateX, ...inputProps
         } = this.props;
-        const {
-            isFocused, labelTranslateY, labelTranslateX, labelScale,
-        } = this.state;
 
-        const hasLabel = !!label.length;
+        const hasLabel = Boolean(label.length);
         return (
             <View style={[styles.expensiTextInputWrapper, ...containerStyles]}>
-                <TouchableWithoutFeedback onPress={() => this.focus.focus()}>
+                <TouchableWithoutFeedback onPress={() => this.input.focus()}>
                     <View
                         style={[
                             styles.expensiTextInputContainer,
                             !hasLabel && styles.expensiTextInputContainerWithoutLabel,
-                            isFocused && styles.expensiTextInputContainerOnFocus,
+                            this.state.isFocused && styles.expensiTextInputContainerOnFocus,
                             error && styles.expensiTextInputContainerOnError,
                         ]}
                     >
                         {hasLabel ? (
                             <ExpensiTextInputLabel
                                 label={label}
-                                labelTranslateX={ignoreLabelTranslateX ? new Animated.Value(0) : labelTranslateX}
-                                labelTranslateY={labelTranslateY}
-                                labelScale={labelScale}
+                                labelTranslateX={
+                                    ignoreLabelTranslateX
+                                        ? new Animated.Value(0)
+                                        : this.state.labelTranslateX
+                                }
+                                labelTranslateY={this.state.labelTranslateY}
+                                labelScale={this.state.labelScale}
                             />
                         ) : null}
                         <TextInput
@@ -107,7 +106,7 @@ class ExpensiTextInput extends Component {
                             value={value}
                             onFocus={this.onFocus}
                             onBlur={this.onBlur}
-                            placeholder={isFocused || !label ? placeholder : null}
+                            placeholder={(this.state.isFocused || !label) ? placeholder : null}
                             placeholderTextColor={themeColors.placeholderText}
                             underlineColorAndroid="transparent"
                             style={inputStyle}
