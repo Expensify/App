@@ -9,7 +9,7 @@ import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
-import {signIn, resetPassword} from '../../libs/actions/Session';
+import {resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -17,6 +17,22 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 
 const propTypes = {
+
+    /** Called when the user submits the form */
+    onSubmitPassword: PropTypes.func.isRequired,
+
+    /** Called when text is entered into the password input */
+    onChangePassword: PropTypes.func.isRequired,
+
+    /** Called when text is entered into the twoFactorAuthCode input */
+    onChangeTwoFactorAuthCode: PropTypes.func.isRequired,
+
+    /** Used to make password a controlled input */
+    password: PropTypes.string,
+
+    /** Used to make twoFactorAuthCode a controlled input */
+    twoFactorAuthCode: PropTypes.string,
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -35,39 +51,21 @@ const propTypes = {
 };
 
 const defaultProps = {
+    password: '',
+    twoFactorAuthCode: '',
     account: {},
+
 };
 
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-
-        this.state = {
-            formError: false,
-            password: '',
-            twoFactorAuthCode: '',
-        };
+        this.onChangePassword = this.props.onChangePassword.bind(this);
+        this.onChangeTwoFactorAuthCode = this.props.onChangeTwoFactorAuthCode.bind(this);
+        this.validateAndSubmitForm = this.props.onSubmitPassword.bind(this);
     }
 
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
-    validateAndSubmitForm() {
-        if (!this.state.password.trim()
-            || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
-        ) {
-            this.setState({formError: this.props.translate('passwordForm.pleaseFillOutAllFields')});
-            return;
-        }
-
-        this.setState({
-            formError: null,
-        });
-
-        signIn(this.state.password, this.state.twoFactorAuthCode);
-    }
 
     render() {
         return (
@@ -90,8 +88,8 @@ class PasswordForm extends React.Component {
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
-                        value={this.state.password}
-                        onChangeText={text => this.setState({password: text})}
+                        value={this.props.password}
+                        onChangeText={this.props.onChangePassword}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                     />
@@ -102,26 +100,33 @@ class PasswordForm extends React.Component {
                         <Text style={[styles.formLabel]}>{this.props.translate('passwordForm.twoFactorCode')}</Text>
                         <TextInput
                             style={[styles.textInput]}
-                            value={this.state.twoFactorAuthCode}
+                            value={this.props.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={text => this.setState({twoFactorAuthCode: text})}
+                            onChangeText={this.props.onChangeTwoFactorAuthCode}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         />
+
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                {!_.isEmpty(this.props.passwordError) && (
+                <Text style={[styles.formError]}>
+                    {this.props.passwordError}
+                </Text>
+                )}
+
+                {!_.isEmpty(this.props.account.error) && (
                     <Text style={[styles.formError]}>
                         {this.props.account.error}
                     </Text>
                 )}
 
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.state.formError}
-                    </Text>
+                {!_.isEmpty(this.props.account.success) && (
+                <Text style={[styles.formSuccess]}>
+                    {this.props.account.success}
+                </Text>
                 )}
                 <View>
                     <Button
@@ -133,6 +138,7 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
+
             </>
         );
     }

@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
@@ -16,6 +15,16 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 
 const propTypes = {
+
+    /** Called when the user submits the form */
+    onSubmitLogin: PropTypes.func.isRequired,
+
+    /** Called when text is entered into the login input */
+    onChangeLogin: PropTypes.func.isRequired,
+
+    /** Used to make login a controlled input */
+    login: PropTypes.string,
+
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
@@ -36,6 +45,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    login: '',
     account: {},
 };
 
@@ -43,30 +53,10 @@ class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-
-        this.state = {
-            formError: false,
-            login: '',
-        };
+        this.onChangeLogin = this.props.onChangeLogin.bind(this);
+        this.validateAndSubmitForm = this.props.onSubmitLogin.bind(this);
     }
 
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
-    validateAndSubmitForm() {
-        if (!this.state.login.trim()) {
-            this.setState({formError: this.props.translate('loginForm.pleaseEnterEmailOrPhoneNumber')});
-            return;
-        }
-
-        this.setState({
-            formError: null,
-        });
-
-        // Check if this login has an account associated with it or not
-        fetchAccountDetails(this.state.login);
-    }
 
     render() {
         return (
@@ -75,10 +65,10 @@ class LoginForm extends React.Component {
                     <Text style={[styles.formLabel]}>{this.props.translate('loginForm.enterYourPhoneOrEmail')}</Text>
                     <TextInput
                         style={[styles.textInput]}
-                        value={this.state.login}
+                        value={this.props.login}
                         autoCompleteType="email"
                         textContentType="username"
-                        onChangeText={text => this.setState({login: text})}
+                        onChangeText={this.onChangeLogin}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -88,9 +78,11 @@ class LoginForm extends React.Component {
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
-                {this.state.formError && (
+
+
+                {!_.isEmpty(this.props.loginError) && (
                     <Text style={[styles.formError]}>
-                        {this.state.formError}
+                        {this.props.loginError}
                     </Text>
                 )}
 
@@ -99,6 +91,7 @@ class LoginForm extends React.Component {
                         {this.props.account.error}
                     </Text>
                 )}
+
                 {!_.isEmpty(this.props.account.success) && (
                     <Text style={[styles.formSuccess]}>
                         {this.props.account.success}

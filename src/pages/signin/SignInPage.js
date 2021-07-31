@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import {fetchAccountDetails, signIn} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -11,6 +12,9 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import compose from '../../libs/compose';
+
 
 const propTypes = {
     /* Onyx Props */
@@ -42,6 +46,8 @@ const propTypes = {
         /** Error to display when there is a session error returned */
         authToken: PropTypes.string,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -51,10 +57,60 @@ const defaultProps = {
 };
 
 class SignInPage extends Component {
+    constructor(props) {
+        super(props);
+
+        this.onSubmitLogin = this.onSubmitLogin.bind(this);
+        this.onSubmitPassword = this.onSubmitPassword.bind(this);
+
+        this.state = {
+            login: '',
+            password: '',
+            loginError: '',
+            passwordError: '',
+        };
+    }
+
+
     componentDidMount() {
         // Always reset the unread counter to zero on this page
         // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
         setTimeout(() => updateUnread(0), 0);
+    }
+
+    /**
+     * Check that all the form fields in Login are valid, then trigger the submit callback
+     */
+    onSubmitLogin() {
+        if (!this.state.login.trim()) {
+            this.setState({loginError: this.props.translate('loginForm.pleaseEnterEmailOrPhoneNumber')});
+            return;
+        }
+
+        this.setState({
+            loginError: null,
+        });
+
+        // Check if this login has an account associated with it or not
+        fetchAccountDetails(this.state.login);
+    }
+
+    /**
+     * Check that all the form fields in PasswordForm are valid, then trigger the submit callback
+     */
+    onSubmitPassword() {
+        if (!this.state.password.trim()
+                || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
+        ) {
+            this.setState({passwordError: this.props.translate('passwordForm.pleaseFillOutAllFields')});
+            return;
+        }
+
+        this.setState({
+            passwordError: null,
+        });
+
+        signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {
@@ -84,14 +140,27 @@ class SignInPage extends Component {
         return (
             <>
                 <SafeAreaView style={[styles.signInPage]}>
-                    <SignInPageLayout
-                        shouldShowWelcomeText={showLoginForm}
-                        shouldShowWelcomeScreenshot={showLoginForm}
-                    >
-                        {showLoginForm && <LoginForm />}
+                    <SignInPageLayout>
+                        {showLoginForm && (
+                        <LoginForm
+                            login={this.state.login}
+                            onChangeLogin={login => this.setState({login})}
+                            loginError={this.state.loginError}
+                            onSubmitLogin={this.onSubmitLogin}
+                        />
+                        )}
 
-                        {showPasswordForm && <PasswordForm />}
+                        {showPasswordForm && (
+                        <PasswordForm
+                            password={this.state.password}
+                            onChangePassword={password => this.setState({password})}
+                            onChangeTwoFactorAuthCode={twoFactorAuthCode => this.setState({twoFactorAuthCode})}
+                            passwordError={this.state.passwordError}
+                            onSubmitPassword={this.onSubmitPassword}
+                        />
+                        )}
 
+                        {/* Screen */}
                         {showResendValidationLinkForm && <ResendValidationForm />}
                     </SignInPageLayout>
                 </SafeAreaView>
@@ -103,8 +172,11 @@ class SignInPage extends Component {
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    session: {key: ONYXKEYS.SESSION},
-})(SignInPage);
+export default compose(
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        session: {key: ONYXKEYS.SESSION},
+    }),
+    withLocalize,
+)(SignInPage);
