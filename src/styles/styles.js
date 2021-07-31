@@ -299,7 +299,7 @@ const styles = {
             paddingVertical: 8,
             justifyContent: 'center',
             height: '100%',
-            backgroundColor: '#fff',
+            backgroundColor: themeColors.componentBG,
         },
         inputWeb: {
             fontFamily: fontFamily.GTA,
@@ -489,7 +489,7 @@ const styles = {
         paddingVertical: 8,
         justifyContent: 'center',
         height: '100%',
-        backgroundColor: '#fff',
+        backgroundColor: themeColors.componentBG,
     },
     expensiTextInputContainerWithoutLabel: {
         paddingTop: 0,
@@ -550,7 +550,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
         justifyContent: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: themeColors.activeComponentBG,
     },
     expensiPickerContainerOnFocus: {
         borderColor: themeColors.borderFocus,
