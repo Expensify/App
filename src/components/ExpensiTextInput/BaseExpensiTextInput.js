@@ -30,6 +30,8 @@ class ExpensiTextInput extends Component {
         };
 
         this.input = null;
+        this.onFocus = this.onFocus.bind(this);
+        this.onBlur = this.onBlur.bind(this);
     }
 
     onFocus() {
@@ -85,8 +87,8 @@ class ExpensiTextInput extends Component {
                         style={[
                             styles.expensiTextInputContainer,
                             !hasLabel && styles.expensiTextInputContainerWithoutLabel,
-                            this.state.isFocused && styles.expensiTextInputContainerOnFocus,
-                            error && styles.expensiTextInputContainerOnError,
+                            this.state.isFocused && styles.borderColorFocus,
+                            error && styles.borderColorDanger,
                         ]}
                     >
                         {hasLabel ? (
