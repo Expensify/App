@@ -485,8 +485,8 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
         paddingTop: 25,
+        paddingBottom: 8,
         paddingHorizontal: 12,
-        paddingVertical: 8,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
@@ -495,10 +495,10 @@ const styles = {
         paddingTop: 0,
         paddingBottom: 0,
     },
-    expensiTextInputContainerOnFocus: {
+    borderColorFocus: {
         borderColor: themeColors.borderFocus,
     },
-    expensiTextInputContainerOnError: {
+    borderColorDanger: {
         borderColor: themeColors.badgeDangerBG,
     },
     expensiTextInputLabel: {
