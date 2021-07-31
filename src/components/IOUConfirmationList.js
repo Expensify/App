@@ -266,9 +266,6 @@ class IOUConfirmationList extends Component {
                         disableFocusOptions
                         selectedOptions={this.getAllOptionsAsSelected()}
                     />
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
-                        {}
-                    </Text>
                     <View style={[styles.ph5, styles.pb5]}>
                         <ExpensiTextInput
                             label={this.props.translate('iOUConfirmationList.whatsItFor')}
