@@ -20,8 +20,8 @@ class ExpensiPicker extends PureComponent {
             <View
                 style={[
                     styles.expensiPickerContainer,
-                    this.state.isOpen && styles.expensiPickerContainerOnFocus,
-                    isDisabled && styles.expensiPickerContainerDisabled,
+                    this.state.isOpen && styles.borderColorFocus,
+                    isDisabled && styles.borderColorDanger,
                 ]}
             >
                 {label && (
