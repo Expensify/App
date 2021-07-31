@@ -160,7 +160,6 @@ class SignInPage extends Component {
                         />
                         )}
 
-                        {/* Screen */}
                         {showResendValidationLinkForm && <ResendValidationForm />}
                     </SignInPageLayout>
                 </SafeAreaView>
