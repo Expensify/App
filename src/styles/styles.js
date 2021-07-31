@@ -16,6 +16,17 @@ import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 
+const expensiPicker = {
+    backgroundColor: 'transparent',
+    fontFamily: fontFamily.GTA,
+    fontSize: variables.fontSizeNormal,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    paddingTop: 24,
+    height: 52,
+    borderRadius: variables.componentBorderRadiusNormal,
+};
+
 const styles = {
     // Add all of our utility and helper styles
     ...spacing,
@@ -550,7 +561,7 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
         justifyContent: 'center',
-        backgroundColor: themeColors.activeComponentBG,
+        backgroundColor: themeColors.componentBG,
     },
     expensiPickerContainerOnFocus: {
         borderColor: themeColors.borderFocus,
@@ -573,37 +584,16 @@ const styles = {
             right: 12,
         },
         inputWeb: {
-            backgroundColor: 'transparent',
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             border: 'none',
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            paddingTop: 24,
-            height: 52,
-            borderRadius: variables.componentBorderRadiusNormal,
+            ...expensiPicker,
         },
         inputIOS: {
-            backgroundColor: 'transparent',
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            paddingTop: 24,
-            height: 52,
-            borderRadius: variables.componentBorderRadiusNormal,
+            ...expensiPicker,
         },
         inputAndroid: {
-            backgroundColor: 'transparent',
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingHorizontal: 12,
-            paddingVertical: 8,
-            paddingTop: 24,
-            height: 52,
-            borderRadius: variables.componentBorderRadiusNormal,
+            ...expensiPicker,
         },
     }),
 
