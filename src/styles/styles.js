@@ -69,6 +69,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -95,14 +99,6 @@ const styles = {
     textMicroSupporting: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
-    textMicroSupportingBold: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
         fontSize: variables.fontSizeSmall,
         lineHeight: 14,
     },
@@ -1136,10 +1132,12 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
+        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1957,6 +1955,32 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    termsCenterRight: {
+        marginTop: 'auto',
+        marginBottom: 'auto',
+    },
+
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
+    },
+
+    collapsibleSectionBorder: {
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
     },
 
     communicationsLinkHeight: {

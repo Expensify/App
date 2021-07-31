@@ -66,7 +66,7 @@ class SearchPage extends Component {
 
         this.selectReport = this.selectReport.bind(this);
         this.onChangeText = this.onChangeText.bind(this);
-        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 300);
+        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
 
         const {
             recentReports,

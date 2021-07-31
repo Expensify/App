@@ -168,8 +168,8 @@ class ProfilePage extends Component {
         } = this.state;
 
         setPersonalDetails({
-            firstName,
-            lastName,
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
             pronouns: pronouns === this.props.translate('pronouns.selfSelect')
                 ? selfSelectedPronouns
                 : pronouns,
