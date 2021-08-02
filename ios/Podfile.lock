@@ -564,7 +564,7 @@ PODS:
     - UMCore
   - UMConstantsInterface (6.1.0):
     - UMCore
-  - UMCore (7.1.0)
+  - UMCore (7.1.1)
   - UMFaceDetectorInterface (6.1.0)
   - UMFileSystemInterface (6.1.0)
   - UMFontInterface (6.1.0)
@@ -957,7 +957,7 @@ SPEC CHECKSUMS:
   UMBarCodeScannerInterface: 96a01d81ff0c7febbfefc2d7396db9e7462d8c68
   UMCameraInterface: 8ad433fdadca22703ebeb614d42b814092d38d69
   UMConstantsInterface: 55c79ca258a3ede70480fed85e3843899cd47ea3
-  UMCore: 0da048c9753abcea0042258e6ad0fed77811f7e1
+  UMCore: 063edcab3a9de0c44301fe77af147aa1a654b40f
   UMFaceDetectorInterface: 4db950a25e785796a237bcebb8fff05078c4fb61
   UMFileSystemInterface: 4a92ee36e6c2757833031718f8496690fa931280
   UMFontInterface: 81a951117d03f57aa636fba3992adefd0191f200
@@ -972,4 +972,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 2092930e33e7aa4d68cdf783d6174465bd3ce380
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.10.2
