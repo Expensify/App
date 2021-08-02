@@ -1,11 +1,20 @@
 import React, {forwardRef} from 'react';
+import PropTypes from 'prop-types';
 import BaseInvertedFlatList from './BaseInvertedFlatList';
 
-export default forwardRef((props, ref) => (
+const propTypes = {
+    /** The initial number of items to render */
+    initialNumToRender: PropTypes.number.isRequired,
+};
+
+const InvertedFlatList = forwardRef((props, ref) => (
     <BaseInvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
-        initialNumToRender={20}
+        initialNumToRender={props.initialNumToRender}
     />
 ));
+
+InvertedFlatList.propTypes = propTypes;
+export default InvertedFlatList;
