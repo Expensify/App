@@ -238,9 +238,28 @@ class IOUModal extends Component {
     }
 
     /**
+     * Create the IOU transaction
+     *
      * @param {Array} [splits]
      */
-    createTransaction(splits) {
+    confirm(splits) {
+        if (this.state.iouType === 'send') {
+            payIOUReport({
+                chatReportID: this.props.route.params.reportID,
+                reportID: 0,
+                paymentMethodType: this.state.paymentType,
+
+                // should send in cents to API
+                amount: Math.round(this.state.amount * 100),
+                currency: this.props.iou.selectedCurrencyCode,
+
+                // submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+                // submitterPhoneNumber: this.submitterPhoneNumber,
+                comment: this.state.comment,
+            });
+            return;
+        }
+
         if (splits) {
             createIOUSplit({
                 comment: this.state.comment,
@@ -260,27 +279,6 @@ class IOUModal extends Component {
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: this.state.participants[0].login,
-        });
-    }
-
-    /**
-     * Create the payIOU report with 'fake' reportID 0
-     *
-     * @param {Array} [splits]
-     */
-    createAndPayIOU() {
-        payIOUReport({
-            chatReportID: this.props.route.params.reportID,
-            reportID: 0,
-            paymentMethodType: this.state.paymentType,
-
-            // should send in cents to API
-            amount: Math.round(this.state.amount * 100),
-            currency: this.props.iou.selectedCurrencyCode,
-
-            // submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-            // submitterPhoneNumber: this.submitterPhoneNumber,
-            comment: this.state.comment,
         });
     }
 
@@ -351,9 +349,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <IOUConfirmPage
-                                            onConfirm={this.state.iouType === 'send'
-                                                ? this.createAndPayIOU
-                                                : this.createTransaction}
+                                            onConfirm={this.confirm}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             participants={this.state.participants}
                                             iouAmount={this.state.amount}
