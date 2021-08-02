@@ -36,6 +36,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -259,6 +260,20 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Calculates the ideal number of reports to render in the first render, based on the screen height and on
+     * the height of the smallest report possible.
+     * @return {Number}
+     */
+    calculateInitialNumToRender() {
+        const smallestReport = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
+            + variables.fontSizeNormalHeight;
+        const availableHeight = this.props.windowHeight
+            - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
+        return Math.ceil(availableHeight / smallestReport);
+    }
+
+
+    /**
      * Updates and sorts the report actions by sequence number
      *
      * @param {Array<{sequenceNumber, actionName}>} reportActions
@@ -420,6 +435,7 @@ class ReportActionsView extends React.Component {
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
+                    initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.loadMoreChats}
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={this.state.isLoadingMoreChats
