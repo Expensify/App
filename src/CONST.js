@@ -1,6 +1,8 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
+    // 50 megabytes in bytes
+    API_MAX_ATTACHMENT_SIZE: 52428800,
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
@@ -84,6 +86,7 @@ const CONST = {
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
+        INTERNATIONALIZATION: 'internationalization',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -124,8 +127,11 @@ const CONST = {
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
-    ADD_SECONDARY_LOGIN_URL: 'settings?param={%22section%22:%22account%22}',
-    MANAGE_CARDS_URL: 'domain_companycards',
+    ADD_SECONDARY_LOGIN_URL: '/settings?param={%22section%22:%22account%22}',
+    MANAGE_CARDS_URL: '/domain_companycards',
+    FEES_URL: 'https://use.expensify.com/fees',
+    CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
+    NEWDOT: 'new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -193,6 +199,7 @@ const CONST = {
         HOMEPAGE_INITIAL_RENDER: 'homepage_initial_render',
         HOMEPAGE_REPORTS_LOADED: 'homepage_reports_loaded',
         SWITCH_REPORT: 'switch_report',
+        SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
     },
@@ -347,6 +354,13 @@ const CONST = {
         ROLE: {
             ADMIN: 'admin',
         },
+    },
+
+    TERMS: {
+        CFPB_PREPAID: 'cfpb.gov/prepaid',
+        CFPB_COMPLAINT: 'cfpb.gov/complaint',
+        FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
+        USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
     },
 
     REGEX: {

@@ -7,6 +7,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import {translate} from './translate';
 
 let timezone;
 Onyx.connect({
@@ -57,13 +58,18 @@ function timestampToDateTime(locale, timestamp, includeTimeZone = false) {
     const date = getLocalMomentFromTimestamp(locale, timestamp);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
 
+    const todayAt = translate(locale, 'common.todayAt');
+    const tomorrowAt = translate(locale, 'common.tomorrowAt');
+    const yesterdayAt = translate(locale, 'common.yesterdayAt');
+    const at = translate(locale, 'common.conjunctionAt');
+
     return moment(date).calendar({
-        sameDay: `[Today at] LT${tz}`,
-        nextDay: `[Tomorrow at] LT${tz}`,
-        nextWeek: `MMM D [at] LT${tz}`,
-        lastDay: `[Yesterday at] LT${tz}`,
-        lastWeek: `MMM D [at] LT${tz}`,
-        sameElse: `MMM D, YYYY [at] LT${tz}`,
+        sameDay: `[${todayAt}] LT${tz}`,
+        nextDay: `[${tomorrowAt}] LT${tz}`,
+        lastDay: `[${yesterdayAt}] LT${tz}`,
+        nextWeek: `MMM D [${at}] LT${tz}`,
+        lastWeek: `MMM D [${at}] LT${tz}`,
+        sameElse: `MMM D, YYYY [${at}] LT${tz}`,
     });
 }
 

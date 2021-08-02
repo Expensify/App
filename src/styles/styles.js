@@ -58,6 +58,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -84,14 +88,6 @@ const styles = {
     textMicroSupporting: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
-    textMicroSupportingBold: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
         fontSize: variables.fontSizeSmall,
         lineHeight: 14,
     },
@@ -340,6 +336,64 @@ const styles = {
         },
     },
 
+    pickerSmall: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            appearance: 'none',
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            cursor: 'pointer',
+            backgroundColor: 'transparent',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+        },
+        iconContainer: {
+            top: 7,
+            right: 9,
+            pointerEvents: 'none',
+        },
+        icon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
+        },
+    },
+
     badge: {
         backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
@@ -366,7 +420,7 @@ const styles = {
     },
 
     badgeText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
@@ -975,10 +1029,12 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
+        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1798,6 +1854,32 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    termsCenterRight: {
+        marginTop: 'auto',
+        marginBottom: 'auto',
+    },
+
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
+    },
+
+    collapsibleSectionBorder: {
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
+    },
+
     communicationsLinkHeight: {
         height: 20,
     },
@@ -2010,17 +2092,21 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Generate a style for the background color of the IOU badge
+ * Generate a style for the background color of the Badge
  *
- * @param {Boolean} isOwner
- * @param {Boolean} [isPressed]
- * @returns {Object}
+ * @param {Boolean} success
+ * @param {Boolean} error
+ * @param {boolean} [isPressed=false]
+ * @return {Object}
  */
-function getBadgeColorStyle(isOwner, isPressed = false) {
-    if (isOwner) {
+function getBadgeColorStyle(success, error, isPressed = false) {
+    if (success) {
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    if (error) {
+        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    }
+    return {};
 }
 
 /**
