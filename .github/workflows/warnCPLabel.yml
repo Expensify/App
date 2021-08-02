@@ -14,7 +14,7 @@ jobs:
       - name: Comment on PR to explain the CP Staging label
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
-          github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             :warning: :warning: **Heads up! This pull request has the `CP Staging` label.** :warning: :warning:
             Merging it will cause it to be immediately deployed to staging, _even if the [open `StagingDeployCash` deploy checklist](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) is locked._
