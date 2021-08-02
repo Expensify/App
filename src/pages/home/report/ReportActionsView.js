@@ -260,16 +260,16 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Calculates the ideal number of reports to render in the first render, based on the screen height and on
-     * the height of the smallest report possible.
+     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
+     * the height of the smallest report action possible.
      * @return {Number}
      */
     calculateInitialNumToRender() {
-        const smallestReport = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
             + variables.fontSizeNormalHeight;
         const availableHeight = this.props.windowHeight
             - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
-        return Math.ceil(availableHeight / smallestReport);
+        return Math.ceil(availableHeight / minimumReportActionHeight);
     }
 
 
