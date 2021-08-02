@@ -167,6 +167,11 @@ export default {
         send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
+        error: {
+            invalidAmount: 'Invalid Amount',
+            invalidSplit: 'Splits amount does not equal total amount',
+            other: 'Unexpected error, please try again later',
+        },
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',

@@ -167,6 +167,11 @@ export default {
         send: ({amount}) => `Enviar ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        error: {
+            invalidAmount: 'Invalid Amount',
+            invalidSplit: 'Splits amount does not equal total amount',
+            other: 'Unexpected error, please try again later',
+        },
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
