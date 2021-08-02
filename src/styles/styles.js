@@ -58,6 +58,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -1848,6 +1852,32 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    termsCenterRight: {
+        marginTop: 'auto',
+        marginBottom: 'auto',
+    },
+
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
+    },
+
+    collapsibleSectionBorder: {
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
     },
 
     communicationsLinkHeight: {
