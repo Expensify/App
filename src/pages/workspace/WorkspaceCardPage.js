@@ -74,6 +74,7 @@ const WorkspaceCardPage = ({
     reimbursementAccount,
 }) => {
     const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.VERIFYING;
+    const isPending = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.PENDING;
     const isNotAutoProvisioned = !user.isUsingExpensifyCard
         && lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.OPEN;
     let buttonText;
@@ -81,7 +82,7 @@ const WorkspaceCardPage = ({
         buttonText = translate('workspace.card.addEmail');
     } else if (user.isUsingExpensifyCard) {
         buttonText = translate('workspace.card.manageCards');
-    } else if (isVerifying || isNotAutoProvisioned) {
+    } else if (isVerifying || isPending || isNotAutoProvisioned) {
         buttonText = translate('workspace.card.finishSetup');
     } else {
         buttonText = translate('workspace.card.getStarted');
