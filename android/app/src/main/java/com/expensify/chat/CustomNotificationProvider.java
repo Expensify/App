@@ -103,6 +103,11 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         String accountID = Integer.toString(reportAction.get("actorAccountID").getInt(-1));
         String message = reportAction.get("message").getList().get(0).getMap().get("text").getString();
         long time = reportAction.get("timestamp").getLong(0);
+        String roomName = payload.get("roomName") == null ? "" : payload.get("roomName").getString("");
+        String conversationTitle = "Chat with " + name;
+        if (!roomName.isEmpty()) {
+            conversationTitle = "#" + roomName;
+        }
 
         IconCompat iconCompat = fetchIcon(avatar, FALLBACK_ICON_ID);
         Person person = new Person.Builder()
@@ -118,8 +123,8 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         notificationCache.messages.add(new NotificationCache.Message(person, message, time));
 
         NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
-                .setGroupConversation(notificationCache.people.size() > 2)
-                .setConversationTitle("Chat with " + name);
+                .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
+                .setConversationTitle(conversationTitle);
 
         for (NotificationCache.Message cachedMessage : notificationCache.messages) {
             messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
