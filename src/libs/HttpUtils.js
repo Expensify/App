@@ -30,14 +30,6 @@ function processHTTPRequest(url, method = 'get', body = null) {
  * @returns {Promise}
  */
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
-    if (command !== 'Log') {
-        info('Making API request', false, {
-            command,
-            type,
-            shouldUseSecure,
-            rvl: data.returnValueList,
-        });
-    }
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
     const apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;

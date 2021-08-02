@@ -19,6 +19,7 @@ let enhanceParameters;
 // The first argument passed will be the queuedRequest object and the second will be either the response or error.
 let onResponse = () => {};
 let onError = () => {};
+let onBeforeRequest = () => {};
 
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
@@ -156,6 +157,7 @@ function processNetworkRequestQueue() {
             return;
         }
 
+        onBeforeRequest(queuedRequest, finalParameters);
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
@@ -244,6 +246,14 @@ function registerErrorHandler(callback) {
     onError = callback;
 }
 
+/**
+ * Register a method to call before doing a request
+ * @param {Function} callback
+ */
+function registerBeforeRequestHandler(callback) {
+    onBeforeRequest = callback;
+}
+
 export {
     post,
     pauseRequestQueue,
@@ -252,4 +262,5 @@ export {
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
+    registerBeforeRequestHandler,
 };
