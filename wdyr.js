@@ -9,15 +9,22 @@ const useWDYR = lodashGet(Config, 'USE_WDYR') === 'true';
 if (useWDYR) {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
     whyDidYouRender(React, {
-        // Tracks all components by default
+        // Enable tracking in all pure components by default
         trackAllPureComponents: true,
 
-        // Uncomment below to include/exclude components to be tracked by their displayName
-        // include: [
-        //     /^Avatar/,
-        //     /^ReportActionItem/,
-        //     /^ReportActionItemSingle/,
-        // ],
-        // exclude: [],
+        include: [
+            // Uncomment to enable tracking in all components. Must also uncomment /^Screen/ in exclude.
+            // /.*/,
+
+            // Uncomment to enable tracking by displayName, e.g.:
+            // /^Avatar/,
+            // /^ReportActionItem/,
+            // /^ReportActionItemSingle/,
+        ],
+
+        exclude: [
+            // Uncomment to enable tracking in all components
+            // /^Screen/
+        ],
     });
 }
