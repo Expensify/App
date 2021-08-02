@@ -139,7 +139,7 @@ export default function withLocalize(WrappedComponent) {
     const WithLocalize = forwardRef((props, ref) => (
         <LocaleContext.Consumer>
             {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-            { translateUtils => <WrappedComponent {...translateUtils} {...props} ref={ref} />}
+            {translateUtils => <WrappedComponent {...translateUtils} {...props} ref={ref} />}
         </LocaleContext.Consumer>
     ));
 
