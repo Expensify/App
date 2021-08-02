@@ -79,7 +79,7 @@ jobs:
   desktop:
     name: Build and deploy Desktop
     if: github.actor == 'OSBotify'
-    runs-on: macos-11.0
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
 
@@ -134,7 +134,7 @@ jobs:
   iOS:
     name: Build and deploy iOS
     if: github.actor == 'OSBotify'
-    runs-on: macos-11.0
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
 

@@ -11,7 +11,7 @@ env:
 jobs:
   test:
     if: github.actor != 'OSBotify'
-    runs-on: macos-11.0
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-ruby@v1
