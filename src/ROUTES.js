@@ -55,12 +55,11 @@ export default {
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
-    DETAILS_WITH_LOGIN: 'details/:login',
-    getDetailsRoute: login => `details/${login}`,
+    getDetailsRoute: login => `details?login=${login}`,
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
-    REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
-    getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
+    REPORT_PARTICIPANT: 'r/:reportID/participants/details',
+    getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/details?login=${login}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
@@ -96,20 +95,4 @@ export default {
             isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
         };
     },
-
-    /**
-     * React Navigation is failing to parse urls with dot in the path segment.
-     * This method enable pasring of urls with dot in path Segment
-     * @param {String} path - Path for the config
-     * @returns {Object}
-     */
-    getEmailRouteLinkingConfig: path => ({
-        path,
-        parse: {
-            login: l => (l ? decodeURIComponent(l).replace('@dot@', '.') : undefined),
-        },
-        stringify: {
-            login: l => (l ? l.replace('.', '@dot@') : undefined),
-        },
-    }),
 };
