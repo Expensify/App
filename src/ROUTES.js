@@ -106,12 +106,10 @@ export default {
     getEmailRouteLinkingConfig: path => ({
         path,
         parse: {
-            login: l => (l
-                ? decodeURIComponent(l).replace('@dot@', '.').replace(encodeURIComponent('@dot@'), '@dot@')
-                : undefined),
+            login: l => (l ? decodeURIComponent(l).replace('@dot@', '.') : undefined),
         },
         stringify: {
-            login: l => (l ? l.replace('@dot@', encodeURIComponent('@dot@')).replace('.', '@dot@') : undefined),
+            login: l => (l ? l.replace('.', '@dot@') : undefined),
         },
     }),
 };
