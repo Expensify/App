@@ -583,6 +583,14 @@ export default {
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
+        editor: {
+            title: 'Editar espacio de trabajo',
+            nameInputLabel: 'Nombre',
+            nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
+            save: 'Guardar',
+            genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
+            avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+        },
     },
     requestCallPage: {
         requestACall: 'Llámame por teléfono',

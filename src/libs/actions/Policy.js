@@ -207,35 +207,41 @@ function create(name) {
 }
 
 /**
- * Sets avatar or removes it if called with no avatarURL
- *
- * @param {String} policyID
- * @param {String} [avatarURL]
+ * @param {Object} file
+ * @returns {Promise}
  */
-function setAvatarURL(policyID, avatarURL = '') {
-    API.UpdatePolicy({policyID, value: JSON.stringify({avatarURL}), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
+function uploadAvatar(file) {
+    return API.User_UploadAvatar({file})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL});
+            return response.s3url;
         });
 }
 
 /**
+ * Sets the name of the policy
+ *
  * @param {String} policyID
- * @param {Object} file
+ * @param {Object} values
  */
-function updateAvatar(policyID, file) {
-    API.User_UploadAvatar({file})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
+function update(policyID, values) {
+    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
-            // Once we get the s3url back, update the policy with the new avatar URL
-            setAvatarURL(policyID, response.s3url);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+            Navigation.dismissModal();
         });
 }
 
@@ -245,6 +251,6 @@ export {
     removeMembers,
     invite,
     create,
-    updateAvatar,
-    setAvatarURL,
+    uploadAvatar,
+    update,
 };
