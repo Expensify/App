@@ -1,5 +1,5 @@
 /**
- * The Expensify.cash repo is very consistent about doing spacing in multiples of 4.
+ * This repo is very consistent about doing spacing in multiples of 4.
  * In an effort to maintain that consistency, we'll make sure that any distance we're shifting the components
  * are a multiple of 4.
  *
