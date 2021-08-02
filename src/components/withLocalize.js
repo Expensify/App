@@ -44,17 +44,19 @@ const localeProviderDefaultProps = {
 };
 
 class LocaleContextProvider extends React.Component {
-    constructor(props) {
-        super(props);
-
-        /* The context this component exposes to consumers */
-        this.translateUtils = {
+    /**
+     * The context this component exposes to child components
+     * @returns {object} translation util functions and locale
+     */
+    getContextValue() {
+        return {
             translate: this.translate.bind(this),
             numberFormat: this.numberFormat.bind(this),
             timestampToRelative: this.timestampToRelative.bind(this),
             timestampToDateTime: this.timestampToDateTime.bind(this),
             fromLocalPhone: this.fromLocalPhone.bind(this),
             toLocalPhone: this.toLocalPhone.bind(this),
+            locale: this.props.preferredLocale,
         };
     }
 
@@ -115,7 +117,7 @@ class LocaleContextProvider extends React.Component {
 
     render() {
         return (
-            <LocaleContext.Provider value={this.translateUtils}>
+            <LocaleContext.Provider value={this.getContextValue()}>
                 {this.props.children}
             </LocaleContext.Provider>
         );
