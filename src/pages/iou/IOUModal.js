@@ -101,7 +101,7 @@ class IOUModal extends Component {
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
-        this.createTransaction = this.createTransaction.bind(this);
+        this.confirm = this.confirm.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.updatePaymentType = this.updatePaymentType.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
