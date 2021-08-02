@@ -11,9 +11,6 @@ const propTypes = {
     innerRef: PropTypes.shape({
         current: PropTypes.instanceOf(FlatList),
     }).isRequired,
-
-    /** The initial number of items to render */
-    initialNumToRender: PropTypes.number.isRequired,
 };
 
 // This is adapted from https://codesandbox.io/s/react-native-dsyse
@@ -64,7 +61,6 @@ class InvertedFlatList extends React.Component {
                 {...this.props}
                 ref={el => this.list = el}
                 shouldMeasureItems
-                initialNumToRender={this.props.initialNumToRender}
             />
         );
     }
