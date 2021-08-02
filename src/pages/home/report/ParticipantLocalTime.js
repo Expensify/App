@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'underscore';
 import {
     View,
 } from 'react-native';
@@ -36,7 +37,7 @@ class ParticipantLocalTime extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        return nextState.localTime !== this.state.localTime;
+        return !_.isEqual(nextProps, this.props) || nextState.localTime !== this.state.localTime;
     }
 
     componentWillUnmount() {
