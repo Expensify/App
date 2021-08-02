@@ -1,7 +1,7 @@
 name: Explain Cherry-Pick label via OSBotify comment
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - labeled
 
