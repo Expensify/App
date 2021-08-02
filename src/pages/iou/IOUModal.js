@@ -10,10 +10,7 @@ import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
 import {
-    createIOUSplit,
-    createIOUTransaction,
-    payIOUReport,
-    setIOUSelectedCurrency,
+    createIOUSplit, createIOUTransaction, payIOUReport, setIOUSelectedCurrency,
 } from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -272,15 +269,18 @@ class IOUModal extends Component {
      * @param {Array} [splits]
      */
     createAndPayIOU() {
-        // This is WIP
         payIOUReport({
-            chatReportID: this.props.route.params.chatReportID,
+            chatReportID: this.props.route.params.reportID,
             reportID: 0,
             paymentMethodType: this.state.paymentType,
-            amount: this.props.iouReport.total,
-            currency: this.props.iouReport.currency,
-            submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
-            submitterPhoneNumber: this.submitterPhoneNumber,
+
+            // should send in cents to API
+            amount: Math.round(this.state.amount * 100),
+            currency: this.props.iou.selectedCurrencyCode,
+
+            // submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
+            // submitterPhoneNumber: this.submitterPhoneNumber,
+            comment: this.state.comment,
         });
     }
 
@@ -351,7 +351,9 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <IOUConfirmPage
-                                            onConfirm={this.createTransaction}
+                                            onConfirm={this.state.iouType === 'send'
+                                                ? this.createAndPayIOU
+                                                : this.createTransaction}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             participants={this.state.participants}
                                             iouAmount={this.state.amount}

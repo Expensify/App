@@ -500,6 +500,7 @@ function Graphite_Timer(parameters) {
  * @param {Object} parameters
  * @param {Number} parameters.reportID
  * @param {String} parameters.paymentMethodType
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayIOU(parameters) {
@@ -511,6 +512,7 @@ function PayIOU(parameters) {
 /**
  * @param {Object} parameters
  * @param {Number} parameters.reportID
+ * @param {Object} [parameters.newIOUReportDetails]
  * @returns {Promise}
  */
 function PayWithWallet(parameters) {
