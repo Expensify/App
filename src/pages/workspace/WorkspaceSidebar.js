@@ -13,7 +13,6 @@ import {
     Users,
     ExpensifyCard,
     Workspace,
-    Pencil,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -24,7 +23,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
-import variables from '../../styles/variables';
 
 const propTypes = {
     /** Policy for the current route */
@@ -68,6 +66,8 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
         return null;
     }
 
+    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
+
     return (
         <ScreenWrapper>
             <ScrollView
@@ -88,7 +88,10 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                         )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                            <View style={[styles.pRelative, styles.avatarLarge]}>
+                            <Pressable
+                                style={[styles.pRelative, styles.avatarLarge]}
+                                onPress={openEditor}
+                            >
                                 {policy.avatarURL
                                     ? (
                                         <Avatar
@@ -105,30 +108,25 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                             fill={themedefault.icon}
                                         />
                                     )}
-                                <Pressable
-                                    style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
-                                    onPress={() => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id))}
-                                >
-                                    <Icon
-                                        src={Pencil}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
-                                        fill={themedefault.iconReversed}
-                                    />
-                                </Pressable>
-                            </View>
+                            </Pressable>
 
-                            <Text
-                                numberOfLines={1}
+                            <Pressable
                                 style={[
                                     styles.alignSelfCenter,
-                                    styles.displayName,
                                     styles.mt4,
                                     styles.mb6,
                                 ]}
+                                onPress={openEditor}
                             >
-                                {policy.name}
-                            </Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[
+                                        styles.displayName,
+                                    ]}
+                                >
+                                    {policy.name}
+                                </Text>
+                            </Pressable>
                         </View>
                     </View>
                     {menuItems.map(item => (
