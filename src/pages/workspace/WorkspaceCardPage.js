@@ -172,9 +172,9 @@ const WorkspaceCardPage = ({
                                         styles.workspaceCardCTA,
                                         isSmallScreenWidth ? styles.wAuto : {},
                                     ]}
-                                    textStyles={[
-                                        !isSmallScreenWidth ? styles.p5 : {},
-                                    ]}
+                                    textStyles={
+                                        !isSmallScreenWidth ? [styles.pr5, styles.pl5] : []
+                                    }
                                     onPress={onPress}
                                     success
                                     large
