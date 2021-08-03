@@ -334,6 +334,12 @@ const CONST = {
         },
     },
 
+    IOU_TYPE: {
+        SEND: 'send',
+        SPLIT: 'split',
+        REQUEST: 'request',
+    },
+
     GROWL: {
         SUCCESS: 'success',
         ERROR: 'error',
