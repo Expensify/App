@@ -24,6 +24,9 @@ import ConfirmModal from '../../../components/ConfirmModal';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {deleteReportComment} from '../../../libs/actions/Report';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import ControlSelection from '../../../libs/ControlSelection';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -52,10 +55,8 @@ const propTypes = {
     /** Draft message - if this is set the comment is in 'edit' mode */
     draftMessage: PropTypes.string,
 
-    /** Runs when the view enclosing the chat message lays out indicating it has rendered */
-    onLayout: PropTypes.func.isRequired,
-
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -92,6 +93,7 @@ class ReportActionItem extends Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteConfirmModal = this.hideDeleteConfirmModal.bind(this);
         this.showDeleteConfirmModal = this.showDeleteConfirmModal.bind(this);
+        this.contextMenuHide = this.contextMenuHide.bind(this);
     }
 
     componentDidMount() {
@@ -150,6 +152,13 @@ class ReportActionItem extends Component {
                 },
             });
         });
+    }
+
+    contextMenuHide() {
+        this.onPopoverHide();
+
+        // After we have called the action, reset it.
+        this.onPopoverHide = () => {};
     }
 
     /**
@@ -261,7 +270,10 @@ class ReportActionItem extends Component {
             <>
                 <PressableWithSecondaryInteraction
                     ref={el => this.popoverAnchor = el}
+                    onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
                     onSecondaryInteraction={this.showPopover}
+                    preventDefaultContentMenu={!this.props.draftMessage}
                 >
                     <Hoverable resetsOnClickOutside={false}>
                         {hovered => (
@@ -275,7 +287,6 @@ class ReportActionItem extends Component {
                                         || this.state.isPopoverVisible
                                         || this.props.draftMessage,
                                     )}
-                                    onLayout={this.props.onLayout}
                                 >
                                     {!this.props.displayAsGroup
                                         ? (
@@ -311,7 +322,7 @@ class ReportActionItem extends Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hidePopover}
-                    onModalHide={this.onPopoverHide}
+                    onModalHide={this.contextMenuHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
                     animationOutTiming={1}
@@ -346,6 +357,7 @@ ReportActionItem.propTypes = propTypes;
 ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
+    withWindowDimensions,
     withLocalize,
     withOnyx({
         draftMessage: {

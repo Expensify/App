@@ -1,5 +1,7 @@
 package com.expensify.chat;
 
+import com.expensify.chat.generated.BasePackageList;
+
 import android.content.Context;
 import android.database.CursorWindow;
 import androidx.multidex.MultiDexApplication;
@@ -14,8 +16,17 @@ import com.plaid.PlaidPackage;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Arrays;
+
+import org.unimodules.adapters.react.ModuleRegistryAdapter;
+import org.unimodules.adapters.react.ReactModuleRegistryProvider;
+import org.unimodules.core.interfaces.SingletonModule;
+import com.facebook.react.bridge.JSIModulePackage;
+import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
+
+  private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(new BasePackageList().getPackageList(), null);
 
   private final ReactNativeHost mReactNativeHost =
       new ReactNativeHost(this) {
@@ -31,12 +42,24 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
           packages.add(new PlaidPackage());
+          packages.add(new ExpensifyAppPackage());
+
+          // Add unimodules
+          List<ReactPackage> unimodules = Arrays.<ReactPackage>asList(
+            new ModuleRegistryAdapter(mModuleRegistryProvider)
+          );
+          packages.addAll(unimodules);
           return packages;
         }
 
         @Override
         protected String getJSMainModuleName() {
           return "index";
+        }
+
+        @Override
+        protected JSIModulePackage getJSIModulePackage() {
+          return new ReanimatedJSIModulePackage();
         }
       };
 
@@ -53,6 +76,11 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
       if (BuildConfig.DEBUG) {
           FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(false);
       }
+
+      // Start the "js_load" custom performance tracing metric. This timer is stopped by a native
+      // module in the JS so we can measure total time starting in the native layer and ending in
+      // the JS layer.
+      StartupTimer.start();
 
       // Increase SQLite DB write size
       try {

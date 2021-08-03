@@ -11,10 +11,9 @@ import getReportActionContextMenuStyles from '../../../styles/getReportActionCon
 import {
     setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft,
 } from '../../../libs/actions/Report';
-import ReportActionContextMenuItem from './ReportActionContextMenuItem';
+import ContextMenuItem from '../../../components/ContextMenuItem';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import Clipboard from '../../../libs/Clipboard';
-import compose from '../../../libs/compose';
 import {isReportMessageAttachment, canEditReportAction, canDeleteReportAction} from '../../../libs/reportUtils';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
@@ -67,14 +66,14 @@ class ReportActionContextMenu extends React.Component {
         this.contextActions = [
             // Copy to clipboard
             {
-                text: this.props.translate('reportActionContextMenu.copyToClipboard'),
+                text: this.props.translate('contextMenuItem.copyToClipboard'),
                 icon: ClipboardIcon,
-                successText: this.props.translate('reportActionContextMenu.copied'),
+                successText: this.props.translate('contextMenuItem.copied'),
                 successIcon: Checkmark,
                 shouldShow: true,
 
                 // If return value is true, we switch the `text` and `icon` on
-                // `ReportActionContextMenuItem` with `successText` and `successIcon` which will fallback to
+                // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
                 // the `text` and `icon`
                 onPress: () => {
                     const message = _.last(lodashGet(this.props.reportAction, 'message', null));
@@ -179,7 +178,7 @@ class ReportActionContextMenu extends React.Component {
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
                 {this.contextActions.map(contextAction => _.result(contextAction, 'shouldShow', false) && (
-                    <ReportActionContextMenuItem
+                    <ContextMenuItem
                         icon={contextAction.icon}
                         text={contextAction.text}
                         successIcon={contextAction.successIcon}
@@ -197,6 +196,4 @@ class ReportActionContextMenu extends React.Component {
 ReportActionContextMenu.propTypes = propTypes;
 ReportActionContextMenu.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-)(ReportActionContextMenu);
+export default withLocalize(ReportActionContextMenu);

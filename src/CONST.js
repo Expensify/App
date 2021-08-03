@@ -4,7 +4,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: 'https://expensify.cash/Expensify.cash.dmg',
+        DESKTOP: 'https://new.expensify.com/Expensify.cash.dmg',
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -24,6 +24,7 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+            EXISTING_OWNERS: '402 Existing Owners',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -64,6 +65,9 @@ const CONST = {
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
         },
         VERIFICATION_MAX_ATTEMPTS: 7,
+        STATE: {
+            VERIFYING: 'VERIFYING',
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -80,6 +84,7 @@ const CONST = {
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
+        INTERNATIONALIZATION: 'internationalization',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -87,6 +92,13 @@ const CONST = {
         PRESSED: 'pressed',
         COMPLETE: 'complete',
         DISABLED: 'disabled',
+    },
+    CARD_TYPES: {
+        /** This is a default card type that all users have. It is just a placeholder, not an actual card */
+        DEFAULT_CASH: '__CASH__',
+    },
+    BANK_ACCOUNT_TYPES: {
+        WALLET: 'WALLET',
     },
     COUNTRY: {
         US: 'US',
@@ -128,6 +140,9 @@ const CONST = {
                 IOU: 'IOU',
                 ADDCOMMENT: 'ADDCOMMENT',
             },
+        },
+        ERROR: {
+            INACCESSIBLE_REPORT: 'Report not found',
         },
         MESSAGE: {
             TYPE: {
@@ -187,7 +202,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     ERROR: {
-        API_OFFLINE: 'API is offline',
+        API_OFFLINE: 'session.offlineMessageRetry',
     },
     NETWORK: {
         METHOD: {
@@ -203,6 +218,7 @@ const CONST = {
         ACH_DATA_THROTTLED: 'expensify_ACHData_throttled',
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
+        PREFERRED_LOCALE: 'preferredLocale',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -267,7 +283,7 @@ const CONST = {
             TERMS: 'TermsStep',
             ACTIVATE: 'ActivateStep',
         },
-        STATUS: {
+        TIER_NAME: {
             GOLD: 'GOLD',
             SILVER: 'SILVER',
         },
@@ -327,6 +343,7 @@ const CONST = {
     POLICY: {
         TYPE: {
             FREE: 'free',
+            PERSONAL: 'personal',
         },
         ROLE: {
             ADMIN: 'admin',

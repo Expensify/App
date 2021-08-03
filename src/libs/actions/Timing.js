@@ -17,11 +17,10 @@ function start(eventName) {
  *
  * @param {String} eventName - event name used as timestamp key
  * @param {String} [secondaryName] - optional secondary event name, passed to grafana
- * @param {Number} [offset] - optional param to offset the time
  */
-function end(eventName, secondaryName = '', offset = 0) {
+function end(eventName, secondaryName = '') {
     if (eventName in timestampData) {
-        const eventTime = Date.now() - timestampData[eventName] - offset;
+        const eventTime = Date.now() - timestampData[eventName];
         const grafanaEventName = secondaryName
             ? `expensify.cash.${eventName}.${secondaryName}`
             : `expensify.cash.${eventName}`;

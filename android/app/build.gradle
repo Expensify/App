@@ -1,4 +1,6 @@
 apply plugin: "com.android.application"
+apply plugin: "com.google.firebase.firebase-perf"
+apply from: '../../node_modules/react-native-unimodules/gradle.groovy'
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 import com.android.build.OutputFile
@@ -148,8 +150,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001007505
-        versionName "1.0.75-5"
+        versionCode 1001008002
+        versionName "1.0.80-2"
     }
     splits {
         abi {
@@ -209,6 +211,8 @@ dependencies {
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.0.0"
 
+    addUnimodulesDependencies()
+
     debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}") {
       exclude group:'com.facebook.fbjni'
     }
@@ -229,6 +233,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation platform("com.google.firebase:firebase-bom:20.0.2")
+    implementation "com.google.firebase:firebase-perf"
 
     // GIF support
     implementation 'com.facebook.fresco:fresco:2.3.0'

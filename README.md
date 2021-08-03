@@ -1,10 +1,10 @@
 <div align="center">
-    <a href="https://Expensify.cash">
-        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="Expensify.cash Icon">
+    <a href="https://new.expensify.com">
+        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="New Expensify Icon">
     </a>
     <h1>
-        <a href="https://Expensify.cash">
-            Expensify.cash
+        <a href="https://new.expensify.com">
+            New Expensify
         </a>
     </h1>
 </div>
@@ -19,14 +19,14 @@
 * [Deploying](#deploying)
 
 #### Additional Reading
-* [Contributing to Expensify.cash](./CONTRIBUTING.md)
+* [Contributing to Expensify](./CONTRIBUTING.md)
 * [Expensify Code of Conduct](./CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](./CLA.md)
 
 ----
 
 # Local development
-These instructions should get you set up ready to work on Expensify.cash 🙌
+These instructions should get you set up ready to work on New Expensify 🙌
 
 ## Getting Started
 1. Install `node` & `npm`: `brew install node`
@@ -45,7 +45,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the Android app 🤖
-* To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
+* To install the Android dependencies, run: `npm install`
 * Make sure you have Java installed `java -version`. If not, install it by running `npm install -g openjdk8`.
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
@@ -204,7 +204,7 @@ This application is built with the following principles.
     1. UI inputs push data to the server (React component -> Action -> XHR to server).
     1. Go to 1
 1. **Offline first**
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://react-native-community.github.io/async-storage/) is a cross-platform abstraction layer that is used to access persistent storage.
+    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.
@@ -248,7 +248,7 @@ localize the following types of data when presented to the user (even accessibil
 - Phones: see [LocalPhoneNumber](https://github.com/Expensify/Expensify.cash/blob/bdfbafe18ee2d60f766c697744f23fad64b62cad/src/libs/LocalePhoneNumber.js#L51-L52)
 
 In most cases, you will be needing to localize data used in a component, if that's the case, there's a HOC [withLocalize](https://github.com/Expensify/Expensify.cash/blob/37465dbd07da1feab8347835d82ed3d2302cde4c/src/components/withLocalize.js).
-It will abstract most of the logic you need (mostly subscribe to the [PREFERRED_LOCALE](https://github.com/Expensify/Expensify.cash/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key)
+It will abstract most of the logic you need (mostly subscribe to the [NVP_PREFERRED_LOCALE](https://github.com/Expensify/Expensify.cash/blob/6cf1a56df670a11bf61aa67eeb64c1f87161dea1/src/ONYXKEYS.js#L88) Onyx key)
 and is the preferred way of localizing things inside components.
 
 Some pointers:
