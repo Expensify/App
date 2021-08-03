@@ -47,14 +47,13 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
-    // eslint-disable-next-line react/no-unused-prop-types
-    reportActionsDrafts_: PropTypes.objectOf(PropTypes.string),
+    draftMessage: PropTypes.string,
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
-    reportActionsDrafts_: {},
+    draftMessage: '',
     hasOutstandingIOU: false,
 };
 
@@ -71,25 +70,12 @@ class ReportActionItem extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         return this.props.displayAsGroup !== nextProps.displayAsGroup
-            || this.getDraftMessage() !== this.getDraftMessage(nextProps)
+            || this.props.draftMessage !== nextProps.draftMessage
             || this.props.isMostRecentIOUReportAction !== nextProps.isMostRecentIOUReportAction
             || this.props.hasOutstandingIOU !== nextProps.hasOutstandingIOU
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
-    }
-
-    /**
-     * @param {Object} props
-     * @returns {String}
-     */
-    getDraftMessage(props) {
-        const propsToUse = props || this.props;
-        const drafts = propsToUse[ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS] || {};
-        // eslint-disable-next-line max-len
-        const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${propsToUse.reportID}_${propsToUse.action.reportActionID}`;
-        const draft = drafts[draftKey];
-        return draft || '';
     }
 
     /**
@@ -100,7 +86,7 @@ class ReportActionItem extends Component {
      */
     showPopover(event, selection) {
         // Block menu on the message being Edited
-        if (this.getDraftMessage()) {
+        if (this.props.draftMessage) {
             return;
         }
         showContextMenu(
@@ -109,7 +95,7 @@ class ReportActionItem extends Component {
             this.popoverAnchor,
             this.props.reportID,
             this.props.action,
-            this.getDraftMessage(),
+            this.props.draftMessage,
             this.checkIfContextMenuActive,
             this.checkIfContextMenuActive,
         );
@@ -120,7 +106,6 @@ class ReportActionItem extends Component {
     }
 
     render() {
-        const draftMessage = this.getDraftMessage();
         let children;
         if (this.props.action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
             children = (
@@ -131,12 +116,12 @@ class ReportActionItem extends Component {
                 />
             );
         } else {
-            children = !draftMessage
+            children = !this.props.draftMessage
                 ? <ReportActionItemMessage action={this.props.action} />
                 : (
                     <ReportActionItemMessageEdit
                             action={this.props.action}
-                            draftMessage={draftMessage}
+                            draftMessage={this.props.draftMessage}
                             reportID={this.props.reportID}
                             index={this.props.index}
                     />
@@ -148,7 +133,7 @@ class ReportActionItem extends Component {
                 onPressIn={() => this.props.isSmallScreenWidth && canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
                 onSecondaryInteraction={this.showPopover}
-                preventDefaultContentMenu={!draftMessage}
+                preventDefaultContentMenu={!this.props.draftMessage}
 
             >
                 <Hoverable resetsOnClickOutside={false}>
@@ -161,7 +146,7 @@ class ReportActionItem extends Component {
                                 style={getReportActionItemStyle(
                                     hovered
                                     || this.state.isContextMenuActive
-                                    || draftMessage,
+                                    || this.props.draftMessage,
                                 )}
                             >
                                 {!this.props.displayAsGroup
@@ -183,10 +168,10 @@ class ReportActionItem extends Component {
                                 isVisible={
                                     hovered
                                     && !this.state.isContextMenuActive
-                                    && !draftMessage
+                                    && !this.props.draftMessage
 
                                 }
-                                draftMessage={draftMessage}
+                                draftMessage={this.props.draftMessage}
                             />
                         </View>
                     )}
@@ -200,5 +185,13 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withReportActionsDrafts,
+    withReportActionsDrafts({
+        propName: 'draftMessage',
+        transformValue: (drafts, props) => {
+            const {reportID, action} = props;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`;
+            const draft = drafts[draftKey];
+            return draft || '';
+        },
+    }),
 )(ReportActionItem);

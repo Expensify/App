@@ -26,11 +26,14 @@ export default (onyxKeyName) => {
         },
     })(Provider);
 
-    const withOnyxKey = (WrappedComponent) => {
+    const withOnyxKey = ({propName = onyxKeyName, transformValue = () => {}} = {}) => (WrappedComponent) => {
         const Consumer = props => (
             <Context.Consumer>
                 {(value) => {
-                    const propsToPass = {...props, [onyxKeyName]: value};
+                    const propsToPass = {
+                        ...props,
+                        [propName]: transformValue ? transformValue(value, props) : value,
+                    };
                     return (
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         <WrappedComponent {...propsToPass} />
