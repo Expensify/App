@@ -115,6 +115,26 @@ function createIOUSplit(params) {
 }
 
 /**
+ * Creates IOUSplit Transaction for Group DM
+ * @param {Object} params
+ * @param {Array} params.splits
+ * @param {String} params.comment
+ * @param {Number} params.amount
+ * @param {String} params.currency
+ * @param {String} params.reportID
+ */
+function createIOUSplitGroup(params) {
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+
+    API.CreateIOUSplit({
+        ...params,
+        splits: JSON.stringify(params.splits),
+    })
+        .then(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}))
+        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}));
+}
+
+/**
  * Reject an iouReport transaction. Declining and cancelling transactions are done via the same Auth command.
  *
  * @param {Object} params
@@ -246,6 +266,7 @@ function payIOUReport({
 export {
     createIOUTransaction,
     createIOUSplit,
+    createIOUSplitGroup,
     rejectTransaction,
     payIOUReport,
     setIOUSelectedCurrency,

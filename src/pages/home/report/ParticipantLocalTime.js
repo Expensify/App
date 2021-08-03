@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import {
     View,
 } from 'react-native';
@@ -18,7 +18,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class ParticipantLocalTime extends React.Component {
+class ParticipantLocalTime extends PureComponent {
     constructor(props) {
         super(props);
         this.getParticipantLocalTime = this.getParticipantLocalTime.bind(this);
@@ -35,13 +35,8 @@ class ParticipantLocalTime extends React.Component {
         }, 1000));
     }
 
-    shouldComponentUpdate(nextProps, nextState) {
-        return nextState.localTime !== this.state.localTime;
-    }
-
     componentWillUnmount() {
         clearInterval(this.timer);
-        clearInterval(this.readyTimer);
     }
 
     getParticipantLocalTime() {
