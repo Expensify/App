@@ -47,15 +47,15 @@ const propTypes = {
     index: PropTypes.number.isRequired,
 
     /** Draft message - if this is set the comment is in 'edit' mode */
-    // eslint-disable-next-line react/require-default-props
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: PropTypes.shape({}),
+    // eslint-disable-next-line react/no-unused-prop-types
+    reportActionsDrafts_: PropTypes.objectOf(PropTypes.string),
 
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     // eslint-disable-next-line react/default-props-match-prop-types
-    [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: {},
+    reportActionsDrafts_: {},
     hasOutstandingIOU: false,
 };
 
