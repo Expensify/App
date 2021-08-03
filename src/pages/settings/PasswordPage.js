@@ -108,11 +108,11 @@ class PasswordPage extends Component {
                                 textContentType="password"
                                 value={this.state.newPassword}
                                 onChangeText={newPassword => this.setState({newPassword})}
-                                onFocusExtra={() => this.setState({isPasswordRequirementsVisible: true})}
-                                onBlurExtra={() => this.setState({isPasswordRequirementsVisible: false})}
+                                onFocus={() => this.setState({isPasswordRequirementsVisible: true})}
+                                onBlur={() => this.setState({isPasswordRequirementsVisible: false})}
                             />
                             {this.state.isPasswordRequirementsVisible && (
-                                <Text style={[styles.formHint, styles.mt1]}>
+                                <Text style={[styles.labelLabelSupporting, styles.mt1]}>
                                     {this.props.translate('passwordPage.newPasswordPrompt')}
                                 </Text>
                             )}

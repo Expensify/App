@@ -135,7 +135,12 @@ const HeaderView = (props) => {
                                 />
                                 {isDefaultChatRoom && (
                                     <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
+                                        style={[
+                                            styles.sidebarLinkText,
+                                            styles.optionAlternateText,
+                                            styles.labelLabelSupporting,
+                                            styles.mt1,
+                                        ]}
                                         numberOfLines={1}
                                     >
                                         {subtitle}

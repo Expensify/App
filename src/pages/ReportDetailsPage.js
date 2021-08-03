@@ -144,7 +144,12 @@ class ReportDetailsPage extends Component {
                                     shouldUseFullTitle={isDefaultRoom(this.props.report)}
                                 />
                                 <Text
-                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mb6]}
+                                    style={[
+                                        styles.sidebarLinkText,
+                                        styles.optionAlternateText,
+                                        styles.labelLabelSupporting,
+                                        styles.mb6,
+                                    ]}
                                     numberOfLines={1}
                                 >
                                     {defaultRoomSubtitle}

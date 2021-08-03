@@ -21,7 +21,7 @@ const expensiPicker = {
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingBottom: 8,
     paddingTop: 24,
     height: 52,
     borderRadius: variables.componentBorderRadiusNormal,
@@ -441,6 +441,14 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    borderColorFocus: {
+        borderColor: themeColors.borderFocus,
+    },
+
+    borderColorDanger: {
+        borderColor: themeColors.badgeDangerBG,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -483,8 +491,8 @@ const styles = {
         marginRight: 8,
     },
 
-    expensiTextInputWrapper: {
-        height: 52,
+    componentHeightLarge: {
+        height: variables.componentSizeLarge,
     },
     expensiTextInputContainer: {
         flex: 1,
@@ -497,16 +505,6 @@ const styles = {
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
-    },
-    expensiTextInputContainerWithoutLabel: {
-        paddingTop: 0,
-        paddingBottom: 0,
-    },
-    borderColorFocus: {
-        borderColor: themeColors.borderFocus,
-    },
-    borderColorDanger: {
-        borderColor: themeColors.badgeDangerBG,
     },
     expensiTextInputLabel: {
         position: 'absolute',
@@ -559,17 +557,7 @@ const styles = {
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
-    expensiPickerContainerOnFocus: {
-        borderColor: themeColors.borderFocus,
-    },
-    expensiPickerContainerDisabled: {
-        backgroundColor: colors.gray1,
-        color: colors.gray3,
-    },
     expensiPickerLabel: {
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
         position: 'absolute',
         left: 12,
         top: 8,
@@ -597,7 +585,7 @@ const styles = {
         color: colors.gray3,
     },
 
-    disabledTextInput: {
+    inputDisabled: {
         backgroundColor: colors.gray1,
         color: colors.gray3,
     },
@@ -613,6 +601,12 @@ const styles = {
     },
 
     noOutline: addOutlineWidth({}, 0),
+
+    labelLabelSupporting: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+    },
 
     formLabel: {
         fontFamily: fontFamily.GTA_BOLD,
@@ -637,12 +631,6 @@ const styles = {
         marginBottom: 4,
     },
 
-    formHint: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-    },
-
     signInPage: {
         backgroundColor: themeColors.sidebar,
         minHeight: '100%',
@@ -652,10 +640,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    signInPageLogoNative: {
-        height: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
@@ -890,12 +874,6 @@ const styles = {
         color: themeColors.heading,
     },
 
-    popoverMenuDescription: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.textSupporting,
-    },
-
     menuItemTextContainer: {
         minHeight: variables.componentSizeNormal,
     },
@@ -984,9 +962,6 @@ const styles = {
     },
 
     optionAlternateText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
@@ -1588,12 +1563,6 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
-    },
-
-    settingsLoginName: {
-        fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA,
-        color: themeColors.textSupporting,
     },
 
     pageWrapper: {
