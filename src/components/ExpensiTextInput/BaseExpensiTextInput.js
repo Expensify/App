@@ -15,7 +15,7 @@ const INACTIVE_LABEL_TRANSLATE_Y = 0;
 const INACTIVE_LABEL_TRANSLATE_X = 0;
 const INACTIVE_LABEL_SCALE = 1;
 
-class ExpensiTextInput extends Component {
+class BaseExpensiTextInput extends Component {
     constructor(props) {
         super(props);
 
@@ -76,7 +76,15 @@ class ExpensiTextInput extends Component {
 
     render() {
         const {
-            label, value, placeholder, error, containerStyles, inputStyle, ignoreLabelTranslateX, ...inputProps
+            label,
+            value,
+            placeholder,
+            error,
+            containerStyles,
+            inputStyle,
+            ignoreLabelTranslateX,
+            innerRef,
+            ...inputProps
         } = this.props;
 
         const hasLabel = Boolean(label.length);
@@ -104,7 +112,10 @@ class ExpensiTextInput extends Component {
                             />
                         ) : null}
                         <TextInput
-                            ref={ref => this.input = ref}
+                            ref={(ref) => {
+                                if (typeof innerRef === 'function') { innerRef(ref); }
+                                this.input = ref;
+                            }}
                             value={value}
                             onFocus={this.onFocus}
                             onBlur={this.onBlur}
@@ -122,7 +133,7 @@ class ExpensiTextInput extends Component {
     }
 }
 
-ExpensiTextInput.propTypes = propTypes;
-ExpensiTextInput.defaultProps = defaultProps;
+BaseExpensiTextInput.propTypes = propTypes;
+BaseExpensiTextInput.defaultProps = defaultProps;
 
-export default ExpensiTextInput;
+export default BaseExpensiTextInput;
