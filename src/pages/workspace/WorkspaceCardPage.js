@@ -179,7 +179,6 @@ const WorkspaceCardPage = ({
                                     success
                                     large
                                     text={buttonText}
-                                    isLoading={reimbursementAccount.loading}
                                 />
                             </View>
                         </View>
