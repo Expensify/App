@@ -157,6 +157,12 @@ export default {
                 },
             },
 
+            WorkspaceEditor: {
+                screens: {
+                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
+                },
+            },
+
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,

@@ -124,6 +124,10 @@ class OptionsSelector extends Component {
             }))]
         ), []);
 
+        if (allOptions.length === 0) {
+            return;
+        }
+
         if (this.props.disableArrowKeysActions && e.nativeEvent.key.startsWith('Arrow')) {
             return;
         }
