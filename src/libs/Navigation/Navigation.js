@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {StackActions, DrawerActions} from '@react-navigation/native';
+import {StackActions, DrawerActions, useLinkBuilder} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
@@ -125,13 +125,21 @@ function dismissModal(shouldOpenDrawer = false) {
 /**
  * Check whether the passed route is currently Active or not.
  *
+ * Building path with useLinkBuilder since navigationRef.current.getCurrentRoute().path
+ * is undefined in the first navigation.
+ *
  * @param {String} routePath Path to check
  * @return {Boolean} is active
  */
-function isActive(routePath) {
+function isActiveRoute(routePath) {
+    const buildLink = useLinkBuilder();
+
     // We remove First forward slash from the URL before matching
-    const path = navigationRef.current && navigationRef.current.getCurrentRoute().path
-        ? navigationRef.current.getCurrentRoute().path.substring(1)
+    const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? buildLink(
+            navigationRef.current.getCurrentRoute().name,
+            navigationRef.current.getCurrentRoute().params,
+        ).substring(1)
         : '';
     return path === routePath;
 }
@@ -167,7 +175,7 @@ DismissModal.defaultProps = {
 export default {
     navigate,
     dismissModal,
-    isActive,
+    isActiveRoute,
     goBack,
     DismissModal,
     closeDrawer,
