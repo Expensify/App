@@ -102,7 +102,7 @@ class NewPasswordForm extends React.Component {
                         onChangeText={password => this.props.updatePassword(password)}
                         onBlur={() => this.onBlurNewPassword()}
                     />
-                    <Text style={[styles.formHint, styles.mt1, passwordHintStyle]}>
+                    <Text style={[styles.labelLabelSupporting, styles.mt1, passwordHintStyle]}>
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
                     </Text>
                 </View>

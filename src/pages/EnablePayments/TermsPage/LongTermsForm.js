@@ -85,7 +85,7 @@ const getLongTermsSections = () => termsData.map((section, index) => (
                 }
             </View>
         </View>
-        <Text style={[styles.formHint, styles.mt2]}>
+        <Text style={[styles.labelLabelSupporting, styles.mt2]}>
             {section.details}
         </Text>
     </View>

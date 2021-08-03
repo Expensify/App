@@ -35,7 +35,7 @@ class BaseExpensiTextInput extends Component {
     }
 
     onFocus() {
-        if (this.props.onFocusExtra) { this.props.onFocusExtra(); }
+        if (this.props.onFocus) { this.props.onFocus(); }
         this.setState({isFocused: true});
         if (this.props.value.length === 0) {
             this.animateLabel(
@@ -47,7 +47,7 @@ class BaseExpensiTextInput extends Component {
     }
 
     onBlur() {
-        if (this.props.onBlurExtra) { this.props.onBlurExtra(); }
+        if (this.props.onBlur) { this.props.onBlur(); }
         this.setState({isFocused: false});
         if (this.props.value.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
@@ -89,12 +89,12 @@ class BaseExpensiTextInput extends Component {
 
         const hasLabel = Boolean(label.length);
         return (
-            <View style={[styles.expensiTextInputWrapper, ...containerStyles]}>
+            <View style={[styles.componentHeightLarge, ...containerStyles]}>
                 <TouchableWithoutFeedback onPress={() => this.input.focus()}>
                     <View
                         style={[
                             styles.expensiTextInputContainer,
-                            !hasLabel && styles.expensiTextInputContainerWithoutLabel,
+                            !hasLabel && styles.pv0,
                             this.state.isFocused && styles.borderColorFocus,
                             error && styles.borderColorDanger,
                         ]}
@@ -116,15 +116,15 @@ class BaseExpensiTextInput extends Component {
                                 if (typeof innerRef === 'function') { innerRef(ref); }
                                 this.input = ref;
                             }}
+                            // eslint-disable-next-line
+                            {...inputProps}
                             value={value}
-                            onFocus={this.onFocus}
-                            onBlur={this.onBlur}
                             placeholder={(this.state.isFocused || !label) ? placeholder : null}
                             placeholderTextColor={themeColors.placeholderText}
                             underlineColorAndroid="transparent"
                             style={inputStyle}
-                            // eslint-disable-next-line
-                            {...inputProps}
+                            onFocus={this.onFocus}
+                            onBlur={this.onBlur}
                         />
                     </View>
                 </TouchableWithoutFeedback>

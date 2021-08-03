@@ -10,12 +10,6 @@ const propTypes = {
     /** Input value placeholder */
     placeholder: PropTypes.string,
 
-    /** Callback that is called when the text input is focused. */
-    onFocusExtra: PropTypes.func,
-
-    /** Callback that is called when the text input is blurred. */
-    onBlurExtra: PropTypes.func,
-
     /** Input with error  */
     error: PropTypes.bool,
 
@@ -36,8 +30,6 @@ const defaultProps = {
     label: '',
     placeholder: '',
     error: false,
-    onFocusExtra: null,
-    onBlurExtra: null,
     containerStyles: [],
     translateX: -22,
     inputStyle: [],
