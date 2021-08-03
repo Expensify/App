@@ -58,13 +58,15 @@ class ReportScreen extends React.Component {
 
     /**
      * Get the currently viewed report ID as number
-     *
+     * If the shouldRedirectIfNan flag is set, we redirect to the Concierge chat
+     * when the ID is not a number
+     * @param {Boolean} shouldRedirectIfNan
      * @returns {Number}
      */
-    getReportID() {
+    getReportID(shouldRedirectIfNan = false) {
         const params = this.props.route.params;
         const id = Number.parseInt(params.reportID, 10);
-        if (_.isNaN(id)) {
+        if (shouldRedirectIfNan && _.isNaN(id)) {
             handleInaccessibleReport();
         }
         return id;
@@ -93,7 +95,7 @@ class ReportScreen extends React.Component {
      * Persists the currently viewed report id
      */
     storeCurrentlyViewedReport() {
-        const reportID = this.getReportID();
+        const reportID = this.getReportID(true);
         updateCurrentlyViewedReportID(reportID);
     }
 
