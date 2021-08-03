@@ -22,7 +22,7 @@ const propTypes = {
     account: PropTypes.shape({
 
         /** Login of the account */
-        login: PropTypes.string.isRequired,
+        login: PropTypes.string,
 
         /** An error message to display to the user */
         error: PropTypes.string,

@@ -23,7 +23,10 @@ const propTypes = {
     account: PropTypes.shape({
 
         /** Password of the account */
-        password: PropTypes.string.isRequired,
+        password: PropTypes.string,
+
+        /** TwoFactorAuthCode of the account */
+        twoFactorAuthCode: PropTypes.string,
 
         /** Whether or not the account already exists */
         accountExists: PropTypes.bool,
