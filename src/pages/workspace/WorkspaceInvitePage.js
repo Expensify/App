@@ -55,6 +55,7 @@ class WorkspaceInvitePage extends React.Component {
         };
 
         this.inviteUser = this.inviteUser.bind(this);
+        this.emailOrPhoneInputRef = null;
     }
 
     /**
@@ -86,7 +87,12 @@ class WorkspaceInvitePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.emailOrPhoneInputRef) {
+                    this.emailOrPhoneInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.invite.invitePeople')}
@@ -101,6 +107,7 @@ class WorkspaceInvitePage extends React.Component {
                                 {this.props.translate('workspace.invite.enterEmailOrPhone')}
                             </Text>
                             <TextInput
+                                ref={el => this.emailOrPhoneInputRef = el}
                                 autoCompleteType="email"
                                 autoCorrect={false}
                                 autoCapitalize="none"
