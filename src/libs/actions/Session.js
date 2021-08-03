@@ -11,6 +11,8 @@ import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {translateLocal} from '../translate';
+import * as Network from '../Network';
+
 
 let credentials = {};
 Onyx.connect({
@@ -218,6 +220,7 @@ function signIn(password, twoFactorAuthCode) {
     })
         .then((authenticateResponse) => {
             const {authToken, encryptedAuthToken, email} = authenticateResponse;
+            Network.unpauseRequestQueue();
             createTemporaryLogin(authToken, encryptedAuthToken, email);
         })
         .catch((error) => {
