@@ -16,6 +16,9 @@ export default {
     // Boolean flag set whenever we are waiting for the reconnection callbacks to finish.
     IS_LOADING_AFTER_RECONNECT: 'isLoadingAfterReconnect',
 
+    // Boolean flag set whenever the sidebar has loaded
+    IS_SIDEBAR_LOADED: 'isSidebarLoaded',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
@@ -91,7 +94,7 @@ export default {
     },
 
     // Indicates which locale should be used
-    PREFERRED_LOCALE: 'preferredLocale',
+    NVP_PREFERRED_LOCALE: 'preferredLocale',
 
     // List of transactionIDs in process of rejection
     TRANSACTIONS_BEING_REJECTED: 'transactionsBeingRejected',

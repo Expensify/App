@@ -17,7 +17,6 @@ import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
 import defaultTheme from '../../styles/themes/default';
 
-
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -65,6 +64,7 @@ class NewWorkspacePage extends React.Component {
                             label={this.props.translate('workspace.new.chooseAName')}
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
+                            onSubmitEditting={this.submit}
                         />
                         <Text style={[styles.mt6]}>{this.props.translate('workspace.new.helpText')}</Text>
                     </View>
@@ -74,6 +74,7 @@ class NewWorkspacePage extends React.Component {
                         style={[styles.w100]}
                         text={this.props.translate('workspace.new.getStarted')}
                         onPress={this.submit}
+                        pressOnEnter
                     />
                 </View>
             </ScreenWrapper>

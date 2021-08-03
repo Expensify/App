@@ -221,6 +221,11 @@ function Authenticate(parameters) {
                     case 401:
                         throw new Error('passwordForm.error.incorrectLoginOrPassword');
                     case 402:
+                        // If too few characters are passed as the password, the WAF will pass it to the API as an empty
+                        // string, which results in a 402 error from Auth.
+                        if (response.message === '402 Missing partnerUserSecret') {
+                            throw new Error('passwordForm.error.incorrectLoginOrPassword');
+                        }
                         throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
                         throw new Error('passwordForm.error.invalidLoginOrPassword');
@@ -421,6 +426,15 @@ function GetAccountStatus(parameters) {
 }
 
 /**
+ * Returns a validate code for this account
+ * @returns {Promise}
+ */
+function GetAccountValidateCode() {
+    const commandName = 'GetAccountValidateCode';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
@@ -534,6 +548,19 @@ function PersonalDetails_GetForEmails(parameters) {
 function PersonalDetails_Update(parameters) {
     const commandName = 'PersonalDetails_Update';
     requireParameters(['details'],
+        parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Object} parameters.name
+ * @param {Object} parameters.value
+ * @returns {Promise}
+ */
+function PreferredLocale_Update(parameters) {
+    const commandName = 'PreferredLocale_Update';
+    requireParameters(['name', 'value'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -961,8 +988,8 @@ function Mobile_GetConstants(parameters) {
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
-function GetPreferredCurrency(parameters) {
-    const commandName = 'GetPreferredCurrency';
+function GetLocalCurrency(parameters) {
+    const commandName = 'GetLocalCurrency';
     return Network.post(commandName, parameters);
 }
 
@@ -1020,6 +1047,17 @@ function Inbox_CallUser(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.reportIDList
+ * @returns {Promise}
+ */
+function GetReportSummaryList(parameters) {
+    const commandName = 'Get';
+    requireParameters(['reportIDList'], parameters, commandName);
+    return Network.post(commandName, {...parameters, returnValueList: 'reportSummaryList'});
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.policyID
  * @param {String} parameters.value - Must be a JSON stringified object
  * @returns {Promise}
@@ -1043,9 +1081,11 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetAccountValidateCode,
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,
+    GetReportSummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
@@ -1083,8 +1123,9 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    GetPreferredCurrency,
+    GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,
     Policy_Employees_Remove,
+    PreferredLocale_Update,
 };

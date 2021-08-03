@@ -17,7 +17,7 @@ const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 export default {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
-    getBankAccountRoute: stepToOpen => `bank-account/${stepToOpen}`,
+    getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',
@@ -80,6 +80,12 @@ export default {
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     REQUEST_CALL: 'request-call',
+    getWorkspaceEditorRoute: policyID => `workspace/${policyID}/edit`,
+    WORKSPACE_EDITOR: 'workspace/:policyID/edit',
+    VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
+        const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
+        return `v/${accountID}/${validateCode}${exitToURL}`;
+    },
 
     /**
      * @param {String} route

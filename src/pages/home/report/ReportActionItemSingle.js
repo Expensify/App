@@ -73,7 +73,7 @@ const ReportActionItemSingle = ({
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
-                    <Pressable onPress={() => showUserDetails(action.actorEmail)}>
+                    <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(action.actorEmail)}>
                         {_.map(personArray, (fragment, index) => (
                             <ReportActionItemFragment
                                 key={`person-${action.sequenceNumber}-${index}`}
@@ -95,6 +95,8 @@ const ReportActionItemSingle = ({
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
+ReportActionItemSingle.displayName = 'ReportActionItemSingle';
+
 export default compose(
     withLocalize,
     withOnyx({

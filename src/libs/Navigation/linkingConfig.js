@@ -8,6 +8,8 @@ export default {
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
+        'https://new.expensify.com',
+        'https://staging.new.expensify.com',
     ],
     config: {
         initialRouteName: SCREENS.HOME,
@@ -152,6 +154,12 @@ export default {
                 screens: {
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
                     WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
+                },
+            },
+
+            WorkspaceEditor: {
+                screens: {
+                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
                 },
             },
 
