@@ -98,5 +98,5 @@ ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default compose(
     withLocalize,
-    withPersonalDetails,
+    withPersonalDetails(),
 )(ReportActionItemSingle);

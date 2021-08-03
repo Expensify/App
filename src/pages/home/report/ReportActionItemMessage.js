@@ -42,4 +42,4 @@ ReportActionItemMessage.propTypes = propTypes;
 ReportActionItemMessage.defaultProps = defaultProps;
 ReportActionItemMessage.displayName = 'ReportActionItemMessage';
 
-export default withNetwork(ReportActionItemMessage);
+export default withNetwork()(ReportActionItemMessage);
