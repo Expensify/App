@@ -191,7 +191,8 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
 function createOption(personalDetailList, report, draftComments, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const hasMultipleParticipants = personalDetailList.length > 1;
+    const isDefaultChatRoom = isDefaultRoom(report);
+    const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
     const reportDraftComment = report
         && draftComments
@@ -210,7 +211,6 @@ function createOption(personalDetailList, report, draftComments, {
         + _.unescape(report.lastMessageText)
         : '';
 
-    const isDefaultChatRoom = isDefaultRoom(report);
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     let text;
