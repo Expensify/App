@@ -125,9 +125,7 @@ function dismissModal(shouldOpenDrawer = false) {
 /**
  * Check whether the passed route is currently Active or not.
  *
- * Previous implementation used navigationRef.current.getCurrentRoute().path, which was
- * undefined in the first navigation. Hence, in our current solution, we're rebuilding
- * the active route using the useLinkBuilder hook that takes routeName and params as the arguments.
+ * Building path with useLinkBuilder since navigationRef.current.getCurrentRoute().path is undefined in the first navigation.
  *
  * @param {String} routePath Path to check
  * @return {Boolean} is active
