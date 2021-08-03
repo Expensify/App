@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {ScrollView, TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -89,6 +90,11 @@ const propTypes = {
         /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
+
+    /** Current user session */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -106,40 +112,96 @@ const defaultProps = {
 const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
+    constructor(props) {
+        super(props);
+
+        this.toggleOption = this.toggleOption.bind(this);
+
+        const formattedParticipants = _.map(this.getParticipantsWithAmount(this.props.participants), participant => ({
+            ...participant, selected: true,
+        }));
+
+        this.state = {
+            participants: formattedParticipants,
+        };
+    }
+
+    /**
+     * Get selected participants
+     * @returns {Array}
+     */
+    getSelectedParticipants() {
+        return _.filter(this.state.participants, participant => participant.selected);
+    }
+
+    /**
+     * Get unselected participants
+     * @returns {Array}
+     */
+    getUnselectedParticipants() {
+        return _.filter(this.state.participants, participant => !participant.selected);
+    }
+
+    /**
+     * Returns the participants with amount
+     * @param {Array} participants
+     * @returns {Array}
+     */
+    getParticipantsWithAmount(participants) {
+        return getIOUConfirmationOptionsFromParticipants(
+            participants,
+            this.props.numberFormat(this.calculateAmount(participants) / 100, {
+                style: 'currency',
+                currency: this.props.iou.selectedCurrencyCode,
+            }),
+        );
+    }
+
+    /**
+     * Returns the participants without amount
+     * @param {Array} participants
+     * @returns {Array}
+     */
+    getParticipantsWithoutAmount(participants) {
+        return _.map(participants, option => _.omit(option, 'descriptiveText'));
+    }
+
     /**
      * Returns the sections needed for the OptionsSelector
-     *
      * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
     getSections() {
         const sections = [];
-
         if (this.props.hasMultipleParticipants) {
+            const selectedParticipants = this.getSelectedParticipants();
+            const unselectedParticipants = this.getUnselectedParticipants();
+
+            const formattedSelectedParticipants = this.getParticipantsWithAmount(selectedParticipants);
+            const formattedUnselectedParticipants = this.getParticipantsWithoutAmount(unselectedParticipants);
+
             const formattedMyPersonalDetails = getIOUConfirmationOptionsFromMyPersonalDetail(
                 this.props.myPersonalDetails,
-                this.props.numberFormat(this.calculateAmount() / 100, {
+                this.props.numberFormat(this.calculateAmount(selectedParticipants, true) / 100, {
                     style: 'currency',
                     currency: this.props.iou.selectedCurrencyCode,
                 }),
             );
-
-            const formattedParticipants = getIOUConfirmationOptionsFromParticipants(this.props.participants,
-                this.props.numberFormat(this.calculateAmount() / 100, {
-                    style: 'currency',
-                    currency: this.props.iou.selectedCurrencyCode,
-                }));
 
             sections.push({
                 title: this.props.translate('iOUConfirmationList.whoPaid'),
                 data: [formattedMyPersonalDetails],
                 shouldShow: true,
                 indexOffset: 0,
-            });
-            sections.push({
+            }, {
                 title: this.props.translate('iOUConfirmationList.whoWasThere'),
-                data: formattedParticipants,
+                data: formattedSelectedParticipants,
                 shouldShow: true,
+                indexOffset: 0,
+            }, {
+                title: undefined,
+                data: formattedUnselectedParticipants,
+                shouldShow: !_.isEmpty(formattedUnselectedParticipants),
                 indexOffset: 0,
             });
         } else {
@@ -161,7 +223,6 @@ class IOUConfirmationList extends Component {
 
     /**
      * Gets splits for the transaction
-     *
      * @returns {Array|null}
      */
     getSplits() {
@@ -170,13 +231,13 @@ class IOUConfirmationList extends Component {
         if (!this.props.hasMultipleParticipants) {
             return null;
         }
-
-        const splits = this.props.participants.map(participant => ({
+        const selectedParticipants = this.getSelectedParticipants();
+        const splits = _.map(selectedParticipants, participant => ({
             email: participant.login,
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(),
+            amount: this.calculateAmount(selectedParticipants),
         }));
 
         splits.push({
@@ -184,49 +245,40 @@ class IOUConfirmationList extends Component {
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
-            amount: this.calculateAmount(true),
+            amount: this.calculateAmount(selectedParticipants, true),
         });
         return splits;
     }
 
     /**
-     * Gets participants list for a report
-     *
+     * Returns selected options -- there is checkmark for every row in List for split flow
      * @returns {Array}
      */
-    getParticipants() {
-        const participants = this.props.participants.map(participant => participant.login);
-        participants.push(this.props.myPersonalDetails.login);
-        return participants;
-    }
-
-    /**
-     * Returns selected options with all participant logins -- there is checkmark for every row in List for split flow
-     * @returns {Array}
-     */
-    getAllOptionsAsSelected() {
+    getSelectedOptions() {
         if (!this.props.hasMultipleParticipants) {
             return [];
         }
+        const selectedParticipants = this.getSelectedParticipants();
         return [
-            ...this.props.participants,
+            ...selectedParticipants,
             getIOUConfirmationOptionsFromMyPersonalDetail(this.props.myPersonalDetails),
         ];
     }
 
     /**
-     * Calculates the amount per user
+     * Calculates the amount per user given a list of participants
+     * @param {Array} participants
      * @param {Boolean} isDefaultUser
      * @returns {Number}
      */
-    calculateAmount(isDefaultUser = false) {
+    calculateAmount(participants, isDefaultUser = false) {
         // Convert to cents before working with iouAmount to avoid
         // javascript subtraction with decimal problem -- when dealing with decimals,
         // because they are encoded as IEEE 754 floating point numbers, some of the decimal
         // numbers cannot be represented with perfect accuracy.
         // Cents is temporary and there must be support for other currencies in the future
         const iouAmount = Math.round(parseFloat(this.props.iouAmount * 100));
-        const totalParticipants = this.props.participants.length + 1;
+        const totalParticipants = participants.length + 1;
         const amountPerPerson = Math.round(iouAmount / totalParticipants);
 
         if (!isDefaultUser) { return amountPerPerson; }
@@ -235,6 +287,29 @@ class IOUConfirmationList extends Component {
         const difference = iouAmount - sumAmount;
 
         return iouAmount !== sumAmount ? (amountPerPerson + difference) : amountPerPerson;
+    }
+
+    /**
+    * Toggle selected option's selected prop.
+    * @param {Object} option
+    */
+    toggleOption(option) {
+        // Return early if selected option is currently logged in user.
+        if (option.login === this.props.session.email) {
+            return;
+        }
+
+        this.setState((prevState) => {
+            const newParticipants = _.reject(prevState.participants, participant => (
+                participant.login === option.login
+            ));
+
+            newParticipants.push({
+                ...option,
+                selected: !option.selected,
+            });
+            return {participants: newParticipants};
+        });
     }
 
     render() {
@@ -246,6 +321,9 @@ class IOUConfirmationList extends Component {
                 ),
             },
         );
+        const hoverStyle = this.props.hasMultipleParticipants ? styles.hoveredComponentBG : {};
+        const toggleOption = this.props.hasMultipleParticipants ? this.toggleOption : undefined;
+        const selectedParticipants = this.getSelectedParticipants();
         return (
             <>
                 <ScrollView style={[styles.flex1, styles.w100]}>
@@ -258,12 +336,14 @@ class IOUConfirmationList extends Component {
                         }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
-                        disableRowInteractivity
+                        disableFocusOptions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                        disableFocusOptions
-                        selectedOptions={this.getAllOptionsAsSelected()}
+                        selectedOptions={this.getSelectedOptions()}
+                        onSelectRow={toggleOption}
+                        disableRowInteractivity={!this.props.hasMultipleParticipants}
+                        optionHoveredStyle={hoverStyle}
                     />
                     <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                         {this.props.translate('iOUConfirmationList.whatsItFor')}
@@ -287,9 +367,9 @@ class IOUConfirmationList extends Component {
                     )}
                     <Button
                         success
-                        isDisabled={this.props.network.isOffline}
                         style={[styles.w100]}
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
+                        isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
                         text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
                         pressOnEnter
@@ -312,6 +392,9 @@ export default compose(
         iou: {key: ONYXKEYS.IOU},
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
         network: {
             key: ONYXKEYS.NETWORK,

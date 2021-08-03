@@ -562,6 +562,7 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
         alternateText: myPersonalDetail.login,
         icons: [myPersonalDetail.avatar],
         descriptiveText: amountText,
+        login: myPersonalDetail.login,
     };
 }
 
@@ -614,6 +615,7 @@ function getNewGroupOptions(
 
 /**
  * Build the options for the Sidebar a.k.a. LHN
+ *
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {Object} draftComments
