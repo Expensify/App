@@ -168,9 +168,9 @@ export default {
         choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
         error: {
-            invalidAmount: 'Invalid Amount',
-            invalidSplit: 'Splits amount does not equal total amount',
-            other: 'Unexpected error, please try again later',
+            invalidAmount: 'Monto no válido',
+            invalidSplit: 'La suma de las partes no equivale al monto total',
+            other: 'Error inesperado, por favor inténtalo más tarde',
         },
     },
     reportDetailsPage: {
