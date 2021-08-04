@@ -34,7 +34,7 @@ This is the most common scenario for contributors. The Expensify team posts new 
 
 #### Proposing a job that Expensify hasn’t posted
 
-In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) or [Github repository](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal, we will compensate you for the solution and give an additional bonus of $150 for proactively proposing the job. In this case, please take the following steps:
+In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) or [Github repository](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal, we will compensate you for the solution and give an additional bonus of $250 for proactively proposing the job. In this case, please take the following steps:
 
     1. Check to ensure an issue does not already exist in the New Expensify Issue list or Upwork job list. Please use your best judgement to search for similar titles and issue descriptions.
     2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it’ll help solve a problem.
@@ -63,6 +63,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 
 #### Propose a solution for the job
 4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief technical explanation of the changes you will make.
+    - Note: If you post a proposed solution in an issue that has not been tagged with the `External` label, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution.
 5. Pause at this step until Expensify provides feedback on your proposal (do not begin coding or creating a pull request yet).
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you.
 

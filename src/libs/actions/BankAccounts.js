@@ -9,7 +9,6 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
-import Navigation from '../Navigation/Navigation';
 import {translateLocal} from '../translate';
 
 /**
@@ -450,7 +449,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                                     ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
                                 achData.bankAccountInReview = hasTriedToUpgrade;
                             } else {
-                                // In Expensify.cash we do not show a specific view for the EnableStep since we
+                                // We do not show a specific view for the EnableStep since we
                                 // will enable the Expensify card automatically. However, we will still handle
                                 // that step and show the Validate view.
                                 currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
@@ -552,8 +551,11 @@ function validateBankAccount(bankAccountID, validateCode) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
-                Navigation.dismissModal();
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
+                API.User_IsUsingExpensifyCard()
+                    .then(({isUsingExpensifyCard}) => {
+                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
+                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
+                    });
                 return;
             }
 
@@ -618,18 +620,12 @@ function setupWithdrawalAccount(data) {
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
                     console.error('Cannot set up withdrawal account due to existing owners', response);
-                    const existingOwnersList = response.existingOwners.reduce((ownersStr, owner, i, ownersArr) => {
-                        let separator = ',\n';
-                        if (i === 0) {
-                            separator = '\n';
-                        } else if (i === ownersArr.length - 1) {
-                            separator = ' and\n';
-                        }
-                        return `${ownersStr}${separator}${owner}`;
-                    }, '');
                     Onyx.merge(
                         ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {existingOwnersList, error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS},
+                        {
+                            existingOwners: response.existingOwners,
+                            error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS,
+                        },
                     );
                     return;
                 }

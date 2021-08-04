@@ -1,9 +1,11 @@
+import '../wdyr';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
+import {LocaleContextProvider} from './components/withLocalize';
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -17,10 +19,12 @@ LogBox.ignoreLogs([
 
 const App = () => (
     <SafeAreaProvider>
-        <CustomStatusBar />
-        <ErrorBoundary errorMessage="E.cash crash caught by error boundary">
-            <Expensify />
-        </ErrorBoundary>
+        <LocaleContextProvider>
+            <CustomStatusBar />
+            <ErrorBoundary errorMessage="E.cash crash caught by error boundary">
+                <Expensify />
+            </ErrorBoundary>
+        </LocaleContextProvider>
     </SafeAreaProvider>
 );
 

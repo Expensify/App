@@ -9,7 +9,9 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {createIOUSplit, createIOUTransaction, setIOUSelectedCurrency} from '../../libs/actions/IOU';
+import {
+    createIOUSplit, createIOUTransaction, createIOUSplitGroup, setIOUSelectedCurrency,
+} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -226,6 +228,22 @@ class IOUModal extends Component {
      * @param {Array} [splits]
      */
     createTransaction(splits) {
+        const reportID = lodashGet(this.props, 'route.params.reportID', '');
+
+        // Only splits from a group DM has a reportID
+        // Check if reportID is a number
+        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
+            createIOUSplitGroup({
+                comment: this.state.comment,
+
+                // should send in cents to API
+                amount: Math.round(this.state.amount * 100),
+                currency: this.props.iou.selectedCurrencyCode,
+                splits,
+                reportID,
+            });
+            return;
+        }
         if (splits) {
             createIOUSplit({
                 comment: this.state.comment,

@@ -12,7 +12,7 @@ const propTypes = {
     menuHeaderText: PropTypes.string,
 
     /** Callback to execute when the main button is pressed */
-    onButtonPress: PropTypes.func,
+    onPress: PropTypes.func,
 
     /** Callback to execute when a menu item is selected */
     onChange: PropTypes.func,
@@ -20,8 +20,8 @@ const propTypes = {
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 
-    /** Is the network currently offline or not */
-    isOffline: PropTypes.bool,
+    /** Should the confirmation button be disabled? */
+    isDisabled: PropTypes.bool,
 
     /** Menu options to display */
     /** [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}, {text: 'Venmo', icon: Venmo}] */
@@ -35,10 +35,10 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onButtonPress: () => {},
+    onPress: () => {},
     onChange: () => {},
     isLoading: false,
-    isOffline: false,
+    isDisabled: false,
     menuHeaderText: '',
 };
 
@@ -65,7 +65,7 @@ class ButtonWithMenu extends PureComponent {
                         success
                         buttonText={selectedItemText}
                         isLoading={this.props.isLoading}
-                        onButtonPress={this.props.onButtonPress}
+                        onButtonPress={this.props.onPress}
                         onDropdownPress={() => {
                             this.setMenuVisibility(true);
                         }}
@@ -73,11 +73,11 @@ class ButtonWithMenu extends PureComponent {
                 ) : (
                     <Button
                         success
-                        isDisabled={this.props.isOffline}
+                        isDisabled={this.props.isDisabled}
                         style={[styles.w100]}
-                        isLoading={this.props.isLoading && !this.props.isOffline}
+                        isLoading={this.props.isLoading}
                         text={selectedItemText}
-                        onPress={this.props.onButtonPress}
+                        onPress={this.props.onPress}
                         pressOnEnter
                     />
                 )}

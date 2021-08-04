@@ -58,6 +58,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -84,14 +88,6 @@ const styles = {
     textMicroSupporting: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
-    textMicroSupportingBold: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
         fontSize: variables.fontSizeSmall,
         lineHeight: 14,
     },
@@ -424,7 +420,7 @@ const styles = {
     },
 
     badgeText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
@@ -1033,10 +1029,12 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
+        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1704,11 +1702,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1788,16 +1785,18 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
         borderColor: themeColors.textReversed,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 3,
-        bottom: -4,
         color: themeColors.textReversed,
-        height: 32,
+        height: 28,
+        width: 28,
         justifyContent: 'center',
-        padding: 4,
+    },
+
+    smallAvatarEditIcon: {
         position: 'absolute',
         right: -4,
-        width: 32,
+        bottom: -4,
     },
 
     workspaceCard: {
@@ -1856,6 +1855,32 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    termsCenterRight: {
+        marginTop: 'auto',
+        marginBottom: 'auto',
+    },
+
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
+    },
+
+    collapsibleSectionBorder: {
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
+    },
+
     communicationsLinkHeight: {
         height: 20,
     },
@@ -1875,6 +1900,10 @@ const webViewStyles = {
     // styles from the renderer, just pass the "style" prop to the underlying
     // component.
     tagStyles: {
+        body: {
+            flexDirection: 'row',
+        },
+
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
             fontStyle: 'italic',
@@ -1940,6 +1969,7 @@ const webViewStyles = {
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        alignSelf: 'flex-start',
     },
 };
 
@@ -2068,17 +2098,21 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Generate a style for the background color of the IOU badge
+ * Generate a style for the background color of the Badge
  *
- * @param {Boolean} isOwner
- * @param {Boolean} [isPressed]
- * @returns {Object}
+ * @param {Boolean} success
+ * @param {Boolean} error
+ * @param {boolean} [isPressed=false]
+ * @return {Object}
  */
-function getBadgeColorStyle(isOwner, isPressed = false) {
-    if (isOwner) {
+function getBadgeColorStyle(success, error, isPressed = false) {
+    if (success) {
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    if (error) {
+        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    }
+    return {};
 }
 
 /**

@@ -24,6 +24,8 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
+import Firebase from '../../../libs/Firebase';
+import {create} from '../../../libs/actions/Policy';
 
 const propTypes = {
     /** Beta features list */
@@ -46,6 +48,10 @@ class SidebarScreen extends Component {
         this.state = {
             isCreateMenuActive: false,
         };
+    }
+
+    componentDidMount() {
+        Firebase.startTrace(CONST.TIMING.SIDEBAR_LOADED);
     }
 
     /**
@@ -150,7 +156,7 @@ class SidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW),
+                                        onSelected: () => create(),
                                     },
                                 ] : []),
                             ]}
