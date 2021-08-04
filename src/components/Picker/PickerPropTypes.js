@@ -63,6 +63,7 @@ const defaultProps = {
                 )}
         </>
     ),
+    size: 'normal',
 };
 
 export {
