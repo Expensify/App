@@ -329,6 +329,17 @@ function AuthenticateWithAccountID(parameters) {
 
 /**
  * @param {Object} parameters
+ * @returns {Promise}
+ */
+ function AddBillingCard(parameters) {
+    const commandName = 'User_AddBillingCard';
+    // requireParameters([], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.oldPassword
  * @param {String} parameters.password
  * @returns {Promise}

@@ -251,6 +251,9 @@ export default {
         editPayPalAccount: 'Update PayPal Account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
     },
+    addDebitCardPage: {
+        addADebitCard: 'Add a Debit Card'
+    },
     paymentsPage: {
         paymentMethodsTitle: 'Payment Methods',
     },

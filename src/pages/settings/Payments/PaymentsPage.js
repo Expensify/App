@@ -81,7 +81,7 @@ class PaymentsPage extends React.Component {
         this.hideAddPaymentMenu();
 
         if (paymentType === PAYPAL) {
-            Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD); // CHANGE THIS, JUST FOR EARLY TESTING
         }
     }
 

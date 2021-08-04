@@ -27,4 +27,15 @@ function getPaymentMethods() {
         });
 }
 
+/**
+ * Calls the API to add a new card.
+ *
+ * @returns {Promise}
+ */
+function addBillingCard(params) {
+    API.AddBillingCard(params).then((response => {
+        Onyx.set(ONYXKEYS.CARD_LIST, response)
+    }))
+}
+
 export default getPaymentMethods;
