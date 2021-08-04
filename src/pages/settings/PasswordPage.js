@@ -98,14 +98,6 @@ class PasswordPage extends Component {
         return this.state.newPassword === this.state.confirmNewPassword;
     }
 
-    showPasswordMatchError() {
-        return Boolean(
-            !this.doPasswordsMatch()
-            && this.state.shouldShowPasswordConfirmError
-            && this.state.confirmNewPassword,
-        );
-    }
-
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
