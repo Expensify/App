@@ -9,7 +9,7 @@ const propTypes = {
     label: PropTypes.string,
 
     /** Should the picker appear disabled? */
-    isDisabled: PropTypes.boolean,
+    isDisabled: PropTypes.bool,
 };
 
 const defaultProps = {
