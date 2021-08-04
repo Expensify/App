@@ -77,9 +77,6 @@ const quitAndInstallWithUpdate = () => {
     if (!downloadedVersion) {
         return;
     }
-    app.relaunch({
-        args: [`${EXPECTED_UPDATE_VERSION_FLAG}=${downloadedVersion}`],
-    });
     hasUpdate = true;
     autoUpdater.quitAndInstall();
 };
