@@ -303,7 +303,7 @@ const styles = {
             borderColor: themeColors.border,
             paddingTop: 25,
             paddingHorizontal: 12,
-            paddingVertical: 8,
+            paddingBottom: 8,
             justifyContent: 'center',
             height: '100%',
             backgroundColor: themeColors.componentBG,
@@ -602,7 +602,7 @@ const styles = {
 
     noOutline: addOutlineWidth({}, 0),
 
-    labelLabelSupporting: {
+    textLabelSupporting: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,
         color: themeColors.textSupporting,

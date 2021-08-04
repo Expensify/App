@@ -140,7 +140,7 @@ const MenuItem = ({
                             {title}
                         </Text>
                         {description && (
-                            <Text style={[styles.labelLabelSupporting, styles.ml3, styles.mt1]}>
+                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
                                 {description}
                             </Text>
                         )}
@@ -151,7 +151,7 @@ const MenuItem = ({
                     {subtitle && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text
-                                style={styles.labelLabelSupporting}
+                                style={styles.textLabelSupporting}
                             >
                                 {subtitle}
                             </Text>

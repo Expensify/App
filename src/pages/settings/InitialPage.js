@@ -176,7 +176,7 @@ const InitialSettingsPage = ({
                         </Text>
                         {myPersonalDetails.displayName && (
                             <Text
-                                style={[styles.labelLabelSupporting, styles.mt1]}
+                                style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {Str.removeSMSDomain(session.email)}

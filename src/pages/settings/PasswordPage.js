@@ -112,7 +112,7 @@ class PasswordPage extends Component {
                                 onBlur={() => this.setState({isPasswordRequirementsVisible: false})}
                             />
                             {this.state.isPasswordRequirementsVisible && (
-                                <Text style={[styles.labelLabelSupporting, styles.mt1]}>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
                                     {this.props.translate('passwordPage.newPasswordPrompt')}
                                 </Text>
                             )}
