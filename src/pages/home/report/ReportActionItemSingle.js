@@ -39,7 +39,7 @@ const defaultProps = {
 };
 
 const showUserDetails = (email) => {
-    Navigation.navigate(`${ROUTES.DETAILS}/${email}`);
+    Navigation.navigate(ROUTES.getDetailsRoute(email));
 };
 
 const ReportActionItemSingle = ({
