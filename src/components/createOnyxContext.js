@@ -1,4 +1,4 @@
-import React, {createContext} from 'react';
+import React, {createContext, forwardRef} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -27,7 +27,7 @@ export default (onyxKeyName) => {
     })(Provider);
 
     const withOnyxKey = ({propName = onyxKeyName, transformValue = () => {}} = {}) => (WrappedComponent) => {
-        const Consumer = props => (
+        const Consumer = forwardRef((props, ref) => (
             <Context.Consumer>
                 {(value) => {
                     const propsToPass = {
@@ -36,11 +36,11 @@ export default (onyxKeyName) => {
                     };
                     return (
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        <WrappedComponent {...propsToPass} />
+                        <WrappedComponent {...propsToPass} ref={ref} />
                     );
                 }}
             </Context.Consumer>
-        );
+        ));
 
         Consumer.displayName = `with${Str.UCFirst(onyxKeyName)}(${getComponentDisplayName(WrappedComponent)})`;
         return Consumer;
