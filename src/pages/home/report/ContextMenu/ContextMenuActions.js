@@ -26,9 +26,9 @@ function getActionText(reportAction) {
 export default [
     // Copy to clipboard
     {
-        textTranslateKey: 'contextMenuItem.copyToClipboard',
+        textTranslateKey: 'reportActionContextMenu.copyToClipboard',
         icon: ClipboardIcon,
-        successTextTranslateKey: 'contextMenuItem.copied',
+        successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Checkmark,
         shouldShow: () => true,
 

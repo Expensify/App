@@ -119,12 +119,11 @@ export default {
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
-    contextMenuItem: {
+    reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
-    },
-    reportActionContextMenu: {
         copyLink: 'Copy Link',
+        copyURLToClipboard: 'Copy URL to Clipboard',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
