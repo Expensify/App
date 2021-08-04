@@ -19,7 +19,7 @@ import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
-import Picker from './Picker';
+import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
 import ExpensiTextInput from './ExpensiTextInput';
 
@@ -161,7 +161,7 @@ class AddPlaidBankAccount extends React.Component {
                             https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
                             <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
                             <View style={[styles.mb5]}>
-                                <Picker
+                                <ExpensiPicker
                                     onChange={(index) => {
                                         this.setState({selectedIndex: Number(index)});
                                     }}
