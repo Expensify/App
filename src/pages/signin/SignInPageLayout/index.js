@@ -10,9 +10,9 @@ const propTypes = {
 const SignInPageLayout = props => (
     !props.isSmallScreenWidth
         // eslint-disable-next-line react/jsx-props-no-spreading
-        ? <SignInPageLayoutWide>{props.children}</SignInPageLayoutWide>
+        ? <SignInPageLayoutWide welcomeText={props.welcomeText}>{props.children}</SignInPageLayoutWide>
         // eslint-disable-next-line react/jsx-props-no-spreading
-        : <SignInPageLayoutNarrow>{props.children}</SignInPageLayoutNarrow>
+        : <SignInPageLayoutNarrow welcomeText={props.welcomeText}>{props.children}</SignInPageLayoutNarrow>
 );
 
 SignInPageLayout.propTypes = propTypes;
