@@ -31,11 +31,11 @@ const BaseAnchorForCommentsOnly = ({
                 );
             }
         }
+        onPress={() => (shouldDownloadFile ? fileDownload(href) : Linking.openURL(href))}
     >
         <Text
             ref={linkRef}
             style={StyleSheet.flatten(style)}
-            onPress={() => (shouldDownloadFile ? fileDownload(href) : Linking.openURL(href))}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
