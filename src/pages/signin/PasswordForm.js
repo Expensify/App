@@ -52,12 +52,11 @@ class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.changePassword = this.changePassword.bind(this);
-        this.changeTwoFactorAuthCode = this.changeTwoFactorAuthCode.bind(this);
+        this.updatePassword = this.updatePassword.bind(this);
+        this.updateTwoFactorAuthCode = this.updateTwoFactorAuthCode.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.password = props.account.password;
         this.twoFactorAuthCode = props.account.twoFactorAuthCode;
-
 
         this.state = {
             formError: false,
@@ -69,7 +68,7 @@ class PasswordForm extends React.Component {
      *
      * @param {String} newPassword
      */
-    changePassword(newPassword) {
+    updatePassword(newPassword) {
         this.password = newPassword;
         Onyx.merge(ONYXKEYS.ACCOUNT, {password: newPassword});
     }
@@ -79,7 +78,7 @@ class PasswordForm extends React.Component {
      *
      * @param {String} newTwoFactorAuthCode
      */
-    changeTwoFactorAuthCode(newTwoFactorAuthCode) {
+    updateTwoFactorAuthCode(newTwoFactorAuthCode) {
         this.TwoFactorAuth = newTwoFactorAuthCode;
         Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthCode: newTwoFactorAuthCode});
     }
@@ -125,7 +124,7 @@ class PasswordForm extends React.Component {
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
-                        onChangeText={this.changePassword}
+                        onChangeText={this.updatePassword}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                     />
@@ -140,32 +139,29 @@ class PasswordForm extends React.Component {
                             defaultValue={this.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={this.changeTwoFactorAuthCode}
+                            onChangeText={this.updateTwoFactorAuthCode}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         />
-
                     </View>
                 )}
 
                 {this.state.formError && (
-                <Text style={[styles.formError]}>
-                    {this.state.formError}
-                </Text>
+                    <Text style={[styles.formError]}>
+                        {this.state.formError}
+                    </Text>
                 )}
 
                 {!_.isEmpty(this.props.account.error) && (
-                <Text style={[styles.formError]}>
-                    {this.props.account.error}
-                </Text>
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
+                    </Text>
                 )}
-
                 {!_.isEmpty(this.props.account.success) && (
-                <Text style={[styles.formSuccess]}>
-                    {this.props.account.success}
-                </Text>
+                    <Text style={[styles.formSuccess]}>
+                        {this.props.account.success}
+                    </Text>
                 )}
-
                 <View>
                     <Button
                         success
@@ -176,7 +172,6 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
-
             </>
         );
     }

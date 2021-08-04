@@ -40,14 +40,16 @@ const propTypes = {
 };
 
 const defaultProps = {
-    account: {login: ''},
+    account: {
+        login: '',
+    },
 };
 
 class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.changeLogin = this.changeLogin.bind(this);
+        this.updateLogin = this.updateLogin.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.login = props.account.login;
 
@@ -61,7 +63,7 @@ class LoginForm extends React.Component {
      *
      * @param {String} newLogin
      */
-    changeLogin(newLogin) {
+    updateLogin(newLogin) {
         this.login = newLogin;
         Onyx.merge(ONYXKEYS.ACCOUNT, {login: newLogin});
     }
@@ -94,7 +96,7 @@ class LoginForm extends React.Component {
                         defaultValue={this.login}
                         autoCompleteType="email"
                         textContentType="username"
-                        onChangeText={this.changeLogin}
+                        onChangeText={this.updateLogin}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -106,23 +108,21 @@ class LoginForm extends React.Component {
                 </View>
 
                 {this.state.formError && (
-                <Text style={[styles.formError]}>
-                    {this.state.formError}
-                </Text>
+                    <Text style={[styles.formError]}>
+                        {this.state.formError}
+                    </Text>
                 )}
 
                 {!_.isEmpty(this.props.account.error) && (
-                <Text style={[styles.formError]}>
-                    {this.props.account.error}
-                </Text>
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
+                    </Text>
                 )}
-
                 {!_.isEmpty(this.props.account.success) && (
-                <Text style={[styles.formSuccess]}>
-                    {this.props.account.success}
-                </Text>
+                    <Text style={[styles.formSuccess]}>
+                        {this.props.account.success}
+                    </Text>
                 )}
-
                 <View style={[styles.mt5]}>
                     <Button
                         success
