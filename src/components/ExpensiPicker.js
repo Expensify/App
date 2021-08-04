@@ -8,31 +8,13 @@ const propTypes = {
     /** Picker label */
     label: PropTypes.string,
 
-    /** Picker value */
-    value: PropTypes.string,
-
-    /** Something to show as the placeholder before something is selected */
-    placeholder: PropTypes.shape({
-        /** The value of the placeholder item, usually an empty string */
-        value: PropTypes.string,
-
-        /** The text to be displayed as the placeholder */
-        label: PropTypes.string,
-    }),
-
     /** Should the picker appear disabled? */
     isDisabled: PropTypes.boolean,
-
-    /** Picker size */
-    size: PropTypes.oneOf(['normal', 'small']),
 };
 
 const defaultProps = {
     label: '',
-    value: '',
-    placeholder: {},
     isDisabled: false,
-    size: 'normal',
 };
 
 class ExpensiPicker extends PureComponent {
@@ -45,7 +27,7 @@ class ExpensiPicker extends PureComponent {
 
     render() {
         const {
-            label, value, placeholder, isDisabled, ...pickerProps
+            label, isDisabled, ...pickerProps
         } = this.props;
         return (
             <View
@@ -59,8 +41,6 @@ class ExpensiPicker extends PureComponent {
                     <Text style={[styles.expensiPickerLabel, styles.labelLabelSupporting]}>{label}</Text>
                 )}
                 <Picker
-                    placeholder={placeholder}
-                    value={value}
                     onOpen={() => this.setState({isOpen: true})}
                     onClose={() => this.setState({isOpen: false})}
                     disabled={isDisabled}
