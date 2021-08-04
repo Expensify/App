@@ -119,4 +119,6 @@ export default {
 
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
+
+    PREFERRED_SKIN_TONE: 'expensify_emojiSkinToneIndex',
 };
