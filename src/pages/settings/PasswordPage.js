@@ -172,7 +172,7 @@ class PasswordPage extends Component {
                                 {this.props.account.error}
                             </Text>
                         )}
-                        {this.showPasswordMatchError() && (
+                        {this.state.shouldShowPasswordConfirmError && (
                             <Text style={[styles.formError, styles.mt1]}>
                                 {this.props.translate('setPasswordPage.passwordsDontMatch')}
                             </Text>
