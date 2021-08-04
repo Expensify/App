@@ -14,6 +14,10 @@ const propTypes = {
     /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
+    // welcomeText to show the header of the form.
+    // Will change based on the form
+    welcomeText: PropTypes.string.isRequired,
+
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -47,7 +51,7 @@ const SignInPageLayoutNarrow = props => (
                         />
                     </View>
                     <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                        {props.translate('welcomeText.phrase1')}
+                        {props.welcomeText}
                     </Text>
                     {props.children}
                 </View>

@@ -42,6 +42,11 @@ const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
+    // welcomeText to show the header of the form.
+    welcomeText: PropTypes.string.isRequired,
+
+    ...withLocalizePropTypes,
+
     ...withLocalizePropTypes,
 };
 
@@ -82,7 +87,7 @@ class SetPasswordPage extends Component {
     render() {
         return (
             <SafeAreaView style={[styles.signInPage]}>
-                <SignInPageLayout>
+                <SignInPageLayout welcomeText={this.props.welcomeText}>
                     <View style={[styles.mb4]}>
                         <NewPasswordForm
                             password={this.state.password}
