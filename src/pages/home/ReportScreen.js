@@ -1,7 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -9,7 +8,7 @@ import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import {handleInaccessibleReport, updateCurrentlyViewedReportID} from '../../libs/actions/Report';
+import {updateCurrentlyViewedReportID} from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
@@ -63,11 +62,7 @@ class ReportScreen extends React.Component {
      */
     getReportID() {
         const params = this.props.route.params;
-        const id = Number.parseInt(params.reportID, 10);
-        if (_.isNaN(id)) {
-            handleInaccessibleReport();
-        }
-        return id;
+        return Number.parseInt(params.reportID, 10);
     }
 
     /**
