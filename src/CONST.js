@@ -337,6 +337,12 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
+
+        IOU_TYPE: {
+            SEND: 'send',
+            SPLIT: 'split',
+            REQUEST: 'request',
+        },
     },
 
     GROWL: {

@@ -27,7 +27,6 @@ import {
 } from './Icon/Expensicons';
 import Permissions from '../libs/Permissions';
 import isAppInstalled from '../libs/isAppInstalled/index.native';
-import Button from './Button';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -129,7 +128,7 @@ const defaultProps = {
     network: {},
     myPersonalDetails: {},
     user: {},
-    iouType: 'request',
+    iouType: CONST.IOU.IOU_TYPE.REQUEST,
     payPalMeUsername: '',
 };
 
@@ -140,14 +139,13 @@ const MINIMUM_BOTTOM_OFFSET = 240;
 class IOUConfirmationList extends Component {
     constructor(props) {
         super(props);
-        this.isComponentMounted = false;
-        this.userPhoneNumber = this.getPhoneNumber(props.user.loginList) ?? '';
+
         const formattedParticipants = _.map(this.getParticipantsWithAmount(this.props.participants), participant => ({
             ...participant, selected: true,
         }));
 
-        // If it's a send money request, then add the manual settlement option
-        const defaultText = props.iouType === 'send' ? {text: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, icon: Cash} : {
+        const confirmationButtonOptions = [];
+        let defaultButtonOption = {
             text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
                 amount: this.props.numberFormat(
                     this.props.iouAmount,
@@ -155,8 +153,26 @@ class IOUConfirmationList extends Component {
                 ),
             }),
         };
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            // Add the Expensify Wallet option if available and make it the first option
+            if (this.props.localCurrencyCode === CONST.CURRENCY.USD
+                || Permissions.canUsePayWithExpensify(this.props.betas)) {
+                confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), icon: Wallet});
+            }
+
+            // Add PayPal option
+            if (this.props.payPalMeUsername) {
+                confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), icon: PayPal});
+            }
+            defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), icon: Cash};
+        }
+        confirmationButtonOptions.push(defaultButtonOption);
+
+        this.isComponentMounted = false;
+        this.userPhoneNumber = this.getPhoneNumber(props.user.loginList) ?? '';
+
         this.state = {
-            paymentOptions: [defaultText],
+            confirmationButtonOptions,
             participants: formattedParticipants,
         };
 
@@ -166,11 +182,14 @@ class IOUConfirmationList extends Component {
 
     componentDidMount() {
         this.isComponentMounted = true;
-        this.setConfirmationButtonOptions();
+        this.addVenmoPaymentOption();
     }
 
+    /**
+     * When confirmation button is clicked
+     */
     onPress() {
-        if (this.props.iouType === 'send') {
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             this.props.onConfirm();
         } else {
             this.props.onConfirm(this.getSplits());
@@ -316,29 +335,22 @@ class IOUConfirmationList extends Component {
         ];
     }
 
+    /**
+     * Gets the user's phone number from their secondary login.
+     * Returns null if it doesn't exist.
+     * @param {Array<Object>} loginList
+     *
+     * @returns {String|null}
+     */
+    getPhoneNumber(loginList) {
+        const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
+        return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
+    }
 
     /**
-     * Sets the payment confirmation button options
+     * Adds Venmo, if available, as the second option in the menu of payment options
      */
-    setConfirmationButtonOptions() {
-        if (this.props.iouType !== 'send') {
-            return;
-        }
-
-        // Add the Expensify Wallet option if available and make it the first option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD || Permissions.canUsePayWithExpensify(this.props.betas)) {
-            this.setState(prevState => ({
-                paymentOptions: [{text: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, icon: Wallet}, ...prevState.paymentOptions],
-            }));
-        }
-
-        // Add PayPal option
-        if (this.props.payPalMeUsername) {
-            this.setState(prevState => ({
-                paymentOptions: [...prevState.paymentOptions, {text: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, icon: PayPal}],
-            }));
-        }
-
+    addVenmoPaymentOption() {
         // Add Venmo option
         if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.isValidUSPhone(this.userPhoneNumber)) {
             isAppInstalled('venmo')
@@ -350,23 +362,13 @@ class IOUConfirmationList extends Component {
                     }
 
                     this.setState(prevState => ({
-                        paymentOptions:
-                            [...prevState.paymentOptions, {text: CONST.IOU.PAYMENT_TYPE.VENMO, icon: Venmo}],
+                        confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
+                            {text: this.props.translate('iou.settleVenmo'), icon: Venmo},
+                            ...prevState.confirmationButtonOptions.slice(1),
+                        ],
                     }));
                 });
         }
-    }
-
-    /**
-     * Gets the user's phone number from their secondary login.
-     * Returns null if it doesn't exist.
-     * @param {Array<Object>} loginList
-     *
-     * @returns {String|null}
-     */
-    getPhoneNumber(loginList) {
-        const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
-        return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
     }
 
     /**
@@ -474,9 +476,10 @@ class IOUConfirmationList extends Component {
                         </Text>
                     )}
                     <ButtonWithMenu
-                        options={this.state.paymentOptions}
+                        options={this.state.confirmationButtonOptions}
                         isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
+                        menuHeaderText={this.props.translate('iou.choosePaymentMethod')}
                         onPress={this.onPress}
                     />
                 </FixedFooter>

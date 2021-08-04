@@ -43,7 +43,7 @@ const propTypes = {
 const defaultProps = {
     onUpdateComment: null,
     comment: '',
-    iouType: '',
+    iouType: CONST.IOU.IOU_TYPE.REQUEST,
     localCurrencyCode: CONST.CURRENCY.USD,
 };
 

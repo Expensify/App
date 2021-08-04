@@ -85,7 +85,7 @@ const defaultProps = {
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
-    iouType: '',
+    iouType: CONST.IOU.IOU_TYPE.REQUEST,
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -162,7 +162,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.props.iouType === 'send') {
+            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -174,7 +174,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.props.iouType === 'send') {
+            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
