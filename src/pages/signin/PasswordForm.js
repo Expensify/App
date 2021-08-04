@@ -121,7 +121,7 @@ class PasswordForm extends React.Component {
                     <TextInput
                         style={[styles.textInput]}
                         ref={this.password}
-                        value={this.password}
+                        defaultValue={this.password}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
@@ -137,7 +137,7 @@ class PasswordForm extends React.Component {
                         <TextInput
                             style={[styles.textInput]}
                             ref={this.twoFactorAuthCode}
-                            value={this.twoFactorAuthCode}
+                            defaultValue={this.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={this.changeTwoFactorAuthCode}

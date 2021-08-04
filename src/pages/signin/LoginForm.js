@@ -91,7 +91,7 @@ class LoginForm extends React.Component {
                     <TextInput
                         style={[styles.textInput]}
                         ref={this.login}
-                        value={this.login}
+                        defaultValue={this.login}
                         autoCompleteType="email"
                         textContentType="username"
                         onChangeText={this.changeLogin}
