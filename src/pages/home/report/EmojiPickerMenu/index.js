@@ -320,7 +320,7 @@ class EmojiPickerMenu extends Component {
      * @returns {*}
      */
     renderItem({item, index}) {
-        const {code, header} = item;
+        const {code, header, types} = item;
         if (code === CONST.EMOJI_SPACER) {
             return null;
         }
@@ -333,11 +333,16 @@ class EmojiPickerMenu extends Component {
             );
         }
 
+        let emojiCode = code;
+        if (types && this.state.preferredSkinTone && types[this.state.preferredSkinTone]) {
+            emojiCode = types[this.state.preferredSkinTone];
+        }
+
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 onHover={() => this.setState({highlightedIndex: index})}
-                emoji={`${code}\uFE0F`}
+                emoji={`${emojiCode}\uFE0F`}
                 isHighlighted={index === this.state.highlightedIndex}
                 emojiSize={this.emojiSize}
             />
@@ -387,11 +392,24 @@ class EmojiPickerMenu extends Component {
                             keyExtractor={item => `emoji_picker_${item.code}`}
                             numColumns={this.numColumns}
                             style={styles.emojiPickerList}
-                            extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
+                            extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.state.preferredSkinTone]}
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
                         />
                     )}
+                <View style={[styles.flexRow]}>
+                    {
+                      skinTones.map((skinTone, index) => (
+                          <EmojiPickerMenuItem
+                              onPress={() => this.setPreferredSkinTone(index)}
+                              onHover={() => this.setState({highlightedSkinToneIndex: index})}
+                              emoji={`${skinTone}\uFE0F`}
+                              isHighlighted={index === this.state.highlightedSkinToneIndex}
+                              emojiSize={this.emojiSize}
+                          />
+                      ))
+                    }
+                </View>
             </View>
         );
     }
