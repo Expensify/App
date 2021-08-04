@@ -16,12 +16,13 @@ const contextMenuRef = React.createRef();
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
  */
 function showContextMenu(
+    type,
     event,
     selection,
     contextMenuAnchor,
-    reportID,
-    reportAction,
-    draftMessage,
+    reportID = 0,
+    reportAction = {},
+    draftMessage = '',
     onShow = () => {},
     onHide = () => {},
 ) {
