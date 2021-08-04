@@ -1,3 +1,4 @@
+import '../wdyr';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';

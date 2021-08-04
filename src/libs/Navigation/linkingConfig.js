@@ -91,7 +91,7 @@ export default {
             },
             Details: {
                 screens: {
-                    Details_Root: ROUTES.DETAILS_WITH_LOGIN,
+                    Details_Root: ROUTES.DETAILS,
                 },
             },
             Participants: {

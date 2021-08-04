@@ -50,7 +50,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             action: () => {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id));
             },
-            isActive: Navigation.isActive(ROUTES.getWorkspaceCardRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
         },
         {
             translationKey: 'common.people',
@@ -58,7 +58,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             action: () => {
                 Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
             },
-            isActive: Navigation.isActive(ROUTES.getWorkspacePeopleRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
         },
     ];
 
