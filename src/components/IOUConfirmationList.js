@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import {ScrollView, TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
+import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -12,7 +14,6 @@ import {
     getIOUConfirmationOptionsFromParticipants,
 } from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
-import Button from './Button';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
@@ -20,6 +21,12 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
 import CONST from '../CONST';
+import ButtonWithMenu from './ButtonWithMenu';
+import {
+    Cash, Wallet, Venmo, PayPal,
+} from './Icon/Expensicons';
+import Permissions from '../libs/Permissions';
+import isAppInstalled from '../libs/isAppInstalled/index.native';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -39,6 +46,9 @@ const propTypes = {
 
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
+
+    /** IOU type */
+    iouType: PropTypes.string,
 
     // Selected participants from IOUModal with login
     participants: PropTypes.arrayOf(PropTypes.shape({
@@ -89,6 +99,19 @@ const propTypes = {
         /** Is the network currently offline or not */
         isOffline: PropTypes.bool,
     }),
+
+    /** The details about the user that is signed in */
+    user: PropTypes.shape({
+        /** Whether or not the user is subscribed to news updates */
+        loginList: PropTypes.arrayOf(PropTypes.shape({
+
+            /** Phone/Email associated with user */
+            partnerUserID: PropTypes.string,
+        })),
+    }),
+
+    /** User's paypal.me username if they have one */
+    payPalMeUsername: PropTypes.string,
 };
 
 const defaultProps = {
@@ -99,6 +122,9 @@ const defaultProps = {
     comment: '',
     network: {},
     myPersonalDetails: {},
+    user: {},
+    iouType: '',
+    payPalMeUsername: '',
 };
 
 // Gives minimum height to offset the height of
@@ -106,6 +132,34 @@ const defaultProps = {
 const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
+    constructor(props) {
+        super(props);
+        this.isComponentMounted = false;
+        this.userPhoneNumber = this.getPhoneNumber(props.user.loginList) ?? '';
+
+        // If it's a send money request, then add the manual settlement option
+        const defaultText = props.iouType === 'send' ? {text: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, icon: Cash} : {
+            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
+                ),
+            }),
+        };
+        this.state = {
+            paymentOptions: [defaultText],
+        };
+    }
+
+    componentDidMount() {
+        this.isComponentMounted = true;
+        this.setConfirmationButtonOptions();
+    }
+
+    componentWillUnmount() {
+        this.isComponentMounted = false;
+    }
+
     /**
      * Returns the sections needed for the OptionsSelector
      *
@@ -214,6 +268,71 @@ class IOUConfirmationList extends Component {
         ];
     }
 
+
+    /**
+     * Sets the payment confirmation button options
+     */
+    setConfirmationButtonOptions() {
+        if (this.props.iouType !== 'send') {
+            return;
+        }
+
+        // Add the Expensify Wallet option if available and make it the first option
+        if (this.props.localCurrencyCode === CONST.CURRENCY.USD || Permissions.canUsePayWithExpensify(this.props.betas)) {
+            this.setState(prevState => ({
+                paymentOptions: [{text: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, icon: Wallet}, ...prevState.paymentOptions],
+            }));
+        }
+
+        // Add PayPal option
+        if (this.props.payPalMeUsername) {
+            this.setState(prevState => ({
+                paymentOptions: [...prevState.paymentOptions, {text: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, icon: PayPal}],
+            }));
+        }
+
+        // Add Venmo option
+        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.isValidUSPhone(this.userPhoneNumber)) {
+            isAppInstalled('venmo')
+                .then((isVenmoInstalled) => {
+                    // We will return early if the component has unmounted before the async call resolves. This prevents
+                    // setting state on unmounted components which prints noisy warnings in the console.
+                    if (!isVenmoInstalled || !this.isComponentMounted) {
+                        return;
+                    }
+
+                    this.setState(prevState => ({
+                        paymentOptions:
+                            [...prevState.paymentOptions, {text: CONST.IOU.PAYMENT_TYPE.VENMO, icon: Venmo}],
+                    }));
+                });
+        }
+    }
+
+    /**
+     * Gets the user's phone number from their secondary login.
+     * Returns null if it doesn't exist.
+     * @param {Array<Object>} loginList
+     *
+     * @returns {String|null}
+     */
+    getPhoneNumber(loginList) {
+        const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
+        return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
+    }
+
+    /**
+     * @param {String} phoneNumber
+     * @returns {Boolean}
+     */
+    isValidUSPhone(phoneNumber) {
+        // Remove alphanumeric characters and validate that this is in fact a phone number
+        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
+
+            // Next make sure it's a US phone number
+            && CONST.REGEX.US_PHONE.test(phoneNumber);
+    }
+
     /**
      * Calculates the amount per user
      * @param {Boolean} isDefaultUser
@@ -238,14 +357,6 @@ class IOUConfirmationList extends Component {
     }
 
     render() {
-        const buttonText = this.props.translate(
-            this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                amount: this.props.numberFormat(
-                    this.props.iouAmount,
-                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
-                ),
-            },
-        );
         return (
             <>
                 <ScrollView style={[styles.flex1, styles.w100]}>
@@ -285,14 +396,11 @@ class IOUConfirmationList extends Component {
                             {this.props.translate('session.offlineMessage')}
                         </Text>
                     )}
-                    <Button
-                        success
-                        isDisabled={this.props.network.isOffline}
-                        style={[styles.w100]}
+                    <ButtonWithMenu
+                        options={this.state.paymentOptions}
+                        isOffline={this.props.network.isOffline}
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                        text={buttonText}
                         onPress={() => this.props.onConfirm(this.getSplits())}
-                        pressOnEnter
                     />
                 </FixedFooter>
             </>
@@ -315,6 +423,12 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        user: {
+            key: ONYXKEYS.USER,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(IOUConfirmationList);

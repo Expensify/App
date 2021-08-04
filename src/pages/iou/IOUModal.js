@@ -321,6 +321,8 @@ class IOUModal extends Component {
                                             iouAmount={this.state.amount}
                                             comment={this.state.comment}
                                             onUpdateComment={this.updateComment}
+                                            iouType={this.props.iouType}
+                                            localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
                                         />
                                     )}
                                 </>
