@@ -18,6 +18,7 @@ import SettingsAppDownloadLinks from '../../../pages/settings/AppDownloadLinks';
 import SettingsPasswordPage from '../../../pages/settings/PasswordPage';
 import SettingsPaymentsPage from '../../../pages/settings/Payments/PaymentsPage';
 import SettingsAddPayPalMePage from '../../../pages/settings/Payments/AddPayPalMePage';
+import SettingsAddDebitCardPage from '../../../pages/settings/Payments/AddDebitCardPage';
 import SettingsAddSecondaryLoginPage from '../../../pages/settings/AddSecondaryLoginPage';
 import IOUCurrencySelection from '../../../pages/iou/IOUCurrencySelection';
 import ReportParticipantsPage from '../../../pages/ReportParticipantsPage';
@@ -165,6 +166,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsAddPayPalMePage,
         name: 'Settings_Add_Paypal_Me',
+    },
+    {
+        Component: SettingsAddDebitCardPage,
+        name: 'Settings_Add_Debit_Card',
     },
 ]);
 

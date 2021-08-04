@@ -251,6 +251,9 @@ export default {
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
         editPayPalAccount: 'Actualizar cuenta de PayPal',
     },
+    addDebitCardPage: {
+        addADebitCard: 'Agregar una tarjeta de débito'
+    },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
     },

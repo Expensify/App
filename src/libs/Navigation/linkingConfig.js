@@ -52,6 +52,10 @@ export default {
                         path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
                         exact: true,
                     },
+                    Settings_Add_Debit_Card: {
+                        path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
+                        exact: true,
+                    },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
