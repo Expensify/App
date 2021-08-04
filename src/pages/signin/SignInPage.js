@@ -11,6 +11,7 @@ import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -42,6 +43,8 @@ const propTypes = {
         /** Error to display when there is a session error returned */
         authToken: PropTypes.string,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -81,10 +84,17 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
+        // Page welcomeText changes based on the type form
+        let welcomeText = this.props.translate('welcomeText.phrase1');
+        if (showPasswordForm) {
+            welcomeText = this.props.translate('welcomeText.phrase5');
+        }
+
         return (
             <>
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
+                        welcomeText={welcomeText}
                         shouldShowWelcomeText={showLoginForm}
                         shouldShowWelcomeScreenshot={showLoginForm}
                     >
@@ -103,8 +113,8 @@ class SignInPage extends Component {
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
-export default withOnyx({
+export default withLocalize(withOnyx({
     account: {key: ONYXKEYS.ACCOUNT},
     credentials: {key: ONYXKEYS.CREDENTIALS},
     session: {key: ONYXKEYS.SESSION},
-})(SignInPage);
+})(SignInPage));
