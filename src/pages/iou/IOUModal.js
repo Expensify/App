@@ -101,7 +101,6 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
-        this.handleTransactionError = this.handleTransactionError.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
@@ -143,7 +142,9 @@ class IOUModal extends Component {
 
         // If transaction fails, handling it here
         if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {
-            this.handleTransactionError();
+            // Navigating to Enter Amount Page
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({currentStepIndex: 0});
         }
 
         if (prevProps.iou.selectedCurrencyCode
@@ -252,11 +253,6 @@ class IOUModal extends Component {
             currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: this.state.participants[0].login,
         });
-    }
-
-    handleTransactionError() {
-        // Navigating to Enter Amount Page
-        this.setState({currentStepIndex: 0});
     }
 
     render() {
