@@ -15,13 +15,13 @@ import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Growl from '../../libs/Growl';
 import {
     isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
 } from '../../libs/ValidationUtils';
+import ExpensiPicker from '../../components/ExpensiPicker';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -198,7 +198,7 @@ class CompanyStep extends React.Component {
                             disabled={shouldDisableCompanyTaxID}
                         />
                         <View style={styles.mt4}>
-                            <Picker
+                            <ExpensiPicker
                                 label={this.props.translate('companyStep.companyType')}
                                 items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
                                 onChange={incorporationType => this.setState({incorporationType})}

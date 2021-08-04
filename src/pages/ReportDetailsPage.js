@@ -17,12 +17,12 @@ import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
 import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
-import Picker from '../components/Picker';
 import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
+import ExpensiPicker from '../components/ExpensiPicker';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -164,11 +164,10 @@ class ReportDetailsPage extends Component {
                                     </Text>
                                 </View>
                                 <View>
-                                    <Text style={[styles.mb3]}>
-                                        {this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
-                                    </Text>
                                     <View style={[styles.mb5]}>
-                                        <Picker
+                                        <ExpensiPicker
+                                            // eslint-disable-next-line max-len
+                                            label={this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
                                             onChange={(notificationPreference) => {
                                                 updateNotificationPreference(
                                                     this.props.report.reportID,
