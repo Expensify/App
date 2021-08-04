@@ -519,6 +519,19 @@ class ReportActionCompose extends React.Component {
                                                                     },
                                                                 },
                                                         ] : []),
+                                                    ...(Permissions.canUseIOUSend(this.props.betas) ? [
+                                                        {
+                                                            icon: Send,
+                                                            text: this.props.translate('iou.sendMoney'),
+                                                            onSelected: () => {
+                                                                Navigation.navigate(
+                                                                    ROUTES.getIOUSendRoute(
+                                                                        this.props.reportID,
+                                                                    ),
+                                                                );
+                                                            },
+                                                        },
+                                                    ] : []),
                                                     {
                                                         icon: Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),

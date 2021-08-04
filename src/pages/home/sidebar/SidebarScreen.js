@@ -20,6 +20,7 @@ import {
     MoneyCircle,
     Receipt,
     NewWorkspace,
+    Send,
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -121,6 +122,13 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
+                                ...(Permissions.canUseIOUSend(this.props.betas) ? [
+                                    {
+                                        icon: Send,
+                                        text: this.props.translate('iou.sendMoney'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
+                                    },
+                                ] : []),
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: MoneyCircle,

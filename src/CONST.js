@@ -1,3 +1,4 @@
+
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
@@ -85,6 +86,7 @@ const CONST = {
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
         INTERNATIONALIZATION: 'internationalization',
+        IOU_SEND: 'sendMoney',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
