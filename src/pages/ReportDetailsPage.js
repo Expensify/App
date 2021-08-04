@@ -147,7 +147,7 @@ class ReportDetailsPage extends Component {
                                     style={[
                                         styles.sidebarLinkText,
                                         styles.optionAlternateText,
-                                        styles.labelLabelSupporting,
+                                        styles.textLabelSupporting,
                                         styles.mb6,
                                     ]}
                                     numberOfLines={1}

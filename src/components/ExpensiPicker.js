@@ -38,7 +38,7 @@ class ExpensiPicker extends PureComponent {
                 ]}
             >
                 {label && (
-                    <Text style={[styles.expensiPickerLabel, styles.labelLabelSupporting]}>{label}</Text>
+                    <Text style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{label}</Text>
                 )}
                 <Picker
                     onOpen={() => this.setState({isOpen: true})}

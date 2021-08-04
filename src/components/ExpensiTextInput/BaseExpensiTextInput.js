@@ -79,7 +79,7 @@ class BaseExpensiTextInput extends Component {
             label,
             value,
             placeholder,
-            error,
+            hasError,
             containerStyles,
             inputStyle,
             ignoreLabelTranslateX,
@@ -96,7 +96,7 @@ class BaseExpensiTextInput extends Component {
                             styles.expensiTextInputContainer,
                             !hasLabel && styles.pv0,
                             this.state.isFocused && styles.borderColorFocus,
-                            error && styles.borderColorDanger,
+                            hasError && styles.borderColorDanger,
                         ]}
                     >
                         {hasLabel ? (

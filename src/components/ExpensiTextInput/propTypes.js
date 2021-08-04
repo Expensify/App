@@ -10,8 +10,8 @@ const propTypes = {
     /** Input value placeholder */
     placeholder: PropTypes.string,
 
-    /** Input with error  */
-    error: PropTypes.bool,
+    /** Should the input be styled for errors  */
+    hasError: PropTypes.bool,
 
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),

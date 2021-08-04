@@ -105,8 +105,8 @@ const OptionRow = ({
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle];
     const alternateTextStyle = mode === 'compact'
-        ? [textStyle, styles.optionAlternateText, styles.labelLabelSupporting, styles.optionAlternateTextCompact]
-        : [textStyle, styles.optionAlternateText, styles.labelLabelSupporting, styles.mt1];
+        ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
+        : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.mt1];
     const contentContainerStyles = mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
