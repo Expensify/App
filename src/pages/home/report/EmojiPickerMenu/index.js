@@ -5,7 +5,7 @@ import _ from 'underscore';
 import CONST from '../../../../CONST';
 import styles, {getEmojiPickerStyle} from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
-import emojis from '../../../../../assets/emojis';
+import emojis, {skinTones} from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
@@ -22,6 +22,8 @@ const propTypes = {
     /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
 
+    preferredSkinTone: PropTypes.number,
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -30,6 +32,7 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
+    preferredSkinTone: null,
 };
 
 class EmojiPickerMenu extends Component {
@@ -73,9 +76,11 @@ class EmojiPickerMenu extends Component {
         };
 
         this.state = {
+            preferredSkinTone: undefined,
             filteredEmojis: this.emojis,
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
+            highlightedSkinToneIndex: -1,
             arePointerEventsDisabled: false,
         };
     }
@@ -89,10 +94,18 @@ class EmojiPickerMenu extends Component {
             this.props.forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
+        this.state.preferredSkinTone = this.props.preferredSkinTone;
     }
 
     componentWillUnmount() {
         this.cleanupEventHandlers();
+    }
+
+    setPreferredSkinTone(skinToneIndex) {
+        this.setState({preferredSkinTone: skinToneIndex});
+        if (this.props.updateSelectedSkinTone) {
+            this.props.updateSelectedSkinTone(skinToneIndex);
+        }
     }
 
     /**
