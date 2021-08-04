@@ -63,11 +63,7 @@ class ReportScreen extends React.Component {
      */
     getReportID() {
         const params = this.props.route.params;
-        const id = Number.parseInt(params.reportID, 10);
-        if (_.isNaN(id)) {
-            handleInaccessibleReport();
-        }
-        return id;
+        return Number.parseInt(params.reportID, 10);
     }
 
     /**
@@ -94,6 +90,9 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportID = this.getReportID();
+        if (_.isNaN(reportID)) {
+            handleInaccessibleReport();
+        }
         updateCurrentlyViewedReportID(reportID);
     }
 
