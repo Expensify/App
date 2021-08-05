@@ -11,7 +11,7 @@ import CONST from '../../CONST';
 import {
     goToWithdrawalAccountSetupStep, hideBankAccountErrors,
     setupWithdrawalAccount,
-    showBankAccountError,
+    showBankAccountFormValidationError,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -83,47 +83,47 @@ class CompanyStep extends React.Component {
      */
     validate() {
         if (!this.state.password.trim()) {
-            showBankAccountError(this.props.translate('common.passwordCannotBeBlank'));
+            showBankAccountFormValidationError(this.props.translate('common.passwordCannotBeBlank'));
             return false;
         }
 
         if (!isValidAddress(this.state.addressStreet)) {
-            showBankAccountError(this.props.translate('bankAccount.error.addressStreet'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.addressStreet'));
             return false;
         }
 
         if (this.state.addressState === '') {
-            showBankAccountError(this.props.translate('bankAccount.error.addressState'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.addressState'));
             return false;
         }
 
         if (!isValidZipCode(this.state.addressZipCode)) {
-            showBankAccountError(this.props.translate('bankAccount.error.zipCode'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.zipCode'));
             return false;
         }
 
         if (!Str.isValidURL(this.state.website)) {
-            showBankAccountError(this.props.translate('bankAccount.error.website'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.website'));
             return false;
         }
 
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
-            showBankAccountError(this.props.translate('bankAccount.error.taxID'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.taxID'));
             return false;
         }
 
         if (!isValidDate(this.state.incorporationDate)) {
-            showBankAccountError(this.props.translate('bankAccount.error.incorporationDate'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.incorporationDate'));
             return false;
         }
 
         if (!isValidIndustryCode(this.state.industryCode)) {
-            showBankAccountError(this.props.translate('bankAccount.error.industryCode'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.industryCode'));
             return false;
         }
 
         if (!this.state.hasNoConnectionToCannabis) {
-            showBankAccountError(this.props.translate('bankAccount.error.restrictedBusiness'));
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.restrictedBusiness'));
             return false;
         }
 

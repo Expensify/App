@@ -563,7 +563,7 @@ function validateBankAccount(bankAccountID, validateCode) {
         });
 }
 
-function showBankAccountError(error) {
+function showBankAccountFormValidationError(error) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => Growl.error(error));
 }
 
@@ -729,7 +729,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                showBankAccountError(error);
+                showBankAccountFormValidationError(error);
             }
         });
 }
@@ -751,5 +751,5 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
-    showBankAccountError,
+    showBankAccountFormValidationError,
 };
