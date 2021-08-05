@@ -7,8 +7,6 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -18,7 +16,6 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
-    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -41,7 +38,7 @@ const SignInPageLayoutNarrow = props => (
                         styles.flex1,
                         styles.dFlex,
                         styles.flexColumn,
-                        props.windowHeight > props.windowWidth ? styles.mt40Percentage : null,
+                        styles.mt40Percentage,
                     ]}
                 >
                     <View style={[styles.signInPageLogoNative, styles.mb2]}>
@@ -66,7 +63,4 @@ const SignInPageLayoutNarrow = props => (
 SignInPageLayoutNarrow.propTypes = propTypes;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(SignInPageLayoutNarrow);
+export default withLocalize(SignInPageLayoutNarrow);
