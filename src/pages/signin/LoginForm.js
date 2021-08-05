@@ -106,7 +106,6 @@ class LoginForm extends React.Component {
                         autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
-
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
                         {this.state.formError}
