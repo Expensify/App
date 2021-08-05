@@ -41,7 +41,7 @@ const propTypes = {
         ssnLast4: PropTypes.string,
     }),
 
-    /** Any errors that the API can throw from invalid form data */
+    /** Any errors that can arise from form validation */
     error: PropTypes.string,
 
     ...withLocalizePropTypes,
