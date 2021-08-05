@@ -28,10 +28,10 @@ const SignInPageLayoutNarrow = props => (
         showsVerticalScrollIndicator={false}
         style={[
             styles.flexGrow1,
-            styles.mh5,
             styles.signInPageNarrowContentContainer,
             styles.alignSelfCenter,
         ]}
+        contentContainerStyle={styles.ph5}
     >
         <KeyboardAvoidingView behavior="position">
             <View style={[styles.flexGrow1]}>
