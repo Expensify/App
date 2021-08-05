@@ -727,6 +727,11 @@ function setupWithdrawalAccount(data) {
             if (error) {
                 Growl.error(error, 5000);
             }
+        })
+        .catch((response) => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
+            console.error(response.stack);
+            Growl.error(translateLocal('common.genericErrorMessage'), 5000);
         });
 }
 
