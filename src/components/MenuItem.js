@@ -8,6 +8,7 @@ import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
+import Avatar from './Avatar';
 import Badge from './Badge';
 
 const propTypes = {
@@ -22,7 +23,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.elementType,
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
     /** Icon Height */
     iconWidth: PropTypes.number,
@@ -59,6 +60,8 @@ const propTypes = {
 
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
+    iconType: PropTypes.oneOf(['avatar', 'icon']),
 };
 
 const defaultProps = {
@@ -76,6 +79,7 @@ const defaultProps = {
     focused: false,
     disabled: false,
     subtitle: undefined,
+    iconType: 'icon',
 };
 
 const MenuItem = ({
@@ -95,6 +99,7 @@ const MenuItem = ({
     focused,
     disabled,
     subtitle,
+    iconType,
 }) => (
     <Pressable
         onPress={(e) => {
@@ -113,7 +118,7 @@ const MenuItem = ({
         {({hovered, pressed}) => (
             <>
                 <View style={styles.flexRow}>
-                    {icon && (
+                    {(icon && iconType === 'icon') && (
                         <View
                             style={[
                                 styles.popoverMenuIcon,
@@ -127,6 +132,19 @@ const MenuItem = ({
                                 fill={iconFill || getIconFillColor(
                                     getButtonState(focused || hovered, pressed, success, disabled),
                                 )}
+                            />
+                        </View>
+                    )}
+                    {(icon && iconType === 'avatar') && (
+                        <View
+                            style={[
+                                styles.popoverMenuIcon,
+                                ...iconStyles,
+                            ]}
+                        >
+                            <Avatar
+                                imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                source={icon}
                             />
                         </View>
                     )}
