@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
@@ -21,6 +22,26 @@ let personalDetails;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS,
     callback: val => personalDetails = val,
+});
+
+Onyx.connect({
+    key: ONYXKEYS.MY_PERSONAL_DETAILS,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+
+        const timezone = lodashGet(val, 'timezone', {});
+        const currentTimezone = moment.tz.guess(true);
+
+        // If the current timezone is different than the user's timezone, and their timezone is set to automatic
+        // then update their timezone.
+        if (_.isObject(timezone) && timezone.automatic && timezone.selected !== currentTimezone) {
+            timezone.selected = currentTimezone;
+            // eslint-disable-next-line no-use-before-define
+            setPersonalDetails({timezone});
+        }
+    },
 });
 
 /**
