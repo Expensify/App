@@ -65,6 +65,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
