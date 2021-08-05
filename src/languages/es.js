@@ -108,7 +108,7 @@ export default {
         phrase1: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
-        phrase4: '¡Bienvenido de nuevo al nuevo Expensify! Por favor, introduzca su contraseña.',
+        phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
         sendAttachment: 'Enviar adjunto',
