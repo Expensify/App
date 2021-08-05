@@ -1,8 +1,7 @@
 import React from 'react';
-import {Text, View} from 'react-native';
-import styles from '../styles/styles';
 import CONST from '../CONST';
 import withEnvironment, {environmentPropTypes} from './withEnvironment';
+import Badge from './Badge';
 
 const EnvironmentBadge = (props) => {
     // If we are on production, don't show any badge
@@ -10,16 +9,12 @@ const EnvironmentBadge = (props) => {
         return null;
     }
 
-    const backgroundColorStyle = props.environment === CONST.ENVIRONMENT.STAGING
-        ? styles.badgeSuccess
-        : styles.badgeDanger;
-
     return (
-        <View style={[styles.badge, backgroundColorStyle, styles.ml2]}>
-            <Text style={styles.badgeText}>
-                {props.environment}
-            </Text>
-        </View>
+        <Badge
+            success={props.environment === CONST.ENVIRONMENT.STAGING}
+            error={props.environment !== CONST.ENVIRONMENT.STAGING}
+            text={props.environment}
+        />
     );
 };
 

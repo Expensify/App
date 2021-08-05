@@ -1,5 +1,7 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -7,7 +9,8 @@ import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import {updateCurrentlyViewedReportID} from '../../libs/actions/Report';
+import {handleInaccessibleReport, updateCurrentlyViewedReportID} from '../../libs/actions/Report';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -18,6 +21,13 @@ const propTypes = {
             reportID: PropTypes.string,
         }).isRequired,
     }).isRequired,
+
+    /** Tells us if the sidebar has rendered */
+    isSidebarLoaded: PropTypes.bool,
+};
+
+const defaultProps = {
+    isSidebarLoaded: false,
 };
 
 class ReportScreen extends React.Component {
@@ -36,7 +46,6 @@ class ReportScreen extends React.Component {
 
     componentDidUpdate(prevProps) {
         const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
-
         if (reportChanged) {
             this.prepareTransition();
             this.storeCurrentlyViewedReport();
@@ -73,7 +82,7 @@ class ReportScreen extends React.Component {
         this.setState({isLoading: true});
 
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 300);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 150);
     }
 
     /**
@@ -81,10 +90,18 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportID = this.getReportID();
+        if (_.isNaN(reportID)) {
+            handleInaccessibleReport();
+            return;
+        }
         updateCurrentlyViewedReportID(reportID);
     }
 
     render() {
+        if (!this.props.isSidebarLoaded) {
+            return null;
+        }
+
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -94,11 +111,17 @@ class ReportScreen extends React.Component {
 
                 <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
 
-                <ReportView reportID={this.getReportID()} />
+                {!this.shouldShowLoader() && <ReportView reportID={this.getReportID()} />}
             </ScreenWrapper>
         );
     }
 }
 
 ReportScreen.propTypes = propTypes;
-export default ReportScreen;
+ReportScreen.defaultProps = defaultProps;
+
+export default withOnyx({
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+})(ReportScreen);

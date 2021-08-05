@@ -9,20 +9,29 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
+import Text from '../../../components/Text';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import {PayPal, Bank} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
+<<<<<<< HEAD
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import NameValuePair from '../../../libs/actions/NameValuePair';
 import CONST from '../../../CONST';
+=======
+import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
+>>>>>>> ec38ff9574ff9f1ac997b29b871aaf13afc5d57e
 
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -36,6 +45,7 @@ class PaymentsPage extends React.Component {
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
+            isLoadingPaymentMethods: true,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -47,7 +57,9 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        getPaymentMethods().then(() => {
+            this.setState({isLoadingPaymentMethods: false});
+        });
     }
 
     /**
@@ -57,6 +69,7 @@ class PaymentsPage extends React.Component {
      * @param {String} accountType
      * @param {Object} account
      */
+<<<<<<< HEAD
     paymentMethodPressed(nativeEvent, accountType, account) {
         const position = getClickedElementLocation(nativeEvent);
         if (accountType) {
@@ -87,6 +100,13 @@ class PaymentsPage extends React.Component {
                 anchorPositionLeft: position.left + 20,
                 formattedSelectedPaymentMethod,
             });
+=======
+    paymentMethodPressed(nativeEvent, account) {
+        if (account) {
+            if (account === PAYPAL) {
+                Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+            }
+>>>>>>> ec38ff9574ff9f1ac997b29b871aaf13afc5d57e
         } else {
             this.setState({
                 shouldShowAddPaymentMenu: true,
@@ -143,9 +163,17 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View style={[styles.flex1]}>
+                    <View>
+                        <CurrentWalletBalance />
+                        <Text
+                            style={[styles.ph5, styles.textStrong]}
+                        >
+                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                        </Text>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
+                            style={[styles.flex4]}
+                            isLoadingPayments={this.state.isLoadingPaymentMethods}
                         />
                     </View>
                     <Popover
@@ -208,6 +236,7 @@ class PaymentsPage extends React.Component {
 }
 
 PaymentsPage.propTypes = propTypes;
+PaymentsPage.defaultProps = defaultProps;
 PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(

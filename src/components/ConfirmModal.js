@@ -1,5 +1,6 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Header from './Header';
 import Modal from './Modal';
@@ -9,6 +10,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Button from './Button';
+import Text from './Text';
 
 const propTypes = {
     /** Title of the modal */
@@ -18,7 +20,7 @@ const propTypes = {
     onConfirm: PropTypes.func.isRequired,
 
     /** A callback to call when the form has been closed */
-    onCancel: PropTypes.func.isRequired,
+    onCancel: PropTypes.func,
 
     /** Modal visibility */
     isVisible: PropTypes.bool.isRequired,
@@ -29,11 +31,14 @@ const propTypes = {
     /** Cancel button text */
     cancelText: PropTypes.string,
 
-    /** Modal content text */
-    prompt: PropTypes.string,
+    /** Modal content text/element */
+    prompt: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
 
     /** Is the action destructive */
     danger: PropTypes.bool,
+
+    /** Whether we should show the cancel button */
+    shouldShowCancelButton: PropTypes.bool,
 
     ...withLocalizePropTypes,
 
@@ -45,6 +50,8 @@ const defaultProps = {
     cancelText: '',
     prompt: '',
     danger: false,
+    onCancel: () => {},
+    shouldShowCancelButton: true,
 };
 
 const ConfirmModal = props => (
@@ -61,22 +68,29 @@ const ConfirmModal = props => (
                 <Header title={props.title} />
             </View>
 
-            <Text style={styles.textP}>
-                {props.prompt}
-            </Text>
+            {_.isString(props.prompt)
+                ? (
+                    <Text>
+                        {props.prompt}
+                    </Text>
+                ) : (props.prompt)}
 
             <Button
                 success
                 danger={props.danger}
                 style={[styles.mt4]}
                 onPress={props.onConfirm}
+                pressOnEnter
                 text={props.confirmText || props.translate('common.yes')}
             />
-            <Button
-                style={[styles.mt3]}
-                onPress={props.onCancel}
-                text={props.cancelText || props.translate('common.no')}
-            />
+            {props.shouldShowCancelButton
+            && (
+                <Button
+                    style={[styles.mt3]}
+                    onPress={props.onCancel}
+                    text={props.cancelText || props.translate('common.no')}
+                />
+            )}
         </View>
     </Modal>
 );

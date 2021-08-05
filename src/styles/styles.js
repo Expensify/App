@@ -47,20 +47,23 @@ const styles = {
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
-        fontWeight: fontWeightBold,
     },
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
-        fontWeight: fontWeightBold,
     },
 
-    textP: {
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        lineHeight: 20,
+    textAlignCenter: {
+        textAlign: 'center',
+    },
+
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
+    textUnderline: {
+        textDecorationLine: 'underline',
     },
 
     textLabel: {
@@ -93,6 +96,13 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXXXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: fontWeightBold,
+    },
+
     textStrong: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
@@ -107,8 +117,16 @@ const styles = {
         textDecorationLine: 'none',
     },
 
+    textWhite: {
+        color: colors.white,
+    },
+
     textUppercase: {
         textTransform: 'uppercase',
+    },
+
+    backgroundBlue: {
+        backgroundColor: colors.blue,
     },
 
     colorReversed: {
@@ -318,6 +336,64 @@ const styles = {
         },
     },
 
+    pickerSmall: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            appearance: 'none',
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            cursor: 'pointer',
+            backgroundColor: 'transparent',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+        },
+        iconContainer: {
+            top: 7,
+            right: 9,
+            pointerEvents: 'none',
+        },
+        icon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
+        },
+    },
+
     badge: {
         backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
@@ -344,7 +420,7 @@ const styles = {
     },
 
     badgeText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
@@ -385,6 +461,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
+        lineHeight: 14,
     },
 
     chatItemComposeSecondaryRowOffset: {
@@ -465,7 +542,6 @@ const styles = {
 
     signInPage: {
         backgroundColor: themeColors.sidebar,
-        padding: 20,
         minHeight: '100%',
         flex: 1,
     },
@@ -476,12 +552,7 @@ const styles = {
     },
 
     signInPageLogoNative: {
-        alignItems: 'center',
         height: variables.componentSizeLarge,
-        justifyContent: 'center',
-        width: '100%',
-        marginBottom: 20,
-        marginTop: 20,
     },
 
     signinWelcomeScreenshot: {
@@ -489,9 +560,12 @@ const styles = {
         width: 295,
     },
 
-    signinWelcomeScreenshotWide: {
-        height: 592,
-        width: 295,
+    signInWelcomeScreenshotWide: {
+        aspectRatio: 1,
+        width: '100%',
+        height: '100%',
+        maxHeight: 551,
+        minHeight: 300,
     },
 
     genericView: {
@@ -500,18 +574,28 @@ const styles = {
     },
 
     signInPageInner: {
-        paddingTop: 40,
         marginLeft: 'auto',
         marginRight: 'auto',
-        maxWidth: 800,
+        height: '100%',
         width: '100%',
     },
 
     signInPageInnerNative: {
-        marginLeft: 'auto',
-        marginRight: 'auto',
-        maxWidth: 295,
         width: '100%',
+    },
+
+    signInPageHeroHeading: {
+        fontFamily: fontFamily.GTA,
+        fontWeight: fontWeightBold,
+        fontSize: variables.fontSizeHero,
+        color: colors.white,
+        lineHeight: variables.lineHeightHero,
+    },
+
+    signInPageHeroDescription: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+        color: colors.white,
     },
 
     signInPageFormContainer: {
@@ -519,11 +603,31 @@ const styles = {
         width: '100%',
     },
 
+    signInPageNarrowContentContainer: {
+        maxWidth: 295,
+    },
+
+    signInPageWideLeftContainer: {
+        width: 375,
+    },
+
+    signInPageWideHeroContent: {
+        maxWidth: 400,
+    },
+
     loginTermsText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
+        fontSize: variables.fontSizeExtraSmall,
+    },
+
+    termsLink: {
+        color: themeColors.link,
+    },
+
+    termsLinkNative: {
+        color: themeColors.link,
+        margin: 0,
     },
 
     // Sidebar Styles
@@ -631,7 +735,7 @@ const styles = {
 
     createMenuPositionProfile: {
         right: 18,
-        top: 100,
+        top: 180,
     },
 
     createMenuPositionReportActionCompose: {
@@ -757,8 +861,8 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 18,
-        lineHeight: 18,
+        height: 20,
+        lineHeight: 20,
         ...whiteSpace.noWrap,
     },
 
@@ -875,7 +979,7 @@ const styles = {
         alignItems: 'center',
         display: 'flex',
         flexDirection: 'row',
-        flexWrap: 'wrap',
+        flexWrap: 'nowrap',
     },
 
     chatItemMessageHeaderSender: {
@@ -890,6 +994,7 @@ const styles = {
     },
 
     chatItemMessageHeaderTimestamp: {
+        flexShrink: 0,
         color: themeColors.textSupporting,
         fontSize: variables.fontSizeSmall,
         height: 24,
@@ -924,6 +1029,12 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        backgroundColor: themeColors.appBG,
+    },
+
+    chatItemComposeWithFirstRow: {
+        minHeight: 90,
+        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1011,7 +1122,6 @@ const styles = {
     },
 
     emojiItem: {
-        flex: 1,
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
@@ -1143,14 +1253,12 @@ const styles = {
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
     avatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
     },
 
@@ -1594,11 +1702,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1674,22 +1781,22 @@ const styles = {
         width: '150%',
     },
 
-    workspaceSidebarAvatar: {
-        width: 80,
-        height: 80,
+    smallEditIcon: {
+        alignItems: 'center',
+        backgroundColor: themeColors.icon,
+        borderColor: themeColors.textReversed,
+        borderRadius: 14,
+        borderWidth: 3,
+        color: themeColors.textReversed,
+        height: 28,
+        width: 28,
+        justifyContent: 'center',
     },
 
-    workspaceSidebarAvatarPencil: {
-        width: 32,
-        height: 32,
+    smallAvatarEditIcon: {
         position: 'absolute',
-        right: -1,
-        bottom: -1,
-        backgroundColor: themeColors.icon,
-        color: themeColors.textReversed,
-        borderRadius: 32,
-        borderWidth: 3,
-        borderColor: themeColors.textReversed,
+        right: -4,
+        bottom: -4,
     },
 
     workspaceCard: {
@@ -1720,7 +1827,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        minHeight: 150,
+        height: 150,
     },
 
     peopleRow: {
@@ -1748,8 +1855,39 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+<<<<<<< HEAD
     defaultOrDeleteButton: {
         width: variables.sideBarWidth - 70,
+=======
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    termsCenterRight: {
+        marginTop: 'auto',
+        marginBottom: 'auto',
+    },
+
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
+    },
+
+    collapsibleSectionBorder: {
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
+    },
+
+    communicationsLinkHeight: {
+        height: 20,
+>>>>>>> ec38ff9574ff9f1ac997b29b871aaf13afc5d57e
     },
 };
 
@@ -1767,6 +1905,10 @@ const webViewStyles = {
     // styles from the renderer, just pass the "style" prop to the underlying
     // component.
     tagStyles: {
+        body: {
+            flexDirection: 'row',
+        },
+
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
             fontStyle: 'italic',
@@ -1832,6 +1974,7 @@ const webViewStyles = {
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        alignSelf: 'flex-start',
     },
 };
 
@@ -1960,17 +2103,21 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Generate a style for the background color of the IOU badge
+ * Generate a style for the background color of the Badge
  *
- * @param {Boolean} isOwner
- * @param {Boolean} [isPressed]
- * @returns {Object}
+ * @param {Boolean} success
+ * @param {Boolean} error
+ * @param {boolean} [isPressed=false]
+ * @return {Object}
  */
-function getBadgeColorStyle(isOwner, isPressed = false) {
-    if (isOwner) {
+function getBadgeColorStyle(success, error, isPressed = false) {
+    if (success) {
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    if (error) {
+        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    }
+    return {};
 }
 
 /**

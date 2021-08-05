@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, FlatList, Text} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
@@ -7,6 +7,7 @@ import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
+import Text from '../../../../components/Text';
 import dynamicEmojiSize from './dynamicEmojiSize';
 
 const propTypes = {
@@ -57,7 +58,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
-                    {item.code}
+                    {`${item.code}\uFE0F`}
                 </Text>
             );
         }
@@ -65,7 +66,7 @@ class EmojiPickerMenu extends Component {
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={item.code}
+                emoji={`${item.code}\uFE0F`}
                 emojiSize={this.emojiSize}
             />
         );

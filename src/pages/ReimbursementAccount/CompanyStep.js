@@ -33,18 +33,32 @@ class CompanyStep extends React.Component {
             companyName: lodashGet(props, ['achData', 'companyName'], ''),
             addressStreet: lodashGet(props, ['achData', 'addressStreet'], ''),
             addressCity: lodashGet(props, ['achData', 'addressCity'], ''),
-            addressState: lodashGet(props, ['achData', 'addressState']) || 'AK',
+            addressState: lodashGet(props, ['achData', 'addressState']) || '',
             addressZipCode: lodashGet(props, ['achData', 'addressZipCode'], ''),
             companyPhone: lodashGet(props, ['achData', 'companyPhone'], ''),
-            website: lodashGet(props, ['achData', 'website'], ''),
+            website: lodashGet(props, ['achData', 'website'], 'https://'),
             companyTaxID: lodashGet(props, ['achData', 'companyTaxID'], ''),
             incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
             incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),
-            incorporationState: lodashGet(props, ['achData', 'incorporationState']) || 'AK',
+            incorporationState: lodashGet(props, ['achData', 'incorporationState']) || '',
             industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
         };
+
+        // These fields need to be filled out in order to submit the form
+        this.requiredFields = [
+            'companyName',
+            'addressStreet',
+            'addressCity',
+            'addressState',
+            'addressZipCode',
+            'website',
+            'companyTaxID',
+            'incorporationDate',
+            'industryCode',
+            'password',
+        ];
     }
 
     /**
@@ -58,6 +72,11 @@ class CompanyStep extends React.Component {
 
         if (!isValidAddress(this.state.addressStreet)) {
             Growl.error(this.props.translate('bankAccount.error.addressStreet'));
+            return false;
+        }
+
+        if (this.state.addressState === '') {
+            Growl.error(this.props.translate('bankAccount.error.addressState'));
             return false;
         }
 
@@ -106,6 +125,8 @@ class CompanyStep extends React.Component {
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false);
         return (
             <>
                 <HeaderWithCloseButton
@@ -248,6 +269,7 @@ class CompanyStep extends React.Component {
                         onPress={this.submit}
                         style={[styles.w100]}
                         text={this.props.translate('common.saveAndContinue')}
+                        isDisabled={shouldDisableSubmitButton}
                     />
                 </FixedFooter>
             </>
