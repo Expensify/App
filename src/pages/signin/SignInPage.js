@@ -84,11 +84,7 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        // Page welcomeText changes based on the type form
-        let welcomeText = this.props.translate('welcomeText.phrase1');
-        if (showPasswordForm) {
-            welcomeText = this.props.translate('welcomeText.phrase5');
-        }
+        const welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
         return (
             <>

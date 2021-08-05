@@ -108,8 +108,7 @@ export default {
         phrase1: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
-        phrase4: '¡Bienvenido de nuevo al nuevo Expensify! Por favor establezca su contraseña.',
-        phrase5: '¡Bienvenido de nuevo al nuevo Expensify! Por favor, introduzca su contraseña.',
+        phrase4: '¡Bienvenido de nuevo al nuevo Expensify! Por favor, introduzca su contraseña.',
     },
     reportActionCompose: {
         sendAttachment: 'Enviar adjunto',
@@ -339,6 +338,7 @@ export default {
         setPassword: 'Configura tu Contraseña',
         passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
+        passwordFormTitle: '¡Bienvenido de nuevo al nuevo Expensify! Por favor establezca su contraseña.',
     },
     bankAccount: {
         accountNumber: 'Número de cuenta',
