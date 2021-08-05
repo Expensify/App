@@ -197,17 +197,19 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} [params.submitterPhoneNumber] - used for Venmo
  * @param {String} [params.submitterPayPalMeAddress]
  * @param {String} [params.comment]
+ * @param {String} [params.requestorEmail]
  */
 function payIOUReport({
-    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress, comment,
+    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress, comment, requestorEmail
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
+    let randomArray = new Uint32Array(10);
     const newIOUReportDetails = {
         amount,
         currency,
-        requestorAccountID: 0, // get the real id
+        requestorEmail: 0,
         comment,
-        idempotencyKey: crypto.getRandomValues(),
+        idempotencyKey: crypto.getRandomValues(randomArray)[0],
     };
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID, newIOUReportDetails})
