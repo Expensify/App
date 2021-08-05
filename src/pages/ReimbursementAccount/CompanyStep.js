@@ -4,6 +4,8 @@ import React from 'react';
 import {View, ScrollView} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import {
@@ -22,10 +24,21 @@ import TextLink from '../../components/TextLink';
 import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Growl from '../../libs/Growl';
 import {
     isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
 } from '../../libs/ValidationUtils';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+
+const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: PropTypes.shape({
+        /** Error set when handling the API response */
+        error: PropTypes.string,
+    }).isRequired,
+
+    ...withLocalizePropTypes,
+};
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -337,6 +350,12 @@ class CompanyStep extends React.Component {
     }
 }
 
-CompanyStep.propTypes = withLocalizePropTypes;
-
-export default withLocalize(CompanyStep);
+CompanyStep.propTypes = propTypes;
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    }),
+)(CompanyStep);
