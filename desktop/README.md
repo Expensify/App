@@ -40,13 +40,13 @@ mc policy set public electron-builder/electron-builder
 
 ## Local Changes to the App
 
-Once you have Min.IO setup and running, the next step is to temporarily revert some changes from https://github.com/Expensify/Expensify.cash/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
+Once you have Min.IO setup and running, the next step is to temporarily revert some changes from https://github.com/Expensify/App/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
 
 1. Update the `desktop-build` command in package.json to add `--publish always` at the end
 2. Update electron.config.js to re-add `afterSign: 'desktop/notarize.js',`
 3. Update electron.config.js to replace the `publish` value with the following:
-```    
- publish: [{ 
+```
+ publish: [{
    provider: 's3',
    bucket: 'electron-builder',
    endpoint: 'http://localhost:9000',

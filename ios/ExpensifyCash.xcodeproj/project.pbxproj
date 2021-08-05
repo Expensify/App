@@ -857,7 +857,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
-				PRODUCT_NAME = Expensify.cash;
+				PRODUCT_NAME = "New Expensify";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
 				SWIFT_OBJC_BRIDGING_HEADER = "ExpensifyCash-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -889,7 +889,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
-				PRODUCT_NAME = Expensify.cash;
+				PRODUCT_NAME = "New Expensify";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
 				SWIFT_OBJC_BRIDGING_HEADER = "ExpensifyCash-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;

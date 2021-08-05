@@ -3,7 +3,7 @@
   "version": "1.0.82-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
-  "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
+  "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
   "scripts": {
