@@ -108,8 +108,7 @@ export default {
         phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
-        phrase4: 'Welcome back to the New Expensify! Please set your password.',
-        phrase5: 'Welcome back to the New Expensify! Please enter your password.',
+        phrase4: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
         sendAttachment: 'Send Attachment',
@@ -339,6 +338,7 @@ export default {
         setPassword: 'Set Password',
         passwordsDontMatch: 'Passwords must match',
         newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
     },
     bankAccount: {
         accountNumber: 'Account Number',
