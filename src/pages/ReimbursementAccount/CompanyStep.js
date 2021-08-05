@@ -6,7 +6,11 @@ import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
-import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import {
+    goToWithdrawalAccountSetupStep, hideBankAccountErrors,
+    setupWithdrawalAccount,
+    showBankAccountError,
+} from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
@@ -66,47 +70,47 @@ class CompanyStep extends React.Component {
      */
     validate() {
         if (!this.state.password.trim()) {
-            Growl.error(this.props.translate('common.passwordCannotBeBlank'));
+            showBankAccountError(this.props.translate('common.passwordCannotBeBlank'));
             return false;
         }
 
         if (!isValidAddress(this.state.addressStreet)) {
-            Growl.error(this.props.translate('bankAccount.error.addressStreet'));
+            showBankAccountError(this.props.translate('bankAccount.error.addressStreet'));
             return false;
         }
 
         if (this.state.addressState === '') {
-            Growl.error(this.props.translate('bankAccount.error.addressState'));
+            showBankAccountError(this.props.translate('bankAccount.error.addressState'));
             return false;
         }
 
         if (!isValidZipCode(this.state.addressZipCode)) {
-            Growl.error(this.props.translate('bankAccount.error.zipCode'));
+            showBankAccountError(this.props.translate('bankAccount.error.zipCode'));
             return false;
         }
 
         if (!Str.isValidURL(this.state.website)) {
-            Growl.error(this.props.translate('bankAccount.error.website'));
+            showBankAccountError(this.props.translate('bankAccount.error.website'));
             return false;
         }
 
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
-            Growl.error(this.props.translate('bankAccount.error.taxID'));
+            showBankAccountError(this.props.translate('bankAccount.error.taxID'));
             return false;
         }
 
         if (!isValidDate(this.state.incorporationDate)) {
-            Growl.error(this.props.translate('bankAccount.error.incorporationDate'));
+            showBankAccountError(this.props.translate('bankAccount.error.incorporationDate'));
             return false;
         }
 
         if (!isValidIndustryCode(this.state.industryCode)) {
-            Growl.error(this.props.translate('bankAccount.error.industryCode'));
+            showBankAccountError(this.props.translate('bankAccount.error.industryCode'));
             return false;
         }
 
         if (!this.state.hasNoConnectionToCannabis) {
-            Growl.error(this.props.translate('bankAccount.error.restrictedBusiness'));
+            showBankAccountError(this.props.translate('bankAccount.error.restrictedBusiness'));
             return false;
         }
 
@@ -150,8 +154,16 @@ class CompanyStep extends React.Component {
                         <TextInputWithLabel
                             label={this.props.translate('common.companyAddressNoPO')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={addressStreet => this.setState({addressStreet})}
+                            onChangeText={(addressStreet) => {
+                                if (this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.addressStreet')) {
+                                    hideBankAccountErrors();
+                                }
+                                this.setState({addressStreet});
+                            }}
                             value={this.state.addressStreet}
+                            errorText={this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.addressStreet')
+                                ? this.props.translate('bankAccount.error.addressStreet')
+                                : ''}
                         />
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
@@ -172,8 +184,16 @@ class CompanyStep extends React.Component {
                         <TextInputWithLabel
                             label={this.props.translate('common.zip')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={addressZipCode => this.setState({addressZipCode})}
+                            onChangeText={(addressZipCode) => {
+                                if (this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.zipCode')) {
+                                    hideBankAccountErrors();
+                                }
+                                this.setState({addressZipCode});
+                            }}
                             value={this.state.addressZipCode}
+                            errorText={this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.zipCode')
+                                ? this.props.translate('bankAccount.error.zipCode')
+                                : ''}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('common.phoneNumber')}
@@ -186,16 +206,32 @@ class CompanyStep extends React.Component {
                         <TextInputWithLabel
                             label={this.props.translate('companyStep.companyWebsite')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={website => this.setState({website})}
+                            onChangeText={(website) => {
+                                if (this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.website')) {
+                                    hideBankAccountErrors();
+                                }
+                                this.setState({website});
+                            }}
                             value={this.state.website}
+                            errorText={this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.website')
+                                ? this.props.translate('bankAccount.error.website')
+                                : ''}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('companyStep.taxIDNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChangeText={companyTaxID => this.setState({companyTaxID})}
+                            onChangeText={(companyTaxID) => {
+                                if (this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.taxID')) {
+                                    hideBankAccountErrors();
+                                }
+                                this.setState({companyTaxID});
+                            }}
                             value={this.state.companyTaxID}
                             disabled={shouldDisableCompanyTaxID}
+                            errorText={this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.taxID')
+                                ? this.props.translate('bankAccount.error.taxID')
+                                : ''}
                         />
                         <Text style={[styles.formLabel, styles.mt4]}>
                             {this.props.translate('companyStep.companyType')}
@@ -211,9 +247,17 @@ class CompanyStep extends React.Component {
                                 {/* TODO: Replace with date picker */}
                                 <TextInputWithLabel
                                     label={this.props.translate('companyStep.incorporationDate')}
-                                    onChangeText={incorporationDate => this.setState({incorporationDate})}
+                                    onChangeText={(incorporationDate) => {
+                                        if (this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.incorporationDate')) {
+                                            hideBankAccountErrors();
+                                        }
+                                        this.setState({incorporationDate});
+                                    }}
                                     value={this.state.incorporationDate}
                                     placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
+                                    errorText={this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.incorporationDate')
+                                        ? this.props.translate('bankAccount.error.incorporationDate')
+                                        : ''}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
@@ -230,8 +274,16 @@ class CompanyStep extends React.Component {
                             helpLinkText={this.props.translate('common.whatThis')}
                             helpLinkURL="https://www.naics.com/search/"
                             containerStyles={[styles.mt4]}
-                            onChangeText={industryCode => this.setState({industryCode})}
+                            onChangeText={(industryCode) => {
+                                if (this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.industryCode')) {
+                                    hideBankAccountErrors();
+                                }
+                                this.setState({industryCode});
+                            }}
                             value={this.state.industryCode}
+                            errorText={this.props.reimbursementAccount.error === this.props.translate('bankAccount.error.industryCode')
+                                ? this.props.translate('bankAccount.error.industryCode')
+                                : ''}
                         />
                         <TextInputWithLabel
                             label={`Expensify ${this.props.translate('common.password')}`}
@@ -239,9 +291,17 @@ class CompanyStep extends React.Component {
                             secureTextEntry
                             autoCompleteType="password"
                             textContentType="password"
-                            onChangeText={password => this.setState({password})}
+                            onChangeText={(password) => {
+                                if (this.props.reimbursementAccount.error === this.props.translate('common.passwordCannotBeBlank')) {
+                                    hideBankAccountErrors();
+                                }
+                                this.setState({password});
+                            }}
                             value={this.state.password}
                             onSubmitEditing={this.submit}
+                            errorText={this.props.reimbursementAccount.error === this.props.translate('common.passwordCannotBeBlank')
+                                ? this.props.translate('common.passwordCannotBeBlank')
+                                : ''}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
