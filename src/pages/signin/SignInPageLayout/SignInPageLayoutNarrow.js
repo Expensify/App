@@ -14,8 +14,8 @@ const propTypes = {
     /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
-    // welcomeText to show the header of the form.
-    // Will change based on the form
+    /** Welcome text to show in the header of the form, changes depending
+     * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
     ...windowDimensionsPropTypes,
