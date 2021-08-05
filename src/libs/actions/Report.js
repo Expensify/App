@@ -396,9 +396,8 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
         })
         .catch((err) => {
             if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
                 // eslint-disable-next-line no-use-before-define
-                navigateToConciergeChat();
+                handleInaccessibleReport();
             }
         });
 }
@@ -1365,6 +1364,14 @@ function navigateToConciergeChat() {
     Navigation.closeDrawer();
 }
 
+/**
+ * Handle the navigation when report is inaccessible
+ */
+function handleInaccessibleReport() {
+    Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+    navigateToConciergeChat();
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1389,4 +1396,5 @@ export {
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
+    handleInaccessibleReport,
 };
