@@ -69,6 +69,10 @@ import defaultScreenOptions from './defaultScreenOptions';
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
+        if (!val) {
+            return;
+        }
+
         const timezone = lodashGet(val, 'timezone', {});
         const currentTimezone = moment.tz.guess(true);
 
