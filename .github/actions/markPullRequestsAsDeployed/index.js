@@ -162,7 +162,7 @@ function getPRMessage(pr) {
 
         const prData = PRMap[pr];
         if (deployVerb === 'Cherry-picked' && (/no qa/gi).test(prData.title)) {
-            message += `\n\nThe PR title did not include [No QA], so this likely is a CP that requires QA @Expensify/applauseleads`;
+            message += '\n\nThe PR title did not include [No QA], so this likely is a CP that requires QA @Expensify/applauseleads';
         }
 
         return message;

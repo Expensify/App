@@ -152,7 +152,6 @@ function getPRMessage(pr) {
 
         const prData = PRMap[pr];
         if (deployVerb === 'Cherry-picked' && (/no qa/gi).test(prData.title)) {
-            // eslint-disable-next-line max-len
             message += '\n\nThe PR title did not include [No QA], so this likely is a CP that requires QA @Expensify/applauseleads';
         }
 
