@@ -42,7 +42,6 @@ autoUpdater.logger.transports.file.level = 'info';
 // Send all Console logs to a log file: ~/Library/Logs/expensify.cash/main.log
 // See https://www.npmjs.com/package/electron-log
 Object.assign(console, log.functions);
-console.debug(app.name);
 
 // setup Hot reload
 if (isDev) {
@@ -120,8 +119,8 @@ const mainWindow = (() => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (isDev) {
-        // app.dock.setIcon(`${__dirname}/icon-dev.png`);
-        // app.setName('New Expensify');
+        app.dock.setIcon(`${__dirname}/icon-dev.png`);
+        app.setName('New Expensify');
     }
 
     return app.whenReady()
@@ -160,7 +159,7 @@ const mainWindow = (() => {
             }));
 
             const appMenu = systemMenu.items.find(item => item.role === 'appmenu');
-            // appMenu.submenu.insert(1, updateAppMenuItem);
+            appMenu.submenu.insert(1, updateAppMenuItem);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
