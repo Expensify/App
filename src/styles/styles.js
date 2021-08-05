@@ -511,6 +511,10 @@ const styles = {
 
     noOutline: addOutlineWidth({}, 0),
 
+    errorOutline: {
+        borderColor: colors.red,
+    },
+
     formLabel: {
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
