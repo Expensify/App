@@ -200,14 +200,22 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} [params.requestorEmail]
  */
 function payIOUReport({
-    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress, comment, requestorEmail
+    chatReportID,
+    reportID,
+    paymentMethodType,
+    amount,
+    currency,
+    submitterPhoneNumber,
+    submitterPayPalMeAddress,
+    comment,
+    requestorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     let randomArray = new Uint32Array(10);
     const newIOUReportDetails = {
         amount,
         currency,
-        requestorEmail: 0,
+        requestorEmail,
         comment,
         idempotencyKey: crypto.getRandomValues(randomArray)[0],
     };

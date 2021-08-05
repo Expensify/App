@@ -256,6 +256,7 @@ class IOUModal extends Component {
                 // submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
                 // submitterPhoneNumber: this.submitterPhoneNumber,
                 comment: this.state.comment,
+                requestorEmail: this.state.participants[0].login,
             });
             return;
         }
