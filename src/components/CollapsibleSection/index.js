@@ -1,11 +1,19 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
+import PropTypes from 'prop-types';
 import Collapsible from './Collapsible';
 import Text from '../Text';
-import propTypes from './CollapsibleSectionPropTypes';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
 import {DownArrow, UpArrow} from '../Icon/Expensicons';
+
+const propTypes = {
+    /** Title of the Collapsible section */
+    title: PropTypes.string.isRequired,
+
+    /** Children to display inside the Collapsible component */
+    children: PropTypes.node.isRequired,
+};
 
 class CollapsibleSection extends React.Component {
     constructor(props) {
