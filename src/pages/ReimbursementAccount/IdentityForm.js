@@ -41,6 +41,9 @@ const propTypes = {
         ssnLast4: PropTypes.string,
     }),
 
+    /** Any errors that the API can throw from invalid form data */
+    error: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -56,10 +59,11 @@ const defaultProps = {
         dob: '',
         ssnLast4: '',
     },
+    error: '',
 };
 
 const IdentityForm = ({
-    translate, values, onFieldChange, style,
+    translate, values, onFieldChange, style, error,
 }) => {
     const {
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
@@ -88,6 +92,7 @@ const IdentityForm = ({
                 placeholder={translate('common.dateFormat')}
                 value={dob}
                 onChangeText={val => onFieldChange('dob', val)}
+                errorText={error}
             />
             <TextInputWithLabel
                 label={`${translate('common.ssnLast4')}`}
