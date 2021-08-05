@@ -218,7 +218,8 @@ class BankAccountStep extends React.Component {
                                     this.setState({routingNumber});
                                 }}
                                 disabled={shouldDisableInputs}
-                                errorText={error === this.props.translate('bankAccount.error.routingNumber') ? error : ''}
+                                errorText={error === this.props.translate('bankAccount.error.routingNumber')
+                                    ? error : ''}
                             />
                             <TextInputWithLabel
                                 placeholder={this.props.translate('bankAccount.accountNumber')}
