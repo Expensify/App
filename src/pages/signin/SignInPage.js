@@ -3,7 +3,7 @@ import {
     SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -55,6 +55,10 @@ class SignInPage extends Component {
         // Always reset the unread counter to zero on this page
         // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
         setTimeout(() => updateUnread(0), 0);
+    }
+
+    componentWillUnmount() {
+        Onyx.merge(ONYXKEYS.ACCOUNT, {password: '', twoFactorAuthCode: ''});
     }
 
     render() {
