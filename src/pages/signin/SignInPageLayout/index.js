@@ -9,8 +9,8 @@ const propTypes = {
 
 const SignInPageLayout = props => (
     !props.isSmallScreenWidth
-        ? <SignInPageLayoutWide>{props.children}</SignInPageLayoutWide>
-        : <SignInPageLayoutNarrow>{props.children}</SignInPageLayoutNarrow>
+        ? <SignInPageLayoutWide welcomeText={props.welcomeText}>{props.children}</SignInPageLayoutWide>
+        : <SignInPageLayoutNarrow welcomeText={props.welcomeText}>{props.children}</SignInPageLayoutNarrow>
 );
 
 SignInPageLayout.propTypes = propTypes;

@@ -89,6 +89,10 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportID = this.getReportID();
+        if (_.isNaN(reportID)) {
+            handleInaccessibleReport();
+            return;
+        }
         updateCurrentlyViewedReportID(reportID);
     }
 
