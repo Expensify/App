@@ -1,4 +1,4 @@
-# [Expensify.cash](https://expensify.cash) GitHub Workflows
+# [New Expensify](https://New Expensify) GitHub Workflows
 
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.

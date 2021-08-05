@@ -5,7 +5,7 @@ const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
 
 const GITHUB_OWNER = 'Expensify';
-const EXPENSIFY_CASH_REPO = 'Expensify.cash';
+const EXPENSIFY_CASH_REPO = 'App';
 const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/App';
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
@@ -293,13 +293,13 @@ class GithubUtils {
     }
 
     /**
-     * Get the most recent workflow run for the given Expensify.cash workflow.
+     * Get the most recent workflow run for the given New Expensify workflow.
      *
      * @param {String} workflow
      * @returns {Promise}
      */
     static getLatestWorkflowRunID(workflow) {
-        console.log(`Fetching Expensify.cash workflow runs for ${workflow}...`);
+        console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions.listWorkflowRuns({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
@@ -322,7 +322,7 @@ class GithubUtils {
     }
 
     /**
-     * Generate the URL of an Expensify.cash pull request given the PR number.
+     * Generate the URL of an New Expensify pull request given the PR number.
      *
      * @param {Number} number
      * @returns {String}

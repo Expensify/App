@@ -35,7 +35,7 @@ jobs:
   updateProduction:
     runs-on: ubuntu-latest
 
-    # Note: Anyone with Triage access to the Expensify.cash repo can trigger a production deploy
+    # Note: Anyone with Triage access to the New Expensify repo can trigger a production deploy
     needs: checkDeployBlockers
     if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
     steps:
