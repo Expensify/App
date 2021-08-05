@@ -63,10 +63,6 @@ class PasswordForm extends React.Component {
         };
     }
 
-    componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {password: '', twoFactorAuthCode: ''});
-    }
-
     /**
      * Update the value of password in Onyx
      *
