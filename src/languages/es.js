@@ -338,7 +338,7 @@ export default {
         setPassword: 'Configura tu Contraseña',
         passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
-        passwordFormTitle: '¡Bienvenido de nuevo al nuevo Expensify! Por favor establezca su contraseña.',
+        passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
     },
     bankAccount: {
         accountNumber: 'Número de cuenta',
