@@ -6,7 +6,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: 'https://new.expensify.com/Expensify.cash.dmg',
+        DESKTOP: 'https://new.expensify.com/NewExpensify.dmg',
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',

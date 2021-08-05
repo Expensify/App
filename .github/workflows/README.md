@@ -3,7 +3,7 @@
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
 1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
-1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.   
+1. **Do use** the `pull_request` trigger as it does not send internal secrets and only grants a _read_ `GITHUB_TOKEN`.
 1. If an external action needs access to any secret (`GITHUB_TOKEN` or internal secret), use the commit hash of the workflow to prevent a modification of underlying source code at that version. For example:
     1. **Bad:** `hmarr/auto-approve-action@v2.0.0` Relies on the tag
     1. **Good:** `hmarr/auto-approve-action@7782c7e2bdf62b4d79bdcded8332808fd2f179cd` Explicit Git hash
@@ -25,7 +25,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
    4. `ios/Certificates.p12.gpg`
 2. `SLACK_WEBHOOK` - Sends Slack notifications via Slack WebHook https://expensify.slack.com/services/B01AX48D7MM
 3. `OS_BOTIFY_TOKEN` - Personal access token for @OSBotify user in GitHub
-4. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub   
+4. `CLA_BOTIFY_TOKEN` - Personal access token for @CLABotify user in GitHub
 5. `CSC_LINK` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 6. `CSC_KEY_PASSWORD` - Required to be set for desktop code signing: https://www.electron.build/code-signing.html#travis-appveyor-and-other-ci-servers
 7. `APPLE_ID` - Required for notarizing desktop code in `desktop/notarize.js`
@@ -42,7 +42,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 
 All these _workflows_ are comprised of atomic _actions_. Most of the time, we can use pre-made and independently maintained actions to create powerful workflows that meet our needs. However, when we want to do something very specific or have a more complex or robust action in mind, we can create our own _actions_.
 
-All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/Expensify.cash/tree/main/.github/actions). Each action is a module comprised of three parts:
+All our actions are stored in the neighboring directory [`.github/actions`](https://github.com/Expensify/App/tree/main/.github/actions). Each action is a module comprised of three parts:
 
 1) An [action metadata file](https://docs.github.com/en/free-pro-team@latest/actions/creating-actions/creating-a-javascript-action#creating-an-action-metadata-file) called `action.yml`. This describes the action, gives it a name, and defines its inputs and outputs.
 2) A Node.js script, whose name matches the module. This is where you can implement the custom logic for your action.
@@ -69,7 +69,7 @@ In order to bundle actions with their dependencies into a single Node.js executa
     - Use the absolute path of the action in GitHub, including the repo name, path, and branch ref, like so:
       ```yaml
       - name: Generate Version
-        uses: Expensify/Expensify.cash/.github/actions/bumpVersion@main
+        uses: Expensify/App/.github/actions/bumpVersion@main
       ```
        Do not try to use a relative path.
 - Confusingly, paths in action metadata files (`action.yml`) _must_ use relative paths.
@@ -78,11 +78,11 @@ In order to bundle actions with their dependencies into a single Node.js executa
 
 ## Imperative Workflows
 
-We have a unique way of defining certain workflows which can be manually triggered by the `workflow_dispatch` event. See `createNewVersion.yml` and `updateProtectedBranch.yml` for examples. Used in combination with the custom [`triggerWorkflowAndWait` action](https://github.com/Expensify/Expensify.cash/blob/d07dcf4e3e0b3f11bec73726856e6d5f8624704c/.github/actions/triggerWorkflowAndWait/triggerWorkflowAndWait.js), workflows can be synchronously executed like a function from another workflow, like this:
+We have a unique way of defining certain workflows which can be manually triggered by the `workflow_dispatch` event. See `createNewVersion.yml` and `updateProtectedBranch.yml` for examples. Used in combination with the custom [`triggerWorkflowAndWait` action](https://github.com/Expensify/App/blob/d07dcf4e3e0b3f11bec73726856e6d5f8624704c/.github/actions/triggerWorkflowAndWait/triggerWorkflowAndWait.js), workflows can be synchronously executed like a function from another workflow, like this:
 
 ```yaml
 - name: Create new BUILD version
-  uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+  uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
   with:
     GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
     WORKFLOW: createNewVersion.yml

@@ -44,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
@@ -77,7 +77,7 @@ jobs:
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
-        uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -94,7 +94,7 @@ jobs:
 
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
-        uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: OSBotify
@@ -132,12 +132,12 @@ jobs:
           destination_branch: staging
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: '🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
-          pr_body: '🍒 Cherry pick https://github.com/Expensify/Expensify.cash/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
+          pr_body: '🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
           pr_label: automerge
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
-        uses: Expensify/Expensify.cash/.github/actions/isPullRequestMergeable@main
+        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}

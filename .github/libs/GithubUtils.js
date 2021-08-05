@@ -6,7 +6,7 @@ const {throttling} = require('@octokit/plugin-throttling');
 
 const GITHUB_OWNER = 'Expensify';
 const EXPENSIFY_CASH_REPO = 'Expensify.cash';
-const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/Expensify.cash';
+const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/App';
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
@@ -219,7 +219,7 @@ class GithubUtils {
 
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
 
                 // PR list
                 if (!_.isEmpty(sortedPRList)) {

@@ -1,6 +1,6 @@
 <div align="center">
     <a href="https://new.expensify.com">
-        <img src="https://raw.githubusercontent.com/Expensify/Expensify.cash/main/web/favicon.png" width="64" height="64" alt="New Expensify Icon">
+        <img src="https://raw.githubusercontent.com/Expensify/App/main/web/favicon.png" width="64" height="64" alt="New Expensify Icon">
     </a>
     <h1>
         <a href="https://new.expensify.com">
