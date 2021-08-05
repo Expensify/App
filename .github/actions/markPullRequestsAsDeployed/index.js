@@ -153,12 +153,18 @@ function getPRDeployVerb(pr) {
     });
 }
 
-function getPRMessage(PR) {
-    return getPRDeployVerb(PR).then((deployVerb) => {
+function getPRMessage(pr) {
+    return getPRDeployVerb(pr).then((deployVerb) => {
         let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}\
          in version: ${version}🚀`;
         message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
         message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
+
+        const prData = PRMap[pr];
+        if (deployVerb == 'Cherry-picked' && (/no qa/gi).test(prData.title)) {
+          message += `\n\nThe PR title did not include [No QA], so this likely is a CP that requires QA @Expensify/applauseleads`;
+        }
+
         return message;
     });
 }
