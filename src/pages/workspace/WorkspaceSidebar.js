@@ -71,7 +71,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
             return null;
         }
-    }, []);
+    }, [policy]);
 
 
     const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
