@@ -462,8 +462,11 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         });
     }
 
+    // eslint-disable-next-line no-use-before-define
+    const isInvalidLogin = isCurrentUser({login: searchValue});
     let userToInvite = null;
     if (searchValue
+        && !isInvalidLogin
         && recentReportOptions.length === 0
         && personalDetailsOptions.length === 0
         && _.every(selectedOptions, option => option.login !== searchValue)
