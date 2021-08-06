@@ -56,6 +56,7 @@ import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
+import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
     /** Beta features list */
@@ -148,6 +149,7 @@ class ReportActionCompose extends React.Component {
         this.emojiSearchInput = null;
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
+        this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -165,6 +167,7 @@ class ReportActionCompose extends React.Component {
                 start: props.comment.length,
                 end: props.comment.length,
             },
+            preferredSkinTone: undefined,
         };
     }
 
@@ -175,6 +178,9 @@ class ReportActionCompose extends React.Component {
             }
         });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
+        if (typeof this.props.preferredSkinTone === 'number') {
+            this.state.preferredSkinTone = this.props.preferredSkinTone;
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -194,6 +200,13 @@ class ReportActionCompose extends React.Component {
 
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
+    }
+
+    setPreferredSkinTone(skinTone) {
+        if (skinTone !== this.state.preferredSkinTone) {
+            this.setState({preferredSkinTone: skinTone});
+            NameValuePair.set(CONST.NVP.PREFERRED_SKIN_TONE, skinTone, ONYXKEYS.NVP_PREFERRED_SKIN_TONE);
+        }
     }
 
     /**
@@ -605,6 +618,8 @@ class ReportActionCompose extends React.Component {
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
                             ref={el => this.emojiSearchInput = el}
+                            preferredSkinTone={this.state.preferredSkinTone}
+                            updatePreferredSkinTone={this.setPreferredSkinTone}
                         />
                     </Popover>
                     <Pressable
@@ -694,6 +709,9 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        preferredSkinTone: {
+            key: ONYXKEYS.NVP_PREFERRED_SKIN_TONE,
         },
     }),
 )(ReportActionCompose);

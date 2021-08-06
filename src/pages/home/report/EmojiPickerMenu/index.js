@@ -24,6 +24,8 @@ const propTypes = {
 
     preferredSkinTone: PropTypes.number,
 
+    updatePreferredSkinTone: PropTypes.func,
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -32,7 +34,8 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    preferredSkinTone: null,
+    preferredSkinTone: undefined,
+    updatePreferredSkinTone: undefined,
 };
 
 class EmojiPickerMenu extends Component {
@@ -107,8 +110,8 @@ class EmojiPickerMenu extends Component {
 
     setPreferredSkinTone(skinToneIndex) {
         this.setState({preferredSkinTone: skinToneIndex, showSkinToneList: false});
-        if (this.props.updateSelectedSkinTone) {
-            this.props.updateSelectedSkinTone(skinToneIndex);
+        if (this.props.updatePreferredSkinTone) {
+            this.props.updatePreferredSkinTone(skinToneIndex);
         }
     }
 
