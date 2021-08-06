@@ -401,7 +401,7 @@ class EmojiPickerMenu extends Component {
                                           highlightedSkinToneIndex: skinToneEmoji.skinTone,
                                       })}
                                       key={skinToneEmoji.code}
-                                      style={styles.emojiSkinToneItem}
+                                      emojiItemStyle={[styles.emojiSkinToneItem, styles.emojiSkinToneItem]}
                                       emoji={`${skinToneEmoji.code}\uFE0F`}
                                       isHighlighted={skinToneEmoji.skinTone === this.state.highlightedSkinToneIndex}
                                       emojiSize={this.emojiSize}
@@ -409,7 +409,10 @@ class EmojiPickerMenu extends Component {
                               ))
                             }
                             </View>
-                            <Text style={[styles.emojiHeaderStyle, styles.emojiExtraSmall]}>
+                            <Text style={
+                              [styles.emojiHeaderStyle, styles.emojiExtraSmall, styles.textAlignCenter, styles.pv0]
+                              }
+                            >
                                 {this.props.translate('emojiPicker.setPreferredSkinTone')}
                             </Text>
                         </View>
