@@ -1,11 +1,11 @@
 import React, {Component} from 'react';
-import {View, FlatList, Pressable} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
 import styles, {getEmojiPickerStyle} from '../../../../styles/styles';
 import themeColors from '../../../../styles/themes/default';
-import emojis, {skinTones} from '../../../../../assets/emojis';
+import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
@@ -14,7 +14,6 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
 import dynamicEmojiSize from './dynamicEmojiSize';
-import getSkinToneEmojiCode from './getSkinToneEmojiCode';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 
 const propTypes = {
@@ -88,7 +87,6 @@ class EmojiPickerMenu extends Component {
             filteredEmojis: this.emojis,
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
-            highlightedSkinToneIndex: -1,
             arePointerEventsDisabled: false,
             showSkinToneList: false,
         };
@@ -414,7 +412,6 @@ class EmojiPickerMenu extends Component {
                 <EmojiSkinToneList
                     isSkinToneListVisible={this.state.showSkinToneList}
                     setPreferredSkinTone={this.setPreferredSkinTone}
-                    setHighlightedSkinTone={index => this.setState({highlightedSkinToneIndex: index})}
                     emojiSize={this.emojiSize}
                     preferredSkinTone={this.props.preferredSkinTone}
                     toggleSkinToneList={flag => this.setState({showSkinToneList: flag})}
