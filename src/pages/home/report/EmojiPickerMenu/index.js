@@ -117,7 +117,8 @@ class EmojiPickerMenu extends Component {
         if (typeof skinToneIndex !== 'number') {
             return skinTones[0].code;
         }
-        return skinTones.find(emoji => emoji.skinTone === skinToneIndex).code;
+        const selectedSkinTone = skinTones.find(emoji => emoji.skinTone === skinToneIndex);
+        return selectedSkinTone ? selectedSkinTone.code : skinTones[0].code;
     }
 
 
