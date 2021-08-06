@@ -1,5 +1,5 @@
 {
-  "name": "expensify.cash",
+  "name": "new.expensify",
   "version": "1.0.82-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
@@ -210,7 +210,7 @@
         "name": "iPhone 11"
       },
       "ios.sim.release": {
-        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/expensify.cash.app",
+        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/new expensify.app",
         "build": "xcodebuild -workspace ios/ExpensifyCash.xcworkspace -scheme ExpensifyCash -configuration Release -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
         "type": "ios.simulator",
         "name": "iPhone 11"
