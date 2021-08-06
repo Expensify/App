@@ -565,6 +565,7 @@ export default {
             helpText: 'Elige un nombre para el espacio de trabajo antes de activar las tarjetas Expensify',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+            successMessage: 'Espacio de trabajo creado',
         },
         people: {
             assignee: 'Persona asignada',
