@@ -39,7 +39,7 @@ const defaultProps = {
     isSkinToneListVisible: false,
 };
 
-const EmojiSkinTonePicker = props => (
+const EmojiSkinToneList = props => (
     <View style={[styles.flexRow, styles.p1]}>
         {
             !props.isSkinToneListVisible
@@ -98,10 +98,10 @@ const EmojiSkinTonePicker = props => (
 
 );
 
-EmojiSkinTonePicker.propTypes = propTypes;
-EmojiSkinTonePicker.defaultProps = defaultProps;
+EmojiSkinToneList.propTypes = propTypes;
+EmojiSkinToneList.defaultProps = defaultProps;
 
 
 export default compose(
     withLocalize,
-)(EmojiSkinTonePicker);
+)(EmojiSkinToneList);

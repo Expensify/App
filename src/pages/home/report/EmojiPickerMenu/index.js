@@ -15,6 +15,7 @@ import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
 import dynamicEmojiSize from './dynamicEmojiSize';
 import getSkinToneEmojiCode from './getSkinToneEmojiCode';
+import EmojiSkinToneList from '../EmojiSkinToneList';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -24,7 +25,7 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.number,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func,
@@ -360,73 +361,6 @@ class EmojiPickerMenu extends Component {
         );
     }
 
-    /**
-     * Returns view for skin tone picker
-     * @returns {*}
-     */
-    renderSkinTonePicker() {
-        return (
-            <View style={[styles.flexRow, styles.p1]}>
-                {
-                  !this.state.showSkinToneList
-                        && (
-                        <Pressable
-                            onPress={
-                              () => this.setState(prevState => ({showSkinToneList: !prevState.showSkinToneList}))
-                            }
-                            style={[
-                                styles.pv1,
-                                styles.flex1,
-                                styles.flexRow,
-                                styles.alignSelfCenter,
-                                styles.justifyContentStart,
-                            ]}
-                        >
-                            <Text style={[styles.emojiText, this.emojiSize]}>
-                                {`${getSkinToneEmojiCode(this.props.preferredSkinTone)}\uFE0F`}
-                            </Text>
-                            <Text style={[styles.emojiHeaderStyle]}>
-                                {this.props.translate('emojiPicker.skinTonePickerLabel')}
-                            </Text>
-                        </Pressable>
-                        )
-                }
-                {
-                        this.state.showSkinToneList
-                        && (
-                        <View>
-                            <View style={[styles.flexRow]}>
-                                {
-                              skinTones.map(skinToneEmoji => (
-                                  <EmojiPickerMenuItem
-                                      onPress={() => this.setPreferredSkinTone(skinToneEmoji.skinTone)}
-                                      onHover={() => this.setState({
-                                          highlightedSkinToneIndex: skinToneEmoji.skinTone,
-                                      })}
-                                      key={skinToneEmoji.code}
-                                      emojiItemStyle={[styles.emojiSkinToneItem, styles.emojiSkinToneItem]}
-                                      emoji={`${skinToneEmoji.code}\uFE0F`}
-                                      isHighlighted={skinToneEmoji.skinTone === this.state.highlightedSkinToneIndex}
-                                      emojiSize={this.emojiSize}
-                                  />
-                              ))
-                            }
-                            </View>
-                            <Text style={
-                              [styles.emojiHeaderStyle, styles.emojiExtraSmall, styles.textAlignCenter, styles.pv0]
-                              }
-                            >
-                                {this.props.translate('emojiPicker.setPreferredSkinTone')}
-                            </Text>
-                        </View>
-                        )
-                    }
-
-            </View>
-
-        );
-    }
-
     render() {
         return (
             <View
@@ -477,7 +411,14 @@ class EmojiPickerMenu extends Component {
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
                         />
                     )}
-                {this.renderSkinTonePicker()}
+                <EmojiSkinToneList
+                    isSkinToneListVisible={this.state.showSkinToneList}
+                    setPreferredSkinTone={this.setPreferredSkinTone}
+                    setHighlightedSkinTone={index => this.setState({highlightedSkinToneIndex: index})}
+                    emojiSize={this.emojiSize}
+                    preferredSkinTone={this.props.preferredSkinTone}
+                    toggleSkinToneList={flag => this.setState({showSkinToneList: flag})}
+                />
             </View>
         );
     }
