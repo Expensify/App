@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -23,12 +22,19 @@ const defaultProps = {
 };
 
 class EnablePaymentsPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading: true,
+        };
+    }
+
     componentDidMount() {
-        fetchUserWallet();
+        fetchUserWallet().then(() => this.setState({loading: false}));
     }
 
     render() {
-        if (_.isEmpty(this.props.userWallet)) {
+        if (this.state.loading) {
             return <FullScreenLoadingIndicator />;
         }
 
