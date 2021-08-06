@@ -328,6 +328,11 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+    const oldACHData = {
+        accountNumber: reimbursementAccountInSetup.accountNumber || '',
+        routingNumber: reimbursementAccountInSetup.routingNumber || '',
+    };
+
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
@@ -478,7 +483,18 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })
                 .finally(() => {
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                    const dataToMerge = {
+                        loading: false,
+                    };
+
+                    // If we didn't get a routingNumber and accountNumber from the response and we have previously saved
+                    // values, autofill them
+                    if (!reimbursementAccountInSetup.routingNumber && !reimbursementAccountInSetup.accountNumber
+                        && oldACHData.routingNumber && oldACHData.accountNumber) {
+                        dataToMerge.achData = oldACHData;
+                    }
+
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, dataToMerge);
                 });
         });
 }
