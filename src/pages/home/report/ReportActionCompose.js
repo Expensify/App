@@ -168,7 +168,6 @@ class ReportActionCompose extends React.Component {
                 start: props.comment.length,
                 end: props.comment.length,
             },
-            preferredSkinTone: 'default',
         };
     }
 
@@ -179,9 +178,6 @@ class ReportActionCompose extends React.Component {
             }
         });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
-        if (typeof this.props.preferredSkinTone === 'number') {
-            this.state.preferredSkinTone = this.props.preferredSkinTone;
-        }
     }
 
     componentDidUpdate(prevProps) {
@@ -208,8 +204,7 @@ class ReportActionCompose extends React.Component {
      * @param {Number|String} skinTone
      */
     setPreferredSkinTone(skinTone) {
-        if (skinTone !== this.state.preferredSkinTone) {
-            this.setState({preferredSkinTone: skinTone});
+        if (skinTone !== this.props.preferredSkinTone) {
             User.setPreferredSkinTone(skinTone);
         }
     }
@@ -628,7 +623,7 @@ class ReportActionCompose extends React.Component {
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
                             ref={el => this.emojiSearchInput = el}
-                            preferredSkinTone={this.state.preferredSkinTone}
+                            preferredSkinTone={this.props.preferredSkinTone}
                             updatePreferredSkinTone={this.setPreferredSkinTone}
                         />
                     </Popover>
