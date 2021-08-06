@@ -611,5 +611,6 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Choose skin tone',
+        setPreferredSkinTone: 'Set your preferred default skin tone',
     },
 };

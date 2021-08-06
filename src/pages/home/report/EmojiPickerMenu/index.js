@@ -363,7 +363,7 @@ class EmojiPickerMenu extends Component {
 
     renderSkinTonePicker() {
         return (
-            <View style={[styles.flexRow, styles.flex1]}>
+            <View style={[styles.flexRow, styles.p1]}>
                 {
                   !this.state.showSkinToneList
                         && (
@@ -391,8 +391,9 @@ class EmojiPickerMenu extends Component {
                 {
                         this.state.showSkinToneList
                         && (
-                        <View style={[styles.flexRow]}>
-                            {
+                        <View>
+                            <View style={[styles.flexRow]}>
+                                {
                               skinTones.map(skinToneEmoji => (
                                   <EmojiPickerMenuItem
                                       onPress={() => this.setPreferredSkinTone(skinToneEmoji.skinTone)}
@@ -400,13 +401,17 @@ class EmojiPickerMenu extends Component {
                                           highlightedSkinToneIndex: skinToneEmoji.skinTone,
                                       })}
                                       key={skinToneEmoji.code}
-                                      style={styles.mr1}
+                                      style={styles.emojiSkinToneItem}
                                       emoji={`${skinToneEmoji.code}\uFE0F`}
                                       isHighlighted={skinToneEmoji.skinTone === this.state.highlightedSkinToneIndex}
                                       emojiSize={this.emojiSize}
                                   />
                               ))
                             }
+                            </View>
+                            <Text style={[styles.emojiHeaderStyle, styles.emojiExtraSmall]}>
+                                {this.props.translate('emojiPicker.setPreferredSkinTone')}
+                            </Text>
                         </View>
                         )
                     }

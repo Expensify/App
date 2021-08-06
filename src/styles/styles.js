@@ -1127,6 +1127,10 @@ const styles = {
         borderRadius: 8,
     },
 
+    emojiSkinToneItem: {
+        width: 'auto',
+    },
+
     emojiItemHighlighted: {
         transition: '0.2s ease',
         backgroundColor: themeColors.buttonDefaultBG,
