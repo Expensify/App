@@ -546,6 +546,10 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'One moment...',
+        explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
+    },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
         offlineMessage: 'Looks like you\'re offline.',
