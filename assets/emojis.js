@@ -28,7 +28,26 @@ import CONST from '../src/CONST';
 
 
 // BEFORE YOU EDIT THIS, PLEASE SEE WARNINGS IN EmojiPickerMenu.js
-const skinTones = ['🖐🏿', '🖐🏾', '🖐🏽', '🖐🏼', '🖐🏻', '🖐'];
+const skinTones = [{
+    code: '🖐',
+    skinTone: undefined,
+}, {
+    code: '🖐🏻',
+    skinTone: 4,
+}, {
+    code: '🖐🏼',
+    skinTone: 3,
+}, {
+    code: '🖐🏽',
+    skinTone: 2,
+}, {
+    code: '🖐🏾',
+    skinTone: 1,
+}, {
+    code: '🖐🏿',
+    skinTone: 0,
+}];
+
 const emojis = [
     {
         code: 'Smileys & People',
