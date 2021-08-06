@@ -226,7 +226,6 @@ class CompanyStep extends React.Component {
                         </View>
                         {/* TODO: Replace with NAICS picker */}
                         <TextInputWithLabel
-                            autoCompleteType="new-password"
                             label={this.props.translate('companyStep.industryClassificationCode')}
                             helpLinkText={this.props.translate('common.whatThis')}
                             helpLinkURL="https://www.naics.com/search/"
@@ -235,7 +234,7 @@ class CompanyStep extends React.Component {
                             value={this.state.industryCode}
                         />
                         <TextInputWithLabel
-                            autoCompleteType="new-password"
+                            autoCompleteType='new-password'
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
