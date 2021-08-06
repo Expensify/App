@@ -5,12 +5,12 @@ import {skinTones} from '../../../../../assets/emojis';
  * @param {Number} skinToneIndex
  * @returns {String}
  */
-const getSkinToneEmojiCode = (skinToneIndex) => {
+const getSkinToneEmojiFromIndex = (skinToneIndex) => {
     if (typeof skinToneIndex !== 'number') {
-        return skinTones[0].code;
+        return skinTones[0];
     }
     const selectedSkinTone = skinTones.find(emoji => emoji.skinTone === skinToneIndex);
-    return selectedSkinTone ? selectedSkinTone.code : skinTones[0].code;
+    return selectedSkinTone || skinTones[0];
 };
 
-export default getSkinToneEmojiCode;
+export default getSkinToneEmojiFromIndex;
