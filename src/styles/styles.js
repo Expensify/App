@@ -573,10 +573,7 @@ const styles = {
             border: 'none',
             ...expensiPicker,
         },
-        inputIOS: {
-            ...expensiPicker,
-        },
-        inputAndroid: {
+        inputNative: {
             ...expensiPicker,
         },
     }),
