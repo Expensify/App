@@ -1,7 +1,8 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
+import _ from 'underscore';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 import styles, {getWidthAndHeightStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
@@ -31,6 +32,28 @@ class ImageView extends PureComponent {
         this.doubleClickInterval = 175;
         this.imageZoomScale = 1;
         this.lastClickTime = 0;
+        this.amountOfTouches = 0;
+
+        // PanResponder used to capture how many touches are active on the attachment image
+        this.panResponder = PanResponder.create({
+            onStartShouldSetPanResponder: this.handleOnStartShouldSetPanResponder.bind(this),
+        });
+    }
+
+    /**
+     * Handler for the initial tap for the PanResponder on our ImageZoom overlay View
+     *
+     * @param {Event} e
+     * @param {GestureState} gestureState
+     * @returns {Boolean}
+     */
+    handleOnStartShouldSetPanResponder(e, gestureState) {
+        if (_.isNumber(gestureState.numberActiveTouches)) {
+            this.amountOfTouches = gestureState.numberActiveTouches;
+        }
+
+        // We don't need to set the panResponder since all we care about is checking the gestureState, so return false
+        return false;
     }
 
     render() {
@@ -54,10 +77,11 @@ class ImageView extends PureComponent {
                     imageHeight={this.state.imageHeight}
                     onStartShouldSetPanResponder={(e) => {
                         const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
+                        const touches = this.amountOfTouches;
                         this.lastClickTime = new Date().getTime();
 
                         // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
-                        if (e.nativeEvent.touches.length === 2 || this.imageZoomScale !== 1) {
+                        if (touches === 2 || this.imageZoomScale !== 1) {
                             return true;
                         }
 
@@ -94,6 +118,20 @@ class ImageView extends PureComponent {
 
                             this.setState({imageHeight, imageWidth});
                         }}
+                    />
+                    {/**
+                     Create an invisible view on top of the image so we can capture and set the amount of touches before
+                     the ImageZoom's PanResponder does. Children will be triggered first, so this needs to be inside the
+                     ImageZoom to work
+                     */}
+                    <View
+                        /* eslint-disable-next-line react/jsx-props-no-spreading */
+                        {...this.panResponder.panHandlers}
+                        style={[
+                            styles.w100,
+                            styles.h100,
+                            styles.invisible,
+                        ]}
                     />
                 </ImageZoom>
             </View>
