@@ -86,7 +86,8 @@ function getUserDetails() {
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_SKIN_TONE}`, {});
-            Onyx.merge(ONYXKEYS.NVP_PREFERRED_SKIN_TONE, preferredSkinTone || 'default');
+            Onyx.merge(ONYXKEYS.NVP_PREFERRED_SKIN_TONE,
+                typeof preferredSkinTone === 'number' ? preferredSkinTone : 'default');
         });
 }
 
