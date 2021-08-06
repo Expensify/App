@@ -14,6 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
 import dynamicEmojiSize from './dynamicEmojiSize';
+import getSkinToneEmojiCode from './getSkinToneEmojiCode';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -76,7 +77,6 @@ class EmojiPickerMenu extends Component {
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
-        this.getSkinToneEmoji = this.getSkinToneEmoji.bind(this);
 
         this.currentScrollOffset = 0;
         this.emojiSize = {
@@ -118,20 +118,6 @@ class EmojiPickerMenu extends Component {
             this.props.updatePreferredSkinTone(skinTone);
         }
     }
-
-    /**
-     * Fetch the emoji code of selected skinTone
-     * @param {Number} skinToneIndex
-     * @returns {String}
-     */
-    getSkinToneEmoji(skinToneIndex) {
-        if (typeof skinToneIndex !== 'number') {
-            return skinTones[0].code;
-        }
-        const selectedSkinTone = skinTones.find(emoji => emoji.skinTone === skinToneIndex);
-        return selectedSkinTone ? selectedSkinTone.code : skinTones[0].code;
-    }
-
 
     /**
      * Setup and attach keypress/mouse handlers for highlight navigation.
@@ -397,7 +383,7 @@ class EmojiPickerMenu extends Component {
                             ]}
                         >
                             <Text style={[styles.emojiText, this.emojiSize]}>
-                                {`${this.getSkinToneEmoji(this.props.preferredSkinTone)}\uFE0F`}
+                                {`${getSkinToneEmojiCode(this.props.preferredSkinTone)}\uFE0F`}
                             </Text>
                             <Text style={[styles.emojiHeaderStyle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
