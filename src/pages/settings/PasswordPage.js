@@ -167,7 +167,7 @@ class PasswordPage extends Component {
                                 onBlur={() => this.onBlurConfirmPassword()}
                             />
                         </View>
-                        {!isEmpty(this.props.account.error) && (
+                        {!this.state.shouldShowPasswordConfirmError && !isEmpty(this.props.account.error) && (
                             <Text style={styles.formError}>
                                 {this.props.account.error}
                             </Text>
