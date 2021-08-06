@@ -87,6 +87,7 @@ const CONST = {
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
         INTERNATIONALIZATION: 'internationalization',
+        IOU_SEND: 'sendMoney',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -332,12 +333,12 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
-    },
 
-    IOU_TYPE: {
-        SEND: 'send',
-        SPLIT: 'split',
-        REQUEST: 'request',
+        IOU_TYPE: {
+            SEND: 'send',
+            SPLIT: 'split',
+            REQUEST: 'request',
+        },
     },
 
     GROWL: {
