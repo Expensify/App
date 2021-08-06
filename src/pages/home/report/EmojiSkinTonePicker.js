@@ -5,6 +5,7 @@ import styles from '../../../styles/styles';
 import compose from '../../../libs/compose';
 import {skinTones} from '../../../../assets/emojis';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Text from '../../../components/Text';
 import getSkinToneEmojiCode from './EmojiPickerMenu/getSkinToneEmojiCode';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 
@@ -14,7 +15,7 @@ const propTypes = {
     isSkinToneListVisible: PropTypes.bool,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.number.isRequired,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     setPreferredSkinTone: PropTypes.func.isRequired,
