@@ -21,9 +21,46 @@ let enhanceParameters;
 let onResponse = () => {};
 let onError = () => {};
 
+let didLoadPersistedRequests;
+let isOffline;
+
+/**
+ * Process the offline NETWORK_REQUEST_QUEUE
+ * @param {Array<Object> | null} persistedRequests - Requests
+ */
+function processOfflineQueue(persistedRequests) {
+    // NETWORK_REQUEST_QUEUE is shared across clients, thus every client will have similiar copy of
+    // NETWORK_REQUEST_QUEUE. It is very important to only process the queue from leader client
+    // otherwise requests will be duplicated.
+    // We only process the persisted requests when
+    // a) Client is leader.
+    // b) User is online.
+    // c) requests are not already loaded,
+    // d) When there is at least one request
+    if (!ActiveClientManager.isClientTheLeader()
+        || isOffline
+        || didLoadPersistedRequests
+        || !persistedRequests
+        || !persistedRequests.length) {
+        return;
+    }
+
+    // Queue processing expects handlers but due to we are loading the requests from Storage
+    // we just noop them to ignore the errors.
+    _.each(persistedRequests, (request) => {
+        request.resolve = () => {};
+        request.reject = () => {};
+    });
+
+    // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
+    // this once when the app initializes
+    networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
+    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+    didLoadPersistedRequests = true;
+}
+
 // We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
-let isOffline;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
     callback: (val) => {
@@ -33,51 +70,23 @@ Onyx.connect({
 
         // Client becomes online, process the queue.
         if (isOffline && !val.isOffline) {
-            // Fake merge which trigger the NETWORK_REQUEST_QUEUE Onyx's subscription callback
-            Onyx.merge(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+            const connection = Onyx.connect({
+                key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
+                callback: processOfflineQueue,
+            });
+            Onyx.disconnect(connection);
         }
         isOffline = val.isOffline;
     },
 });
 
-let didLoadPersistedRequests;
-
+// Subscribe to NETWORK_REQUEST_QUEUE queue as soon as Client is ready
 ActiveClientManager.isReady().then(() => {
     Onyx.connect({
         key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
-        callback: (persistedRequests) => {
-            // NETWORK_REQUEST_QUEUE is shared across clients, thus every client will have similiar copy of
-            // NETWORK_REQUEST_QUEUE. It is very important to only process the queue from leader client
-            // otherwise requests will be duplicated.
-            // We only process the persisted requests when
-            // a) Client is leader.
-            // b) User is online.
-            // c) requests are not already loaded,
-            // d) When there is at least one request
-            if (!ActiveClientManager.isClientTheLeader()
-                || isOffline
-                || didLoadPersistedRequests
-                || !persistedRequests
-                || !persistedRequests.length) {
-                return;
-            }
-
-            // Queue processing expects handlers but due to we are loading the requests from Storage
-            // we just noop them to ignore the errors.
-            _.each(persistedRequests, (request) => {
-                request.resolve = () => {};
-                request.reject = () => {};
-            });
-
-            // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
-            // this once when the app initializes
-            networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-            Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
-            didLoadPersistedRequests = true;
-        },
+        callback: processOfflineQueue,
     });
 });
-
 
 // Subscribe to the user's session so we can include their email in every request and include it in the server logs
 let email;
