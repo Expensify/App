@@ -7,24 +7,24 @@ import NetworkConnection from './NetworkConnection';
 import HttpUtils from './HttpUtils';
 
 let timeout = null;
-let info;
 
 /**
  * Network interface for logger.
  *
+ * @param {Logger} logger
  * @param {Object} params
  * @param {Object} params.parameters
  * @param {String} params.message
  * @return {Promise}
  */
-function serverLoggingCallback(params) {
+function serverLoggingCallback(logger, params) {
     const requestParams = params;
     requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${version}`;
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
     }
     clearTimeout(timeout);
-    timeout = setTimeout(() => info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
+    timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
     return API.Log(requestParams);
 }
 
@@ -39,8 +39,7 @@ const Log = new Logger({
     },
     isDebug: !CONFIG.IS_IN_PRODUCTION,
 });
-info = Log.info;
-timeout = setTimeout(() => info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
+timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 NetworkConnection.registerLogInfoCallback(Log.info);
 HttpUtils.setLogger(Log);
