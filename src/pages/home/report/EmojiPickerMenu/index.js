@@ -22,8 +22,10 @@ const propTypes = {
     /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
 
+    /** Stores user's preferred skin tone */
     preferredSkinTone: PropTypes.number,
 
+    /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func,
 
     /** Props related to the dimensions of the window */
@@ -106,13 +108,22 @@ class EmojiPickerMenu extends Component {
         this.cleanupEventHandlers();
     }
 
-    setPreferredSkinTone(skinToneIndex) {
+    /**
+     * Update the preferredSkinTone and call the parent function if available
+     * @param {Number} skinTone
+     */
+    setPreferredSkinTone(skinTone) {
         this.setState({showSkinToneList: false});
         if (this.props.updatePreferredSkinTone) {
-            this.props.updatePreferredSkinTone(skinToneIndex);
+            this.props.updatePreferredSkinTone(skinTone);
         }
     }
 
+    /**
+     * Fetch the emoji code of selected skinTone
+     * @param {Number} skinToneIndex
+     * @returns {String}
+     */
     getSkinToneEmoji(skinToneIndex) {
         if (typeof skinToneIndex !== 'number') {
             return skinTones[0].code;
@@ -363,6 +374,10 @@ class EmojiPickerMenu extends Component {
         );
     }
 
+    /**
+     * Returns view for skin tone picker
+     * @returns {*}
+     */
     renderSkinTonePicker() {
         return (
             <View style={[styles.flexRow, styles.p1]}>

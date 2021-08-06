@@ -24,6 +24,7 @@ const propTypes = {
         fontSize: PropTypes.number,
     }).isRequired,
 
+    /** Override default emojiItem style */
     // eslint-disable-next-line react/forbid-prop-types
     emojiItemStyle: PropTypes.any,
 };

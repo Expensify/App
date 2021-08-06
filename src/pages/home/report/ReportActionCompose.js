@@ -204,6 +204,10 @@ class ReportActionCompose extends React.Component {
         this.setState({selection: e.nativeEvent.selection});
     }
 
+    /**
+     * Update preferredSkinTone and sync with Onyx, NVP.
+     * @param {Number|String} skinTone
+     */
     setPreferredSkinTone(skinTone) {
         if (skinTone !== this.state.preferredSkinTone) {
             this.setState({preferredSkinTone: skinTone});
