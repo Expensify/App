@@ -64,7 +64,7 @@ function canUseInternationalization(betas) {
  * @returns {Boolean}
  */
 function canUseIOUSend(betas) {
-    return _.contains(betas, CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
+    return _.contains(betas, CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
 }
 
 export default {
