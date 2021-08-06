@@ -82,7 +82,6 @@ class EmojiPickerMenu extends Component {
         };
 
         this.state = {
-            preferredSkinTone: undefined,
             filteredEmojis: this.emojis,
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
@@ -101,7 +100,6 @@ class EmojiPickerMenu extends Component {
             this.props.forwardedRef(this.searchInput);
         }
         this.setupEventHandlers();
-        this.state.preferredSkinTone = this.props.preferredSkinTone;
     }
 
     componentWillUnmount() {
@@ -109,7 +107,7 @@ class EmojiPickerMenu extends Component {
     }
 
     setPreferredSkinTone(skinToneIndex) {
-        this.setState({preferredSkinTone: skinToneIndex, showSkinToneList: false});
+        this.setState({showSkinToneList: false});
         if (this.props.updatePreferredSkinTone) {
             this.props.updatePreferredSkinTone(skinToneIndex);
         }
@@ -349,8 +347,8 @@ class EmojiPickerMenu extends Component {
         }
 
         let emojiCode = code;
-        if (types && typeof this.state.preferredSkinTone === 'number' && types[this.state.preferredSkinTone]) {
-            emojiCode = types[this.state.preferredSkinTone];
+        if (types && typeof this.props.preferredSkinTone === 'number' && types[this.props.preferredSkinTone]) {
+            emojiCode = types[this.props.preferredSkinTone];
         }
 
         return (
@@ -383,7 +381,7 @@ class EmojiPickerMenu extends Component {
                             ]}
                         >
                             <Text style={[styles.emojiText, this.emojiSize]}>
-                                {`${this.getSkinToneEmoji(this.state.preferredSkinTone)}\uFE0F`}
+                                {`${this.getSkinToneEmoji(this.props.preferredSkinTone)}\uFE0F`}
                             </Text>
                             <Text style={[styles.emojiHeaderStyle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
@@ -471,7 +469,7 @@ class EmojiPickerMenu extends Component {
                             numColumns={this.numColumns}
                             style={styles.emojiPickerList}
                             extraData={
-                              [this.state.filteredEmojis, this.state.highlightedIndex, this.state.preferredSkinTone]
+                              [this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]
                             }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
