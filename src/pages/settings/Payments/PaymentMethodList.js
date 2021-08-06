@@ -95,7 +95,7 @@ class PaymentMethodList extends Component {
                     // eslint-disable-next-line
                     description: formattedBankAccountNumber,
                     icon: Bank,
-                    onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
+                    onPress: e => this.props.onPress(e, 'bankAccount', bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
                 });
             }
@@ -114,7 +114,7 @@ class PaymentMethodList extends Component {
                     // eslint-disable-next-line
                     description: formattedCardNumber,
                     icon: CreditCard,
-                    onPress: e => this.props.onPress(e, card.cardID),
+                    onPress: e => this.props.onPress(e, 'card', card.cardID),
                     key: `card-${card.cardID}`,
                 });
             }

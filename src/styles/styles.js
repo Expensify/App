@@ -1855,6 +1855,10 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    defaultOrDeleteButton: {
+        width: variables.sideBarWidth - 70,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
