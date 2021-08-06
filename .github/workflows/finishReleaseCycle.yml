@@ -53,7 +53,7 @@ jobs:
 
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: checkDeployBlockers
     if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
     steps:
