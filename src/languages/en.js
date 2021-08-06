@@ -597,6 +597,9 @@ export default {
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
+        error: {
+            growlMessageInvalidPolicy: 'Invalid workspace! You can create a new workspace!',
+        },
     },
     requestCallPage: {
         requestACall: 'Request a Call',
