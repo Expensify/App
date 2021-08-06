@@ -47,6 +47,7 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
+        this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
 
         this.emojiSize = {
             fontSize: dynamicEmojiSize(this.props.windowWidth),
