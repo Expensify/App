@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:staging.expensify.cash</string>
+		<string>applinks:staging.new.expensify.com</string>
 		<string>applinks:new.expensify.com</string>
 	</array>
 </dict>
