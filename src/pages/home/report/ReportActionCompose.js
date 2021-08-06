@@ -56,7 +56,6 @@ import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
     /** Beta features list */
@@ -211,7 +210,7 @@ class ReportActionCompose extends React.Component {
     setPreferredSkinTone(skinTone) {
         if (skinTone !== this.state.preferredSkinTone) {
             this.setState({preferredSkinTone: skinTone});
-            NameValuePair.set(CONST.NVP.PREFERRED_SKIN_TONE, skinTone, ONYXKEYS.NVP_PREFERRED_SKIN_TONE);
+            User.setPreferredSkinTone(skinTone);
         }
     }
 

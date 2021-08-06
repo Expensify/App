@@ -12,6 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+import NameValuePair from './NameValuePair';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -272,6 +273,14 @@ function subscribeToUserEvents() {
         });
 }
 
+/**
+ * Sync preferredSkinTone with Onyx and Server
+ */
+
+function setPreferredSkinTone(skinTone) {
+    return NameValuePair.set(CONST.NVP.PREFERRED_SKIN_TONE, skinTone, ONYXKEYS.NVP_PREFERRED_SKIN_TONE);
+}
+
 export {
     changePassword,
     getBetas,
@@ -283,4 +292,5 @@ export {
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
+    setPreferredSkinTone,
 };
