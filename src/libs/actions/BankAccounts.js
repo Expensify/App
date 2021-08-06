@@ -331,7 +331,10 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     // We temporarily keep the achData state to prevent UI changes while fetching.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, achData: {state: reimbursementAccountInSetup.state}});
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        loading: true,
+        achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
+    });
     let bankAccountID;
 
     API.Get({
