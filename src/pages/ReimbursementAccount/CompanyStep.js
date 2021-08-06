@@ -56,6 +56,7 @@ class CompanyStep extends React.Component {
             'website',
             'companyTaxID',
             'incorporationDate',
+            'incorporationState',
             'industryCode',
             'password',
         ];
