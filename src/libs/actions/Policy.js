@@ -87,7 +87,7 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore, true);
             }
         });
 }
