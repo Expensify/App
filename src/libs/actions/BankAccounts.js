@@ -10,6 +10,7 @@ import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -554,7 +555,12 @@ function validateBankAccount(bankAccountID, validateCode) {
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
+                        if (isUsingExpensifyCard) {
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: '', achData: {state: BankAccount.STATE.OPEN}});
+                            Navigation.dismissModal();
+                        } else {
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: '', achData: {state: BankAccount.STATE.OPEN, currentStep: CONST.BANK_ACCOUNT.STEP.ENABLE}});
+                        }
                     });
                 return;
             }
