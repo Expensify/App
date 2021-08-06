@@ -611,4 +611,7 @@ export default {
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
     },
+    emojiPicker: {
+        skinTonePickerLabel: 'Elige el tono de piel',
+    },
 };

@@ -113,7 +113,6 @@ class EmojiPickerMenu extends Component {
     }
 
     getSkinToneEmoji(skinToneIndex) {
-        console.log('Skin Tone', skinToneIndex);
         if (typeof skinToneIndex !== 'number') {
             return skinTones[0].code;
         }
@@ -388,7 +387,7 @@ class EmojiPickerMenu extends Component {
                             </Text>
                         </Pressable>
                         )
-                  }
+                }
                 {
                         this.state.showSkinToneList
                         && (
@@ -460,7 +459,9 @@ class EmojiPickerMenu extends Component {
                             keyExtractor={item => `emoji_picker_${item.code}`}
                             numColumns={this.numColumns}
                             style={styles.emojiPickerList}
-                            extraData={[this.state.filteredEmojis, this.state.highlightedIndex, this.state.preferredSkinTone]}
+                            extraData={
+                              [this.state.filteredEmojis, this.state.highlightedIndex, this.state.preferredSkinTone]
+                            }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
                         />
