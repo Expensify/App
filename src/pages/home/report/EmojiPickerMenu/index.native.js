@@ -1,23 +1,23 @@
 import React, {Component} from 'react';
-import {View, FlatList, Pressable} from 'react-native';
+import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import compose from '../../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
-import emojis, {skinTones} from '../../../../../assets/emojis';
+import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
 import dynamicEmojiSize from './dynamicEmojiSize';
-import getSkinToneEmojiCode from './getSkinToneEmojiCode';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import EmojiSkinToneList from '../EmojiSkinToneList';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.number,
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func,
@@ -66,73 +66,6 @@ class EmojiPickerMenu extends Component {
         if (this.props.updatePreferredSkinTone) {
             this.props.updatePreferredSkinTone(skinTone);
         }
-    }
-
-    /**
-     * Returns view for skin tone picker
-     * @returns {*}
-     */
-    renderSkinTonePicker() {
-        return (
-            <View style={[styles.flexRow, styles.p1]}>
-                {
-                  !this.state.showSkinToneList
-                        && (
-                        <Pressable
-                            onPress={
-                              () => this.setState(prevState => ({showSkinToneList: !prevState.showSkinToneList}))
-                            }
-                            style={[
-                                styles.pv1,
-                                styles.flex1,
-                                styles.flexRow,
-                                styles.alignSelfCenter,
-                                styles.justifyContentStart,
-                            ]}
-                        >
-                            <Text style={[styles.emojiText, this.emojiSize]}>
-                                {`${getSkinToneEmojiCode(this.props.preferredSkinTone)}\uFE0F`}
-                            </Text>
-                            <Text style={[styles.emojiHeaderStyle]}>
-                                {this.props.translate('emojiPicker.skinTonePickerLabel')}
-                            </Text>
-                        </Pressable>
-                        )
-                }
-                {
-                        this.state.showSkinToneList
-                        && (
-                        <View>
-                            <View style={[styles.flexRow]}>
-                                {
-                              skinTones.map(skinToneEmoji => (
-                                  <EmojiPickerMenuItem
-                                      onPress={() => this.setPreferredSkinTone(skinToneEmoji.skinTone)}
-                                      onHover={() => this.setState({
-                                          highlightedSkinToneIndex: skinToneEmoji.skinTone,
-                                      })}
-                                      key={skinToneEmoji.code}
-                                      emojiItemStyle={[styles.emojiSkinToneItem, styles.emojiSkinToneItem]}
-                                      emoji={`${skinToneEmoji.code}\uFE0F`}
-                                      isHighlighted={skinToneEmoji.skinTone === this.state.highlightedSkinToneIndex}
-                                      emojiSize={this.emojiSize}
-                                  />
-                              ))
-                            }
-                            </View>
-                            <Text style={
-                              [styles.emojiHeaderStyle, styles.emojiExtraSmall, styles.textAlignCenter, styles.pv0]
-                              }
-                            >
-                                {this.props.translate('emojiPicker.setPreferredSkinTone')}
-                            </Text>
-                        </View>
-                        )
-                    }
-
-            </View>
-
-        );
     }
 
 
@@ -184,7 +117,13 @@ class EmojiPickerMenu extends Component {
                     style={styles.emojiPickerList}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
-                {this.renderSkinTonePicker()}
+                <EmojiSkinToneList
+                    isSkinToneListVisible={this.state.showSkinToneList}
+                    setPreferredSkinTone={this.setPreferredSkinTone}
+                    emojiSize={this.emojiSize}
+                    preferredSkinTone={this.props.preferredSkinTone}
+                    toggleSkinToneList={flag => this.setState({showSkinToneList: flag})}
+                />
             </View>
         );
     }
