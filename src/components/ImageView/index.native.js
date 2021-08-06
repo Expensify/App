@@ -75,7 +75,7 @@ class ImageView extends PureComponent {
                     cropHeight={windowHeight}
                     imageWidth={this.state.imageWidth}
                     imageHeight={this.state.imageHeight}
-                    onStartShouldSetPanResponder={(e) => {
+                    onStartShouldSetPanResponder={() => {
                         const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
                         const touches = this.amountOfTouches;
                         this.lastClickTime = new Date().getTime();
