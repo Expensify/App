@@ -169,7 +169,7 @@ class ReportActionCompose extends React.Component {
                 start: props.comment.length,
                 end: props.comment.length,
             },
-            preferredSkinTone: undefined,
+            preferredSkinTone: 'default',
         };
     }
 

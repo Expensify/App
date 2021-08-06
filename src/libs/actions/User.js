@@ -69,7 +69,7 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: CONST.NVP.PAYPAL_ME_ADDRESS,
+        nvpNames: `${CONST.NVP.PAYPAL_ME_ADDRESS}, ${CONST.NVP.PREFERRED_SKIN_TONE}`,
     })
         .then((response) => {
             // Update the User onyx key
@@ -84,6 +84,9 @@ function getUserDetails() {
             // Update the blockedFromConcierge NVP
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
+
+            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_SKIN_TONE}`, {});
+            Onyx.merge(ONYXKEYS.NVP_PREFERRED_SKIN_TONE, preferredSkinTone || 'default');
         });
 }
 
