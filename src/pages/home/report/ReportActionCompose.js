@@ -78,10 +78,10 @@ const propTypes = {
     }),
 
     /** The personal details of the person who is logged in */
-    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes).isRequired,
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -124,6 +124,8 @@ const defaultProps = {
     reportActions: {},
     network: {isOffline: false},
     blockedFromConcierge: {},
+    personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -434,14 +436,19 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        // Waiting until ONYX variables are loaded before displaying the component
+        if (_.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.myPersonalDetails)) {
+            return null;
+        }
+
         // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasChronosParticipant = _.contains(reportParticipants, CONST.EMAIL.CHRONOS);
         const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', {});
-        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', {});
+        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const shouldShowReportRecipientLocalTime = !hasConciergeParticipant
             && !hasChronosParticipant
             && !hasMultipleParticipants

@@ -229,6 +229,7 @@ class AuthScreens extends React.Component {
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;
+        hasLoadedPolicies = false;
     }
 
     render() {

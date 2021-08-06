@@ -604,7 +604,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 295,
+        maxWidth: 335,
     },
 
     signInPageWideLeftContainer: {
