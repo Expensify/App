@@ -555,11 +555,12 @@ function validateBankAccount(bankAccountID, validateCode) {
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
+                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: '', achData: {state: BankAccount.STATE.OPEN}});
+
                         if (isUsingExpensifyCard) {
-                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: '', achData: {state: BankAccount.STATE.OPEN}});
                             Navigation.dismissModal();
                         } else {
-                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: '', achData: {state: BankAccount.STATE.OPEN, currentStep: CONST.BANK_ACCOUNT.STEP.ENABLE}});
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {currentStep: CONST.BANK_ACCOUNT.STEP.ENABLE}});
                         }
                     });
                 return;
