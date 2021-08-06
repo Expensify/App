@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import ExpensiText from '../../../components/Text';
 import Timers from '../../../libs/Timers';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Personal details of the participant */
@@ -45,7 +46,7 @@ class ParticipantLocalTime extends React.Component {
     }
 
     getParticipantLocalTime() {
-        const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', {});
+        const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
         moment.locale(this.props.preferredLocale);
         const reportRecipientDay = moment().tz(reportRecipientTimezone.selected).format('dddd');
         const currentUserDay = moment().tz(this.props.currentUserTimezone.selected).format('dddd');
