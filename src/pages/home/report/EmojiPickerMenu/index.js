@@ -346,7 +346,7 @@ class EmojiPickerMenu extends Component {
         }
 
         let emojiCode = code;
-        if (types && this.state.preferredSkinTone && types[this.state.preferredSkinTone]) {
+        if (types && typeof this.state.preferredSkinTone === 'number' && types[this.state.preferredSkinTone]) {
             emojiCode = types[this.state.preferredSkinTone];
         }
 
