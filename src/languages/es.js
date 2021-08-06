@@ -599,6 +599,9 @@ export default {
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
         },
+        error: {
+            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido! ¡Puedes crear un nuevo espacio de trabajo!',
+        },
     },
     requestCallPage: {
         requestACall: 'Llámame por teléfono',
