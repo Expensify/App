@@ -234,7 +234,7 @@ class CompanyStep extends React.Component {
                             value={this.state.industryCode}
                         />
                         <TextInputWithLabel
-                            autoCompleteType='new-password'
+                            autoCompleteType="new-password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
