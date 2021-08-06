@@ -60,7 +60,7 @@ const Text = React.forwardRef(({
     };
 
     if (componentStyle.fontSize === variables.fontSizeNormal) {
-        componentStyle.lineHeight = 20;
+        componentStyle.lineHeight = variables.fontSizeNormalHeight;
     }
 
     return (
