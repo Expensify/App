@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import VBALoadingIndicator from '../../components/VBALoadingIndicator';
 import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -156,7 +156,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (this.props.reimbursementAccount.loading) {
-            return <FullScreenLoadingIndicator visible />;
+            return <VBALoadingIndicator visible />;
         }
 
         let errorComponent;
