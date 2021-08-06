@@ -1900,10 +1900,6 @@ const webViewStyles = {
     // styles from the renderer, just pass the "style" prop to the underlying
     // component.
     tagStyles: {
-        body: {
-            flexDirection: 'row',
-        },
-
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
             fontStyle: 'italic',
