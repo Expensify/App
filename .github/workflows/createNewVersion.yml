@@ -50,8 +50,8 @@ jobs:
             ./package.json \
             ./package-lock.json \
             ./android/app/build.gradle \
-            ./ios/ExpensifyCash/Info.plist \
-            ./ios/ExpensifyCashTests/Info.plist
+            ./ios/NewExpensify/Info.plist \
+            ./ios/NewExpensifyTests/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
           git push origin ${{ env.VERSION_BRANCH }}
 

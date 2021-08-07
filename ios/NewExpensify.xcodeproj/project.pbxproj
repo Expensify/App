@@ -42,7 +42,7 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = ExpensifyCash;
+			remoteInfo = NewExpensify;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -57,22 +57,20 @@
 		0F5E534E263B73D5004CA14F /* EnvironmentChecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EnvironmentChecker.h; sourceTree = "<group>"; };
 		0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EnvironmentChecker.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* New Expensify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "New Expensify.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ExpensifyCash/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = ExpensifyCash/AppDelegate.m; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ExpensifyCash/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ExpensifyCash/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ExpensifyCash/main.m; sourceTree = "<group>"; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = NewExpensify/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = NewExpensify/AppDelegate.m; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NewExpensify/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = NewExpensify/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = NewExpensify/main.m; sourceTree = "<group>"; };
 		18D050DF262400AF000D658B /* BridgingFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgingFile.swift; sourceTree = "<group>"; };
 		209DE80919A33FCBBA5846B8 /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-BdIt.otf"; path = "../assets/fonts/GTAmericaExpMono-BdIt.otf"; sourceTree = "<group>"; };
-		40EE174FE0E5010DA25F3180 /* Pods-ExpensifyCash.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash.debug.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash.debug.xcconfig"; sourceTree = "<group>"; };
 		5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-RgIt.otf"; path = "../assets/fonts/GTAmericaExpMono-RgIt.otf"; sourceTree = "<group>"; };
-		5E0275D64694B453A3EE297D /* Pods-ExpensifyCash.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash.release.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash.release.xcconfig"; sourceTree = "<group>"; };
 		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
-		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = ExpensifyCash/RCTStartupTimer.h; sourceTree = "<group>"; };
-		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = ExpensifyCash/RCTStartupTimer.m; sourceTree = "<group>"; };
-		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = ExpensifyCash/BootSplash.storyboard; sourceTree = "<group>"; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ExpensifyCash/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
+		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
+		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NewExpensify/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		820334EEB8DDED5217A15684 /* libPods-NewExpensify-NewExpensifyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify-NewExpensifyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-Rg.otf"; path = "../assets/fonts/GTAmericaExpMono-Rg.otf"; sourceTree = "<group>"; };
 		8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Regular.otf"; path = "../assets/fonts/GTAmericaExp-Regular.otf"; sourceTree = "<group>"; };
@@ -81,8 +79,6 @@
 		A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Bold.otf"; path = "../assets/fonts/GTAmericaExp-Bold.otf"; sourceTree = "<group>"; };
 		A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; };
 		AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; };
-		B82386231652D749850CFC70 /* Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig"; sourceTree = "<group>"; };
-		D111222CBD2088E51A5BB624 /* Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig"; sourceTree = "<group>"; };
 		D314A6D536D2ADA797DCDAC9 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; sourceTree = "<group>"; };
 		D3D8FA6E27ED5DD98F515230 /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
 		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
@@ -112,13 +108,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* ExpensifyCashTests */ = {
+		00E356EF1AD99517003FC87E /* NewExpensifyTests */ = {
 			isa = PBXGroup;
 			children = (
 				00E356F21AD99517003FC87E /* ExpensifyCashTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = ExpensifyCashTests;
+			path = NewExpensifyTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -129,7 +125,7 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		13B07FAE1A68108700A75B9A /* ExpensifyCash */ = {
+		13B07FAE1A68108700A75B9A /* NewExpensify */ = {
 			isa = PBXGroup;
 			children = (
 				0F5BE0CD252686320097D869 /* GoogleService-Info.plist */,
@@ -145,7 +141,7 @@
 				0F5E534E263B73D5004CA14F /* EnvironmentChecker.h */,
 				0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */,
 			);
-			name = ExpensifyCash;
+			name = NewExpensify;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -172,9 +168,9 @@
 				7041848326A8E40900E09F4D /* RCTStartupTimer.h */,
 				7041848426A8E47D00E09F4D /* RCTStartupTimer.m */,
 				18D050DF262400AF000D658B /* BridgingFile.swift */,
-				13B07FAE1A68108700A75B9A /* ExpensifyCash */,
+				13B07FAE1A68108700A75B9A /* NewExpensify */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* ExpensifyCashTests */,
+				00E356EF1AD99517003FC87E /* NewExpensifyTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				EC29677F0A49C2946A495A33 /* Pods */,
@@ -216,10 +212,6 @@
 		EC29677F0A49C2946A495A33 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				40EE174FE0E5010DA25F3180 /* Pods-ExpensifyCash.debug.xcconfig */,
-				5E0275D64694B453A3EE297D /* Pods-ExpensifyCash.release.xcconfig */,
-				B82386231652D749850CFC70 /* Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig */,
-				D111222CBD2088E51A5BB624 /* Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig */,
 				D3D8FA6E27ED5DD98F515230 /* Pods-NewExpensify.debug.xcconfig */,
 				EB3C4841B1DB1490EA09A324 /* Pods-NewExpensify.release.xcconfig */,
 				D314A6D536D2ADA797DCDAC9 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */,
@@ -248,7 +240,7 @@
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
 			name = NewExpensifyTests;
-			productName = ExpensifyCashTests;
+			productName = NewExpensifyTests;
 			productReference = 00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -272,7 +264,7 @@
 			dependencies = (
 			);
 			name = NewExpensify;
-			productName = ExpensifyCash;
+			productName = NewExpensify;
 			productReference = 13B07F961A680F5B00A75B9A /* New Expensify.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -805,7 +797,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = ExpensifyCashTests/Info.plist;
+				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -828,7 +820,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = 368M544MTT;
-				INFOPLIST_FILE = ExpensifyCashTests/Info.plist;
+				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -848,14 +840,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ExpensifyCash/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 368M544MTT;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
-				INFOPLIST_FILE = ExpensifyCash/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
@@ -881,13 +873,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ExpensifyCash/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 368M544MTT;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
-				INFOPLIST_FILE = ExpensifyCash/Info.plist;
+				INFOPLIST_FILE = "NewExpensify/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;

@@ -75,8 +75,8 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
 
     build_app(
-        workspace: "./ios/ExpensifyCash.xcworkspace",
-        scheme: "ExpensifyCash"
+        workspace: "./ios/NewExpensify.xcworkspace",
+        scheme: "NewExpensify"
     )
   end
 
@@ -107,8 +107,8 @@ platform :ios do
     )
 
     build_app(
-        workspace: "./ios/ExpensifyCash.xcworkspace",
-        scheme: "ExpensifyCash"
+        workspace: "./ios/NewExpensify.xcworkspace",
+        scheme: "NewExpensify"
     )
 
     upload_to_testflight(
