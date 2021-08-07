@@ -45,7 +45,6 @@ class CompanyStep extends React.Component {
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
             isConfirmModalOpen: false,
-            confirmModalPrompt: '',
         };
 
         // These fields need to be filled out in order to submit the form
@@ -71,7 +70,11 @@ class CompanyStep extends React.Component {
             return false;
         }
 
-        if (!isValidAddress(this.state.addressStreet) || this.state.addressState === '') {
+        if (!isValidAddress(this.state.addressStreet)) {
+            return false;
+        }
+
+        if (this.state.addressState === '') {
             return false;
         }
 
