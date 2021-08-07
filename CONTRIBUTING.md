@@ -9,6 +9,9 @@ You can create as many accounts as needed in order to test your changes directly
 
 **Note**: When testing chat functionality in the app please do this between accounts you or your fellow contributors own - **do not test chatting with Concierge**, as this diverts to our customer support team. Thank you.
 
+##### Generating Multiple Test Accounts
+You can generate multiple test accounts by using a `+` postfix, for example if your email is test@test.com, you can create multiple accounts by using test+123@test.com, test+456@test.com, etc.
+
 ## Code of Conduct
 This project and everyone participating in it is governed by the Expensify [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [contributors@expensify.com](mailto:contributors@expensify.com).
 
