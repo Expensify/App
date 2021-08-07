@@ -45,7 +45,7 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
 
 ## Running the Android app 🤖
-* To install the Android dependencies, run: `npm install`, then `gradle` will install all linked dependencies
+* To install the Android dependencies, run: `npm install`
 * Make sure you have Java installed `java -version`. If not, install it by running `npm install -g openjdk8`.
 * To run a on a **Development Emulator**: `npm run android`
 * Changes applied to Javascript will be applied automatically, any changes to native code will require a recompile
@@ -204,7 +204,7 @@ This application is built with the following principles.
     1. UI inputs push data to the server (React component -> Action -> XHR to server).
     1. Go to 1
 1. **Offline first**
-    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://react-native-community.github.io/async-storage/) is a cross-platform abstraction layer that is used to access persistent storage.
+    - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
 1. **UI Binds to data on disk**
     - Onyx is a Pub/Sub library to connect the application to the data stored on disk.

@@ -118,6 +118,7 @@ class TextInputFocusable extends React.Component {
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
+        this.handleWheel = this.handleWheel.bind(this);
     }
 
     componentDidMount() {
@@ -141,6 +142,7 @@ class TextInputFocusable extends React.Component {
             document.addEventListener('dragleave', this.dragNDropListener);
             document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
+            this.textInput.addEventListener('wheel', this.handleWheel);
         }
     }
 
@@ -168,6 +170,7 @@ class TextInputFocusable extends React.Component {
             document.removeEventListener('dragleave', this.dragNDropListener);
             document.removeEventListener('drop', this.dragNDropListener);
             this.textInput.removeEventListener('paste', this.handlePaste);
+            this.textInput.removeEventListener('wheel', this.handleWheel);
         }
     }
 
@@ -301,6 +304,18 @@ class TextInputFocusable extends React.Component {
             }
 
             this.handlePastedHTML(pastedHTML);
+        }
+    }
+
+    /**
+     * Manually scrolls the text input, then prevents the event from being passed up to the parent.
+     * @param {Object} event native Event
+     */
+    handleWheel(event) {
+        if (event.target === document.activeElement) {
+            this.textInput.scrollTop += event.deltaY;
+            event.preventDefault();
+            event.stopPropagation();
         }
     }
 

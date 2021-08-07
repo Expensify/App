@@ -191,7 +191,8 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
 function createOption(personalDetailList, report, draftComments, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const hasMultipleParticipants = personalDetailList.length > 1;
+    const isDefaultChatRoom = isDefaultRoom(report);
+    const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
     const reportDraftComment = report
         && draftComments
@@ -210,7 +211,6 @@ function createOption(personalDetailList, report, draftComments, {
         + _.unescape(report.lastMessageText)
         : '';
 
-    const isDefaultChatRoom = isDefaultRoom(report);
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     let text;
@@ -562,6 +562,7 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
         alternateText: myPersonalDetail.login,
         icons: [myPersonalDetail.avatar],
         descriptiveText: amountText,
+        login: myPersonalDetail.login,
     };
 }
 
@@ -614,6 +615,7 @@ function getNewGroupOptions(
 
 /**
  * Build the options for the Sidebar a.k.a. LHN
+ *
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {Object} draftComments
@@ -667,6 +669,10 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
+        return translate(preferredLocale, 'messages.noPhoneNumber');
+    }
+
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
             return translate(preferredLocale, 'messages.noPhoneNumber');
@@ -683,7 +689,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  *
  * @param {Object} currencyOptions
  * @param {String} searchValue
- * @param {Object} selectedCurrency
  * @returns {Array}
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {

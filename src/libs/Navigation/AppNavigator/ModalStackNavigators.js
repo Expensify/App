@@ -30,6 +30,7 @@ import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
 import ChooseTransferAccountPage from '../../../pages/settings/Payments/ChooseTransferAccountPage';
+import WorkspaceEditorPage from '../../../pages/workspace/WorkspaceEditorPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -207,6 +208,11 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
     name: 'RequestCall_Root',
 }]);
 
+const WorkspaceEditorNavigator = createModalStackNavigator([{
+    Component: WorkspaceEditorPage,
+    name: 'WorkspaceEditor_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -225,4 +231,5 @@ export {
     NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
+    WorkspaceEditorNavigator,
 };

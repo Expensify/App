@@ -15,6 +15,8 @@ function getPaymentMethods() {
     return API.Get({
         returnValueList: 'bankAccountList, cardList, userWallet, nameValuePairs',
         name: 'paypalMeAddress',
+        includeDeleted: false,
+        includeNotIssued: false,
     })
         .then((response) => {
             Onyx.multiSet({

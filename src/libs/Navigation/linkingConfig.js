@@ -99,7 +99,7 @@ export default {
             },
             Details: {
                 screens: {
-                    Details_Root: ROUTES.DETAILS_WITH_LOGIN,
+                    Details_Root: ROUTES.DETAILS,
                 },
             },
             Participants: {
@@ -162,6 +162,12 @@ export default {
                 screens: {
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
                     WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
+                },
+            },
+
+            WorkspaceEditor: {
+                screens: {
+                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
                 },
             },
 

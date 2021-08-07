@@ -9,7 +9,7 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import NameValuePair from '../../../libs/actions/NameValuePair';
-import {getUserDetails} from '../../../libs/actions/User';
+import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -42,7 +42,7 @@ class AddPayPalMePage extends React.Component {
     }
 
     componentDidMount() {
-        getUserDetails();
+        getPaymentMethods();
     }
 
     componentDidUpdate(prevProps) {
@@ -59,6 +59,7 @@ class AddPayPalMePage extends React.Component {
     setPayPalMeUsername() {
         NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
         Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
 
     render() {
@@ -102,7 +103,9 @@ class AddPayPalMePage extends React.Component {
                             onPress={this.setPayPalMeUsername}
                             pressOnEnter
                             style={[styles.mt3]}
-                            text={this.props.translate('addPayPalMePage.addPayPalAccount')}
+                            text={this.props.payPalMeUsername
+                                ? this.props.translate('addPayPalMePage.editPayPalAccount')
+                                : this.props.translate('addPayPalMePage.addPayPalAccount')}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>

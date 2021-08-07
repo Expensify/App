@@ -83,12 +83,17 @@ class PaymentMethodList extends Component {
         _.each(this.props.bankAccountList, (bankAccount) => {
             // Add all bank accounts besides the wallet
             if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
+                const formattedBankAccountNumber = bankAccount.accountNumber
+                    ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
+                        bankAccount.accountNumber.slice(-4)
+                    }`
+                    : null;
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: bankAccount.addressName,
 
                     // eslint-disable-next-line
-                    description: `${this.props.translate('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)}`,
+                    description: formattedBankAccountNumber,
                     icon: Bank,
                     onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
@@ -99,12 +104,15 @@ class PaymentMethodList extends Component {
         _.each(this.props.cardList, (card) => {
             // Add all cards besides the "cash" card
             if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
+                const formattedCardNumber = card.cardNumber
+                    ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
+                    : null;
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: card.cardName,
 
                     // eslint-disable-next-line
-                    description: `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`,
+                    description: formattedCardNumber,
                     icon: CreditCard,
                     onPress: e => this.props.onPress(e, card.cardID),
                     key: `card-${card.cardID}`,
@@ -130,19 +138,14 @@ class PaymentMethodList extends Component {
             });
         }
 
-        // Don't show Add Payment Method button if user provided details for all possible payment methods.
-        // Right now only available method is Paypal.me
-        // When there is a new payment method, it needs to be added to following if condition.
-        if (!this.props.payPalMeUsername) {
-            combinedPaymentMethods.push({
-                type: MENU_ITEM,
-                title: this.props.translate('paymentMethodList.addPaymentMethod'),
-                icon: Plus,
-                onPress: e => this.props.onPress(e),
-                key: 'addPaymentMethodButton',
-                disabled: this.props.isLoadingPayments,
-            });
-        }
+        combinedPaymentMethods.push({
+            type: MENU_ITEM,
+            title: this.props.translate('paymentMethodList.addPaymentMethod'),
+            icon: Plus,
+            onPress: e => this.props.onPress(e),
+            key: 'addPaymentMethodButton',
+            disabled: this.props.isLoadingPayments,
+        });
 
         return combinedPaymentMethods;
     }
