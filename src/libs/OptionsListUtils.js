@@ -752,6 +752,25 @@ function isCurrentUser(userDetails) {
     return result;
 }
 
+/**
+ * Returns whether the given userDetails is excluded from IOU request
+ * @param {Objecy} userDetails
+ *  @returns {Bool}
+ */
+function isExcludedIOUUsers(userDetails) {
+    if (isCurrentUser(userDetails)) {
+        // Currently logged in user is excluded
+        return true;
+    }
+
+    if (userDetails && userDetails.login) {
+        const login = userDetails.login.toLowerCase();
+        return login === CONST.EMAIL.CHRONOS || login === CONST.EMAIL.CONCIERGE || login === CONST.EMAIL.RECEIPTS;
+    }
+
+    return false;
+}
+
 export {
     addSMSDomainIfPhoneNumber,
     getSearchOptions,
@@ -766,4 +785,5 @@ export {
     getDefaultAvatar,
     getReportIcons,
     isCurrentUser,
+    isExcludedIOUUsers,
 };
