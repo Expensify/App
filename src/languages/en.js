@@ -244,7 +244,7 @@ export default {
     },
     passwordPage: {
         changePassword: 'Change Password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
+        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand new.expensify.com accounts.',
         currentPassword: 'Current Password',
         newPassword: 'New Password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
