@@ -68,45 +68,35 @@ class CompanyStep extends React.Component {
      * @returns {Boolean}
      */
     validate() {
-        let prompt = '';
-
         if (!this.state.password.trim()) {
-            prompt += `- ${this.props.translate('common.passwordCannotBeBlank')}\n`;
+            return false;
         }
 
         if (!isValidAddress(this.state.addressStreet) || this.state.addressState === '') {
-            prompt += `- ${this.props.translate('bankAccount.error.addressStreet')}\n`;
+            return false;
         }
 
         if (!isValidZipCode(this.state.addressZipCode)) {
-            prompt += `- ${this.props.translate('bankAccount.error.zipCode')}\n`;
+            return false;
         }
 
         if (!Str.isValidURL(this.state.website)) {
-            prompt += `- ${this.props.translate('bankAccount.error.website')}\n`;
+            return false;
         }
 
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
-            prompt += `- ${this.props.translate('bankAccount.error.taxID')}\n`;
+            return false;
         }
 
         if (!isValidDate(this.state.incorporationDate)) {
-            prompt += `- ${this.props.translate('bankAccount.error.incorporationDate')}\n`;
+            return false;
         }
 
         if (!isValidIndustryCode(this.state.industryCode)) {
-            prompt += `- ${this.props.translate('bankAccount.error.industryCode')}\n`;
+            return false;
         }
 
         if (!this.state.hasNoConnectionToCannabis) {
-            prompt += `- ${this.props.translate('bankAccount.error.restrictedBusiness')}`;
-        }
-
-        if (prompt) {
-            this.setState({
-                isConfirmModalOpen: true,
-                confirmModalPrompt: `Please double check any highlighted fields and try again.\n${prompt}`,
-            });
             return false;
         }
 
@@ -115,6 +105,7 @@ class CompanyStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
+            this.setState({isConfirmModalOpen: true});
             return;
         }
 
@@ -267,7 +258,7 @@ class CompanyStep extends React.Component {
                 <ConfirmModal
                     title="Oops something went wrong!"
                     onConfirm={() => this.setState({isConfirmModalOpen: false})}
-                    prompt={this.state.confirmModalPrompt}
+                    prompt="Please double check any highlighted fields and try again."
                     isVisible={this.state.isConfirmModalOpen}
                     confirmText="Got it"
                     shouldShowCancelButton={false}
