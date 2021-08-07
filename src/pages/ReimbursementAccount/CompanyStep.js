@@ -22,6 +22,7 @@ import Growl from '../../libs/Growl';
 import {
     isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
 } from '../../libs/ValidationUtils';
+import ConfirmModal from '../../components/ConfirmModal';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -44,6 +45,8 @@ class CompanyStep extends React.Component {
             industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
+            isConfirmModalOpen: false,
+            confirmModalPrompt: '',
         };
 
         // These fields need to be filled out in order to submit the form
@@ -65,48 +68,45 @@ class CompanyStep extends React.Component {
      * @returns {Boolean}
      */
     validate() {
+        let prompt = '';
+
         if (!this.state.password.trim()) {
-            Growl.error(this.props.translate('common.passwordCannotBeBlank'));
-            return false;
+            prompt += `- ${this.props.translate('common.passwordCannotBeBlank')}\n`;
         }
 
-        if (!isValidAddress(this.state.addressStreet)) {
-            Growl.error(this.props.translate('bankAccount.error.addressStreet'));
-            return false;
-        }
-
-        if (this.state.addressState === '') {
-            Growl.error(this.props.translate('bankAccount.error.addressState'));
-            return false;
+        if (!isValidAddress(this.state.addressStreet) || this.state.addressState === '') {
+            prompt += `- ${this.props.translate('bankAccount.error.addressStreet')}\n`;
         }
 
         if (!isValidZipCode(this.state.addressZipCode)) {
-            Growl.error(this.props.translate('bankAccount.error.zipCode'));
-            return false;
+            prompt += `- ${this.props.translate('bankAccount.error.zipCode')}\n`;
         }
 
         if (!Str.isValidURL(this.state.website)) {
-            Growl.error(this.props.translate('bankAccount.error.website'));
-            return false;
+            prompt += `- ${this.props.translate('bankAccount.error.website')}\n`;
         }
 
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
-            Growl.error(this.props.translate('bankAccount.error.taxID'));
-            return false;
+            prompt += `- ${this.props.translate('bankAccount.error.taxID')}\n`;
         }
 
         if (!isValidDate(this.state.incorporationDate)) {
-            Growl.error(this.props.translate('bankAccount.error.incorporationDate'));
-            return false;
+            prompt += `- ${this.props.translate('bankAccount.error.incorporationDate')}\n`;
         }
 
         if (!isValidIndustryCode(this.state.industryCode)) {
-            Growl.error(this.props.translate('bankAccount.error.industryCode'));
-            return false;
+            prompt += `- ${this.props.translate('bankAccount.error.industryCode')}\n`;
         }
 
         if (!this.state.hasNoConnectionToCannabis) {
-            Growl.error(this.props.translate('bankAccount.error.restrictedBusiness'));
+            prompt += `- ${this.props.translate('bankAccount.error.restrictedBusiness')}`;
+        }
+
+        if (prompt) {
+            this.setState({
+                isConfirmModalOpen: true,
+                confirmModalPrompt: `Please double check any highlighted fields and try again.\n${prompt}`,
+            });
             return false;
         }
 
@@ -127,6 +127,7 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
         const shouldDisableSubmitButton = this.requiredFields
             .reduce((acc, curr) => acc || !this.state[curr].trim(), false);
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -263,6 +264,15 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                 </ScrollView>
+                <ConfirmModal
+                    title="Oops something went wrong!"
+                    onConfirm={() => this.setState({isConfirmModalOpen: false})}
+                    prompt={this.state.confirmModalPrompt}
+                    isVisible={this.state.isConfirmModalOpen}
+                    confirmText="Got it"
+                    shouldShowCancelButton={false}
+                />
+
                 <FixedFooter style={[styles.mt5]}>
                     <Button
                         success
