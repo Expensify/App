@@ -61,7 +61,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <RenderHTML
-                            html={fragment.html + (fragment.isEdited ? '<edited/>' : '')}
+                            html={fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}
                         />
                     ) : (
                         <Text
