@@ -121,7 +121,6 @@ export default {
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
-        openLink: 'Open Link',
         copied: 'Copied!',
         copyLink: 'Copy Link',
         copyURLToClipboard: 'Copy URL to Clipboard',
