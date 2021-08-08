@@ -94,7 +94,7 @@ class PopoverReportActionContextMenu extends React.Component {
     /**
      * Show the ReportActionContextMenu modal popover.
      *
-     * @param {string} type - context menu type [LINK, IMAGE, REPORT_ACTION]
+     * @param {string} type - context menu type [LINK, REPORT_ACTION]
      * @param {Object} [event] - A press event.
      * @param {string} [selection] - A copy text.
      * @param {Element} contextMenuAnchor - popoverAnchor

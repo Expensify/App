@@ -22,9 +22,8 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
-export const contextMenuTypes = {
+export const CONTEXT_MENU_TYPES = {
     link: 'LINK',
-    image: 'IMAGE',
     reportAction: 'REPORT_ACTION',
 };
 
@@ -35,7 +34,7 @@ export default [
         icon: ClipboardIcon,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Checkmark,
-        shouldShow: type => type === contextMenuTypes.link,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.link,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -46,7 +45,7 @@ export default [
         icon: ClipboardIcon,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Checkmark,
-        shouldShow: type => type === contextMenuTypes.reportAction,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.reportAction,
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -80,7 +79,7 @@ export default [
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: Mail,
         successIcon: Checkmark,
-        shouldShow: type => type === contextMenuTypes.reportAction,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.reportAction,
         onPress: (closePopover, {reportAction, reportID}) => {
             updateLastReadActionID(reportID, reportAction.sequenceNumber);
             setNewMarkerPosition(reportID, reportAction.sequenceNumber);
@@ -93,7 +92,7 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Pencil,
-        shouldShow: (type, reportAction) => type === contextMenuTypes.reportAction && canEditReportAction(reportAction),
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.reportAction && canEditReportAction(reportAction),
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => saveReportActionDraft(
                 reportID,
@@ -114,7 +113,7 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Trashcan,
-        shouldShow: (type, reportAction) => type === contextMenuTypes.reportAction
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.reportAction
             && canDeleteReportAction(reportAction),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {

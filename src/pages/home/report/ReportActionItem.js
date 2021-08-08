@@ -23,7 +23,7 @@ import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
-import {contextMenuTypes} from './ContextMenu/ContextMenuActions';
+import {CONTEXT_MENU_TYPES} from './ContextMenu/ContextMenuActions';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -91,7 +91,7 @@ class ReportActionItem extends Component {
             return;
         }
         showContextMenu(
-            contextMenuTypes.reportAction,
+            CONTEXT_MENU_TYPES.reportAction,
             event,
             selection,
             this.popoverAnchor,
