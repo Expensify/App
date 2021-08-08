@@ -12,6 +12,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import ContextMenuActions from './ContextMenuActions';
 
 const propTypes = {
+    /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
     ...GenericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,

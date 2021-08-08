@@ -1,8 +1,9 @@
+import {Linking} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {
-    Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
+    Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark, Link,
 } from '../../../../components/Icon/Expensicons';
 import {
     setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft,
@@ -29,6 +30,15 @@ export const CONTEXT_MENU_TYPES = {
 
 // A list of all the context actions in this menu.
 export default [
+    {
+        textTranslateKey: 'reportActionContextMenu.openLink',
+        icon: Link,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.link,
+        onPress: (closePopover, {selection}) => {
+            Linking.openURL(selection);
+            hideContextMenu(false, ReportActionComposeFocusManager.focus);
+        },
+    },
     {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: ClipboardIcon,
@@ -92,7 +102,9 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Pencil,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.reportAction && canEditReportAction(reportAction),
+        shouldShow: (type, reportAction) => (
+            type === CONTEXT_MENU_TYPES.reportAction && canEditReportAction(reportAction)
+        ),
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => saveReportActionDraft(
                 reportID,
