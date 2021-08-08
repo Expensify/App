@@ -1,8 +1,8 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -24,6 +24,7 @@ import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from './ContextMenu/ContextMenuActions';
+import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** The ID of the report this action is on. */
@@ -187,12 +188,12 @@ ReportActionItem.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,
-    withOnyx({
-        draftMessage: {
-            key: ({
-                reportID,
-                action,
-            }) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`,
+    withReportActionsDrafts({
+        propName: 'draftMessage',
+        transformValue: (drafts, props) => {
+            const {reportID, action} = props;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`;
+            return lodashGet(drafts, draftKey, '');
         },
     }),
 )(ReportActionItem);

@@ -1,6 +1,6 @@
 {
   "name": "expensify.cash",
-  "version": "1.0.82-3",
+  "version": "1.0.83-0",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -124,6 +124,7 @@
     "@testing-library/jest-native": "^3.4.2",
     "@testing-library/react-native": "^7.0.2",
     "@vercel/ncc": "^0.27.0",
+    "@welldone-software/why-did-you-render": "^6.2.0",
     "ajv-cli": "^5.0.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.2.2",

@@ -70,6 +70,10 @@ import defaultScreenOptions from './defaultScreenOptions';
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
+        if (!val) {
+            return;
+        }
+
         const timezone = lodashGet(val, 'timezone', {});
         const currentTimezone = moment.tz.guess(true);
 
@@ -224,6 +228,7 @@ class AuthScreens extends React.Component {
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;
+        hasLoadedPolicies = false;
     }
 
     render() {
