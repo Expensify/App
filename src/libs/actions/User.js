@@ -70,7 +70,10 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: `${CONST.NVP.PAYPAL_ME_ADDRESS}, ${CONST.NVP.PREFERRED_SKIN_TONE}`,
+        nvpNames: [
+            CONST.NVP.PAYPAL_ME_ADDRESS,
+            CONST.NVP.PREFERRED_SKIN_TONE,
+        ].join(','),
     })
         .then((response) => {
             // Update the User onyx key
