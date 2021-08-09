@@ -618,17 +618,18 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
+        /* eslint-disable arrow-body-style */
         .then((response) => {
-            // Ensure that we don't continue until the merge is complete, this prevents the achData from getting
-            // overwritten later on in the flow before this merge happens
+            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
+            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
+            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
             return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
                 loading: false,
                 achData: {...newACHData},
             })
-                .then(() => {
-                    return Promise.resolve(response);
-                });
-        }).then((response) => {
+                .then(() => Promise.resolve(response));
+        })
+        .then((response) => {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
