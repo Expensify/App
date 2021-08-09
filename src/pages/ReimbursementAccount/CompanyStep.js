@@ -56,6 +56,7 @@ class CompanyStep extends React.Component {
             'website',
             'companyTaxID',
             'incorporationDate',
+            'incorporationState',
             'industryCode',
             'password',
         ];
@@ -234,10 +235,10 @@ class CompanyStep extends React.Component {
                             value={this.state.industryCode}
                         />
                         <ExpensiTextInput
+                            autoCompleteType="new-password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
-                            autoCompleteType="password"
                             textContentType="password"
                             onChangeText={password => this.setState({password})}
                             value={this.state.password}
