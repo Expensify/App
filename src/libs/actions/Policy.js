@@ -93,7 +93,7 @@ function getPolicyList() {
                     ...(_.reduce(_.keys(allPolicies), (memo, key) => ({...memo, [key]: null}), {})),
 
                     // And overwrite them with only the ones returned by the API call
-                    ...policyDataToStore
+                    ...policyDataToStore,
                 });
             }
         });
