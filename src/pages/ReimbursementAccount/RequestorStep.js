@@ -64,11 +64,6 @@ class RequestorStep extends React.Component {
             zipCode: 'requestorAddressZipCode',
         };
         const fieldName = lodashGet(renamedFields, field, field);
-
-        if (field === 'dob' && this.props.reimbursementAccount.error) {
-            hideBankAccountErrors();
-        }
-
         this.setState({[fieldName]: value});
     }
 

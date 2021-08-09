@@ -6,6 +6,8 @@ import StatePicker from '../../components/StatePicker';
 import TextInputWithLabel from '../../components/TextInputWithLabel';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import {translateLocal} from '../../libs/translate';
+import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Style for wrapping View */
@@ -91,20 +93,37 @@ const IdentityForm = ({
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
                 value={dob}
-                onChangeText={val => onFieldChange('dob', val)}
+                onChangeText={(val) => {
+                    if (error === translateLocal('bankAccount.error.dob')) {
+                        hideBankAccountErrors();
+                    }
+                    onFieldChange('dob', val);
+                }}
                 errorText={error}
             />
             <TextInputWithLabel
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
                 value={ssnLast4}
-                onChangeText={val => onFieldChange('ssnLast4', val)}
+                onChangeText={(val) => {
+                    if (error === translateLocal('bankAccount.error.ssnLast4')) {
+                        hideBankAccountErrors();
+                    }
+                    onFieldChange('ssnLast4', val);
+                }}
+                errorText={error}
             />
             <TextInputWithLabel
                 label={translate('common.addressNoPO')}
                 containerStyles={[styles.mt4]}
                 value={street}
-                onChangeText={val => onFieldChange('street', val)}
+                onChangeText={(val) => {
+                    if (error === translateLocal('bankAccount.error.address')) {
+                        hideBankAccountErrors();
+                    }
+                    onFieldChange('street', val);
+                }}
+                errorText={error}
             />
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
@@ -126,7 +145,13 @@ const IdentityForm = ({
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
                 value={zipCode}
-                onChangeText={val => onFieldChange('zipCode', val)}
+                onChangeText={(val) => {
+                    if (error === translateLocal('bankAccount.error.zipCode')) {
+                        hideBankAccountErrors();
+                    }
+                    onFieldChange('zipCode', val);
+                }}
+                errorText={error}
             />
         </View>
     );
