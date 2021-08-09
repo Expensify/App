@@ -90,18 +90,15 @@ function getPolicyList() {
                     },
                 }), {});
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
-                Onyx.getAllKeys()
-                    .then((keys) => {
-                        const keysToClear = _.filter(keys, key => Str.startsWith(key, ONYXKEYS.COLLECTION.POLICY)
-                            && !_.keys(policyDataToStore).includes(key));
-                        const keyValuePairsForClearing = _.map(keysToClear, key => [key, 'null']);
-                        if (keyValuePairsForClearing.length > 0) {
-                            Onyx.multiSet(keyValuePairsForClearing);
+                const keysToClear = _.filter(_.keys(allPolicies), key => Str.startsWith(key, ONYXKEYS.COLLECTION.POLICY)
+                    && !_.keys(policyDataToStore).includes(key));
+                const keyValuePairsForClearing = _.map(keysToClear, key => [key, 'null']);
+                if (keyValuePairsForClearing.length > 0) {
+                    Onyx.multiSet(keyValuePairsForClearing);
 
-                            // Clear them in cache
-                            _.each(keysToClear, key => cache.set(key, null));
-                        }
-                    });
+                    // Clear them in cache
+                    _.each(keysToClear, key => cache.set(key, null));
+                }
             }
         });
 }
