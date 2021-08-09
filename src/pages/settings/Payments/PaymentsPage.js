@@ -261,7 +261,7 @@ class PaymentsPage extends React.Component {
                         </Text>
                         <TextInputFocusable
                             style={styles.textInputCompose}
-                            onChangeText={password => this.setState(password)}
+                            onChangeText={password => this.setState({password})}
                         />
                         <TouchableOpacity
                             onPress={() => deleteBankAccount(this.state.selectedPaymentMethod, this.state.password)}
