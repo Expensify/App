@@ -70,6 +70,7 @@ const IdentityForm = ({
     const {
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
     } = values;
+    console.log(">>>>", error);
     return (
         <View style={style}>
             <View style={[styles.flexRow]}>
@@ -99,7 +100,7 @@ const IdentityForm = ({
                     }
                     onFieldChange('dob', val);
                 }}
-                errorText={error}
+                errorText={error === translateLocal('bankAccount.error.dob') ? error : ''}
             />
             <TextInputWithLabel
                 label={`${translate('common.ssnLast4')}`}
@@ -111,7 +112,7 @@ const IdentityForm = ({
                     }
                     onFieldChange('ssnLast4', val);
                 }}
-                errorText={error}
+                errorText={error === translateLocal('bankAccount.error.ssnLast4') ? error : ''}
             />
             <TextInputWithLabel
                 label={translate('common.addressNoPO')}
@@ -123,7 +124,7 @@ const IdentityForm = ({
                     }
                     onFieldChange('street', val);
                 }}
-                errorText={error}
+                errorText={error === translateLocal('bankAccount.error.address') ? error : ''}
             />
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
@@ -151,7 +152,7 @@ const IdentityForm = ({
                     }
                     onFieldChange('zipCode', val);
                 }}
-                errorText={error}
+                errorText={error === translateLocal('bankAccount.error.zipCode') ? error : ''}
             />
         </View>
     );

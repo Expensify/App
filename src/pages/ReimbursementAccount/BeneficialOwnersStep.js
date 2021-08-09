@@ -173,9 +173,6 @@ class BeneficialOwnersStep extends React.Component {
                                         onFieldChange={(fieldName, value) => this.setState((prevState) => {
                                             const beneficialOwners = [...prevState.beneficialOwners];
                                             beneficialOwners[index][fieldName] = value;
-                                            if (fieldName === 'dob' && this.props.reimbursementAccount.error) {
-                                                hideBankAccountErrors();
-                                            }
                                             return {beneficialOwners};
                                         })}
                                         values={{
@@ -188,6 +185,7 @@ class BeneficialOwnersStep extends React.Component {
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
+                                        error={this.props.reimbursementAccount.error}
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
                                         <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
