@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TextInput, View, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -15,8 +15,8 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {invite} from '../../libs/actions/Policy';
 import TextLink from '../../components/TextLink';
-import themeColors from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
@@ -97,32 +97,25 @@ class WorkspaceInvitePage extends React.Component {
                             {this.props.translate('workspace.invite.invitePeoplePrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb2]}>
-                                {this.props.translate('workspace.invite.enterEmailOrPhone')}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={this.props.translate('workspace.invite.enterEmailOrPhone')}
                                 autoCompleteType="email"
                                 autoCorrect={false}
                                 autoCapitalize="none"
-                                style={[styles.textInput]}
                                 value={this.state.userLogins}
                                 onChangeText={text => this.setState({userLogins: text})}
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb2]}>
-                                {this.props.translate('workspace.invite.personalMessagePrompt')}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                style={[styles.textInput, styles.workspaceInviteWelcome, styles.mb6]}
                                 numberOfLines={10}
                                 textAlignVertical="top"
                                 multiline
                                 value={this.state.welcomeNote}
                                 placeholder={this.getWelcomeNotePlaceholder()}
-                                placeholderTextColor={themeColors.placeholderText}
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
                             <TextLink href="https://use.expensify.com/privacy">
