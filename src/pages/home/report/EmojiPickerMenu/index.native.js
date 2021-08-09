@@ -90,10 +90,9 @@ class EmojiPickerMenu extends Component {
             );
         }
 
-        let emojiCode = code;
-        if (types && types[this.props.preferredSkinTone]) {
-            emojiCode = types[this.props.preferredSkinTone];
-        }
+        const emojiCode = types && types[this.props.preferredSkinTone]
+            ? types[this.props.preferredSkinTone]
+            : code;
 
 
         return (
