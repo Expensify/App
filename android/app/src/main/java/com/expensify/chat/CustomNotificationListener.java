@@ -1,12 +1,10 @@
 package com.expensify.chat;
 
 import androidx.annotation.NonNull;
-
 import com.urbanairship.push.NotificationActionButtonInfo;
 import com.urbanairship.push.NotificationInfo;
 import com.urbanairship.push.NotificationListener;
 import com.urbanairship.push.PushMessage;
-
 import org.jetbrains.annotations.NotNull;
 
 /**

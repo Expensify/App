@@ -1,9 +1,7 @@
 package com.expensify.chat;
 
 import android.content.Context;
-
 import androidx.annotation.NonNull;
-
 import com.urbanairship.UAirship;
 import com.urbanairship.push.NotificationListener;
 import com.urbanairship.push.PushManager;
