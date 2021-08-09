@@ -407,6 +407,10 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
+
+                    // Adding a default empty state to make sure we override the temporary one we are keeping
+                    // for UI purposes. This covers an edge case in which a user deleted their bank account,
+                    // but would still see Finish Setup in the UI, instead of Get Started.
                     achData.state = lodashGet(achData, 'state', '');
 
                     // If the bank account has already been created in the db and is not yet open
