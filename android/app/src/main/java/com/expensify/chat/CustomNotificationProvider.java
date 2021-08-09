@@ -88,6 +88,10 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
      */
     private void applyMessageStyle(NotificationCompat.Builder builder, JsonMap payload, int notificationID) {
         int reportID = payload.get("reportID").getInt(-1);
+        if (reportID == -1) {
+            return;
+        }
+
         NotificationCache notificationCache = findOrCreateNotificationCache(reportID);
         JsonMap reportAction = payload.get("reportAction").getMap();
         String name = reportAction.get("person").getList().get(0).getMap().get("text").getString();
