@@ -7,12 +7,14 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import TextInputFocusable from '../../../components/TextInputFocusable';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
+import {deleteBankAccount} from '../../../libs/actions/BankAccounts';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal, Bank} from '../../../components/Icon/Expensicons';
+import {PayPal, Bank, CreditCard} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -67,28 +69,13 @@ class PaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, accountType, account) {
-        if (account) {
-            if (account === PAYPAL) {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-            }
-        } else {
-            const position = getClickedElementLocation(nativeEvent);
-            this.setState({
-                shouldShowAddPaymentMenu: true,
-                anchorPositionTop: position.bottom,
-
-                // We want the position to be 20px to the right of the left border
-                anchorPositionLeft: position.left + 20,
-            });
-        }
-
         const position = getClickedElementLocation(nativeEvent);
         if (accountType) {
             let formattedSelectedPaymentMethod;
             if (accountType === PAYPAL) {
                 formattedSelectedPaymentMethod = {
                     title: 'PayPal.me',
-                    icon: Bank,
+                    icon: PayPal,
                 };
             } else if (accountType === 'bankAccount') {
                 formattedSelectedPaymentMethod = {
@@ -98,7 +85,7 @@ class PaymentsPage extends React.Component {
             } else {
                 formattedSelectedPaymentMethod = {
                     title: account.cardName,
-                    icon: Bank,
+                    icon: CreditCard,
                 };
             }
             this.setState({
@@ -110,6 +97,14 @@ class PaymentsPage extends React.Component {
                 // We want the position to be 20px to the right of the left border
                 anchorPositionLeft: position.left + 20,
                 formattedSelectedPaymentMethod,
+            });
+        } else {
+            this.setState({
+                shouldShowAddPaymentMenu: true,
+                anchorPositionTop: position.bottom,
+
+                // We want the position to be 20px to the right of the left border
+                anchorPositionLeft: position.left + 20,
             });
         }
     }
@@ -212,6 +207,41 @@ class PaymentsPage extends React.Component {
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={this.deletePaymentMethod}
+                            style={[
+                                styles.button,
+                                styles.buttonDanger,
+                                styles.mh2,
+                                styles.mv2,
+                                styles.defaultOrDeleteButton,
+                            ]}
+                        >
+                            <Text style={[styles.buttonText]}>
+                                {this.props.translate('common.delete')}
+                            </Text>
+                        </TouchableOpacity>
+                    </Popover>
+                    <Popover
+                        isVisible={this.state.shouldShowPasswordPrompt}
+                        onClose={this.hidePasswordPrompt}
+                        anchorPosition={{
+                            top: this.state.anchorPositionTop,
+                            left: this.state.anchorPositionLeft,
+                        }}
+                    >
+                        <Text
+                            style={[
+                                styles.h1,
+                                styles.m2,
+                            ]}
+                        >
+                            Please enter your password
+                        </Text>
+                        <TextInputFocusable
+                            style={styles.textInputCompose}
+                            onChangeText={password => this.setState(password)}
+                        />
+                        <TouchableOpacity
+                            onPress={() => deleteBankAccount(this.state.selectedPaymentMethod, this.state.password)}
                             style={[
                                 styles.button,
                                 styles.buttonDanger,
