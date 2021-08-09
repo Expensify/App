@@ -554,20 +554,20 @@ function validateBankAccount(bankAccountID, validateCode) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
-                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                        const reimbursementAccount = {
                             loading: false,
                             error: '',
                             achData: {state: BankAccount.STATE.OPEN},
-                        });
+                        };
 
                         if (isUsingExpensifyCard) {
                             Navigation.dismissModal();
                         } else {
-                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                                achData: {currentStep: CONST.BANK_ACCOUNT.STEP.ENABLE},
-                            });
+                            reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
                         }
+
+                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
+                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, reimbursementAccount);
                     });
                 return;
             }
