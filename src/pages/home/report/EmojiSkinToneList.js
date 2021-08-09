@@ -84,12 +84,6 @@ const EmojiSkinToneList = (props) => {
                       ))
                     }
                     </View>
-                    <Text style={
-                      [styles.emojiHeaderStyle, styles.emojiExtraSmall, styles.textAlignCenter, styles.pv0]
-                      }
-                    >
-                        {props.translate('emojiPicker.setPreferredSkinTone')}
-                    </Text>
                 </View>
                 )
         }

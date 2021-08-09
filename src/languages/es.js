@@ -613,6 +613,5 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel',
-        setPreferredSkinTone: 'Establezca su tono de piel predeterminado preferido',
     },
 };
