@@ -13,6 +13,7 @@ import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
+import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -91,7 +92,7 @@ function getUserDetails() {
 
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.NVP_PREFERRED_SKIN_TONE,
-                typeof preferredSkinTone === 'number' ? preferredSkinTone : 'default');
+                getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
         });
 }
 
