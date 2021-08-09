@@ -10,6 +10,8 @@ import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
+import cache from "react-native-onyx/lib/OnyxCache";
+import Str from "expensify-common/lib/str";
 
 const allPolicies = {};
 Onyx.connect({
@@ -87,7 +89,19 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore, true);
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
+                Onyx.getAllKeys()
+                    .then((keys) => {
+                        const keysToClear = _.filter(keys, key => Str.startsWith(key, ONYXKEYS.COLLECTION.POLICY)
+                            && !_.keys(policyDataToStore).includes(key));
+                        const keyValuePairsForClearing = _.map(keysToClear, key => [key, 'null']);
+                        if (keyValuePairsForClearing.length > 0) {
+                            Onyx.multiSet(keyValuePairsForClearing);
+
+                            // Clear them in cache
+                            _.each(keysToClear, key => cache.set(key, null));
+                        }
+                    });
             }
         });
 }
