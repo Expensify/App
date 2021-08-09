@@ -142,6 +142,13 @@ class IOUModal extends Component {
             Navigation.dismissModal();
         }
 
+        // If transaction fails, handling it here
+        if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {
+            // Navigating to Enter Amount Page
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({currentStepIndex: 0});
+        }
+
         if (prevProps.iou.selectedCurrencyCode
             !== this.props.iou.selectedCurrencyCode) {
             setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
