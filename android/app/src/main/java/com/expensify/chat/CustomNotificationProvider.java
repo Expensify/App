@@ -194,27 +194,29 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             Log.e(TAG, "Failed to resolve URL " + urlString, e);
         }
 
-        if (parsedUrl != null) {
-            WindowManager window = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-            DisplayMetrics dm = new DisplayMetrics();
-            window.getDefaultDisplay().getMetrics(dm);
+        if (parsedUrl == null) {
+            return null;
+        }
 
-            final int reqWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, MAX_ICON_SIZE_DPS, dm);
-            final int reqHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, MAX_ICON_SIZE_DPS, dm);
+        WindowManager window = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics dm = new DisplayMetrics();
+        window.getDefaultDisplay().getMetrics(dm);
 
-            final URL url = parsedUrl;
-            Future<Bitmap> future = executorService.submit(() -> ImageUtils.fetchScaledBitmap(context, url, reqWidth, reqHeight));
+        final int reqWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, MAX_ICON_SIZE_DPS, dm);
+        final int reqHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, MAX_ICON_SIZE_DPS, dm);
 
-            try {
-                Bitmap bitmap = future.get(MAX_ICON_FETCH_WAIT_TIME_SECONDS, TimeUnit.SECONDS);
-                return IconCompat.createWithBitmap(bitmap);
-            } catch (InterruptedException e) {
-                Log.e(TAG,"Failed to fetch icon", e);
-                Thread.currentThread().interrupt();
-            } catch (Exception e) {
-                Log.e(TAG,"Failed to fetch icon", e);
-                future.cancel(true);
-            }
+        final URL url = parsedUrl;
+        Future<Bitmap> future = executorService.submit(() -> ImageUtils.fetchScaledBitmap(context, url, reqWidth, reqHeight));
+
+        try {
+            Bitmap bitmap = future.get(MAX_ICON_FETCH_WAIT_TIME_SECONDS, TimeUnit.SECONDS);
+            return IconCompat.createWithBitmap(bitmap);
+        } catch (InterruptedException e) {
+            Log.e(TAG,"Failed to fetch icon", e);
+            Thread.currentThread().interrupt();
+        } catch (Exception e) {
+            Log.e(TAG,"Failed to fetch icon", e);
+            future.cancel(true);
         }
 
         return null;
