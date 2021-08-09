@@ -9,6 +9,7 @@ import CONST from '../../CONST';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -113,9 +114,9 @@ function removeMembers(members, policyID) {
     // Optimistically remove the members from the policy
     Onyx.set(key, policy);
 
-    // Make the API call to merge the login into the policy
+    // Make the API call to remove a login from the policy
     API.Policy_Employees_Remove({
-        emailList: members,
+        emailList: members.join(','),
         policyID,
     })
         .then((data) => {
@@ -135,23 +136,24 @@ function removeMembers(members, policyID) {
 /**
  * Merges the passed in login into the specified policy
  *
- * @param {String} login
+ * @param {Array<String>} logins
  * @param {String} welcomeNote
  * @param {String} policyID
  */
-function invite(login, welcomeNote, policyID) {
+function invite(logins, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+    const newEmployeeList = _.map(logins, login => addSMSDomainIfPhoneNumber(login));
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
-    policy.employeeList = [...policy.employeeList, login];
+    policy.employeeList = [...policy.employeeList, ...newEmployeeList];
 
     // Optimistically add the user to the policy
     Onyx.set(key, policy);
 
     // Make the API call to merge the login into the policy
     API.Policy_Employees_Merge({
-        employees: JSON.stringify([{email: login}]),
+        employees: JSON.stringify(_.map(logins, login => ({email: login}))),
         welcomeNote,
         policyID,
     })
@@ -164,7 +166,7 @@ function invite(login, welcomeNote, policyID) {
 
             // If the operation failed, undo the optimistic addition
             const policyDataWithoutLogin = _.clone(allPolicies[key]);
-            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, login);
+            policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
             Onyx.set(key, policyDataWithoutLogin);
 
             // Show the user feedback that the addition failed
@@ -180,9 +182,9 @@ function invite(login, welcomeNote, policyID) {
 /**
  * Merges the passed in login into the specified policy
  *
- * @param {String} name
+ * @param {String} [name]
  */
-function create(name) {
+function create(name = '') {
     API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -201,39 +203,46 @@ function create(name) {
             });
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
+            Growl.success(translateLocal('workspace.new.successMessage'));
         });
 }
 
 /**
- * Sets avatar or removes it if called with no avatarURL
- *
- * @param {String} policyID
- * @param {String} [avatarURL]
- */
-function setAvatarURL(policyID, avatarURL = '') {
-    API.UpdatePolicy({policyID, value: JSON.stringify({avatarURL}), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL});
-        });
-}
-
-/**
- * @param {String} policyID
  * @param {Object} file
+ * @returns {Promise}
  */
-function updateAvatar(policyID, file) {
-    API.User_UploadAvatar({file})
+function uploadAvatar(file) {
+    return API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
-            // Once we get the s3url back, update the policy with the new avatar URL
-            setAvatarURL(policyID, response.s3url);
+            return response.s3url;
+        });
+}
+
+/**
+ * Sets the name of the policy
+ *
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function update(policyID, values) {
+    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+            Navigation.dismissModal();
         });
 }
 
@@ -243,6 +252,6 @@ export {
     removeMembers,
     invite,
     create,
-    updateAvatar,
-    setAvatarURL,
+    uploadAvatar,
+    update,
 };

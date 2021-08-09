@@ -58,6 +58,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -88,16 +92,15 @@ const styles = {
         lineHeight: 14,
     },
 
-    textMicroSupportingBold: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
     textLarge: {
         fontSize: variables.fontSizeLarge,
+    },
+
+    textXXXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXXXLarge,
+        fontWeight: fontWeightBold,
     },
 
     textStrong: {
@@ -333,6 +336,64 @@ const styles = {
         },
     },
 
+    pickerSmall: {
+        inputIOS: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderRadius: variables.componentBorderRadius,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            backgroundColor: 'transparent',
+        },
+        inputWeb: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            appearance: 'none',
+            height: variables.componentSizeSmall,
+            opacity: 1,
+            cursor: 'pointer',
+            backgroundColor: 'transparent',
+        },
+        inputAndroid: {
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeSmall,
+            paddingLeft: 9,
+            paddingRight: 25,
+            paddingTop: 6,
+            paddingBottom: 6,
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: themeColors.border,
+            color: themeColors.text,
+            height: variables.componentSizeSmall,
+            opacity: 1,
+        },
+        iconContainer: {
+            top: 7,
+            right: 9,
+            pointerEvents: 'none',
+        },
+        icon: {
+            width: variables.iconSizeExtraSmall,
+            height: variables.iconSizeExtraSmall,
+        },
+    },
+
     badge: {
         backgroundColor: themeColors.badgeDefaultBG,
         borderRadius: 14,
@@ -359,7 +420,7 @@ const styles = {
     },
 
     badgeText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
@@ -543,7 +604,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 295,
+        maxWidth: 335,
     },
 
     signInPageWideLeftContainer: {
@@ -800,8 +861,8 @@ const styles = {
 
     optionDisplayName: {
         fontFamily: fontFamily.GTA,
-        height: 18,
-        lineHeight: 18,
+        height: 20,
+        lineHeight: 20,
         ...whiteSpace.noWrap,
     },
 
@@ -968,10 +1029,12 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
+        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1059,7 +1122,6 @@ const styles = {
     },
 
     emojiItem: {
-        flex: 1,
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
@@ -1191,14 +1253,12 @@ const styles = {
     avatarNormal: {
         height: variables.componentSizeNormal,
         width: variables.componentSizeNormal,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.componentSizeNormal,
     },
 
     avatarSmall: {
         height: variables.avatarSizeSmall,
         width: variables.avatarSizeSmall,
-        backgroundColor: themeColors.icon,
         borderRadius: variables.avatarSizeSmall,
     },
 
@@ -1648,11 +1708,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1732,16 +1791,18 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
         borderColor: themeColors.textReversed,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 3,
-        bottom: -4,
         color: themeColors.textReversed,
-        height: 32,
+        height: 28,
+        width: 28,
         justifyContent: 'center',
-        padding: 4,
+    },
+
+    smallAvatarEditIcon: {
         position: 'absolute',
         right: -4,
-        width: 32,
+        bottom: -4,
     },
 
     workspaceCard: {
@@ -1815,6 +1876,36 @@ const styles = {
         top: 0,
         bottom: 0,
     },
+
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    termsCenterRight: {
+        marginTop: 'auto',
+        marginBottom: 'auto',
+    },
+
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
+    },
+
+    collapsibleSectionBorder: {
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
+    },
+
+    communicationsLinkHeight: {
+        height: 20,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -1831,6 +1922,10 @@ const webViewStyles = {
     // styles from the renderer, just pass the "style" prop to the underlying
     // component.
     tagStyles: {
+        body: {
+            flexDirection: 'row',
+        },
+
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
             fontStyle: 'italic',
@@ -1896,6 +1991,7 @@ const webViewStyles = {
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        alignSelf: 'flex-start',
     },
 };
 
@@ -2022,17 +2118,21 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Generate a style for the background color of the IOU badge
+ * Generate a style for the background color of the Badge
  *
- * @param {Boolean} isOwner
- * @param {Boolean} [isPressed]
- * @returns {Object}
+ * @param {Boolean} success
+ * @param {Boolean} error
+ * @param {boolean} [isPressed=false]
+ * @return {Object}
  */
-function getBadgeColorStyle(isOwner, isPressed = false) {
-    if (isOwner) {
+function getBadgeColorStyle(success, error, isPressed = false) {
+    if (success) {
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    if (error) {
+        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    }
+    return {};
 }
 
 /**

@@ -56,6 +56,22 @@ function getIOUReportsForNewTransaction(requestParams) {
 }
 
 /**
+ *  Returns IOU Transaction Error Messages
+ * @param {Object} error
+ */
+
+function getIOUErrorMessage(error) {
+    if (error && error.jsonCode) {
+        if (error.jsonCode === 405) {
+            return translateLocal('iou.error.invalidAmount');
+        } if (error.jsonCode === 404) {
+            return translateLocal('iou.error.invalidSplit');
+        }
+    }
+    return translateLocal('iou.error.other');
+}
+
+/**
  * Creates IOUSplit Transaction
  * @param {Object} params
  * @param {Number} params.amount
@@ -69,6 +85,13 @@ function createIOUTransaction(params) {
         .then((data) => {
             getIOUReportsForNewTransaction([data]);
             Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
+        })?.catch((error) => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                loading: false,
+                creatingIOUTransaction: false,
+                error: true,
+            });
+            Growl.error(getIOUErrorMessage(error));
         });
 }
 
@@ -111,7 +134,34 @@ function createIOUSplit(params) {
             }
             getIOUReportsForNewTransaction(reportParams);
             Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+        })?.catch((error) => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                loading: false,
+                creatingIOUTransaction: false,
+                error: true,
+            });
+            Growl.error(getIOUErrorMessage(error));
         });
+}
+
+/**
+ * Creates IOUSplit Transaction for Group DM
+ * @param {Object} params
+ * @param {Array} params.splits
+ * @param {String} params.comment
+ * @param {Number} params.amount
+ * @param {String} params.currency
+ * @param {String} params.reportID
+ */
+function createIOUSplitGroup(params) {
+    Onyx.merge(ONYXKEYS.IOU, {loading: true, creatingIOUTransaction: true, error: false});
+
+    API.CreateIOUSplit({
+        ...params,
+        splits: JSON.stringify(params.splits),
+    })
+        .then(() => Onyx.merge(ONYXKEYS.IOU, {loading: false, creatingIOUTransaction: false}))
+        .catch(() => Onyx.merge(ONYXKEYS.IOU, {error: true}));
 }
 
 /**
@@ -150,6 +200,15 @@ function rejectTransaction({
                 [transactionID]: null,
             });
         });
+}
+
+/**
+ * Sets IOU'S selected currency
+ *
+ * @param {String} selectedCurrencyCode
+ */
+function setIOUSelectedCurrency(selectedCurrencyCode) {
+    Onyx.merge(ONYXKEYS.IOU, {selectedCurrencyCode});
 }
 
 /**
@@ -237,6 +296,8 @@ function payIOUReport({
 export {
     createIOUTransaction,
     createIOUSplit,
+    createIOUSplitGroup,
     rejectTransaction,
     payIOUReport,
+    setIOUSelectedCurrency,
 };

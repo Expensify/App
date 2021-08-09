@@ -69,6 +69,10 @@ export default {
         marginRight: 16,
     },
 
+    mr5: {
+        marginRight: 20,
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -263,6 +267,10 @@ export default {
 
     pb3: {
         paddingBottom: 12,
+    },
+
+    pb4: {
+        paddingBottom: 16,
     },
 
     pb5: {

@@ -15,12 +15,16 @@ const propTypes = {
 
     /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
+
+    /** Prevent the default ContextMenu on web/Desktop */
+    preventDefaultContentMenu: PropTypes.bool,
 };
 
 const defaultProps = {
     forwardedRef: () => {},
     onPressIn: () => {},
     onPressOut: () => {},
+    preventDefaultContentMenu: true,
 };
 
 export {propTypes, defaultProps};

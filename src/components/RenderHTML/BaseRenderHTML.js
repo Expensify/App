@@ -48,16 +48,20 @@ const EXTRA_FONTS = [
 ];
 
 /**
- * Compute images maximum width from the available screen width. This function
+ * Compute embedded maximum width from the available screen width. This function
  * is used by the HTML component in the default renderer for img tags to scale
  * down images that would otherwise overflow horizontally.
  *
+ * @param {string} tagName - The name of the tag for which max width should be constrained.
  * @param {number} contentWidth - The content width provided to the HTML
  * component.
  * @returns {number} The minimum between contentWidth and MAX_IMG_DIMENSIONS
  */
-function computeImagesMaxWidth(contentWidth) {
-    return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
+function computeEmbeddedMaxWidth(tagName, contentWidth) {
+    if (tagName === 'img') {
+        return Math.min(MAX_IMG_DIMENSIONS, contentWidth);
+    }
+    return contentWidth;
 }
 
 function AnchorRenderer({tnode, key, style}) {
@@ -193,13 +197,14 @@ function ImgRenderer({tnode}) {
     );
 }
 
-// Define default element models for these renderers.
-AnchorRenderer.model = defaultHTMLElementModels.a;
-CodeRenderer.model = defaultHTMLElementModels.code;
-ImgRenderer.model = defaultHTMLElementModels.img;
-EditedRenderer.model = defaultHTMLElementModels.span;
+// Declare nonstandard tags and their content model here
+const customHTMLElementModels = {
+    edited: defaultHTMLElementModels.span.extend({
+        tagName: 'edited',
+    }),
+};
 
-// Define the custom render methods
+// Define the custom renderer components
 const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
@@ -207,24 +212,32 @@ const renderers = {
     edited: EditedRenderer,
 };
 
+const renderersProps = {
+    img: {
+        initialDimensions: {
+            width: MAX_IMG_DIMENSIONS,
+            height: MAX_IMG_DIMENSIONS,
+        },
+    },
+};
+
 const BaseRenderHTML = ({html, debug, textSelectable}) => {
     const {width} = useWindowDimensions();
     const containerWidth = width * 0.8;
     return (
         <HTML
-            textSelectable={textSelectable}
+            defaultTextProps={{selectable: textSelectable}}
+            customHTMLElementModels={customHTMLElementModels}
             renderers={renderers}
+            renderersProps={renderersProps}
             baseStyle={webViewStyles.baseFontStyle}
             tagsStyles={webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
+            dangerouslyDisableWhitespaceCollapsing={false}
             contentWidth={containerWidth}
-            computeImagesMaxWidth={computeImagesMaxWidth}
+            computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
             systemFonts={EXTRA_FONTS}
-            imagesInitialDimensions={{
-                width: MAX_IMG_DIMENSIONS,
-                height: MAX_IMG_DIMENSIONS,
-            }}
-            html={html}
+            source={{html}}
             debug={debug}
         />
     );

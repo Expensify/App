@@ -23,7 +23,7 @@ import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import {getDefaultRoomSubtitle, isDefaultRoom} from '../../libs/reportUtils';
+import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../../libs/reportUtils';
 import Text from '../../components/Text';
 
 const propTypes = {
@@ -54,17 +54,23 @@ const propTypes = {
     }).isRequired,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    personalDetails: {},
     report: null,
 };
 
 const HeaderView = (props) => {
+    // Waiting until ONYX variables are loaded before displaying the component
+    if (_.isEmpty(props.personalDetails)) {
+        return null;
+    }
+
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
@@ -122,6 +128,7 @@ const HeaderView = (props) => {
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                                 isDefaultChatRoom={isDefaultChatRoom}
+                                isArchivedRoom={isArchivedRoom(props.report)}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
