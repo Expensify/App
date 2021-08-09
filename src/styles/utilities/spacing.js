@@ -182,7 +182,8 @@ export default {
     },
 
     pv0: {
-        paddingVertical: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     pv1: {
