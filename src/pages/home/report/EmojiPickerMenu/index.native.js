@@ -64,9 +64,7 @@ class EmojiPickerMenu extends Component {
      */
     setPreferredSkinTone(skinTone) {
         this.setState({showSkinToneList: false});
-        if (this.props.updatePreferredSkinTone) {
-            this.props.updatePreferredSkinTone(skinTone);
-        }
+        this.props.updatePreferredSkinTone(skinTone);
     }
 
 
