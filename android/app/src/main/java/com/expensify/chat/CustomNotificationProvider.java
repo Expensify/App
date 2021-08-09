@@ -105,6 +105,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             conversationTitle = "#" + roomName;
         }
 
+        // Retrieve or create the Person object who sent the latest report comment
         Person person = notificationCache.people.get(accountID);
         if (person == null) {
             IconCompat iconCompat = fetchIcon(avatar, FALLBACK_ICON_ID);
@@ -117,21 +118,34 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             notificationCache.people.put(accountID, person);
         }
 
+        // Store the latest report comment in the local conversation history
         notificationCache.messages.add(new NotificationCache.Message(person, message, time));
 
+        // Create the messaging style notification builder for this notification.
+        // Associate the notification with the person who sent the report comment.
+        // If this conversation has 2 participants or more and there's no room name, we should mark
+        // it as a group conversation.
+        // Also set the conversation title.
         NotificationCompat.MessagingStyle messagingStyle = new NotificationCompat.MessagingStyle(person)
                 .setGroupConversation(notificationCache.people.size() > 2 || !roomName.isEmpty())
                 .setConversationTitle(conversationTitle);
 
+        // Add all conversation messages to the notification, including the last one we just received.
         for (NotificationCache.Message cachedMessage : notificationCache.messages) {
             messagingStyle.addMessage(cachedMessage.text, cachedMessage.time, cachedMessage.person);
         }
 
+        // Clear the previous notification associated to this conversation so it looks like we are
+        // replacing them with this new one we just built.
         if (notificationCache.prevNotificationID != -1) {
             NotificationManagerCompat.from(context).cancel(notificationCache.prevNotificationID);
         }
 
+        // Apply the messaging style to the notification builder
         builder.setStyle(messagingStyle);
+
+        // Store the new notification ID so we can replace the notification if this conversation
+        // receives more messages
         notificationCache.prevNotificationID = notificationID;
     }
 
