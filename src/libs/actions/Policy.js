@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import cache from 'react-native-onyx/lib/OnyxCache';
+import Str from 'expensify-common/lib/str';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
@@ -10,8 +12,6 @@ import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
-import cache from "react-native-onyx/lib/OnyxCache";
-import Str from "expensify-common/lib/str";
 
 const allPolicies = {};
 Onyx.connect({
