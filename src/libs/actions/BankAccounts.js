@@ -619,8 +619,16 @@ function setupWithdrawalAccount(data) {
 
     API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
-
+            // Ensure that we don't continue until the merge is complete, this prevents the achData from getting
+            // overwritten later on in the flow before this merge happens
+            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                loading: false,
+                achData: {...newACHData},
+            })
+                .then(() => {
+                    return Promise.resolve(response);
+                });
+        }).then((response) => {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
