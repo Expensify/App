@@ -14,7 +14,6 @@ import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
-    hideBankAccountErrors,
     setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
