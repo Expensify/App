@@ -36,18 +36,18 @@ class ImageView extends PureComponent {
 
         // PanResponder used to capture how many touches are active on the attachment image
         this.panResponder = PanResponder.create({
-            onStartShouldSetPanResponder: this.handleOnStartShouldSetPanResponder.bind(this),
+            onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
         });
     }
 
     /**
-     * Handler for the initial tap for the PanResponder on our ImageZoom overlay View
+     * Updates the amount of active touches on the PanResponder on our ImageZoom overlay View
      *
      * @param {Event} e
      * @param {GestureState} gestureState
      * @returns {Boolean}
      */
-    handleOnStartShouldSetPanResponder(e, gestureState) {
+    updatePanResponderTouches(e, gestureState) {
         if (_.isNumber(gestureState.numberActiveTouches)) {
             this.amountOfTouches = gestureState.numberActiveTouches;
         }
