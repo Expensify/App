@@ -7,14 +7,12 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.WindowManager;
-
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.Person;
 import androidx.core.graphics.drawable.IconCompat;
-
 import com.urbanairship.AirshipConfigOptions;
 import com.urbanairship.json.JsonMap;
 import com.urbanairship.json.JsonValue;
@@ -22,7 +20,6 @@ import com.urbanairship.push.PushMessage;
 import com.urbanairship.push.notifications.NotificationArguments;
 import com.urbanairship.reactnative.ReactNotificationProvider;
 import com.urbanairship.util.ImageUtils;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
