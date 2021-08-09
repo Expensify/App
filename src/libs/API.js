@@ -973,6 +973,14 @@ function BankAccount_SetupWithdrawal(parameters) {
     );
 }
 
+function DeleteBankAccount(parameters) {
+    const commandName = 'DeleteBankAccount';
+    requireParameters(['bankAccountID', 'password'], parameters, commandName);
+    return Network.post(
+        commandName, {bankAccountID: parameters.bankAccountID, password: parameters.password},
+    );
+}
+
 /**
  * @param {Object} parameters
  * @param {String[]} data
@@ -1135,4 +1143,5 @@ export {
     Policy_Create,
     Policy_Employees_Remove,
     PreferredLocale_Update,
+    DeleteBankAccount,
 };

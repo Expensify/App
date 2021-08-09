@@ -10,6 +10,7 @@ import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
+import {DeleteBankAccount} from '../API';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -739,6 +740,13 @@ function hideExistingOwnersError() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
+function deleteBankAccount(bankAccountID, password) {
+    API.DeleteBankAccount({bankAccountID, password})
+        .then((response) => {
+            console.log(response);
+        });
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -752,4 +760,5 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideExistingOwnersError,
+    deleteBankAccount,
 };

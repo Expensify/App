@@ -40,6 +40,7 @@ class PaymentsPage extends React.Component {
         this.state = {
             shouldShowAddPaymentMenu: false,
             shouldShowDefaultDeleteMenu: false,
+            shouldShowPasswordPrompt: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
@@ -53,6 +54,7 @@ class PaymentsPage extends React.Component {
         this.hideDefaultDeleteMenu = this.hideDefaultDeleteMenu.bind(this);
         this.makeDefaultPaymentMethod = this.makeDefaultPaymentMethod.bind(this);
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
+        this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
     }
 
     componentDidMount() {
@@ -136,12 +138,33 @@ class PaymentsPage extends React.Component {
         this.setState({shouldShowDefaultDeleteMenu: false});
     }
 
-    makeDefaultPaymentMethod() {
+    hidePasswordPrompt() {
+        this.setState({shouldShowPasswordPrompt: false});
+    }
 
+    makeDefaultPaymentMethod() {
+        if (this.state.selectedPaymentMethodType === 'PayPal.me') {
+
+        } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
+
+        } else if (this.state.selectedPaymentMethodType === 'card') {
+
+        }
     }
 
     deletePaymentMethod() {
+        if (this.state.selectedPaymentMethodType === 'PayPal.me') {
+            NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, null);
+        } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
+            this.setState({shouldShowDefaultDeleteMenu: false, shouldShowPasswordPrompt: true});
+        } else if (this.state.selectedPaymentMethodType === 'card') {
 
+        }
+    }
+
+    deleteBankAccount(password) {
+        debugger;
+        deleteBankAccount(this.state.selectedPaymentMethod, password);
     }
 
     render() {
