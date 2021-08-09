@@ -105,14 +105,15 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             conversationTitle = "#" + roomName;
         }
 
-        IconCompat iconCompat = fetchIcon(avatar, FALLBACK_ICON_ID);
-        Person person = new Person.Builder()
+        Person person = notificationCache.people.get(accountID);
+        if (person == null) {
+            IconCompat iconCompat = fetchIcon(avatar, FALLBACK_ICON_ID);
+            person = new Person.Builder()
                 .setIcon(iconCompat)
                 .setKey(accountID)
                 .setName(name)
                 .build();
 
-        if (!notificationCache.people.containsKey(accountID)) {
             notificationCache.people.put(accountID, person);
         }
 
