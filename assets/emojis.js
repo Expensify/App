@@ -30,7 +30,7 @@ import CONST from '../src/CONST';
 // BEFORE YOU EDIT THIS, PLEASE SEE WARNINGS IN EmojiPickerMenu.js
 const skinTones = [{
     code: '🖐',
-    skinTone: 'default',
+    skinTone: CONST.DEFAULT_SKIN_TONE,
 }, {
     code: '🖐🏻',
     skinTone: 4,

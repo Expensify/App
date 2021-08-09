@@ -342,7 +342,7 @@ class EmojiPickerMenu extends Component {
         }
 
         let emojiCode = code;
-        if (types && typeof this.props.preferredSkinTone === 'number' && types[this.props.preferredSkinTone]) {
+        if (types && types[this.props.preferredSkinTone]) {
             emojiCode = types[this.props.preferredSkinTone];
         }
 
