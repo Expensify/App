@@ -1,18 +1,18 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView, View,
+    SafeAreaView,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
-import Text from '../../components/Text';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
+import compose from '../../libs/compose';
 import SignInPageLayout from './SignInPageLayout';
 import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
 const propTypes = {
     /* Onyx Props */
@@ -44,6 +44,8 @@ const propTypes = {
         /** Error to display when there is a session error returned */
         authToken: PropTypes.string,
     }),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -55,7 +57,8 @@ const defaultProps = {
 class SignInPage extends Component {
     componentDidMount() {
         // Always reset the unread counter to zero on this page
-        updateUnread(0);
+        // NOTE: We need to wait for the next tick to ensure that the unread indicator is updated
+        setTimeout(() => updateUnread(0), 0);
     }
 
     render() {
@@ -82,10 +85,13 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
+        const welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
+
         return (
             <>
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
+                        welcomeText={welcomeText}
                         shouldShowWelcomeText={showLoginForm}
                         shouldShowWelcomeScreenshot={showLoginForm}
                     >
@@ -94,17 +100,6 @@ class SignInPage extends Component {
                         {showPasswordForm && <PasswordForm />}
 
                         {showResendValidationLinkForm && <ResendValidationForm />}
-
-                        {/* Because of the custom layout of the login form, session errors are displayed differently */}
-                        {!showLoginForm && (
-                            <View>
-                                {this.props.account && !_.isEmpty(this.props.account.error) && (
-                                    <Text style={[styles.formError]}>
-                                        {this.props.account.error}
-                                    </Text>
-                                )}
-                            </View>
-                        )}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
@@ -115,8 +110,11 @@ class SignInPage extends Component {
 SignInPage.propTypes = propTypes;
 SignInPage.defaultProps = defaultProps;
 
-export default withOnyx({
-    account: {key: ONYXKEYS.ACCOUNT},
-    credentials: {key: ONYXKEYS.CREDENTIALS},
-    session: {key: ONYXKEYS.SESSION},
-})(SignInPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
+        session: {key: ONYXKEYS.SESSION},
+    }),
+)(SignInPage);

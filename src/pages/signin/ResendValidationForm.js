@@ -80,6 +80,11 @@ class ResendValidationForm extends React.Component {
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink')}
                     </Text>
                 </View>
+                {!_.isEmpty(this.state.formSuccess) && (
+                    <Text style={[styles.formSuccess]}>
+                        {this.state.formSuccess}
+                    </Text>
+                )}
                 <View style={[styles.mt4]}>
                     <Button
                         success
@@ -90,12 +95,6 @@ class ResendValidationForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
-
-                {!_.isEmpty(this.state.formSuccess) && (
-                    <Text style={[styles.formSuccess]}>
-                        {this.state.formSuccess}
-                    </Text>
-                )}
             </>
         );
     }

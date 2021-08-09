@@ -55,12 +55,14 @@ export default {
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
-    DETAILS_WITH_LOGIN: 'details/:login',
-    getDetailsRoute: login => `details/${login}`,
+    getDetailsRoute: login => `details?login=${encodeURIComponent(login)}`,
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
-    REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
-    getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
+    REPORT_PARTICIPANT: 'r/:reportID/participants/details',
+    getReportParticipantRoute: (
+        reportID,
+        login,
+    ) => `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
@@ -80,6 +82,12 @@ export default {
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     REQUEST_CALL: 'request-call',
+    getWorkspaceEditorRoute: policyID => `workspace/${policyID}/edit`,
+    WORKSPACE_EDITOR: 'workspace/:policyID/edit',
+    VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
+        const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
+        return `v/${accountID}/${validateCode}${exitToURL}`;
+    },
 
     /**
      * @param {String} route

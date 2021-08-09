@@ -19,7 +19,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {
-    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited,
+    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom,
 } from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
@@ -138,7 +138,13 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  */
 function getChatReportName(fullReport, chatType) {
     if (isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}`;
+        return `#${fullReport.reportName}${(isArchivedRoom({
+            chatType,
+            stateNum: fullReport.state,
+            statusNum: fullReport.status,
+        })
+            ? ` (${translateLocal('common.deleted')})`
+            : '')}`;
     }
 
     const {sharedReportList} = fullReport;
@@ -181,6 +187,9 @@ function getSimplifiedReportObject(report) {
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
+    // Used for archived rooms, will store the policy name that the room used to belong to.
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
     return {
         reportID: report.reportID,
         reportName,
@@ -201,6 +210,9 @@ function getSimplifiedReportObject(report) {
         lastActorEmail,
         hasOutstandingIOU: false,
         notificationPreference,
+        stateNum: report.state,
+        statusNum: report.status,
+        oldPolicyName,
     };
 }
 
@@ -298,19 +310,26 @@ function fetchIOUReportID(debtorEmail) {
 }
 
 /**
- * Fetches chat reports when provided a list of
- * chat report IDs
- *
+ * Fetches chat reports when provided a list of chat report IDs.
+ * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
+ * when we find an inaccessible chat
  * @param {Array} chatList
+ * @param {Boolean} shouldRedirectIfInacessible
  * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
-        .then(({reportSummaryList}) => {
+        .then(({reportSummaryList, jsonCode}) => {
             Log.info('[Report] successfully fetched report data', true);
             fetchedReports = reportSummaryList;
+
+            // If we receive a 404 response while fetching a single report, treat that report as inacessible.
+            if (jsonCode === 404 && shouldRedirectIfInacessible) {
+                throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
+            }
+
             return Promise.all(_.map(fetchedReports, (chatReport) => {
                 // If there aren't any IOU actions, we don't need to fetch any additional data
                 if (!chatReport.hasIOUAction) {
@@ -331,7 +350,13 @@ function fetchChatReportsByIDs(chatList) {
                 }
 
                 return fetchIOUReportID(participants[0])
-                    .then(iouReportID => fetchIOUReport(iouReportID, chatReport.reportID));
+                    .then((iouReportID) => {
+                        if (!iouReportID) {
+                            return Promise.resolve();
+                        }
+
+                        return fetchIOUReport(iouReportID, chatReport.reportID);
+                    });
             }));
         })
         .then((iouReportObjects) => {
@@ -368,6 +393,12 @@ function fetchChatReportsByIDs(chatList) {
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
 
             return _.map(fetchedReports, report => report.reportID);
+        })
+        .catch((err) => {
+            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
+                // eslint-disable-next-line no-use-before-define
+                handleInaccessibleReport();
+            }
         });
 }
 
@@ -1333,6 +1364,14 @@ function navigateToConciergeChat() {
     Navigation.closeDrawer();
 }
 
+/**
+ * Handle the navigation when report is inaccessible
+ */
+function handleInaccessibleReport() {
+    Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+    navigateToConciergeChat();
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1357,4 +1396,5 @@ export {
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
+    handleInaccessibleReport,
 };

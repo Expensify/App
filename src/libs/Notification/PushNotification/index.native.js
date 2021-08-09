@@ -141,10 +141,18 @@ function onSelected(notificationType, callback) {
     bind(notificationType, callback, EventType.NotificationResponse);
 }
 
+/**
+ * Clear all push notifications
+ */
+function clearNotifications() {
+    UrbanAirship.clearNotifications();
+}
+
 export default {
     register,
     deregister,
     onReceived,
     onSelected,
     TYPE: NotificationType,
+    clearNotifications,
 };
