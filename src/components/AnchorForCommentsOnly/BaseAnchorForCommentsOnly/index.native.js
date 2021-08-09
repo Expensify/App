@@ -1,4 +1,5 @@
 import React from 'react';
+import lodashGet from 'lodash/get';
 import {Linking, StyleSheet} from 'react-native';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
@@ -23,10 +24,10 @@ const BaseAnchorForCommentsOnly = ({
             onSecondaryInteraction={
                 (event) => {
                     showContextMenu(
-                        CONTEXT_MENU_TYPES.link,
+                        CONTEXT_MENU_TYPES.LINK,
                         event,
                         href,
-                        linkRef.current,
+                        lodashGet(linkRef, 'current'),
                     );
                 }
             }
@@ -41,7 +42,7 @@ const BaseAnchorForCommentsOnly = ({
                 {children}
             </Text>
         </PressableWithSecondaryInteraction>
-    )
+    );
 };
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;

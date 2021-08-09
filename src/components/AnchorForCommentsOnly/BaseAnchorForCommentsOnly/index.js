@@ -1,5 +1,6 @@
 import React from 'react';
 import {StyleSheet} from 'react-native';
+import lodashGet from 'lodash/get';
 import Text from '../../Text';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
@@ -8,8 +9,8 @@ import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/Context
 
 
 /*
-* This is a default anchor component for regular links.
-*/
+ * This is a default anchor component for regular links.
+ */
 const BaseAnchorForCommentsOnly = ({
     href,
     rel,
@@ -24,10 +25,10 @@ const BaseAnchorForCommentsOnly = ({
             onSecondaryInteraction={
                 (event) => {
                     showContextMenu(
-                        CONTEXT_MENU_TYPES.link,
+                        CONTEXT_MENU_TYPES.LINK,
                         event,
                         href,
-                        linkRef.current,
+                        lodashGet(linkRef, 'current'),
                     );
                 }
             }

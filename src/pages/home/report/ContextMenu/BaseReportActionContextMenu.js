@@ -28,7 +28,7 @@ class BaseReportActionContextMenu extends React.Component {
 
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {ContextMenuActions.filter(shouldShowFilter).map(contextAction => (
+                {_.map(_.filter(ContextMenuActions, shouldShowFilter), contextAction => (
                     <ContextMenuItem
                         icon={contextAction.icon}
                         text={this.props.translate(contextAction.textTranslateKey)}

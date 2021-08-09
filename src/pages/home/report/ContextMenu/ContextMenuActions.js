@@ -24,8 +24,8 @@ function getActionText(reportAction) {
 }
 
 export const CONTEXT_MENU_TYPES = {
-    link: 'LINK',
-    reportAction: 'REPORT_ACTION',
+    LINK: 'LINK',
+    REPORT_ACTION: 'REPORT_ACTION',
 };
 
 // A list of all the context actions in this menu.
@@ -33,7 +33,7 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.openLink',
         icon: Link,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.link,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
             Linking.openURL(selection);
             hideContextMenu(false, ReportActionComposeFocusManager.focus);
@@ -44,7 +44,7 @@ export default [
         icon: ClipboardIcon,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Checkmark,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.link,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
@@ -55,7 +55,7 @@ export default [
         icon: ClipboardIcon,
         successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Checkmark,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.reportAction,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -89,7 +89,7 @@ export default [
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: Mail,
         successIcon: Checkmark,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.reportAction,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
             updateLastReadActionID(reportID, reportAction.sequenceNumber);
             setNewMarkerPosition(reportID, reportAction.sequenceNumber);
@@ -103,7 +103,7 @@ export default [
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Pencil,
         shouldShow: (type, reportAction) => (
-            type === CONTEXT_MENU_TYPES.reportAction && canEditReportAction(reportAction)
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && canEditReportAction(reportAction)
         ),
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => saveReportActionDraft(
@@ -125,7 +125,7 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Trashcan,
-        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.reportAction
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
             && canDeleteReportAction(reportAction),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {

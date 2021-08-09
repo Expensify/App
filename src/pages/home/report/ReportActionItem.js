@@ -92,7 +92,7 @@ class ReportActionItem extends Component {
             return;
         }
         showContextMenu(
-            CONTEXT_MENU_TYPES.reportAction,
+            CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
             this.popoverAnchor,
