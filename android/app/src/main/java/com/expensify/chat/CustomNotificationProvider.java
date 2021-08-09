@@ -184,7 +184,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
 
             cache.remove(reportID);
         } catch (Exception e) {
-            Log.e(TAG, "Failed to delete conversation cache");
+            Log.e(TAG, "Failed to delete conversation cache. SendID=" + message.getSendId(), e);
         }
     }
 
