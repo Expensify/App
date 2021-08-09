@@ -12,6 +12,7 @@ import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import variables from '../styles/variables';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -114,10 +115,15 @@ class AvatarWithImagePicker extends React.Component {
                         {({openPicker}) => (
                             <>
                                 <Pressable
-                                    style={[styles.smallEditIcon]}
+                                    style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
                                     onPress={() => this.setState({isMenuVisible: true})}
                                 >
-                                    <Icon src={Pencil} fill={themeColors.iconReversed} />
+                                    <Icon
+                                        src={Pencil}
+                                        width={variables.iconSizeSmall}
+                                        height={variables.iconSizeSmall}
+                                        fill={themeColors.iconReversed}
+                                    />
                                 </Pressable>
                                 <PopoverMenu
                                     isVisible={this.state.isMenuVisible}

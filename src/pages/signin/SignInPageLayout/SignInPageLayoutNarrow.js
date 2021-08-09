@@ -7,14 +7,15 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** The children to show inside the layout */
     children: PropTypes.node.isRequired,
 
-    ...windowDimensionsPropTypes,
+    /** Welcome text to show in the header of the form, changes depending
+     * on form type (set password, sign in, etc.) */
+    welcomeText: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -24,10 +25,10 @@ const SignInPageLayoutNarrow = props => (
         showsVerticalScrollIndicator={false}
         style={[
             styles.flexGrow1,
-            styles.mh5,
             styles.signInPageNarrowContentContainer,
             styles.alignSelfCenter,
         ]}
+        contentContainerStyle={styles.ph5}
     >
         <KeyboardAvoidingView behavior="position">
             <View style={[styles.flexGrow1]}>
@@ -37,7 +38,7 @@ const SignInPageLayoutNarrow = props => (
                         styles.flex1,
                         styles.dFlex,
                         styles.flexColumn,
-                        props.windowHeight > props.windowWidth ? styles.mt40Percentage : null,
+                        styles.mt40Percentage,
                     ]}
                 >
                     <View style={[styles.componentHeightLarge, styles.mb2]}>
@@ -47,7 +48,7 @@ const SignInPageLayoutNarrow = props => (
                         />
                     </View>
                     <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                        {props.translate('welcomeText.phrase1')}
+                        {props.welcomeText}
                     </Text>
                     {props.children}
                 </View>
@@ -62,7 +63,4 @@ const SignInPageLayoutNarrow = props => (
 SignInPageLayoutNarrow.propTypes = propTypes;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
-export default compose(
-    withWindowDimensions,
-    withLocalize,
-)(SignInPageLayoutNarrow);
+export default withLocalize(SignInPageLayoutNarrow);

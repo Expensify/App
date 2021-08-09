@@ -688,7 +688,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 295,
+        maxWidth: 335,
     },
 
     signInPageWideLeftContainer: {
@@ -1620,6 +1620,12 @@ const styles = {
         height: '100%',
     },
 
+    navigationSceneFullScreenWrapper: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
+        height: '100%',
+    },
+
     invisible: {
         position: 'absolute',
         opacity: 0,
@@ -1771,11 +1777,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1855,16 +1860,18 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
         borderColor: themeColors.textReversed,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 3,
-        bottom: -4,
         color: themeColors.textReversed,
-        height: 32,
+        height: 28,
+        width: 28,
         justifyContent: 'center',
-        padding: 4,
+    },
+
+    smallAvatarEditIcon: {
         position: 'absolute',
         right: -4,
-        width: 32,
+        bottom: -4,
     },
 
     workspaceCard: {
@@ -1923,6 +1930,22 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    cardOverlay: {
+        backgroundColor: themeColors.modalBackdrop,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0.5,
+    },
+
+    communicationsLinkIcon: {
+        right: -36,
+        top: 0,
+        bottom: 0,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -1968,6 +1991,10 @@ const webViewStyles = {
     // styles from the renderer, just pass the "style" prop to the underlying
     // component.
     tagStyles: {
+        body: {
+            flexDirection: 'row',
+        },
+
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
             fontStyle: 'italic',
@@ -2033,6 +2060,7 @@ const webViewStyles = {
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
+        alignSelf: 'flex-start',
     },
 };
 
@@ -2062,20 +2090,18 @@ function getSafeAreaMargins(insets) {
 /**
  * Return navigation menu styles.
  *
- * @param {Number} windowWidth
- * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
+function getNavigationDrawerStyle(isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            width: windowWidth,
-            height: windowHeight,
+            width: '100%',
+            height: '100%',
             borderColor: themeColors.border,
         }
         : {
-            height: windowHeight,
+            height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };
