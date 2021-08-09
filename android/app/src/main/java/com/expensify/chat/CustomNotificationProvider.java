@@ -6,7 +6,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.WindowManager;
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -37,9 +36,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     // Max wait time to resolve an icon. We have ~10 seconds to a little less
     // to ensure the notification builds.
     private static final int MAX_ICON_FETCH_WAIT_TIME_SECONDS = 8;
-
-    // Fallback drawable ID. 0 to not use a fallback ID.
-    private static final int FALLBACK_ICON_ID = 0;
 
     // Logging
     private static final String TAG = "NotificationProvider";
@@ -108,7 +104,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         // Retrieve or create the Person object who sent the latest report comment
         Person person = notificationCache.people.get(accountID);
         if (person == null) {
-            IconCompat iconCompat = fetchIcon(avatar, FALLBACK_ICON_ID);
+            IconCompat iconCompat = fetchIcon(avatar);
             person = new Person.Builder()
                 .setIcon(iconCompat)
                 .setKey(accountID)
@@ -188,8 +184,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
         }
     }
 
-    @NonNull
-    private IconCompat fetchIcon(@NonNull String urlString, @DrawableRes int fallbackId) {
+    private IconCompat fetchIcon(String urlString) {
         // TODO: Add disk LRU cache
 
         URL parsedUrl = null;
@@ -222,7 +217,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
             }
         }
 
-        return fallbackId == 0 ? null : IconCompat.createWithResource(context, fallbackId);
+        return null;
     }
 
     private static class NotificationCache {
