@@ -406,6 +406,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
+                    achData.state = lodashGet(achData, 'state', '');
 
                     // If the bank account has already been created in the db and is not yet open
                     // let's show the manual form with the previously added values
