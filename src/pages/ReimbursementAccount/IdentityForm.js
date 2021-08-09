@@ -70,7 +70,6 @@ const IdentityForm = ({
     const {
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
     } = values;
-    console.log(">>>>", error);
     return (
         <View style={style}>
             <View style={[styles.flexRow]}>
