@@ -13,7 +13,6 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
-    hideBankAccountErrors,
     setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';

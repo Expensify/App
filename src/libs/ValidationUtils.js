@@ -1,6 +1,5 @@
 import moment from 'moment';
 import CONST from '../CONST';
-import Growl from './Growl';
 import {translateLocal} from './translate';
 import {showBankAccountFormValidationError} from './actions/BankAccounts';
 
