@@ -2,7 +2,6 @@ package com.expensify.chat;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -62,10 +61,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     protected NotificationCompat.Builder onExtendBuilder(@NonNull Context context, @NonNull NotificationCompat.Builder builder, @NonNull NotificationArguments arguments) {
         super.onExtendBuilder(context, builder, arguments);
         PushMessage message = arguments.getMessage();
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return builder;
-        }
 
         if (message.containsKey(PAYLOAD_KEY)) {
             try {
