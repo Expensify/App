@@ -71,7 +71,7 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
                         applyMessageStyle(builder, payload, arguments.getNotificationId());
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Failed to parse conversation", e);
+                Log.e(TAG, "Failed to parse conversation. SendID=" + message.getSendId(), e);
             }
         }
 
