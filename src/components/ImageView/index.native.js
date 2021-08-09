@@ -77,11 +77,10 @@ class ImageView extends PureComponent {
                     imageHeight={this.state.imageHeight}
                     onStartShouldSetPanResponder={() => {
                         const isDoubleClick = new Date().getTime() - this.lastClickTime <= this.doubleClickInterval;
-                        const touches = this.amountOfTouches;
                         this.lastClickTime = new Date().getTime();
 
                         // Let ImageZoom handle the event if the tap is more than one touchPoint or if we are zoomed in
-                        if (touches === 2 || this.imageZoomScale !== 1) {
+                        if (this.amountOfTouches === 2 || this.imageZoomScale !== 1) {
                             return true;
                         }
 
