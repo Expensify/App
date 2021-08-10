@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Image, StyleSheet, View} from 'react-native';
 import styles from '../styles/styles';
+import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 import compose from '../libs/compose';
@@ -26,7 +27,7 @@ const VBALoadingIndicator = ({translate, visible}) => visible && (
     <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading]}>
         <View style={[styles.pageWrapper]}>
             <Image
-                source={{uri: 'https://d2k5nsl2zxldvw.cloudfront.net/images/icons/emptystates/emptystate_reviewing.gif'}}
+                source={{uri: `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}}
                 style={[
                     styles.loadingVBAAnimation,
                 ]}
