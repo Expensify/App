@@ -388,7 +388,7 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Escribe una contraseña de Expensify',
+        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
     },
     attachmentView: {
