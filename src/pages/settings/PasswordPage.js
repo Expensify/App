@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, TextInput, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -88,49 +89,40 @@ class PasswordPage extends Component {
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {`${this.props.translate('passwordPage.currentPassword')}*`}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={`${this.props.translate('passwordPage.currentPassword')}*`}
                                 ref={el => this.currentPasswordInputRef = el}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                style={styles.textInput}
                                 value={this.state.currentPassword}
                                 onChangeText={currentPassword => this.setState({currentPassword})}
                                 returnKeyType="done"
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {`${this.props.translate('passwordPage.newPassword')}*`}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={`${this.props.translate('passwordPage.newPassword')}*`}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                style={styles.textInput}
                                 value={this.state.newPassword}
                                 onChangeText={newPassword => this.setState({newPassword})}
                                 onFocus={() => this.setState({isPasswordRequirementsVisible: true})}
                                 onBlur={() => this.setState({isPasswordRequirementsVisible: false})}
                             />
                             {this.state.isPasswordRequirementsVisible && (
-                                <Text style={[styles.formHint, styles.mt1]}>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
                                     {this.props.translate('passwordPage.newPasswordPrompt')}
                                 </Text>
                             )}
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {`${this.props.translate('passwordPage.confirmNewPassword')}*`}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={`${this.props.translate('passwordPage.confirmNewPassword')}*`}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                style={styles.textInput}
                                 value={this.state.confirmNewPassword}
                                 onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
                                 onSubmitEditing={this.handleChangePassword}

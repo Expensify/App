@@ -2,16 +2,13 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
 import BootSplash from './libs/BootSplash';
-import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-import CONST from './CONST';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
-import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
@@ -23,32 +20,6 @@ import Navigation from './libs/Navigation/Navigation';
 import ROUTES from './ROUTES';
 import StartupTimer from './libs/StartupTimer';
 import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
-
-// Initialize the store when the app loads for the first time
-Onyx.init({
-    keys: ONYXKEYS,
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-    initialKeyStates: {
-
-        // Clear any loading and error messages so they do not appear on app startup
-        [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
-        [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-        [ONYXKEYS.NETWORK]: {isOffline: false},
-        [ONYXKEYS.IOU]: {
-            loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
-        },
-    },
-    registerStorageEventListener: (onStorageEvent) => {
-        listenToStorageEvents(onStorageEvent);
-    },
-});
-Onyx.registerLogger(({level, message}) => {
-    if (level === 'alert') {
-        Log.alert(message, 0, {}, false);
-    } else {
-        Log.client(message);
-    }
-});
 
 const propTypes = {
     /* Onyx Props */
@@ -72,6 +43,9 @@ const propTypes = {
     /** Whether the initial data needed to render the app is ready */
     initialReportDataLoaded: PropTypes.bool,
 
+    /** Tells us if the sidebar has rendered */
+    isSidebarLoaded: PropTypes.bool,
+
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
 };
@@ -84,6 +58,7 @@ const defaultProps = {
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
+    isSidebarLoaded: false,
     betas: [],
 };
 
@@ -144,7 +119,7 @@ class Expensify extends PureComponent {
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
         }
 
-        if (this.getAuthToken() && this.props.initialReportDataLoaded) {
+        if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
             BootSplash.getVisibilityStatus()
                 .then((value) => {
                     if (value !== 'visible') {
@@ -207,5 +182,8 @@ export default withOnyx({
     },
     initialReportDataLoaded: {
         key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
+    },
+    isSidebarLoaded: {
+        key: ONYXKEYS.IS_SIDEBAR_LOADED,
     },
 })(Expensify);

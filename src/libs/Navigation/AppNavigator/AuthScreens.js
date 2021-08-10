@@ -58,17 +58,24 @@ import {
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    WorkspaceEditorNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
 import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
+import spacing from '../../../styles/utilities/spacing';
+import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
+        if (!val) {
+            return;
+        }
+
         const timezone = lodashGet(val, 'timezone', {});
         const currentTimezone = moment.tz.guess(true);
 
@@ -178,24 +185,23 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
+        let searchShortcutModifiers = ['control'];
+        let groupShortcutModifiers = ['control', 'shift'];
+
+        if (getOperatingSystem() === CONST.OS.MAC_OS) {
+            searchShortcutModifiers = ['meta'];
+            groupShortcutModifiers = ['meta', 'shift'];
+        }
+
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.SEARCH);
-            }, ['meta'], true);
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            }, ['meta', 'shift'], true);
-        } else {
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.SEARCH);
-            }, ['control'], true);
-            KeyboardShortcut.subscribe('K', () => {
-                Navigation.navigate(ROUTES.NEW_GROUP);
-            }, ['control', 'shift'], true);
-        }
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe('K', () => {
+            Navigation.navigate(ROUTES.SEARCH);
+        }, searchShortcutModifiers, true);
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
+            Navigation.navigate(ROUTES.NEW_GROUP);
+        }, groupShortcutModifiers, true);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -215,10 +221,16 @@ class AuthScreens extends React.Component {
     }
 
     componentWillUnmount() {
-        KeyboardShortcut.unsubscribe('K');
+        if (this.unsubscribeSearchShortcut) {
+            this.unsubscribeSearchShortcut();
+        }
+        if (this.unsubscribeGroupShortcut) {
+            this.unsubscribeGroupShortcut();
+        }
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;
+        hasLoadedPolicies = false;
     }
 
     render() {
@@ -243,10 +255,14 @@ class AuthScreens extends React.Component {
         };
         const fullscreenModalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: {...styles.fullscreenCard},
+            cardStyle: {
+                ...styles.fullscreenCard,
+                padding: this.props.isSmallScreenWidth ? spacing.p0.padding : spacing.p5.padding,
+            },
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: false,
+            cardOverlayEnabled: !this.props.isSmallScreenWidth,
             isFullScreenModal: true,
+            cardOverlay: CardOverlay,
         };
 
         return (
@@ -264,11 +280,12 @@ class AuthScreens extends React.Component {
                     name={SCREENS.HOME}
                     options={{
                         headerShown: false,
-                        title: 'Expensify.cash',
+                        title: 'New Expensify',
 
                         // prevent unnecessary scrolling
                         cardStyle: {
                             overflow: 'hidden',
+                            height: '100%',
                         },
                     }}
                     component={MainDrawerNavigator}
@@ -277,7 +294,7 @@ class AuthScreens extends React.Component {
                     name="ValidateLogin"
                     options={{
                         headerShown: false,
-                        title: 'Expensify.cash',
+                        title: 'New Expensify',
                     }}
                     component={ValidateLoginPage}
                 />
@@ -412,6 +429,12 @@ class AuthScreens extends React.Component {
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={IOUSendModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="WorkspaceEditor"
+                    options={modalScreenOptions}
+                    component={WorkspaceEditorNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

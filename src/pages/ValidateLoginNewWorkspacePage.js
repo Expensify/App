@@ -11,7 +11,6 @@ import ROUTES from '../ROUTES';
 import SCREENS from '../SCREENS';
 import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
 
-
 const propTypes = {
     /* Onyx Props */
 

@@ -9,19 +9,19 @@ import CONST from '../../CONST';
 import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import Picker from '../../components/Picker';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Growl from '../../libs/Growl';
 import {
     isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
 } from '../../libs/ValidationUtils';
+import ExpensiPicker from '../../components/ExpensiPicker';
 
 class CompanyStep extends React.Component {
     constructor(props) {
@@ -45,6 +45,21 @@ class CompanyStep extends React.Component {
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
         };
+
+        // These fields need to be filled out in order to submit the form
+        this.requiredFields = [
+            'companyName',
+            'addressStreet',
+            'addressCity',
+            'addressState',
+            'addressZipCode',
+            'website',
+            'companyTaxID',
+            'incorporationDate',
+            'incorporationState',
+            'industryCode',
+            'password',
+        ];
     }
 
     /**
@@ -111,6 +126,8 @@ class CompanyStep extends React.Component {
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false);
         return (
             <>
                 <HeaderWithCloseButton
@@ -124,14 +141,14 @@ class CompanyStep extends React.Component {
                         <View style={[styles.alignItemsCenter]}>
                             <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         </View>
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.legalBusinessName')}
                             containerStyles={[styles.mt4]}
                             onChangeText={companyName => this.setState({companyName})}
                             value={this.state.companyName}
                             disabled={shouldDisableCompanyName}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('common.companyAddressNoPO')}
                             containerStyles={[styles.mt4]}
                             onChangeText={addressStreet => this.setState({addressStreet})}
@@ -139,7 +156,7 @@ class CompanyStep extends React.Component {
                         />
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
-                                <TextInputWithLabel
+                                <ExpensiTextInput
                                     label={this.props.translate('common.city')}
                                     onChangeText={addressCity => this.setState({addressCity})}
                                     value={this.state.addressCity}
@@ -153,13 +170,13 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                         </View>
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('common.zip')}
                             containerStyles={[styles.mt4]}
                             onChangeText={addressZipCode => this.setState({addressZipCode})}
                             value={this.state.addressZipCode}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('common.phoneNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -167,13 +184,13 @@ class CompanyStep extends React.Component {
                             value={this.state.companyPhone}
                             placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.companyWebsite')}
                             containerStyles={[styles.mt4]}
                             onChangeText={website => this.setState({website})}
                             value={this.state.website}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.taxIDNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
@@ -181,19 +198,19 @@ class CompanyStep extends React.Component {
                             value={this.state.companyTaxID}
                             disabled={shouldDisableCompanyTaxID}
                         />
-                        <Text style={[styles.formLabel, styles.mt4]}>
-                            {this.props.translate('companyStep.companyType')}
-                        </Text>
-                        <Picker
-                            items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
-                            onChange={incorporationType => this.setState({incorporationType})}
-                            value={this.state.incorporationType}
-                            placeholder={{value: '', label: 'Type'}}
-                        />
+                        <View style={styles.mt4}>
+                            <ExpensiPicker
+                                label={this.props.translate('companyStep.companyType')}
+                                items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
+                                onChange={incorporationType => this.setState({incorporationType})}
+                                value={this.state.incorporationType}
+                                placeholder={{value: '', label: 'Type'}}
+                            />
+                        </View>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 {/* TODO: Replace with date picker */}
-                                <TextInputWithLabel
+                                <ExpensiTextInput
                                     label={this.props.translate('companyStep.incorporationDate')}
                                     onChangeText={incorporationDate => this.setState({incorporationDate})}
                                     value={this.state.incorporationDate}
@@ -209,7 +226,7 @@ class CompanyStep extends React.Component {
                             </View>
                         </View>
                         {/* TODO: Replace with NAICS picker */}
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('companyStep.industryClassificationCode')}
                             helpLinkText={this.props.translate('common.whatThis')}
                             helpLinkURL="https://www.naics.com/search/"
@@ -217,11 +234,11 @@ class CompanyStep extends React.Component {
                             onChangeText={industryCode => this.setState({industryCode})}
                             value={this.state.industryCode}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
+                            autoCompleteType="new-password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
-                            autoCompleteType="password"
                             textContentType="password"
                             onChangeText={password => this.setState({password})}
                             value={this.state.password}
@@ -253,6 +270,7 @@ class CompanyStep extends React.Component {
                         onPress={this.submit}
                         style={[styles.w100]}
                         text={this.props.translate('common.saveAndContinue')}
+                        isDisabled={shouldDisableSubmitButton}
                     />
                 </FixedFooter>
             </>

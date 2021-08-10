@@ -412,6 +412,8 @@ PODS:
     - React-Core
   - react-native-document-picker (5.1.0):
     - React-Core
+  - react-native-flipper (0.100.0):
+    - React-Core
   - react-native-image-picker (4.0.3):
     - React-Core
   - react-native-netinfo (5.9.10):
@@ -562,7 +564,7 @@ PODS:
     - UMCore
   - UMConstantsInterface (6.1.0):
     - UMCore
-  - UMCore (7.1.0)
+  - UMCore (7.1.1)
   - UMFaceDetectorInterface (6.1.0)
   - UMFileSystemInterface (6.1.0)
   - UMFontInterface (6.1.0)
@@ -632,6 +634,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-config (from `../node_modules/react-native-config`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - react-native-flipper (from `../node_modules/react-native-flipper`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -761,6 +764,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
+  react-native-flipper:
+    :path: "../node_modules/react-native-flipper"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
   react-native-netinfo:
@@ -867,7 +872,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: 884d4cc2b011759361797a4035c47e10099393b5
+  FBReactNativeSpec: c783a75db87c963c60afcd461fc38358805fe5ba
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
   FirebaseABTesting: 4cb61aeeb50f60680af1c01fff781dfaf9293916
   FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
@@ -913,6 +918,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 500a59626037be5b3b3d89c5151bc3baa9abf1a9
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-document-picker: 0e3602a4064da040321bafad6848d8b0edcb1d55
+  react-native-flipper: 1943b82f2e494c77b741eb1ed257b6734a334b83
   react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
@@ -951,7 +957,7 @@ SPEC CHECKSUMS:
   UMBarCodeScannerInterface: 96a01d81ff0c7febbfefc2d7396db9e7462d8c68
   UMCameraInterface: 8ad433fdadca22703ebeb614d42b814092d38d69
   UMConstantsInterface: 55c79ca258a3ede70480fed85e3843899cd47ea3
-  UMCore: 0da048c9753abcea0042258e6ad0fed77811f7e1
+  UMCore: 063edcab3a9de0c44301fe77af147aa1a654b40f
   UMFaceDetectorInterface: 4db950a25e785796a237bcebb8fff05078c4fb61
   UMFileSystemInterface: 4a92ee36e6c2757833031718f8496690fa931280
   UMFontInterface: 81a951117d03f57aa636fba3992adefd0191f200
@@ -966,4 +972,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 2092930e33e7aa4d68cdf783d6174465bd3ce380
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.10.2

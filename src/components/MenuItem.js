@@ -8,8 +8,12 @@ import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
+import Badge from './Badge';
 
 const propTypes = {
+    /** Text to be shown as badge near the right end. */
+    badgeText: PropTypes.string,
+
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     wrapperStyle: PropTypes.object,
@@ -58,6 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    badgeText: undefined,
     shouldShowRightIcon: false,
     wrapperStyle: {},
     success: false,
@@ -74,6 +79,7 @@ const defaultProps = {
 };
 
 const MenuItem = ({
+    badgeText,
     onPress,
     icon,
     iconRight,
@@ -134,17 +140,18 @@ const MenuItem = ({
                             {title}
                         </Text>
                         {description && (
-                            <Text style={[styles.popoverMenuDescription, styles.ml3, styles.mt1]}>
+                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
                                 {description}
                             </Text>
                         )}
                     </View>
                 </View>
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
+                    {badgeText && <Badge text={badgeText} badgeStyles={[styles.alignSelfCenter]} />}
                     {subtitle && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text
-                                style={styles.popoverMenuDescription}
+                                style={styles.textLabelSupporting}
                             >
                                 {subtitle}
                             </Text>
