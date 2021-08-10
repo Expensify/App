@@ -61,6 +61,7 @@ const propTypes = {
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
+    /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf(['avatar', 'icon']),
 };
 
