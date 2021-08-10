@@ -54,23 +54,17 @@ const propTypes = {
     }).isRequired,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    personalDetails: {},
     report: null,
 };
 
 const HeaderView = (props) => {
-    // Waiting until ONYX variables are loaded before displaying the component
-    if (_.isEmpty(props.personalDetails)) {
-        return null;
-    }
-
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
@@ -141,12 +135,7 @@ const HeaderView = (props) => {
                                 />
                                 {isDefaultChatRoom && (
                                     <Text
-                                        style={[
-                                            styles.sidebarLinkText,
-                                            styles.optionAlternateText,
-                                            styles.textLabelSupporting,
-                                            styles.mt1,
-                                        ]}
+                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
                                         numberOfLines={1}
                                     >
                                         {subtitle}

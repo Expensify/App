@@ -1,13 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {TextInput, View} from 'react-native';
 import Text from '../../components/Text';
 import withLocalize, {
     withLocalizePropTypes,
 } from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /** String to control the first password box in the form */
@@ -93,25 +92,31 @@ class NewPasswordForm extends React.Component {
         return (
             <>
                 <View style={styles.mb6}>
-                    <ExpensiTextInput
-                        label={`${this.props.translate('setPasswordPage.enterPassword')}`}
+                    <Text style={[styles.mb1, styles.formLabel]}>
+                        {`${this.props.translate('setPasswordPage.enterPassword')}`}
+                    </Text>
+                    <TextInput
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
+                        style={styles.textInput}
                         value={this.state.password}
                         onChangeText={password => this.props.updatePassword(password)}
                         onBlur={() => this.onBlurNewPassword()}
                     />
-                    <Text style={[styles.textLabelSupporting, styles.mt1, passwordHintStyle]}>
+                    <Text style={[styles.formHint, styles.mt1, passwordHintStyle]}>
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
                     </Text>
                 </View>
                 <View style={styles.mb6}>
-                    <ExpensiTextInput
-                        label={`${this.props.translate('setPasswordPage.confirmNewPassword')}*`}
+                    <Text style={[styles.mb1, styles.formLabel]}>
+                        {`${this.props.translate('setPasswordPage.confirmNewPassword')}*`}
+                    </Text>
+                    <TextInput
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
+                        style={styles.textInput}
                         value={this.state.confirmNewPassword}
                         onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
                         onSubmitEditing={() => this.props.onSubmitEditing()}

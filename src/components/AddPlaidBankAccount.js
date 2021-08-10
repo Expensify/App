@@ -3,6 +3,7 @@ import React from 'react';
 import {
     ActivityIndicator,
     View,
+    TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -19,9 +20,8 @@ import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
-import ExpensiPicker from './ExpensiPicker';
+import Picker from './Picker';
 import Text from './Text';
-import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -161,7 +161,7 @@ class AddPlaidBankAccount extends React.Component {
                             https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
                             <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
                             <View style={[styles.mb5]}>
-                                <ExpensiPicker
+                                <Picker
                                     onChange={(index) => {
                                         this.setState({selectedIndex: Number(index)});
                                     }}
@@ -175,9 +175,12 @@ class AddPlaidBankAccount extends React.Component {
                             </View>
                             {!_.isUndefined(this.state.selectedIndex) && (
                                 <View style={[styles.mb5]}>
-                                    <ExpensiTextInput
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                    <Text style={[styles.formLabel]}>
+                                        {this.props.translate('addPersonalBankAccountPage.enterPassword')}
+                                    </Text>
+                                    <TextInput
                                         secureTextEntry
+                                        style={[styles.textInput, styles.mb2]}
                                         value={this.state.password}
                                         autoCompleteType="password"
                                         textContentType="password"

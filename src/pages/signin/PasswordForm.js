@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-    TouchableOpacity, View,
+    TextInput, TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -16,13 +16,13 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import {updatePassword, updateTwoFactorAuthCode} from '../../libs/actions/User';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
+
         /** Password of the account */
         password: PropTypes.string,
 
@@ -82,39 +82,41 @@ class PasswordForm extends React.Component {
         return (
             <>
                 <View style={[styles.mv3]}>
-                    <ExpensiTextInput
-                        label={this.props.translate('common.password')}
-                        defaultValue={this.props.account.password}                        
+                    <View style={[styles.dFlex, styles.flexRow]}>
+                        <Text style={[styles.formLabel]}>{this.props.translate('common.password')}</Text>
+                        <TouchableOpacity
+                            style={[styles.ml2]}
+                            onPress={resetPassword}
+                            underlayColor={themeColors.componentBG}
+                        >
+                            <Text style={[styles.link, styles.h4]}>
+                                {this.props.translate('passwordForm.forgot')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                    <TextInput
+                        style={[styles.textInput]}
+                        defaultValue={this.props.account.password}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
                         onChangeText={updatePassword}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
-                        translateX={-18}
                     />
-                    <TouchableOpacity
-                        style={[styles.mt2]}
-                        onPress={resetPassword}
-                        underlayColor={themeColors.componentBG}
-                    >
-                        <Text style={[styles.link, styles.h4]}>
-                            {this.props.translate('passwordForm.forgot')}
-                        </Text>
-                    </TouchableOpacity>
                 </View>
 
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
-                        <ExpensiTextInput
-                            label={this.props.translate('passwordForm.twoFactorCode')}
-                            defaultValue={this.props.account.twoFactorAuthCode}                            
+                        <Text style={[styles.formLabel]}>{this.props.translate('passwordForm.twoFactorCode')}</Text>
+                        <TextInput
+                            style={[styles.textInput]}
+                            defaultValue={this.props.account.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={updateTwoFactorAuthCode}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                            translateX={-18}
                         />
                     </View>
                 )}

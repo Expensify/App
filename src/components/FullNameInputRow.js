@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {TextInput, View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
+import Text from './Text';
+import themeColors from '../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -18,8 +19,14 @@ const propTypes = {
     /** Used to prefill the firstName input, can also be used to make it a controlled input */
     firstName: PropTypes.string,
 
+    /** Placeholder text for the firstName input */
+    firstNamePlaceholder: PropTypes.string,
+
     /** Used to prefill the lastName input, can also be used to make it a controlled input */
     lastName: PropTypes.string,
+
+    /** Placeholder text for the lastName input */
+    lastNamePlaceholder: PropTypes.string,
 
     /** Additional styles to add after local styles */
     style: PropTypes.oneOfType([
@@ -29,7 +36,9 @@ const propTypes = {
 };
 const defaultProps = {
     firstName: '',
+    firstNamePlaceholder: null,
     lastName: '',
+    lastNamePlaceholder: null,
     style: {},
 };
 
@@ -37,27 +46,35 @@ const FullNameInputRow = ({
     translate,
     onChangeFirstName, onChangeLastName,
     firstName, lastName,
+    firstNamePlaceholder,
+    lastNamePlaceholder,
     style,
 }) => {
     const additionalStyles = _.isArray(style) ? style : [style];
     return (
         <View style={[styles.flexRow, ...additionalStyles]}>
             <View style={styles.flex1}>
-                <ExpensiTextInput
-                    label={translate('common.firstName')}
+                <Text style={[styles.mb1, styles.formLabel]}>
+                    {translate('common.firstName')}
+                </Text>
+                <TextInput
+                    style={styles.textInput}
                     value={firstName}
                     onChangeText={onChangeFirstName}
-                    placeholder={translate('profilePage.john')}
-                    translateX={-10}
+                    placeholder={firstNamePlaceholder ?? translate('profilePage.john')}
+                    placeholderTextColor={themeColors.placeholderText}
                 />
             </View>
             <View style={[styles.flex1, styles.ml2]}>
-                <ExpensiTextInput
-                    label={translate('common.lastName')}
+                <Text style={[styles.mb1, styles.formLabel]}>
+                    {translate('common.lastName')}
+                </Text>
+                <TextInput
+                    style={styles.textInput}
                     value={lastName}
                     onChangeText={onChangeLastName}
-                    placeholder={translate('profilePage.doe')}
-                    translateX={-10}
+                    placeholder={lastNamePlaceholder ?? translate('profilePage.doe')}
+                    placeholderTextColor={themeColors.placeholderText}
                 />
             </View>
         </View>

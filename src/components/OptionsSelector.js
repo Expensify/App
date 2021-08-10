@@ -2,11 +2,12 @@ import _ from 'underscore';
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import TextInputWithFocusStyles from './TextInputWithFocusStyles';
 import OptionsList from './OptionsList';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     /** Callback to fire when a row is tapped */
@@ -194,13 +195,16 @@ class OptionsSelector extends Component {
         return (
             <View style={[styles.flex1]}>
                 <View style={[styles.ph5, styles.pv3]}>
-                    <ExpensiTextInput
+                    <TextInputWithFocusStyles
+                        styleFocusIn={[styles.textInputReversedFocus]}
                         ref={el => this.textInput = el}
+                        style={[styles.textInput]}
                         value={this.props.value}
                         onChangeText={this.props.onChangeText}
                         onKeyPress={this.handleKeyPress}
                         placeholder={this.props.placeholderText
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
+                        placeholderTextColor={themeColors.placeholderText}
                     />
                 </View>
                 <OptionsList

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {View, TextInput, ScrollView} from 'react-native';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -18,7 +18,6 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -127,11 +126,14 @@ class AddSecondaryLoginPage extends Component {
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
                         </Text>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? 'common.phoneNumber'
                                     : 'profilePage.emailAddress')}
+                            </Text>
+                            <TextInput
                                 ref={el => this.phoneNumberInputRef = el}
+                                style={styles.textInput}
                                 value={this.state.login}
                                 onChangeText={login => this.setState({login})}
                                 keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
@@ -140,8 +142,11 @@ class AddSecondaryLoginPage extends Component {
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                label={this.props.translate('common.password')}
+                            <Text style={[styles.mb1, styles.formLabel]}>
+                                {this.props.translate('common.password')}
+                            </Text>
+                            <TextInput
+                                style={styles.textInput}
                                 value={this.state.password}
                                 onChangeText={password => this.setState({password})}
                                 secureTextEntry

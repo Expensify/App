@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {ScrollView} from 'react-native-gesture-handler';
+import {ScrollView, TextInput} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
@@ -20,7 +20,6 @@ import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
-import ExpensiTextInput from './ExpensiTextInput';
 import CONST from '../CONST';
 
 const propTypes = {
@@ -346,9 +345,12 @@ class IOUConfirmationList extends Component {
                         disableRowInteractivity={!this.props.hasMultipleParticipants}
                         optionHoveredStyle={hoverStyle}
                     />
+                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                        {this.props.translate('iOUConfirmationList.whatsItFor')}
+                    </Text>
                     <View style={[styles.ph5, styles.pb5]}>
-                        <ExpensiTextInput
-                            label={this.props.translate('iOUConfirmationList.whatsItFor')}
+                        <TextInput
+                            style={[styles.textInput]}
                             value={this.props.comment}
                             onChangeText={this.props.onUpdateComment}
                             placeholder={this.props.translate('common.optional')}
