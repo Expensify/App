@@ -317,7 +317,7 @@ function setRedirectToWorkspaceNewAfterSignIn(shouldRedirect) {
  *
  * @param {String} newLogin
  */
- function updateLogin(newLogin) {
+function updateLogin(newLogin) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {login: newLogin});
 }
 

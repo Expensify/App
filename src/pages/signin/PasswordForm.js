@@ -10,7 +10,7 @@ import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
 import {
-    resetPassword, signIn, updatePassword, updateTwoFactorAuthCode
+    resetPassword, signIn, updatePassword, updateTwoFactorAuthCode,
 } from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
