@@ -62,7 +62,7 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LoginWithValidateCodePage from '../../../pages/ValidateLoginNewWorkspacePage';
+import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
 import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';

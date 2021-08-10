@@ -5,7 +5,7 @@ import SetPasswordPage from '../../../pages/SetPasswordPage';
 import PublicWorkspaceNewView from '../../../pages/workspace/PublicWorkspaceNewView';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import SCREENS from '../../../SCREENS';
-import LoginWithValidateCodePage from '../../../pages/ValidateLoginNewWorkspacePage';
+import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
 import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
 import defaultScreenOptions from './defaultScreenOptions';
 
