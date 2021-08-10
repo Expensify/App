@@ -312,6 +312,33 @@ function setRedirectToWorkspaceNewAfterSignIn(shouldRedirect) {
     Onyx.merge(ONYXKEYS.SESSION, {redirectToWorkspaceNewAfterSignIn: shouldRedirect});
 }
 
+/**
+ * Update the value of login in Onyx
+ *
+ * @param {String} newLogin
+ */
+ function updateLogin(newLogin) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {login: newLogin});
+}
+
+/**
+* Update the value of password in Onyx
+*
+* @param {String} newPassword
+*/
+function updatePassword(newPassword) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {password: newPassword});
+}
+
+/**
+* Update the value of twoFactorAuthCode in Onyx
+*
+* @param {String} newTwoFactorAuthCode
+*/
+function updateTwoFactorAuthCode(newTwoFactorAuthCode) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthCode: newTwoFactorAuthCode});
+}
+
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -323,4 +350,7 @@ export {
     resetPassword,
     restartSignin,
     setRedirectToWorkspaceNewAfterSignIn,
+    updateLogin,
+    updatePassword,
+    updateTwoFactorAuthCode,
 };
