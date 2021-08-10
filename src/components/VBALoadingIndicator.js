@@ -5,7 +5,6 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
-import compose from '../libs/compose';
 
 const propTypes = {
     /** Controls whether the loader is mounted and displayed */
@@ -47,6 +46,4 @@ const VBALoadingIndicator = ({translate, visible}) => visible && (
 VBALoadingIndicator.propTypes = propTypes;
 VBALoadingIndicator.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-)(VBALoadingIndicator);
+export default withLocalize(VBALoadingIndicator);
