@@ -9,20 +9,20 @@ import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
-import {
-    resetPassword, signIn, updatePassword, updateTwoFactorAuthCode
-} from '../../libs/actions/Session';
+import {resetPassword, signIn} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import {updatePassword, updateTwoFactorAuthCode} from '../../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
+
         /** Password of the account */
         password: PropTypes.string,
 
