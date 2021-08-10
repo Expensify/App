@@ -329,6 +329,11 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+    const oldACHData = {
+        accountNumber: reimbursementAccountInSetup.accountNumber || '',
+        routingNumber: reimbursementAccountInSetup.routingNumber || '',
+    };
+
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
@@ -479,7 +484,18 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })
                 .finally(() => {
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                    const dataToMerge = {
+                        loading: false,
+                    };
+
+                    // If we didn't get a routingNumber and accountNumber from the response and we have previously saved
+                    // values, autofill them
+                    if (!reimbursementAccountInSetup.routingNumber && !reimbursementAccountInSetup.accountNumber
+                        && oldACHData.routingNumber && oldACHData.accountNumber) {
+                        dataToMerge.achData = oldACHData;
+                    }
+
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, dataToMerge);
                 });
         });
 }
@@ -615,9 +631,18 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
+        /* eslint-disable arrow-body-style */
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
-
+            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
+            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
+            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
+            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                loading: false,
+                achData: {...newACHData},
+            })
+                .then(() => Promise.resolve(response));
+        })
+        .then((response) => {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);

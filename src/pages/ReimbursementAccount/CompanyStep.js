@@ -138,9 +138,7 @@ class CompanyStep extends React.Component {
                 />
                 <ScrollView style={[styles.flex1, styles.w100]}>
                     <View style={[styles.p4]}>
-                        <View style={[styles.alignItemsCenter]}>
-                            <Text>{this.props.translate('companyStep.subtitle')}</Text>
-                        </View>
+                        <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.legalBusinessName')}
                             containerStyles={[styles.mt4]}
