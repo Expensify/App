@@ -37,7 +37,6 @@ const defaultProps = {
 };
 class ValidateLoginNewWorkspacePage extends Component {
     componentDidMount() {
-        console.log(this.props);
         // If the user has an active session already, they need to be redirected straight to the new workspace page
         if (this.props.session.authToken) {
             // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current

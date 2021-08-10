@@ -18,6 +18,7 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import SCREENS from '../SCREENS';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,7 +50,6 @@ class ValidateLogin2FANewWorkspacePage extends Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        console.log(props);
 
         this.state = {
             twoFactorAuthCode: '',
