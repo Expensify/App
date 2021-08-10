@@ -601,7 +601,7 @@ export default {
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
         },
         error: {
-            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido! Se ha creado un nuevo espacio de trabajo.',
+            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido! Un nuevo espacio de trabajo se ha sido creado.',
         },
     },
     requestCallPage: {
