@@ -101,7 +101,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
         return (
             <View style={[styles.signInPageInnerNative]}>
-                <View style={[styles.signInPageLogoNative]}>
+                <View style={[styles.componentHeightLarge]}>
                     <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
                 <View style={[styles.mb6, styles.alignItemsCenter]}>
