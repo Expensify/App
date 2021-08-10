@@ -47,9 +47,9 @@ class ValidateLoginNewWorkspacePage extends Component {
             Navigation.dismissModal();
             if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
-            } else if (this.props.route.name === SCREENS.VALIDATE_LOGIN_WORKSPACE_CARD) {
+            } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
-            } else if (this.props.route.name === SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE) {
+            } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_NEW_WORKSPACE) {
                 Navigation.navigate(ROUTES.WORKSPACE_NEW);
             } else {
                 Navigation.navigate(ROUTES.HOME);

@@ -299,22 +299,22 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_REDIRECT_NEW_WORKSPACE}
                     options={defaultScreenOptions}
                     component={ValidateLoginNewWorkspacePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_REDIRECT_2FA_NEW_WORKSPACE}
                     options={defaultScreenOptions}
                     component={ValidateLogin2FANewWorkspacePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_WORKSPACE_CARD}
+                    name={SCREENS.LOGIN_REDIRECT_WORKSPACE_CARD}
                     options={defaultScreenOptions}
                     component={ValidateLoginNewWorkspacePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_2FA_WORKSPACE_CARD}
+                    name={SCREENS.LOGIN_REDIRECT_2FA_WORKSPACE_CARD}
                     options={defaultScreenOptions}
                     component={ValidateLogin2FANewWorkspacePage}
                 />
