@@ -50,6 +50,7 @@ class PasswordPage extends Component {
             newPassword: '',
             confirmNewPassword: '',
             isPasswordRequirementsVisible: false,
+            shouldShowPasswordConfirmError: false,
         };
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
@@ -60,6 +61,36 @@ class PasswordPage extends Component {
         Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
     }
 
+    onBlurNewPassword() {
+        const stateToUpdate = {};
+        if (!this.state.newPassword || !this.isValidPassword()) {
+            stateToUpdate.isPasswordRequirementsVisible = true;
+        } else {
+            stateToUpdate.isPasswordRequirementsVisible = false;
+        }
+
+        if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
+            stateToUpdate.shouldShowPasswordConfirmError = true;
+        }
+
+        if (!isEmpty(stateToUpdate)) {
+            this.setState(stateToUpdate);
+        }
+    }
+
+    onBlurConfirmPassword() {
+        if (!this.state.confirmNewPassword || !this.doPasswordsMatch()) {
+            this.setState({shouldShowPasswordConfirmError: true});
+        } else {
+            this.setState({shouldShowPasswordConfirmError: false});
+        }
+    }
+
+    isValidPassword() {
+        return this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    }
+
+
     handleChangePassword() {
         changePassword(this.state.currentPassword, this.state.newPassword)
             .then((response) => {
@@ -67,6 +98,10 @@ class PasswordPage extends Component {
                     Navigation.navigate(ROUTES.SETTINGS);
                 }
             });
+    }
+
+    doPasswordsMatch() {
+        return this.state.newPassword === this.state.confirmNewPassword;
     }
 
     render() {
@@ -109,7 +144,7 @@ class PasswordPage extends Component {
                                 value={this.state.newPassword}
                                 onChangeText={newPassword => this.setState({newPassword})}
                                 onFocus={() => this.setState({isPasswordRequirementsVisible: true})}
-                                onBlur={() => this.setState({isPasswordRequirementsVisible: false})}
+                                onBlur={() => this.onBlurNewPassword()}
                             />
                             {this.state.isPasswordRequirementsVisible && (
                                 <Text style={[styles.textLabelSupporting, styles.mt1]}>
@@ -126,11 +161,17 @@ class PasswordPage extends Component {
                                 value={this.state.confirmNewPassword}
                                 onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
                                 onSubmitEditing={this.handleChangePassword}
+                                onBlur={() => this.onBlurConfirmPassword()}
                             />
                         </View>
-                        {!isEmpty(this.props.account.error) && (
+                        {!this.state.shouldShowPasswordConfirmError && !isEmpty(this.props.account.error) && (
                             <Text style={styles.formError}>
                                 {this.props.account.error}
+                            </Text>
+                        )}
+                        {this.state.shouldShowPasswordConfirmError && (
+                            <Text style={[styles.formError, styles.mt1]}>
+                                {this.props.translate('setPasswordPage.passwordsDontMatch')}
                             </Text>
                         )}
                     </ScrollView>
