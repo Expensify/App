@@ -65,6 +65,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -367,7 +368,7 @@ export default {
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
             incorporationState: 'Please enter a valid Incorporation State',
-            industryCode: 'Please enter a valid industry classification code',
+            industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid Routing Number',
             companyType: 'Please enter a valid Company Type',

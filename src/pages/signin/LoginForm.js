@@ -1,5 +1,5 @@
 import React from 'react';
-import {TextInput, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -15,13 +15,13 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import {updateLogin} from '../../libs/actions/User';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-
         /** Login of the account */
         login: PropTypes.string,
 
@@ -78,10 +78,9 @@ class LoginForm extends React.Component {
         return (
             <>
                 <View style={[styles.mt3]}>
-                    <Text style={[styles.formLabel]}>{this.props.translate('loginForm.enterYourPhoneOrEmail')}</Text>
-                    <TextInput
-                        style={[styles.textInput]}
-                        defaultValue={this.props.account.login}
+                    <ExpensiTextInput
+                        label={this.props.translate('loginForm.phoneOrEmail')}
+                        defaultValue={this.props.account.login}                        
                         autoCompleteType="email"
                         textContentType="username"
                         onChangeText={updateLogin}
@@ -89,9 +88,10 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        placeholder={this.props.translate('loginForm.phoneOrEmail')}
+                        placeholder={this.props.translate('loginForm.enterYourPhoneOrEmail')}
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
+                        translateX={-18}
                     />
                 </View>
                 {this.state.formError && (
