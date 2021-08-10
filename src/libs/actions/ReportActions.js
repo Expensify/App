@@ -1,10 +1,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as CollectionUtils from '../CollectionUtils';
 
 /**
- * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
+ * Map of the most recently fetched sequenceNumber for a reportActions_* key in Onyx by reportID.
  *
  * What's the difference between reportMaxSequenceNumbers and reportActionsMaxSequenceNumbers?
  *
@@ -16,23 +15,15 @@ import * as CollectionUtils from '../CollectionUtils';
  * This information should only be used in the correct contexts. In most cases, reportMaxSequenceNumbers should be
  * referenced and not the locally stored reportAction's max sequenceNumber.
  */
-const reportActionsMaxSequenceNumbers = {};
+let reportActionsMaxSequenceNumbers = {};
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    callback: (actions, key) => {
-        if (!key || !actions) {
+    key: ONYXKEYS.REPORT_ACTIONS_MAX_FETCHED,
+    callback: (actions) => {
+        if (!actions) {
             return;
         }
 
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-        const actionsArray = _.toArray(actions);
-        const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.loading);
-        const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
-        if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
-            return;
-        }
-
-        reportActionsMaxSequenceNumbers[reportID] = mostRecentAction.sequenceNumber;
+        reportActionsMaxSequenceNumbers = {...reportActionsMaxSequenceNumbers, ...actions};
     },
 });
 
@@ -47,8 +38,8 @@ Onyx.connect({
 function dangerouslyGetReportActionsMaxSequenceNumber(reportID, shouldWarn = true) {
     if (shouldWarn) {
         console.error('WARNING: dangerouslyGetReportActionsMaxSequenceNumber is unreliable as it ONLY references '
-            + 'reportActions in storage. It should not be used to access the maxSequenceNumber for a report. Use '
-            + 'reportMaxSequenceNumbers[reportID] instead.');
+            + 'reportActions that have been fetched. It should not be used to access the maxSequenceNumber for a '
+            + 'report. Use reportMaxSequenceNumbers[reportID] instead.');
     }
 
     return reportActionsMaxSequenceNumbers[reportID];

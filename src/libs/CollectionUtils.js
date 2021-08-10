@@ -13,18 +13,7 @@ function lastItem(object = {}) {
     return object[lastKey];
 }
 
-/**
- * Used to grab the id for a particular collection item's key.
- * e.g. reportActions_1 -> 1
- *
- * @param {String} key
- * @returns {String}
- */
-function extractCollectionItemID(key) {
-    return key.split('_')[1];
-}
-
 export {
+    // eslint-disable-next-line import/prefer-default-export
     lastItem,
-    extractCollectionItemID,
 };
