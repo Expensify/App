@@ -61,14 +61,19 @@ class PasswordPage extends Component {
     }
 
     onBlurNewPassword() {
+        const stateToUpdate = {};
         if (!this.state.newPassword || !this.isValidPassword()) {
-            this.setState({isPasswordRequirementsVisible: true});
+            stateToUpdate.isPasswordRequirementsVisible = true;
         } else {
-            this.setState({isPasswordRequirementsVisible: false});
+            stateToUpdate.isPasswordRequirementsVisible = false;
         }
 
         if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
-            this.setState({shouldShowPasswordConfirmError: true});
+            stateToUpdate.shouldShowPasswordConfirmError = true;
+        }
+
+        if (!isEmpty(stateToUpdate)) {
+            this.setState(stateToUpdate);
         }
     }
 
