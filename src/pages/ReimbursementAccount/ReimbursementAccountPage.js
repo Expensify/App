@@ -156,7 +156,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (this.props.reimbursementAccount.loading) {
-            return <VBALoadingIndicator visible />;
+            return <VBALoadingIndicator />;
         }
 
         let errorComponent;

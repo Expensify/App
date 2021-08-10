@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {Image, StyleSheet, View} from 'react-native';
 import styles from '../styles/styles';
 import CONST from '../CONST';
@@ -7,22 +6,10 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
 
 const propTypes = {
-    /** Controls whether the loader is mounted and displayed */
-    visible: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-    visible: true,
-};
-
-/**
- * Loading indication component intended be shown between the steps of VBA flow
- *
- * @returns {JSX.Element}
- */
-const VBALoadingIndicator = ({translate, visible}) => visible && (
+const VBALoadingIndicator = ({translate}) => (
     <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading]}>
         <View style={[styles.pageWrapper]}>
             <Image
@@ -44,6 +31,5 @@ const VBALoadingIndicator = ({translate, visible}) => visible && (
 );
 
 VBALoadingIndicator.propTypes = propTypes;
-VBALoadingIndicator.defaultProps = defaultProps;
 
 export default withLocalize(VBALoadingIndicator);
