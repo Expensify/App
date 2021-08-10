@@ -6,8 +6,8 @@ export default {
     HOME: 'Home',
     LOADING: 'Loading',
     REPORT: 'Report',
-    LOGIN_REDIRECT_NEW_WORKSPACE: 'LoginRedirectNewWorkspace',
-    LOGIN_REDIRECT_2FA_NEW_WORKSPACE: 'LoginRedirect2FANewWorkspace',
-    LOGIN_REDIRECT_WORKSPACE_CARD: 'LoginRedirectWorkspaceCard',
-    LOGIN_REDIRECT_2FA_WORKSPACE_CARD: 'LoginRedirect2FAWorkspaceCard',
+    LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE: 'LoginWithValidateCodeNewWorkspace',
+    LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE: 'LoginWithValidateCode2FANewWorkspace',
+    LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD: 'LoginWithValidateCodeWorkspaceCard',
+    LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD: 'LoginWithValidateCode2FAWorkspaceCard',
 };

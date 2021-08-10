@@ -34,9 +34,9 @@ const defaultProps = {
     session: {},
     betas: [],
 };
-class ValidateLoginNewWorkspacePage extends Component {
+class LoginWithValidateCodePage extends Component {
     componentDidMount() {
-        // If the user has an active session already, they need to be redirected straight to the new workspace page
+        // If the user has an active session already, they need to be redirected straight to the relevant page
         if (this.props.session.authToken) {
             // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
             // modal you say? I know, it confuses me too. Without dismissing the current modal, if they user cancels
@@ -47,9 +47,9 @@ class ValidateLoginNewWorkspacePage extends Component {
             Navigation.dismissModal();
             if (_.isEmpty(this.props.betas)) {
                 setRedirectAfterSign(true);
-            } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_WORKSPACE_CARD) {
+            } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
-            } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_NEW_WORKSPACE) {
+            } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE) {
                 Navigation.navigate(ROUTES.WORKSPACE_NEW);
             } else {
                 Navigation.navigate(ROUTES.HOME);
@@ -69,8 +69,8 @@ class ValidateLoginNewWorkspacePage extends Component {
     }
 }
 
-ValidateLoginNewWorkspacePage.propTypes = propTypes;
-ValidateLoginNewWorkspacePage.defaultProps = defaultProps;
+LoginWithValidateCodePage.propTypes = propTypes;
+LoginWithValidateCodePage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -81,4 +81,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(ValidateLoginNewWorkspacePage);
+)(LoginWithValidateCodePage);

@@ -62,8 +62,8 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
-import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
+import LoginWithValidateCodePage from '../../../pages/ValidateLoginNewWorkspacePage';
+import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
@@ -299,24 +299,24 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_REDIRECT_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
                     options={defaultScreenOptions}
-                    component={ValidateLoginNewWorkspacePage}
+                    component={LoginWithValidateCodePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_REDIRECT_2FA_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
                     options={defaultScreenOptions}
-                    component={ValidateLogin2FANewWorkspacePage}
+                    component={LoginWithValidateCode2FAPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_REDIRECT_WORKSPACE_CARD}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
                     options={defaultScreenOptions}
-                    component={ValidateLoginNewWorkspacePage}
+                    component={LoginWithValidateCodePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_REDIRECT_2FA_WORKSPACE_CARD}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
                     options={defaultScreenOptions}
-                    component={ValidateLogin2FANewWorkspacePage}
+                    component={LoginWithValidateCode2FAPage}
                 />
 
                 {/* These are the various modal routes */}

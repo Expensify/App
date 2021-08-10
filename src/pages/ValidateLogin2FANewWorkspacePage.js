@@ -45,7 +45,7 @@ const defaultProps = {
     session: {},
     betas: [],
 };
-class ValidateLogin2FANewWorkspacePage extends Component {
+class LoginWithValidateCode2FAPage extends Component {
     constructor(props) {
         super(props);
 
@@ -59,7 +59,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     }
 
     componentDidMount() {
-        // If the user has an active session already, they need to be redirected straight to the new workspace page
+        // If the user has an active session already, they need to be redirected straight to the relevant page
         if (this.props.session.authToken) {
             // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
             // modal you say? I know, it confuses me too. Without dismissing the current modal, if they user cancels
@@ -71,9 +71,9 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
             if (_.isEmpty(this.props.betas)) {
                 setRedirectAfterSign(true);
-            } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_2FA_WORKSPACE_CARD) {
+            } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
-            } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_2FA_NEW_WORKSPACE) {
+            } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE) {
                 Navigation.navigate(ROUTES.WORKSPACE_NEW);
             } else {
                 Navigation.navigate(ROUTES.HOME);
@@ -150,8 +150,8 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     }
 }
 
-ValidateLogin2FANewWorkspacePage.propTypes = propTypes;
-ValidateLogin2FANewWorkspacePage.defaultProps = defaultProps;
+LoginWithValidateCode2FAPage.propTypes = propTypes;
+LoginWithValidateCode2FAPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -163,4 +163,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(ValidateLogin2FANewWorkspacePage);
+)(LoginWithValidateCode2FAPage);
