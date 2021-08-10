@@ -3,7 +3,7 @@ import {
     TextInput, TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
@@ -15,6 +15,7 @@ import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import {updatePassword, updateTwoFactorAuthCode} from '../../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,11 +53,7 @@ class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updatePassword = this.updatePassword.bind(this);
-        this.updateTwoFactorAuthCode = this.updateTwoFactorAuthCode.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.password = props.account.password;
-        this.twoFactorAuthCode = props.account.twoFactorAuthCode;
 
         this.state = {
             formError: false,
@@ -64,31 +61,11 @@ class PasswordForm extends React.Component {
     }
 
     /**
-     * Update the value of password in Onyx
-     *
-     * @param {String} newPassword
-     */
-    updatePassword(newPassword) {
-        this.password = newPassword;
-        Onyx.merge(ONYXKEYS.ACCOUNT, {password: newPassword});
-    }
-
-    /**
-     * Update the value of twoFactorAuthCode in Onyx
-     *
-     * @param {String} newTwoFactorAuthCode
-     */
-    updateTwoFactorAuthCode(newTwoFactorAuthCode) {
-        this.TwoFactorAuth = newTwoFactorAuthCode;
-        Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthCode: newTwoFactorAuthCode});
-    }
-
-    /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        if (!this.password.trim()
-            || (this.props.account.requiresTwoFactorAuth && !this.twoFactorAuthCode.trim())
+        if (!this.props.account.password.trim()
+            || (this.props.account.requiresTwoFactorAuth && !this.props.account.twoFactorAuthCode.trim())
         ) {
             this.setState({formError: this.props.translate('passwordForm.pleaseFillOutAllFields')});
             return;
@@ -98,7 +75,7 @@ class PasswordForm extends React.Component {
             formError: null,
         });
 
-        signIn(this.password, this.twoFactorAuthCode);
+        signIn(this.props.account.password, this.props.account.twoFactorAuthCode);
     }
 
     render() {
@@ -119,12 +96,11 @@ class PasswordForm extends React.Component {
                     </View>
                     <TextInput
                         style={[styles.textInput]}
-                        ref={this.password}
-                        defaultValue={this.password}
+                        defaultValue={this.props.account.password}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
-                        onChangeText={this.updatePassword}
+                        onChangeText={updatePassword}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                     />
@@ -135,11 +111,10 @@ class PasswordForm extends React.Component {
                         <Text style={[styles.formLabel]}>{this.props.translate('passwordForm.twoFactorCode')}</Text>
                         <TextInput
                             style={[styles.textInput]}
-                            ref={this.twoFactorAuthCode}
-                            defaultValue={this.twoFactorAuthCode}
+                            defaultValue={this.props.account.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
-                            onChangeText={this.updateTwoFactorAuthCode}
+                            onChangeText={updateTwoFactorAuthCode}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         />

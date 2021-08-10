@@ -1,6 +1,6 @@
 import React from 'react';
 import {TextInput, View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -14,6 +14,7 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import {fetchAccountDetails} from '../../libs/actions/Session';
+import {updateLogin} from '../../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,9 +50,7 @@ class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateLogin = this.updateLogin.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.login = props.account.login;
 
         this.state = {
             formError: false,
@@ -59,20 +58,10 @@ class LoginForm extends React.Component {
     }
 
     /**
-     * Update the value of login in Onyx
-     *
-     * @param {String} newLogin
-     */
-    updateLogin(newLogin) {
-        this.login = newLogin;
-        Onyx.merge(ONYXKEYS.ACCOUNT, {login: newLogin});
-    }
-
-    /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        if (!this.login.trim()) {
+        if (!this.props.account.login.trim()) {
             this.setState({formError: this.props.translate('loginForm.pleaseEnterEmailOrPhoneNumber')});
             return;
         }
@@ -82,7 +71,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        fetchAccountDetails(this.login);
+        fetchAccountDetails(this.props.account.login);
     }
 
     render() {
@@ -92,11 +81,10 @@ class LoginForm extends React.Component {
                     <Text style={[styles.formLabel]}>{this.props.translate('loginForm.enterYourPhoneOrEmail')}</Text>
                     <TextInput
                         style={[styles.textInput]}
-                        ref={this.login}
-                        defaultValue={this.login}
+                        defaultValue={this.props.account.login}
                         autoCompleteType="email"
                         textContentType="username"
-                        onChangeText={this.updateLogin}
+                        onChangeText={updateLogin}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
