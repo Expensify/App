@@ -3,6 +3,10 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import ROUTES from '../../ROUTES';
+import Growl from '../Growl';
+import {translateLocal} from '../translate';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -30,12 +34,28 @@ function getPaymentMethods() {
 /**
  * Calls the API to add a new card.
  *
- * @returns {Promise}
+ * @param {Object} params
  */
 function addBillingCard(params) {
-    API.AddBillingCard(params).then((response => {
-        Onyx.set(ONYXKEYS.CARD_LIST, response)
-    }))
+    API.AddBillingCard({
+        cardNumber: params.cardNumber,
+        cardYear: params.expirationDate.substr(3, 4),
+        cardMonth: params.expirationDate.substr(0, 2),
+        cardCvv: params.securityCode,
+        addressName: params.nameOnCard,
+        addressZip: params.zipCode,
+    }).then(((response) => {
+        if (response.jsonCode === 200) {
+            Onyx.set(ONYXKEYS.CARD_LIST, response);
+            Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+        } else {
+            Growl.error(translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
+        }
+    }));
 }
 
-export default getPaymentMethods;
+export {
+    getPaymentMethods,
+    addBillingCard,
+};

@@ -331,9 +331,8 @@ function AuthenticateWithAccountID(parameters) {
  * @param {Object} parameters
  * @returns {Promise}
  */
- function AddBillingCard(parameters) {
+function AddBillingCard(parameters) {
     const commandName = 'User_AddBillingCard';
-    // requireParameters([], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1082,6 +1081,7 @@ function UpdatePolicy(parameters) {
 export {
     Authenticate,
     AuthenticateWithAccountID,
+    AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
