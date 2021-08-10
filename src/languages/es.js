@@ -566,7 +566,6 @@ export default {
             newWorkspace: 'Nuevo Espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
-            successMessage: 'Espacio de trabajo creado.',
         },
         people: {
             assignee: 'Persona asignada',

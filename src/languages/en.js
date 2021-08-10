@@ -564,7 +564,6 @@ export default {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
-            successMessage: 'Workspace created.',
         },
         people: {
             assignee: 'Assignee',
