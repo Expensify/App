@@ -343,6 +343,7 @@ const CONST = {
         ERROR: 'error',
         WARNING: 'warning',
         DURATION: 2000,
+        DURATION_LONG: 3500,
     },
 
     DEFAULT_LOCALE: 'en',

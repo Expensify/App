@@ -566,6 +566,7 @@ export default {
             newWorkspace: 'Nuevo Espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+            successMessage: 'Espacio de trabajo creado',
         },
         people: {
             assignee: 'Persona asignada',
@@ -599,6 +600,9 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+        },
+        error: {
+            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido! ¡Puedes crear un nuevo espacio de trabajo!',
         },
     },
     requestCallPage: {

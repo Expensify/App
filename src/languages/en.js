@@ -564,6 +564,7 @@ export default {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+            successMessage: 'Workspace created.',
         },
         people: {
             assignee: 'Assignee',
@@ -597,6 +598,9 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+        },
+        error: {
+            growlMessageInvalidPolicy: 'Invalid workspace! A new workspace has been created.',
         },
     },
     requestCallPage: {
