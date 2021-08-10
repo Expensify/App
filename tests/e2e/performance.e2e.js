@@ -1,7 +1,10 @@
 /* eslint-disable @lwc/lwc/no-async-await */
 /* eslint-env detox/detox */
 
+import dotenv from 'dotenv';
 import jestExpect from 'expect';
+
+dotenv.config();
 
 jest.setTimeout(120000 * 10);
 
@@ -9,10 +12,10 @@ describe('Test login page', () => {
     beforeEach(() => device.launchApp({permissions: {notifications: 'YES'}}));
 
     it('Sign in and render the LHN', async () => {
-        await element(by.id('LoginTextInput')).typeText(''); // Add test account login
+        await element(by.id('LoginTextInput')).typeText(process.env.TEST_USER_LOGIN); // Add test account login
         await element(by.id('LoginContinueButton')).tap();
         expect(element(by.id('PasswordTextInput'))).toBeVisible();
-        await element(by.id('PasswordTextInput')).typeText(''); // Add test account password
+        await element(by.id('PasswordTextInput')).typeText(process.env.TEST_USER_PASSWORD); // Add test account password
         await element(by.id('PasswordSubmitButton')).tap();
         expect(element(by.id('SidebarLinks'))).toBeVisible();
 
