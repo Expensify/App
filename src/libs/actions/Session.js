@@ -304,12 +304,12 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
 }
 
 /**
- * Sets the redirectToWorkspaceNewAfterSignIn flag in the session variable
+ * Sets the redirectAfterSignIn flag in the session variable
  *
  * @param {Boolean} shouldRedirect
  */
-function setRedirectToWorkspaceNewAfterSignIn(shouldRedirect) {
-    Onyx.merge(ONYXKEYS.SESSION, {redirectToWorkspaceNewAfterSignIn: shouldRedirect});
+function setRedirectAfterSign(shouldRedirect) {
+    Onyx.merge(ONYXKEYS.SESSION, {redirectAfterSignIn: shouldRedirect});
 }
 
 export {
@@ -322,5 +322,5 @@ export {
     resendValidationLink,
     resetPassword,
     restartSignin,
-    setRedirectToWorkspaceNewAfterSignIn,
+    setRedirectAfterSign,
 };

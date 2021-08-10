@@ -9,7 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import SCREENS from '../SCREENS';
-import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectAfterSign} from '../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -46,7 +46,7 @@ class ValidateLoginNewWorkspacePage extends Component {
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
             if (_.isEmpty(this.props.betas)) {
-                setRedirectToWorkspaceNewAfterSignIn(true);
+                setRedirectAfterSign(true);
             } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
             } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_NEW_WORKSPACE) {

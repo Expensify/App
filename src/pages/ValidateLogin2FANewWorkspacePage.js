@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
-import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectAfterSign} from '../libs/actions/Session';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import variables from '../styles/variables';
@@ -70,7 +70,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             Navigation.dismissModal();
 
             if (_.isEmpty(this.props.betas)) {
-                setRedirectToWorkspaceNewAfterSignIn(true);
+                setRedirectAfterSign(true);
             } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_2FA_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
             } else if (this.props.route.name === SCREENS.LOGIN_REDIRECT_2FA_NEW_WORKSPACE) {

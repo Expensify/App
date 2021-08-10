@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import SCREENS from '../../SCREENS';
-import {setRedirectToWorkspaceNewAfterSignIn} from '../../libs/actions/Session';
+import {setRedirectAfterSign} from '../../libs/actions/Session';
 
 const propTypes = {
     /** react-navigation navigation object available to screen components */
@@ -13,7 +13,7 @@ const propTypes = {
 
 class PublicWorkspaceNewView extends React.PureComponent {
     componentDidMount() {
-        setRedirectToWorkspaceNewAfterSignIn(true);
+        setRedirectAfterSign(true);
         this.props.navigation.replace(SCREENS.HOME);
     }
 

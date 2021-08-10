@@ -19,7 +19,7 @@ import {growlRef} from './libs/Growl';
 import Navigation from './libs/Navigation/Navigation';
 import ROUTES from './ROUTES';
 import StartupTimer from './libs/StartupTimer';
-import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
+import {setRedirectAfterSign} from './libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,7 +34,7 @@ const propTypes = {
         accountID: PropTypes.number,
 
         /** Should app immediately redirect to new workspace route once authenticated */
-        redirectToWorkspaceNewAfterSignIn: PropTypes.bool,
+        redirectAfterSignIn: PropTypes.bool,
     }),
 
     /** Whether a new update is available and ready to install. */
@@ -54,7 +54,7 @@ const defaultProps = {
     session: {
         authToken: null,
         accountID: null,
-        redirectToWorkspaceNewAfterSignIn: false,
+        redirectAfterSignIn: false,
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
@@ -114,8 +114,8 @@ class Expensify extends PureComponent {
 
         if (this.getAuthToken()
             && !_.isEmpty(this.props.betas)
-            && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
-            setRedirectToWorkspaceNewAfterSignIn(false);
+            && lodashGet(this.props, 'session.redirectAfterSignIn', false)) {
+            setRedirectAfterSign(false);
             Navigation.navigate(ROUTES.WORKSPACE_NEW);
         }
 
