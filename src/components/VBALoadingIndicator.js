@@ -24,19 +24,21 @@ const defaultProps = {
  */
 const VBALoadingIndicator = ({translate, visible}) => visible && (
     <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading]}>
-        <Image
-            source={{uri: 'https://d2k5nsl2zxldvw.cloudfront.net/images/icons/emptystates/emptystate_reviewing.gif'}}
-            style={[
-                styles.loadingVBAAnimation,
-            ]}
-        />
-        <View style={[styles.ph6, styles.textAlignCenter]}>
-            <Text style={[styles.textStrong, styles.h3, styles.mb4, styles.mt4]}>
-                {translate('vbaLoadingAnimation.oneMoment')}
-            </Text>
-            <Text>
-                {translate('vbaLoadingAnimation.explanationLine')}
-            </Text>
+        <View style={[styles.pageWrapper]}>
+            <Image
+                source={{uri: 'https://d2k5nsl2zxldvw.cloudfront.net/images/icons/emptystates/emptystate_reviewing.gif'}}
+                style={[
+                    styles.loadingVBAAnimation,
+                ]}
+            />
+            <View style={[styles.ph6]}>
+                <Text style={[styles.textStrong, styles.h3, styles.mb4, styles.mt4, styles.textAlignCenter]}>
+                    {translate('vbaLoadingAnimation.oneMoment')}
+                </Text>
+                <Text style={[styles.textAlignCenter]}>
+                    {translate('vbaLoadingAnimation.explanationLine')}
+                </Text>
+            </View>
         </View>
     </View>
 );
