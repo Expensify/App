@@ -87,7 +87,14 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
+
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+                    // Erase all policies in Onyx
+                    ...(_.reduce(_.keys(allPolicies), (memo, key) => ({...memo, [key]: null}), {})),
+
+                    // And overwrite them with only the ones returned by the API call
+                    ...policyDataToStore,
+                });
             }
         });
 }
