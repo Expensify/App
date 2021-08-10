@@ -14,6 +14,7 @@ export default {
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
+        saveChanges: 'Guardar cambios',
         password: 'Contraseña',
         profile: 'Perfil',
         payments: 'Pagos',
