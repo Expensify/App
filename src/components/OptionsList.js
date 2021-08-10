@@ -81,6 +81,8 @@ const propTypes = {
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
+
+    testID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -103,6 +105,7 @@ const defaultProps = {
     optionMode: undefined,
     disableRowInteractivity: false,
     onLayout: undefined,
+    testID: undefined,
 };
 
 class OptionsList extends Component {
@@ -249,6 +252,7 @@ class OptionsList extends Component {
                     windowSize={5}
                     viewabilityConfig={this.viewabilityConfig}
                     onViewableItemsChanged={this.onViewableItemsChanged}
+                    testID={this.props.testID}
                 />
             </View>
         );

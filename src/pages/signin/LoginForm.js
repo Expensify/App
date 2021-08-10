@@ -87,6 +87,7 @@ class LoginForm extends React.Component {
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                         translateX={-18}
+                        testID="LoginTextInput"
                     />
                 </View>
                 {this.state.formError && (
@@ -111,6 +112,7 @@ class LoginForm extends React.Component {
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
+                        testID="LoginContinueButton"
                     />
                 </View>
 

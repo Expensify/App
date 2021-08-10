@@ -1,6 +1,7 @@
 import getPlatform from '../getPlatform';
 import {Graphite_Timer} from '../API';
 import {isDevelopment} from '../Environment/Environment';
+import Log from '../Log';
 
 let timestampData = {};
 

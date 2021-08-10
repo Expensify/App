@@ -180,6 +180,7 @@ class SidebarLinks extends React.Component {
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
                     onLayout={App.setSidebarLoaded}
+                    testID="SidebarLinks"
                 />
                 <KeyboardSpacer />
             </View>

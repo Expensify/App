@@ -1,9 +1,9 @@
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {View, AppState} from 'react-native';
+import {View, AppState, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
+import _, {times} from 'underscore';
 
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -158,6 +158,7 @@ class Expensify extends PureComponent {
         }
         return (
             <>
+                {this.props.testMetrics && <Text testID="TestMetrics">{this.props.testMetrics}</Text>}
                 <GrowlNotification ref={growlRef} />
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
@@ -170,6 +171,9 @@ class Expensify extends PureComponent {
 Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
 export default withOnyx({
+    testMetrics: {
+        key: 'test_metrics',
+    },
     session: {
         key: ONYXKEYS.SESSION,
     },

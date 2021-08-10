@@ -7,6 +7,7 @@ import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import Firebase from '../Firebase';
 import ROUTES from '../../ROUTES';
+import TestTimer from '../TestTimer';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -57,6 +58,8 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
+    TestTimer.stop(CONST.TIMING.SIDEBAR_LOADED);
+    TestTimer.printMetrics();
     Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
 }
 

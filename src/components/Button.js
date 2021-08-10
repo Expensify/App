@@ -53,6 +53,8 @@ const propTypes = {
 
     /** Should we remove the left border radius top + bottom? */
     shouldRemoveLeftBorderRadius: PropTypes.bool,
+
+    testID: PropTypes.string,
 };
 
 const defaultProps = {
@@ -70,6 +72,7 @@ const defaultProps = {
     ContentComponent: undefined,
     shouldRemoveRightBorderRadius: false,
     shouldRemoveLeftBorderRadius: false,
+    testID: undefined,
 };
 
 class Button extends Component {
@@ -130,6 +133,7 @@ class Button extends Component {
     render() {
         return (
             <Pressable
+                testID={this.props.testID}
                 onPress={this.props.onPress}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[

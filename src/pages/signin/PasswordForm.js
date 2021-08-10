@@ -84,6 +84,7 @@ class PasswordForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                         translateX={-18}
+                        testID="PasswordTextInput"
                     />
                     <TouchableOpacity
                         style={[styles.mt2]}
@@ -129,6 +130,7 @@ class PasswordForm extends React.Component {
                         text={this.props.translate('common.signIn')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
+                        testID="PasswordSubmitButton"
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
