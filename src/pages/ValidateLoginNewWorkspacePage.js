@@ -8,6 +8,7 @@ import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import SCREENS from '../SCREENS';
 import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
 
 
@@ -36,6 +37,7 @@ const defaultProps = {
 };
 class ValidateLoginNewWorkspacePage extends Component {
     componentDidMount() {
+        console.log(this.props);
         // If the user has an active session already, they need to be redirected straight to the new workspace page
         if (this.props.session.authToken) {
             // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
@@ -47,8 +49,12 @@ class ValidateLoginNewWorkspacePage extends Component {
             Navigation.dismissModal();
             if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
-            } else {
+            } else if (this.props.route.name === SCREENS.VALIDATE_LOGIN_WORKSPACE_CARD) {
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
+            } else if (this.props.route.name === SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE) {
                 Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            } else {
+                Navigation.navigate(ROUTES.HOME);
             }
             return;
         }

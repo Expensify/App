@@ -49,6 +49,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        console.log(props);
 
         this.state = {
             twoFactorAuthCode: '',
@@ -70,8 +71,12 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
             if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
-            } else {
+            } else if (this.props.route.name === SCREENS.VALIDATE_LOGIN_WORKSPACE_CARD) {
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
+            } else if (this.props.route.name === SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE) {
                 Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            } else {
+                Navigation.navigate(ROUTES.HOME);
             }
         }
     }

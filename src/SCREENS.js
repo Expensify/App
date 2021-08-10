@@ -8,4 +8,6 @@ export default {
     REPORT: 'Report',
     VALIDATE_LOGIN_NEW_WORKSPACE: 'ValidateLoginNewWorkspace',
     VALIDATE_LOGIN_2FA_NEW_WORKSPACE: 'ValidateLogin2FANewWorkspace',
+    VALIDATE_LOGIN_WORKSPACE_CARD: 'ValidateLoginWorkspaceCard',
+    VALIDATE_LOGIN_2FA_WORKSPACE_CARD: 'ValidateLogin2FAWorkspaceCard',
 };

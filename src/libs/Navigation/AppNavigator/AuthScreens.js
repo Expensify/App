@@ -291,6 +291,16 @@ class AuthScreens extends React.Component {
                     options={defaultScreenOptions}
                     component={ValidateLogin2FANewWorkspacePage}
                 />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_WORKSPACE_CARD}
+                    options={defaultScreenOptions}
+                    component={ValidateLoginNewWorkspacePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.VALIDATE_LOGIN_2FA_WORKSPACE_CARD}
+                    options={defaultScreenOptions}
+                    component={ValidateLogin2FANewWorkspacePage}
+                />
 
                 {/* These are the various modal routes */}
                 {/* Note: Each modal must have it's own stack navigator since we want to be able to navigate to any
