@@ -210,7 +210,6 @@ function create(name = '') {
             });
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
-            Growl.success(translateLocal('workspace.new.successMessage'));
         });
 }
 

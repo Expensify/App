@@ -565,10 +565,6 @@ export default {
         new: {
             newWorkspace: 'Nuevo Espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
-            welcome: 'Bienvenido/a',
-            chooseAName: 'Elige un nombre',
-            helpText: 'Elige un nombre para el espacio de trabajo antes de activar las tarjetas Expensify',
-            getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
         },
         people: {
