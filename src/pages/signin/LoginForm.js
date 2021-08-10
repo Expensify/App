@@ -14,14 +14,13 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import {fetchAccountDetails} from '../../libs/actions/Session';
-import {updateLogin} from '../../libs/actions/User';
+import {updateLogin} from '../../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
 
     /** The details about the account that the user is signing in with */
     account: PropTypes.shape({
-
         /** Login of the account */
         login: PropTypes.string,
 
