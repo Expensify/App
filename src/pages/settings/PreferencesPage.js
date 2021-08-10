@@ -15,9 +15,9 @@ import CONST from '../../CONST';
 import {setExpensifyNewsStatus} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
+import Picker from '../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import ExpensiPicker from '../../components/ExpensiPicker';
 
 const propTypes = {
     /** The chat priority mode */
@@ -79,9 +79,11 @@ const PreferencesPage = ({
                             />
                         </View>
                     </View>
-                    <View style={[styles.mb2, styles.w100]}>
-                        <ExpensiPicker
-                            label={translate('preferencesPage.priorityMode')}
+                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                        {translate('preferencesPage.priorityMode')}
+                    </Text>
+                    <View style={[styles.mb2]}>
+                        <Picker
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                             }

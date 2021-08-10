@@ -1,6 +1,9 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import styles from '../styles/styles';
+import Picker from './Picker';
+import Text from './Text';
 import compose from '../libs/compose';
 import {setLocale} from '../libs/actions/App';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -8,7 +11,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
 import {translate} from '../libs/translate';
-import ExpensiPicker from './ExpensiPicker';
 
 const propTypes = {
     /** Indicates which locale the user currently has selected */
@@ -49,17 +51,23 @@ const LocalePicker = ({
     }
 
     return (
-        <ExpensiPicker
-            label={size === 'normal' ? translate('preferencesPage.language') : null}
-            onChange={(locale) => {
-                if (locale !== preferredLocale) {
-                    setLocale(locale);
-                }
-            }}
-            items={Object.values(localesToLanguages)}
-            size={size}
-            value={preferredLocale}
-        />
+        <>
+            {size === 'normal' && (
+            <Text style={[styles.formLabel]} numberOfLines={1}>
+                {translate('preferencesPage.language')}
+            </Text>
+            )}
+            <Picker
+                onChange={(locale) => {
+                    if (locale !== preferredLocale) {
+                        setLocale(locale);
+                    }
+                }}
+                items={Object.values(localesToLanguages)}
+                size={size}
+                value={preferredLocale}
+            />
+        </>
     );
 };
 

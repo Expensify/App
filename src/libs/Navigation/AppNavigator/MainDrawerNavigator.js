@@ -54,7 +54,6 @@ const MainDrawerNavigator = (props) => {
                     initialParams,
                 },
             ]}
-            isMainScreen
         />
     );
 };

@@ -56,7 +56,7 @@ class LocaleContextProvider extends React.Component {
             timestampToDateTime: this.timestampToDateTime.bind(this),
             fromLocalPhone: this.fromLocalPhone.bind(this),
             toLocalPhone: this.toLocalPhone.bind(this),
-            preferredLocale: this.props.preferredLocale,
+            locale: this.props.preferredLocale,
         };
     }
 

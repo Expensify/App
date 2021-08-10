@@ -7,6 +7,8 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -16,6 +18,7 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
@@ -25,10 +28,10 @@ const SignInPageLayoutNarrow = props => (
         showsVerticalScrollIndicator={false}
         style={[
             styles.flexGrow1,
+            styles.mh5,
             styles.signInPageNarrowContentContainer,
             styles.alignSelfCenter,
         ]}
-        contentContainerStyle={styles.ph5}
     >
         <KeyboardAvoidingView behavior="position">
             <View style={[styles.flexGrow1]}>
@@ -38,10 +41,10 @@ const SignInPageLayoutNarrow = props => (
                         styles.flex1,
                         styles.dFlex,
                         styles.flexColumn,
-                        styles.mt40Percentage,
+                        props.windowHeight > props.windowWidth ? styles.mt40Percentage : null,
                     ]}
                 >
-                    <View style={[styles.componentHeightLarge, styles.mb2]}>
+                    <View style={[styles.signInPageLogoNative, styles.mb2]}>
                         <ExpensifyCashLogo
                             width={variables.componentSizeLarge}
                             height={variables.componentSizeLarge}
@@ -63,4 +66,7 @@ const SignInPageLayoutNarrow = props => (
 SignInPageLayoutNarrow.propTypes = propTypes;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
-export default withLocalize(SignInPageLayoutNarrow);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(SignInPageLayoutNarrow);
