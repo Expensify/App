@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -67,6 +67,12 @@ const propTypes = {
         role: PropTypes.string,
     })),
 
+    /** The user's wallet account */
+    userWallet: PropTypes.shape({
+        /** The user's current wallet balance */
+        availableBalance: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -75,6 +81,9 @@ const defaultProps = {
     network: {},
     session: {},
     policies: {},
+    userWallet: {
+        availableBalance: 0,
+    },
 };
 
 const defaultMenuItems = [
@@ -113,10 +122,17 @@ const defaultMenuItems = [
 const InitialSettingsPage = ({
     myPersonalDetails,
     network,
+    numberFormat,
     session,
     policies,
     translate,
+    userWallet,
 }) => {
+    const walletBalance = numberFormat(
+        userWallet.availableBalance,
+        {style: 'currency', currency: 'USD'},
+    );
+
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
@@ -131,11 +147,14 @@ const InitialSettingsPage = ({
             title: policy.name,
             icon: Building,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
-            iconStyles: [styles.createMenuIconEmphasized],
+            iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
+
+
+    const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 
     return (
         <ScreenWrapper>
@@ -146,38 +165,43 @@ const InitialSettingsPage = ({
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
-                        <View style={[styles.mb3]}>
+                        <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
                                 size="large"
                                 source={myPersonalDetails.avatar}
                                 isActive={network.isOffline === false}
                             />
-                        </View>
-                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                            {myPersonalDetails.displayName
-                                ? myPersonalDetails.displayName
-                                : Str.removeSMSDomain(session.email)}
-                        </Text>
+                        </Pressable>
+
+                        <Pressable style={[styles.mt1]} onPress={openProfileSettings}>
+                            <Text style={[styles.displayName]} numberOfLines={1}>
+                                {myPersonalDetails.displayName
+                                    ? myPersonalDetails.displayName
+                                    : Str.removeSMSDomain(session.email)}
+                            </Text>
+                        </Pressable>
                         {myPersonalDetails.displayName && (
                             <Text
-                                style={[styles.settingsLoginName, styles.mt1]}
+                                style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {Str.removeSMSDomain(session.email)}
                             </Text>
                         )}
                     </View>
-                    {menuItems.map((item) => {
+                    {_.map(menuItems, (item, index) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        const isPaymentItem = item.translationKey === 'common.payments';
                         return (
                             <MenuItem
-                                key={keyTitle}
+                                key={`${keyTitle}_${index}`}
                                 title={keyTitle}
                                 icon={item.icon}
                                 onPress={item.action}
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
+                                badgeText={isPaymentItem ? walletBalance : undefined}
                             />
                         );
                     })}
@@ -205,6 +229,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(InitialSettingsPage);

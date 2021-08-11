@@ -1,11 +1,12 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 import SectionList from './SectionList';
+import Text from './Text';
 
 const propTypes = {
     /** option Background Color */
@@ -77,6 +78,9 @@ const propTypes = {
 
     /** Whether to disable the interactivity of the list's option row(s) */
     disableRowInteractivity: PropTypes.bool,
+
+    /** Callback to execute when the SectionList lays out */
+    onLayout: PropTypes.func,
 };
 
 const defaultProps = {
@@ -98,6 +102,7 @@ const defaultProps = {
     showTitleTooltip: false,
     optionMode: undefined,
     disableRowInteractivity: false,
+    onLayout: undefined,
 };
 
 class OptionsList extends Component {
@@ -108,6 +113,9 @@ class OptionsList extends Component {
         this.renderSectionHeader = this.renderSectionHeader.bind(this);
         this.extractKey = this.extractKey.bind(this);
         this.onScrollToIndexFailed = this.onScrollToIndexFailed.bind(this);
+        this.onViewableItemsChanged = this.onViewableItemsChanged.bind(this);
+        this.viewabilityConfig = {viewAreaCoveragePercentThreshold: 95};
+        this.didLayout = false;
     }
 
     shouldComponentUpdate(nextProps) {
@@ -128,6 +136,15 @@ class OptionsList extends Component {
         }
 
         return false;
+    }
+
+    onViewableItemsChanged() {
+        if (this.didLayout || !this.props.onLayout) {
+            return;
+        }
+
+        this.didLayout = true;
+        this.props.onLayout();
     }
 
     /**
@@ -227,6 +244,11 @@ class OptionsList extends Component {
                     renderItem={this.renderItem}
                     renderSectionHeader={this.renderSectionHeader}
                     extraData={this.props.focusedIndex}
+                    initialNumToRender={5}
+                    maxToRenderPerBatch={5}
+                    windowSize={5}
+                    viewabilityConfig={this.viewabilityConfig}
+                    onViewableItemsChanged={this.onViewableItemsChanged}
                 />
             </View>
         );

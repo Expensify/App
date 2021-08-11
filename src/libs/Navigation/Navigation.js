@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {StackActions, DrawerActions} from '@react-navigation/native';
+import {StackActions, DrawerActions, useLinkBuilder} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
@@ -26,12 +26,23 @@ function openDrawer() {
 }
 
 /**
+ * Close the LHN drawer.
  * @private
  */
-function goBack() {
+function closeDrawer() {
+    navigationRef.current.dispatch(DrawerActions.closeDrawer());
+}
+
+/**
+ * @private
+ * @param {Boolean} shouldOpenDrawer
+ */
+function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.current.canGoBack()) {
         console.debug('Unable to go back');
-        openDrawer();
+        if (shouldOpenDrawer) {
+            openDrawer();
+        }
         return;
     }
 
@@ -59,7 +70,7 @@ function navigate(route = ROUTES.HOME) {
     // have a participants route since those should go through linkTo() as they open a different screen.
     const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
     if (reportID && !isParticipantsRoute) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}));
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
         return;
     }
 
@@ -102,7 +113,7 @@ function dismissModal(shouldOpenDrawer = false) {
     }
 
     // Navigate back to where we were before we launched the modal
-    goBack();
+    goBack(shouldOpenDrawer);
 
     if (!normalizedShouldOpenDrawer) {
         return;
@@ -114,13 +125,21 @@ function dismissModal(shouldOpenDrawer = false) {
 /**
  * Check whether the passed route is currently Active or not.
  *
+ * Building path with useLinkBuilder since navigationRef.current.getCurrentRoute().path
+ * is undefined in the first navigation.
+ *
  * @param {String} routePath Path to check
  * @return {Boolean} is active
  */
-function isActive(routePath) {
+function isActiveRoute(routePath) {
+    const buildLink = useLinkBuilder();
+
     // We remove First forward slash from the URL before matching
-    const path = navigationRef.current && navigationRef.current.getCurrentRoute().path
-        ? navigationRef.current.getCurrentRoute().path.substring(1)
+    const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
+        ? buildLink(
+            navigationRef.current.getCurrentRoute().name,
+            navigationRef.current.getCurrentRoute().params,
+        ).substring(1)
         : '';
     return path === routePath;
 }
@@ -156,7 +175,8 @@ DismissModal.defaultProps = {
 export default {
     navigate,
     dismissModal,
-    isActive,
+    isActiveRoute,
     goBack,
     DismissModal,
+    closeDrawer,
 };

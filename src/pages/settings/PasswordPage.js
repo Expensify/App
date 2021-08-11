@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, TextInput, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
@@ -18,6 +18,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -49,14 +50,46 @@ class PasswordPage extends Component {
             newPassword: '',
             confirmNewPassword: '',
             isPasswordRequirementsVisible: false,
+            shouldShowPasswordConfirmError: false,
         };
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
+        this.currentPasswordInputRef = null;
     }
 
     componentWillUnmount() {
         Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
     }
+
+    onBlurNewPassword() {
+        const stateToUpdate = {};
+        if (!this.state.newPassword || !this.isValidPassword()) {
+            stateToUpdate.isPasswordRequirementsVisible = true;
+        } else {
+            stateToUpdate.isPasswordRequirementsVisible = false;
+        }
+
+        if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
+            stateToUpdate.shouldShowPasswordConfirmError = true;
+        }
+
+        if (!isEmpty(stateToUpdate)) {
+            this.setState(stateToUpdate);
+        }
+    }
+
+    onBlurConfirmPassword() {
+        if (!this.state.confirmNewPassword || !this.doPasswordsMatch()) {
+            this.setState({shouldShowPasswordConfirmError: true});
+        } else {
+            this.setState({shouldShowPasswordConfirmError: false});
+        }
+    }
+
+    isValidPassword() {
+        return this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    }
+
 
     handleChangePassword() {
         changePassword(this.state.currentPassword, this.state.newPassword)
@@ -67,9 +100,18 @@ class PasswordPage extends Component {
             });
     }
 
+    doPasswordsMatch() {
+        return this.state.newPassword === this.state.confirmNewPassword;
+    }
+
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.currentPasswordInputRef) {
+                    this.currentPasswordInputRef.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('passwordPage.changePassword')}
@@ -78,59 +120,58 @@ class PasswordPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6, styles.textP]}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {`${this.props.translate('passwordPage.currentPassword')}*`}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={`${this.props.translate('passwordPage.currentPassword')}*`}
+                                ref={el => this.currentPasswordInputRef = el}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                style={styles.textInput}
                                 value={this.state.currentPassword}
                                 onChangeText={currentPassword => this.setState({currentPassword})}
+                                returnKeyType="done"
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {`${this.props.translate('passwordPage.newPassword')}*`}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={`${this.props.translate('passwordPage.newPassword')}*`}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                style={styles.textInput}
                                 value={this.state.newPassword}
                                 onChangeText={newPassword => this.setState({newPassword})}
                                 onFocus={() => this.setState({isPasswordRequirementsVisible: true})}
-                                onBlur={() => this.setState({isPasswordRequirementsVisible: false})}
+                                onBlur={() => this.onBlurNewPassword()}
                             />
                             {this.state.isPasswordRequirementsVisible && (
-                                <Text style={[styles.formHint, styles.mt1]}>
+                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
                                     {this.props.translate('passwordPage.newPasswordPrompt')}
                                 </Text>
                             )}
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.mb1, styles.formLabel]}>
-                                {`${this.props.translate('passwordPage.confirmNewPassword')}*`}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={`${this.props.translate('passwordPage.confirmNewPassword')}*`}
                                 secureTextEntry
                                 autoCompleteType="password"
                                 textContentType="password"
-                                style={styles.textInput}
                                 value={this.state.confirmNewPassword}
                                 onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
                                 onSubmitEditing={this.handleChangePassword}
+                                onBlur={() => this.onBlurConfirmPassword()}
                             />
                         </View>
-                        {!isEmpty(this.props.account.error) && (
+                        {!this.state.shouldShowPasswordConfirmError && !isEmpty(this.props.account.error) && (
                             <Text style={styles.formError}>
                                 {this.props.account.error}
+                            </Text>
+                        )}
+                        {this.state.shouldShowPasswordConfirmError && (
+                            <Text style={[styles.formError, styles.mt1]}>
+                                {this.props.translate('setPasswordPage.passwordsDontMatch')}
                             </Text>
                         )}
                     </ScrollView>

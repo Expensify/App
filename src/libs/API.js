@@ -160,6 +160,13 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
+    if (response.jsonCode === 405 || response.jsonCode === 404) {
+        // IOU Split & Request money transactions failed due to invalid amount(405) or unable to split(404)
+        // It's a failure, so reject the queued request
+        queuedRequest.reject(response);
+        return;
+    }
+
     queuedRequest.resolve(response);
 });
 
@@ -194,7 +201,6 @@ function Authenticate(parameters) {
         'partnerUserSecret',
     ], parameters, commandName);
 
-    // eslint-disable-next-line no-use-before-define
     return Network.post(commandName, {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check
         // for credentials for the expensify partnerID to let users Authenticate with their expensify user
@@ -220,23 +226,24 @@ function Authenticate(parameters) {
             if (response.jsonCode !== 200) {
                 switch (response.jsonCode) {
                     case 401:
-                        throw new Error('Incorrect login or password. Please try again.');
+                        throw new Error('passwordForm.error.incorrectLoginOrPassword');
                     case 402:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You have 2FA enabled on this account. Please sign in using your email or phone number.');
+                        // If too few characters are passed as the password, the WAF will pass it to the API as an empty
+                        // string, which results in a 402 error from Auth.
+                        if (response.message === '402 Missing partnerUserSecret') {
+                            throw new Error('passwordForm.error.incorrectLoginOrPassword');
+                        }
+                        throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
-                        throw new Error('Invalid login or password. Please try again or reset your password.');
+                        throw new Error('passwordForm.error.invalidLoginOrPassword');
                     case 404:
-                        // eslint-disable-next-line max-len
-                        throw new Error('We were unable to change your password. This is likely due to an expired password reset link in an old password reset email. We have emailed you a new link so you can try again. Check your Inbox and your Spam folder; it should arrive in just a few minutes.');
+                        throw new Error('passwordForm.error.unableToResetPassword');
                     case 405:
-                        // eslint-disable-next-line max-len
-                        throw new Error('You do not have access to this application. Please add your GitHub username for access.');
+                        throw new Error('passwordForm.error.noAccess');
                     case 413:
-                        // eslint-disable-next-line max-len
-                        throw new Error('Your account has been locked after too many unsuccessful attempts. Please try again after 1 hour.');
+                        throw new Error('passwordForm.error.accountLocked');
                     default:
-                        throw new Error('Something went wrong. Please try again later.');
+                        throw new Error('passwordForm.error.fallback');
                 }
             }
             return response;
@@ -298,6 +305,33 @@ function reauthenticate(command = '') {
                 error: error.message,
             });
         });
+}
+
+/**
+ * Calls the command=Authenticate API with an accountID, validateCode, and optional 2FA code. This is used specifically
+ * for sharing sessions between e.com and this app. It will return an authToken that is used for initiating a session
+ * in this app. This API call doesn't have any special handling (like retries or special error handling).
+ *
+ * @param {Object} parameters
+ * @param {String} parameters.accountID
+ * @param {String} parameters.validateCode
+ * @param {String} [parameters.twoFactorAuthCode]
+ * @returns {Promise<unknown>}
+ */
+function AuthenticateWithAccountID(parameters) {
+    const commandName = 'Authenticate';
+
+    requireParameters([
+        'accountID',
+        'validateCode',
+    ], parameters, commandName);
+
+    return Network.post(commandName, {
+        accountID: parameters.accountID,
+        validateCode: parameters.validateCode,
+        twoFactorAuthCode: parameters.twoFactorAuthCode,
+        doNotRetry: true,
+    });
 }
 
 /**
@@ -396,6 +430,15 @@ function GetAccountStatus(parameters) {
     const commandName = 'GetAccountStatus';
     requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, parameters);
+}
+
+/**
+ * Returns a validate code for this account
+ * @returns {Promise}
+ */
+function GetAccountValidateCode() {
+    const commandName = 'GetAccountValidateCode';
+    return Network.post(commandName);
 }
 
 /**
@@ -512,6 +555,19 @@ function PersonalDetails_GetForEmails(parameters) {
 function PersonalDetails_Update(parameters) {
     const commandName = 'PersonalDetails_Update';
     requireParameters(['details'],
+        parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Object} parameters.name
+ * @param {Object} parameters.value
+ * @returns {Promise}
+ */
+function PreferredLocale_Update(parameters) {
+    const commandName = 'PreferredLocale_Update';
+    requireParameters(['name', 'value'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -939,8 +995,8 @@ function Mobile_GetConstants(parameters) {
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
-function GetPreferredCurrency(parameters) {
-    const commandName = 'GetPreferredCurrency';
+function GetLocalCurrency(parameters) {
+    const commandName = 'GetLocalCurrency';
     return Network.post(commandName, parameters);
 }
 
@@ -996,8 +1052,32 @@ function Inbox_CallUser(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.reportIDList
+ * @returns {Promise}
+ */
+function GetReportSummaryList(parameters) {
+    const commandName = 'Get';
+    requireParameters(['reportIDList'], parameters, commandName);
+    return Network.post(commandName, {...parameters, returnValueList: 'reportSummaryList'});
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.value - Must be a JSON stringified object
+ * @returns {Promise}
+ */
+function UpdatePolicy(parameters) {
+    const commandName = 'UpdatePolicy';
+    requireParameters(['policyID', 'value'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
+    AuthenticateWithAccountID,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
@@ -1008,9 +1088,11 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetAccountValidateCode,
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,
+    GetReportSummaryList,
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
@@ -1034,6 +1116,7 @@ export {
     SetNameValuePair,
     SetPassword,
     UpdateAccount,
+    UpdatePolicy,
     User_SignUp,
     User_GetBetas,
     User_IsFromPublicDomain,
@@ -1047,8 +1130,9 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    GetPreferredCurrency,
+    GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,
     Policy_Employees_Remove,
+    PreferredLocale_Update,
 };

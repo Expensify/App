@@ -1,12 +1,12 @@
 import React from 'react';
 import {
     View,
-    Text,
     TouchableOpacity,
     InteractionManager,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -17,30 +17,30 @@ import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
-import KeyboardShortcut from '../../../libs/KeyboardShortcut';
+import Text from '../../../components/Text';
+import CONST from '../../../CONST';
 
 const propTypes = {
-    // Whether or not this IOU has multiple participants
+    /** Whether or not this IOU has multiple participants */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    /* The ID of the report this screen should display */
+    /** The ID of the report this screen should display */
     reportID: PropTypes.string.isRequired,
 
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Currency selection will be implemented later */
-    // eslint-disable-next-line react/no-unused-prop-types
-    currencySelected: PropTypes.func.isRequired,
+    /** The currency list constant object from Onyx */
+    currencyList: PropTypes.objectOf(PropTypes.shape({
+        /** Symbol for the currency */
+        symbol: PropTypes.string,
 
-    // User's currency preference
-    selectedCurrency: PropTypes.shape({
-        // Currency code for the selected currency
-        currencyCode: PropTypes.string,
+        /** Name of the currency */
+        name: PropTypes.string,
 
-        // Currency symbol for the selected currency
-        currencySymbol: PropTypes.string,
-    }).isRequired,
+        /** ISO4217 Code for the currency */
+        ISO4217: PropTypes.string,
+    })).isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
@@ -55,20 +55,26 @@ const propTypes = {
 
         /** Whether or not the IOU step is loading (retrieving users preferred currency) */
         loading: PropTypes.bool,
+
+        /** Selected Currency Code of the current IOU */
+        selectedCurrencyCode: PropTypes.string,
     }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    iou: {},
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
 };
 
 class IOUAmountPage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateAmountIfValidInput = this.updateAmountIfValidInput.bind(this);
+        this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
+        this.updateAmount = this.updateAmount.bind(this);
         this.state = {
             amount: props.selectedAmount,
         };
@@ -76,15 +82,8 @@ class IOUAmountPage extends React.Component {
 
     componentDidMount() {
         // Component is not initialized yet due to navigation transitions
-        // Wait until interactions are complete before trying to focus or attach listener
+        // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
-            // Setup and attach keypress handler for navigating to the next screen
-            this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
-                if (this.state.amount !== '') {
-                    this.props.onStepComplete(this.state.amount);
-                }
-            }, [], true);
-
             // Focus text input
             if (this.textInput) {
                 this.textInput.focus();
@@ -92,44 +91,50 @@ class IOUAmountPage extends React.Component {
         });
     }
 
-    componentWillUnmount() {
-        // Cleanup all keydown event listeners that we've set up
-        if (!this.unsubscribe) {
-            return;
-        }
-
-        this.unsubscribe();
+    /**
+     * Check if amount is a decimal upto 3 digits
+     *
+     * @param {String} amount
+     * @returns {Boolean}
+     */
+    validateAmount(amount) {
+        const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
+        return amount === '' || decimalNumberRegex.test(amount);
     }
 
     /**
-     * Update amount with number or Backspace pressed.
+     * Update amount with number or Backspace pressed for BigNumberPad.
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit to enable Next button
      *
      * @param {String} key
      */
-    updateAmountIfValidInput(key) {
+    updateAmountNumberPad(key) {
         // Backspace button is pressed
         if (key === '<' || key === 'Backspace') {
             if (this.state.amount.length > 0) {
                 this.setState(prevState => ({
-                    amount: prevState.amount.substring(0, prevState.amount.length - 1),
+                    amount: prevState.amount.slice(0, -1),
                 }));
             }
             return;
         }
 
         this.setState((prevState) => {
-            const newValue = `${prevState.amount}${key}`;
-
-            // Regex to validate decimal number with up to 3 decimal numbers
-            const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
-            if (!decimalNumberRegex.test(newValue)) {
-                return prevState;
-            }
-            return {
-                amount: newValue,
-            };
+            const amount = `${prevState.amount}${key}`;
+            return this.validateAmount(amount) ? {amount} : prevState;
         });
+    }
+
+    /**
+     * Update amount on amount change
+     * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
+     *
+     * @param {String} amount
+     */
+    updateAmount(amount) {
+        if (this.validateAmount(amount)) {
+            this.setState({amount});
+        }
     }
 
     render() {
@@ -148,7 +153,7 @@ class IOUAmountPage extends React.Component {
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
-                            {this.props.selectedCurrency.currencySymbol}
+                            {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
@@ -162,10 +167,7 @@ class IOUAmountPage extends React.Component {
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}
                                 textStyle={styles.iouAmountText}
-                                onKeyPress={(event) => {
-                                    this.updateAmountIfValidInput(event.key);
-                                    event.preventDefault();
-                                }}
+                                onChangeText={this.updateAmount}
                                 ref={el => this.textInput = el}
                                 value={this.state.amount}
                                 placeholder="0"
@@ -176,7 +178,7 @@ class IOUAmountPage extends React.Component {
                     {this.props.isSmallScreenWidth
                         ? (
                             <BigNumberPad
-                                numberPressed={this.updateAmountIfValidInput}
+                                numberPressed={this.updateAmountNumberPad}
                             />
                         ) : <View />}
 
@@ -184,6 +186,7 @@ class IOUAmountPage extends React.Component {
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}
+                        pressOnEnter
                         isDisabled={!this.state.amount.length || parseFloat(this.state.amount) < 0.01}
                         text={this.props.translate('common.next')}
                     />
@@ -201,6 +204,7 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
     }),
 )(IOUAmountPage);

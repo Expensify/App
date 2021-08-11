@@ -1,15 +1,12 @@
 import React from 'react';
-import {
-    Text,
-    TextInput,
-    View,
-} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
+import Text from '../../components/Text';
 import {fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -17,6 +14,7 @@ import compose from '../../libs/compose';
 import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -74,10 +72,9 @@ class LoginForm extends React.Component {
     render() {
         return (
             <>
-                <View style={[styles.mb4]}>
-                    <Text style={[styles.formLabel]}>{this.props.translate('loginForm.enterYourPhoneOrEmail')}</Text>
-                    <TextInput
-                        style={[styles.textInput]}
+                <View style={[styles.mt3]}>
+                    <ExpensiTextInput
+                        label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="email"
                         textContentType="username"
@@ -86,21 +83,12 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        placeholder={this.props.translate('loginForm.phoneOrEmail')}
+                        placeholder={this.props.translate('loginForm.enterYourPhoneOrEmail')}
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
+                        translateX={-18}
                     />
                 </View>
-                <View>
-                    <Button
-                        success
-                        style={[styles.mb2]}
-                        text={this.props.translate('common.continue')}
-                        isLoading={this.props.account.loading}
-                        onPress={this.validateAndSubmitForm}
-                    />
-                </View>
-
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
                         {this.state.formError}
@@ -117,6 +105,15 @@ class LoginForm extends React.Component {
                         {this.props.account.success}
                     </Text>
                 )}
+                <View style={[styles.mt5]}>
+                    <Button
+                        success
+                        text={this.props.translate('common.continue')}
+                        isLoading={this.props.account.loading}
+                        onPress={this.validateAndSubmitForm}
+                    />
+                </View>
+
             </>
         );
     }

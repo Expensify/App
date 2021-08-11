@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import VBALoadingIndicator from '../../components/VBALoadingIndicator';
 import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -24,6 +24,7 @@ import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
+import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 
@@ -155,7 +156,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (this.props.reimbursementAccount.loading) {
-            return <FullScreenLoadingIndicator visible />;
+            return <VBALoadingIndicator />;
         }
 
         let errorComponent;
@@ -230,6 +231,11 @@ class ReimbursementAccountPage extends React.Component {
                             achData={this.props.reimbursementAccount.achData}
                             maxAttemptsReached={maxAttemptsReached}
                             error={error}
+                        />
+                    )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
+                        <EnableStep
+                            achData={this.props.reimbursementAccount.achData}
                         />
                     )}
                 </KeyboardAvoidingView>

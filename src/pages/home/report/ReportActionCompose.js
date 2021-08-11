@@ -5,7 +5,6 @@ import {
     TouchableOpacity,
     Pressable,
     InteractionManager,
-    Text,
     Dimensions,
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
@@ -36,7 +35,7 @@ import {
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import Popover from '../../../components/Popover';
 import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -51,8 +50,12 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import {canEditReportAction} from '../../../libs/reportUtils';
+import {canEditReportAction, isArchivedRoom} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import Text from '../../../components/Text';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
+import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import ParticipantLocalTime from './ParticipantLocalTime';
 
 const propTypes = {
     /** Beta features list */
@@ -72,6 +75,12 @@ const propTypes = {
         /** Indicates if there is a modal currently visible or not */
         isVisible: PropTypes.bool,
     }),
+
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -114,6 +123,8 @@ const defaultProps = {
     reportActions: {},
     network: {isOffline: false},
     blockedFromConcierge: {},
+    personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionCompose extends React.Component {
@@ -138,6 +149,7 @@ class ReportActionCompose extends React.Component {
         this.emojiPopoverAnchor = null;
         this.emojiSearchInput = null;
         this.setTextInputRef = this.setTextInputRef.bind(this);
+        this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -225,6 +237,26 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
+     * Get the placeholder to display in the chat input.
+     *
+     * @return {String}
+     */
+    getInputPlaceholder() {
+        if (isArchivedRoom(this.props.report)) {
+            return this.props.translate('reportActionCompose.roomIsArchived');
+        }
+
+        if (this.props.report.participants
+            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE)
+            && !_.isEmpty(this.props.blockedFromConcierge)
+            && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
+            return this.props.translate('reportActionCompose.blockedFromConcierge');
+        }
+
+        return this.props.translate('reportActionCompose.writeSomething');
+    }
+
+    /**
      * Focus the composer text input
      * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
      * @memberof ReportActionCompose
@@ -304,7 +336,7 @@ class ReportActionCompose extends React.Component {
 
                 if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
                     const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).text);
+                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
                 }
             }
         }
@@ -391,9 +423,25 @@ class ReportActionCompose extends React.Component {
     }
 
     render() {
+        // Waiting until ONYX variables are loaded before displaying the component
+        if (_.isEmpty(this.props.personalDetails) || _.isEmpty(this.props.myPersonalDetails)) {
+            return null;
+        }
+
         // eslint-disable-next-line no-unused-vars
-        const hasMultipleParticipants = lodashGet(this.props.report, 'participants.length') > 1;
-        const hasConciergeParticipant = _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
+        const reportParticipants = lodashGet(this.props.report, 'participants', []);
+        const hasMultipleParticipants = reportParticipants.length > 1;
+        const hasChronosParticipant = _.contains(reportParticipants, CONST.EMAIL.CHRONOS);
+        const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
+        const reportRecipient = this.props.personalDetails[reportParticipants[0]];
+        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const shouldShowReportRecipientLocalTime = !hasConciergeParticipant
+            && !hasChronosParticipant
+            && !hasMultipleParticipants
+            && reportRecipient
+            && reportRecipientTimezone
+            && currentUserTimezone.selected !== reportRecipientTimezone.selected;
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -403,13 +451,17 @@ class ReportActionCompose extends React.Component {
         if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
         }
-
-        const inputPlaceholder = isBlockedFromConcierge
-            ? this.props.translate('reportActionCompose.blockedFromConcierge')
-            : this.props.translate('reportActionCompose.writeSomething');
+        const inputPlaceholder = this.getInputPlaceholder();
+        const isArchivedChatRoom = isArchivedRoom(this.props.report);
 
         return (
-            <View style={[styles.chatItemCompose]}>
+            <View style={[
+                styles.chatItemCompose,
+                shouldShowReportRecipientLocalTime && styles.chatItemComposeWithFirstRow,
+            ]}
+            >
+                {shouldShowReportRecipientLocalTime
+                    && <ParticipantLocalTime participant={reportRecipient} currentUserTimezone={currentUserTimezone} />}
                 <View style={[
                     (this.state.isFocused || this.state.isDraggingOver)
                         ? styles.chatItemComposeBoxFocusedColor
@@ -438,11 +490,11 @@ class ReportActionCompose extends React.Component {
                                                 }}
                                                 style={styles.chatItemAttachButton}
                                                 underlayColor={themeColors.componentBG}
-                                                disabled={isBlockedFromConcierge}
+                                                disabled={isBlockedFromConcierge || isArchivedChatRoom}
                                             >
                                                 <Icon src={Plus} />
                                             </TouchableOpacity>
-                                            <CreateMenu
+                                            <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
                                                 onItemSelected={() => this.setMenuVisibility(false)}
@@ -531,7 +583,7 @@ class ReportActionCompose extends React.Component {
                                     onPasteFile={file => displayFileInModal({file})}
                                     shouldClear={this.state.textInputShouldClear}
                                     onClear={() => this.setTextInputShouldClear(false)}
-                                    isDisabled={isComposeDisabled || isBlockedFromConcierge}
+                                    isDisabled={isComposeDisabled || isBlockedFromConcierge || isArchivedChatRoom}
                                     selection={this.state.selection}
                                     onSelectionChange={this.onSelectionChange}
                                 />
@@ -570,7 +622,7 @@ class ReportActionCompose extends React.Component {
                         ref={el => this.emojiPopoverAnchor = el}
                         onLayout={this.measureEmojiPopoverAnchorPosition}
                         onPress={this.showEmojiPicker}
-                        disabled={isBlockedFromConcierge}
+                        disabled={isBlockedFromConcierge || isArchivedChatRoom}
                     >
                         {({hovered, pressed}) => (
                             <Icon
@@ -585,7 +637,7 @@ class ReportActionCompose extends React.Component {
                                 ? styles.buttonDisable : styles.buttonSuccess]}
                         onPress={this.submitForm}
                         underlayColor={themeColors.componentBG}
-                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge}
+                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                     >
                         <Icon src={Send} fill={themeColors.componentBG} />
                     </TouchableOpacity>
@@ -633,6 +685,12 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
         },
         reportActions: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,

@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import ReportActionPropTypes from './ReportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -9,8 +10,10 @@ import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Re
 import {scrollToIndex} from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** All the data of the action */
@@ -27,6 +30,9 @@ const propTypes = {
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
+
+    /** Localization props */
+    ...withLocalizePropTypes,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -39,11 +45,14 @@ class ReportActionItemMessageEdit extends React.Component {
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
 
+        const parser = new ExpensiMark();
+        const draftMessage = parser.htmlToMarkdown(this.props.draftMessage);
+
         this.state = {
-            draft: this.props.draftMessage,
+            draft: draftMessage,
             selection: {
-                start: this.props.draftMessage.length,
-                end: this.props.draftMessage.length,
+                start: draftMessage.length,
+                end: draftMessage.length,
             },
         };
     }
@@ -64,9 +73,8 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     updateDraft(newDraft) {
         this.textInput.setNativeProps({text: newDraft});
-        const trimmedNewDraft = newDraft.trim();
-        this.setState({draft: trimmedNewDraft});
-        this.debouncedSaveDraft(trimmedNewDraft);
+        this.setState({draft: newDraft});
+        this.debouncedSaveDraft(newDraft);
     }
 
     /**
@@ -91,7 +99,8 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
-        editReportComment(this.props.reportID, this.props.action, this.state.draft);
+        const trimmedNewDraft = this.state.draft.trim();
+        editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
 
@@ -119,7 +128,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         ref={el => this.textInput = el}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
-                        defaultValue={this.props.draftMessage}
+                        defaultValue={this.state.draft}
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
@@ -135,13 +144,13 @@ class ReportActionItemMessageEdit extends React.Component {
                     <Button
                         style={[styles.mr2]}
                         onPress={this.deleteDraft}
-                        text="Cancel"
+                        text={this.props.translate('common.cancel')}
                     />
                     <Button
                         success
                         style={[styles.mr2]}
                         onPress={this.publishDraft}
-                        text="Save Changes"
+                        text={this.props.translate('common.saveChanges')}
                     />
                 </View>
             </View>
@@ -150,4 +159,7 @@ class ReportActionItemMessageEdit extends React.Component {
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
-export default withWindowDimensions(ReportActionItemMessageEdit);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(ReportActionItemMessageEdit);

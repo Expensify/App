@@ -4,7 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import SidebarLinks from './SidebarLinks';
-import CreateMenu from '../../../components/CreateMenu';
+import PopoverMenu from '../../../components/PopoverMenu';
 import FAB from '../../../components/FAB';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -23,6 +23,8 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
+import Firebase from '../../../libs/Firebase';
+import {create} from '../../../libs/actions/Policy';
 
 const propTypes = {
     /** Beta features list */
@@ -45,6 +47,10 @@ class SidebarScreen extends Component {
         this.state = {
             isCreateMenuActive: false,
         };
+    }
+
+    componentDidMount() {
+        Firebase.startTrace(CONST.TIMING.SIDEBAR_LOADED);
     }
 
     /**
@@ -103,7 +109,7 @@ class SidebarScreen extends Component {
                                 onPress={this.toggleCreateMenu}
                             />
                         </View>
-                        <CreateMenu
+                        <PopoverMenu
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
@@ -142,7 +148,7 @@ class SidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW),
+                                        onSelected: () => create(),
                                     },
                                 ] : []),
                             ]}

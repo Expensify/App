@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import React from 'react';
-import {View, ScrollView} from 'react-native';
+import React, {useEffect} from 'react';
+import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -8,21 +8,23 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
+import Icon from '../../components/Icon';
 import {
     Users,
-    Pencil,
     ExpensifyCard,
+    Workspace,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
-import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
 import themedefault from '../../styles/themes/default';
-import Icon from '../../components/Icon';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
+import Avatar from '../../components/Avatar';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Policy for the current route */
@@ -50,7 +52,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             action: () => {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id));
             },
-            isActive: Navigation.isActive(ROUTES.getWorkspaceCardRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
         },
         {
             translationKey: 'common.people',
@@ -58,13 +60,21 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             action: () => {
                 Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
             },
-            isActive: Navigation.isActive(ROUTES.getWorkspacePeopleRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
         },
     ];
 
-    if (_.isEmpty(policy)) {
-        return null;
-    }
+    useEffect(() => {
+        if (_.isEmpty(policy)) {
+            Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            return null;
+        }
+    }, [policy]);
+
+
+    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
 
     return (
         <ScreenWrapper>
@@ -86,32 +96,45 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                         )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                            <View style={[styles.pRelative, styles.workspaceSidebarAvatar, styles.mb3]}>
-                                <WorkspaceDefaultAvatar height={80} width={80} fill={themedefault.icon} />
-                                <View style={[
-                                    styles.workspaceSidebarAvatarPencil,
-                                    styles.alignItemsCenter,
-                                    styles.justifyContentCenter,
-                                ]}
-                                >
-                                    <Icon
-                                        src={Pencil}
-                                        fill={themedefault.textReversed}
-                                        small
-                                    />
-                                </View>
-                            </View>
-                            <Text
-                                numberOfLines={1}
+                            <Pressable
+                                style={[styles.pRelative, styles.avatarLarge]}
+                                onPress={openEditor}
+                            >
+                                {policy.avatarURL
+                                    ? (
+                                        <Avatar
+                                            containerStyles={styles.avatarLarge}
+                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                            source={policy.avatarURL}
+                                        />
+                                    )
+                                    : (
+                                        <Icon
+                                            src={Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={themedefault.icon}
+                                        />
+                                    )}
+                            </Pressable>
+
+                            <Pressable
                                 style={[
-                                    styles.displayName,
                                     styles.alignSelfCenter,
-                                    styles.mt1,
+                                    styles.mt4,
                                     styles.mb6,
                                 ]}
+                                onPress={openEditor}
                             >
-                                {policy.name}
-                            </Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[
+                                        styles.displayName,
+                                    ]}
+                                >
+                                    {policy.name}
+                                </Text>
+                            </Pressable>
                         </View>
                     </View>
                     {menuItems.map(item => (
@@ -121,7 +144,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
-                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.hoverComponentBG : undefined}
+                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.activeComponentBG : undefined}
                             focused={item.isActive}
                             shouldShowRightIcon
                         />

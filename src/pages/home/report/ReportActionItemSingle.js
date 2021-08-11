@@ -1,6 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
@@ -10,10 +9,12 @@ import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
 import ReportActionItemDate from './ReportActionItemDate';
 import Avatar from '../../../components/Avatar';
-import ONYXKEYS from '../../../ONYXKEYS';
 import personalDetailsPropType from '../../personalDetailsPropType';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** All the data of the action */
@@ -36,6 +37,10 @@ const defaultProps = {
     wrapperStyles: [styles.chatItem],
 };
 
+const showUserDetails = (email) => {
+    Navigation.navigate(ROUTES.getDetailsRoute(email));
+};
+
 const ReportActionItemSingle = ({
     action,
     personalDetails,
@@ -56,24 +61,29 @@ const ReportActionItemSingle = ({
     const personArray = displayName
         ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName}]
         : action.person;
+
     return (
         <View style={wrapperStyles}>
-            <Avatar
-                imageStyles={[styles.actionAvatar]}
-                source={avatarUrl}
-            />
+            <Pressable onPress={() => showUserDetails(action.actorEmail)}>
+                <Avatar
+                    imageStyles={[styles.actionAvatar]}
+                    source={avatarUrl}
+                />
+            </Pressable>
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
-                    {_.map(personArray, (fragment, index) => (
-                        <ReportActionItemFragment
-                            key={`person-${action.sequenceNumber}-${index}`}
-                            fragment={fragment}
-                            tooltipText={action.actorEmail}
-                            isAttachment={action.isAttachment}
-                            isLoading={action.loading}
-                            isSingleLine
-                        />
-                    ))}
+                    <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(action.actorEmail)}>
+                        {_.map(personArray, (fragment, index) => (
+                            <ReportActionItemFragment
+                                key={`person-${action.sequenceNumber}-${index}`}
+                                fragment={fragment}
+                                tooltipText={action.actorEmail}
+                                isAttachment={action.isAttachment}
+                                isLoading={action.loading}
+                                isSingleLine
+                            />
+                        ))}
+                    </Pressable>
                     <ReportActionItemDate timestamp={action.timestamp} />
                 </View>
                 {children}
@@ -84,11 +94,9 @@ const ReportActionItemSingle = ({
 
 ReportActionItemSingle.propTypes = propTypes;
 ReportActionItemSingle.defaultProps = defaultProps;
+ReportActionItemSingle.displayName = 'ReportActionItemSingle';
+
 export default compose(
     withLocalize,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-    }),
+    withPersonalDetails(),
 )(ReportActionItemSingle);

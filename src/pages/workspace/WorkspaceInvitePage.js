@@ -1,8 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TextInput, View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -14,9 +15,10 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {invite} from '../../libs/actions/Policy';
 import TextLink from '../../components/TextLink';
-import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
-import themeColors from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
+import FixedFooter from '../../components/FixedFooter';
+import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -48,7 +50,7 @@ class WorkspaceInvitePage extends React.Component {
         super(props);
 
         this.state = {
-            emailOrPhone: '',
+            userLogins: '',
             welcomeNote: '',
         };
 
@@ -70,12 +72,14 @@ class WorkspaceInvitePage extends React.Component {
      * Handle the invite button click
      */
     inviteUser() {
-        if (!Str.isValidEmail(this.state.emailOrPhone) && !Str.isValidPhone(this.state.emailOrPhone)) {
+        const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
+        const isEnteredLoginsvalid = _.every(logins, login => Str.isValidEmail(login) || Str.isValidPhone(login));
+        if (!isEnteredLoginsvalid) {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
             return;
         }
 
-        invite(this.state.emailOrPhone, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
+        invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
             this.props.route.params.policyID);
         Navigation.goBack();
     }
@@ -83,60 +87,52 @@ class WorkspaceInvitePage extends React.Component {
     render() {
         return (
             <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.invite.invitePeople')}
-                    onCloseButtonPress={Navigation.dismissModal}
-                />
-                <View style={[styles.p5, styles.flex1, styles.overflowAuto]}>
-                    <View style={styles.flexGrow1}>
-                        <Text style={[styles.mb6, styles.textP]}>
+                <KeyboardAvoidingView>
+                    <HeaderWithCloseButton
+                        title={this.props.translate('workspace.invite.invitePeople')}
+                        onCloseButtonPress={Navigation.dismissModal}
+                    />
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                        <Text style={[styles.mb6]}>
                             {this.props.translate('workspace.invite.invitePeoplePrompt')}
                         </Text>
                         <View style={styles.mb6}>
-                            <Text style={[styles.textP, styles.mb2]}>
-                                {this.props.translate('workspace.invite.enterEmailOrPhone')}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={this.props.translate('workspace.invite.enterEmailOrPhone')}
                                 autoCompleteType="email"
                                 autoCorrect={false}
                                 autoCapitalize="none"
-                                style={[styles.textInput]}
-                                value={this.state.emailOrPhone}
-                                keyboardType={getEmailKeyboardType()}
-                                onChangeText={text => this.setState({emailOrPhone: text})}
+                                value={this.state.userLogins}
+                                onChangeText={text => this.setState({userLogins: text})}
                             />
                         </View>
                         <View style={styles.mb6}>
-                            <Text style={[styles.textP, styles.mb2]}>
-                                {this.props.translate('workspace.invite.personalMessagePrompt')}
-                            </Text>
-                            <TextInput
+                            <ExpensiTextInput
+                                label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                style={[styles.textInput, styles.workspaceInviteWelcome, styles.mb6]}
                                 numberOfLines={10}
                                 textAlignVertical="top"
                                 multiline
                                 value={this.state.welcomeNote}
                                 placeholder={this.getWelcomeNotePlaceholder()}
-                                placeholderTextColor={themeColors.placeholderText}
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
                             <TextLink href="https://use.expensify.com/privacy">
                                 {this.props.translate('common.privacy')}
                             </TextLink>
                         </View>
-                    </View>
-                    <View style={styles.flexGrow0}>
+                    </ScrollView>
+                    <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
-                            style={[styles.mb2]}
-                            isDisabled={!this.state.emailOrPhone}
+                            isDisabled={!this.state.userLogins.trim()}
                             text={this.props.translate('common.invite')}
                             onPress={this.inviteUser}
+                            pressOnEnter
                         />
-                    </View>
-                </View>
+                    </FixedFooter>
+                </KeyboardAvoidingView>
             </ScreenWrapper>
         );
     }
