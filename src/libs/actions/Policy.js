@@ -12,12 +12,22 @@ import ROUTES from '../../ROUTES';
 import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
 
 const allPolicies = {};
+let isSidebarLoaded;
 Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (val, key) => {
-        if (val && key) {
-            allPolicies[key] = {...allPolicies[key], ...val};
+    key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    callback: (value) => {
+        if (isSidebarLoaded || !value) {
+            return;
         }
+        isSidebarLoaded = true;
+        Onyx.connect({
+            key: ONYXKEYS.COLLECTION.POLICY,
+            callback: (val, key) => {
+                if (val && key) {
+                    allPolicies[key] = {...allPolicies[key], ...val};
+                }
+            },
+        });
     },
 });
 

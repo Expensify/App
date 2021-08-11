@@ -43,16 +43,6 @@ Onyx.connect({
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
-const policies = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    callback: (policy, key) => {
-        if (policy && key && policy.name) {
-            policies[key] = policy;
-        }
-    },
-});
-
 const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
@@ -151,9 +141,10 @@ function getParticipantNames(personalDetailList) {
  * @param {Object} report
  * @param {Array} personalDetailList
  * @param {Boolean} isDefaultChatRoom
+ * @param {Object} policies
  * @return {String}
  */
-function getSearchText(report, personalDetailList, isDefaultChatRoom) {
+function getSearchText(report, personalDetailList, isDefaultChatRoom, policies) {
     const searchTerms = [];
 
     if (!isDefaultChatRoom) {
@@ -184,13 +175,15 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
  * @param {Object} draftComments
- * @param {Boolean} showChatPreviewLine
- * @param {Boolean} forcePolicyNamePreview
+ * @param {Object} options
+ * @param {Boolean} options.showChatPreviewLine
+ * @param {Boolean} options.forcePolicyNamePreview
+ * @param {Object} policies
  * @returns {Object}
  */
 function createOption(personalDetailList, report, draftComments, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
-}) {
+}, policies) {
     const isDefaultChatRoom = isDefaultRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
@@ -245,7 +238,7 @@ function createOption(personalDetailList, report, draftComments, {
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
-        searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
+        searchText: getSearchText(report, personalDetailList, isDefaultChatRoom, policies),
         isPinned: lodashGet(report, 'isPinned', false),
         hasOutstandingIOU,
         iouReportID: lodashGet(report, 'iouReportID'),
@@ -285,6 +278,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
  * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {Object} options
+ * @param {Object} policies
  * @returns {Object}
  * @private
  */
@@ -308,7 +302,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     sortByAlphaAsc = false,
     forcePolicyNamePreview = false,
     prioritizeIOUDebts = false,
-}) {
+}, policies) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
@@ -367,14 +361,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
             showChatPreviewLine,
             forcePolicyNamePreview,
-        }));
+        }, policies));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
         createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
             showChatPreviewLine,
             forcePolicyNamePreview,
-        })
+        }, policies)
     ));
 
     // Always exclude already selected options and the currently logged in user
@@ -478,7 +472,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
         userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
             showChatPreviewLine,
-        });
+        }, policies);
         userToInvite.icons = [defaultAvatarForUserToInvite];
     }
 
@@ -496,6 +490,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array<String>} betas
+ * @param {Object} policies
  * @returns {Object}
  */
 function getSearchOptions(
@@ -503,6 +498,7 @@ function getSearchOptions(
     personalDetails,
     searchValue = '',
     betas,
+    policies = {},
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
@@ -518,7 +514,7 @@ function getSearchOptions(
         sortByLastMessageTimestamp: false,
         forcePolicyNamePreview: true,
         prioritizeIOUDebts: false,
-    });
+    }, policies);
 }
 
 /**

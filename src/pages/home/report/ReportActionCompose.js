@@ -179,6 +179,10 @@ class ReportActionCompose extends React.Component {
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        return !_.isEqual(nextProps, this.props) || _.isEqual(nextState, this.state);
+    }
+
     componentDidUpdate(prevProps) {
         // We want to focus or refocus the input when a modal has been closed and the underlying screen is focused.
         // We avoid doing this on native platforms since the software keyboard popping

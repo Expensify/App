@@ -131,7 +131,14 @@ class ReportActionsView extends React.Component {
 
         setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
 
-        fetchActions(this.props.reportID);
+        // If we have no report actions then fetch immediately - otherwise wait a second before requesting the actions.
+        if (!_.size(this.props.reportActions)) {
+            fetchActions(this.props.reportID);
+        } else {
+            setTimeout(() => {
+                fetchActions(this.props.reportID);
+            }, 1000);
+        }
     }
 
     shouldComponentUpdate(nextProps, nextState) {

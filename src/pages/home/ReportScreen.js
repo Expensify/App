@@ -1,16 +1,22 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
+import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import ReportView from './report/ReportView';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import {handleInaccessibleReport, updateCurrentlyViewedReportID} from '../../libs/actions/Report';
+import {handleInaccessibleReport, updateCurrentlyViewedReportID, addAction} from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
+
+import ReportActionsView from './report/ReportActionsView';
+import ReportActionCompose from './report/ReportActionCompose';
+import KeyboardSpacer from '../../components/KeyboardSpacer';
+import SwipeableView from '../../components/SwipeableView';
+import CONST from '../../CONST';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -24,15 +30,25 @@ const propTypes = {
 
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: PropTypes.bool,
+
+    /** Whether or not to show the Compose Input */
+    session: PropTypes.shape({
+        shouldShowComposeInput: PropTypes.bool,
+    }),
 };
 
 const defaultProps = {
     isSidebarLoaded: false,
+    session: {
+        shouldShowComposeInput: true,
+    },
 };
 
 class ReportScreen extends React.Component {
     constructor(props) {
         super(props);
+
+        this.onSubmitComment = this.onSubmitComment.bind(this);
 
         this.state = {
             isLoading: true,
@@ -54,6 +70,13 @@ class ReportScreen extends React.Component {
 
     componentWillUnmount() {
         clearTimeout(this.loadingTimerId);
+    }
+
+    /**
+     * @param {String} text
+     */
+    onSubmitComment(text) {
+        addAction(this.getReportID(), text);
     }
 
     /**
@@ -82,7 +105,7 @@ class ReportScreen extends React.Component {
         this.setState({isLoading: true});
 
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 150);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 50);
     }
 
     /**
@@ -102,16 +125,27 @@ class ReportScreen extends React.Component {
             return null;
         }
 
+        const reportID = this.getReportID();
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
-                    reportID={this.getReportID()}
+                    reportID={reportID}
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
 
-                <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
-
-                {!this.shouldShowLoader() && <ReportView reportID={this.getReportID()} />}
+                <View nativeID={CONST.REPORT.DROP_NATIVE_ID} style={[styles.flex1, styles.justifyContentEnd]}>
+                    <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
+                    {!this.shouldShowLoader() && <ReportActionsView reportID={reportID} />}
+                    {this.props.session.shouldShowComposeInput && (
+                        <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
+                            <ReportActionCompose
+                                onSubmit={this.onSubmitComment}
+                                reportID={reportID}
+                            />
+                        </SwipeableView>
+                    )}
+                    <KeyboardSpacer />
+                </View>
             </ScreenWrapper>
         );
     }
@@ -123,5 +157,8 @@ ReportScreen.defaultProps = defaultProps;
 export default withOnyx({
     isSidebarLoaded: {
         key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
     },
 })(ReportScreen);

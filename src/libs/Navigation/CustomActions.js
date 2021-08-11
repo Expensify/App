@@ -22,10 +22,15 @@ function pushDrawerRoute(screenName, params, navigationRef) {
         const rootState = navigationRef.current.getRootState();
         const activeReportID = lodashGet(rootState, 'routes[0].state.routes[0].params.reportID', '');
 
-        if (activeReportID === params.reportID) {
+        if (params.reportID) {
             if (state.type !== 'drawer') {
                 navigationRef.current.dispatch(StackActions.pop());
             }
+
+            if (activeReportID !== params.reportID) {
+                navigationRef.current.setParams(params);
+            }
+
             return DrawerActions.closeDrawer();
         }
 

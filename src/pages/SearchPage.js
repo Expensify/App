@@ -130,6 +130,7 @@ class SearchPage extends Component {
             this.props.personalDetails,
             this.state.searchValue.trim(),
             this.props.betas,
+            this.props.policies,
         );
         this.setState({
             userToInvite,
@@ -218,6 +219,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(SearchPage);

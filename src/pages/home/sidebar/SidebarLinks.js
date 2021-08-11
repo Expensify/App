@@ -93,7 +93,7 @@ const defaultProps = {
     isSyncingData: false,
 };
 
-class SidebarLinks extends React.Component {
+class SidebarLinks extends React.PureComponent {
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
