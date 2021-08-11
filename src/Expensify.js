@@ -116,7 +116,7 @@ class Expensify extends PureComponent {
             && lodashGet(this.props, 'session.redirectAfterSignIn', false)) {
             setRedirectAfterSign(false);
             create();
-
+        }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
             BootSplash.getVisibilityStatus()
