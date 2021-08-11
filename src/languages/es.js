@@ -122,12 +122,11 @@ export default {
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
-    contextMenuItem: {
+    reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
         copied: '¡Copiado!',
-    },
-    reportActionContextMenu: {
         copyLink: 'Copiar Enlace',
+        copyURLToClipboard: 'Copiar URL al Portapapeles',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar Commentario',
         deleteComment: 'Eliminar Comentario',
