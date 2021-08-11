@@ -336,9 +336,9 @@ export default {
         createGroup: 'Crear Grupo',
     },
     notFound: {
-        chatYouLookingForCannotBeFound: 'No se puede encontrar el chat que estás buscando.',
+        chatYouLookingForCannotBeFound: 'No se pudo encontrar el chat que está buscando.',
         getMeOutOfHere: 'Sácame de aquí',
-        iouReportNotFound: 'No se pueden encontrar los detalles de pago que está buscando.',
+        iouReportNotFound: 'No se pudo encontrar los detalles de pago que está buscando.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
