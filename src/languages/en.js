@@ -14,6 +14,7 @@ export default {
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
+        saveChanges: 'Save Changes',
         password: 'Password',
         profile: 'Profile',
         payments: 'Payments',
@@ -65,6 +66,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -108,6 +110,7 @@ export default {
         phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
+        phrase4: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
         sendAttachment: 'Send Attachment',
@@ -167,6 +170,11 @@ export default {
         send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
+        error: {
+            invalidAmount: 'Invalid Amount',
+            invalidSplit: 'Splits amount does not equal total amount',
+            other: 'Unexpected error, please try again later',
+        },
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
@@ -337,6 +345,7 @@ export default {
         setPassword: 'Set Password',
         passwordsDontMatch: 'Passwords must match',
         newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
     },
     bankAccount: {
         accountNumber: 'Account Number',
@@ -360,7 +369,7 @@ export default {
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
             incorporationState: 'Please enter a valid Incorporation State',
-            industryCode: 'Please enter a valid industry classification code',
+            industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid Routing Number',
             companyType: 'Please enter a valid Company Type',
@@ -538,6 +547,10 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'One moment...',
+        explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
+    },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
         offlineMessage: 'Looks like you\'re offline.',
@@ -555,6 +568,7 @@ export default {
             helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+            successMessage: 'Workspace created',
         },
         people: {
             assignee: 'Assignee',
@@ -588,6 +602,9 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+        },
+        error: {
+            growlMessageInvalidPolicy: 'Invalid workspace! You can create a new workspace!',
         },
     },
     requestCallPage: {

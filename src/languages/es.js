@@ -14,6 +14,7 @@ export default {
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
+        saveChanges: 'Guardar cambios',
         password: 'Contraseña',
         profile: 'Perfil',
         payments: 'Pagos',
@@ -65,6 +66,7 @@ export default {
         tomorrowAt: 'Mañana a las',
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
+        genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor inténtalo más tarde.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -108,6 +110,7 @@ export default {
         phrase1: 'Con el Nuevo Expensify, chat y pagos son lo mismo.',
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
+        phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
         sendAttachment: 'Enviar adjunto',
@@ -167,6 +170,11 @@ export default {
         send: ({amount}) => `Enviar ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        error: {
+            invalidAmount: 'Monto no válido',
+            invalidSplit: 'La suma de las partes no equivale al monto total',
+            other: 'Error inesperado, por favor inténtalo más tarde',
+        },
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
@@ -337,6 +345,7 @@ export default {
         setPassword: 'Configura tu Contraseña',
         passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
+        passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
     },
     bankAccount: {
         accountNumber: 'Número de cuenta',
@@ -540,6 +549,10 @@ export default {
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'Un momento...',
+        explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
+    },
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
         offlineMessage: 'Parece que estás desconectado.',
@@ -557,6 +570,7 @@ export default {
             helpText: 'Elige un nombre para el espacio de trabajo antes de activar las tarjetas Expensify',
             getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+            successMessage: 'Espacio de trabajo creado',
         },
         people: {
             assignee: 'Persona asignada',
@@ -590,6 +604,9 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+        },
+        error: {
+            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido! ¡Puedes crear un nuevo espacio de trabajo!',
         },
     },
     requestCallPage: {
