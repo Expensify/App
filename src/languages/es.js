@@ -390,6 +390,7 @@ export default {
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
+        chooseAccountLabel: 'Cuenta',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
