@@ -119,4 +119,7 @@ export default {
 
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
+
+    // Single object map of the max fetched report action for a report
+    REPORT_ACTIONS_MAX_FETCHED: 'reportActionsMaxFetched',
 };

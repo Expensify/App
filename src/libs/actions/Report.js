@@ -907,6 +907,12 @@ function fetchActions(reportID, offset) {
                 .max()
                 .value();
 
+            // If we are not paginating actions then save the max that we are about to store so we
+            // can reference it when reconnecting as a network optimization
+            if (reportActionsOffset === -1) {
+                Onyx.merge(ONYXKEYS.REPORT_ACTIONS_MAX_FETCHED, {[reportID]: maxSequenceNumber});
+            }
+
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
@@ -962,14 +968,14 @@ function fetchAllReports(
                     isReportMissingActions(id, reportMaxSequenceNumbers[id])
                 ));
 
-                // Once we have the reports that are missing actions we will find the intersection between the most
-                // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
-                // set to avoid making too many network requests at once.
+                // Once we have the reports that are missing actions we will take a small subsection of the last
+                // accessed reports and fetch their missing actions if necessary to avoid making too many network
+                // requests at once.
                 const reportIDsToFetchActions = _.chain(sortReportsByLastVisited(allReports))
                     .map(report => report.reportID)
                     .reverse()
-                    .intersection(reportIDsWithMissingActions)
                     .slice(0, 10)
+                    .intersection(reportIDsWithMissingActions)
                     .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
