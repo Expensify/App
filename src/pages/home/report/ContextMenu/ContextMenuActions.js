@@ -1,9 +1,8 @@
-import {Linking} from 'react-native';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {
-    Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark, Link,
+    Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
 } from '../../../../components/Icon/Expensicons';
 import {
     setNewMarkerPosition, updateLastReadActionID, saveReportActionDraft,
