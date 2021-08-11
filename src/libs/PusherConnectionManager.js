@@ -27,7 +27,7 @@ function init() {
      */
     Pusher.registerCustomAuthorizer(channel => ({
         authorize: (socketID, callback) => {
-            Log.info('[PusherConnectionManager] Attempting to authorize Pusher', true);
+            Log.info('[PusherConnectionManager] Attempting to authorize Pusher');
 
             API.Push_Authenticate({
                 socket_id: socketID,
@@ -44,7 +44,7 @@ function init() {
                         return;
                     }
 
-                    Log.info('[PusherConnectionManager] Pusher authenticated successfully', true);
+                    Log.info('[PusherConnectionManager] Pusher authenticated successfully');
                     callback(null, data);
                 })
                 .catch((error) => {

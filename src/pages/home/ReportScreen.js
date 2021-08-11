@@ -99,13 +99,12 @@ class ReportScreen extends React.Component {
     }
 
     /**
-     * Configures a small loading transition of fixed time and proceeds with rendering available data
+     * Configures a small loading transition and proceeds with rendering available data
      */
     prepareTransition() {
         this.setState({isLoading: true});
-
         clearTimeout(this.loadingTimerId);
-        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 50);
+        this.loadingTimerId = setTimeout(() => this.setState({isLoading: false}), 0);
     }
 
     /**
