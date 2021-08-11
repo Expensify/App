@@ -11,6 +11,7 @@ export default {
         new: 'NEW',
         search: 'Search',
         next: 'Next',
+        goBack: 'Go back',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
@@ -326,7 +327,7 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: 'We\'ve sent you a magic sign in link – just click on it to log in!',
+        weSentYouMagicSignInLink: ({loginType}) => `We've sent a magic sign in link to your ${loginType}.`,
         resendLink: 'Resend Link',
     },
     detailsPage: {
