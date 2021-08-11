@@ -31,15 +31,6 @@ export const CONTEXT_MENU_TYPES = {
 // A list of all the context actions in this menu.
 export default [
     {
-        textTranslateKey: 'reportActionContextMenu.openLink',
-        icon: Link,
-        shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
-        onPress: (closePopover, {selection}) => {
-            Linking.openURL(selection);
-            hideContextMenu(false, ReportActionComposeFocusManager.focus);
-        },
-    },
-    {
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: ClipboardIcon,
         successTextTranslateKey: 'reportActionContextMenu.copied',

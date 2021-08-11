@@ -123,7 +123,6 @@ export default {
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
-        openLink: 'Abrir Enlace',
         copied: '¡Copiado!',
         copyLink: 'Copiar Enlace',
         copyURLToClipboard: 'Copiar URL al Portapapeles',
