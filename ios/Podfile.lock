@@ -495,6 +495,8 @@ PODS:
     - React-perflogger (= 0.64.1)
   - rn-fetch-blob (0.12.0):
     - React-Core
+  - RNBackgroundFetch (4.0.3):
+    - React-Core
   - RNBootSplash (3.2.0):
     - React-Core
   - RNCAsyncStorage (1.15.5):
@@ -655,6 +657,7 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
+  - RNBackgroundFetch (from `../node_modules/react-native-background-fetch`)
   - RNBootSplash (from `../node_modules/react-native-bootsplash`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCClipboard (from `../node_modules/@react-native-community/clipboard`)"
@@ -806,6 +809,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   rn-fetch-blob:
     :path: "../node_modules/rn-fetch-blob"
+  RNBackgroundFetch:
+    :path: "../node_modules/react-native-background-fetch"
   RNBootSplash:
     :path: "../node_modules/react-native-bootsplash"
   RNCAsyncStorage:
@@ -872,7 +877,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: c783a75db87c963c60afcd461fc38358805fe5ba
+  FBReactNativeSpec: a6b61694a0d4ed943775543461c6a8c2c53f1cab
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
   FirebaseABTesting: 4cb61aeeb50f60680af1c01fff781dfaf9293916
   FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
@@ -939,6 +944,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: ff951a0c241bfaefc4940a3f1f1a229e7cb32fa6
   ReactCommon: bedc99ed4dae329c4fcf128d0c31b9115e5365ca
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
+  RNBackgroundFetch: f039f07687b74039bbf4faef42d2f7526b7252b3
   RNBootSplash: 3123ba68fe44d8be09a014e89cc8f0f55b68a521
   RNCAsyncStorage: 8324611026e8dc3706f829953aa6e3899f581589
   RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
@@ -972,4 +978,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 2092930e33e7aa4d68cdf783d6174465bd3ce380
 
-COCOAPODS: 1.10.2
+COCOAPODS: 1.10.1

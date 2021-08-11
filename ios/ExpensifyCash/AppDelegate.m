@@ -10,6 +10,7 @@
 #import "RNBootSplash.h"
 
 #import <UserNotifications/UserNotifications.h>
+#import <TSBackgroundFetch/TSBackgroundFetch.h>
 
 #import <UMCore/UMModuleRegistry.h>
 #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
@@ -79,6 +80,10 @@ static void InitializeFlipper(UIApplication *application) {
   // module in the JS so we can measure total time starting in the native layer and ending in
   // the JS layer.
   [RCTStartupTimer start];
+
+  // [REQUIRED] Register BackgroundFetch
+  [[TSBackgroundFetch sharedInstance] didFinishLaunching];
+
   return YES;
 }
 
