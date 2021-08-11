@@ -10,6 +10,7 @@ import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -62,7 +63,7 @@ const propTypes = {
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Flag to choose between avatar image or an icon */
-    iconType: PropTypes.oneOf(['avatar', 'icon']),
+    iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON]),
 };
 
 const defaultProps = {
