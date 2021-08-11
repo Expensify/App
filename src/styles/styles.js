@@ -1997,9 +1997,9 @@ const styles = {
         ...visibility('visible'),
     },
 
-    reportMarkerBadgeTransformation: translateX => ({
+    reportMarkerBadgeTransformation: translateY => ({
         transform: [
-            {translateX},
+            {translateY},
         ],
     }),
 };
