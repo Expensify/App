@@ -115,8 +115,6 @@ class Expensify extends PureComponent {
             && !_.isEmpty(this.props.betas)
             && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
             setRedirectToWorkspaceNewAfterSignIn(false);
-
-            // Name and create the workspace
             create();
         }
 

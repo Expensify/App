@@ -71,7 +71,6 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
             } else {
-                // Name and create the workspace
                 create();
             }
         }
