@@ -134,7 +134,14 @@ class ReportScreen extends React.Component {
 
                 <View nativeID={CONST.REPORT.DROP_NATIVE_ID} style={[styles.flex1, styles.justifyContentEnd]}>
                     <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
-                    {!this.shouldShowLoader() && <ReportActionsView reportID={reportID} />}
+                    {!this.shouldShowLoader() && (
+                        <ReportActionsView
+                            reportID={reportID}
+                            reportActions={this.props.reportActions}
+                            report={this.props.report}
+                            session={this.props.session}
+                        />
+                    )}
                     {this.props.session.shouldShowComposeInput && (
                         <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
                             <ReportActionCompose
