@@ -122,12 +122,11 @@ export default {
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
-    contextMenuItem: {
+    reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
         copied: '¡Copiado!',
-    },
-    reportActionContextMenu: {
         copyLink: 'Copiar Enlace',
+        copyURLToClipboard: 'Copiar URL al Portapapeles',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar Commentario',
         deleteComment: 'Eliminar Comentario',
@@ -389,8 +388,9 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Escribe una contraseña',
+        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
+        chooseAccountLabel: 'Cuenta',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',

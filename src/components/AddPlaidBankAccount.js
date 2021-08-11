@@ -162,6 +162,7 @@ class AddPlaidBankAccount extends React.Component {
                             <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
                             <View style={[styles.mb5]}>
                                 <ExpensiPicker
+                                    label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                                     onChange={(index) => {
                                         this.setState({selectedIndex: Number(index)});
                                     }}

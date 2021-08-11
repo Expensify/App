@@ -365,6 +365,9 @@ const CONST = {
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
     },
 
+    ICON_TYPE_ICON: 'icon',
+    ICON_TYPE_AVATAR: 'avatar',
+
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,

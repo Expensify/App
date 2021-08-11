@@ -94,5 +94,3 @@ There are several reasons why we created these "imperative workflows" or "subrou
 1. It greatly simplifies the handling of race conditions, particularly when used in combination with the [`softprops/turnstyle` action](https://github.com/softprops/turnstyle).
 1. It promotes code reuse. A common set of yaml steps defined in a workflow can be extracted into an imperative workflow which can be executed from other workflows in just a few lines.
 1. If a workflow is defined to execute in response to the `workflow_dispatch` event, it can be manually started by an authorized actor in the GitHub UI.
-
-##### Dummy change – delete me
