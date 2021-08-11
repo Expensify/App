@@ -47,26 +47,11 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
-        this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
 
         this.emojiSize = {
             fontSize: dynamicEmojiSize(this.props.windowWidth),
         };
-
-        this.state = {
-            showSkinToneList: false,
-        };
     }
-
-    /**
-     * Update the preferredSkinTone and call the parent function if available
-     * @param {Number} skinTone
-     */
-    setPreferredSkinTone(skinTone) {
-        this.setState({showSkinToneList: false});
-        this.props.updatePreferredSkinTone(skinTone);
-    }
-
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -116,11 +101,9 @@ class EmojiPickerMenu extends Component {
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
                 <EmojiSkinToneList
-                    isSkinToneListVisible={this.state.showSkinToneList}
-                    setPreferredSkinTone={this.setPreferredSkinTone}
+                    setPreferredSkinTone={this.props.updatePreferredSkinTone}
                     emojiSize={this.emojiSize}
                     preferredSkinTone={this.props.preferredSkinTone}
-                    toggleSkinToneList={flag => this.setState({showSkinToneList: flag})}
                 />
             </View>
         );

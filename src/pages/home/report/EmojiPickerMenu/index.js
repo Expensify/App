@@ -76,7 +76,6 @@ class EmojiPickerMenu extends Component {
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
-        this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
 
         this.currentScrollOffset = 0;
         this.emojiSize = {
@@ -88,7 +87,6 @@ class EmojiPickerMenu extends Component {
             headerIndices: this.unfilteredHeaderIndices,
             highlightedIndex: -1,
             arePointerEventsDisabled: false,
-            showSkinToneList: false,
         };
     }
 
@@ -105,15 +103,6 @@ class EmojiPickerMenu extends Component {
 
     componentWillUnmount() {
         this.cleanupEventHandlers();
-    }
-
-    /**
-     * Update the preferredSkinTone and call the parent function if available
-     * @param {Number} skinTone
-     */
-    setPreferredSkinTone(skinTone) {
-        this.setState({showSkinToneList: false});
-        this.props.updatePreferredSkinTone(skinTone);
     }
 
     /**
@@ -408,11 +397,9 @@ class EmojiPickerMenu extends Component {
                         />
                     )}
                 <EmojiSkinToneList
-                    isSkinToneListVisible={this.state.showSkinToneList}
-                    setPreferredSkinTone={this.setPreferredSkinTone}
+                    setPreferredSkinTone={this.props.updatePreferredSkinTone}
                     emojiSize={this.emojiSize}
                     preferredSkinTone={this.props.preferredSkinTone}
-                    toggleSkinToneList={flag => this.setState({showSkinToneList: flag})}
                 />
             </View>
         );
