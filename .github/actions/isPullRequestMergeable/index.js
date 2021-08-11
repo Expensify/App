@@ -447,6 +447,23 @@ class GithubUtils {
     static isAutomatedPullRequest(pullRequest) {
         return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
     }
+
+    /**
+     * Return the login of the actor who closed an issue or PR. If the issue is not closed, return an empty string.
+     *
+     * @param {Number} issueNumber
+     * @returns {Promise<String>}
+     */
+    static getActorWhoClosedIssue(issueNumber) {
+        return this.octokit.paginate(this.octokit.issues.listEvents, {
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        })
+            .then(events => _.filter(events, event => event.event === 'closed'))
+            .then(closedEvents => lodashGet(_.last(closedEvents), 'actor.login', ''));
+    }
 }
 
 module.exports = GithubUtils;
