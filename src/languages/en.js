@@ -65,10 +65,11 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
-        expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
+        expensifyDoesntHaveAccessToCamera: 'This app does not have access to your camera, please enable the permission and try again.',
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
@@ -84,7 +85,7 @@ export default {
     },
     baseUpdateAppModal: {
         updateApp: 'Update App',
-        updatePrompt: 'A new version of Expensify.cash is available.\nUpdate now or restart the app at a later time to download the latest changes.',
+        updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
@@ -108,6 +109,7 @@ export default {
         phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
+        phrase4: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
         sendAttachment: 'Send Attachment',
@@ -167,6 +169,11 @@ export default {
         send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
+        error: {
+            invalidAmount: 'Invalid Amount',
+            invalidSplit: 'Splits amount does not equal total amount',
+            other: 'Unexpected error, please try again later',
+        },
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
@@ -237,7 +244,7 @@ export default {
     },
     passwordPage: {
         changePassword: 'Change Password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand Expensify.cash accounts.',
+        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
         currentPassword: 'Current Password',
         newPassword: 'New Password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
@@ -274,8 +281,7 @@ export default {
         },
     },
     signInPage: {
-        expensifyDotCash: 'Expensify.cash',
-        expensifyIsOpenSource: 'The New Expensify is open source',
+        expensifyDotCash: 'New Expensify',
         theCode: 'the code',
         openJobs: 'open jobs',
         heroHeading: 'Split bills\nand chat with friends.',
@@ -338,6 +344,7 @@ export default {
         setPassword: 'Set Password',
         passwordsDontMatch: 'Passwords must match',
         newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
     },
     bankAccount: {
         accountNumber: 'Account Number',
@@ -581,6 +588,14 @@ export default {
             pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
+        },
+        editor: {
+            title: 'Edit Workspace',
+            nameInputLabel: 'Name',
+            nameInputHelpText: 'This is the name you will see on your Workspace.',
+            save: 'Save',
+            genericFailureMessage: 'An error occurred updating the workspace, please try again.',
+            avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
     },
     requestCallPage: {

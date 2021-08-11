@@ -58,6 +58,7 @@ import {
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
+    WorkspaceEditorNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -227,6 +228,7 @@ class AuthScreens extends React.Component {
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;
+        hasLoadedPolicies = false;
     }
 
     render() {
@@ -272,7 +274,7 @@ class AuthScreens extends React.Component {
                     name={SCREENS.HOME}
                     options={{
                         headerShown: false,
-                        title: 'Expensify.cash',
+                        title: 'New Expensify',
 
                         // prevent unnecessary scrolling
                         cardStyle: {
@@ -285,7 +287,7 @@ class AuthScreens extends React.Component {
                     name="ValidateLogin"
                     options={{
                         headerShown: false,
-                        title: 'Expensify.cash',
+                        title: 'New Expensify',
                     }}
                     component={ValidateLoginPage}
                 />
@@ -410,6 +412,12 @@ class AuthScreens extends React.Component {
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={IOUSendModalStackNavigator}
+                    listeners={modalScreenListeners}
+                />
+                <RootStack.Screen
+                    name="WorkspaceEditor"
+                    options={modalScreenOptions}
+                    component={WorkspaceEditorNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

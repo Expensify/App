@@ -55,7 +55,7 @@ export default {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
         CLUSTER: 'mt1',
     },
-    SITE_TITLE: 'Expensify.cash',
+    SITE_TITLE: 'New Expensify',
     FAVICON: {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
