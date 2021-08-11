@@ -20,6 +20,7 @@ import Navigation from './libs/Navigation/Navigation';
 import ROUTES from './ROUTES';
 import StartupTimer from './libs/StartupTimer';
 import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
+import BackgroundFetch from "react-native-background-fetch";
 
 const propTypes = {
     /* Onyx Props */
@@ -96,6 +97,47 @@ class Expensify extends PureComponent {
             });
 
         AppState.addEventListener('change', this.initializeClient);
+
+        console.debug('juless: componentDidMount');
+        this.initializeBackgroundFetch();
+    }
+
+    async initializeBackgroundFetch() {
+        
+        // Setup task config
+        const config = {
+            minimumFetchInterval: 15,     // <-- minutes (15 is minimum allowed)
+            // Android options
+            stopOnTerminate: false,
+            startOnBoot: true,
+            requiredNetworkType: BackgroundFetch.NETWORK_TYPE_ANY, // Default
+            requiresCharging: false,      // Default
+            requiresDeviceIdle: false,    // Default
+            requiresBatteryNotLow: false, // Default
+            requiresStorageNotLow: false,  // Default
+            enableHeadless:false,
+        }
+
+        // Setup BackgroundFetch task
+        const onEvent = async (taskId) => {
+            console.log('[BackgroundFetch] task: ', taskId);
+            
+            // TODO: retrieve network data, persist to Onyx
+            let x = 1+1;
+
+            // Signal to OS that task is complete.
+            BackgroundFetch.finish(taskId);
+        }
+  
+        // Invoked when task exceeds its allowed running-time
+        const onTimeout = async (taskId) => {
+            console.warn('[BackgroundFetch] TIMEOUT task: ', taskId);
+            BackgroundFetch.finish(taskId);
+        }
+  
+        // Initialize BackgroundFetch only once when component mounts.
+        let status = await BackgroundFetch.configure(config, onEvent, onTimeout);
+        console.log('[BackgroundFetch] configure status: ', status);
     }
 
     componentDidUpdate(prevProps) {
