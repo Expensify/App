@@ -129,7 +129,7 @@ const run = function () {
                     let deployer = lodashGet(response, 'data.merged_by.login', '');
                     const CPActorMatches = data.message
                         .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
-                    if (CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
+                    if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
                         deployer = CPActorMatches[1];
                     }
 
