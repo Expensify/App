@@ -120,7 +120,7 @@ const MenuItem = ({
         {({hovered, pressed}) => (
             <>
                 <View style={styles.flexRow}>
-                    {(icon && iconType === 'icon') && (
+                    {(icon && iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
                                 styles.popoverMenuIcon,
@@ -137,7 +137,7 @@ const MenuItem = ({
                             />
                         </View>
                     )}
-                    {(icon && iconType === 'avatar') && (
+                    {(icon && iconType === CONST.ICON_TYPE_AVATAR) && (
                         <View
                             style={[
                                 styles.popoverMenuIcon,
