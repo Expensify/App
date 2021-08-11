@@ -336,7 +336,12 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
 
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        loading: true,
+
+        // We temporarily keep the achData state to prevent UI changes while fetching.
+        achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
+    });
     let bankAccountID;
 
     API.Get({
@@ -408,6 +413,11 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
+
+                    // Adding a default empty state to make sure we override the temporary one we are keeping
+                    // for UI purposes. This covers an edge case in which a user deleted their bank account,
+                    // but would still see Finish Setup in the UI, instead of Get Started.
+                    achData.state = lodashGet(achData, 'state', '');
 
                     // If the bank account has already been created in the db and is not yet open
                     // let's show the manual form with the previously added values
