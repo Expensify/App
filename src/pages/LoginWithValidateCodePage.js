@@ -55,7 +55,6 @@ class LoginWithValidateCodePage extends Component {
                 create();
             } else {
                 Navigation.navigate(ROUTES.HOME);
-                setRedirectToWorkspaceNewAfterSignIn(true);
             }
             return;
         }
