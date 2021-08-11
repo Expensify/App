@@ -122,7 +122,7 @@ const CONST = {
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
-    UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
+    UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
     GITHUB_URL: 'https://github.com/Expensify/Expensify.cash',
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
@@ -343,6 +343,7 @@ const CONST = {
         ERROR: 'error',
         WARNING: 'warning',
         DURATION: 2000,
+        DURATION_LONG: 3500,
     },
 
     DEFAULT_LOCALE: 'en',
