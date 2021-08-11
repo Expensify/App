@@ -95,7 +95,7 @@ const run = function () {
     }
 
     // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
-    return GithubUtils.octokit.listTags({
+    return GithubUtils.octokit.repos.listTags({
         owner: GithubUtils.GITHUB_OWNER,
         repo: GithubUtils.EXPENSIFY_CASH_REPO,
         per_page: 100,
