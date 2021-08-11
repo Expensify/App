@@ -30,6 +30,7 @@ let connectionID;
  * the title and unread count indicators
  */
 function listenForReportChanges() {
+    console.debug('count listner');
     connectionID = Onyx.connect({
         key: ONYXKEYS.COLLECTION.REPORT,
         callback: (report) => {
@@ -48,6 +49,7 @@ function listenForReportChanges() {
             } else {
                 unreadActionCounts[report.reportID] = report.unreadActionCount || 0;
             }
+            console.debug('count caller', report.reportID, report.unreadActionCount);
             throttledUpdatePageTitleAndUnreadCount();
         },
     });

@@ -9,6 +9,8 @@ import CONFIG from '../../../CONFIG';
  * @param {Number} totalCount
  */
 function updateUnread(totalCount) {
+    console.debug('message count');
+
     const hasUnread = totalCount !== 0;
     document.title = hasUnread ? `(${totalCount}) ${CONFIG.SITE_TITLE}` : CONFIG.SITE_TITLE;
     document.getElementById('favicon').href = hasUnread ? CONFIG.FAVICON.UNREAD : CONFIG.FAVICON.DEFAULT;
