@@ -87,7 +87,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 10. An Expensify engineer will be assigned to your pull request automatically to review.
 11. Provide daily updates until reaching completion of your PR.
 
-#### Submit your pull request for final request
+#### Submit your pull request for final review
 12. When you are ready to submit your pull request for final review, make sure the following checks pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/Expensify.cash/blob/main/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request
