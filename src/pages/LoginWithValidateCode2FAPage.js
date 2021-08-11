@@ -75,7 +75,7 @@ class LoginWithValidateCode2FAPage extends Component {
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE) {
-                // Create a new workspace then the user will be routed to it's settings page
+                // Create a new workspace so that the user will be routed to it's settings page afterwards
                 create();
             } else {
                 Navigation.navigate(ROUTES.HOME);
