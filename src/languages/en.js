@@ -14,6 +14,7 @@ export default {
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
+        saveChanges: 'Save Changes',
         password: 'Password',
         profile: 'Profile',
         payments: 'Payments',
@@ -546,6 +547,10 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'One moment...',
+        explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
+    },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
         offlineMessage: 'Looks like you\'re offline.',
@@ -558,10 +563,6 @@ export default {
         new: {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            welcome: 'Welcome',
-            chooseAName: 'Choose a name',
-            helpText: 'Name your Workspace before enabling your Expensify Cards!',
-            getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
@@ -586,6 +587,7 @@ export default {
             personalMessagePrompt: 'Add a Personal Message (Optional)',
             enterEmailOrPhone: 'Email or Phone',
             pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },
@@ -596,6 +598,9 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+        },
+        error: {
+            growlMessageInvalidPolicy: 'Invalid workspace! A new workspace has been created.',
         },
     },
     requestCallPage: {

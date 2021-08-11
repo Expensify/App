@@ -10,6 +10,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import SCREENS from '../SCREENS';
 import {continueSessionFromECom, setRedirectAfterSign} from '../libs/actions/Session';
+import {create} from '../libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -50,9 +51,11 @@ class LoginWithValidateCodePage extends Component {
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE) {
-                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+                // Create a new workspace then the user will be routed to it's settings page
+                create();
             } else {
                 Navigation.navigate(ROUTES.HOME);
+                setRedirectToWorkspaceNewAfterSignIn(true);
             }
             return;
         }

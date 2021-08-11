@@ -16,10 +16,9 @@ import UpdateAppModal from './components/UpdateAppModal';
 import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
-import Navigation from './libs/Navigation/Navigation';
-import ROUTES from './ROUTES';
 import StartupTimer from './libs/StartupTimer';
 import {setRedirectAfterSign} from './libs/actions/Session';
+import {create} from './libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -116,8 +115,8 @@ class Expensify extends PureComponent {
             && !_.isEmpty(this.props.betas)
             && lodashGet(this.props, 'session.redirectAfterSignIn', false)) {
             setRedirectAfterSign(false);
-            Navigation.navigate(ROUTES.WORKSPACE_NEW);
-        }
+            create();
+
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
             BootSplash.getVisibilityStatus()

@@ -4,6 +4,7 @@ import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -76,6 +77,12 @@ class WorkspaceInvitePage extends React.Component {
         const isEnteredLoginsvalid = _.every(logins, login => Str.isValidEmail(login) || Str.isValidPhone(login));
         if (!isEnteredLoginsvalid) {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
+            return;
+        }
+        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
+        const AreLoginsDuplicate = _.every(logins, login => _.contains(policyEmployeeList, login));
+        if (AreLoginsDuplicate) {
+            Growl.error(this.props.translate('workspace.invite.pleaseEnterUniqueLogin'), 5000);
             return;
         }
 

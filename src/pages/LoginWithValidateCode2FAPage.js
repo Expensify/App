@@ -19,6 +19,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import SCREENS from '../SCREENS';
+import {create} from '../libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -74,7 +75,8 @@ class LoginWithValidateCode2FAPage extends Component {
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE) {
-                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+                // Create a new workspace then the user will be routed to it's settings page
+                create();
             } else {
                 Navigation.navigate(ROUTES.HOME);
             }

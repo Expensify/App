@@ -227,6 +227,7 @@ const BaseRenderHTML = ({html, debug, textSelectable}) => {
     return (
         <HTML
             defaultTextProps={{selectable: textSelectable}}
+            defaultViewProps={{style: {alignItems: 'flex-start'}}}
             customHTMLElementModels={customHTMLElementModels}
             renderers={renderers}
             renderersProps={renderersProps}

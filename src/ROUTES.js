@@ -75,7 +75,6 @@ export default {
     LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD: 'v/:accountID/:validateCode/workspace/:policyID/card',
     LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD: 'v/:accountID/:validateCode/2fa/workspace/:policyID/card',
     ENABLE_PAYMENTS: 'enable-payments',
-    WORKSPACE_NEW: 'workspace/new',
     WORKSPACE: 'workspace',
     WORKSPACE_CARD: ':policyID/card',
     WORKSPACE_PEOPLE: ':policyID/people',
