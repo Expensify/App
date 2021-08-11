@@ -6,16 +6,21 @@ import getReportActionContextMenuStyles from '../../../../styles/getReportAction
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {
     propTypes as GenericReportActionContextMenuPropTypes,
-    defaultProps,
+    defaultProps as GenericReportActionContextMenuDefaultProps,
 } from './GenericReportActionContextMenuPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ContextMenuActions from './ContextMenuActions';
+import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
     ...GenericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    type: CONTEXT_MENU_TYPES.REPORT_ACTION,
+    ...GenericReportActionContextMenuDefaultProps,
 };
 class BaseReportActionContextMenu extends React.Component {
     constructor(props) {
