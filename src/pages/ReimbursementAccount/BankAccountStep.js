@@ -15,12 +15,12 @@ import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
     goToWithdrawalAccountSetupStep,
     hideBankAccountErrors,
@@ -207,7 +207,7 @@ class BankAccountStep extends React.Component {
                                 style={[styles.exampleCheckImage, styles.mb5]}
                                 source={exampleCheckImage}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 placeholder={this.props.translate('bankAccount.routingNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
@@ -221,7 +221,7 @@ class BankAccountStep extends React.Component {
                                 errorText={error === this.props.translate('bankAccount.error.routingNumber')
                                     ? error : ''}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 placeholder={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}

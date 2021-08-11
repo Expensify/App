@@ -57,7 +57,7 @@ const TextInputWithLabel = props => (
             style={[
                 styles.textInput,
                 styles.mb1,
-                props.disabled ? styles.disabledTextInput : undefined,
+                props.disabled ? styles.inputDisabled : undefined,
                 props.errorText ? styles.errorOutline : undefined,
             ]}
             // eslint-disable-next-line react/jsx-props-no-spreading

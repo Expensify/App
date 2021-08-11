@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../components/Text';
 import StatePicker from '../../components/StatePicker';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {translateLocal} from '../../libs/translate';
@@ -74,21 +74,21 @@ const IdentityForm = ({
         <View style={style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInputWithLabel
+                    <ExpensiTextInput
                         label={`${translate('common.firstName')}`}
                         value={firstName}
                         onChangeText={val => onFieldChange('firstName', val)}
                     />
                 </View>
                 <View style={[styles.flex2]}>
-                    <TextInputWithLabel
+                    <ExpensiTextInput
                         label={`${translate('common.lastName')}`}
                         value={lastName}
                         onChangeText={val => onFieldChange('lastName', val)}
                     />
                 </View>
             </View>
-            <TextInputWithLabel
+            <ExpensiTextInput
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
@@ -101,7 +101,7 @@ const IdentityForm = ({
                 }}
                 errorText={error === translateLocal('bankAccount.error.dob') ? error : ''}
             />
-            <TextInputWithLabel
+            <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
                 value={ssnLast4}
@@ -113,7 +113,7 @@ const IdentityForm = ({
                 }}
                 errorText={error === translateLocal('bankAccount.error.ssnLast4') ? error : ''}
             />
-            <TextInputWithLabel
+            <ExpensiTextInput
                 label={translate('common.addressNoPO')}
                 containerStyles={[styles.mt4]}
                 value={street}
@@ -127,7 +127,7 @@ const IdentityForm = ({
             />
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInputWithLabel
+                    <ExpensiTextInput
                         label={translate('common.city')}
                         value={city}
                         onChangeText={val => onFieldChange('city', val)}
@@ -141,7 +141,7 @@ const IdentityForm = ({
                     />
                 </View>
             </View>
-            <TextInputWithLabel
+            <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
                 value={zipCode}

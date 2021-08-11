@@ -14,6 +14,7 @@ export default {
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
+        saveChanges: 'Save Changes',
         password: 'Password',
         profile: 'Profile',
         payments: 'Payments',
@@ -65,6 +66,7 @@ export default {
         tomorrowAt: 'Tomorrow at',
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
+        genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -367,7 +369,7 @@ export default {
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
             incorporationState: 'Please enter a valid Incorporation State',
-            industryCode: 'Please enter a valid industry classification code',
+            industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid Routing Number',
             companyType: 'Please enter a valid Company Type',
@@ -545,6 +547,10 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'One moment...',
+        explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
+    },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
         offlineMessage: 'Looks like you\'re offline.',
@@ -562,6 +568,7 @@ export default {
             helpText: 'Name your Workspace before enabling your Expensify Cards!',
             getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
+            successMessage: 'Workspace created',
         },
         people: {
             assignee: 'Assignee',
@@ -595,6 +602,9 @@ export default {
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+        },
+        error: {
+            growlMessageInvalidPolicy: 'Invalid workspace! You can create a new workspace!',
         },
     },
     requestCallPage: {

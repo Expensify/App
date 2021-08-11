@@ -10,11 +10,11 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
 import WorkspaceDefaultAvatar from '../../../assets/images/workspace-default-avatar.svg';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import {create} from '../../libs/actions/Policy';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import defaultTheme from '../../styles/themes/default';
 
 const propTypes = {
@@ -60,7 +60,7 @@ class NewWorkspacePage extends React.Component {
                     <WorkspaceDefaultAvatar height={80} width={80} fill={defaultTheme.iconSuccessFill} />
 
                     <View style={[styles.mt6, styles.w100, styles.flex1]}>
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('workspace.new.chooseAName')}
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
@@ -68,7 +68,6 @@ class NewWorkspacePage extends React.Component {
                         />
                         <Text style={[styles.mt6]}>{this.props.translate('workspace.new.helpText')}</Text>
                     </View>
-
                     <Button
                         success
                         style={[styles.w100]}
