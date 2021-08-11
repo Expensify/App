@@ -2,7 +2,7 @@ name: 'Check if the StagingDeployCash is locked'
 description: 'Checks if the open StagingDeployCash issue has the LockCashDeploys label'
 inputs:
     GITHUB_TOKEN:
-        description: Auth token for Expensify.cash Github
+        description: Auth token for New Expensify Github
         required: true
 outputs:
     IS_LOCKED:
