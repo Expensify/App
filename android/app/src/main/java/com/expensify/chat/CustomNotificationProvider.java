@@ -185,8 +185,6 @@ public class CustomNotificationProvider extends ReactNotificationProvider {
     }
 
     private IconCompat fetchIcon(String urlString) {
-        // TODO: Add disk LRU cache
-
         URL parsedUrl = null;
         try {
             parsedUrl = urlString == null ? null : new URL(urlString);
