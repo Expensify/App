@@ -61,7 +61,6 @@ class InvertedFlatList extends React.Component {
                 {...this.props}
                 ref={el => this.list = el}
                 shouldMeasureItems
-                initialNumToRender={25}
             />
         );
     }

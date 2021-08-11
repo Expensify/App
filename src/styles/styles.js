@@ -604,7 +604,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 295,
+        maxWidth: 335,
     },
 
     signInPageWideLeftContainer: {
@@ -1702,11 +1702,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1786,16 +1785,18 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
         borderColor: themeColors.textReversed,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 3,
-        bottom: -4,
         color: themeColors.textReversed,
-        height: 32,
+        height: 28,
+        width: 28,
         justifyContent: 'center',
-        padding: 4,
+    },
+
+    smallAvatarEditIcon: {
         position: 'absolute',
         right: -4,
-        width: 32,
+        bottom: -4,
     },
 
     workspaceCard: {

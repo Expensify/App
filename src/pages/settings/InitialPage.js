@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -153,6 +153,9 @@ const InitialSettingsPage = ({
         .value();
     menuItems.push(...defaultMenuItems);
 
+
+    const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -162,18 +165,21 @@ const InitialSettingsPage = ({
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
-                        <View style={[styles.mb3]}>
+                        <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
                                 size="large"
                                 source={myPersonalDetails.avatar}
                                 isActive={network.isOffline === false}
                             />
-                        </View>
-                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                            {myPersonalDetails.displayName
-                                ? myPersonalDetails.displayName
-                                : Str.removeSMSDomain(session.email)}
-                        </Text>
+                        </Pressable>
+
+                        <Pressable style={[styles.mt1]} onPress={openProfileSettings}>
+                            <Text style={[styles.displayName]} numberOfLines={1}>
+                                {myPersonalDetails.displayName
+                                    ? myPersonalDetails.displayName
+                                    : Str.removeSMSDomain(session.email)}
+                            </Text>
+                        </Pressable>
                         {myPersonalDetails.displayName && (
                             <Text
                                 style={[styles.settingsLoginName, styles.mt1]}
