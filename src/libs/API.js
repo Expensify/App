@@ -160,6 +160,13 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
+    if (response.jsonCode === 405 || response.jsonCode === 404) {
+        // IOU Split & Request money transactions failed due to invalid amount(405) or unable to split(404)
+        // It's a failure, so reject the queued request
+        queuedRequest.reject(response);
+        return;
+    }
+
     queuedRequest.resolve(response);
 });
 

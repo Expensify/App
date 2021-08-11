@@ -24,6 +24,15 @@
 
 **Suggested:** [Deep Dive with the React DevTools creator](https://www.youtube.com/watch?v=nySib7ipZdk)
 
+### Why Did You Render?
+- Why Did You Render (WDYR) sends console notifications about potentially avoidable component re-renders.
+- It can also help to simply track when and why a certain component re-renders.
+- To enable it, set `USE_WDYR=true` in your `.env` file. 
+- You can add or exclude tracked components by their `displayName` in `wdyr.js`.
+- Open the browser console to see WDYR notifications.
+
+**Suggested** [Why Did You Render docs](https://github.com/welldone-software/why-did-you-render)
+
 ## Reconciliation
 
 React is pretty smart and in many cases is able to tell if something needs to update. The process by which React goes about updating the "tree" or view heirarchy is called reconciliation. If React thinks something needs to update it will render it again. React also assumes that if a parent component rendered then it's child should also re-render.
