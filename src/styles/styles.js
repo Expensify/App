@@ -15,6 +15,7 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
+import visibility from './utilities/visibility';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
@@ -1980,6 +1981,27 @@ const styles = {
     communicationsLinkHeight: {
         height: 20,
     },
+
+    reportMarkerBadgeWrapper: {
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        zIndex: 100,
+        backfaceVisibility: 'hidden',
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadge: {
+        backfaceVisibility: 'visible',
+        left: '-50%',
+        ...visibility('visible'),
+    },
+
+    reportMarkerBadgeTransformation: translateX => ({
+        transform: [
+            {translateX},
+        ],
+    }),
 };
 
 const baseCodeTagStyles = {

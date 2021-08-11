@@ -55,30 +55,13 @@ class Markerbadge extends PureComponent {
 
     render() {
         return (
-            <View
-                style={[
-                    {
-                        position: 'absolute',
-                        left: '50%',
-                        top: 0,
-                        zIndex: 100,
-                        backfaceVisibility: 'hidden',
-                        visibility: 'hidden',
-                    },
-                ]}
-            >
+            <View style={styles.reportMarkerBadgeWrapper}>
                 <Animated.View style={[
                     styles.flexRow,
                     styles.justifyContentBetween,
                     styles.alignItemsCenter,
-                    {
-                        backfaceVisibility: 'visible',
-                        visibility: 'visible',
-                        left: '-50%',
-                        transform: [
-                            {translateY: this.translateY},
-                        ],
-                    },
+                    styles.reportMarkerBadge,
+                    styles.reportMarkerBadgeTransformation(this.translateY),
                 ]}
                 >
                     <Button

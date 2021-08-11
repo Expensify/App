@@ -30,7 +30,11 @@ const defaultProps = {
 };
 
 const ReportView = ({reportID, session}) => (
-    <View nativeID={CONST.REPORT.DROP_NATIVE_ID} key={reportID} style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+    <View
+        nativeID={CONST.REPORT.DROP_NATIVE_ID}
+        key={reportID}
+        style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+    >
         <ReportActionsView reportID={reportID} />
 
         {session.shouldShowComposeInput && (
