@@ -36,5 +36,3 @@ jobs:
       - run: npm run test
         env:
           CI: true
-
-      # This comment is a dummy change for a test PR. Delete me if you see me :)
