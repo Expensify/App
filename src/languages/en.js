@@ -563,12 +563,7 @@ export default {
         new: {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            welcome: 'Welcome',
-            chooseAName: 'Choose a name',
-            helpText: 'Name your Workspace before enabling your Expensify Cards!',
-            getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
-            successMessage: 'Workspace created',
         },
         people: {
             assignee: 'Assignee',
@@ -605,7 +600,7 @@ export default {
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
         error: {
-            growlMessageInvalidPolicy: 'Invalid workspace! You can create a new workspace!',
+            growlMessageInvalidPolicy: 'Invalid workspace! A new workspace has been created.',
         },
     },
     requestCallPage: {
