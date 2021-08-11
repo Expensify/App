@@ -11,6 +11,5 @@ export default forwardRef((props, ref) => (
         // we run out of memory images stop appearing without any warning.
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
         shouldRemoveClippedSubviews
-        CellRendererComponent={undefined}
     />
 ));
