@@ -610,6 +610,6 @@ export default {
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
     },
     emojiPicker: {
-        skinTonePickerLabel: 'Choose skin tone',
+        skinTonePickerLabel: 'Change default skin tone',
     },
 };
