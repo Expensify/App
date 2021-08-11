@@ -1,24 +1,19 @@
 const _ = require('underscore');
+const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
-const moment = require('moment');
 const ActionUtils = require('../../libs/ActionUtils');
 const GithubUtils = require('../../libs/GithubUtils');
-
 
 const prList = ActionUtils.getJSONInput('PR_LIST', {required: true});
 const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', {required: true});
 const version = core.getInput('DEPLOY_VERSION', {required: true});
-const PRMap = {};
-const stagingDeployIssueMap = {};
-let stagingDeployIssuesList = [];
-
 
 /**
  * Return a nicely formatted message for the table based on the result of the GitHub action job
  *
- * @param {string} platformResult
- * @returns {string}
+ * @param {String} platformResult
+ * @returns {String}
  */
 function getDeployTableMessage(platformResult) {
     switch (platformResult) {
@@ -43,156 +38,97 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
     + `/actions/runs/${process.env.GITHUB_RUN_ID}`;
 
 /**
- * Fetch all the StagingDeploy issues that were created after the passed fromTimestamp and
- * including one before the fromTimestamp.
- *
- * @param {String} fromTimestamp
- * @returns {Promise}
+ * @param {String} deployer
+ * @param {String} deployVerb
+ * @returns {String}
  */
-function fetchAllStagingDeployCash(fromTimestamp) {
-    return GithubUtils.octokit.paginate(GithubUtils.octokit.issues.listForRepo, {
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.EXPENSIFY_CASH_REPO,
-        state: 'all',
-        sort: 'created',
-        direction: 'desc',
-        labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
-    }, ({data}, done) => {
-        const lastIssueIndex = _.findIndex(data, issue => moment(issue.created_at).isBefore(moment(fromTimestamp)));
-        if (lastIssueIndex !== -1) {
-            done();
-        }
-        return data;
-    })
-        .catch(err => console.error(`Failed to get ${GithubUtils.STAGING_DEPLOY_CASH_LABEL} issues list`, err));
-}
-
-/**
- * Get the [added, removed] pairs for the `🔐 LockCashDeploys 🔐` label on StagingDeployCash
- * @param {Number|String} stagingDeployIssueNumber
- * @return {Promise<Array<[string, string]>>}
- */
-function fetchLockCashDeploysTimeline(stagingDeployIssueNumber) {
-    return GithubUtils.octokit.paginate(GithubUtils.octokit.issues.listEvents, {
-        owner: GithubUtils.GITHUB_OWNER,
-        repo: GithubUtils.EXPENSIFY_CASH_REPO,
-        issue_number: stagingDeployIssueNumber,
-        per_page: 100,
-    }).then((events) => {
-        let pair = [];
-        const startEndPairs = _.compact(_.map(events, ({event, created_at, label}, index) => {
-            if (event === 'labeled' && label.name === '🔐 LockCashDeploys 🔐') {
-                if (pair.length) {
-                    // flush the pair
-                    pair = [];
-                }
-                pair.push(created_at);
-            } else if (event === 'unlabeled' && label.name === '🔐 LockCashDeploys 🔐') {
-                pair.push(created_at);
-            }
-            if (index === events.length - 1 && pair.length === 1) {
-                pair.push(moment().toISOString());
-                return pair;
-            }
-            return pair.length > 1 ? pair : undefined;
-        }));
-        return startEndPairs;
-    }).catch(err => console.error('Failed to get the 🔐 LockCashDeploys 🔐 label\'s timeline', err));
-}
-
-/**
- * Get StagingDeployIssue timeline for the PR
- *
- * @param {Number} pr
- * @return {Promise<[string, string][]>}
- */
-function getPRLockCashDeploysTimeline(pr) {
-    const prData = PRMap[pr];
-    const stagingDeployIssue = _.find(
-        stagingDeployIssuesList, issue => moment(issue.created_at).isBefore(moment(prData.mergedAt)),
-    );
-    const stagingDeployIssueMapRef = stagingDeployIssueMap[stagingDeployIssue.number];
-    if (stagingDeployIssueMapRef.timeline) {
-        return Promise.resolve(stagingDeployIssueMapRef.timeline);
-    }
-    return fetchLockCashDeploysTimeline(stagingDeployIssue.number).then((lockCashDeployLabelTimeSet) => {
-        stagingDeployIssueMap[stagingDeployIssue.number].timeline = lockCashDeployLabelTimeSet;
-        return lockCashDeployLabelTimeSet;
-    });
-}
-
-/**
- * Get Deploy Verb for the PR
- *
- * @param {Number} pr
- * @return {Promise<'Cherry-picked' | 'Deployed'>}
- */
-function getPRDeployVerb(pr) {
-    const PR = PRMap[pr];
-    const hasCPStagingLabel = _.contains(_.pluck(PR.labels, 'name'), 'CP Staging');
-
-    if (!hasCPStagingLabel) {
-        return Promise.resolve('Deployed');
-    }
-    return getPRLockCashDeploysTimeline(pr).then((lockCashDeployLabelTimeline) => {
-        const liesBetweenTimeline = _.some(
-            lockCashDeployLabelTimeline,
-            ([startAt, endAt]) => moment(PR.mergedAt).isBetween(startAt, endAt, undefined, '[]'),
-        );
-        return liesBetweenTimeline ? 'Cherry-picked' : 'Deployed';
-    });
-}
-
-function getPRMessage(PR) {
-    return getPRDeployVerb(PR).then((deployVerb) => {
-        let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}\
-         in version: ${version}🚀`;
-        message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
-        message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
-        return message;
-    });
+function getDeployMessage(deployer, deployVerb) {
+    let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
+    message += ` by @${deployer} in version: ${version} 🚀`;
+    message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
+    message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
+    return message;
 }
 
 /**
  * Comment Single PR
  *
- * @param {Number} pr
+ * @param {Number} PR
+ * @param {String} message
  * @returns {Promise<void>}
  */
-function commentPR(pr) {
-    return getPRMessage(pr).then(message => GithubUtils.createComment(context.repo.repo, pr, message))
-        .then(() => {
-            console.log(`Comment created on #${pr} successfully 🎉`);
-        })
+function commentPR(PR, message) {
+    return GithubUtils.createComment(context.repo.repo, PR, message)
+        .then(() => console.log(`Comment created on #${PR} successfully 🎉`))
         .catch((err) => {
-            console.log(`Unable to write comment on #${pr} 😞`);
+            console.log(`Unable to write comment on #${PR} 😞`);
             core.setFailed(err.message);
         });
 }
 
 const run = function () {
-    return GithubUtils.fetchAllPullRequests(_.compact(_.map(prList, pr => parseInt(pr, 10))))
-        .then((PRListWithDetails) => {
-            _.each(PRListWithDetails, (PR) => {
-                PRMap[PR.number] = PR;
-            });
-            const oldestPR = _.first(_.sortBy(prList));
-            return fetchAllStagingDeployCash(PRMap[oldestPR].mergedAt);
+    if (isProd) {
+        // First find the deployer (who closed the last deploy checklist)?
+        return GithubUtils.octokit.issues.listForRepo({
+            owner: GithubUtils.GITHUB_OWNER,
+            repo: GithubUtils.EXPENSIFY_CASH_REPO,
+            labels: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
+            state: 'closed',
         })
-        .then((issueList) => {
-            _.each(issueList, (issueData) => {
-                stagingDeployIssueMap[issueData.number] = {
-                    data: issueData,
-                };
+            .then(({data}) => _.first(data).number)
+            .then(lastDeployChecklistNumber => GithubUtils.getActorWhoClosedIssue(lastDeployChecklistNumber))
+            .then((actor) => {
+                // Create comment on each pull request (one after another to avoid throttling issues)
+                const deployMessage = getDeployMessage(actor, 'Deployed');
+                prList.reduce((promise, pr) => promise.then(() => commentPR(pr, deployMessage)), Promise.resolve());
             });
-            stagingDeployIssuesList = issueList;
+    }
 
-            /**
-             * Create comment on each pull request
-             */
-            return prList.reduce((promise, pr) => promise.then(() => commentPR(pr)), Promise.resolve());
+    // First find out if this is a normal staging deploy or a CP by looking at the commit message on the tag
+    return GithubUtils.octokit.listTags({
+        owner: GithubUtils.GITHUB_OWNER,
+        repo: GithubUtils.EXPENSIFY_CASH_REPO,
+        per_page: 100,
+    })
+        .then(({data}) => {
+            const tagSHA = _.find(data, tag => tag.name === version).commit.sha;
+            return GithubUtils.octokit.git.getCommit({
+                owner: GithubUtils.GITHUB_OWNER,
+                repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                commit_sha: tagSHA,
+            });
         })
-        .catch(err => console.error('Failed to get neccesary data to comment deployed PRs', err));
+        .then(({data}) => {
+            const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
+            prList.reduce((promise, PR) => promise
+
+                // Then, for each PR, find out who merged it and determine the deployer
+                .then(() => GithubUtils.octokit.pulls.get({
+                    owner: GithubUtils.GITHUB_OWNER,
+                    repo: GithubUtils.EXPENSIFY_CASH_REPO,
+                    pull_number: PR,
+                }))
+                .then((response) => {
+                    /*
+                     * The deployer for staging deploys is:
+                     *   1. For regular staging deploys, the person who merged the PR.
+                     *   2. For automatic CPs (using the label), the person who merged the PR.
+                     *   3. For manual CPs (using the GH UI), the person who triggered the workflow
+                     *      (reflected in the branch name).
+                     */
+                    let deployer = lodashGet(response, 'data.merged_by.login', '');
+                    const CPActorMatches = data.message
+                        .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
+                    if (CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
+                        deployer = CPActorMatches[1];
+                    }
+
+                    // Finally, comment on the PR
+                    const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed');
+                    return commentPR(PR, deployMessage);
+                }),
+            Promise.resolve());
+        });
 };
 
 if (require.main === module) {
