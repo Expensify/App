@@ -11,6 +11,7 @@ import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
+import {isValidDate} from '../ValidationUtils';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -469,82 +470,49 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     }
 
                     // If we are providing a stepToOpen via a deep link then we will navigate to that step,
-                    // only if we have the necessary data to complete that step
+                    // if and only if we have the necessary data from all the steps leading up to that one
                     if (_.contains(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen)) {
-                        currentStep = _.reduce(CONST.BANK_ACCOUNT.STEPS_ORDERED, (stepToValidate) => {
-                            switch (stepToValidate) {
+                        // First, validate that we can enter the VBA flow at all.
+                        // If we already have an open withdrawal account, navigate home.
+                        if (bankAccount && bankAccount.isOpen()) {
+                            Navigation.navigate();
+                            return;
+                        }
 
-                            }
-                        })
-
-
-                        for (const stepToValidate of CONST.BANK_ACCOUNT.STEPS_ORDERED) {
-                            switch (stepToValidate) {
+                        // Validate all steps leading up to the one we are trying to jump to
+                        const stepsToValidate = CONST.BANK_ACCOUNT.STEPS_ORDERED
+                            .slice(0, _.indexOf(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen));
+                        const isStepComplete = (step) => {
+                            switch (step) {
                                 case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                                    if (bankAccount && bankAccount.isOpen()) {
-                                        Navigation.navigate();
-                                        return;
-                                    }
+                                    return (bankAccount
+                                            && !_.isEmpty(bankAccount.getMaskedAccountNumber())
+                                            && !_.isEmpty(bankAccount.getRoutingNumber()))
+                                        || (!_.isEmpty(oldACHData.accountNumber)
+                                            && !_.isEmpty(oldACHData.routingNumber));
                                 case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                                    // If there is no account or routing number, go back to bank account step
-                                    if (!bankAccount
-                                        || _.isEmpty(bankAccount.getMaskedAccountNumber())
-                                        || _.isEmpty(bankAccount.getRoutingNumber())) {
-                                        currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-                                    }
-                                    currentStep = stepToOpen;
+                                    return !_.isEmpty(lodashGet(achData, 'companyName'))
+                                        && !_.isEmpty(lodashGet(achData, 'addressStreet'))
+                                        && !_.isEmpty(lodashGet(achData, 'addressState'))
+                                        && !_.isEmpty(lodashGet(achData, 'addressZipCode'))
+                                        && !_.isEmpty(lodashGet(achData, 'companyTaxID'))
+                                        && !_.isEmpty(lodashGet(achData, 'industryCode'))
+                                        && isValidDate(lodashGet(achData, 'incorporationDate'))
+                                        && Str.isValidPhone(lodashGet(achData, 'companyPhone'))
+                                        && Str.isValidURL(lodashGet(achData, 'website'));
+                                case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                                    return isValidDate(lodashGet(achData, 'dob'));
+                                case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
+                                    return Boolean(lodashGet(achData, 'acceptTerms', false))
+                                        && Boolean(lodashGet(achData, 'certifyTrueInformation', false));
+                                case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                                     break;
                                 default:
-
+                                    return true;
                             }
-                        }
-
-                        if (stepToOpen === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-                            // Only create another withdrawal account if there is not one already open
-                            if (bankAccount && bankAccount.isOpen()) {
-                                Navigation.navigate();
-                            } else {
-                                currentStep = stepToOpen;
-                            }
-                        } else {
-                            const stepsToValidate = CONST.BANK_ACCOUNT.STEPS_ORDERED.slice(
-                                0,
-                                _.indexOf(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen),
-                            );
-
-                            currentStep = _.find(stepsToValidate, (step) => {
-                                switch (step) {
-                                    case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                                        // Only advance beyond BANK_ACCOUNT step
-                                        // if there is not already an open bank account
-                                        if (bankAccount && bankAccount.isOpen()) {
-                                            Navigation.navigate();
-                                        }
-                                }
-                            })
-                        }
-                    }
-
-                    switch (stepToOpen) {
-                        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-                            // Only create another withdrawal account if there is not one already open
-                            if (bankAccount && bankAccount.isOpen()) {
-                                Navigation.navigate();
-                            }
-                            currentStep = stepToOpen;
-                            break;
-                        case CONST.BANK_ACCOUNT.STEP.COMPANY:
-                        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                            // If there is no account or routing number, go back to bank account step
-                            if (!bankAccount
-                                || _.isEmpty(bankAccount.getMaskedAccountNumber())
-                                || _.isEmpty(bankAccount.getRoutingNumber())) {
-                                currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-                            }
-                            currentStep = stepToOpen;
-                            break;
-                        default:
-                            currentStep = stepToOpen;
+                        };
+                        const earliestIncompleteStep = _.find(stepsToValidate, step => !isStepComplete(step));
+                        currentStep = _.isUndefined(earliestIncompleteStep) ? stepToOpen : earliestIncompleteStep;
                     }
 
                     // 'error' displays any string set as an error encountered during the add Verified BBA flow.
