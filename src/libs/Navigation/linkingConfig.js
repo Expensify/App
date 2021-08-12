@@ -4,7 +4,7 @@ import SCREENS from '../../SCREENS';
 export default {
     prefixes: [
         'expensify-cash://',
-        'https://expensify.cash',
+        'https://new.expensify.com',
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
@@ -91,7 +91,7 @@ export default {
             },
             Details: {
                 screens: {
-                    Details_Root: ROUTES.DETAILS_WITH_LOGIN,
+                    Details_Root: ROUTES.DETAILS,
                 },
             },
             Participants: {
@@ -143,17 +143,18 @@ export default {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
-            NewWorkspace: {
-                screens: {
-                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
-                },
-            },
 
             WorkspaceSettings: {
                 path: ROUTES.WORKSPACE,
                 screens: {
                     WorkspaceCard: ROUTES.WORKSPACE_CARD,
                     WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
+                },
+            },
+
+            WorkspaceEditor: {
+                screens: {
+                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
                 },
             },
 

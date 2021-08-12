@@ -1,6 +1,8 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -9,13 +11,28 @@ import TextLink from '../../components/TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
-import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import {
+    goToWithdrawalAccountSetupStep,
+    setupWithdrawalAccount,
+} from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
 import Growl from '../../libs/Growl';
 import Onfido from '../../components/Onfido';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+
+const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: PropTypes.shape({
+        /** Error set when handling the API response */
+        error: PropTypes.string,
+    }).isRequired,
+
+    ...withLocalizePropTypes,
+};
 
 class RequestorStep extends React.Component {
     constructor(props) {
@@ -28,7 +45,7 @@ class RequestorStep extends React.Component {
             lastName: lodashGet(props, ['achData', 'lastName'], ''),
             requestorAddressStreet: lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
             requestorAddressCity: lodashGet(props, ['achData', 'requestorAddressCity'], ''),
-            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || 'AK',
+            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || '',
             requestorAddressZipCode: lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
             dob: lodashGet(props, ['achData', 'dob'], ''),
             ssnLast4: lodashGet(props, ['achData', 'ssnLast4'], ''),
@@ -60,6 +77,7 @@ class RequestorStep extends React.Component {
 
         if (!isValidIdentity({
             street: this.state.requestorAddressStreet,
+            state: this.state.requestorAddressState,
             zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
@@ -115,6 +133,7 @@ class RequestorStep extends React.Component {
                                         dob: this.state.dob,
                                         ssnLast4: this.state.ssnLast4,
                                     }}
+                                    error={this.props.reimbursementAccount.error}
                                 />
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
@@ -188,7 +207,13 @@ class RequestorStep extends React.Component {
     }
 }
 
-RequestorStep.propTypes = withLocalizePropTypes;
+RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
-
-export default withLocalize(RequestorStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    }),
+)(RequestorStep);

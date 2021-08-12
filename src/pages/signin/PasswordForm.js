@@ -1,9 +1,10 @@
 import React from 'react';
 import {
-    TextInput, TouchableOpacity, View,
+    TouchableOpacity, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -14,6 +15,7 @@ import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /* Onyx Props */
@@ -72,20 +74,8 @@ class PasswordForm extends React.Component {
         return (
             <>
                 <View style={[styles.mv3]}>
-                    <View style={[styles.dFlex, styles.flexRow]}>
-                        <Text style={[styles.formLabel]}>{this.props.translate('common.password')}</Text>
-                        <TouchableOpacity
-                            style={[styles.ml2]}
-                            onPress={resetPassword}
-                            underlayColor={themeColors.componentBG}
-                        >
-                            <Text style={[styles.link, styles.h4]}>
-                                {this.props.translate('passwordForm.forgot')}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                    <TextInput
-                        style={[styles.textInput]}
+                    <ExpensiTextInput
+                        label={this.props.translate('common.password')}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
@@ -93,22 +83,44 @@ class PasswordForm extends React.Component {
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
+                        translateX={-18}
                     />
+                    <TouchableOpacity
+                        style={[styles.mt2]}
+                        onPress={resetPassword}
+                        underlayColor={themeColors.componentBG}
+                    >
+                        <Text style={[styles.link, styles.h4]}>
+                            {this.props.translate('passwordForm.forgot')}
+                        </Text>
+                    </TouchableOpacity>
                 </View>
 
                 {this.props.account.requiresTwoFactorAuth && (
                     <View style={[styles.mv3]}>
-                        <Text style={[styles.formLabel]}>{this.props.translate('passwordForm.twoFactorCode')}</Text>
-                        <TextInput
-                            style={[styles.textInput]}
+                        <ExpensiTextInput
+                            label={this.props.translate('passwordForm.twoFactorCode')}
                             value={this.state.twoFactorAuthCode}
                             placeholder={this.props.translate('passwordForm.requiredWhen2FAEnabled')}
                             placeholderTextColor={themeColors.placeholderText}
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                            translateX={-18}
                         />
                     </View>
+                )}
+
+                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                    <Text style={[styles.formError]}>
+                        {this.props.account.error}
+                    </Text>
+                )}
+
+                {this.state.formError && (
+                    <Text style={[styles.formError]}>
+                        {this.state.formError}
+                    </Text>
                 )}
                 <View>
                     <Button
@@ -120,11 +132,6 @@ class PasswordForm extends React.Component {
                     />
                     <ChangeExpensifyLoginLink />
                 </View>
-                {this.state.formError && (
-                    <Text style={[styles.formError]}>
-                        {this.state.formError}
-                    </Text>
-                )}
             </>
         );
     }

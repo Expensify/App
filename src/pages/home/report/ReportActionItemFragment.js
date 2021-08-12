@@ -11,6 +11,7 @@ import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import {isSingleEmoji} from '../../../libs/ValidationUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -60,12 +61,11 @@ class ReportActionItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <RenderHTML
-                            html={fragment.html + (fragment.isEdited ? '<edited/>' : '')}
-                            debug={false}
+                            html={fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}
                         />
                     ) : (
                         <Text
-                            selectable={!this.props.isSmallScreenWidth}
+                            selectable={!canUseTouchScreen() || !this.props.isSmallScreenWidth}
                             style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
                         >
                             {Str.htmlDecode(fragment.text)}

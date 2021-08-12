@@ -69,6 +69,14 @@ export default {
         marginRight: 16,
     },
 
+    mr5: {
+        marginRight: 20,
+    },
+
+    mrn5: {
+        marginRight: -20,
+    },
+
     ml1: {
         marginLeft: 4,
     },
@@ -87,6 +95,10 @@ export default {
 
     ml5: {
         marginLeft: 20,
+    },
+
+    mln5: {
+        marginLeft: -20,
     },
 
     mt1: {
@@ -177,6 +189,12 @@ export default {
         padding: 80,
     },
 
+    pv0: {
+        paddingTop: 0,
+        paddingBottom: 0,
+        paddingVertical: 0,
+    },
+
     pv1: {
         paddingVertical: 4,
     },
@@ -263,6 +281,10 @@ export default {
 
     pb3: {
         paddingBottom: 12,
+    },
+
+    pb4: {
+        paddingBottom: 16,
     },
 
     pb5: {

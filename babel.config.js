@@ -9,6 +9,9 @@ const defaultPlugins = [
     // We use `transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
     'transform-class-properties',
+
+    // Keep it last
+    'react-native-reanimated/plugin',
 ];
 
 const webpack = {

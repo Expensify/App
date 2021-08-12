@@ -1,12 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TextInput, View} from 'react-native';
+import {View} from 'react-native';
 import Text from '../../components/Text';
 import withLocalize, {
     withLocalizePropTypes,
 } from '../../components/withLocalize';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     /** String to control the first password box in the form */
@@ -73,10 +74,10 @@ class NewPasswordForm extends React.Component {
     }
 
     showPasswordMatchError() {
-        return (
+        return Boolean(
             !this.doPasswordsMatch()
             && this.state.shouldShowPasswordConfirmError
-            && this.state.confirmNewPassword
+            && this.state.confirmNewPassword,
         );
     }
 
@@ -92,31 +93,25 @@ class NewPasswordForm extends React.Component {
         return (
             <>
                 <View style={styles.mb6}>
-                    <Text style={[styles.mb1, styles.formLabel]}>
-                        {`${this.props.translate('setPasswordPage.enterPassword')}`}
-                    </Text>
-                    <TextInput
+                    <ExpensiTextInput
+                        label={`${this.props.translate('setPasswordPage.enterPassword')}`}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
-                        style={styles.textInput}
                         value={this.state.password}
                         onChangeText={password => this.props.updatePassword(password)}
                         onBlur={() => this.onBlurNewPassword()}
                     />
-                    <Text style={[styles.formHint, styles.mt1, passwordHintStyle]}>
+                    <Text style={[styles.textLabelSupporting, styles.mt1, passwordHintStyle]}>
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
                     </Text>
                 </View>
                 <View style={styles.mb6}>
-                    <Text style={[styles.mb1, styles.formLabel]}>
-                        {`${this.props.translate('setPasswordPage.confirmNewPassword')}*`}
-                    </Text>
-                    <TextInput
+                    <ExpensiTextInput
+                        label={`${this.props.translate('setPasswordPage.confirmNewPassword')}*`}
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
-                        style={styles.textInput}
                         value={this.state.confirmNewPassword}
                         onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
                         onSubmitEditing={() => this.props.onSubmitEditing()}

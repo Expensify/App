@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
-import {getNewGroupOptions} from '../../../../libs/OptionsListUtils';
+import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
 import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
@@ -133,7 +133,7 @@ class IOUParticipantsSplit extends Component {
             indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
         });
 
-        if (this.state.userToInvite) {
+        if (this.state.userToInvite && !isCurrentUser(this.state.userToInvite)) {
             sections.push(({
                 undefined,
                 data: [this.state.userToInvite],

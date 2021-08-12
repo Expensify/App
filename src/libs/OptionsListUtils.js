@@ -6,7 +6,9 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle} from './reportUtils';
+import {
+    getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle, isArchivedRoom,
+} from './reportUtils';
 import {translate} from './translate';
 import Permissions from './Permissions';
 import md5 from './md5';
@@ -23,6 +25,12 @@ Onyx.connect({
     callback: val => currentUserLogin = val && val.email,
 });
 
+let currentUser;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: val => currentUser = val,
+});
+
 let countryCodeByIP;
 Onyx.connect({
     key: ONYXKEYS.COUNTRY_CODE,
@@ -31,7 +39,7 @@ Onyx.connect({
 
 let preferredLocale;
 Onyx.connect({
-    key: ONYXKEYS.PREFERRED_LOCALE,
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
@@ -183,7 +191,8 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
 function createOption(personalDetailList, report, draftComments, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const hasMultipleParticipants = personalDetailList.length > 1;
+    const isDefaultChatRoom = isDefaultRoom(report);
+    const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
     const reportDraftComment = report
         && draftComments
@@ -202,7 +211,6 @@ function createOption(personalDetailList, report, draftComments, {
         + _.unescape(report.lastMessageText)
         : '';
 
-    const isDefaultChatRoom = isDefaultRoom(report);
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     let text;
@@ -231,7 +239,8 @@ function createOption(personalDetailList, report, draftComments, {
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
-        login: !hasMultipleParticipants ? personalDetail.login : null,
+        // If single login is a mobile number, appending SMS domain
+        login: !hasMultipleParticipants ? addSMSDomainIfPhoneNumber(personalDetail.login) : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
@@ -243,6 +252,7 @@ function createOption(personalDetailList, report, draftComments, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isDefaultChatRoom,
+        isArchivedRoom: isArchivedRoom(report),
     };
 }
 
@@ -252,9 +262,10 @@ function createOption(personalDetailList, report, draftComments, {
  * @param {String} searchValue
  * @param {String} searchText
  * @param {Set<String>} [participantNames]
+ * @param {Boolean} isDefaultChatRoom
  * @returns {Boolean}
  */
-function isSearchStringMatch(searchValue, searchText, participantNames = new Set()) {
+function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isDefaultChatRoom = false) {
     const searchWords = searchValue
         .replace(/,/g, ' ')
         .split(' ')
@@ -262,7 +273,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
-        return matchRegex.test(valueToSearch) || participantNames.has(word);
+        return matchRegex.test(valueToSearch) || (!isDefaultChatRoom && participantNames.has(word));
     });
 }
 
@@ -393,9 +404,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             }
 
             // Finally check to see if this option is a match for the provided search string if we have one
-            const {searchText, participantsList} = reportOption;
+            const {searchText, participantsList, isDefaultChatRoom} = reportOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
                 continue;
             }
 
@@ -442,9 +453,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ))) {
                 return;
             }
-            const {searchText, participantsList} = personalDetailOption;
+            const {searchText, participantsList, isDefaultChatRoom} = personalDetailOption;
             const participantNames = getParticipantNames(participantsList);
-            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames)) {
+            if (searchValue && !isSearchStringMatch(searchValue, searchText, participantNames, isDefaultChatRoom)) {
                 return;
             }
             personalDetailsOptions.push(personalDetailOption);
@@ -551,6 +562,7 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
         alternateText: myPersonalDetail.login,
         icons: [myPersonalDetail.avatar],
         descriptiveText: amountText,
+        login: myPersonalDetail.login,
     };
 }
 
@@ -603,6 +615,7 @@ function getNewGroupOptions(
 
 /**
  * Build the options for the Sidebar a.k.a. LHN
+ *
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {Object} draftComments
@@ -656,6 +669,10 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
+    if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
+        return translate(preferredLocale, 'messages.noPhoneNumber');
+    }
+
     if (!hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
             return translate(preferredLocale, 'messages.noPhoneNumber');
@@ -672,7 +689,6 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  *
  * @param {Object} currencyOptions
  * @param {String} searchValue
- * @param {Object} selectedCurrency
  * @returns {Array}
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
@@ -706,7 +722,38 @@ function getReportIcons(report, personalDetails) {
         .map(item => item.avatar);
 }
 
+/**
+ * Returns the given userDetails is currentUser or not.
+ * @param {Object} userDetails
+ * @returns {Bool}
+ */
+
+function isCurrentUser(userDetails) {
+    if (!userDetails) {
+        // If userDetails is null or undefined
+        return false;
+    }
+
+    // If user login is mobile number, append sms domain if not appended already just a fail safe.
+    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
+
+    // Initial check with currentUserLogin
+    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
+    const {loginList} = currentUser;
+    let index = 0;
+
+    // Checking userDetailsLogin against to current user login options.
+    while (index < loginList.length && !result) {
+        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
+            result = true;
+        }
+        index++;
+    }
+    return result;
+}
+
 export {
+    addSMSDomainIfPhoneNumber,
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
@@ -718,4 +765,5 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getDefaultAvatar,
     getReportIcons,
+    isCurrentUser,
 };
