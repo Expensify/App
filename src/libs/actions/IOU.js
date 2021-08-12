@@ -219,7 +219,7 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
  * @returns {String}
  */
 function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
-    const note = 'For%20Expensify.cash%20request';
+    const note = encodeURIComponent('For New Expensify request');
     return `venmo://paycharge?txn=pay&recipients=${submitterPhoneNumber}&amount=${(amount / 100)}&note=${note}`;
 }
 

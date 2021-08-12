@@ -605,6 +605,10 @@ const styles = {
 
     noOutline: addOutlineWidth({}, 0),
 
+    errorOutline: {
+        borderColor: colors.red,
+    },
+
     textLabelSupporting: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeLabel,

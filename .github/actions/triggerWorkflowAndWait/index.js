@@ -207,8 +207,8 @@ const {GitHub, getOctokitOptions} = __nccwpck_require__(3030);
 const {throttling} = __nccwpck_require__(9968);
 
 const GITHUB_OWNER = 'Expensify';
-const EXPENSIFY_CASH_REPO = 'Expensify.cash';
-const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/Expensify.cash';
+const EXPENSIFY_CASH_REPO = 'App';
+const EXPENSIFY_CASH_URL = 'https://github.com/Expensify/App';
 
 const GITHUB_BASE_URL_REGEX = new RegExp('https?://(?:github\\.com|api\\.github\\.com)');
 const PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/.*/.*/pull/([0-9]+).*`);
@@ -421,7 +421,7 @@ class GithubUtils {
 
                 // Tag version and comparison URL
                 // eslint-disable-next-line max-len
-                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n`;
+                let issueBody = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n`;
 
                 // PR list
                 if (!_.isEmpty(sortedPRList)) {
@@ -495,13 +495,13 @@ class GithubUtils {
     }
 
     /**
-     * Get the most recent workflow run for the given Expensify.cash workflow.
+     * Get the most recent workflow run for the given New Expensify workflow.
      *
      * @param {String} workflow
      * @returns {Promise}
      */
     static getLatestWorkflowRunID(workflow) {
-        console.log(`Fetching Expensify.cash workflow runs for ${workflow}...`);
+        console.log(`Fetching New Expensify workflow runs for ${workflow}...`);
         return this.octokit.actions.listWorkflowRuns({
             owner: GITHUB_OWNER,
             repo: EXPENSIFY_CASH_REPO,
@@ -524,7 +524,7 @@ class GithubUtils {
     }
 
     /**
-     * Generate the URL of an Expensify.cash pull request given the PR number.
+     * Generate the URL of an New Expensify pull request given the PR number.
      *
      * @param {Number} number
      * @returns {String}
@@ -586,6 +586,23 @@ class GithubUtils {
      */
     static isAutomatedPullRequest(pullRequest) {
         return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+    }
+
+    /**
+     * Return the login of the actor who closed an issue or PR. If the issue is not closed, return an empty string.
+     *
+     * @param {Number} issueNumber
+     * @returns {Promise<String>}
+     */
+    static getActorWhoClosedIssue(issueNumber) {
+        return this.octokit.paginate(this.octokit.issues.listEvents, {
+            owner: GITHUB_OWNER,
+            repo: EXPENSIFY_CASH_REPO,
+            issue_number: issueNumber,
+            per_page: 100,
+        })
+            .then(events => _.filter(events, event => event.event === 'closed'))
+            .then(closedEvents => lodashGet(_.last(closedEvents), 'actor.login', ''));
     }
 }
 

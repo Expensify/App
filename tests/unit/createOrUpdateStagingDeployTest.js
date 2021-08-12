@@ -21,13 +21,13 @@ beforeAll(() => {
             create: jest.fn().mockImplementation(arg => Promise.resolve({
                 data: {
                     ...arg,
-                    html_url: 'https://github.com/Expensify/Expensify.cash/issues/29',
+                    html_url: 'https://github.com/Expensify/App/issues/29',
                 },
             })),
             update: jest.fn().mockImplementation(arg => Promise.resolve({
                 data: {
                     ...arg,
-                    html_url: `https://github.com/Expensify/Expensify.cash/issues/${arg.issue_number}`,
+                    html_url: `https://github.com/Expensify/App/issues/${arg.issue_number}`,
                 },
             })),
             listForRepo: mockListIssues,
@@ -59,7 +59,7 @@ const LABELS = {
     STAGING_DEPLOY_CASH: {
         id: 2783847782,
         node_id: 'MDU6TGFiZWwyNzgzODQ3Nzgy',
-        url: 'https://api.github.com/repos/Expensify/Expensify.cash/labels/StagingDeployCash',
+        url: 'https://api.github.com/repos/Expensify/App/labels/StagingDeployCash',
         name: GithubUtils.STAGING_DEPLOY_CASH_LABEL,
         color: '6FC269',
         default: false,
@@ -68,7 +68,7 @@ const LABELS = {
     DEPLOY_BLOCKER_CASH: {
         id: 2810597462,
         node_id: 'MDU6TGFiZWwyODEwNTk3NDYy',
-        url: 'https://api.github.com/repos/Expensify/Expensify.cash/labels/DeployBlockerCash',
+        url: 'https://api.github.com/repos/Expensify/App/labels/DeployBlockerCash',
         name: GithubUtils.DEPLOY_BLOCKER_CASH_LABEL,
         color: '000000',
         default: false,
@@ -78,13 +78,13 @@ const LABELS = {
 
 describe('createOrUpdateStagingDeployCash', () => {
     const closedStagingDeployCash = {
-        url: 'https://api.github.com/repos/Expensify/Expensify.cash/issues/28',
+        url: 'https://api.github.com/repos/Expensify/App/issues/28',
         title: 'Test StagingDeployCash',
         number: 28,
         labels: [LABELS.STAGING_DEPLOY_CASH],
-        html_url: 'https://github.com/Expensify/Expensify.cash/issues/29',
+        html_url: 'https://github.com/Expensify/App/issues/29',
         // eslint-disable-next-line max-len
-        body: '**Release Version:** `1.0.1-0`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/1\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/2\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/3\r\n\r\n**Deploy Blockers:**\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/4\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/5\r\n\r\ncc @Expensify/applauseleads\r\n',
+        body: '**Release Version:** `1.0.1-0`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [x] https://github.com/Expensify/App/pull/1\r\n- [x] https://github.com/Expensify/App/pull/2\r\n- [x] https://github.com/Expensify/App/pull/3\r\n\r\n**Deploy Blockers:**\r\n- [x] https://github.com/Expensify/App/pull/1\r\n- [x] https://github.com/Expensify/App/issues/4\r\n- [x] https://github.com/Expensify/App/issues/5\r\n\r\ncc @Expensify/applauseleads\r\n',
         state: 'closed',
     };
 
@@ -122,42 +122,42 @@ describe('createOrUpdateStagingDeployCash', () => {
             expect(result).toStrictEqual({
                 owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
-                title: `Deploy Checklist: Expensify.cash ${moment().format('YYYY-MM-DD')}`,
+                title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
                 labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
-                html_url: 'https://github.com/Expensify/Expensify.cash/issues/29',
+                html_url: 'https://github.com/Expensify/App/issues/29',
                 assignees: [GithubUtils.APPLAUSE_BOT],
                 // eslint-disable-next-line max-len
-                body: '**Release Version:** `1.0.2-1`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/7\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/8\r\n\r\ncc @Expensify/applauseleads\r\n',
+                body: '**Release Version:** `1.0.2-1`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n\r\ncc @Expensify/applauseleads\r\n',
             });
         });
     });
 
     describe('updates existing issue when there is one open', () => {
         const openStagingDeployCashBefore = {
-            url: 'https://api.github.com/repos/Expensify/Expensify.cash/issues/29',
+            url: 'https://api.github.com/repos/Expensify/App/issues/29',
             title: 'Test StagingDeployCash',
             number: 29,
             labels: [LABELS.STAGING_DEPLOY_CASH],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.2-1`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/7\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/8\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/9\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/10\r\n\r\ncc @Expensify/applauseleads\r\n',
+            body: '**Release Version:** `1.0.2-1`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n\r\ncc @Expensify/applauseleads\r\n',
             state: 'open',
         };
 
         const currentOpenDeployBlockers = [
             {
-                html_url: 'https://github.com/Expensify/Expensify.cash/pull/6',
+                html_url: 'https://github.com/Expensify/App/pull/6',
                 number: 6,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/Expensify.cash/issues/9',
+                html_url: 'https://github.com/Expensify/App/issues/9',
                 number: 9,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/Expensify.cash/issues/10',
+                html_url: 'https://github.com/Expensify/App/issues/10',
                 number: 10,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -197,13 +197,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentOpenDeployBlockers,
                             {
-                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/11', // New
+                                html_url: 'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/12', // New
+                                html_url: 'https://github.com/Expensify/App/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -221,9 +221,9 @@ describe('createOrUpdateStagingDeployCash', () => {
                     repo: GithubUtils.EXPENSIFY_CASH_REPO,
                     issue_number: openStagingDeployCashBefore.number,
                     // eslint-disable-next-line max-len
-                    html_url: `https://github.com/Expensify/Expensify.cash/issues/${openStagingDeployCashBefore.number}`,
+                    html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: `**Release Version:** \`1.0.2-2\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/7\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/8\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/${newPullRequests[0]}\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/${newPullRequests[1]}\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/9\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/10\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/11\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n`,
+                    body: `**Release Version:** \`1.0.2-2\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n- [ ] https://github.com/Expensify/App/pull/${newPullRequests[0]}\r\n- [ ] https://github.com/Expensify/App/pull/${newPullRequests[1]}\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n- [ ] https://github.com/Expensify/App/issues/11\r\n- [ ] https://github.com/Expensify/App/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n`,
                 });
             });
         });
@@ -247,13 +247,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentOpenDeployBlockers,
                             {
-                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/11', // New
+                                html_url: 'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url: 'https://github.com/Expensify/Expensify.cash/issues/12', // New
+                                html_url: 'https://github.com/Expensify/App/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -271,9 +271,9 @@ describe('createOrUpdateStagingDeployCash', () => {
                     repo: GithubUtils.EXPENSIFY_CASH_REPO,
                     issue_number: openStagingDeployCashBefore.number,
                     // eslint-disable-next-line max-len
-                    html_url: `https://github.com/Expensify/Expensify.cash/issues/${openStagingDeployCashBefore.number}`,
+                    html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: '**Release Version:** `1.0.2-2`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/7\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/8\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/6\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/9\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/10\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/11\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n',
+                    body: '**Release Version:** `1.0.2-2`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n- [ ] https://github.com/Expensify/App/issues/11\r\n- [ ] https://github.com/Expensify/App/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n',
                 });
             });
         });

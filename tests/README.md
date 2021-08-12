@@ -5,7 +5,7 @@
 ## Asynchronous Testing
 
 - Much of the logic in the app is asynchronous in nature. [`react-native-onyx`](https://github.com/expensify/react-native-onyx) relies on [`AsyncStorage`](https://github.com/react-native-async-storage/async-storage) and writes data async before updating subscribers.
-- [Actions](https://github.com/Expensify/expensify.cash#actions) do not typically return a `Promise` and therefore can't always be "awaited" before running an assertion.
+- [Actions](https://github.com/Expensify/App#actions) do not typically return a `Promise` and therefore can't always be "awaited" before running an assertion.
 - To test a result after some asynchronous code has run we can use [`Onyx.connect()`](https://github.com/Expensify/react-native-onyx/blob/2c94a94e51fab20330f7bd5381b72ea6c25553d9/lib/Onyx.js#L217-L231) and the helper method [`waitForPromisesToResolve()`](https://github.com/Expensify/ReactNativeChat/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/utils/waitForPromisesToResolve.js#L1-L9) which returns a `Promise` and will ensure that all other `Promises` have finished running before resolving.
 - **Important Note:** When writing any asynchronous Jest test it's very important that your test itself **return a `Promise`**.
 
@@ -13,12 +13,12 @@
 
 - Network requests called in tests do not run against any test database so we must [mock them](https://jestjs.io/docs/en/mock-functions) with a `jest.fn()`.
 - To simulate a network request succeeding or failing we can mock the expected response first and then manually trigger the action that calls that API command.
-- [Mocking the response of `HttpUtils.xhr()`](https://github.com/Expensify/Expensify.cash/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/actions/SessionTest.js#L25-L32) is the best way to simulate various API conditions so we can verify whether a result occurs or not.
+- [Mocking the response of `HttpUtils.xhr()`](https://github.com/Expensify/App/blob/ca2fa88a5789b82463d35eddc3d57f70a7286868/tests/actions/SessionTest.js#L25-L32) is the best way to simulate various API conditions so we can verify whether a result occurs or not.
 
 ## Assertions
 
 - There are a ton of [matchers](https://jestjs.io/docs/en/using-matchers) that `jest` offers for making assertions.
-- When testing an [Action](https://github.com/Expensify/expensify.cash#actions) it is often best to test that `Onyx` data matches our expectations after the action runs.
+- When testing an [Action](https://github.com/Expensify/App#actions) it is often best to test that `Onyx` data matches our expectations after the action runs.
 ```javascript
 expect(onyxData).toBe(expectedOnyxData);
 ```
@@ -86,7 +86,7 @@ Many of the UI features of our application should go through rigorous testing by
 - Areas of the code that are changing often, breaking often, and would benefit from the resiliency an automated test would provide
 - Lower JS libraries that might have many downstream effects
 	- e.g. our [`ExpensiMark`](https://github.com/Expensify/expensify-common/blob/07ff1c2a07dc122aa89e3cfd3263bb1958222233/lib/ExpensiMark.js#L10) markdown parser
-- [Actions](https://github.com/Expensify/expensify.cash#actions). It's important to verify that data is being saved as expected after one or more actions have finished doing their work.
+- [Actions](https://github.com/Expensify/App#actions). It's important to verify that data is being saved as expected after one or more actions have finished doing their work.
 
 ## Debugging Tests
 

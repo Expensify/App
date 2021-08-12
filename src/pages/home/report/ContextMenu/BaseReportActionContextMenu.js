@@ -1,31 +1,39 @@
 import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {
     propTypes as GenericReportActionContextMenuPropTypes,
-    defaultProps,
+    defaultProps as GenericReportActionContextMenuDefaultProps,
 } from './GenericReportActionContextMenuPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
-import ContextMenuActions from './ContextMenuActions';
+import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 
 const propTypes = {
+    /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
+    type: PropTypes.string,
     ...GenericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    type: CONTEXT_MENU_TYPES.REPORT_ACTION,
+    ...GenericReportActionContextMenuDefaultProps,
+};
 class BaseReportActionContextMenu extends React.Component {
     constructor(props) {
         super(props);
-
         this.wrapperStyle = getReportActionContextMenuStyles(this.props.isMini);
     }
 
     render() {
+        const shouldShowFilter = contextAction => contextAction.shouldShow(this.props.type, this.props.reportAction);
+
         return this.props.isVisible && (
             <View style={this.wrapperStyle}>
-                {_.map(ContextMenuActions, contextAction => contextAction.shouldShow(this.props.reportAction) && (
+                {_.map(_.filter(ContextMenuActions, shouldShowFilter), contextAction => (
                     <ContextMenuItem
                         icon={contextAction.icon}
                         text={this.props.translate(contextAction.textTranslateKey)}

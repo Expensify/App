@@ -78,7 +78,7 @@ jobs:
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
-        uses: Expensify/Expensify.cash/.github/actions/isPullRequestMergeable@main
+        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -97,7 +97,7 @@ jobs:
           pr-number: ${{ steps.createPullRequest.outputs.pr_number }}
 
       - name: Validate changed files
-        if: ${{ github.event.inputs.TARGET_BRANCH == 'main' && (steps.changedFiles.outputs.files_updated != 'android/app/build.gradle ios/ExpensifyCash/Info.plist ios/ExpensifyCashTests/Info.plist package-lock.json package.json' || steps.changedFiles.outputs.files_created != '' || steps.changedFiles.outputs.files_deleted != '') }}
+        if: ${{ github.event.inputs.TARGET_BRANCH == 'main' && (steps.changedFiles.outputs.files_updated != 'android/app/build.gradle ios/NewExpensify/Info.plist ios/NewExpensifyTests/Info.plist package-lock.json package.json' || steps.changedFiles.outputs.files_created != '' || steps.changedFiles.outputs.files_deleted != '') }}
         run: exit 1
 
       - name: Check for an auto approve

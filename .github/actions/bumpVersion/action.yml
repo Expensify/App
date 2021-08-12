@@ -2,7 +2,7 @@ name: 'Bump npm version'
 description: 'Increase the application version (JS and native), based on git tags'
 inputs:
     GITHUB_TOKEN:
-        description: Auth token for Expensify.cash Github
+        description: Auth token for New Expensify Github
         required: true
     SEMVER_LEVEL:
         description: Semantic Versioning Level
