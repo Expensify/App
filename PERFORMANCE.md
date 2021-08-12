@@ -18,9 +18,9 @@
 
 **Suggested:** [React Performance Profiling](https://calibreapp.com/blog/react-performance-profiling-optimization)
 
-### Hermes Profiling (iOS and Android only)
+### Hermes Profiling (Android only)
 
-It's possible, but slightly trickier to profile the JS running on native devices as it does not run in a browser but a JS VM that React Native must spin up first then run the app code. The VM we are currently using on both Android and iOS is called [Hermes](https://reactnative.dev/docs/profile-hermes) and is developed by Facebook.
+It's possible, but slightly trickier to profile the JS running on Android devices as it does not run in a browser but a JS VM that React Native must spin up first then run the app code. The VM we are currently using on both Android and iOS is called [Hermes](https://reactnative.dev/docs/profile-hermes) and is developed by Facebook.
 
 In order to profile with Hermes follow these steps:
 
