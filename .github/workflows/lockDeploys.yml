@@ -7,7 +7,7 @@ on:
 jobs:
   lockStagingDeploys:
     if: ${{ github.event.label.name == '🔐 LockCashDeploys 🔐' && contains(github.event.issue.labels.*.name, 'StagingDeployCash') && github.actor != 'OSBotify' }}
-    runs-on: macos-latest
+    runs-on: macos-11
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
@@ -23,14 +23,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new PATCH version
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
           INPUTS: '{ "SEMVER_LEVEL": "PATCH" }'
 
       - name: Update staging branch
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
@@ -47,7 +47,7 @@ jobs:
         run: git tag ${{ env.NEW_VERSION }}
 
       - name: Update StagingDeployCash
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ env.NEW_VERSION }}

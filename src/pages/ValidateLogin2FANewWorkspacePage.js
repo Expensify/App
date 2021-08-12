@@ -3,9 +3,10 @@ import {TextInput, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
-import {continueSessionFromECom} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import variables from '../styles/variables';
@@ -16,7 +17,7 @@ import Text from '../components/Text';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import {create} from '../libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -30,6 +31,9 @@ const propTypes = {
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
+    /** List of betas */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -38,6 +42,7 @@ const defaultProps = {
         params: {},
     },
     session: {},
+    betas: [],
 };
 class ValidateLogin2FANewWorkspacePage extends Component {
     constructor(props) {
@@ -62,7 +67,12 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             // by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+
+            if (_.isEmpty(this.props.betas)) {
+                setRedirectToWorkspaceNewAfterSignIn(true);
+            } else {
+                create();
+            }
         }
     }
 
@@ -91,7 +101,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
         return (
             <View style={[styles.signInPageInnerNative]}>
-                <View style={[styles.signInPageLogoNative]}>
+                <View style={[styles.componentHeightLarge]}>
                     <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
                 <View style={[styles.mb6, styles.alignItemsCenter]}>
@@ -143,6 +153,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(ValidateLogin2FANewWorkspacePage);

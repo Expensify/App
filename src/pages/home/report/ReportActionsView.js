@@ -34,6 +34,9 @@ import withDrawerState, {withDrawerPropTypes} from '../../../components/withDraw
 import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
+import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
+import variables from '../../../styles/variables';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -88,15 +91,11 @@ class ReportActionsView extends React.Component {
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
+        this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
         this.sortedReportActions = [];
 
-        // We are debouncing this call with a specific delay so that when all items in the list layout we can measure
-        // the total time it took to complete.
-        this.recordTimeToMeasureItemLayout = _.debounce(
-            this.recordTimeToMeasureItemLayout.bind(this),
-            CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME,
-        );
+        this.didLayout = false;
 
         this.state = {
             isLoadingMoreChats: false,
@@ -104,6 +103,7 @@ class ReportActionsView extends React.Component {
 
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
+        this.keyExtractor = this.keyExtractor.bind(this);
     }
 
     componentDidMount() {
@@ -206,10 +206,6 @@ class ReportActionsView extends React.Component {
             this.keyboardEvent.remove();
         }
 
-        // We must cancel the debounce function so that we do not call the function when switching to a new chat before
-        // the previous one has finished loading completely.
-        this.recordTimeToMeasureItemLayout.cancel();
-
         AppState.removeEventListener('change', this.onVisibilityChange);
 
         unsubscribeFromReportChannel(this.props.reportID);
@@ -222,6 +218,17 @@ class ReportActionsView extends React.Component {
         if (Visibility.isVisible()) {
             updateLastReadActionID(this.props.reportID);
         }
+    }
+
+    /**
+     * Create a unique key for Each Action in the FlatList.
+     * We use a combination of sequenceNumber and clientID in case the clientID are the same - which
+     * shouldn't happen, but might be possible in some rare cases.
+     * @param {Object} item
+     * @return {String}
+     */
+    keyExtractor(item) {
+        return `${item.action.sequenceNumber}${item.action.clientID}`;
     }
 
     /**
@@ -251,6 +258,20 @@ class ReportActionsView extends React.Component {
                 .then(() => this.setState({isLoadingMoreChats: false}));
         });
     }
+
+    /**
+     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
+     * the height of the smallest report action possible.
+     * @return {Number}
+     */
+    calculateInitialNumToRender() {
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
+            + variables.fontSizeNormalHeight;
+        const availableHeight = this.props.windowHeight
+            - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
+        return Math.ceil(availableHeight / minimumReportActionHeight);
+    }
+
 
     /**
      * Updates and sorts the report actions by sequence number
@@ -326,13 +347,15 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Runs each time a ReportActionItem is laid out. This method is debounced so we wait until the component has
-     * finished laying out items before recording the chat as switched.
+     * Runs when the FlatList finishes laying out
      */
     recordTimeToMeasureItemLayout() {
-        // We are offsetting the time measurement here so that we can subtract our debounce time from the initial time
-        // and get the actual time it took to load the report
-        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD, CONST.TIMING.REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME);
+        if (this.didLayout) {
+            return;
+        }
+
+        this.didLayout = true;
+        Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
     }
 
     /**
@@ -371,7 +394,7 @@ class ReportActionsView extends React.Component {
         index,
     }) {
         const shouldDisplayNewIndicator = this.props.report.newMarkerSequenceNumber > 0
-                && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
+            && item.action.sequenceNumber === this.props.report.newMarkerSequenceNumber;
         return (
             <ReportActionItem
                 reportID={this.props.reportID}
@@ -381,7 +404,6 @@ class ReportActionsView extends React.Component {
                 isMostRecentIOUReportAction={item.action.sequenceNumber === this.mostRecentIOUReportSequenceNumber}
                 hasOutstandingIOU={this.props.report.hasOutstandingIOU}
                 index={index}
-                onLayout={this.recordTimeToMeasureItemLayout}
             />
         );
     }
@@ -404,25 +426,26 @@ class ReportActionsView extends React.Component {
         }
 
         return (
-            <InvertedFlatList
-                ref={flatListRef}
-                data={this.sortedReportActions}
-                renderItem={this.renderItem}
-                CellRendererComponent={this.renderCell}
-                contentContainerStyle={[styles.chatContentScrollView]}
-
-                // We use a combination of sequenceNumber and clientID in case the clientID are the same - which
-                // shouldn't happen, but might be possible in some rare cases.
-                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                keyExtractor={item => `${item.action.sequenceNumber}${item.action.clientID}`}
-                initialRowHeight={32}
-                onEndReached={this.loadMoreChats}
-                onEndReachedThreshold={0.75}
-                ListFooterComponent={this.state.isLoadingMoreChats
-                    ? <ActivityIndicator size="small" color={themeColors.spinner} />
-                    : null}
-                keyboardShouldPersistTaps="handled"
-            />
+            <>
+                <InvertedFlatList
+                    ref={flatListRef}
+                    data={this.sortedReportActions}
+                    renderItem={this.renderItem}
+                    CellRendererComponent={this.renderCell}
+                    contentContainerStyle={styles.chatContentScrollView}
+                    keyExtractor={this.keyExtractor}
+                    initialRowHeight={32}
+                    initialNumToRender={this.calculateInitialNumToRender()}
+                    onEndReached={this.loadMoreChats}
+                    onEndReachedThreshold={0.75}
+                    ListFooterComponent={this.state.isLoadingMoreChats
+                        ? <ActivityIndicator size="small" color={themeColors.spinner} />
+                        : null}
+                    keyboardShouldPersistTaps="handled"
+                    onLayout={this.recordTimeToMeasureItemLayout}
+                />
+                <PopoverReportActionContextMenu ref={contextMenuRef} />
+            </>
         );
     }
 }

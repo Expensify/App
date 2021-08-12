@@ -21,15 +21,6 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
-    // User's currency preference
-    selectedCurrency: PropTypes.shape({
-        // Currency code for the selected currency
-        currencyCode: PropTypes.string,
-
-        // Currency symbol for the selected currency
-        currencySymbol: PropTypes.string,
-    }).isRequired,
-
     /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
@@ -60,7 +51,6 @@ const IOUConfirmPage = props => (
         participants={props.participants}
         comment={props.comment}
         onUpdateComment={props.onUpdateComment}
-        selectedCurrency={props.selectedCurrency}
         iouAmount={props.iouAmount}
         onConfirm={props.onConfirm}
     />

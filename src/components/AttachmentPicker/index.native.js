@@ -50,6 +50,7 @@ function getDataForUpload(fileData) {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.uri,
+        size: fileData.size,
     };
 }
 

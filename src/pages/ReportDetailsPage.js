@@ -15,14 +15,14 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
-import {getDefaultRoomSubtitle, isDefaultRoom} from '../libs/reportUtils';
+import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
-import Picker from '../components/Picker';
 import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
+import ExpensiPicker from '../components/ExpensiPicker';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -88,14 +88,15 @@ class ReportDetailsPage extends Component {
             },
         };
 
-        this.menuItems = [
-            {
-                translationKey: 'reportDetailsPage.members',
-                icon: Users,
-                subtitle: props.report.participants.length,
-                action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
-            },
-        ];
+        this.menuItems = isArchivedRoom(this.props.report) ? []
+            : [
+                {
+                    translationKey: 'reportDetailsPage.members',
+                    icon: Users,
+                    subtitle: props.report.participants.length,
+                    action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
+                },
+            ];
     }
 
     render() {
@@ -128,6 +129,7 @@ class ReportDetailsPage extends Component {
                         >
                             <Avatar
                                 isDefaultChatRoom={isDefaultRoom(this.props.report)}
+                                isArchivedRoom={isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
                                 source={{uri: this.props.report.icons[0]}}
@@ -142,35 +144,43 @@ class ReportDetailsPage extends Component {
                                     shouldUseFullTitle={isDefaultRoom(this.props.report)}
                                 />
                                 <Text
-                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mb6]}
+                                    style={[
+                                        styles.sidebarLinkText,
+                                        styles.optionAlternateText,
+                                        styles.textLabelSupporting,
+                                        styles.mb6,
+                                    ]}
                                     numberOfLines={1}
                                 >
                                     {defaultRoomSubtitle}
                                 </Text>
                             </View>
                         </View>
-                        <View style={styles.mt4}>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
-                                {this.props.translate('common.notifications')}
-                            </Text>
-                        </View>
-                        <View>
-                            <Text style={[styles.mb3]}>
-                                {this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
-                            </Text>
-                            <View style={[styles.mb5]}>
-                                <Picker
-                                    onChange={(notificationPreference) => {
-                                        updateNotificationPreference(
-                                            this.props.report.reportID,
-                                            notificationPreference,
-                                        );
-                                    }}
-                                    items={Object.values(this.notificationPreferencesOptions)}
-                                    value={this.props.report.notificationPreference}
-                                />
+                        {!isArchivedRoom(this.props.report) && (
+                            <View>
+                                <View style={styles.mt4}>
+                                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                                        {this.props.translate('common.notifications')}
+                                    </Text>
+                                </View>
+                                <View>
+                                    <View style={[styles.mb5]}>
+                                        <ExpensiPicker
+                                            // eslint-disable-next-line max-len
+                                            label={this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
+                                            onChange={(notificationPreference) => {
+                                                updateNotificationPreference(
+                                                    this.props.report.reportID,
+                                                    notificationPreference,
+                                                );
+                                            }}
+                                            items={Object.values(this.notificationPreferencesOptions)}
+                                            value={this.props.report.notificationPreference}
+                                        />
+                                    </View>
+                                </View>
                             </View>
-                        </View>
+                        )}
                     </View>
                     {this.menuItems.map((item) => {
                         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;

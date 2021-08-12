@@ -7,6 +7,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import * as Animatable from 'react-native-animatable';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -18,29 +19,29 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import Text from '../../../components/Text';
+import CONST from '../../../CONST';
 
 const propTypes = {
-    // Whether or not this IOU has multiple participants
+    /** Whether or not this IOU has multiple participants */
     hasMultipleParticipants: PropTypes.bool.isRequired,
 
-    /* The ID of the report this screen should display */
+    /** The ID of the report this screen should display */
     reportID: PropTypes.string.isRequired,
 
-    // Callback to inform parent modal of success
+    /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
 
-    /** Currency selection will be implemented later */
-    // eslint-disable-next-line react/no-unused-prop-types
-    currencySelected: PropTypes.func.isRequired,
+    /** The currency list constant object from Onyx */
+    currencyList: PropTypes.objectOf(PropTypes.shape({
+        /** Symbol for the currency */
+        symbol: PropTypes.string,
 
-    // User's currency preference
-    selectedCurrency: PropTypes.shape({
-        // Currency code for the selected currency
-        currencyCode: PropTypes.string,
+        /** Name of the currency */
+        name: PropTypes.string,
 
-        // Currency symbol for the selected currency
-        currencySymbol: PropTypes.string,
-    }).isRequired,
+        /** ISO4217 Code for the currency */
+        ISO4217: PropTypes.string,
+    })).isRequired,
 
     /** Previously selected amount to show if the user comes back to this screen */
     selectedAmount: PropTypes.string.isRequired,
@@ -55,13 +56,18 @@ const propTypes = {
 
         /** Whether or not the IOU step is loading (retrieving users preferred currency) */
         loading: PropTypes.bool,
+
+        /** Selected Currency Code of the current IOU */
+        selectedCurrencyCode: PropTypes.string,
     }),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    iou: {},
+    iou: {
+        selectedCurrencyCode: CONST.CURRENCY.USD,
+    },
 };
 
 class IOUAmountPage extends React.Component {
@@ -153,7 +159,7 @@ class IOUAmountPage extends React.Component {
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
-                            {this.props.selectedCurrency.currencySymbol}
+                            {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
@@ -204,6 +210,7 @@ export default compose(
     withWindowDimensions,
     withLocalize,
     withOnyx({
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
         iou: {key: ONYXKEYS.IOU},
     }),
 )(IOUAmountPage);

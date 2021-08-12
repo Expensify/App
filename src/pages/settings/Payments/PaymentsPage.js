@@ -1,8 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -12,18 +9,17 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
+import Text from '../../../components/Text';
 import getPaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
+import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
-    /** User's paypal.me username if they have one */
-    payPalMeUsername: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
@@ -39,6 +35,7 @@ class PaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
+            isLoadingPaymentMethods: true,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -47,7 +44,9 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        getPaymentMethods().then(() => {
+            this.setState({isLoadingPaymentMethods: false});
+        });
     }
 
     /**
@@ -103,9 +102,17 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View style={[styles.flex1]}>
+                    <View>
+                        <CurrentWalletBalance />
+                        <Text
+                            style={[styles.ph5, styles.formLabel]}
+                        >
+                            {this.props.translate('paymentsPage.paymentMethodsTitle')}
+                        </Text>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
+                            style={[styles.flex4]}
+                            isLoadingPayments={this.state.isLoadingPaymentMethods}
                         />
                     </View>
                     <Popover
@@ -116,13 +123,11 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        {!this.props.payPalMeUsername && (
-                            <MenuItem
-                                title="PayPal.me"
-                                icon={PayPal}
-                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                            />
-                        )}
+                        <MenuItem
+                            title="PayPal.me"
+                            icon={PayPal}
+                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                        />
                     </Popover>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
@@ -136,9 +141,4 @@ PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
-    withOnyx({
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-        },
-    }),
 )(PaymentsPage);

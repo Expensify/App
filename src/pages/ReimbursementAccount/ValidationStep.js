@@ -10,7 +10,7 @@ import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import CONST from '../../CONST';
@@ -121,21 +121,21 @@ class ValidationStep extends React.Component {
                             </Text>
                         </View>
                         <View style={[styles.m5, styles.flex1]}>
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="number-pad"
                                 value={this.state.amount1}
                                 onChangeText={amount1 => this.setState({amount1})}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="number-pad"
                                 value={this.state.amount2}
                                 onChangeText={amount2 => this.setState({amount2})}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="number-pad"

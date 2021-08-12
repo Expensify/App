@@ -19,7 +19,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {
-    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited,
+    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom,
 } from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
@@ -138,7 +138,13 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  */
 function getChatReportName(fullReport, chatType) {
     if (isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}`;
+        return `#${fullReport.reportName}${(isArchivedRoom({
+            chatType,
+            stateNum: fullReport.state,
+            statusNum: fullReport.status,
+        })
+            ? ` (${translateLocal('common.deleted')})`
+            : '')}`;
     }
 
     const {sharedReportList} = fullReport;
@@ -181,6 +187,9 @@ function getSimplifiedReportObject(report) {
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
+    // Used for archived rooms, will store the policy name that the room used to belong to.
+    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+
     return {
         reportID: report.reportID,
         reportName,
@@ -201,6 +210,9 @@ function getSimplifiedReportObject(report) {
         lastActorEmail,
         hasOutstandingIOU: false,
         notificationPreference,
+        stateNum: report.state,
+        statusNum: report.status,
+        oldPolicyName,
     };
 }
 
@@ -338,7 +350,13 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
                 }
 
                 return fetchIOUReportID(participants[0])
-                    .then(iouReportID => fetchIOUReport(iouReportID, chatReport.reportID));
+                    .then((iouReportID) => {
+                        if (!iouReportID) {
+                            return Promise.resolve();
+                        }
+
+                        return fetchIOUReport(iouReportID, chatReport.reportID);
+                    });
             }));
         })
         .then((iouReportObjects) => {
@@ -378,9 +396,8 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
         })
         .catch((err) => {
             if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
                 // eslint-disable-next-line no-use-before-define
-                navigateToConciergeChat();
+                handleInaccessibleReport();
             }
         });
 }
@@ -838,6 +855,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
         .then((data) => {
             if (data.jsonCode !== 200) {
                 console.error(data.message);
+                Growl.error(data.message);
                 return;
             }
 
@@ -1347,6 +1365,14 @@ function navigateToConciergeChat() {
     Navigation.closeDrawer();
 }
 
+/**
+ * Handle the navigation when report is inaccessible
+ */
+function handleInaccessibleReport() {
+    Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+    navigateToConciergeChat();
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1371,4 +1397,5 @@ export {
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
+    handleInaccessibleReport,
 };
