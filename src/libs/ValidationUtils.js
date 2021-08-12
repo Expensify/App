@@ -1,7 +1,7 @@
 import moment from 'moment';
 import CONST from '../CONST';
-import Growl from './Growl';
 import {translateLocal} from './translate';
+import {showBankAccountFormValidationError} from './actions/BankAccounts';
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -74,27 +74,27 @@ function isValidSSNLastFour(ssnLast4) {
  */
 function isValidIdentity(identity) {
     if (!isValidAddress(identity.street)) {
-        Growl.error(translateLocal('bankAccount.error.address'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
         return false;
     }
 
     if (identity.state === '') {
-        Growl.error(translateLocal('bankAccount.error.addressState'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
         return false;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        Growl.error(translateLocal('bankAccount.error.zipCode'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
         return false;
     }
 
     if (!isValidDate(identity.dob)) {
-        Growl.error(translateLocal('bankAccount.error.dob'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
         return false;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        Growl.error(translateLocal('bankAccount.error.ssnLast4'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
         return false;
     }
 

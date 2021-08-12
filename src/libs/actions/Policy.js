@@ -213,7 +213,6 @@ function create(name = '') {
         }).then(() => {
             Navigation.dismissModal();
             Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
-            Growl.success(translateLocal('workspace.new.successMessage'));
         });
 }
 

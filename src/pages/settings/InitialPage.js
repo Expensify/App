@@ -145,7 +145,8 @@ const InitialSettingsPage = ({
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map(policy => ({
             title: policy.name,
-            icon: Building,
+            icon: policy.avatarURL ? policy.avatarURL : Building,
+            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
@@ -197,6 +198,7 @@ const InitialSettingsPage = ({
                                 key={`${keyTitle}_${index}`}
                                 title={keyTitle}
                                 icon={item.icon}
+                                iconType={item.iconType}
                                 onPress={item.action}
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}
