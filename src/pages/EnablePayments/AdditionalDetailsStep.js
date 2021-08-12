@@ -62,7 +62,7 @@ class AdditionalDetailsStep extends React.Component {
                 fieldName: 'legalLastName',
             },
             {
-                label: props.translate('common.addressNoPO'),
+                label: props.translate('common.personalAddress'),
                 fieldName: 'addressStreet',
             },
             {
