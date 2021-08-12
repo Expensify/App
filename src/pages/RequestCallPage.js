@@ -55,7 +55,7 @@ const propTypes = {
 
     route: PropTypes.shape({
         params: PropTypes.shape({
-            taskID: PropTypes.string
+            taskID: PropTypes.string,
         }),
     }).isRequired,
 };
