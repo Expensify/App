@@ -125,7 +125,7 @@ const IdentityForm = ({
                 }}
                 errorText={error === translateLocal('bankAccount.error.address') ? error : ''}
             />
-            <Text>{this.props.translate('common.noPO')}</Text>
+            <Text>{translate('common.noPO')}</Text>
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
                     <ExpensiTextInput
