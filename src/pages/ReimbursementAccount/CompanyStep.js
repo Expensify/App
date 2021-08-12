@@ -257,7 +257,7 @@ class CompanyStep extends React.Component {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title="Oops something went wrong!"
+                    title="Are you sure?"
                     onConfirm={() => this.setState({isConfirmModalOpen: false})}
                     prompt="Please double check any highlighted fields and try again."
                     isVisible={this.state.isConfirmModalOpen}
