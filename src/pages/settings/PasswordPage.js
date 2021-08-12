@@ -71,6 +71,8 @@ class PasswordPage extends Component {
 
         if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
             stateToUpdate.shouldShowPasswordConfirmError = true;
+        } else {
+            stateToUpdate.shouldShowPasswordConfirmError = false;
         }
 
         if (!isEmpty(stateToUpdate)) {
