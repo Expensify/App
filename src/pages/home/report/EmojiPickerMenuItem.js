@@ -23,6 +23,10 @@ const propTypes = {
     emojiSize: PropTypes.shape({
         fontSize: PropTypes.number,
     }).isRequired,
+
+    /** Override default emojiItem style */
+    // eslint-disable-next-line react/forbid-prop-types
+    emojiItemStyle: PropTypes.any,
 };
 
 const EmojiPickerMenuItem = props => (
@@ -31,10 +35,10 @@ const EmojiPickerMenuItem = props => (
         style={({
             pressed,
         }) => ([
-            styles.emojiItem,
             styles.pv1,
             getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted ? styles.emojiItemHighlighted : {},
+            props.emojiItemStyle ? styles.emojiItemStyle : styles.emojiItem,
         ])}
     >
         <Hoverable onHoverIn={props.onHover}>
@@ -50,11 +54,13 @@ EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 EmojiPickerMenuItem.defaultProps = {
     isHighlighted: false,
     onHover: () => {},
+    emojiItemStyle: undefined,
 };
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
 export default React.memo(
     EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted,
+    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted
+                                && prevProps.emoji === nextProps.emoji,
 );

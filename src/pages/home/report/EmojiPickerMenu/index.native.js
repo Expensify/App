@@ -9,13 +9,24 @@ import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
 import dynamicEmojiSize from './dynamicEmojiSize';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import EmojiSkinToneList from '../EmojiSkinToneList';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    /** Function to sync the selected skin tone with parent, onyx and nvp */
+    updatePreferredSkinTone: PropTypes.func,
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
+
+    /** Props related to translation */
+    ...withLocalizePropTypes,
 };
 
 class EmojiPickerMenu extends Component {
@@ -51,6 +62,7 @@ class EmojiPickerMenu extends Component {
      * @returns {*}
      */
     renderItem({item}) {
+        const {code, types} = item;
         if (item.code === CONST.EMOJI_SPACER) {
             return null;
         }
@@ -63,10 +75,15 @@ class EmojiPickerMenu extends Component {
             );
         }
 
+        const emojiCode = types && types[this.props.preferredSkinTone]
+            ? types[this.props.preferredSkinTone]
+            : code;
+
+
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={`${item.code}\uFE0F`}
+                emoji={`${emojiCode}\uFE0F`}
                 emojiSize={this.emojiSize}
             />
         );
@@ -83,15 +100,25 @@ class EmojiPickerMenu extends Component {
                     style={styles.emojiPickerList}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
+                <EmojiSkinToneList
+                    setPreferredSkinTone={this.props.updatePreferredSkinTone}
+                    emojiSize={this.emojiSize}
+                    preferredSkinTone={this.props.preferredSkinTone}
+                />
             </View>
         );
     }
 }
 
 EmojiPickerMenu.propTypes = propTypes;
+EmojiPickerMenu.defaultProps = {
+    preferredSkinTone: undefined,
+    updatePreferredSkinTone: undefined,
+};
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
 )(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <EmojiPickerMenu {...props} forwardedRef={ref} />
