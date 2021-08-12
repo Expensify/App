@@ -57,9 +57,15 @@ class BaseExpensiTextInput extends Component {
         this.deactivateLabel();
     }
 
-    setValue(v) {
-        this.value = v;
-        Str.result(this.props.onChangeText, v);
+    /**
+     * Set Value & activateLabel
+     *
+     * @param {String} value
+     * @memberof BaseExpensiTextInput
+     */
+    setValue(value) {
+        this.value = value;
+        Str.result(this.props.onChangeText, value);
         this.activateLabel();
     }
 
