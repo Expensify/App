@@ -79,7 +79,7 @@ class PasswordPage extends Component {
     }
 
     onBlurConfirmPassword() {
-        if (!this.state.confirmNewPassword || !this.doPasswordsMatch()) {
+        if ((this.state.newPassword && !this.state.confirmNewPassword) || !this.doPasswordsMatch()) {
             this.setState({shouldShowPasswordConfirmError: true});
         } else {
             this.setState({shouldShowPasswordConfirmError: false});
