@@ -34,6 +34,13 @@ class BaseExpensiTextInput extends Component {
         this.onBlur = this.onBlur.bind(this);
     }
 
+    componentDidMount() {
+        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
+        if (this.props.autoFocus && this.input) {
+            this.input.focus();
+        }
+    }
+
     onFocus() {
         if (this.props.onFocus) { this.props.onFocus(); }
         this.setState({isFocused: true});
@@ -84,13 +91,14 @@ class BaseExpensiTextInput extends Component {
             inputStyle,
             ignoreLabelTranslateX,
             innerRef,
+            autoFocus,
             ...inputProps
         } = this.props;
 
         const hasLabel = Boolean(label.length);
         return (
             <View style={[styles.componentHeightLarge, ...containerStyles]}>
-                <TouchableWithoutFeedback onPress={() => this.input.focus()}>
+                <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
                     <View
                         style={[
                             styles.expensiTextInputContainer,
