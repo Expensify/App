@@ -191,7 +191,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.formLabel]}>{this.props.translate('common.state')}</Text>
                                 <StatePicker
                                     onChange={addressState => this.setState({addressState})}
                                     value={this.state.addressState}
@@ -278,7 +277,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.formLabel]}>{this.props.translate('common.state')}</Text>
                                 <StatePicker
                                     onChange={incorporationState => this.setState({incorporationState})}
                                     value={this.state.incorporationState}
