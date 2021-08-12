@@ -84,8 +84,8 @@ class AddSecondaryLoginPage extends Component {
     onSecondaryLoginChange(login) {
         if (this.formType === CONST.LOGIN_TYPE.EMAIL) {
             this.setState({login});
-        } else if (
-            this.formType === CONST.LOGIN_TYPE.PHONE && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
+        } else if (this.formType === CONST.LOGIN_TYPE.PHONE
+            && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
             this.setState({login});
         }
     }
