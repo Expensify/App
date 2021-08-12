@@ -162,11 +162,6 @@ class PaymentsPage extends React.Component {
         }
     }
 
-    deleteBankAccount(password) {
-        debugger;
-        deleteBankAccount(this.state.selectedPaymentMethod, password);
-    }
-
     render() {
         return (
             <ScreenWrapper>
@@ -251,32 +246,39 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        <Text
-                            style={[
-                                styles.h1,
-                                styles.m2,
-                            ]}
+                        <View
+                            style={styles.m2}
                         >
-                            Please enter your password
-                        </Text>
-                        <TextInputFocusable
-                            style={styles.textInputCompose}
-                            onChangeText={password => this.setState({password})}
-                        />
-                        <TouchableOpacity
-                            onPress={() => deleteBankAccount(this.state.selectedPaymentMethod, this.state.password)}
-                            style={[
-                                styles.button,
-                                styles.buttonDanger,
-                                styles.mh2,
-                                styles.mv2,
-                                styles.defaultOrDeleteButton,
-                            ]}
-                        >
-                            <Text style={[styles.buttonText]}>
-                                {this.props.translate('common.delete')}
+                            <Text
+                                style={[
+                                    styles.h1,
+                                    styles.mv2,
+                                ]}
+                            >
+                                Please enter your password
                             </Text>
-                        </TouchableOpacity>
+                            <TextInputFocusable
+                                style={[
+                                    styles.textInputCompose,
+                                    styles.border,
+                                    styles.w100,
+                                ]}
+                                onChangeText={password => this.setState({password})}
+                            />
+                            <TouchableOpacity
+                                onPress={() => deleteBankAccount(this.state.selectedPaymentMethod, this.state.password)}
+                                style={[
+                                    styles.button,
+                                    styles.buttonDanger,
+                                    styles.mv2,
+                                    styles.defaultOrDeleteButton,
+                                ]}
+                            >
+                                <Text style={[styles.buttonText]}>
+                                    {this.props.translate('common.delete')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </Popover>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
