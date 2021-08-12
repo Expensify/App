@@ -108,7 +108,6 @@ class EmojiSkinToneList extends Component {
 }
 
 EmojiSkinToneList.propTypes = propTypes;
-EmojiSkinToneList.defaultProps = {};
 
 export default compose(
     withLocalize,
