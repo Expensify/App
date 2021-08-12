@@ -250,7 +250,8 @@ const styles = {
     },
 
     buttonDropdown: {
-        marginLeft: 1,
+        borderLeftWidth: 1,
+        borderColor: themeColors.textReversed,
     },
 
     noRightBorderRadius: {

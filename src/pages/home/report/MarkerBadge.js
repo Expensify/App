@@ -67,48 +67,51 @@ class Markerbadge extends PureComponent {
         return (
             <View style={styles.reportMarkerBadgeWrapper}>
                 <Animated.View style={[
-                    styles.flexRow,
-                    styles.justifyContentBetween,
-                    styles.alignItemsCenter,
                     styles.reportMarkerBadge,
                     styles.reportMarkerBadgeTransformation(this.translateY),
                 ]}
                 >
-                    <Button
-                        success
-                        small
-                        onPress={this.props.onClick}
-                        ContentComponent={() => (
-                            <View style={[styles.flexRow]}>
-                                <Icon small src={DownArrow} fill={themeColors.textReversed} />
-                                <Text
-                                    selectable={false}
-                                    style={[
-                                        styles.ml2,
-                                        styles.buttonSmallText,
-                                        styles.textWhite,
-                                    ]}
-                                >
-                                    {this.props.translate(
-                                        'reportActionsViewMarkerBadge.newMsg',
-                                        {count: this.props.count},
-                                    )}
-                                </Text>
-                            </View>
-                        )}
-                        shouldRemoveRightBorderRadius
-                        style={[styles.flex1]}
-                    />
-                    <Button
-                        success
-                        small
-                        style={[styles.buttonDropdown]}
-                        onPress={this.props.onClose}
-                        shouldRemoveLeftBorderRadius
-                        ContentComponent={() => (
-                            <Icon small src={Close} fill={themeColors.textReversed} />
-                        )}
-                    />
+                    <View style={[
+                        styles.flexRow,
+                        styles.justifyContentBetween,
+                        styles.alignItemsCenter,
+                    ]}
+                    >
+                        <Button
+                            success
+                            small
+                            onPress={this.props.onClick}
+                            ContentComponent={() => (
+                                <View style={[styles.flexRow]}>
+                                    <Icon small src={DownArrow} fill={themeColors.textReversed} />
+                                    <Text
+                                        selectable={false}
+                                        style={[
+                                            styles.ml2,
+                                            styles.buttonSmallText,
+                                            styles.textWhite,
+                                        ]}
+                                    >
+                                        {this.props.translate(
+                                            'reportActionsViewMarkerBadge.newMsg',
+                                            {count: this.props.count},
+                                        )}
+                                    </Text>
+                                </View>
+                            )}
+                            shouldRemoveRightBorderRadius
+                        />
+                        <Button
+                            success
+                            small
+                            style={[styles.buttonDropdown]}
+                            onPress={this.props.onClose}
+                            shouldRemoveLeftBorderRadius
+                            ContentComponent={() => (
+                                <Icon small src={Close} fill={themeColors.textReversed} />
+                            )}
+                        />
+                    </View>
                 </Animated.View>
             </View>
         );
