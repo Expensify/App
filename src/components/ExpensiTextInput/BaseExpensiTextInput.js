@@ -35,6 +35,7 @@ class BaseExpensiTextInput extends Component {
     }
 
     componentDidMount() {
+        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (this.props.autoFocus && this.input) {
             this.input.focus();
         }
