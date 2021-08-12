@@ -9,6 +9,7 @@ import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import VideoChatButtonAndMenu from './VideoChatButtonAndMenu';
 
 const propTypes = {
     /** Title of the Header */
@@ -32,6 +33,9 @@ const propTypes = {
     /** Whether we should show a download button */
     shouldShowDownloadButton: PropTypes.bool,
 
+    /** Whether weshould show a inbox call button */
+    shouldShowInboxCallButton: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -43,6 +47,7 @@ const defaultProps = {
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
+    shouldShowInboxCallButton: false,
 };
 
 const HeaderWithCloseButton = props => (
@@ -75,6 +80,11 @@ const HeaderWithCloseButton = props => (
                             <Icon src={Download} />
                         </TouchableOpacity>
                     )
+                }
+
+                {
+                    props.shouldShowInboxCallButton && <VideoChatButtonAndMenu isConcierge />
+
                 }
 
                 <TouchableOpacity
