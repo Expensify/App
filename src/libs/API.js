@@ -160,6 +160,13 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
+    if (response.jsonCode === 405 || response.jsonCode === 404) {
+        // IOU Split & Request money transactions failed due to invalid amount(405) or unable to split(404)
+        // It's a failure, so reject the queued request
+        queuedRequest.reject(response);
+        return;
+    }
+
     queuedRequest.resolve(response);
 });
 
@@ -221,6 +228,11 @@ function Authenticate(parameters) {
                     case 401:
                         throw new Error('passwordForm.error.incorrectLoginOrPassword');
                     case 402:
+                        // If too few characters are passed as the password, the WAF will pass it to the API as an empty
+                        // string, which results in a 402 error from Auth.
+                        if (response.message === '402 Missing partnerUserSecret') {
+                            throw new Error('passwordForm.error.incorrectLoginOrPassword');
+                        }
                         throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
                         throw new Error('passwordForm.error.invalidLoginOrPassword');
@@ -418,6 +430,15 @@ function GetAccountStatus(parameters) {
     const commandName = 'GetAccountStatus';
     requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, parameters);
+}
+
+/**
+ * Returns a validate code for this account
+ * @returns {Promise}
+ */
+function GetAccountValidateCode() {
+    const commandName = 'GetAccountValidateCode';
+    return Network.post(commandName);
 }
 
 /**
@@ -1067,6 +1088,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetAccountValidateCode,
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,

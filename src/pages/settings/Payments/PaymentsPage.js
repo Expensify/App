@@ -1,8 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import ONYXKEYS from '../../../ONYXKEYS';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -23,9 +20,6 @@ import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
-    /** User's paypal.me username if they have one */
-    payPalMeUsername: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
@@ -111,7 +105,7 @@ class PaymentsPage extends React.Component {
                     <View>
                         <CurrentWalletBalance />
                         <Text
-                            style={[styles.ph5, styles.textStrong]}
+                            style={[styles.ph5, styles.formLabel]}
                         >
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
                         </Text>
@@ -129,13 +123,11 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        {!this.props.payPalMeUsername && (
-                            <MenuItem
-                                title="PayPal.me"
-                                icon={PayPal}
-                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                            />
-                        )}
+                        <MenuItem
+                            title="PayPal.me"
+                            icon={PayPal}
+                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                        />
                     </Popover>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
@@ -149,9 +141,4 @@ PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
-    withOnyx({
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
-        },
-    }),
 )(PaymentsPage);

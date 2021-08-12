@@ -15,15 +15,15 @@ import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
     goToWithdrawalAccountSetupStep,
-    hideExistingOwnersError,
+    hideBankAccountErrors,
     setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -36,8 +36,8 @@ const propTypes = {
         /** Error set when handling the API response */
         error: PropTypes.string,
 
-        /** A list of existing owners, set if the bank account being added is already owned */
-        existingOwnersList: PropTypes.string,
+        /** The existing owners for if the bank account is already owned */
+        existingOwners: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -129,8 +129,9 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const isExistingOwnersErrorVisible = Boolean(this.props.reimbursementAccount.error
-            && this.props.reimbursementAccount.existingOwnersList);
+        const existingOwners = this.props.reimbursementAccount.existingOwners;
+        const error = this.props.reimbursementAccount.error;
+        const isExistingOwnersErrorVisible = Boolean(error && existingOwners);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -206,14 +207,21 @@ class BankAccountStep extends React.Component {
                                 style={[styles.exampleCheckImage, styles.mb5]}
                                 source={exampleCheckImage}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 placeholder={this.props.translate('bankAccount.routingNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
-                                onChangeText={routingNumber => this.setState({routingNumber})}
+                                onChangeText={(routingNumber) => {
+                                    if (error === this.props.translate('bankAccount.error.routingNumber')) {
+                                        hideBankAccountErrors();
+                                    }
+                                    this.setState({routingNumber});
+                                }}
                                 disabled={shouldDisableInputs}
+                                errorText={error === this.props.translate('bankAccount.error.routingNumber')
+                                    ? error : ''}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 placeholder={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}
@@ -249,17 +257,29 @@ class BankAccountStep extends React.Component {
                 <ConfirmModal
                     title={this.props.translate('bankAccount.error.existingOwners.unableToAddBankAccount')}
                     isVisible={isExistingOwnersErrorVisible}
-                    onConfirm={hideExistingOwnersError}
+                    onConfirm={hideBankAccountErrors}
                     shouldShowCancelButton={false}
                     prompt={(
-                        <View style={[styles.flex1]}>
+                        <View>
                             <Text style={[styles.mb4]}>
                                 <Text>
                                     {this.props.translate('bankAccount.error.existingOwners.alreadyInUse')}
                                 </Text>
-                                <Text style={styles.textStrong}>
-                                    {this.props.reimbursementAccount.existingOwnersList}
-                                </Text>
+                                {existingOwners && existingOwners.map((existingOwner, i) => {
+                                    let separator = ', ';
+                                    if (i === 0) {
+                                        separator = '';
+                                    } else if (i === existingOwners.length - 1) {
+                                        separator = ` ${this.props.translate('common.and')} `;
+                                    }
+                                    return (
+                                        <>
+                                            <Text>{separator}</Text>
+                                            <Text style={styles.textStrong}>{existingOwner}</Text>
+                                            {i === existingOwners.length - 1 && <Text>.</Text>}
+                                        </>
+                                    );
+                                })}
                             </Text>
                             <Text style={[styles.mb4]}>
                                 {this.props.translate('bankAccount.error.existingOwners.pleaseAskThemToShare')}

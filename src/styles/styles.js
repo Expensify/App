@@ -16,6 +16,17 @@ import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 
+const expensiPicker = {
+    backgroundColor: 'transparent',
+    fontFamily: fontFamily.GTA,
+    fontSize: variables.fontSizeNormal,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    paddingTop: 24,
+    height: 52,
+    borderRadius: variables.componentBorderRadiusNormal,
+};
+
 const styles = {
     // Add all of our utility and helper styles
     ...spacing,
@@ -58,6 +69,10 @@ const styles = {
         textAlign: 'center',
     },
 
+    textAlignRight: {
+        textAlign: 'right',
+    },
+
     textUnderline: {
         textDecorationLine: 'underline',
     },
@@ -84,14 +99,6 @@ const styles = {
     textMicroSupporting: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeSmall,
-        lineHeight: 14,
-    },
-
-    textMicroSupportingBold: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontWeight: fontWeightBold,
         fontSize: variables.fontSizeSmall,
         lineHeight: 14,
     },
@@ -288,20 +295,23 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    loadingVBAAnimation: {
+        width: 160,
+        height: 160,
+    },
+
     picker: {
         inputIOS: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderRadius: variables.componentBorderRadius,
+            flex: 1,
             borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderColor: themeColors.border,
-            color: themeColors.text,
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
+            paddingTop: 25,
+            paddingHorizontal: 12,
+            paddingBottom: 8,
+            justifyContent: 'center',
+            height: '100%',
+            backgroundColor: themeColors.componentBG,
         },
         inputWeb: {
             fontFamily: fontFamily.GTA,
@@ -424,7 +434,7 @@ const styles = {
     },
 
     badgeText: {
-        color: themeColors.textReversed,
+        color: themeColors.text,
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
@@ -434,6 +444,14 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
+    },
+
+    borderColorFocus: {
+        borderColor: themeColors.borderFocus,
+    },
+
+    borderColorDanger: {
+        borderColor: themeColors.badgeDangerBG,
     },
 
     headerText: {
@@ -478,6 +496,49 @@ const styles = {
         marginRight: 8,
     },
 
+    componentHeightLarge: {
+        height: variables.componentSizeLarge,
+    },
+    expensiTextInputContainer: {
+        flex: 1,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+        height: '100%',
+        backgroundColor: themeColors.componentBG,
+    },
+    expensiTextInputLabel: {
+        position: 'absolute',
+        left: 12,
+        top: 14,
+        fontSize: variables.fontSizeNormal,
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        width: '100%',
+    },
+    expensiTextInputLabelDesktop: {
+        transformOrigin: 'left center',
+    },
+    expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
+        transform: [
+            {translateY},
+            {translateX},
+            {scale},
+        ],
+    }),
+    expensiTextInput: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+    },
+    expensiTextInputDesktop: addOutlineWidth({}, 0),
+    expensiTextInputAndroid: left => ({
+        padding: 0,
+        left,
+    }),
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -494,11 +555,39 @@ const styles = {
         textAlignVertical: 'center',
     },
 
+    expensiPickerContainer: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+        justifyContent: 'center',
+        backgroundColor: themeColors.componentBG,
+    },
+    expensiPickerLabel: {
+        position: 'absolute',
+        left: 12,
+        top: 8,
+    },
+    expensiPicker: (disabled = false) => ({
+        iconContainer: {
+            top: 16,
+            right: 12,
+        },
+        inputWeb: {
+            appearance: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            border: 'none',
+            ...expensiPicker,
+        },
+        inputNative: {
+            ...expensiPicker,
+        },
+    }),
+
     disabledText: {
         color: colors.gray3,
     },
 
-    disabledTextInput: {
+    inputDisabled: {
         backgroundColor: colors.gray1,
         color: colors.gray3,
     },
@@ -514,6 +603,16 @@ const styles = {
     },
 
     noOutline: addOutlineWidth({}, 0),
+
+    errorOutline: {
+        borderColor: colors.red,
+    },
+
+    textLabelSupporting: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+    },
 
     formLabel: {
         fontFamily: fontFamily.GTA_BOLD,
@@ -538,12 +637,6 @@ const styles = {
         marginBottom: 4,
     },
 
-    formHint: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-    },
-
     signInPage: {
         backgroundColor: themeColors.sidebar,
         minHeight: '100%',
@@ -553,10 +646,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    signInPageLogoNative: {
-        height: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
@@ -608,7 +697,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 295,
+        maxWidth: 335,
     },
 
     signInPageWideLeftContainer: {
@@ -791,12 +880,6 @@ const styles = {
         color: themeColors.heading,
     },
 
-    popoverMenuDescription: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.textSupporting,
-    },
-
     menuItemTextContainer: {
         minHeight: variables.componentSizeNormal,
     },
@@ -885,9 +968,6 @@ const styles = {
     },
 
     optionAlternateText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
@@ -1033,10 +1113,12 @@ const styles = {
         paddingLeft: 20,
         paddingRight: 20,
         display: 'flex',
+        backgroundColor: themeColors.appBG,
     },
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
+        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1489,12 +1571,6 @@ const styles = {
         color: themeColors.heading,
     },
 
-    settingsLoginName: {
-        fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA,
-        color: themeColors.textSupporting,
-    },
-
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -1550,6 +1626,12 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
+    },
+
+    navigationSceneFullScreenWrapper: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
         height: '100%',
     },
 
@@ -1704,11 +1786,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1788,16 +1869,18 @@ const styles = {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
         borderColor: themeColors.textReversed,
-        borderRadius: 16,
+        borderRadius: 14,
         borderWidth: 3,
-        bottom: -4,
         color: themeColors.textReversed,
-        height: 32,
+        height: 28,
+        width: 28,
         justifyContent: 'center',
-        padding: 4,
+    },
+
+    smallAvatarEditIcon: {
         position: 'absolute',
         right: -4,
-        width: 32,
+        bottom: -4,
     },
 
     workspaceCard: {
@@ -1854,6 +1937,48 @@ const styles = {
         fontSize: variables.fontSizeSmall,
         lineHeight: 16,
         ...whiteSpace.noWrap,
+    },
+
+    cardOverlay: {
+        backgroundColor: themeColors.modalBackdrop,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0.5,
+    },
+
+    communicationsLinkIcon: {
+        right: -36,
+        top: 0,
+        bottom: 0,
+    },
+
+    shortTermsRow: {
+        flexDirection: 'row',
+        padding: 12,
+    },
+
+    termsCenterRight: {
+        marginTop: 'auto',
+        marginBottom: 'auto',
+    },
+
+    shortTermsBoldHeadingSection: {
+        paddingRight: 12,
+        paddingLeft: 12,
+        marginTop: 16,
+    },
+
+    longTermsRow: {
+        flexDirection: 'row',
+        marginTop: 20,
+    },
+
+    collapsibleSectionBorder: {
+        borderBottomWidth: 2,
+        borderBottomColor: themeColors.border,
     },
 
     communicationsLinkHeight: {
@@ -1969,20 +2094,18 @@ function getSafeAreaMargins(insets) {
 /**
  * Return navigation menu styles.
  *
- * @param {Number} windowWidth
- * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
+function getNavigationDrawerStyle(isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            width: windowWidth,
-            height: windowHeight,
+            width: '100%',
+            height: '100%',
             borderColor: themeColors.border,
         }
         : {
-            height: windowHeight,
+            height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };
@@ -2068,17 +2191,21 @@ function getBackgroundColorStyle(backgroundColor) {
 }
 
 /**
- * Generate a style for the background color of the IOU badge
+ * Generate a style for the background color of the Badge
  *
- * @param {Boolean} isOwner
- * @param {Boolean} [isPressed]
- * @returns {Object}
+ * @param {Boolean} success
+ * @param {Boolean} error
+ * @param {boolean} [isPressed=false]
+ * @return {Object}
  */
-function getBadgeColorStyle(isOwner, isPressed = false) {
-    if (isOwner) {
+function getBadgeColorStyle(success, error, isPressed = false) {
+    if (success) {
         return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
     }
-    return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    if (error) {
+        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
+    }
+    return {};
 }
 
 /**
