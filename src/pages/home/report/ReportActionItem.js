@@ -23,6 +23,7 @@ import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import {isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
+import {CONTEXT_MENU_TYPES} from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 
 const propTypes = {
@@ -91,6 +92,7 @@ class ReportActionItem extends Component {
             return;
         }
         showContextMenu(
+            CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
             this.popoverAnchor,

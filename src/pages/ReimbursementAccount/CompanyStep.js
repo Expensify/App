@@ -17,10 +17,10 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Growl from '../../libs/Growl';
 import {
     isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
 } from '../../libs/ValidationUtils';
+import ConfirmModal from '../../components/ConfirmModal';
 import ExpensiPicker from '../../components/ExpensiPicker';
 
 class CompanyStep extends React.Component {
@@ -44,6 +44,7 @@ class CompanyStep extends React.Component {
             industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
+            isConfirmModalOpen: false,
         };
 
         // These fields need to be filled out in order to submit the form
@@ -67,47 +68,38 @@ class CompanyStep extends React.Component {
      */
     validate() {
         if (!this.state.password.trim()) {
-            Growl.error(this.props.translate('common.passwordCannotBeBlank'));
             return false;
         }
 
         if (!isValidAddress(this.state.addressStreet)) {
-            Growl.error(this.props.translate('bankAccount.error.addressStreet'));
             return false;
         }
 
         if (this.state.addressState === '') {
-            Growl.error(this.props.translate('bankAccount.error.addressState'));
             return false;
         }
 
         if (!isValidZipCode(this.state.addressZipCode)) {
-            Growl.error(this.props.translate('bankAccount.error.zipCode'));
             return false;
         }
 
         if (!Str.isValidURL(this.state.website)) {
-            Growl.error(this.props.translate('bankAccount.error.website'));
             return false;
         }
 
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
-            Growl.error(this.props.translate('bankAccount.error.taxID'));
             return false;
         }
 
         if (!isValidDate(this.state.incorporationDate)) {
-            Growl.error(this.props.translate('bankAccount.error.incorporationDate'));
             return false;
         }
 
         if (!isValidIndustryCode(this.state.industryCode)) {
-            Growl.error(this.props.translate('bankAccount.error.industryCode'));
             return false;
         }
 
         if (!this.state.hasNoConnectionToCannabis) {
-            Growl.error(this.props.translate('bankAccount.error.restrictedBusiness'));
             return false;
         }
 
@@ -116,6 +108,7 @@ class CompanyStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
+            this.setState({isConfirmModalOpen: true});
             return;
         }
 
@@ -126,8 +119,9 @@ class CompanyStep extends React.Component {
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
-        const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false);
+        const missingRequiredFields = this.requiredFields.reduce((acc, curr) => acc || !this.state[curr].trim(), false);
+        const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis || missingRequiredFields;
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -138,9 +132,7 @@ class CompanyStep extends React.Component {
                 />
                 <ScrollView style={[styles.flex1, styles.w100]}>
                     <View style={[styles.p4]}>
-                        <View style={[styles.alignItemsCenter]}>
-                            <Text>{this.props.translate('companyStep.subtitle')}</Text>
-                        </View>
+                        <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.legalBusinessName')}
                             containerStyles={[styles.mt4]}
@@ -264,6 +256,15 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                 </ScrollView>
+                <ConfirmModal
+                    title="Are you sure?"
+                    onConfirm={() => this.setState({isConfirmModalOpen: false})}
+                    prompt="Please double check any highlighted fields and try again."
+                    isVisible={this.state.isConfirmModalOpen}
+                    confirmText="Got it"
+                    shouldShowCancelButton={false}
+                />
+
                 <FixedFooter style={[styles.mt5]}>
                     <Button
                         success

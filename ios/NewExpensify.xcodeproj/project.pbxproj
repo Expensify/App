@@ -11,6 +11,7 @@
 		0F5BE0CE252686330097D869 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0F5BE0CD252686320097D869 /* GoogleService-Info.plist */; };
 		0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
 		0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */; };
+		124B1D7428B2858646B99CA7 /* libPods-NewExpensify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 209DE80919A33FCBBA5846B8 /* libPods-NewExpensify.a */; };
 		12DD1878FCB9487C9F031C86 /* GTAmericaExpMono-Rg.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
@@ -29,11 +30,10 @@
 		70CF6E82262E297300711ADC /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 70CF6E81262E297300711ADC /* BootSplash.storyboard */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */; };
-		A3436007AC25B52D4421EDFE /* libPods-ExpensifyCash-ExpensifyCashTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9772847002A7309594CFB3C /* libPods-ExpensifyCash-ExpensifyCashTests.a */; };
-		DA1351CF1BC4929C869D7874 /* libPods-ExpensifyCash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19505195D8D4A1D33ACBECCF /* libPods-ExpensifyCash.a */; };
 		DB77016704074197AB6633BB /* GTAmericaExpMono-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED814D34526B415CAFA0451E /* GTAmericaExpMono-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */; };
+		F2C9290F276DB05EEF04D160 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 820334EEB8DDED5217A15684 /* libPods-NewExpensify-NewExpensifyTests.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,36 +42,36 @@
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
-			remoteInfo = ExpensifyCash;
+			remoteInfo = NewExpensify;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
-		00E356EE1AD99517003FC87E /* ExpensifyCashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExpensifyCashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NewExpensifyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* ExpensifyCashTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ExpensifyCashTests.m; sourceTree = "<group>"; };
+		0AAF0DE814358C8D4EE6971D /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.release.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.release.xcconfig"; sourceTree = "<group>"; };
 		0DE5D096095C41EE96746C9E /* GTAmericaExpMono-Bd.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-Bd.otf"; path = "../assets/fonts/GTAmericaExpMono-Bd.otf"; sourceTree = "<group>"; };
 		0F5BE0CD252686320097D869 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		0F5E534E263B73D5004CA14F /* EnvironmentChecker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EnvironmentChecker.h; sourceTree = "<group>"; };
 		0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EnvironmentChecker.m; sourceTree = "<group>"; };
-		13B07F961A680F5B00A75B9A /* Expensify.cash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Expensify.cash.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ExpensifyCash/AppDelegate.h; sourceTree = "<group>"; };
-		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = ExpensifyCash/AppDelegate.m; sourceTree = "<group>"; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = ExpensifyCash/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = ExpensifyCash/Info.plist; sourceTree = "<group>"; };
-		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ExpensifyCash/main.m; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* New Expensify.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "New Expensify.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = NewExpensify/AppDelegate.h; sourceTree = "<group>"; };
+		13B07FB01A68108700A75B9A /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = NewExpensify/AppDelegate.m; sourceTree = "<group>"; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = NewExpensify/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = NewExpensify/Info.plist; sourceTree = "<group>"; };
+		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = NewExpensify/main.m; sourceTree = "<group>"; };
 		18D050DF262400AF000D658B /* BridgingFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BridgingFile.swift; sourceTree = "<group>"; };
-		19505195D8D4A1D33ACBECCF /* libPods-ExpensifyCash.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ExpensifyCash.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		209DE80919A33FCBBA5846B8 /* libPods-NewExpensify.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-BdIt.otf"; path = "../assets/fonts/GTAmericaExpMono-BdIt.otf"; sourceTree = "<group>"; };
-		40EE174FE0E5010DA25F3180 /* Pods-ExpensifyCash.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash.debug.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash.debug.xcconfig"; sourceTree = "<group>"; };
 		5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-RgIt.otf"; path = "../assets/fonts/GTAmericaExpMono-RgIt.otf"; sourceTree = "<group>"; };
-		5E0275D64694B453A3EE297D /* Pods-ExpensifyCash.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash.release.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash.release.xcconfig"; sourceTree = "<group>"; };
 		67D5C3A6A7FA417C8A853FC1 /* GTAmericaExp-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Light.otf"; path = "../assets/fonts/GTAmericaExp-Light.otf"; sourceTree = "<group>"; };
-		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = ExpensifyCash/RCTStartupTimer.h; sourceTree = "<group>"; };
-		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = ExpensifyCash/RCTStartupTimer.m; sourceTree = "<group>"; };
-		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = ExpensifyCash/BootSplash.storyboard; sourceTree = "<group>"; };
-		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = ExpensifyCash/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		7041848326A8E40900E09F4D /* RCTStartupTimer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTStartupTimer.h; path = NewExpensify/RCTStartupTimer.h; sourceTree = "<group>"; };
+		7041848426A8E47D00E09F4D /* RCTStartupTimer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTStartupTimer.m; path = NewExpensify/RCTStartupTimer.m; sourceTree = "<group>"; };
+		70CF6E81262E297300711ADC /* BootSplash.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = BootSplash.storyboard; path = NewExpensify/BootSplash.storyboard; sourceTree = "<group>"; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NewExpensify/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		820334EEB8DDED5217A15684 /* libPods-NewExpensify-NewExpensifyTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NewExpensify-NewExpensifyTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8437A5A38F2047E0BCCD7C2F /* GTAmericaExpMono-Rg.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExpMono-Rg.otf"; path = "../assets/fonts/GTAmericaExpMono-Rg.otf"; sourceTree = "<group>"; };
 		8C7003903C1E4957824899BB /* GTAmericaExp-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Regular.otf"; path = "../assets/fonts/GTAmericaExp-Regular.otf"; sourceTree = "<group>"; };
 		918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-RgIt.otf"; path = "../assets/fonts/GTAmericaExp-RgIt.otf"; sourceTree = "<group>"; };
@@ -79,11 +79,11 @@
 		A5AAD008CBD84A6CAEB9AC97 /* GTAmericaExp-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Bold.otf"; path = "../assets/fonts/GTAmericaExp-Bold.otf"; sourceTree = "<group>"; };
 		A8D6F2F722FD4E66A38EBBB6 /* GTAmericaExp-BdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-BdIt.otf"; path = "../assets/fonts/GTAmericaExp-BdIt.otf"; sourceTree = "<group>"; };
 		AE65058949E14DA5A2D5435D /* GTAmericaExp-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-Medium.otf"; path = "../assets/fonts/GTAmericaExp-Medium.otf"; sourceTree = "<group>"; };
-		B82386231652D749850CFC70 /* Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig"; sourceTree = "<group>"; };
-		D111222CBD2088E51A5BB624 /* Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig"; path = "Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig"; sourceTree = "<group>"; };
-		D9772847002A7309594CFB3C /* libPods-ExpensifyCash-ExpensifyCashTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-ExpensifyCash-ExpensifyCashTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D314A6D536D2ADA797DCDAC9 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; sourceTree = "<group>"; };
+		D3D8FA6E27ED5DD98F515230 /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
 		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
 		E9DF872C2525201700607FDC /* AirshipConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = AirshipConfig.plist; sourceTree = "<group>"; };
+		EB3C4841B1DB1490EA09A324 /* Pods-NewExpensify.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
@@ -93,7 +93,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3436007AC25B52D4421EDFE /* libPods-ExpensifyCash-ExpensifyCashTests.a in Frameworks */,
+				F2C9290F276DB05EEF04D160 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -101,20 +101,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DA1351CF1BC4929C869D7874 /* libPods-ExpensifyCash.a in Frameworks */,
+				124B1D7428B2858646B99CA7 /* libPods-NewExpensify.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		00E356EF1AD99517003FC87E /* ExpensifyCashTests */ = {
+		00E356EF1AD99517003FC87E /* NewExpensifyTests */ = {
 			isa = PBXGroup;
 			children = (
 				00E356F21AD99517003FC87E /* ExpensifyCashTests.m */,
 				00E356F01AD99517003FC87E /* Supporting Files */,
 			);
-			path = ExpensifyCashTests;
+			path = NewExpensifyTests;
 			sourceTree = "<group>";
 		};
 		00E356F01AD99517003FC87E /* Supporting Files */ = {
@@ -125,7 +125,7 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		13B07FAE1A68108700A75B9A /* ExpensifyCash */ = {
+		13B07FAE1A68108700A75B9A /* NewExpensify */ = {
 			isa = PBXGroup;
 			children = (
 				0F5BE0CD252686320097D869 /* GoogleService-Info.plist */,
@@ -141,7 +141,7 @@
 				0F5E534E263B73D5004CA14F /* EnvironmentChecker.h */,
 				0F5E534F263B73FD004CA14F /* EnvironmentChecker.m */,
 			);
-			name = ExpensifyCash;
+			name = NewExpensify;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
@@ -149,8 +149,8 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				ED2971642150620600B7C4FE /* JavaScriptCore.framework */,
-				19505195D8D4A1D33ACBECCF /* libPods-ExpensifyCash.a */,
-				D9772847002A7309594CFB3C /* libPods-ExpensifyCash-ExpensifyCashTests.a */,
+				209DE80919A33FCBBA5846B8 /* libPods-NewExpensify.a */,
+				820334EEB8DDED5217A15684 /* libPods-NewExpensify-NewExpensifyTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -168,9 +168,9 @@
 				7041848326A8E40900E09F4D /* RCTStartupTimer.h */,
 				7041848426A8E47D00E09F4D /* RCTStartupTimer.m */,
 				18D050DF262400AF000D658B /* BridgingFile.swift */,
-				13B07FAE1A68108700A75B9A /* ExpensifyCash */,
+				13B07FAE1A68108700A75B9A /* NewExpensify */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
-				00E356EF1AD99517003FC87E /* ExpensifyCashTests */,
+				00E356EF1AD99517003FC87E /* NewExpensifyTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				EC29677F0A49C2946A495A33 /* Pods */,
@@ -184,8 +184,8 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* Expensify.cash.app */,
-				00E356EE1AD99517003FC87E /* ExpensifyCashTests.xctest */,
+				13B07F961A680F5B00A75B9A /* New Expensify.app */,
+				00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -212,10 +212,10 @@
 		EC29677F0A49C2946A495A33 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				40EE174FE0E5010DA25F3180 /* Pods-ExpensifyCash.debug.xcconfig */,
-				5E0275D64694B453A3EE297D /* Pods-ExpensifyCash.release.xcconfig */,
-				B82386231652D749850CFC70 /* Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig */,
-				D111222CBD2088E51A5BB624 /* Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig */,
+				D3D8FA6E27ED5DD98F515230 /* Pods-NewExpensify.debug.xcconfig */,
+				EB3C4841B1DB1490EA09A324 /* Pods-NewExpensify.release.xcconfig */,
+				D314A6D536D2ADA797DCDAC9 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */,
+				0AAF0DE814358C8D4EE6971D /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -223,9 +223,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		00E356ED1AD99517003FC87E /* ExpensifyCashTests */ = {
+		00E356ED1AD99517003FC87E /* NewExpensifyTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "ExpensifyCashTests" */;
+			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "NewExpensifyTests" */;
 			buildPhases = (
 				538F0530BD355DE69016FC8D /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
@@ -239,14 +239,14 @@
 			dependencies = (
 				00E356F51AD99517003FC87E /* PBXTargetDependency */,
 			);
-			name = ExpensifyCashTests;
-			productName = ExpensifyCashTests;
-			productReference = 00E356EE1AD99517003FC87E /* ExpensifyCashTests.xctest */;
+			name = NewExpensifyTests;
+			productName = NewExpensifyTests;
+			productReference = 00E356EE1AD99517003FC87E /* NewExpensifyTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		13B07F861A680F5B00A75B9A /* ExpensifyCash */ = {
+		13B07F861A680F5B00A75B9A /* NewExpensify */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ExpensifyCash" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "NewExpensify" */;
 			buildPhases = (
 				BD50DAA2FC45BE14BFB945D0 /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
@@ -263,9 +263,9 @@
 			);
 			dependencies = (
 			);
-			name = ExpensifyCash;
-			productName = ExpensifyCash;
-			productReference = 13B07F961A680F5B00A75B9A /* Expensify.cash.app */;
+			name = NewExpensify;
+			productName = NewExpensify;
+			productReference = 13B07F961A680F5B00A75B9A /* New Expensify.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -288,7 +288,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "ExpensifyCash" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "NewExpensify" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -301,8 +301,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* ExpensifyCash */,
-				00E356ED1AD99517003FC87E /* ExpensifyCashTests */,
+				13B07F861A680F5B00A75B9A /* NewExpensify */,
+				00E356ED1AD99517003FC87E /* NewExpensifyTests */,
 			);
 		};
 /* End PBXProject section */
@@ -362,7 +362,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-NewExpensify/Pods-NewExpensify-resources.sh",
 				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAAutomationActions.plist",
 				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerContentView.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerView.xib",
@@ -481,7 +481,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NewExpensify/Pods-NewExpensify-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		538F0530BD355DE69016FC8D /* [CP] Check Pods Manifest.lock */ = {
@@ -499,7 +499,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ExpensifyCash-ExpensifyCashTests-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-NewExpensify-NewExpensifyTests-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -526,7 +526,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-NewExpensify/Pods-NewExpensify-frameworks.sh",
 				"${PODS_ROOT}/hermes-engine/destroot/Library/Frameworks/iphoneos/hermes.framework",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Onfido/Onfido.framework/Onfido",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL/OpenSSL.framework/OpenSSL",
@@ -541,7 +541,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash/Pods-ExpensifyCash-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NewExpensify/Pods-NewExpensify-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		BD50DAA2FC45BE14BFB945D0 /* [CP] Check Pods Manifest.lock */ = {
@@ -559,7 +559,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-ExpensifyCash-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-NewExpensify-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -585,7 +585,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests-resources.sh",
 				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAAutomationActions.plist",
 				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerContentView.xib",
 				"${PODS_ROOT}/Airship/Airship/AirshipAutomation/Resources/UAInAppMessageBannerView.xib",
@@ -704,7 +704,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		DC5669E1DEB80DD839FDB293 /* [CP] Embed Pods Frameworks */ = {
@@ -713,7 +713,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests-frameworks.sh",
 				"${PODS_ROOT}/hermes-engine/destroot/Library/Frameworks/iphoneos/hermes.framework",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/Onfido/Onfido.framework/Onfido",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/OpenSSL/OpenSSL.framework/OpenSSL",
@@ -728,7 +728,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-ExpensifyCash-ExpensifyCashTests/Pods-ExpensifyCash-ExpensifyCashTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		FD10A7F022414F080027D42C /* Start Packager */ = {
@@ -780,7 +780,7 @@
 /* Begin PBXTargetDependency section */
 		00E356F51AD99517003FC87E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 13B07F861A680F5B00A75B9A /* ExpensifyCash */;
+			target = 13B07F861A680F5B00A75B9A /* NewExpensify */;
 			targetProxy = 00E356F41AD99517003FC87E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -788,7 +788,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B82386231652D749850CFC70 /* Pods-ExpensifyCash-ExpensifyCashTests.debug.xcconfig */;
+			baseConfigurationReference = D314A6D536D2ADA797DCDAC9 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -797,7 +797,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = ExpensifyCashTests/Info.plist;
+				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -807,20 +807,20 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ExpensifyCash.app/ExpensifyCash";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
 			name = Debug;
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D111222CBD2088E51A5BB624 /* Pods-ExpensifyCash-ExpensifyCashTests.release.xcconfig */;
+			baseConfigurationReference = 0AAF0DE814358C8D4EE6971D /* Pods-NewExpensify-NewExpensifyTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = 368M544MTT;
-				INFOPLIST_FILE = ExpensifyCashTests/Info.plist;
+				INFOPLIST_FILE = NewExpensifyTests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -830,24 +830,24 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.reactjs.native.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ExpensifyCash.app/ExpensifyCash";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NewExpensify.app/NewExpensify";
 			};
 			name = Release;
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 40EE174FE0E5010DA25F3180 /* Pods-ExpensifyCash.debug.xcconfig */;
+			baseConfigurationReference = D3D8FA6E27ED5DD98F515230 /* Pods-NewExpensify.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ExpensifyCash/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 368M544MTT;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
-				INFOPLIST_FILE = ExpensifyCash/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
@@ -857,7 +857,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
-				PRODUCT_NAME = Expensify.cash;
+				PRODUCT_NAME = "New Expensify";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
 				SWIFT_OBJC_BRIDGING_HEADER = "ExpensifyCash-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -869,17 +869,17 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5E0275D64694B453A3EE297D /* Pods-ExpensifyCash.release.xcconfig */;
+			baseConfigurationReference = EB3C4841B1DB1490EA09A324 /* Pods-NewExpensify.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = ExpensifyCash/Chat.entitlements;
+				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 368M544MTT;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
-				INFOPLIST_FILE = ExpensifyCash/Info.plist;
+				INFOPLIST_FILE = "NewExpensify/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
@@ -889,7 +889,7 @@
 					"-lc++",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
-				PRODUCT_NAME = Expensify.cash;
+				PRODUCT_NAME = "New Expensify";
 				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
 				SWIFT_OBJC_BRIDGING_HEADER = "ExpensifyCash-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -1016,7 +1016,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "ExpensifyCashTests" */ = {
+		00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "NewExpensifyTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				00E356F61AD99517003FC87E /* Debug */,
@@ -1025,7 +1025,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "ExpensifyCash" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "NewExpensify" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -1034,7 +1034,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "ExpensifyCash" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "NewExpensify" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

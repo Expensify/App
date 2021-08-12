@@ -855,6 +855,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
         .then((data) => {
             if (data.jsonCode !== 200) {
                 console.error(data.message);
+                Growl.error(data.message);
                 return;
             }
 

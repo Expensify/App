@@ -5,6 +5,7 @@ const contextMenuRef = React.createRef();
 /**
  * Show the ReportActionContextMenu modal popover.
  *
+ * @param {string} type - the context menu type to display [LINK, REPORT_ACTION]
  * @param {Object} [event] - A press event.
  * @param {string} [selection] - A copy text.
  * @param {Element} contextMenuAnchor - popoverAnchor
@@ -15,12 +16,13 @@ const contextMenuRef = React.createRef();
  * @param {Function} [onHide=() => {}] - Run a callback when Menu is hidden
  */
 function showContextMenu(
+    type,
     event,
     selection,
     contextMenuAnchor,
-    reportID,
-    reportAction,
-    draftMessage,
+    reportID = 0,
+    reportAction = {},
+    draftMessage = '',
     onShow = () => {},
     onHide = () => {},
 ) {
@@ -28,6 +30,7 @@ function showContextMenu(
         return;
     }
     contextMenuRef.current.showContextMenu(
+        type,
         event,
         selection,
         contextMenuAnchor,

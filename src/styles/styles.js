@@ -295,6 +295,11 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    loadingVBAAnimation: {
+        width: 160,
+        height: 160,
+    },
+
     picker: {
         inputIOS: {
             flex: 1,
