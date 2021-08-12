@@ -48,6 +48,22 @@ class BaseExpensiTextInput extends Component {
     onFocus() {
         if (this.props.onFocus) { this.props.onFocus(); }
         this.setState({isFocused: true});
+        this.activateLabel();
+    }
+
+    onBlur() {
+        if (this.props.onBlur) { this.props.onBlur(); }
+        this.setState({isFocused: false});
+        this.deactivateLabel();
+    }
+
+    setValue(v) {
+        this.value = v;
+        Str.result(this.props.onChangeText, v);
+        this.activateLabel();
+    }
+
+    activateLabel() {
         if (this.value.length >= 0 && !this.isLabelActive) {
             this.animateLabel(
                 ACTIVE_LABEL_TRANSLATE_Y,
@@ -58,18 +74,11 @@ class BaseExpensiTextInput extends Component {
         }
     }
 
-    onBlur() {
-        if (this.props.onBlur) { this.props.onBlur(); }
-        this.setState({isFocused: false});
+    deactivateLabel() {
         if (this.value.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
             this.isLabelActive = false;
         }
-    }
-
-    setValue(v) {
-        this.value = v;
-        Str.result(this.props.onChangeText, v);
     }
 
     animateLabel(translateY, translateX, scale) {
