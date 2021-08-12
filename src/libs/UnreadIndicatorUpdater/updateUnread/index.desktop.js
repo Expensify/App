@@ -8,7 +8,6 @@ const ipcRenderer = window.require('electron').ipcRenderer;
  * @param {Number} totalCount
  */
 function updateUnread(totalCount) {
-    console.debug('message count');
     // Ask the main Electron process to update our
     // badge count in the Mac OS dock icon
     ipcRenderer.send(ELECTRON_EVENTS.REQUEST_UPDATE_BADGE_COUNT, totalCount);
