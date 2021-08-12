@@ -33,7 +33,7 @@ In order to profile with Hermes follow these steps:
 - Press `d` again and select "Disable Sampling Profiler"
 - A toast should appear with a path to a profile
 - We need to then convert this into something Chrome Dev Tools can use by typing into terminal `react-native profile-hermes .`
-- This should create a json file in the directory where we typed the previous command that we can load up into Chrome Dev Tools "Profile" tab and inspect further.
+- This should create a json file in the directory where we typed the previous command that we can load up into Chrome Dev Tools "Performance" tab via the "Load Profile" option and inspect further.
 
 ### React DevTools Profiler
 - The React DevTools Profiler can also be used to detect similar information to Chrome Dev Tools, but is a little more streamlined. There is also an options cog where you can filter events by cutting at a specified millisecond (length it took for the thing to happen)
