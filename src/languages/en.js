@@ -337,6 +337,7 @@ export default {
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
+        iouReportNotFound: 'The payment details you are looking for cannot be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
