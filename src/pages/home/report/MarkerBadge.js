@@ -6,14 +6,24 @@ import Button from '../../../components/Button';
 import Icon from '../../../components/Icon';
 import {Close, DownArrow} from '../../../components/Icon/Expensicons';
 import themeColors from '../../../styles/themes/default';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const MARKER_NOT_ACTIVE_TRANSLATE_Y = -30;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 const propTypes = {
+    /** Count of messages to show in the badge */
     count: PropTypes.number,
+
+    /** whether the marker is active */
     active: PropTypes.bool,
+
+    /** Callback to be called when user click the badge */
     onClose: PropTypes.func,
+
+    /** Callback to be called when user close the marker */
     onClick: PropTypes.func,
+
+    ...withLocalizePropTypes,
 };
 const defaultProps = {
     count: 0,
@@ -79,9 +89,10 @@ class Markerbadge extends PureComponent {
                                         styles.textWhite,
                                     ]}
                                 >
-                                    {this.props.count}
-                                    {' '}
-                                    new messages
+                                    {this.props.translate(
+                                        'reportActionsViewMarkerBadge.newMsg',
+                                        {count: this.props.count},
+                                    )}
                                 </Text>
                             </View>
                         )}
@@ -108,4 +119,4 @@ Markerbadge.propTypes = propTypes;
 Markerbadge.defaultProps = defaultProps;
 Markerbadge.displayName = 'Markerbadge';
 
-export default Markerbadge;
+export default withLocalize(Markerbadge);

@@ -135,6 +135,9 @@ export default {
     reportActionsView: {
         beFirstPersonToComment: 'Sé el primero en comentar',
     },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} nuevos mensajes`,
+    },
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',

@@ -200,7 +200,7 @@ class ReportActionsView extends React.Component {
                 updateLastReadActionID(this.props.reportID);
             }
 
-            // showMarker
+            // show new Marker badge when there is a new Message
             this.showMarker();
         }
 
@@ -359,6 +359,11 @@ class ReportActionsView extends React.Component {
         updateLastReadActionID(this.props.reportID);
     }
 
+    /**
+     * Show the new Markerbadge when user is looking at the History of messages
+     *
+     * @memberof ReportActionsView
+     */
     showMarker() {
         if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
             this.setState({isMarkerActive: true});
@@ -369,10 +374,21 @@ class ReportActionsView extends React.Component {
         }
     }
 
+    /**
+     * Hide the new MarkerBadge
+     *
+     * @memberof ReportActionsView
+     */
     hideMarker() {
         this.setState({isMarkerActive: false});
     }
 
+    /**
+     * keeps track of the Scroll offset of the main messages list
+     *
+     * @param {*} {nativeEvent}
+     * @memberof ReportActionsView
+     */
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
         this.showMarker();
