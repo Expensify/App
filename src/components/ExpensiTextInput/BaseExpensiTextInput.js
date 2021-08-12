@@ -19,7 +19,7 @@ class BaseExpensiTextInput extends Component {
     constructor(props) {
         super(props);
 
-        const hasValue = props.value.length > 0;
+        const hasValue = props.value && props.value.length > 0;
 
         this.state = {
             isFocused: false,
