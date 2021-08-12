@@ -75,9 +75,7 @@ class PasswordPage extends Component {
             stateToUpdate.shouldShowPasswordConfirmError = false;
         }
 
-        if (!isEmpty(stateToUpdate)) {
-            this.setState(stateToUpdate);
-        }
+        this.setState(stateToUpdate);
     }
 
     onBlurConfirmPassword() {
