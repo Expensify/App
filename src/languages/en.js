@@ -122,12 +122,11 @@ export default {
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
-    contextMenuItem: {
+    reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
-    },
-    reportActionContextMenu: {
         copyLink: 'Copy Link',
+        copyURLToClipboard: 'Copy URL to Clipboard',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
@@ -216,7 +215,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'The New Expensify is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'The New Expensify App is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -389,8 +388,9 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Enter password',
+        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
+        chooseAccountLabel: 'Account',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
