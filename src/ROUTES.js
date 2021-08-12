@@ -80,7 +80,8 @@ export default {
     getWorkspacePeopleRoute: policyID => `workspace/${policyID}/people`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
-    REQUEST_CALL: 'request-call',
+    getRequestCallRoute: taskID => `request-call/${taskID}`,
+    REQUEST_CALL: 'request-call/:taskID',
     getWorkspaceEditorRoute: policyID => `workspace/${policyID}/edit`,
     WORKSPACE_EDITOR: 'workspace/:policyID/edit',
     VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {

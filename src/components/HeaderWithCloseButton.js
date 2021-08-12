@@ -47,7 +47,7 @@ const defaultProps = {
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
-    shouldShowInboxCallButton: false,
+    shouldShowInboxCallButton: true,
 };
 
 const HeaderWithCloseButton = props => (

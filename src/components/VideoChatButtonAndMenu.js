@@ -22,10 +22,12 @@ const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
     isConcierge: PropTypes.bool,
+    taskID: PropTypes.string,
 };
 
 const defaultProps = {
     isConcierge: false,
+    taskID: '',
 };
 
 class VideoChatButtonAndMenu extends Component {
@@ -99,7 +101,7 @@ class VideoChatButtonAndMenu extends Component {
                         onPress={() => {
                             // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                             if (this.props.isConcierge) {
-                                Navigation.navigate(ROUTES.REQUEST_CALL);
+                                Navigation.navigate(ROUTES.getRequestCallRoute(this.props.taskID));
                                 return;
                             }
                             this.toggleVideoChatMenu();
