@@ -9,7 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import SCREENS from '../SCREENS';
-import {continueSessionFromECom, setRedirectAfterSign} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectAfterSignIn} from '../libs/actions/Session';
 import {create} from '../libs/actions/Policy';
 
 const propTypes = {
@@ -47,7 +47,7 @@ class LoginWithValidateCodePage extends Component {
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
             if (_.isEmpty(this.props.betas)) {
-                setRedirectAfterSign(true);
+                setRedirectAfterSignIn(true);
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE) {

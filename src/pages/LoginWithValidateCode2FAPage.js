@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
-import {continueSessionFromECom, setRedirectAfterSign} from '../libs/actions/Session';
+import {continueSessionFromECom, setRedirectAfterSignIn} from '../libs/actions/Session';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import variables from '../styles/variables';
@@ -71,7 +71,7 @@ class LoginWithValidateCode2FAPage extends Component {
             Navigation.dismissModal();
 
             if (_.isEmpty(this.props.betas)) {
-                setRedirectAfterSign(true);
+                setRedirectAfterSignIn(true);
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD) {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
             } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE) {

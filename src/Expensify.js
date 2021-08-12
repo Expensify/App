@@ -17,7 +17,7 @@ import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
-import {setRedirectAfterSign} from './libs/actions/Session';
+import {setRedirectAfterSignIn} from './libs/actions/Session';
 import {create} from './libs/actions/Policy';
 
 const propTypes = {
@@ -114,8 +114,7 @@ class Expensify extends PureComponent {
         if (this.getAuthToken()
             && !_.isEmpty(this.props.betas)
             && lodashGet(this.props, 'session.redirectAfterSignIn', false)) {
-            setRedirectAfterSign(false);
-            create();
+            setRedirectAfterSignIn(false);
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
