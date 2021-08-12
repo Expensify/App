@@ -151,6 +151,14 @@ jobs:
             Engineering
             Hourly
 
+      - name: Assign the PR to the deployer
+        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        uses: actions-ecosystem/action-add-assignees@a73fcabd82d847c5e7433fcfdd58ef9f7e8a3993
+        with:
+          number: ${{ steps.createPullRequest.outputs.pr_number }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: ${{ github.actor }}
+
       - name: If PR has merge conflicts, comment with instructions for assignee
         if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
