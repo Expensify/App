@@ -30,6 +30,7 @@ class PressableWithSecondaryInteraction extends Component {
      */
     executeSecondaryInteractionOnContextMenu(e) {
         const selection = window.getSelection().toString();
+        e.stopPropagation();
         if (this.props.preventDefaultContentMenu) {
             e.preventDefault();
         }
@@ -44,6 +45,7 @@ class PressableWithSecondaryInteraction extends Component {
                 delayLongPress={200}
                 onLongPress={this.props.onSecondaryInteraction}
                 onPressOut={this.props.onPressOut}
+                onPress={this.props.onPress}
                 ref={el => this.pressableRef = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultPressableProps}

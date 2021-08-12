@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {ScrollView, TextInput} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -19,6 +19,7 @@ import Growl from '../libs/Growl';
 import {requestConciergeDMCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 
@@ -168,17 +169,16 @@ class RequestCallPage extends Component {
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}
                         />
-                        <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
-                            {this.props.translate('common.phoneNumber')}
-                        </Text>
-                        <TextInput
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            style={[styles.textInput]}
-                            value={this.state.phoneNumber}
-                            placeholder="+14158675309"
-                            onChangeText={phoneNumber => this.setState({phoneNumber})}
-                        />
+                        <View style={styles.mt4}>
+                            <ExpensiTextInput
+                                label={this.props.translate('common.phoneNumber')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                value={this.state.phoneNumber}
+                                placeholder="+14158675309"
+                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                            />
+                        </View>
                         <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
                             {this.props.translate('requestCallPage.availabilityText')}
                         </Text>

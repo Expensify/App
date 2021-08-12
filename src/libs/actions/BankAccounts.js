@@ -10,7 +10,7 @@ import BankAccount from '../models/BankAccount';
 import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import {DeleteBankAccount} from '../API';
+import Navigation from '../Navigation/Navigation';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -329,9 +329,19 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+    const oldACHData = {
+        accountNumber: reimbursementAccountInSetup.accountNumber || '',
+        routingNumber: reimbursementAccountInSetup.routingNumber || '',
+    };
+
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+        loading: true,
+
+        // We temporarily keep the achData state to prevent UI changes while fetching.
+        achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
+    });
     let bankAccountID;
 
     API.Get({
@@ -403,6 +413,11 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
+
+                    // Adding a default empty state to make sure we override the temporary one we are keeping
+                    // for UI purposes. This covers an edge case in which a user deleted their bank account,
+                    // but would still see Finish Setup in the UI, instead of Get Started.
+                    achData.state = lodashGet(achData, 'state', '');
 
                     // If the bank account has already been created in the db and is not yet open
                     // let's show the manual form with the previously added values
@@ -479,7 +494,18 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })
                 .finally(() => {
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                    const dataToMerge = {
+                        loading: false,
+                    };
+
+                    // If we didn't get a routingNumber and accountNumber from the response and we have previously saved
+                    // values, autofill them
+                    if (!reimbursementAccountInSetup.routingNumber && !reimbursementAccountInSetup.accountNumber
+                        && oldACHData.routingNumber && oldACHData.accountNumber) {
+                        dataToMerge.achData = oldACHData;
+                    }
+
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, dataToMerge);
                 });
         });
 }
@@ -554,14 +580,30 @@ function validateBankAccount(bankAccountID, validateCode) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
+                        const reimbursementAccount = {
+                            loading: false,
+                            error: '',
+                            achData: {state: BankAccount.STATE.OPEN},
+                        };
+
+                        if (isUsingExpensifyCard) {
+                            Navigation.dismissModal();
+                        } else {
+                            reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
+                        }
+
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
+                        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, reimbursementAccount);
                     });
                 return;
             }
 
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
         });
+}
+
+function showBankAccountFormValidationError(error) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => Growl.error(error));
 }
 
 /**
@@ -603,9 +645,18 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
+        /* eslint-disable arrow-body-style */
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
-
+            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
+            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
+            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
+            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                loading: false,
+                achData: {...newACHData},
+            })
+                .then(() => Promise.resolve(response));
+        })
+        .then((response) => {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
@@ -726,7 +777,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                Growl.error(error, 5000);
+                showBankAccountFormValidationError(error);
             }
         })
         .catch((response) => {
@@ -736,7 +787,7 @@ function setupWithdrawalAccount(data) {
         });
 }
 
-function hideExistingOwnersError() {
+function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
@@ -759,6 +810,7 @@ export {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     validateBankAccount,
-    hideExistingOwnersError,
     deleteBankAccount,
+    hideBankAccountErrors,
+    showBankAccountFormValidationError,
 };

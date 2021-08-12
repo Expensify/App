@@ -39,6 +39,7 @@ Onyx.registerLogger(({level, message}) => {
 // the same key (e.g. FlatList renderItem components)
 const [withNetwork, NetworkProvider] = createOnyxContext(ONYXKEYS.NETWORK);
 const [withPersonalDetails, PersonalDetailsProvider] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS);
+const [withCurrentDate, CurrentDateProvider] = createOnyxContext(ONYXKEYS.CURRENT_DATE);
 const [
     withReportActionsDrafts,
     ReportActionsDraftsProvider,
@@ -55,6 +56,7 @@ const OnyxProvider = props => (
             NetworkProvider,
             PersonalDetailsProvider,
             ReportActionsDraftsProvider,
+            CurrentDateProvider,
         ]}
     >
         {props.children}
@@ -70,4 +72,5 @@ export {
     withNetwork,
     withPersonalDetails,
     withReportActionsDrafts,
+    withCurrentDate,
 };

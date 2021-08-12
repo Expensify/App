@@ -87,7 +87,14 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
+
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+                    // Erase all policies in Onyx
+                    ...(_.reduce(_.keys(allPolicies), (memo, key) => ({...memo, [key]: null}), {})),
+
+                    // And overwrite them with only the ones returned by the API call
+                    ...policyDataToStore,
+                });
             }
         });
 }
@@ -185,6 +192,7 @@ function invite(logins, welcomeNote, policyID) {
  * @param {String} [name]
  */
 function create(name = '') {
+    let res = null;
     API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -193,17 +201,18 @@ function create(name = '') {
                 Growl.error(errorMessage, 5000);
                 return;
             }
+            res = response;
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
                 employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
                 id: response.policyID,
                 type: response.policy.type,
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
             });
+        }).then(() => {
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
-            Growl.success(translateLocal('workspace.new.successMessage'));
+            Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
         });
 }
 
