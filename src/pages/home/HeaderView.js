@@ -158,7 +158,7 @@ const HeaderView = (props) => {
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
-                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
+                            <VideoChatButtonAndMenu openInboxCall={isConcierge} taskID={'ExpensifyCashConciergeDM'} />
                             <Pressable
                                 onPress={() => togglePinnedState(props.report)}
                                 style={[styles.touchableButtonImage, styles.mr0]}

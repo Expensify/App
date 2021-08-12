@@ -36,6 +36,8 @@ const propTypes = {
     /** Whether weshould show a inbox call button */
     shouldShowInboxCallButton: PropTypes.bool,
 
+    inboxCallTaskID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -47,7 +49,8 @@ const defaultProps = {
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
-    shouldShowInboxCallButton: true,
+    shouldShowInboxCallButton: false,
+    inboxCallTaskID: '',
 };
 
 const HeaderWithCloseButton = props => (
@@ -83,7 +86,7 @@ const HeaderWithCloseButton = props => (
                 }
 
                 {
-                    props.shouldShowInboxCallButton && <VideoChatButtonAndMenu isConcierge />
+                    props.shouldShowInboxCallButton && <VideoChatButtonAndMenu openInboxCall taskID={props.inboxCallTaskID} />
 
                 }
 

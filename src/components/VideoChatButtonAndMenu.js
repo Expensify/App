@@ -21,12 +21,12 @@ import ROUTES from '../ROUTES';
 const propTypes = {
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-    isConcierge: PropTypes.bool,
+    openInboxCall: PropTypes.bool,
     taskID: PropTypes.string,
 };
 
 const defaultProps = {
-    isConcierge: false,
+    openInboxCall: false,
     taskID: '',
 };
 
@@ -100,7 +100,7 @@ class VideoChatButtonAndMenu extends Component {
                     <Pressable
                         onPress={() => {
                             // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
-                            if (this.props.isConcierge) {
+                            if (this.props.openInboxCall) {
                                 Navigation.navigate(ROUTES.getRequestCallRoute(this.props.taskID));
                                 return;
                             }
@@ -110,7 +110,7 @@ class VideoChatButtonAndMenu extends Component {
                     >
                         <Icon
                             src={Phone}
-                            fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
+                            fill={(this.props.openInboxCall || this.state.isVideoChatMenuActive)
                                 ? themeColors.heading
                                 : themeColors.icon}
                         />
