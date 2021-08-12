@@ -1,17 +1,17 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
-import * as Animatable from 'react-native-animatable';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 import SectionList from './SectionList';
+import AnimatedStep from './AnimatedStep';
 import Text from './Text';
 
 const propTypes = {
-    /** String containing the animation type */
-    animation: PropTypes.string,
+    /** String containing the direction to animate */
+    direction: PropTypes.string,
 
     /** option Background Color */
     optionBackgroundColor: PropTypes.string,
@@ -88,7 +88,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    animation: undefined,
+    direction: undefined,
     optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
@@ -227,11 +227,9 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <Animatable.View
-                animation={this.props.animation}
-                duration={300}
-                useNativeDriver
-                style={this.props.listContainerStyles}
+            <AnimatedStep
+                direction={this.props.direction}
+                style={[...this.props.listContainerStyles]}
             >
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
@@ -260,7 +258,7 @@ class OptionsList extends Component {
                     viewabilityConfig={this.viewabilityConfig}
                     onViewableItemsChanged={this.onViewableItemsChanged}
                 />
-            </Animatable.View>
+            </AnimatedStep>
         );
     }
 }

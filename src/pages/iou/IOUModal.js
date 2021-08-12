@@ -19,6 +19,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -161,12 +162,12 @@ class IOUModal extends Component {
      * our step index.
      * @returns {String}
     */
-    getAnimation() {
+    getDirection() {
         if (this.state.previousStepIndex < this.state.currentStepIndex) {
-            return 'slideInRight';
+            return 'in';
         }
         if (this.state.previousStepIndex > this.state.currentStepIndex) {
-            return 'slideInLeft';
+            return 'out';
         }
     }
 
@@ -336,21 +337,25 @@ class IOUModal extends Component {
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
-                                        <IOUAmountPage
-                                            animation={this.getAnimation()}
-                                            onStepComplete={(amount) => {
-                                                this.setState({amount});
-                                                this.navigateToNextStep();
-                                            }}
-                                            reportID={reportID}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            selectedAmount={this.state.amount}
-                                            navigation={this.props.navigation}
-                                        />
+                                        <AnimatedStep
+                                            direction={this.getDirection()}
+                                            style={[styles.flex1, styles.pageWrapper]}
+                                        >
+                                            <IOUAmountPage
+                                                onStepComplete={(amount) => {
+                                                    this.setState({amount});
+                                                    this.navigateToNextStep();
+                                                }}
+                                                reportID={reportID}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                selectedAmount={this.state.amount}
+                                                navigation={this.props.navigation}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
                                         <IOUParticipantsPage
-                                            animation={this.getAnimation()}
+                                            direction={this.getDirection()}
                                             participants={this.state.participants}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             onAddParticipants={this.addParticipants}
@@ -359,7 +364,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <IOUConfirmPage
-                                            animation={this.getAnimation()}
+                                            direction={this.getDirection()}
                                             onConfirm={this.createTransaction}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             participants={this.state.participants}

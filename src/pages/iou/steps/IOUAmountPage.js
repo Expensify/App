@@ -6,7 +6,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import * as Animatable from 'react-native-animatable';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
@@ -140,12 +139,7 @@ class IOUAmountPage extends React.Component {
 
     render() {
         return (
-            <Animatable.View
-                duration={300}
-                animation={this.props.animation}
-                useNativeDriver
-                style={[styles.flex1, styles.pageWrapper]}
-            >
+            <>
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
@@ -197,7 +191,7 @@ class IOUAmountPage extends React.Component {
                         text={this.props.translate('common.next')}
                     />
                 </View>
-            </Animatable.View>
+            </>
         );
     }
 }

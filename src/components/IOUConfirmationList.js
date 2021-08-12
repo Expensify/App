@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
-import * as Animatable from 'react-native-animatable';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
@@ -21,12 +20,13 @@ import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
+import AnimatedStep from './AnimatedStep';
 import ExpensiTextInput from './ExpensiTextInput';
 import CONST from '../CONST';
 
 const propTypes = {
-    /** String containing the animation type */
-    animation: PropTypes.string,
+    /** String containing the direction to animate */
+    direction: PropTypes.string,
 
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
@@ -103,7 +103,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    animation: undefined,
+    direction: undefined,
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -333,7 +333,7 @@ class IOUConfirmationList extends Component {
         return (
             <>
                 <ScrollView style={[styles.flex1, styles.w100]}>
-                    <Animatable.View animation={this.props.animation} duration={300}>
+                    <AnimatedStep direction={this.props.direction}>
                         <OptionsList
                             listContainerStyles={[{
                                 // Give max height to the list container so that it does not extend
@@ -352,17 +352,17 @@ class IOUConfirmationList extends Component {
                             disableRowInteractivity={!this.props.hasMultipleParticipants}
                             optionHoveredStyle={hoverStyle}
                         />
-                        <View style={[styles.ph5, styles.pb5]}>
-                            <ExpensiTextInput
-                                label={this.props.translate('iOUConfirmationList.whatsItFor')}
-                                value={this.props.comment}
-                                onChangeText={this.props.onUpdateComment}
-                                placeholder={this.props.translate('common.optional')}
-                                placeholderTextColor={themeColors.placeholderText}
-                                autoFocus
-                            />
-                        </View>
-                    </Animatable.View>
+                    </AnimatedStep>
+                    <View style={[styles.ph5, styles.pb5]}>
+                        <ExpensiTextInput
+                            label={this.props.translate('iOUConfirmationList.whatsItFor')}
+                            value={this.props.comment}
+                            onChangeText={this.props.onUpdateComment}
+                            placeholder={this.props.translate('common.optional')}
+                            placeholderTextColor={themeColors.placeholderText}
+                            autoFocus
+                        />
+                    </View>
                 </ScrollView>
                 <FixedFooter>
                     {this.props.network.isOffline && (

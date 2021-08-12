@@ -9,8 +9,8 @@ import themeColors from '../../../../styles/themes/default';
 import styles from '../../../../styles/styles';
 
 const propTypes = {
-    /** String containing the animation type */
-    animation: PropTypes.string,
+    /** String containing the direction to animate */
+    direction: PropTypes.string,
 
     /** Callback to inform parent modal of success */
     onStepComplete: PropTypes.func.isRequired,
@@ -46,7 +46,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    animation: undefined,
+    direction: undefined,
     iou: {},
     participants: [],
 };
@@ -63,7 +63,7 @@ const IOUParticipantsPage = (props) => {
     return (props.hasMultipleParticipants
         ? (
             <IOUParticipantsSplit
-                animation={props.animation}
+                direction={props.direction}
                 onStepComplete={props.onStepComplete}
                 participants={props.participants}
                 onAddParticipants={props.onAddParticipants}
@@ -71,7 +71,7 @@ const IOUParticipantsPage = (props) => {
         )
         : (
             <IOUParticipantsRequest
-                animation={props.animation}
+                direction={props.direction}
                 onStepComplete={props.onStepComplete}
                 onAddParticipants={props.onAddParticipants}
             />
