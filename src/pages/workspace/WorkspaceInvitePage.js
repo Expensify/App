@@ -52,7 +52,7 @@ class WorkspaceInvitePage extends React.Component {
 
         this.state = {
             userLogins: '',
-            welcomeNote: '',
+            welcomeNote: this.getWelcomeNotePlaceholder(),
         };
 
         this.inviteUser = this.inviteUser.bind(this);
