@@ -4,8 +4,9 @@ import '@formatjs/intl-locale/polyfill';
 import '@formatjs/intl-pluralrules/polyfill';
 import '@formatjs/intl-numberformat/polyfill';
 
-// Load en Locale data
+// Load en & es Locale data
 import '@formatjs/intl-numberformat/locale-data/en';
+import '@formatjs/intl-numberformat/locale-data/es';
 
 function numberFormat(locale, number, options) {
     return new Intl.NumberFormat(locale, options).format(number);

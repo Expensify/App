@@ -132,7 +132,10 @@ class ReportScreen extends React.Component {
                     onNavigationMenuButtonClicked={() => Navigation.navigate(ROUTES.HOME)}
                 />
 
-                <View nativeID={CONST.REPORT.DROP_NATIVE_ID} style={[styles.flex1, styles.justifyContentEnd]}>
+                <View
+                    nativeID={CONST.REPORT.DROP_NATIVE_ID}
+                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                >
                     <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
                     {!this.shouldShowLoader() && <ReportActionsView reportID={reportID} />}
                     {this.props.session.shouldShowComposeInput && (
