@@ -7,7 +7,7 @@ import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import Firebase from '../Firebase';
 import ROUTES from '../../ROUTES';
-import {canCapturePerformanceMetrics} from '../Performance';
+import {canCapturePerformanceMetrics, printPerformanceMetrics} from '../Performance';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -67,6 +67,7 @@ function setSidebarLoaded() {
     const performance = require('react-native-performance').default;
     performance.mark('sidebarLoadEnd');
     performance.measure('timeToInteractive', 'nativeLaunchStart', 'sidebarLoadEnd');
+    printPerformanceMetrics();
 }
 
 export {

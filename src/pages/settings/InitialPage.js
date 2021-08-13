@@ -27,7 +27,6 @@ import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
-import {canCapturePerformanceMetrics, printPerformanceMetrics} from '../../libs/Performance';
 
 const propTypes = {
     /* Onyx Props */
@@ -119,14 +118,6 @@ const defaultMenuItems = [
         action: signOut,
     },
 ];
-
-// Add the print metrics option to the Settings menu if it is enabled
-if (canCapturePerformanceMetrics()) {
-    defaultMenuItems.unshift({
-        title: 'Print Perf Metrics',
-        action: () => printPerformanceMetrics(),
-    });
-}
 
 const InitialSettingsPage = ({
     myPersonalDetails,
