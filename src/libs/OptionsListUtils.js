@@ -466,6 +466,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     if (searchValue
         && recentReportOptions.length === 0
         && personalDetailsOptions.length === 0
+        // eslint-disable-next-line no-use-before-define
+        && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
