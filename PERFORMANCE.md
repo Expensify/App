@@ -39,7 +39,7 @@ To capture reliable performance metrics for native app launch we must test again
 
 - `nativeLaunch` - Total time for the native process to intialize
 - `runJSBundle` - Total time to parse and execute the JS bundle
-- `timeToInteractive` - Roughly tracks the total overall time (starting with the native init and ending with the sidebar UI load)
+- `timeToInteractive` - Rough TTI (Time to Interactive). Includes native init time + sidebar UI partially loaded
 
 #### How to create a Release Build on Android
 
