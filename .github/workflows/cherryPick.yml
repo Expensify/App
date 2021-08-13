@@ -80,6 +80,7 @@ jobs:
         uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USER: ${{ github.actor }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
       - name: Save correct NEW_VERSION to env
@@ -157,7 +158,7 @@ jobs:
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: ${{ github.actor }}
+          assignees: ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
 
       - name: If PR has merge conflicts, comment with instructions for assignee
         if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
