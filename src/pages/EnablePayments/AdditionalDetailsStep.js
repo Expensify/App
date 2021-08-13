@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {Fragment} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import {
