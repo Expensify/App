@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../components/Text';
 import StatePicker from '../../components/StatePicker';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
@@ -110,7 +109,6 @@ const IdentityForm = ({
                     />
                 </View>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.formLabel]}>{translate('common.state')}</Text>
                     <StatePicker
                         value={state}
                         onChange={val => onFieldChange('state', val)}

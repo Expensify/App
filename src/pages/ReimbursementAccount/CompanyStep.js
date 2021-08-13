@@ -58,6 +58,7 @@ class CompanyStep extends React.Component {
             'companyTaxID',
             'incorporationDate',
             'incorporationState',
+            'incorporationType',
             'industryCode',
             'password',
         ];
@@ -155,7 +156,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.formLabel]}>{this.props.translate('common.state')}</Text>
                                 <StatePicker
                                     onChange={addressState => this.setState({addressState})}
                                     value={this.state.addressState}
@@ -196,7 +196,7 @@ class CompanyStep extends React.Component {
                                 items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
                                 onChange={incorporationType => this.setState({incorporationType})}
                                 value={this.state.incorporationType}
-                                placeholder={{value: '', label: 'Type'}}
+                                placeholder={{value: '', label: '-'}}
                             />
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
@@ -210,7 +210,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.formLabel]}>{this.props.translate('common.state')}</Text>
                                 <StatePicker
                                     onChange={incorporationState => this.setState({incorporationState})}
                                     value={this.state.incorporationState}
