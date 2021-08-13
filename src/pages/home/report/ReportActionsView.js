@@ -37,6 +37,7 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
+import MarkerBadge from './MarkerBadge';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -99,11 +100,17 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isLoadingMoreChats: false,
+            isMarkerActive: false,
         };
 
+        this.currentScrollOffset = 0;
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
+        this.trackScroll = this.trackScroll.bind(this);
+        this.showMarker = this.showMarker.bind(this);
+        this.hideMarker = this.hideMarker.bind(this);
+        this.toggleMarker = this.toggleMarker.bind(this);
     }
 
     componentDidMount() {
@@ -152,6 +159,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (nextState.isMarkerActive !== this.state.isMarkerActive) {
+            return true;
+        }
+
         if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
             return true;
         }
@@ -189,6 +200,9 @@ class ReportActionsView extends React.Component {
             if (shouldRecordMaxAction) {
                 updateLastReadActionID(this.props.reportID);
             }
+
+            // show new MarkerBadge when there is a new Message
+            this.toggleMarker();
         }
 
         // We want to mark the unread comments when user resize the screen to desktop
@@ -347,6 +361,43 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
+     */
+    toggleMarker() {
+        if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
+            this.showMarker();
+        }
+
+        if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
+            this.hideMarker();
+        }
+    }
+
+    /**
+     * Show the new MarkerBadge
+     */
+    showMarker() {
+        this.setState({isMarkerActive: true});
+    }
+
+    /**
+     * Hide the new MarkerBadge
+     */
+    hideMarker() {
+        this.setState({isMarkerActive: false});
+    }
+
+    /**
+     * keeps track of the Scroll offset of the main messages list
+     *
+     * @param {Object} {nativeEvent}
+     */
+    trackScroll({nativeEvent}) {
+        this.currentScrollOffset = -nativeEvent.contentOffset.y;
+        this.toggleMarker();
+    }
+
+    /**
      * Runs when the FlatList finishes laying out
      */
     recordTimeToMeasureItemLayout() {
@@ -427,6 +478,12 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
+                <MarkerBadge
+                    active={this.state.isMarkerActive}
+                    count={this.props.report.unreadActionCount}
+                    onClick={scrollToBottom}
+                    onClose={this.hideMarker}
+                />
                 <InvertedFlatList
                     ref={flatListRef}
                     data={this.sortedReportActions}
@@ -443,6 +500,7 @@ class ReportActionsView extends React.Component {
                         : null}
                     keyboardShouldPersistTaps="handled"
                     onLayout={this.recordTimeToMeasureItemLayout}
+                    onScroll={this.trackScroll}
                 />
                 <PopoverReportActionContextMenu ref={contextMenuRef} />
             </>

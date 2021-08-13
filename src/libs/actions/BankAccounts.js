@@ -602,6 +602,10 @@ function validateBankAccount(bankAccountID, validateCode) {
         });
 }
 
+function showBankAccountFormValidationError(error) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => Growl.error(error));
+}
+
 /**
  * Create or update the bank account in db with the updated data.
  *
@@ -773,7 +777,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                Growl.error(error, 5000);
+                showBankAccountFormValidationError(error);
             }
         })
         .catch((response) => {
@@ -783,7 +787,7 @@ function setupWithdrawalAccount(data) {
         });
 }
 
-function hideExistingOwnersError() {
+function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
@@ -799,5 +803,6 @@ export {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     validateBankAccount,
-    hideExistingOwnersError,
+    hideBankAccountErrors,
+    showBankAccountFormValidationError,
 };
