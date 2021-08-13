@@ -164,13 +164,26 @@ describe('OptionsListUtils', () => {
 
     const REPORTS_WITH_CHRONOS = {
         ...REPORTS,
-        10: {
+        11: {
             lastVisitedTimestamp: 1610666739302,
             lastMessageTimestamp: 1,
             isPinned: false,
             reportID: 10,
             participants: ['chronos@expensify.com'],
             reportName: 'Chronos',
+            unreadActionCount: 1,
+        },
+    };
+
+    const REPORTS_WITH_RECEIPTS = {
+        ...REPORTS,
+        12: {
+            lastVisitedTimestamp: 1610666739302,
+            lastMessageTimestamp: 1,
+            isPinned: false,
+            reportID: 10,
+            participants: ['receipts@expensify.com'],
+            reportName: 'Receipts',
             unreadActionCount: 1,
         },
     };
@@ -190,6 +203,15 @@ describe('OptionsListUtils', () => {
         'chronos@expensify.com': {
             displayName: 'Chronos',
             login: 'chronos@expensify.com',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_RECEIPTS = {
+        ...PERSONAL_DETAILS,
+
+        'receipts@expensify.com': {
+            displayName: 'Receipts',
+            login: 'receipts@expensify.com',
         },
     };
 
@@ -317,6 +339,19 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails).not.toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'chronos@expensify.com'}),
+            ]),
+        );
+
+        // Test by excluding Receipts from the results
+        results = OptionsListUtils.getNewChatOptions(
+            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, '', {excludeReceipts: true},
+        );
+
+        // All the personalDetails should be returned minus the currently logged in user and Concierge
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_RECEIPTS) - 2 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'receipts@expensify.com'}),
             ]),
         );
     });
@@ -481,6 +516,31 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'chronos@expensify.com'}),
+            ]),
+        );
+
+        // Test by excluding Receipts from the results
+        results = OptionsListUtils.getNewGroupOptions(
+            REPORTS_WITH_RECEIPTS,
+            PERSONAL_DETAILS_WITH_RECEIPTS,
+            '',
+            [],
+            {
+                excludeReceipts: true,
+            },
+        );
+
+        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // the currently logged in user and Concierge)
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_RECEIPTS) - 7);
+        expect(results.personalDetails).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'receipts@expensify.com'}),
+            ]),
+        );
+        expect(results.recentReports).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'receipts@expensify.com'}),
             ]),
         );
     });
