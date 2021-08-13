@@ -45,6 +45,7 @@ function transferWalletBalance() {
                 return;
             }
             Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true});
         }).catch((error) => {
             console.debug(`[Payments] Failed to tranfer wallet balance: ${error.message}`);
         });

@@ -1,5 +1,6 @@
 import React from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
+import Onyx from 'react-native-onyx';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -8,6 +9,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import PaymentMethodList from './PaymentMethodList';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,7 +29,8 @@ class ChooseTransferAccountPage extends React.Component {
      */
     paymentMethodSelected(nativeEvent, account) {
         if (account) {
-            Navigation.navigate(ROUTES.getSettingsTransferBalanceRoute(account));
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountID: account});
+            Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
         }
     }
 

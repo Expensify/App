@@ -5,13 +5,13 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import userWalletPropTypes from './userWalletPropTypes';
 import CONST from '../../CONST';
 import Text from '../../components/Text';
+import {userWalletPropTypes} from '../settings/Payments/paymentPropTypes';
 
 const propTypes = {
+    userWallet: userWalletPropTypes,
     ...withLocalizePropTypes,
-    ...userWalletPropTypes,
 };
 
 const defaultProps = {

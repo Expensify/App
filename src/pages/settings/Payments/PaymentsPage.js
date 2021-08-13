@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -10,21 +11,28 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
-import getPaymentMethods from '../../../libs/actions/PaymentMethods';
+import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import {PayPal, Transfer} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
+import ConfirmModal from '../../../components/ConfirmModal';
+import ONYXKEYS from '../../../ONYXKEYS';
+import {walletTransferPropTypes} from './paymentPropTypes';
 
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
+    walletTransfer: walletTransferPropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    payPalMeUsername: '',
+    walletTransfer: {
+        completed: false,
+    },
 };
 
 class PaymentsPage extends React.Component {
@@ -115,7 +123,7 @@ class PaymentsPage extends React.Component {
                         <CurrentWalletBalance />
                     </View>
                     <MenuItem
-                        title="Transfer Balance"
+                        title={this.props.translate('common.transferBalance')}
                         icon={Transfer}
                         onPress={this.transferBalance}
                         shouldShowRightIcon
@@ -146,6 +154,16 @@ class PaymentsPage extends React.Component {
                             onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
                         />
                     </Popover>
+                    <ConfirmModal
+                        title={this.props.translate('paymentsPage.allSet')}
+                        onConfirm={() => Onyx.set(ONYXKEYS.WALLET_TRANSFER, null)}
+                        isVisible={this.props.walletTransfer.completed}
+                        prompt={this.props.translate('paymentsPage.transferConfirmText', {
+                            amount: this.props.walletTransfer.transferAmount,
+                        })}
+                        confirmText={this.props.translate('paymentsPage.gotIt')}
+                        shouldShowCancelButton={false}
+                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
@@ -158,4 +176,9 @@ PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
+    withOnyx({
+        walletTransfer: {
+            key: ONYXKEYS.WALLET_TRANSFER,
+        },
+    }),
 )(PaymentsPage);

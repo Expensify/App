@@ -8,13 +8,13 @@ import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
-import CONST from '../../../CONST';
 import {
     Bank,
     CreditCard,
     PayPal,
     Plus,
 } from '../../../components/Icon/Expensicons';
+import {getPaymentMethodsList} from '../../../libs/paymentUtils';
 
 const MENU_ITEM = 'menuItem';
 
@@ -78,61 +78,31 @@ class PaymentMethodList extends Component {
      * @returns {Array}
      */
     createPaymentMethodList() {
-        const combinedPaymentMethods = [];
+        const paymentMethods = getPaymentMethodsList(
+            this.props.bankAccountList,
+            this.props.cardList,
+            this.props.payPalMeUsername,
+        );
+        const combinedPaymentMethods = _.map(paymentMethods, (method) => {
+            let icon;
 
-        _.each(this.props.bankAccountList, (bankAccount) => {
-            // Add all bank accounts besides the wallet
-            if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
-                const formattedBankAccountNumber = bankAccount.accountNumber
-                    ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
-                        bankAccount.accountNumber.slice(-4)
-                    }`
-                    : null;
-                combinedPaymentMethods.push({
-                    type: MENU_ITEM,
-                    title: bankAccount.addressName,
-
-                    // eslint-disable-next-line
-                    description: formattedBankAccountNumber,
-                    icon: Bank,
-                    onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
-                    key: `bankAccount-${bankAccount.bankAccountID}`,
-                });
+            switch (method.type) {
+                case 'bank': icon = Bank; break;
+                case 'card': icon = CreditCard; break;
+                case 'payPalMe': icon = PayPal; break;
+                default: break;
             }
-        });
 
-        _.each(this.props.cardList, (card) => {
-            // Add all cards besides the "cash" card
-            if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
-                const formattedCardNumber = card.cardNumber
-                    ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
-                    : null;
-                combinedPaymentMethods.push({
-                    type: MENU_ITEM,
-                    title: card.cardName,
-
-                    // eslint-disable-next-line
-                    description: formattedCardNumber,
-                    icon: CreditCard,
-                    onPress: e => this.props.onPress(e, card.cardID),
-                    key: `card-${card.cardID}`,
-                });
-            }
-        });
-
-        if (this.props.payPalMeUsername) {
-            combinedPaymentMethods.push({
+            return {
+                ...method,
+                icon,
                 type: MENU_ITEM,
-                title: 'PayPal.me',
-                description: this.props.payPalMeUsername,
-                icon: PayPal,
-                onPress: e => this.props.onPress(e, 'payPalMe'),
-                key: 'payPalMePaymentMethod',
-            });
-        }
+                onPress: e => this.props.onPress(e, method.id),
+            };
+        });
 
         // If we have not added any payment methods, show a default empty state
-        if (_.isEmpty(combinedPaymentMethods)) {
+        if (_.isEmpty(paymentMethods)) {
             combinedPaymentMethods.push({
                 text: this.props.translate('paymentMethodList.addFirstPaymentMethod'),
             });

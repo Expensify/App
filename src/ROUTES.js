@@ -28,7 +28,6 @@ export default {
     SETTINGS_PAYMENTS: 'settings/payments',
     SETTINGS_ADD_PAYPAL_ME: 'settings/payments/add-paypal-me',
     SETTINGS_TRANSFER_BALANCE: 'settings/payments/transfer-balance',
-    getSettingsTransferBalanceRoute: account => `settings/payments/transfer-balance?account=${account}`,
     SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT: 'settings/payments/choose-transfer-Account',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,

@@ -1,9 +1,8 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
-import _ from 'underscore';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import {ScrollView} from 'react-native-gesture-handler';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
@@ -24,26 +23,40 @@ import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
-import userWalletPropTypes from '../../EnablePayments/userWalletPropTypes';
+import {
+    userWalletPropTypes,
+    bankAccountListPropTypes,
+    cardListPropTypes,
+    walletTransferPropTypes,
+} from './paymentPropTypes';
 import {transferWalletBalance} from '../../../libs/actions/PaymentMethods';
-
+import {getPaymentMethodsList} from '../../../libs/paymentUtils';
 
 const propTypes = {
-    /** Route params */
-    route: PropTypes.shape({
-        params: PropTypes.shape({
-            /** Selected Account for transferring amount */
-            account: PropTypes.string,
-        }),
-    }).isRequired,
+    /** User's paypal.me username if they have one */
+    payPalMeUsername: PropTypes.string,
 
-    ...userWalletPropTypes,
+    /** User's wallet information */
+    userWallet: userWalletPropTypes,
+
+    /** Array of bank account objects */
+    bankAccountList: bankAccountListPropTypes,
+
+    /** Array of card objects */
+    cardList: cardListPropTypes,
+
+    /** Wallet balance transfer props */
+    walletTransfer: walletTransferPropTypes,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    // eslint-disable-next-line react/default-props-match-prop-types
     userWallet: {},
+    payPalMeUsername: '',
+    bankAccountList: [],
+    cardList: [],
+    walletTransfer: {},
 };
 const Fee = 0.30;
 
@@ -52,7 +65,6 @@ class TransferBalancePage extends React.Component {
         super(props);
         this.state = {
             selectedPaymentType: CONST.WALLET.PAYMENT_TYPE.INSTANT,
-            selectedBankAccount: props.userWallet.linkedBankAccount,
 
             // Show loader while tranfer is in-transit
             loading: false,
@@ -73,17 +85,10 @@ class TransferBalancePage extends React.Component {
             },
         ];
 
+        Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
+            transferAmount: this.props.userWallet.availableBalance - Fee,
+        });
         this.transferBalance = this.transferBalance.bind(this);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (lodashGet(prevProps, 'route.params.account', '') !== lodashGet(this.props, 'route.params.account', '')) {
-            console.debug(lodashGet(this.props, 'route.params.account'));
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({
-                selectedBankAccount: lodashGet(this.props, 'route.params.account'),
-            });
-        }
     }
 
     /**
@@ -92,17 +97,36 @@ class TransferBalancePage extends React.Component {
      */
     transferBalance() {
         this.setState({loading: true});
-        transferWalletBalance().then(() => this.setState({loading: false}));
+        transferWalletBalance().then(() => {
+            this.setState({loading: false});
+            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+        });
     }
 
     render() {
-        const transferAmount = (this.props.userWallet.availableBalance - Fee).toFixed(2);
+        const paymentMethods = getPaymentMethodsList(
+            this.props.bankAccountList,
+            this.props.cardList,
+            this.props.payPalMeUsername,
+        );
+        const defaultAccount = _.find(
+            paymentMethods,
+            method => method.id === this.props.userWallet.linkedBankAccount,
+        );
+        const selectAccount = this.props.walletTransfer.selectedAccountID
+            ? _.find(
+                paymentMethods,
+                method => method.id === this.props.walletTransfer.selectedAccountID,
+            )
+            : defaultAccount || {};
+
+        const transferAmount = 30 || (this.props.userWallet.availableBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.props.translate('transferAmountPage.transferBalance')}
+                        title={this.props.translate('common.transferBalance')}
                         onCloseButtonPress={() => Navigation.goBack()}
                     />
                     <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
@@ -135,8 +159,8 @@ class TransferBalancePage extends React.Component {
                             {this.props.translate('transferAmountPage.whichAccount')}
                         </Text>
                         <MenuItem
-                            title="asdsdsd"
-                            description="dasdasdas"
+                            title={selectAccount.title}
+                            description={selectAccount.description}
                             shouldShowRightIcon
                             iconWidth={variables.iconSizeXLarge}
                             iconHeight={variables.iconSizeXLarge}
@@ -148,7 +172,13 @@ class TransferBalancePage extends React.Component {
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
                         />
                         <Text
-                            style={[styles.mt5, styles.mb3, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
+                            style={[
+                                styles.mt5,
+                                styles.mb3,
+                                styles.textStrong,
+                                styles.textLabel,
+                                styles.justifyContentStart,
+                            ]}
                         >
                             {this.props.translate('transferAmountPage.fee')}
                         </Text>
@@ -186,6 +216,18 @@ export default compose(
     withOnyx({
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        walletTransfer: {
+            key: ONYXKEYS.WALLET_TRANSFER,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(TransferBalancePage);

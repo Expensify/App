@@ -67,6 +67,7 @@ export default {
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
+        transferBalance: 'Transfer Balance',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
@@ -260,10 +261,12 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment Methods',
+        allSet: 'All Set!',
+        transferConfirmText: ({amount}) => `${amount} will hit your account shortly!`,
+        gotIt: 'Got it, Thanks!',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? (` ${amount}`) : ''}`,
-        transferBalance: 'Transfer Balance',
         instant: 'Instant',
         instantSummary: '1.5% fee ($0.25 minimum)',
         ach: '1-3 Business Days',
