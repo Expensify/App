@@ -1,6 +1,6 @@
 import PushNotification from '../../libs/Notification/PushNotification';
 import {subscribeToReportCommentPushNotifications} from '../../libs/actions/Report';
-import {setupPerformanceObserver} from '../libs/Performance';
+import {setupPerformanceObserver} from '../../libs/Performance';
 
 /**
  * Register callbacks for push notifications.
