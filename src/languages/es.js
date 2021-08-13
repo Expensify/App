@@ -36,6 +36,8 @@ export default {
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
+        download: 'Descargar',
+        back: 'De vuelta',
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
@@ -121,6 +123,7 @@ export default {
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        emoji: 'Emoji',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',

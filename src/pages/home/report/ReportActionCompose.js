@@ -57,6 +57,7 @@ import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
     /** Beta features list */
@@ -626,10 +627,12 @@ class ReportActionCompose extends React.Component {
                         disabled={isBlockedFromConcierge || isArchivedChatRoom}
                     >
                         {({hovered, pressed}) => (
-                            <Icon
-                                src={Emoji}
-                                fill={getIconFillColor(getButtonState(hovered, pressed))}
-                            />
+                            <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
+                                <Icon
+                                    src={Emoji}
+                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            </Tooltip>
                         )}
                     </Pressable>
                     <TouchableOpacity

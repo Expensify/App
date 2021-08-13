@@ -36,6 +36,8 @@ export default {
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        download: 'Download',
+        back: 'Back',
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
@@ -121,6 +123,7 @@ export default {
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
+        emoji: 'Emoji',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',

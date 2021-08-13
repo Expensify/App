@@ -9,6 +9,7 @@ import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     /** Title of the Header */
@@ -68,23 +69,29 @@ const HeaderWithCloseButton = props => (
             <View style={[styles.reportOptions, styles.flexRow]}>
                 {
                     props.shouldShowDownloadButton && (
+                    <Tooltip text={props.translate('common.download')}>
+
                         <TouchableOpacity
                             onPress={props.onDownloadButtonPress}
                             style={[styles.touchableButtonImage]}
                         >
                             <Icon src={Download} />
                         </TouchableOpacity>
+                    </Tooltip>
                     )
                 }
 
-                <TouchableOpacity
-                    onPress={props.onCloseButtonPress}
-                    style={[styles.touchableButtonImage]}
-                    accessibilityRole="button"
-                    accessibilityLabel={props.translate('common.close')}
-                >
-                    <Icon src={Close} />
-                </TouchableOpacity>
+                <Tooltip text={props.translate('common.close')}>
+
+                    <TouchableOpacity
+                        onPress={props.onCloseButtonPress}
+                        style={[styles.touchableButtonImage]}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('common.close')}
+                    >
+                        <Icon src={Close} />
+                    </TouchableOpacity>
+                </Tooltip>
             </View>
         </View>
     </View>
