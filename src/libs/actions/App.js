@@ -7,7 +7,8 @@ import CONST from '../../CONST';
 import CONFIG from '../../CONFIG';
 import Firebase from '../Firebase';
 import ROUTES from '../../ROUTES';
-import {canCapturePerformanceMetrics, printPerformanceMetrics} from '../Performance';
+import {printPerformanceMetrics} from '../Performance';
+import canCapturePerformanceMetrics from '../canCapturePerformanceMetrics';
 
 let currentUserAccountID;
 Onyx.connect({

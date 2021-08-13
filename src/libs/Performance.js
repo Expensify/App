@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import lodashTransform from 'lodash/transform';
-import CONFIG from '../CONFIG';
+import canCapturePerformanceMetrics from './canCapturePerformanceMetrics';
 
 /**
  * Deep diff between two objects. Useful for figuring out what changed about an object from one render to the next so
@@ -23,15 +23,6 @@ function diffObject(object, base) {
         });
     }
     return changes(object, base);
-}
-
-/**
- * Enables capturing performance stats.
- *
- * @returns {Boolean}
- */
-function canCapturePerformanceMetrics() {
-    return Boolean(CONFIG.CAPTURE_METRICS);
 }
 
 /**
@@ -71,7 +62,6 @@ function printPerformanceMetrics() {
 
 export {
     diffObject,
-    canCapturePerformanceMetrics,
     printPerformanceMetrics,
     setupPerformanceObserver,
 };
