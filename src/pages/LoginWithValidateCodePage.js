@@ -40,7 +40,7 @@ class LoginWithValidateCodePage extends Component {
         // If the user has an active session already, they need to be redirected straight to the relevant page
         if (this.props.session.authToken) {
             // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-            // modal you say? I know, it confuses me too. Without dismissing the current modal, if they user cancels out
+            // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
             // of the new workspace modal, then they will be routed back to
             // /v/<accountID>/<validateCode>/workspace/123/card and we don't want that. We want them to go back to `/`
             // and by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
