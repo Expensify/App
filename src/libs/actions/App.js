@@ -1,6 +1,5 @@
-import {AppState} from 'react-native';
+import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import {Linking} from 'react-native';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';

@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
 import BootSplash from './libs/BootSplash';
@@ -19,6 +19,9 @@ import {growlRef} from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
 import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
 import {create} from './libs/actions/Policy';
+import CONST from './CONST';
+import Log from './libs/Log';
+import listenToStorageEvents from './libs/listenToStorageEvents';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
