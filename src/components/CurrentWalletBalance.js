@@ -38,13 +38,15 @@ const CurrentWalletBalance = (props) => {
         );
     }
 
-    const formattedBalance = Number(props.userWallet.availableBalance).toFixed(2);
-
+    const formattedBalance = props.numberFormat(
+        props.userWallet.availableBalance,
+        {style: 'currency', currency: 'USD'},
+    );
     return (
         <Text
             style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter, ...props.balanceStyles]}
         >
-            {`$${formattedBalance}`}
+            {`${formattedBalance}`}
         </Text>
     );
 };

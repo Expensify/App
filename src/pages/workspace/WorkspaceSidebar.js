@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -21,8 +21,11 @@ import themedefault from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
+import CONST from '../../CONST';
+import {create} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Policy for the current route */
@@ -62,9 +65,15 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
         },
     ];
 
-    if (_.isEmpty(policy)) {
-        return null;
-    }
+    useEffect(() => {
+        if (_.isEmpty(policy)) {
+            Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
+            Navigation.dismissModal();
+            create();
+            return null;
+        }
+    }, [policy]);
+
 
     const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
 

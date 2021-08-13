@@ -25,7 +25,6 @@ import EnablePaymentsPage from '../../../pages/EnablePayments';
 import AddPersonalBankAccountPage from '../../../pages/AddPersonalBankAccountPage';
 import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
-import NewWorkspacePage from '../../../pages/workspace/NewWorkspacePage';
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 import TransferBalancePage from '../../../pages/settings/Payments/TransferBalancePage';
@@ -193,11 +192,6 @@ const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     name: 'ReimbursementAccount_Root',
 }]);
 
-const NewWorkspaceStackNavigator = createModalStackNavigator([{
-    Component: NewWorkspacePage,
-    name: 'NewWorkspace_Root',
-}]);
-
 const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
     Component: WorkspaceInvitePage,
     name: 'WorkspaceInvite_Root',
@@ -228,7 +222,6 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     WorkspaceEditorNavigator,

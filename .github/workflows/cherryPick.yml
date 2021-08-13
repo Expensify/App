@@ -44,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
@@ -72,12 +72,12 @@ jobs:
       - name: Create branch for new pull request
         run: |
           git config user.name ${{ github.actor }}
-          git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          git checkout -b ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          git push --set-upstream origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
-        uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
@@ -94,7 +94,7 @@ jobs:
 
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
-        uses: Expensify/Expensify.cash/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: OSBotify
@@ -128,16 +128,16 @@ jobs:
         # Version: 2.4.3
         uses: repo-sync/pull-request@65194d8015be7624d231796ddee1cd52a5023cb3
         with:
-          source_branch: cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          source_branch: ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           destination_branch: staging
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: '🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
-          pr_body: '🍒 Cherry pick https://github.com/Expensify/Expensify.cash/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
+          pr_body: '🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
           pr_label: automerge
 
       - name: Check if pull request is mergeable
         id: isPullRequestMergeable
-        uses: Expensify/Expensify.cash/.github/actions/isPullRequestMergeable@main
+        uses: Expensify/App/.github/actions/isPullRequestMergeable@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
