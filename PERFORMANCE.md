@@ -35,7 +35,7 @@
 
 ### Performance Metrics (Opt-In on local release builds)
 
-To capture reliable performance metrics for native app launch we must test against a release build. To make this easier for everyone to do we created an opt-in tool (using [`react-native-performance`](https://github.com/oblador/react-native-performance) that will capture metrics and add a new menu option to display them in the Settings page. To set this up just set `CAPTURE_METRICS=true` in your `.env` file then create a release build on iOS or Android. The metrics this tool shows are as follows:
+To capture reliable performance metrics for native app launch we must test against a release build. To make this easier for everyone to do we created an opt-in tool (using [`react-native-performance`](https://github.com/oblador/react-native-performance) that will capture metrics and display them in an alert once the app becomes interactive. To set this up just set `CAPTURE_METRICS=true` in your `.env` file then create a release build on iOS or Android. The metrics this tool shows are as follows:
 
 - `nativeLaunch` - Total time for the native process to intialize
 - `runJSBundle` - Total time to parse and execute the JS bundle
