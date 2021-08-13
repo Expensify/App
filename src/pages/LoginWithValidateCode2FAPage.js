@@ -20,6 +20,7 @@ import ROUTES from '../ROUTES';
 import SCREENS from '../SCREENS';
 import {create} from '../libs/actions/Policy';
 import Permissions from '../libs/Permissions';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -110,10 +111,9 @@ class LoginWithValidateCode2FAPage extends Component {
     }
 
     render() {
-        // If the user is already logged in, don't need to display anything because they will get redirected to the
-        // new workspace page in componentDidMount
+        // Show a loader so that the user isn't immediately kicked to the home page before rerouteToRelevantPage runs
         if (this.props.session.authToken) {
-            return null;
+            return <FullScreenLoadingIndicator />;
         }
 
         return (

@@ -11,6 +11,7 @@ import SCREENS from '../SCREENS';
 import {continueSessionFromECom} from '../libs/actions/Session';
 import {create} from '../libs/actions/Policy';
 import Permissions from '../libs/Permissions';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -76,9 +77,8 @@ class LoginWithValidateCodePage extends Component {
     }
 
     render() {
-        // Don't render anything here since the user is redirected to the new workspace page
-        // once we've attempted to validate their login in continueSessionFromECom()
-        return null;
+        // Show a loader so that the user isn't immediately kicked to the home page before rerouteToRelevantPage runs
+        return <FullScreenLoadingIndicator />;
     }
 }
 
