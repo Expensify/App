@@ -261,6 +261,9 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
+        allSet: 'Todo listo!',
+        transferConfirmText: ({amount}) => `${amount} llegará a tu cuenta en breve!`,
+        gotIt: 'Gracias!',
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? (` ${amount}`) : ''}`,
