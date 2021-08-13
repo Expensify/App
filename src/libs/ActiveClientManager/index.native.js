@@ -7,8 +7,12 @@ function init() {}
 function isClientTheLeader() {
     return true;
 }
+function isReady() {
+    return Promise.resolve();
+}
 
 export {
     init,
+    isReady,
     isClientTheLeader,
 };

@@ -587,8 +587,8 @@ function updateReportWithNewAction(reportID, reportAction, notificationPreferenc
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
-        // Remove the optimistic action from the report since we are about to replace it with the real one (which has
-        // the true sequenceNumber)
+        // Remove the optimistic action from the report since we are about to replace it
+        // with the real one (which has the true sequenceNumber)
         reportActionsToMerge[reportAction.clientID] = null;
     }
 
