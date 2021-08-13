@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
@@ -71,6 +72,9 @@ class LoginForm extends React.Component {
     }
 
     render() {
+        // Check if phone number is valid and ensure it has country code with prefix +
+        const isInvalidPhone = this.state.login && Str.isValidPhone(this.state.login) && !CONST.REGEX.DIGITS_START_WITH_PLUS.test(this.state.login);
+
         return (
             <>
                 <View style={[styles.mt3]}>
@@ -91,7 +95,7 @@ class LoginForm extends React.Component {
                     />
                 </View>
 
-                {this.state.login && CONST.REGEX.NUMBER.test(this.state.login) && !CONST.REGEX.DIGITS_START_WITH_PLUS.test(this.state.login) && (
+                {isInvalidPhone && (
                     <Text style={[styles.formError]}>
                         {this.props.translate('messages.noPhoneNumber')}
                     </Text>
@@ -119,9 +123,9 @@ class LoginForm extends React.Component {
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
+                        isDisabled={isInvalidPhone}
                     />
                 </View>
-
             </>
         );
     }
