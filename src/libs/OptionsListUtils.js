@@ -293,6 +293,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeConcierge = false,
+    excludeChronos = false,
+    excludeReceipts = false,
     excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
@@ -382,6 +384,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
     if (excludeConcierge) {
         loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
+    }
+
+    if (excludeChronos) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CHRONOS});
+    }
+
+    if (excludeReceipts) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.RECEIPTS});
     }
 
     if (includeRecentReports) {
@@ -527,7 +537,10 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
- * @param {Boolean} excludeConcierge
+ * @param {Object} excludedOptions
+ * @param {Boolean} parameters.excludeConcierge
+ * @param {Boolean} parameters.excludeChronos
+ * @param {Boolean} parameters.excludeReceipts
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -535,7 +548,11 @@ function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
-    excludeConcierge,
+    {
+        excludeConcierge = false,
+        excludeChronos = false,
+        excludeReceipts = true,
+    } = {},
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -546,6 +563,8 @@ function getNewChatOptions(
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
         excludeConcierge,
+        excludeChronos,
+        excludeReceipts,
     });
 }
 
