@@ -303,15 +303,6 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
     });
 }
 
-/**
- * Sets the redirectAfterSignIn flag in the session variable
- *
- * @param {Boolean} shouldRedirect
- */
-function setRedirectAfterSignIn(shouldRedirect) {
-    Onyx.merge(ONYXKEYS.SESSION, {redirectAfterSignIn: shouldRedirect});
-}
-
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -322,5 +313,4 @@ export {
     resendValidationLink,
     resetPassword,
     restartSignin,
-    setRedirectAfterSignIn,
 };
