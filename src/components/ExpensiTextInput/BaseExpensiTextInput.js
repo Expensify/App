@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {
     Animated, TextInput, View, TouchableWithoutFeedback,
 } from 'react-native';
+import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
@@ -30,8 +31,11 @@ class BaseExpensiTextInput extends Component {
         };
 
         this.input = null;
+        this.value = hasValue ? props.value : '';
+        this.isLabelActive = false;
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
+        this.setValue = this.setValue.bind(this);
     }
 
     componentDidMount() {
@@ -44,20 +48,42 @@ class BaseExpensiTextInput extends Component {
     onFocus() {
         if (this.props.onFocus) { this.props.onFocus(); }
         this.setState({isFocused: true});
-        if (this.props.value.length === 0) {
-            this.animateLabel(
-                ACTIVE_LABEL_TRANSLATE_Y,
-                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
-                ACTIVE_LABEL_SCALE,
-            );
-        }
+        this.activateLabel();
     }
 
     onBlur() {
         if (this.props.onBlur) { this.props.onBlur(); }
         this.setState({isFocused: false});
-        if (this.props.value.length === 0) {
+        this.deactivateLabel();
+    }
+
+    /**
+     * Set Value & activateLabel
+     *
+     * @param {String} value
+     * @memberof BaseExpensiTextInput
+     */
+    setValue(value) {
+        this.value = value;
+        Str.result(this.props.onChangeText, value);
+        this.activateLabel();
+    }
+
+    activateLabel() {
+        if (this.value.length >= 0 && !this.isLabelActive) {
+            this.animateLabel(
+                ACTIVE_LABEL_TRANSLATE_Y,
+                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
+                ACTIVE_LABEL_SCALE,
+            );
+            this.isLabelActive = true;
+        }
+    }
+
+    deactivateLabel() {
+        if (this.value.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
+            this.isLabelActive = false;
         }
     }
 
@@ -133,6 +159,7 @@ class BaseExpensiTextInput extends Component {
                             style={inputStyle}
                             onFocus={this.onFocus}
                             onBlur={this.onBlur}
+                            onChangeText={this.setValue}
                         />
                     </View>
                 </TouchableWithoutFeedback>
