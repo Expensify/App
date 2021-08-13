@@ -273,7 +273,9 @@ describe('OptionsListUtils', () => {
         );
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', true);
+        results = OptionsListUtils.getNewChatOptions(
+            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', {excludeConcierge: true},
+        );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - MAX_RECENT_REPORTS);
@@ -402,7 +404,9 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_CONCIERGE,
             '',
             [],
-            true,
+            {
+                excludeConcierge: true,
+            },
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
