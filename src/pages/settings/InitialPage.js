@@ -120,6 +120,7 @@ const defaultMenuItems = [
     },
 ];
 
+// Add the print metrics option to the Settings menu if it is enabled
 if (canCapturePerformanceMetrics()) {
     defaultMenuItems.unshift({
         title: 'Print Perf Metrics',

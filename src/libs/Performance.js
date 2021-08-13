@@ -31,7 +31,7 @@ function diffObject(object, base) {
  * @returns {Boolean}
  */
 function canCapturePerformanceMetrics() {
-    return CONFIG.CAPTURE_METRICS;
+    return Boolean(CONFIG.CAPTURE_METRICS);
 }
 
 /**

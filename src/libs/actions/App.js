@@ -60,11 +60,13 @@ function setSidebarLoaded() {
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
 
-    if (canCapturePerformanceMetrics()) {
-        const performance = require('react-native-performance').default;
-        performance.mark('sidebarLoadEnd');
-        performance.measure('launchToSidebarLoad', 'nativeLaunchStart', 'sidebarLoadEnd');
+    if (!canCapturePerformanceMetrics()) {
+        return;
     }
+
+    const performance = require('react-native-performance').default;
+    performance.mark('sidebarLoadEnd');
+    performance.measure('timeToInteractive', 'nativeLaunchStart', 'sidebarLoadEnd');
 }
 
 export {
