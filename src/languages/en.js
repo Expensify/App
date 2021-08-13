@@ -46,6 +46,7 @@ export default {
         ssnLast4: 'Last 4 Digits of SSN',
         addressNoPO: 'Personal Address (PO Boxes and mail drop addresses are NOT allowed)',
         companyAddressNoPO: 'Company Address (PO Boxes and mail drop addresses are NOT allowed)',
+        noPO: '',
         city: 'City',
         state: 'State',
         zip: 'Zip Code',
