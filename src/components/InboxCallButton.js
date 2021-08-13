@@ -79,7 +79,7 @@ class InboxCallButton extends Component {
                             </View>
                             <View>
                                 <Text style={styles.buttonText}>
-                                    Need Help?
+                                    {this.props.translate('requestCallPage.needHelp')}
                                 </Text>
                             </View>
                         </View>
