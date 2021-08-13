@@ -538,9 +538,9 @@ function getSearchOptions(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Object} excludedOptions
- * @param {Boolean} parameters.excludeConcierge
- * @param {Boolean} parameters.excludeChronos
- * @param {Boolean} parameters.excludeReceipts
+ * @param {Boolean} excludedOptions.excludeConcierge
+ * @param {Boolean} excludedOptions.excludeChronos
+ * @param {Boolean} excludedOptions.excludeReceipts
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -607,7 +607,10 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
- * @param {Boolean} excludeConcierge
+ * @param {Object} excludedOptions
+ * @param {Boolean} excludedOptions.excludeConcierge
+ * @param {Boolean} excludedOptions.excludeChronos
+ * @param {Boolean} excludedOptions.excludeReceipts
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -616,7 +619,11 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
-    excludeConcierge,
+    {
+        excludeConcierge = false,
+        excludeChronos = false,
+        excludeReceipts = true,
+    } = {},
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -629,6 +636,8 @@ function getNewGroupOptions(
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
         excludeConcierge,
+        excludeChronos,
+        excludeReceipts,
     });
 }
 
