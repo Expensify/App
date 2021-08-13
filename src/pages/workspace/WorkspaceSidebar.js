@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -45,7 +45,9 @@ const defaultProps = {
     policy: {},
 };
 
-const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
+const WorkspaceSidebar = ({
+    translate, isSmallScreenWidth, policy, areAllPoliciesLoaded,
+}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
@@ -65,14 +67,12 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
         },
     ];
 
-    useEffect(() => {
-        if (_.isEmpty(policy)) {
-            Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
-            Navigation.dismissModal();
-            create();
-            return null;
-        }
-    }, [policy]);
+    if (areAllPoliciesLoaded && _.isEmpty(policy)) {
+        Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
+        Navigation.dismissModal();
+        create();
+        return null;
+    }
 
 
     const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
@@ -171,6 +171,9 @@ export default compose(
                 const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
+        },
+        areAllPoliciesLoaded: {
+            key: ONYXKEYS.ARE_ALL_POLICIES_LOADED,
         },
     }),
 )(WorkspaceSidebar);

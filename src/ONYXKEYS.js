@@ -19,6 +19,10 @@ export default {
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    // Boolean flag set after policies are loaded. This exists since policies are loaded only behind the freePlan beta.
+    // This and all calls to this can be removed after Permissions.canUseFreePlan() is no longer needed.
+    ARE_ALL_POLICIES_LOADED: 'areAllPoliciesLoaded',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
