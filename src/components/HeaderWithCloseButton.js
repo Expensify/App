@@ -10,6 +10,7 @@ import {Close, Download, BackArrow} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import VideoChatButtonAndMenu from './VideoChatButtonAndMenu';
+import InboxCallButton from "./InboxCallButton";
 
 const propTypes = {
     /** Title of the Header */
@@ -86,7 +87,7 @@ const HeaderWithCloseButton = props => (
                 }
 
                 {
-                    props.shouldShowInboxCallButton && <VideoChatButtonAndMenu openInboxCall taskID={props.inboxCallTaskID} />
+                    props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />
 
                 }
 
