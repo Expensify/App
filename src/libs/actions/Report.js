@@ -53,19 +53,6 @@ Onyx.connect({
 
 const allReports = {};
 let conciergeChatReportID;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (val) => {
-        if (val && val.reportID) {
-            allReports[val.reportID] = val;
-
-            if (isConciergeChatReport(val)) {
-                conciergeChatReportID = val.reportID;
-            }
-        }
-    },
-});
-
 const typingWatchTimers = {};
 
 /**
@@ -1231,6 +1218,14 @@ function broadcastUserIsTyping(reportID) {
 function handleReportChanged(report) {
     if (!report) {
         return;
+    }
+
+    if (report && report.reportID) {
+        allReports[report.reportID] = report;
+
+        if (isConciergeChatReport(report)) {
+            conciergeChatReportID = report.reportID;
+        }
     }
 
     // A report can be missing a name if a comment is received via pusher event
