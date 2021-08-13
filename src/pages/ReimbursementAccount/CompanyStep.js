@@ -76,6 +76,7 @@ class CompanyStep extends React.Component {
             'companyTaxID',
             'incorporationDate',
             'incorporationState',
+            'incorporationType',
             'industryCode',
             'password',
         ];
@@ -255,6 +256,7 @@ class CompanyStep extends React.Component {
                                 items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
                                 onChange={incorporationType => this.setState({incorporationType})}
                                 value={this.state.incorporationType}
+                                placeholder={{value: '', label: '-'}}
                             />
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
