@@ -128,7 +128,7 @@ class AdditionalDetailsStep extends React.Component {
                         </View>
                         <ScrollView contentContainerStyle={styles.p5}>
                             {_.map(this.fields, field => (
-                                <Fragment>
+                                <>
                                     <ExpensiTextInput
                                         key={field.label}
                                         label={field.label}
@@ -141,7 +141,7 @@ class AdditionalDetailsStep extends React.Component {
                                         {..._.omit(field, ['label', 'fieldName'])}
                                     />
                                     {field.fieldName === 'addressStreet' && <Text>{this.props.translate('common.noPO')}</Text>}
-                                </Fragment>
+                                </>
                             ))}
                         </ScrollView>
                         <View style={[styles.m5]}>
