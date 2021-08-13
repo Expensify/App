@@ -10,11 +10,10 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import {
-    Bank,
-    CreditCard,
     PayPal,
     Plus,
 } from '../../../components/Icon/Expensicons';
+import {getBankIcon} from '../../../components/Icon/BankIcons';
 
 const MENU_ITEM = 'menuItem';
 
@@ -94,7 +93,7 @@ class PaymentMethodList extends Component {
 
                     // eslint-disable-next-line
                     description: formattedBankAccountNumber,
-                    icon: Bank,
+                    icon: getBankIcon(bankAccount.additionalData.bankName),
                     onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
                 });
@@ -113,7 +112,7 @@ class PaymentMethodList extends Component {
 
                     // eslint-disable-next-line
                     description: formattedCardNumber,
-                    icon: CreditCard,
+                    icon: getBankIcon(card.bankName),
                     onPress: e => this.props.onPress(e, card.cardID),
                     key: `card-${card.cardID}`,
                 });
