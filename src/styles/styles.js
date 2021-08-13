@@ -18,6 +18,7 @@ import codeStyles from './codeStyles';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
+    color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
     paddingHorizontal: 12,
