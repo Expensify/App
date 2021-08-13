@@ -28,9 +28,6 @@ const propTypes = {
 
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
-
-        /** Should app immediately redirect to new workspace route once authenticated */
-        redirectAfterSignIn: PropTypes.bool,
     }),
 
     /** Whether a new update is available and ready to install. */
@@ -47,7 +44,6 @@ const defaultProps = {
     session: {
         authToken: null,
         accountID: null,
-        redirectAfterSignIn: false,
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
