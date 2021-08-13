@@ -140,7 +140,7 @@ class AdditionalDetailsStep extends React.Component {
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {..._.omit(field, ['label', 'fieldName'])}
                                     />
-                                    {field.fieldName === 'addressStreet' &&  <Text>{this.props.translate('common.noPO')}</Text>}
+                                    {field.fieldName === 'addressStreet' && <Text>{this.props.translate('common.noPO')}</Text>}
                                 </Fragment>
                             ))}
                         </ScrollView>
