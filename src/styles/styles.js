@@ -1992,12 +1992,10 @@ const styles = {
         left: '50%',
         top: 0,
         zIndex: 100,
-        backfaceVisibility: 'hidden',
         ...visibility('hidden'),
     },
 
     reportMarkerBadge: {
-        backfaceVisibility: 'visible',
         left: '-50%',
         ...visibility('visible'),
     },

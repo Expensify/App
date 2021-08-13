@@ -11,16 +11,16 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 const MARKER_NOT_ACTIVE_TRANSLATE_Y = -30;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 const propTypes = {
-    /** Count of messages to show in the badge */
+    /** Count of new messages to show in the badge */
     count: PropTypes.number,
 
-    /** whether the marker is active */
+    /** Whether the marker is active */
     active: PropTypes.bool,
 
-    /** Callback to be called when user click the badge */
+    /** Callback to be called when user closes the badge */
     onClose: PropTypes.func,
 
-    /** Callback to be called when user close the marker */
+    /** Callback to be called when user clicks the marker */
     onClick: PropTypes.func,
 
     ...withLocalizePropTypes,
@@ -31,7 +31,7 @@ const defaultProps = {
     onClose: () => {},
     onClick: () => {},
 };
-class Markerbadge extends PureComponent {
+class MarkerBadge extends PureComponent {
     constructor(props) {
         super(props);
         this.translateY = new Animated.Value(MARKER_NOT_ACTIVE_TRANSLATE_Y);
@@ -118,8 +118,8 @@ class Markerbadge extends PureComponent {
     }
 }
 
-Markerbadge.propTypes = propTypes;
-Markerbadge.defaultProps = defaultProps;
-Markerbadge.displayName = 'Markerbadge';
+MarkerBadge.propTypes = propTypes;
+MarkerBadge.defaultProps = defaultProps;
+MarkerBadge.displayName = 'MarkerBadge';
 
-export default withLocalize(Markerbadge);
+export default withLocalize(MarkerBadge);

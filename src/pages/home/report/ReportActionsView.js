@@ -110,6 +110,7 @@ class ReportActionsView extends React.Component {
         this.trackScroll = this.trackScroll.bind(this);
         this.showMarker = this.showMarker.bind(this);
         this.hideMarker = this.hideMarker.bind(this);
+        this.toggleMarker = this.toggleMarker.bind(this);
     }
 
     componentDidMount() {
@@ -200,8 +201,8 @@ class ReportActionsView extends React.Component {
                 updateLastReadActionID(this.props.reportID);
             }
 
-            // show new Marker badge when there is a new Message
-            this.showMarker();
+            // show new MarkerBadge when there is a new Message
+            this.toggleMarker();
         }
 
         // We want to mark the unread comments when user resize the screen to desktop
@@ -360,24 +361,27 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Show the new Markerbadge when user is looking at the History of messages
-     *
-     * @memberof ReportActionsView
+     * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
      */
-    showMarker() {
+    toggleMarker() {
         if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
-            this.setState({isMarkerActive: true});
+            this.showMarker();
         }
 
         if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
-            this.setState({isMarkerActive: false});
+            this.hideMarker();
         }
     }
 
     /**
+     * Show the new MarkerBadge
+     */
+    showMarker() {
+        this.setState({isMarkerActive: true});
+    }
+
+    /**
      * Hide the new MarkerBadge
-     *
-     * @memberof ReportActionsView
      */
     hideMarker() {
         this.setState({isMarkerActive: false});
@@ -386,14 +390,12 @@ class ReportActionsView extends React.Component {
     /**
      * keeps track of the Scroll offset of the main messages list
      *
-     * @param {*} {nativeEvent}
-     * @memberof ReportActionsView
+     * @param {Object} {nativeEvent}
      */
     trackScroll({nativeEvent}) {
         this.currentScrollOffset = -nativeEvent.contentOffset.y;
-        this.showMarker();
+        this.toggleMarker();
     }
-
 
     /**
      * Runs when the FlatList finishes laying out
