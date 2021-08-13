@@ -159,7 +159,10 @@ class PaymentsPage extends React.Component {
                         onConfirm={() => Onyx.set(ONYXKEYS.WALLET_TRANSFER, null)}
                         isVisible={this.props.walletTransfer.completed}
                         prompt={this.props.translate('paymentsPage.transferConfirmText', {
-                            amount: this.props.walletTransfer.transferAmount,
+                            amount: this.props.numberFormat(
+                                this.props.walletTransfer.transferAmount,
+                                {style: 'currency', currency: 'USD'},
+                            ),
                         })}
                         confirmText={this.props.translate('paymentsPage.gotIt')}
                         shouldShowCancelButton={false}

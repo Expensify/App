@@ -266,14 +266,17 @@ export default {
         gotIt: 'Got it, Thanks!',
     },
     transferAmountPage: {
-        transfer: ({amount}) => `Transfer${amount ? (` ${amount}`) : ''}`,
+        transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
         instant: 'Instant',
-        instantSummary: '1.5% fee ($0.25 minimum)',
+        instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
         ach: '1-3 Business Days',
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
         failedTransfer: 'Failed to transfer balance',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Choose Account',
     },
     paymentMethodList: {
         addPaymentMethod: 'Add Payment Method',

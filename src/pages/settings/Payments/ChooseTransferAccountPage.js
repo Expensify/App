@@ -39,7 +39,7 @@ class ChooseTransferAccountPage extends React.Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title="Choose Account"
+                        title={this.props.translate('chooseTransferAccountPage.chooseAccount')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.goBack()}

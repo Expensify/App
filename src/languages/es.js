@@ -67,6 +67,7 @@ export default {
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor inténtalo más tarde.',
+        transferBalance: 'Transferencia de saldo',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -263,14 +264,16 @@ export default {
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transferir${amount ? (` ${amount}`) : ''}`,
-        transferBalance: 'Transferencia de saldo',
         instant: 'Instante',
-        instantSummary: 'Tarifa del 1.5% ($ 0.25 mínimo)',
+        instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
         ach: '1-3 días laborales',
         achSummary: 'Sin cargo',
         whichAccount: '¿Que cuenta?',
         fee: 'Tarifa',
         failedTransfer: 'No se pudo transferir el saldo',
+    },
+    chooseTransferAccountPage: {
+        chooseAccount: 'Elegir cuenta',
     },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',

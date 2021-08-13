@@ -74,7 +74,12 @@ class TransferBalancePage extends React.Component {
             {
                 key: CONST.WALLET.PAYMENT_TYPE.INSTANT,
                 title: this.props.translate('transferAmountPage.instant'),
-                description: this.props.translate('transferAmountPage.instantSummary'),
+                description: this.props.translate('transferAmountPage.instantSummary', {
+                    amount: this.props.numberFormat(
+                        0.25,
+                        {style: 'currency', currency: 'USD'},
+                    ),
+                }),
                 icon: Bolt,
             },
             {
@@ -120,7 +125,7 @@ class TransferBalancePage extends React.Component {
             )
             : defaultAccount || {};
 
-        const transferAmount = 30 || (this.props.userWallet.availableBalance - Fee).toFixed(2);
+        const transferAmount = (this.props.userWallet.availableBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
         return (
             <ScreenWrapper>
@@ -185,7 +190,10 @@ class TransferBalancePage extends React.Component {
                         <Text
                             style={[styles.textLabel, styles.justifyContentStart]}
                         >
-                            {`$${Fee.toFixed(2)}`}
+                            {this.props.numberFormat(
+                                Fee,
+                                {style: 'currency', currency: 'USD'},
+                            )}
                         </Text>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
@@ -197,7 +205,13 @@ class TransferBalancePage extends React.Component {
                             onPress={this.transferBalance}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',
-                                {amount: canTransfer ? `$${transferAmount}` : ''},
+                                {
+                                    amount: canTransfer
+                                        ? this.props.numberFormat(
+                                            transferAmount,
+                                            {style: 'currency', currency: 'USD'},
+                                        ) : '',
+                                },
                             )}
                         />
                     </FixedFooter>
