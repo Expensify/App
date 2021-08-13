@@ -25,6 +25,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import CONST from '../../CONST';
 import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../../libs/reportUtils';
 import Text from '../../components/Text';
+import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -96,12 +97,14 @@ const HeaderView = (props) => {
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <Pressable
-                        onPress={props.onNavigationMenuButtonClicked}
-                        style={[styles.LHNToggle]}
-                    >
-                        <Icon src={BackArrow} />
-                    </Pressable>
+                    <Tooltip text={props.translate('common.back')}>
+                        <Pressable
+                            onPress={props.onNavigationMenuButtonClicked}
+                            style={[styles.LHNToggle]}
+                        >
+                            <Icon src={BackArrow} />
+                        </Pressable>
+                    </Tooltip>
                 )}
                 {props.report && props.report.reportName && (
                     <View
@@ -158,13 +161,17 @@ const HeaderView = (props) => {
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
-                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
-                            <Pressable
-                                onPress={() => togglePinnedState(props.report)}
-                                style={[styles.touchableButtonImage, styles.mr0]}
-                            >
-                                <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
-                            </Pressable>
+                            <Tooltip text={props.translate('videoChatButtonAndMenu.tooltip')}>
+                                <VideoChatButtonAndMenu isConcierge={isConcierge} />
+                            </Tooltip>
+                            <Tooltip text={props.translate('common.pin')}>
+                                <Pressable
+                                    onPress={() => togglePinnedState(props.report)}
+                                    style={[styles.touchableButtonImage, styles.mr0]}
+                                >
+                                    <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                </Pressable>
+                            </Tooltip>
                         </View>
                     </View>
                 )}

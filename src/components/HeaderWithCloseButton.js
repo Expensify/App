@@ -58,12 +58,14 @@ const HeaderWithCloseButton = props => (
         ]}
         >
             {props.shouldShowBackButton && (
-            <TouchableOpacity
-                onPress={props.onBackButtonPress}
-                style={[styles.touchableButtonImage]}
-            >
-                <Icon src={BackArrow} />
-            </TouchableOpacity>
+                <Tooltip text={props.translate('common.back')}>
+                    <TouchableOpacity
+                        onPress={props.onBackButtonPress}
+                        style={[styles.touchableButtonImage]}
+                    >
+                        <Icon src={BackArrow} />
+                    </TouchableOpacity>
+                </Tooltip>
             )}
             <Header title={props.title} />
             <View style={[styles.reportOptions, styles.flexRow]}>

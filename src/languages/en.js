@@ -37,6 +37,7 @@ export default {
         recents: 'Recents',
         close: 'Close',
         download: 'Download',
+        pin: 'Pin',
         back: 'Back',
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
@@ -103,6 +104,7 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
     },
     videoChatButtonAndMenu: {
+        tooltip: 'Video Chat',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
