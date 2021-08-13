@@ -15,6 +15,7 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -89,6 +90,13 @@ class LoginForm extends React.Component {
                         translateX={-18}
                     />
                 </View>
+
+                {this.state.login && CONST.REGEX.NUMBER.test(this.state.login) && !CONST.REGEX.DIGITS_START_WITH_PLUS.test(this.state.login) && (
+                    <Text style={[styles.formError]}>
+                        {this.props.translate('messages.noPhoneNumber')}
+                    </Text>
+                )}
+
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
                         {this.state.formError}
