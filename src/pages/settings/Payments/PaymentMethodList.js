@@ -28,6 +28,12 @@ const propTypes = {
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
+    /** Whether to show selection checkboxes */
+    enableSelection: PropTypes.bool,
+
+    /** Selected Account ID if selection is active */
+    selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
     /** Array of bank account objects */
     bankAccountList: PropTypes.arrayOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc */
@@ -63,13 +69,18 @@ const defaultProps = {
     bankAccountList: [],
     cardList: [],
     isLoadingPayments: false,
+    enableSelection: false,
+    selectedAccountID: '',
 };
 
 class PaymentMethodList extends Component {
     constructor(props) {
         super(props);
-
+        this.state = {
+            selectedAccountID: this.props.selectedAccountID,
+        };
         this.renderItem = this.renderItem.bind(this);
+        this.selectPaymentMethod = this.selectPaymentMethod.bind(this);
     }
 
     /**
@@ -121,6 +132,18 @@ class PaymentMethodList extends Component {
     }
 
     /**
+     * Select the payment method
+     *
+     * @param {Object} e EventObject
+     * @param {Object} item PaymentMethod
+     * @memberof PaymentMethodList
+     */
+    selectPaymentMethod(e, item) {
+        item.onPress(e);
+        this.setState({selectedAccountID: item.id});
+    }
+
+    /**
      * Create a menuItem for each passed paymentMethod
      *
      * @param {Object} params
@@ -132,12 +155,14 @@ class PaymentMethodList extends Component {
         if (item.type === MENU_ITEM) {
             return (
                 <MenuItem
-                    onPress={item.onPress}
+                    onPress={e => this.selectPaymentMethod(e, item)}
                     title={item.title}
                     description={item.description}
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
+                    showSelectedState={this.props.enableSelection}
+                    selected={this.state.selectedAccountID === item.id}
                 />
             );
         }

@@ -1,6 +1,6 @@
 import React from 'react';
 import {ScrollView} from 'react-native-gesture-handler';
-import Onyx from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -10,9 +10,17 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import PaymentMethodList from './PaymentMethodList';
 import ONYXKEYS from '../../../ONYXKEYS';
+import compose from '../../../libs/compose';
+import {walletTransferPropTypes} from './paymentPropTypes';
 
 const propTypes = {
+    walletTransfer: walletTransferPropTypes,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    walletTransfer: {},
 };
 
 class ChooseTransferAccountPage extends React.Component {
@@ -35,6 +43,7 @@ class ChooseTransferAccountPage extends React.Component {
     }
 
     render() {
+        console.debug(this.props.walletTransfer);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -47,6 +56,8 @@ class ChooseTransferAccountPage extends React.Component {
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.pv5}>
                         <PaymentMethodList
                             onPress={this.paymentMethodSelected}
+                            enableSelection
+                            selectedAccountID={this.props.walletTransfer.selectedAccountID}
                         />
                     </ScrollView>
                 </KeyboardAvoidingView>
@@ -56,6 +67,14 @@ class ChooseTransferAccountPage extends React.Component {
 }
 
 ChooseTransferAccountPage.propTypes = propTypes;
+ChooseTransferAccountPage.defaultProps = defaultProps;
 ChooseTransferAccountPage.displayName = 'ChooseTransferAccountPage';
 
-export default withLocalize(ChooseTransferAccountPage);
+export default compose(
+    withLocalize,
+    withOnyx({
+        walletTransfer: {
+            key: ONYXKEYS.WALLET_TRANSFER,
+        },
+    }),
+)(ChooseTransferAccountPage);

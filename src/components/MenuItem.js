@@ -5,8 +5,9 @@ import {
 import PropTypes from 'prop-types';
 import Text from './Text';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import Icon from './Icon';
-import {ArrowRight} from './Icon/Expensicons';
+import {ArrowRight, Checkmark} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -64,11 +65,18 @@ const propTypes = {
 
     /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON]),
+
+    /** Whether we should show the selected state */
+    showSelectedState: PropTypes.bool,
+
+    /** Whether this item is selected */
+    selected: PropTypes.bool,
 };
 
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
+    showSelectedState: false,
     wrapperStyle: {},
     success: false,
     icon: undefined,
@@ -80,6 +88,7 @@ const defaultProps = {
     iconFill: undefined,
     focused: false,
     disabled: false,
+    selected: false,
     subtitle: undefined,
     iconType: 'icon',
 };
@@ -102,6 +111,8 @@ const MenuItem = ({
     disabled,
     subtitle,
     iconType,
+    showSelectedState,
+    selected,
 }) => (
     <Pressable
         onPress={(e) => {
@@ -183,6 +194,13 @@ const MenuItem = ({
                                 src={iconRight}
                                 fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
                             />
+                        </View>
+                    )}
+                    {showSelectedState && (
+                        <View style={[styles.selectCircle, styles.alignSelfCenter]}>
+                            {selected && (
+                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                            )}
                         </View>
                     )}
                 </View>

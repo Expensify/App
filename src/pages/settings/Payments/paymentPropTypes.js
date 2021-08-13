@@ -49,7 +49,7 @@ const walletTransferPropTypes = PropTypes.shape({
     transferAmount: PropTypes.number,
 
     /** Account selected for Transfer */
-    selectedAccountID: PropTypes.number,
+    selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Whether the trasnfer is completed */
     completed: PropTypes.bool,
