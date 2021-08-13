@@ -27,11 +27,38 @@
 ### Why Did You Render?
 - Why Did You Render (WDYR) sends console notifications about potentially avoidable component re-renders.
 - It can also help to simply track when and why a certain component re-renders.
-- To enable it, set `USE_WDYR=true` in your `.env` file. 
+- To enable it, set `USE_WDYR=true` in your `.env` file.
 - You can add or exclude tracked components by their `displayName` in `wdyr.js`.
 - Open the browser console to see WDYR notifications.
 
 **Suggested** [Why Did You Render docs](https://github.com/welldone-software/why-did-you-render)
+
+### Performance Metrics (Opt-In on local release builds)
+
+It's not particularly straightforward to capture and output metrics in release builds. However, one could argue that the metrics in release builds are the only truly reliable metrics to use for native platforms. To make this easier for everyone to do we created an opt-in tool (using `react-native-performance`) that will capture metrics and add a new menu option to display them in the Settings page. To set this up just set `CAPTURE_METRICS=true` in your `.env` file then create a release build on iOS or Android. The metrics this tool shows are as follows:
+
+- `nativeLaunch` - Total time for the native process to intialize
+- `runJSBundle` - Total time to parse and execute the JS bundle
+- `timeToInteractive` - Roughly tracks the total overall time (starting with the native init and ending with the sidebar UI load)
+
+#### How to create a Release Build on Android
+
+- Create a keystore by running `keytool -genkey -v -keystore your_key_name.keystore -alias your_key_alias -keyalg RSA -keysize 2048 -validity 10000`
+- Fill out all the prompts with any info and give it a password
+- Drag the generated keystore to `/android/app`
+- Hardcode the values to the gradle config like so:
+
+```
+signingConfigs {
+        release {
+            storeFile file('your_key_name.keystore')
+            storePassword 'Password1'
+            keyAlias 'your_key_alias'
+            keyPassword 'Password1'
+        }
+```
+- Delete any existing apps off emulator or device
+- Run `react-native run-android --variant release`
 
 ## Reconciliation
 
