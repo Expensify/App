@@ -117,11 +117,11 @@ class LoginWithValidateCode2FAPage extends Component {
         }
 
         return (
-            <View style={[styles.signInPageInnerNative]}>
+            <View style={[styles.signInPageInnerNative, styles.alignItemsCenter, styles.mt6]}>
                 <View style={[styles.componentHeightLarge]}>
                     <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
-                <View style={[styles.mb6, styles.alignItemsCenter]}>
+                <View style={[styles.mb6]}>
                     <Text style={[styles.h1]}>
                         {this.props.translate('signInPage.expensifyDotCash')}
                     </Text>
