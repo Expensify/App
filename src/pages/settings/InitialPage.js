@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -145,13 +145,17 @@ const InitialSettingsPage = ({
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map(policy => ({
             title: policy.name,
-            icon: Building,
+            icon: policy.avatarURL ? policy.avatarURL : Building,
+            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
+
+
+    const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 
     return (
         <ScreenWrapper>
@@ -162,21 +166,24 @@ const InitialSettingsPage = ({
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
-                        <View style={[styles.mb3]}>
+                        <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
                                 size="large"
                                 source={myPersonalDetails.avatar}
                                 isActive={network.isOffline === false}
                             />
-                        </View>
-                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                            {myPersonalDetails.displayName
-                                ? myPersonalDetails.displayName
-                                : Str.removeSMSDomain(session.email)}
-                        </Text>
+                        </Pressable>
+
+                        <Pressable style={[styles.mt1]} onPress={openProfileSettings}>
+                            <Text style={[styles.displayName]} numberOfLines={1}>
+                                {myPersonalDetails.displayName
+                                    ? myPersonalDetails.displayName
+                                    : Str.removeSMSDomain(session.email)}
+                            </Text>
+                        </Pressable>
                         {myPersonalDetails.displayName && (
                             <Text
-                                style={[styles.settingsLoginName, styles.mt1]}
+                                style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {Str.removeSMSDomain(session.email)}
@@ -191,6 +198,7 @@ const InitialSettingsPage = ({
                                 key={`${keyTitle}_${index}`}
                                 title={keyTitle}
                                 icon={item.icon}
+                                iconType={item.iconType}
                                 onPress={item.action}
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}

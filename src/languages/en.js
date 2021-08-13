@@ -14,6 +14,7 @@ export default {
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
+        saveChanges: 'Save Changes',
         password: 'Password',
         profile: 'Profile',
         payments: 'Payments',
@@ -43,8 +44,8 @@ export default {
         here: 'here',
         dob: 'Date of Birth',
         ssnLast4: 'Last 4 Digits of SSN',
-        addressNoPO: 'Address (no P.O. boxes)',
-        companyAddressNoPO: 'Company Address (no P.O. boxes)',
+        addressNoPO: 'Personal Address (PO Boxes and mail drop addresses are NOT allowed)',
+        companyAddressNoPO: 'Company Address (PO Boxes and mail drop addresses are NOT allowed)',
         city: 'City',
         state: 'State',
         zip: 'Zip Code',
@@ -57,13 +58,19 @@ export default {
         dateFormat: 'YYYY-MM-DD',
         send: 'Send',
         notifications: 'Notifications',
+        na: 'N/A',
         noResultsFound: 'No results found',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
+        todayAt: 'Today at',
+        tomorrowAt: 'Tomorrow at',
+        yesterdayAt: 'Yesterday at',
+        conjunctionAt: 'at',
+        genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera Permission Required',
-        expensifyDoesntHaveAccessToCamera: 'Expensify.cash does not have access to your camera, please enable the permission and try again.',
+        expensifyDoesntHaveAccessToCamera: 'This app does not have access to your camera, please enable the permission and try again.',
         attachmentError: 'Attachment Error',
         errorWhileSelectingAttachment: 'An error occurred while selecting an attachment, please try again',
         errorWhileSelectingCorruptedImage: 'An error occurred while selecting a corrupted attachment, please try another file',
@@ -79,7 +86,7 @@ export default {
     },
     baseUpdateAppModal: {
         updateApp: 'Update App',
-        updatePrompt: 'A new version of Expensify.cash is available.\nUpdate now or restart the app at a later time to download the latest changes.',
+        updatePrompt: 'A new version of this app is available.\nUpdate now or restart the app at a later time to download the latest changes.',
     },
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
@@ -103,6 +110,7 @@ export default {
         phrase1: 'Welcome to the New Expensify! Enter your phone number or email to continue.',
         phrase2: 'Money talks. And now that chat and payments are in one place, it\'s also easy.',
         phrase3: 'Your payments get to you as fast as you can get your point across.',
+        phrase4: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
         sendAttachment: 'Send Attachment',
@@ -112,13 +120,13 @@ export default {
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
-    },
-    contextMenuItem: {
-        copyToClipboard: 'Copy to Clipboard',
-        copied: 'Copied!',
+        localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
     reportActionContextMenu: {
+        copyToClipboard: 'Copy to Clipboard',
+        copied: 'Copied!',
         copyLink: 'Copy Link',
+        copyURLToClipboard: 'Copy URL to Clipboard',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
@@ -161,6 +169,11 @@ export default {
         send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
+        error: {
+            invalidAmount: 'Invalid Amount',
+            invalidSplit: 'Splits amount does not equal total amount',
+            other: 'Unexpected error, please try again later',
+        },
     },
     reportDetailsPage: {
         notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
@@ -202,7 +215,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'The New Expensify is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'The New Expensify App is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -231,7 +244,7 @@ export default {
     },
     passwordPage: {
         changePassword: 'Change Password',
-        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand Expensify.cash accounts.',
+        changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
         currentPassword: 'Current Password',
         newPassword: 'New Password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
@@ -268,8 +281,7 @@ export default {
         },
     },
     signInPage: {
-        expensifyDotCash: 'Expensify.cash',
-        expensifyIsOpenSource: 'The New Expensify is open source',
+        expensifyDotCash: 'New Expensify',
         theCode: 'the code',
         openJobs: 'open jobs',
         heroHeading: 'Split bills\nand chat with friends.',
@@ -325,6 +337,7 @@ export default {
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
+        iouReportNotFound: 'The payment details you are looking for cannot be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -332,6 +345,7 @@ export default {
         setPassword: 'Set Password',
         passwordsDontMatch: 'Passwords must match',
         newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
     },
     bankAccount: {
         accountNumber: 'Account Number',
@@ -355,7 +369,7 @@ export default {
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
             incorporationState: 'Please enter a valid Incorporation State',
-            industryCode: 'Please enter a valid industry classification code',
+            industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid Routing Number',
             companyType: 'Please enter a valid Company Type',
@@ -375,8 +389,9 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Enter password',
+        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
+        chooseAccountLabel: 'Account',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
@@ -413,10 +428,70 @@ export default {
         headerTitle: 'Terms and Fees',
         haveReadAndAgree: 'I have read and agree to receive ',
         electronicDisclosures: 'electronic disclosures',
-        agreeToThe: 'I agree to the ',
+        agreeToThe: 'I agree to the',
         walletAgreement: 'Wallet Agreement',
         enablePayments: 'Enable Payments',
         termsMustBeAccepted: 'Terms must be accepted',
+        feeAmountZero: '$0',
+        monthlyFee: 'Monthly Fee',
+        inactivity: 'Inactivity',
+        electronicFundsInstantFee: '1.5%',
+        electronicFundsInstantFeeMin: 'Min $0.25',
+        noOverdraftOrCredit: 'No overdraft/credit feature.',
+        electronicFundsWithdrawal: 'Electronic Funds Withdrawal',
+        instant: 'Instant',
+        standard: 'Standard',
+        shortTermsForm: {
+            expensifyPaymentsAccount: 'The Expensify Payments Account is issues by The Bancorp Bank.',
+            perPurchase: 'Per Purchase',
+            atmWithdrawal: 'ATM Withdrawal',
+            cashReload: 'Cash Reload',
+            inNetwork: 'In-network',
+            outOfNetwork: 'out-of-network',
+            atmBalanceInquiry: 'ATM balance inquiry',
+            inOrOutOfNetwork: 'In-network or out-of-network',
+            customerService: 'Customer Service',
+            automatedOrLive: 'Automated or live agent',
+            afterTwelveMonths: 'After 12 months with no transactions',
+            weChargeOneFee: 'We charge 1 type of fee.',
+            fdicInsurance: 'Your funds are eligible for FDIC insurance.',
+            generalInfo: 'For general information about prepaid accounts, visit',
+            conditionsDetails: 'Find details and conditions for all fees and services by visiting',
+            conditionsPhone: 'or calling +1 833-400-0904.',
+        },
+        longTermsForm: {
+            listOfAllFees: 'All Expensify Payments account fees:',
+            typeOfFeeHeader: 'Type of Fee',
+            feeAmountHeader: 'Fee Amount',
+            moreDetailsHeader: 'More Details',
+            openingAccountTitle: 'Opening An Account',
+            openingAccountDetails: 'There is no fee to create an account.',
+            monthlyFeeDetails: 'There is no monthly fee',
+            customerServiceTitle: 'Customer service',
+            customerServiceDetails: 'There are no customer service fees.',
+            inactivityDetails: 'There is no inactivity fee.',
+            sendingFundsTitle: 'Sending funds to another account holder',
+            sendingFundsDetails: 'There is no fee to send funds to another account holder using your balance, '
+                + 'bank account, or debit card.',
+            electronicFundsStandardDetails: 'There is no fee to transfer funds from your Expensify Payments Account '
+                + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
+                + ' days.',
+            electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
+                + 'your linked debit card using the instant transfer option. This transfer usually completes within'
+                + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
+            fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
+                + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
+                + 'to $250,000 by the FDIC in the event The Bancorp Bank fails. See',
+            fdicInsuranceBancorp2: 'for details.',
+            contactExpensifyPayments: 'Contact Expensify Payments by calling +1 833-400-0904, by email at',
+            contactExpensifyPayments2: 'or sign in at',
+            generalInformation: 'For general information about prepaid accounts, visit',
+            generalInformation2: 'If you have a complaint about a prepaid account, call the Consumer Financial '
+                + 'Protection Bureau at 1-855-411-2372 or visit',
+            printerFriendlyView: 'View printer-friendly version',
+            automated: 'Automated',
+            liveAgent: 'Live Agent',
+        },
     },
     activateStep: {
         headerTitle: 'Enable Payments',
@@ -473,6 +548,10 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'One moment...',
+        explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
+    },
     session: {
         offlineMessageRetry: 'Looks like you\'re offline. Please check your connection and try again.',
         offlineMessage: 'Looks like you\'re offline.',
@@ -485,10 +564,6 @@ export default {
         new: {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            welcome: 'Welcome',
-            chooseAName: 'Choose a name',
-            helpText: 'Name your Workspace before enabling your Expensify Cards!',
-            getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
@@ -513,8 +588,20 @@ export default {
             personalMessagePrompt: 'Add a Personal Message (Optional)',
             enterEmailOrPhone: 'Email or Phone',
             pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
+        },
+        editor: {
+            title: 'Edit Workspace',
+            nameInputLabel: 'Name',
+            nameInputHelpText: 'This is the name you will see on your Workspace.',
+            save: 'Save',
+            genericFailureMessage: 'An error occurred updating the workspace, please try again.',
+            avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+        },
+        error: {
+            growlMessageInvalidPolicy: 'Invalid workspace! A new workspace has been created.',
         },
     },
     requestCallPage: {

@@ -1,9 +1,14 @@
+import '../wdyr';
 import React from 'react';
 import {LogBox} from 'react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
+import {LocaleContextProvider} from './components/withLocalize';
+import OnyxProvider from './components/OnyxProvider';
+import HTMLEngineProvider from './components/HTMLEngineProvider';
+import ComposeProviders from './components/ComposeProviders';
 
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
@@ -16,12 +21,19 @@ LogBox.ignoreLogs([
 ]);
 
 const App = () => (
-    <SafeAreaProvider>
+    <ComposeProviders
+        components={[
+            OnyxProvider,
+            SafeAreaProvider,
+            LocaleContextProvider,
+            HTMLEngineProvider,
+        ]}
+    >
         <CustomStatusBar />
         <ErrorBoundary errorMessage="E.cash crash caught by error boundary">
             <Expensify />
         </ErrorBoundary>
-    </SafeAreaProvider>
+    </ComposeProviders>
 );
 
 App.displayName = 'App';

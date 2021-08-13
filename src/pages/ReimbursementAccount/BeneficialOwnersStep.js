@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
@@ -11,17 +12,28 @@ import Button from '../../components/Button';
 import IdentityForm from './IdentityForm';
 import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import {
+    goToWithdrawalAccountSetupStep,
+    setupWithdrawalAccount,
+} from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import {isValidIdentity} from '../../libs/ValidationUtils';
 import Growl from '../../libs/Growl';
+import ONYXKEYS from '../../ONYXKEYS';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** Name of the company */
     companyName: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
+
+    /** Bank account currently in setup */
+    reimbursementAccount: PropTypes.shape({
+        /** Error set when handling the API response */
+        error: PropTypes.string,
+    }).isRequired,
 };
 
 class BeneficialOwnersStep extends React.Component {
@@ -172,6 +184,7 @@ class BeneficialOwnersStep extends React.Component {
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
+                                        error={this.props.reimbursementAccount.error}
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
                                         <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
@@ -230,5 +243,11 @@ class BeneficialOwnersStep extends React.Component {
 }
 
 BeneficialOwnersStep.propTypes = propTypes;
-
-export default withLocalize(BeneficialOwnersStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    }),
+)(BeneficialOwnersStep);

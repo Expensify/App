@@ -396,9 +396,8 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
         })
         .catch((err) => {
             if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
                 // eslint-disable-next-line no-use-before-define
-                navigateToConciergeChat();
+                handleInaccessibleReport();
             }
         });
 }
@@ -462,11 +461,17 @@ function removeOptimisticActions(reportID) {
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
+ * @param {Boolean} [shouldRedirectIfEmpty=false] - Whether to redirect to Active Report Screen if IOUReport is empty
  * @returns {Promise}
  */
-function fetchIOUReportByID(iouReportID, chatReportID) {
+function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = false) {
     return fetchIOUReport(iouReportID, chatReportID)
         .then((iouReportObject) => {
+            if (!iouReportObject && shouldRedirectIfEmpty) {
+                Growl.error(translateLocal('notFound.iouReportNotFound'));
+                Navigation.navigate(ROUTES.REPORT);
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
@@ -856,6 +861,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
         .then((data) => {
             if (data.jsonCode !== 200) {
                 console.error(data.message);
+                Growl.error(data.message);
                 return;
             }
 
@@ -1365,6 +1371,14 @@ function navigateToConciergeChat() {
     Navigation.closeDrawer();
 }
 
+/**
+ * Handle the navigation when report is inaccessible
+ */
+function handleInaccessibleReport() {
+    Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+    navigateToConciergeChat();
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1389,4 +1403,5 @@ export {
     getSimplifiedIOUReport,
     syncChatAndIOUReports,
     navigateToConciergeChat,
+    handleInaccessibleReport,
 };

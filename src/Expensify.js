@@ -2,16 +2,13 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
 import BootSplash from './libs/BootSplash';
-import listenToStorageEvents from './libs/listenToStorageEvents';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
-import CONST from './CONST';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
-import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
@@ -19,10 +16,9 @@ import UpdateAppModal from './components/UpdateAppModal';
 import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
-import Navigation from './libs/Navigation/Navigation';
-import ROUTES from './ROUTES';
 import StartupTimer from './libs/StartupTimer';
 import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
+import {create} from './libs/actions/Policy';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
@@ -146,7 +142,7 @@ class Expensify extends PureComponent {
             && !_.isEmpty(this.props.betas)
             && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
             setRedirectToWorkspaceNewAfterSignIn(false);
-            Navigation.navigate(ROUTES.WORKSPACE_NEW);
+            create();
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {

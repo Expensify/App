@@ -87,7 +87,14 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
+
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
+                    // Erase all policies in Onyx
+                    ...(_.reduce(_.keys(allPolicies), (memo, key) => ({...memo, [key]: null}), {})),
+
+                    // And overwrite them with only the ones returned by the API call
+                    ...policyDataToStore,
+                });
             }
         });
 }
@@ -114,9 +121,9 @@ function removeMembers(members, policyID) {
     // Optimistically remove the members from the policy
     Onyx.set(key, policy);
 
-    // Make the API call to merge the login into the policy
+    // Make the API call to remove a login from the policy
     API.Policy_Employees_Remove({
-        emailList: members,
+        emailList: members.join(','),
         policyID,
     })
         .then((data) => {
@@ -182,9 +189,10 @@ function invite(logins, welcomeNote, policyID) {
 /**
  * Merges the passed in login into the specified policy
  *
- * @param {String} name
+ * @param {String} [name]
  */
-function create(name) {
+function create(name = '') {
+    let res = null;
     API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -193,49 +201,57 @@ function create(name) {
                 Growl.error(errorMessage, 5000);
                 return;
             }
+            res = response;
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
                 employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
                 id: response.policyID,
                 type: response.policy.type,
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
             });
+        }).then(() => {
             Navigation.dismissModal();
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(response.policyID));
+            Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
         });
 }
 
 /**
- * Sets avatar or removes it if called with no avatarURL
- *
- * @param {String} policyID
- * @param {String} [avatarURL]
- */
-function setAvatarURL(policyID, avatarURL = '') {
-    API.UpdatePolicy({policyID, value: JSON.stringify({avatarURL}), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
-                return;
-            }
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL});
-        });
-}
-
-/**
- * @param {String} policyID
  * @param {Object} file
+ * @returns {Promise}
  */
-function updateAvatar(policyID, file) {
-    API.User_UploadAvatar({file})
+function uploadAvatar(file) {
+    return API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
+                Growl.error(errorMessage, 5000);
                 return;
             }
 
-            // Once we get the s3url back, update the policy with the new avatar URL
-            setAvatarURL(policyID, response.s3url);
+            return response.s3url;
+        });
+}
+
+/**
+ * Sets the name of the policy
+ *
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function update(policyID, values) {
+    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+        .then((policyResponse) => {
+            if (policyResponse.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+            Navigation.dismissModal();
         });
 }
 
@@ -245,6 +261,6 @@ export {
     removeMembers,
     invite,
     create,
-    updateAvatar,
-    setAvatarURL,
+    uploadAvatar,
+    update,
 };

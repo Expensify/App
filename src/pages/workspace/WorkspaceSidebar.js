@@ -1,6 +1,6 @@
 import _ from 'underscore';
-import React from 'react';
-import {View, ScrollView} from 'react-native';
+import React, {useEffect} from 'react';
+import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
@@ -21,9 +21,11 @@ import themedefault from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
+import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
-import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
-import {updateAvatar, setAvatarURL} from '../../libs/actions/Policy';
+import Avatar from '../../components/Avatar';
+import CONST from '../../CONST';
+import {create} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Policy for the current route */
@@ -51,7 +53,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             action: () => {
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id));
             },
-            isActive: Navigation.isActive(ROUTES.getWorkspaceCardRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
         },
         {
             translationKey: 'common.people',
@@ -59,13 +61,21 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
             action: () => {
                 Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
             },
-            isActive: Navigation.isActive(ROUTES.getWorkspacePeopleRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
         },
     ];
 
-    if (_.isEmpty(policy)) {
-        return null;
-    }
+    useEffect(() => {
+        if (_.isEmpty(policy)) {
+            Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
+            Navigation.dismissModal();
+            create();
+            return null;
+        }
+    }, [policy]);
+
+
+    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
 
     return (
         <ScreenWrapper>
@@ -87,35 +97,45 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                         )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
-                            <AvatarWithImagePicker
-                                avatarURL={policy.avatarURL}
-                                DefaultAvatar={() => (
-                                    <Icon
-                                        src={Workspace}
-                                        height={80}
-                                        width={80}
-                                        fill={themedefault.icon}
-                                    />
-                                )}
-                                style={[styles.mb3]}
-                                anchorPosition={{top: 116, left: 20}}
-                                isUsingDefaultAvatar={!policy.avatarURL}
-                                onImageSelected={(image) => {
-                                    updateAvatar(policy.id, image);
-                                }}
-                                onImageRemoved={() => setAvatarURL(policy.id)}
-                            />
-                            <Text
-                                numberOfLines={1}
+                            <Pressable
+                                style={[styles.pRelative, styles.avatarLarge]}
+                                onPress={openEditor}
+                            >
+                                {policy.avatarURL
+                                    ? (
+                                        <Avatar
+                                            containerStyles={styles.avatarLarge}
+                                            imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                            source={policy.avatarURL}
+                                        />
+                                    )
+                                    : (
+                                        <Icon
+                                            src={Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={themedefault.icon}
+                                        />
+                                    )}
+                            </Pressable>
+
+                            <Pressable
                                 style={[
-                                    styles.displayName,
                                     styles.alignSelfCenter,
-                                    styles.mt1,
+                                    styles.mt4,
                                     styles.mb6,
                                 ]}
+                                onPress={openEditor}
                             >
-                                {policy.name}
-                            </Text>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[
+                                        styles.displayName,
+                                    ]}
+                                >
+                                    {policy.name}
+                                </Text>
+                            </Pressable>
                         </View>
                     </View>
                     {menuItems.map(item => (
@@ -125,7 +145,7 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
-                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.hoverComponentBG : undefined}
+                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.activeComponentBG : undefined}
                             focused={item.isActive}
                             shouldShowRightIcon
                         />

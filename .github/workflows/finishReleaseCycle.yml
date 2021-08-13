@@ -16,14 +16,14 @@ jobs:
     steps:
       - name: Check for any deploy blockers
         id: checkDeployBlockers
-        uses: Expensify/Expensify.cash/.github/actions/checkDeployBlockers@main
+        uses: Expensify/App/.github/actions/checkDeployBlockers@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue
         if: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
-        uses: Expensify/Expensify.cash/.github/actions/reopenIssueWithComment@main
+        uses: Expensify/App/.github/actions/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -35,7 +35,7 @@ jobs:
   updateProduction:
     runs-on: ubuntu-latest
 
-    # Note: Anyone with Triage access to the Expensify.cash repo can trigger a production deploy
+    # Note: Anyone with Triage access to the New Expensify repo can trigger a production deploy
     needs: checkDeployBlockers
     if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
     steps:
@@ -45,7 +45,7 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Update production branch
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
@@ -53,7 +53,7 @@ jobs:
 
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
-    runs-on: macos-latest
+    runs-on: macos-11
     needs: checkDeployBlockers
     if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
     steps:
@@ -71,14 +71,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create new BUILD version
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: createNewVersion.yml
           INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
 
       - name: Update staging branch to trigger staging deploy
-        uses: Expensify/Expensify.cash/.github/actions/triggerWorkflowAndWait@main
+        uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: updateProtectedBranch.yml
@@ -96,7 +96,7 @@ jobs:
         run: git tag ${{ env.NEW_VERSION }}
 
       - name: Create new StagingDeployCash
-        uses: Expensify/Expensify.cash/.github/actions/createOrUpdateStagingDeploy@main
+        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ env.NEW_VERSION }}
