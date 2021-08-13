@@ -34,6 +34,9 @@ function canCapturePerformanceMetrics() {
     return CONFIG.CAPTURE_METRICS;
 }
 
+/**
+ * Sets up an observer to capture events recorded in the native layer before the app fully initializes.
+ */
 function setupPerformanceObserver() {
     if (!canCapturePerformanceMetrics()) {
         return;
@@ -60,7 +63,9 @@ function setupPerformanceObserver() {
  */
 function printPerformanceMetrics() {
     const performance = require('react-native-performance').default;
-    const entries = _.map(performance.getEntriesByType('measure'), entry => ({name: entry.name, duration: Math.floor(entry.duration)}));
+    const entries = _.map(performance.getEntriesByType('measure'), entry => ({
+        name: entry.name, duration: Math.floor(entry.duration),
+    }));
     alert(JSON.stringify(entries, null, 4));
 }
 
