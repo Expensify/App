@@ -53,19 +53,6 @@ Onyx.connect({
 
 const allReports = {};
 let conciergeChatReportID;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (val) => {
-        if (val && val.reportID) {
-            allReports[val.reportID] = val;
-
-            if (isConciergeChatReport(val)) {
-                conciergeChatReportID = val.reportID;
-            }
-        }
-    },
-});
-
 const typingWatchTimers = {};
 
 /**
@@ -461,11 +448,17 @@ function removeOptimisticActions(reportID) {
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
+ * @param {Boolean} [shouldRedirectIfEmpty=false] - Whether to redirect to Active Report Screen if IOUReport is empty
  * @returns {Promise}
  */
-function fetchIOUReportByID(iouReportID, chatReportID) {
+function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = false) {
     return fetchIOUReport(iouReportID, chatReportID)
         .then((iouReportObject) => {
+            if (!iouReportObject && shouldRedirectIfEmpty) {
+                Growl.error(translateLocal('notFound.iouReportNotFound'));
+                Navigation.navigate(ROUTES.REPORT);
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
@@ -585,8 +578,8 @@ function updateReportWithNewAction(
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
-        // Remove the optimistic action from the report since we are about to replace it with the real one (which has
-        // the true sequenceNumber)
+        // Remove the optimistic action from the report since we are about to replace it
+        // with the real one (which has the true sequenceNumber)
         reportActionsToMerge[reportAction.clientID] = null;
     }
 
@@ -1234,6 +1227,14 @@ function broadcastUserIsTyping(reportID) {
 function handleReportChanged(report) {
     if (!report) {
         return;
+    }
+
+    if (report && report.reportID) {
+        allReports[report.reportID] = report;
+
+        if (isConciergeChatReport(report)) {
+            conciergeChatReportID = report.reportID;
+        }
     }
 
     // A report can be missing a name if a comment is received via pusher event

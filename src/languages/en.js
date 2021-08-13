@@ -135,6 +135,9 @@ export default {
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',
     },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
+    },
     reportTypingIndicator: {
         isTyping: 'is typing...',
         areTyping: 'are typing...',
@@ -337,6 +340,7 @@ export default {
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
+        iouReportNotFound: 'The payment details you are looking for cannot be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',

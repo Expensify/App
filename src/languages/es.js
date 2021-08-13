@@ -135,6 +135,9 @@ export default {
     reportActionsView: {
         beFirstPersonToComment: 'Sé el primero en comentar',
     },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
+    },
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
@@ -335,8 +338,9 @@ export default {
         createGroup: 'Crear Grupo',
     },
     notFound: {
-        chatYouLookingForCannotBeFound: 'No se pudo encontrar el chat que estabas buscando.',
+        chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
+        iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',

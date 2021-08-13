@@ -420,6 +420,8 @@ PODS:
     - React-Core
   - react-native-pdf (6.2.2):
     - React-Core
+  - react-native-performance (2.0.0):
+    - React-Core
   - react-native-plaid-link-sdk (7.0.5):
     - Plaid (~> 2.1.2)
     - React-Core
@@ -638,6 +640,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
+  - react-native-performance (from `../node_modules/react-native-performance/ios`)
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - "react-native-progress-bar-android (from `../node_modules/@react-native-community/progress-bar-android`)"
   - "react-native-progress-view (from `../node_modules/@react-native-community/progress-view`)"
@@ -772,6 +775,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
+  react-native-performance:
+    :path: "../node_modules/react-native-performance/ios"
   react-native-plaid-link-sdk:
     :path: "../node_modules/react-native-plaid-link-sdk"
   react-native-progress-bar-android:
@@ -922,6 +927,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
+  react-native-performance: 8edfa2bbc9a2af4a02f01d342118e413a95145e0
   react-native-plaid-link-sdk: 1a6593e2d3d790e8113c29178d883eb883f8c032
   react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
   react-native-progress-view: 5816e8a6be812c2b122c6225a2a3db82d9008640

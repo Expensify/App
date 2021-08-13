@@ -15,9 +15,11 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
+import visibility from './utilities/visibility';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
+    color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
     paddingHorizontal: 12,
@@ -249,7 +251,8 @@ const styles = {
     },
 
     buttonDropdown: {
-        marginLeft: 1,
+        borderLeftWidth: 1,
+        borderColor: themeColors.textReversed,
     },
 
     noRightBorderRadius: {
@@ -1984,6 +1987,25 @@ const styles = {
     communicationsLinkHeight: {
         height: 20,
     },
+
+    reportMarkerBadgeWrapper: {
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        zIndex: 100,
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadge: {
+        left: '-50%',
+        ...visibility('visible'),
+    },
+
+    reportMarkerBadgeTransformation: translateY => ({
+        transform: [
+            {translateY},
+        ],
+    }),
 };
 
 const baseCodeTagStyles = {
