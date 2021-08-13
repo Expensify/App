@@ -13,7 +13,7 @@ import {
     PayPal,
     Plus,
 } from '../../../components/Icon/Expensicons';
-import {getBankIcon} from '../../../components/Icon/BankIcons';
+import getBankIcon from '../../../components/Icon/BankIcons';
 
 const MENU_ITEM = 'menuItem';
 

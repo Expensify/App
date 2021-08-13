@@ -20,102 +20,96 @@ import USAA from '../../../assets/images/bankicons/usaa.svg';
 
 /**
  * Returns matching asset icon for bankName
- * @param {String} bankName 
- * @returns 
+ * @param {String} bankName
+ * @returns
  */
 
-function getAssetIcon(bankName)
-{
-  if(bankName.includes('americanexpress')) {
-    return AmericanExpress;
-  }
+function getAssetIcon(bankName) {
+    if (bankName.includes('americanexpress')) {
+        return AmericanExpress;
+    }
 
-  if(bankName.includes('bank of america') || bankName.includes('bankofamerica')) {
-    return BankOfAmerica;
-  }
+    if (bankName.includes('bank of america') || bankName.includes('bankofamerica')) {
+        return BankOfAmerica;
+    }
 
-  if(bankName.startsWith('bbt')) {
-    return BB_T;
-  }
+    if (bankName.startsWith('bbt')) {
+        return BB_T;
+    }
 
-  if(bankName.startsWith('capital one') || bankName.includes('capitalone')) {
-    return CapitalOne;
-  }
+    if (bankName.startsWith('capital one') || bankName.includes('capitalone')) {
+        return CapitalOne;
+    }
 
-  if(bankName.startsWith('chase') || bankName.includes('chase')) {
-    return Chase;
-  }
+    if (bankName.startsWith('chase') || bankName.includes('chase')) {
+        return Chase;
+    }
 
-  if(bankName.includes('charles schwab') || bankName.includes('charlesschwab')) {
-    return CharlesSchwab;
-  }
+    if (bankName.includes('charles schwab') || bankName.includes('charlesschwab')) {
+        return CharlesSchwab;
+    }
 
-  if(bankName.startsWith('citibank') || bankName.includes('citibank')) {
-    return CitiBank;
-  }
+    if (bankName.startsWith('citibank') || bankName.includes('citibank')) {
+        return CitiBank;
+    }
 
-  if(bankName.startsWith('citizens bank') || bankName.includes('citizensbank')) {
-    return CitizensBank;
-  }
+    if (bankName.startsWith('citizens bank') || bankName.includes('citizensbank')) {
+        return CitizensBank;
+    }
 
-  if(bankName.startsWith('discover ') || bankName.includes('discover.') || bankName == 'discover') {
-    return Discover;
-  }
+    if (bankName.startsWith('discover ') || bankName.includes('discover.') || bankName === 'discover') {
+        return Discover;
+    }
 
-  if(bankName.startsWith('fidelity')) {
-    return Fidelity;
-  }
+    if (bankName.startsWith('fidelity')) {
+        return Fidelity;
+    }
 
-  if(bankName.startsWith('huntington bank') || bankName.includes('huntingtonnational') || bankName.includes('huntington national')) {
-    return HuntingtonBank;
-  }
+    if (bankName.startsWith('huntington bank') || bankName.includes('huntingtonnational') || bankName.includes('huntington national')) {
+        return HuntingtonBank;
+    }
 
-  if(bankName.startsWith('navy federal credit union') || bankName.includes('navy federal credit union')) {
-    return NavyFederalCreditUnion;
-  }
+    if (bankName.startsWith('navy federal credit union') || bankName.includes('navy federal credit union')) {
+        return NavyFederalCreditUnion;
+    }
 
-  if(bankName.startsWith('pnc') || bankName.includes('pnc')) {
-    return PNC;
-  }
+    if (bankName.startsWith('pnc') || bankName.includes('pnc')) {
+        return PNC;
+    }
 
-  if(bankName.startsWith('regions bank') || bankName.includes('regionsbank')) {
-    return RegionsBank;
-  }
+    if (bankName.startsWith('regions bank') || bankName.includes('regionsbank')) {
+        return RegionsBank;
+    }
 
-  if(bankName.startsWith('suntrust') || bankName.includes('suntrust')) {
-    return SunTrust;
-  }
+    if (bankName.startsWith('suntrust') || bankName.includes('suntrust')) {
+        return SunTrust;
+    }
 
-  if(bankName.startsWith('td bank') || bankName.startsWith('tdbank') || bankName.includes('tdbank')) {
-    return TdBank;
-  }
-  
-  if(bankName.startsWith('us bank') || bankName.startsWith('usbank')) {
-    return USBank;
-  }
-  
-  if(bankName.includes('usaa')) {
-    return USAA;
-  }
-  
-  return DefaultBank;
+    if (bankName.startsWith('td bank') || bankName.startsWith('tdbank') || bankName.includes('tdbank')) {
+        return TdBank;
+    }
+
+    if (bankName.startsWith('us bank') || bankName.startsWith('usbank')) {
+        return USBank;
+    }
+
+    if (bankName.includes('usaa')) {
+        return USAA;
+    }
+
+    return DefaultBank;
 }
-
 
 /**
- * Returns Bank Icon that matches to existing bank icons or default Icon 
- * @param {String} bankName 
- * @returns 
- */
+* Returns Bank Icon that matches to existing bank icons or default Icon
+* @param {String} bankName
+* @returns
+*/
 
-function getBankIcon(bankName){
-  if(!bankName){
-    return DefaultBank;
-  }
+export default function getBankIcon(bankName) {
+    if (!bankName) {
+        return DefaultBank;
+    }
 
-  return getAssetIcon(bankName.toLowerCase());
-}
-
-export {
-  getBankIcon,
+    return getAssetIcon(bankName.toLowerCase());
 }
