@@ -9,8 +9,7 @@ import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import VideoChatButtonAndMenu from './VideoChatButtonAndMenu';
-import InboxCallButton from "./InboxCallButton";
+import InboxCallButton from './InboxCallButton';
 
 const propTypes = {
     /** Title of the Header */
