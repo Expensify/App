@@ -38,6 +38,7 @@ export default {
         close: 'Cerrar',
         download: 'Descargar',
         pin: 'Alfiler',
+        unPin: 'Desprender',
         back: 'De vuelta',
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',

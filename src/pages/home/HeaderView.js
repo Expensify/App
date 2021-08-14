@@ -163,7 +163,7 @@ const HeaderView = (props) => {
                             )}
 
                             <VideoChatButtonAndMenu isConcierge={isConcierge} />
-                            <Tooltip text={props.translate('common.pin')}>
+                            <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => togglePinnedState(props.report)}
                                     style={[styles.touchableButtonImage, styles.mr0]}
