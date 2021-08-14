@@ -161,9 +161,8 @@ const HeaderView = (props) => {
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
-                            <Tooltip text={props.translate('videoChatButtonAndMenu.tooltip')}>
-                                <VideoChatButtonAndMenu isConcierge={isConcierge} />
-                            </Tooltip>
+
+                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
                             <Tooltip text={props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => togglePinnedState(props.report)}
