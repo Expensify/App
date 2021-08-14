@@ -18,7 +18,7 @@ const userWalletPropTypes = PropTypes.shape({
 
 /** Array of bank account objects */
 const bankAccountListPropTypes = PropTypes.arrayOf(PropTypes.shape({
-    /** The name of the institution (bank of america, etc */
+    /** The name of the institution (bank of america, etc) */
     addressName: PropTypes.string,
 
     /** The masked bank account number */
@@ -33,7 +33,7 @@ const bankAccountListPropTypes = PropTypes.arrayOf(PropTypes.shape({
 
 /** Array of card objects */
 const cardListPropTypes = PropTypes.arrayOf(PropTypes.shape({
-    /** The name of the institution (bank of america, etc */
+    /** The name of the institution (bank of america, etc) */
     cardName: PropTypes.string,
 
     /** The masked credit card number */
@@ -48,10 +48,10 @@ const walletTransferPropTypes = PropTypes.shape({
     /** Amount being transferred  */
     transferAmount: PropTypes.number,
 
-    /** Account selected for Transfer */
+    /** Account selected for transfer */
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
-    /** Whether the trasnfer is completed */
+    /** Whether the transfer is completed */
     completed: PropTypes.bool,
 });
 

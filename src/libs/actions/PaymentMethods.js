@@ -30,7 +30,7 @@ function getPaymentMethods() {
 }
 
 /**
- * Calls the API to transfet wallet balance
+ * Calls the API to transfer wallet balance
  *
  * @returns {Promise}
  */
@@ -47,7 +47,7 @@ function transferWalletBalance() {
             Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true});
         }).catch((error) => {
-            console.debug(`[Payments] Failed to tranfer wallet balance: ${error.message}`);
+            console.debug(`[Payments] Failed to transfer wallet balance: ${error.message}`);
         });
 }
 

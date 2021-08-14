@@ -120,6 +120,6 @@ export default {
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
-    // Used while transfering wallet balance
+    // Used while transferring wallet balance
     WALLET_TRANSFER: 'walletTransfer',
 };

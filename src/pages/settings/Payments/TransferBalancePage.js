@@ -66,7 +66,7 @@ class TransferBalancePage extends React.Component {
         this.state = {
             selectedPaymentType: CONST.WALLET.PAYMENT_TYPE.INSTANT,
 
-            // Show loader while tranfer is in-transit
+            // Show loader while transfer is in-transit
             loading: false,
         };
 

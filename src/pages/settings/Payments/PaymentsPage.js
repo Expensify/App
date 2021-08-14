@@ -102,8 +102,7 @@ class PaymentsPage extends React.Component {
     }
 
     /**
-     * Transfer Wallet balance
-     *
+     * Transfer wallet balance
      */
     transferBalance() {
         Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);

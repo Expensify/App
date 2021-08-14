@@ -266,7 +266,7 @@ export default {
         gotIt: 'Gracias!',
     },
     transferAmountPage: {
-        transfer: ({amount}) => `Transferir${amount ? (` ${amount}`) : ''}`,
+        transfer: ({amount}) => `Transferir${amount ? ` ${amount}` : ''}`,
         instant: 'Instante',
         instantSummary: ({amount}) => `Tarifa del 1.5% (${amount} mínimo)`,
         ach: '1-3 días laborales',
