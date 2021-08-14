@@ -200,6 +200,7 @@ export default {
     avatarWithImagePicker: {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
+        editImage: 'Editar Foto',
     },
     profilePage: {
         profile: 'Perfil',
