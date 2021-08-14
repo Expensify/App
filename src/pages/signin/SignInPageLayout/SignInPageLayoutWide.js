@@ -64,7 +64,9 @@ const SignInPageLayoutWide = props => (
                 styles.justifyContentAround,
                 styles.backgroundBlue,
                 styles.pb10Percentage,
-                styles.p20,
+                !props.isMediumScreenWidth && styles.p20,
+                props.isMediumScreenWidth && styles.p10,
+                props.isMediumScreenWidth && styles.alignItemsCenter,
             ]}
             >
                 <View style={[styles.dFlex, styles.flexColumnReverse, styles.alignItemsCenter, styles.w50]}>
