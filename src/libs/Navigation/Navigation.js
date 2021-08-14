@@ -1,6 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
-import {StackActions, DrawerActions, useLinkBuilder} from '@react-navigation/native';
+import {
+    StackActions,
+    DrawerActions,
+    useLinkBuilder,
+    createNavigationContainerRef,
+} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
@@ -15,7 +20,8 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
-export const navigationRef = React.createRef();
+export const navigationRef = createNavigationContainerRef();
+let initialRoute = null;
 
 /**
  * Opens the LHN drawer.
@@ -54,27 +60,38 @@ function goBack(shouldOpenDrawer = true) {
  * @param {String} route
  */
 function navigate(route = ROUTES.HOME) {
-    if (route === ROUTES.HOME) {
-        if (isLoggedIn) {
-            openDrawer();
+    if (navigationRef.isReady()) {
+        if (route === ROUTES.HOME) {
+            if (isLoggedIn) {
+                openDrawer();
+                return;
+            }
+
+            // If we're navigating to the signIn page while logged out, pop whatever screen is on top
+            // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
+            navigationRef.current.dispatch(StackActions.pop());
             return;
         }
 
-        // If we're navigating to the signIn page while logged out, pop whatever screen is on top
-        // since it's guaranteed that the sign in page will be underneath (since it's the initial route).
-        navigationRef.current.dispatch(StackActions.pop());
-        return;
-    }
+        // Navigate to the ReportScreen with a custom action so that we can preserve the history. We're looking to see if we
+        // have a participants route since those should go through linkTo() as they open a different screen.
+        const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
+        if (reportID && !isParticipantsRoute) {
+            navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
+            return;
+        }
 
-    // Navigate to the ReportScreen with a custom action so that we can preserve the history. We're looking to see if we
-    // have a participants route since those should go through linkTo() as they open a different screen.
-    const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
-    if (reportID && !isParticipantsRoute) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
-        return;
+        linkTo(navigationRef.current, route);
+    } else {
+        // Navigation container not yet loaded, set initial route.
+        initialRoute = route;
     }
+}
 
-    linkTo(navigationRef.current, route);
+function goToInitialRoute() {
+    if (initialRoute) {
+        navigate(initialRoute);
+    }
 }
 
 /**
@@ -174,6 +191,7 @@ DismissModal.defaultProps = {
 
 export default {
     navigate,
+    goToInitialRoute,
     dismissModal,
     isActiveRoute,
     goBack,
