@@ -102,7 +102,9 @@ class SidebarScreen extends Component {
                                 onAvatarClick={this.navigateToSettings}
                                 isSmallScreenWidth={this.props.isSmallScreenWidth}
                             />
+
                             <FAB
+                                tooltip={this.props.translate('sidebarScreen.fabAction')}
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
                                 isActive={this.state.isCreateMenuActive}

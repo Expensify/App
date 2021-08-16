@@ -7,10 +7,10 @@ import FAB from './FAB';
 import fabPropTypes from './fabPropTypes';
 
 // KeyboardAvoidingView only need in IOS so that's the reason make platform specific FAB component.
-function Fab({onPress, isActive}) {
+function Fab({onPress, isActive, tooltip}) {
     return (
         <KeyboardAvoidingView behavior="position">
-            <FAB onPress={onPress} isActive={isActive} />
+            <FAB onPress={onPress} isActive={isActive} tooltip={tooltip} />
         </KeyboardAvoidingView>
     );
 }
