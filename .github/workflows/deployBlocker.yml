@@ -54,7 +54,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: "#DB4545",
-                text: '💥 We have found a new E.cash Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ env.DEPLOY_BLOCKER_URL }}|'+ `${{ env.DEPLOY_BLOCKER_TITLE }}`.replace(/(^'|'$)/gi, '').replace(/'\''/gi,'\'') + '>',
+                text: '💥 We have found a New Expensify Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ env.DEPLOY_BLOCKER_URL }}|'+ `${{ env.DEPLOY_BLOCKER_TITLE }}`.replace(/(^'|'$)/gi, '').replace(/'\''/gi,'\'') + '>',
               }]
             }
         env:
