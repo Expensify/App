@@ -278,6 +278,36 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 }
 
 /**
+ * Returns the given userDetails is currentUser or not.
+ * @param {Object} userDetails
+ * @returns {Bool}
+ */
+
+function isCurrentUser(userDetails) {
+    if (!userDetails) {
+        // If userDetails is null or undefined
+        return false;
+    }
+
+    // If user login is mobile number, append sms domain if not appended already just a fail safe.
+    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
+
+    // Initial check with currentUserLogin
+    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
+    const {loginList} = currentUser;
+    let index = 0;
+
+    // Checking userDetailsLogin against to current user login options.
+    while (index < loginList.length && !result) {
+        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
+            result = true;
+        }
+        index++;
+    }
+    return result;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -466,7 +496,6 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     if (searchValue
         && recentReportOptions.length === 0
         && personalDetailsOptions.length === 0
-        // eslint-disable-next-line no-use-before-define
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
@@ -724,38 +753,9 @@ function getReportIcons(report, personalDetails) {
         .map(item => item.avatar);
 }
 
-/**
- * Returns the given userDetails is currentUser or not.
- * @param {Object} userDetails
- * @returns {Bool}
- */
-
-function isCurrentUser(userDetails) {
-    if (!userDetails) {
-        // If userDetails is null or undefined
-        return false;
-    }
-
-    // If user login is mobile number, append sms domain if not appended already just a fail safe.
-    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
-
-    // Initial check with currentUserLogin
-    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    const {loginList} = currentUser;
-    let index = 0;
-
-    // Checking userDetailsLogin against to current user login options.
-    while (index < loginList.length && !result) {
-        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
-            result = true;
-        }
-        index++;
-    }
-    return result;
-}
-
 export {
     addSMSDomainIfPhoneNumber,
+    isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
@@ -767,5 +767,4 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getDefaultAvatar,
     getReportIcons,
-    isCurrentUser,
 };
