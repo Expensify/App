@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 
 import BootSplash from './libs/BootSplash';
@@ -19,36 +19,6 @@ import {growlRef} from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
 import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
 import {create} from './libs/actions/Policy';
-import CONST from './CONST';
-import Log from './libs/Log';
-import listenToStorageEvents from './libs/listenToStorageEvents';
-
-// Initialize the store when the app loads for the first time
-Onyx.init({
-    keys: ONYXKEYS,
-    safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
-    initialKeyStates: {
-
-        // Clear any loading and error messages so they do not appear on app startup
-        [ONYXKEYS.SESSION]: {loading: false, shouldShowComposeInput: true},
-        [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
-        [ONYXKEYS.NETWORK]: {isOffline: false},
-        [ONYXKEYS.IOU]: {
-            loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
-        },
-        [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-    },
-    registerStorageEventListener: (onStorageEvent) => {
-        listenToStorageEvents(onStorageEvent);
-    },
-});
-Onyx.registerLogger(({level, message}) => {
-    if (level === 'alert') {
-        Log.alert(message, {}, false);
-    } else {
-        Log.client(message);
-    }
-});
 
 const propTypes = {
     /* Onyx Props */
