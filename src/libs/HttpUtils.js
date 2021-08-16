@@ -2,6 +2,7 @@ import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
+// To avoid a circular dependency, we can't include Log here, so instead, we define an empty logging method and expose the setLogger method to set the logger from outside this file
 let info = () => {};
 
 /**
