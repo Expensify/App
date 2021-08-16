@@ -17,6 +17,7 @@ import Download from '../../../assets/images/download.svg';
 import Emoji from '../../../assets/images/emoji.svg';
 import Exclamation from '../../../assets/images/exclamation.svg';
 import Eye from '../../../assets/images/eye.svg';
+import EyeDisabled from '../../../assets/images/eye-disabled.svg';
 import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
@@ -74,6 +75,7 @@ export {
     Emoji,
     Exclamation,
     Eye,
+    EyeDisabled,
     ExpensifyCard,
     Gallery,
     Gear,

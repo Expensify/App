@@ -1,12 +1,18 @@
 import React, {Component} from 'react';
 import {
-    Animated, TextInput, View, TouchableWithoutFeedback,
+    Animated, TextInput, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
-import styles from '../../styles/styles';
+import styles, {getIconFillColor} from '../../styles/styles';
+import Icon from '../Icon';
+import {
+    Eye,
+    EyeDisabled,
+} from '../Icon/Expensicons';
+import getButtonState from '../../libs/getButtonState';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -10;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
@@ -36,6 +42,7 @@ class BaseExpensiTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
+        this.secureTextEntry = props.secureTextEntry;
     }
 
     componentDidMount() {
@@ -118,6 +125,7 @@ class BaseExpensiTextInput extends Component {
             ignoreLabelTranslateX,
             innerRef,
             autoFocus,
+            secureTextEntry,
             ...inputProps
         } = this.props;
 
@@ -145,6 +153,25 @@ class BaseExpensiTextInput extends Component {
                                 labelScale={this.state.labelScale}
                             />
                         ) : null}
+                        {secureTextEntry && (
+                        <Pressable
+                            accessibilityRole="button"
+
+                            // accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                            style={[
+                                styles.secureInputEyeButton,
+                            ]}
+                            onPress={this.toggleSecureTextEntry}
+                        >
+                            {({hovered, pressed}) => (
+                                <Icon
+                                    src={Eye}
+                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            )}
+                        </Pressable>
+                        )}
                         <TextInput
                             ref={(ref) => {
                                 if (typeof innerRef === 'function') { innerRef(ref); }
@@ -156,7 +183,7 @@ class BaseExpensiTextInput extends Component {
                             placeholder={(this.state.isFocused || !label) ? placeholder : null}
                             placeholderTextColor={themeColors.placeholderText}
                             underlineColorAndroid="transparent"
-                            style={inputStyle}
+                            style={[...inputStyle]}
                             onFocus={this.onFocus}
                             onBlur={this.onBlur}
                             onChangeText={this.setValue}
