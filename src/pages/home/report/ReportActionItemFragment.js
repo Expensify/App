@@ -32,6 +32,7 @@ const propTypes = {
     isSingleLine: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
+
     ...withLocalizePropTypes,
 };
 
