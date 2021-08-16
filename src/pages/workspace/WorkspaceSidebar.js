@@ -37,16 +37,20 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
+    /** All the polices that we have loaded in Onyx */
+    allPolicies: PropTypes.object,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     policy: {},
+    allPolicies: null,
 };
 
 const WorkspaceSidebar = ({
-    translate, isSmallScreenWidth, policy, areAllPoliciesLoaded,
+    translate, isSmallScreenWidth, policy, allPolicies,
 }) => {
     const menuItems = [
         {
@@ -67,7 +71,8 @@ const WorkspaceSidebar = ({
         },
     ];
 
-    if (areAllPoliciesLoaded && _.isEmpty(policy)) {
+    // After all the policies have loaded, we can know if the given policyID points to a nonexistant workspace
+    if (allPolicies !== null && _.isEmpty(policy)) {
         Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
         Navigation.dismissModal();
         create();
@@ -172,8 +177,8 @@ export default compose(
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
         },
-        areAllPoliciesLoaded: {
-            key: ONYXKEYS.ARE_ALL_POLICIES_LOADED,
+        allPolicies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(WorkspaceSidebar);
