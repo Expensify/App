@@ -44,17 +44,17 @@ jobs:
           add-labels: 'Hourly, Engineering'
           remove-labels: 'Daily, Weekly, Monthly'
 
-      - name: 'Post the issue in the #deployer slack room'
+      - name: 'Post the issue in the #expensify-open-source slack room'
         if: ${{ success() }}
         uses: 8398a7/action-slack@v3
         with:
           status: custom
           custom_payload: |
             {
-              channel: '#deployer',
+              channel: '#expensify-open-source',
               attachments: [{
                 color: "#DB4545",
-                text: '💥 New E.cash Deploy Blocker: <${{ env.DEPLOY_BLOCKER_URL }}|'+ `${{ env.DEPLOY_BLOCKER_TITLE }}`.replace(/(^'|'$)/gi, '').replace(/'\''/gi,'\'') + '>',
+                text: '💥 We have found a new E.cash Deploy Blocker, if you have any idea which PR could be causing this, please comment in the issue: <${{ env.DEPLOY_BLOCKER_URL }}|'+ `${{ env.DEPLOY_BLOCKER_TITLE }}`.replace(/(^'|'$)/gi, '').replace(/'\''/gi,'\'') + '>',
               }]
             }
         env:
