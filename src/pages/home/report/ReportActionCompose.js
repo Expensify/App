@@ -485,17 +485,19 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <TouchableOpacity
-                                                onPress={(e) => {
-                                                    e.preventDefault();
-                                                    this.setMenuVisibility(true);
-                                                }}
-                                                style={styles.chatItemAttachButton}
-                                                underlayColor={themeColors.componentBG}
-                                                disabled={isBlockedFromConcierge || isArchivedChatRoom}
-                                            >
-                                                <Icon src={Plus} />
-                                            </TouchableOpacity>
+                                            <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
+                                                <TouchableOpacity
+                                                    onPress={(e) => {
+                                                        e.preventDefault();
+                                                        this.setMenuVisibility(true);
+                                                    }}
+                                                    style={styles.chatItemAttachButton}
+                                                    underlayColor={themeColors.componentBG}
+                                                    disabled={isBlockedFromConcierge || isArchivedChatRoom}
+                                                >
+                                                    <Icon src={Plus} />
+                                                </TouchableOpacity>
+                                            </Tooltip>
                                             <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}

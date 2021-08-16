@@ -118,6 +118,7 @@ export default {
         phrase4: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
+        addAction: 'Actions',
         sendAttachment: 'Send Attachment',
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
@@ -150,6 +151,7 @@ export default {
         multipleUsers: 'Multiple users',
     },
     sidebarScreen: {
+        fabAction: 'New Chat',
         newChat: 'New Chat',
         newGroup: 'New Group',
         headerChat: 'Chats',
