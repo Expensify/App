@@ -73,7 +73,7 @@ class LoginForm extends React.Component {
 
     render() {
         // Check if phone number is valid and ensure it has country code with prefix +
-        const isInvalidPhone = this.state.login && Str.isValidPhone(this.state.login) && !CONST.REGEX.DIGITS_START_WITH_PLUS.test(this.state.login);
+        const isInvalidPhone = this.state.login.trim() !== '' && Str.isValidPhone(this.state.login) && !CONST.REGEX.DIGITS_START_WITH_PLUS.test(this.state.login);
 
         return (
             <>
