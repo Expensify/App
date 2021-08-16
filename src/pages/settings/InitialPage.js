@@ -174,7 +174,7 @@ const InitialSettingsPage = ({
                             />
                         </Pressable>
 
-                        <Pressable style={[styles.mt1]} onPress={openProfileSettings}>
+                        <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
                             <Text style={[styles.displayName]} numberOfLines={1}>
                                 {myPersonalDetails.displayName
                                     ? myPersonalDetails.displayName
