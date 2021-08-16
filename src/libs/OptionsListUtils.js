@@ -294,7 +294,7 @@ function isCurrentUser(userDetails) {
 
     // Initial check with currentUserLogin
     let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    const {loginList} = currentUser;
+    const loginList = _.isEmpty(currentUser) ? [] : currentUser.loginList;
     let index = 0;
 
     // Checking userDetailsLogin against to current user login options.
