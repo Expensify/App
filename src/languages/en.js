@@ -132,6 +132,9 @@ export default {
         deleteComment: 'Delete Comment',
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
+    reportActionItemFragment: {
+        edited: '(edited)',
+    },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',
     },
