@@ -635,16 +635,18 @@ class ReportActionCompose extends React.Component {
                             </Tooltip>
                         )}
                     </Pressable>
-                    <TouchableOpacity
-                        style={[styles.chatItemSubmitButton,
-                            this.state.isCommentEmpty
-                                ? styles.buttonDisable : styles.buttonSuccess]}
-                        onPress={this.submitForm}
-                        underlayColor={themeColors.componentBG}
-                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
-                    >
-                        <Icon src={Send} fill={themeColors.componentBG} />
-                    </TouchableOpacity>
+                    <Tooltip text={this.props.translate('common.send')}>
+                        <TouchableOpacity
+                            style={[styles.chatItemSubmitButton,
+                                this.state.isCommentEmpty
+                                    ? styles.buttonDisable : styles.buttonSuccess]}
+                            onPress={this.submitForm}
+                            underlayColor={themeColors.componentBG}
+                            disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                        >
+                            <Icon src={Send} fill={themeColors.componentBG} />
+                        </TouchableOpacity>
+                    </Tooltip>
                 </View>
                 {this.props.network.isOffline ? (
                     <View style={[styles.chatItemComposeSecondaryRow]}>
