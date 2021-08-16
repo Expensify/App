@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
 import {LocaleContextProvider} from './components/withLocalize';
 import OnyxProvider from './components/OnyxProvider';
+import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
 
 LogBox.ignoreLogs([
@@ -25,6 +26,7 @@ const App = () => (
             OnyxProvider,
             SafeAreaProvider,
             LocaleContextProvider,
+            HTMLEngineProvider,
         ]}
     >
         <CustomStatusBar />

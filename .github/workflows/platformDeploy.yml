@@ -208,10 +208,8 @@ jobs:
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
-      # TODO: uncomment when we want to release iOS to production
       - name: Run Fastlane for App Store release
-        #              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'false' == 'true' }}
+        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: bundle exec fastlane ios production
         env:
           VERSION: ${{ env.NEW_IOS_VERSION }}
@@ -334,7 +332,7 @@ jobs:
 
       - name: Determine if this was a cherry-pick
         id: isStagingDeployLocked
-        uses: Expensify/Expensify.cash/.github/actions/isStagingDeployLocked@main
+        uses: Expensify/App/.github/actions/isStagingDeployLocked@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -343,18 +341,17 @@ jobs:
 
       - name: Get Release Pull Request List
         id: getReleasePRList
-        uses: Expensify/Expensify.cash/.github/actions/getDeployPullRequestList@main
+        uses: Expensify/App/.github/actions/getDeployPullRequestList@main
         with:
           TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
 
       - name: Comment on issues
-        uses: Expensify/Expensify.cash/.github/actions/markPullRequestsAsDeployed@main
+        uses: Expensify/App/.github/actions/markPullRequestsAsDeployed@main
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-          STAGING_DEPLOY_NUMBER: ${{ steps.isStagingDeployLocked.outputs.NUMBER }}
           DEPLOY_VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}

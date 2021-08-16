@@ -1,6 +1,6 @@
 //
 //  RCTStartupTimer.m
-//  ExpensifyCash
+//  NewExpensify
 //
 //  Created by Marc Glasser on 7/21/21.
 //

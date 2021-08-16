@@ -122,12 +122,11 @@ export default {
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
     },
-    contextMenuItem: {
+    reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
         copied: 'Copied!',
-    },
-    reportActionContextMenu: {
         copyLink: 'Copy Link',
+        copyURLToClipboard: 'Copy URL to Clipboard',
         markAsUnread: 'Mark as Unread',
         editComment: 'Edit Comment',
         deleteComment: 'Delete Comment',
@@ -135,6 +134,9 @@ export default {
     },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',
+    },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     },
     reportTypingIndicator: {
         isTyping: 'is typing...',
@@ -216,7 +218,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'The New Expensify is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'The New Expensify App is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -338,6 +340,7 @@ export default {
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
+        iouReportNotFound: 'The payment details you are looking for cannot be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',
@@ -389,8 +392,9 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Enter password',
+        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
+        chooseAccountLabel: 'Account',
     },
     attachmentView: {
         unknownFilename: 'Unknown Filename',
@@ -563,12 +567,7 @@ export default {
         new: {
             newWorkspace: 'New Workspace',
             getTheExpensifyCardAndMore: 'Get the Expensify Card and more',
-            welcome: 'Welcome',
-            chooseAName: 'Choose a name',
-            helpText: 'Name your Workspace before enabling your Expensify Cards!',
-            getStarted: 'Get started!',
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
-            successMessage: 'Workspace created',
         },
         people: {
             assignee: 'Assignee',
@@ -592,6 +591,7 @@ export default {
             personalMessagePrompt: 'Add a Personal Message (Optional)',
             enterEmailOrPhone: 'Email or Phone',
             pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
+            pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} Workspace! Download the Expensify mobile App to start tracking your expenses.`,
         },
@@ -604,7 +604,7 @@ export default {
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
         error: {
-            growlMessageInvalidPolicy: 'Invalid workspace! You can create a new workspace!',
+            growlMessageInvalidPolicy: 'Invalid workspace! A new workspace has been created.',
         },
     },
     requestCallPage: {

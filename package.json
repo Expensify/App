@@ -1,9 +1,9 @@
 {
-  "name": "expensify.cash",
-  "version": "1.0.83-1",
+  "name": "new.expensify",
+  "version": "1.0.85-6",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
-  "description": "Expensify.cash is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
+  "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -84,8 +84,9 @@
     "react-native-image-picker": "^4.0.3",
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal": "^11.10.0",
-    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#d7553b95e982ab78f6bb2064f6b0549f0ace94c2",
+    "react-native-onyx": "git+https://github.com/Expensify/react-native-onyx.git#2908a47dee13d99ce756bebb75740ed2f27c2d2e",
     "react-native-pdf": "^6.2.2",
+    "react-native-performance": "^2.0.0",
     "react-native-permissions": "^3.0.1",
     "react-native-picker-select": "8.0.4",
     "react-native-plaid-link-sdk": "^7.0.5",
@@ -144,7 +145,7 @@
     "electron-notarize": "^1.0.0",
     "electron-reloader": "^1.2.0",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "^2.0.15",
+    "eslint-config-expensify": "^2.0.16",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-detox": "^1.0.0",
     "eslint-plugin-jest": "^24.1.0",
@@ -206,13 +207,13 @@
     "configurations": {
       "ios.sim.debug": {
         "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/expensify.cash.app",
-        "build": "xcodebuild -workspace ios/ExpensifyCash.xcworkspace -scheme ExpensifyCash -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
+        "build": "xcodebuild -workspace ios/NewExpensify.xcworkspace -scheme NewExpensify -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
         "type": "ios.simulator",
         "name": "iPhone 11"
       },
       "ios.sim.release": {
-        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/expensify.cash.app",
-        "build": "xcodebuild -workspace ios/ExpensifyCash.xcworkspace -scheme ExpensifyCash -configuration Release -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
+        "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/new expensify.app",
+        "build": "xcodebuild -workspace ios/NewExpensify.xcworkspace -scheme NewExpensify -configuration Release -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
         "type": "ios.simulator",
         "name": "iPhone 11"
       }

@@ -4,7 +4,7 @@ import SCREENS from '../../SCREENS';
 export default {
     prefixes: [
         'expensify-cash://',
-        'https://expensify.cash',
+        'https://new.expensify.com',
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
@@ -141,11 +141,6 @@ export default {
             WorkspaceInvite: {
                 screens: {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
-                },
-            },
-            NewWorkspace: {
-                screens: {
-                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
 
