@@ -1,1 +1,0 @@
-Just PR for testing a Webhook, I will remove this file in consequent PR.
