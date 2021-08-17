@@ -15,6 +15,8 @@ import Text from './Text';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** The task ID to queue a call for */
     taskID: PropTypes.string,
 };
 
@@ -23,33 +25,31 @@ const defaultProps = {
 };
 
 const InboxCallButton = props => (
-    <>
-        <View
-            style={[styles.justifyContentCenter, styles.alignItemsCenter]}
+    <View
+        style={[styles.justifyContentCenter, styles.alignItemsCenter]}
+    >
+        <Pressable
+            onPress={() => {
+                Navigation.navigate(ROUTES.getRequestCallRoute(props.taskID));
+            }}
+            style={[styles.button, styles.buttonSmall]}
         >
-            <Pressable
-                onPress={() => {
-                    Navigation.navigate(ROUTES.getRequestCallRoute(props.taskID));
-                }}
-                style={[styles.button, styles.buttonSmall]}
-            >
-                <View style={styles.flexRow}>
-                    <View style={styles.mr1}>
-                        <Icon
-                            src={Phone}
-                            fill={themeColors.heading}
-                            small
-                        />
-                    </View>
-                    <View>
-                        <Text style={styles.buttonText}>
-                            {props.translate('requestCallPage.needHelp')}
-                        </Text>
-                    </View>
+            <View style={styles.flexRow}>
+                <View style={styles.mr1}>
+                    <Icon
+                        src={Phone}
+                        fill={themeColors.heading}
+                        small
+                    />
                 </View>
-            </Pressable>
-        </View>
-    </>
+                <View>
+                    <Text style={styles.buttonText}>
+                        {props.translate('requestCallPage.needHelp')}
+                    </Text>
+                </View>
+            </View>
+        </Pressable>
+    </View>
 );
 
 InboxCallButton.propTypes = propTypes;

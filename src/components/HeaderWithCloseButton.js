@@ -33,9 +33,10 @@ const propTypes = {
     /** Whether we should show a download button */
     shouldShowDownloadButton: PropTypes.bool,
 
-    /** Whether weshould show a inbox call button */
+    /** Whether we should show a inbox call button */
     shouldShowInboxCallButton: PropTypes.bool,
 
+    /** The task ID to associate with the call button, if we show it*/
     inboxCallTaskID: PropTypes.string,
 
     ...withLocalizePropTypes,
