@@ -1,3 +1,5 @@
+import {setupPerformanceObserver} from '../libs/Performance';
+
 // Setup Flipper plugins when on dev
 export default function () {
     // eslint-disable-next-line no-undef
@@ -7,4 +9,6 @@ export default function () {
         const AsyncStorage = require('@react-native-async-storage/async-storage').default;
         RNAsyncStorageFlipper(AsyncStorage);
     }
+
+    setupPerformanceObserver();
 }

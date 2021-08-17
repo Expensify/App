@@ -17,7 +17,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             :warning: :warning: **Heads up! This pull request has the `CP Staging` label.** :warning: :warning:
-            Merging it will cause it to be immediately deployed to staging, _even if the [open `StagingDeployCash` deploy checklist](https://github.com/Expensify/Expensify.cash/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) is locked._
+            Merging it will cause it to be immediately deployed to staging, _even if the [open `StagingDeployCash` deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) is locked._
 
       # This Slack step is duplicated in all workflows, if you make a change to this step, make sure to update all
       # the other workflows with the same change

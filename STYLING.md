@@ -94,7 +94,7 @@ const SettingsScreen = props => (
 const SomeOtherScreen = props => (
     <View>
         <Text style={[styles.settingsScreenText]}>
-            Expensify.cash
+            New Expensify
         </Text>
     </View>
 );
@@ -111,7 +111,7 @@ const SettingsScreen = props => (
 const SomeOtherScreen = props => (
     <View>
         <Text style={[styles.defaultScreenText]}>
-            Expensify.cash
+            New Expensify
         </Text>
     </View>
 );
