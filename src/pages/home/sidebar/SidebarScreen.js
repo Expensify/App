@@ -49,7 +49,7 @@ class SidebarScreen extends Component {
     }
 
     componentDidMount() {
-        Timing.start(CONST.TIMING.SIDEBAR_LOADED);
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }
 
     /**
