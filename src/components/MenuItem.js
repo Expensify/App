@@ -8,7 +8,9 @@ import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles
 import Icon from './Icon';
 import {ArrowRight} from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
+import Avatar from './Avatar';
 import Badge from './Badge';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -22,7 +24,7 @@ const propTypes = {
     onPress: PropTypes.func.isRequired,
 
     /** Icon to display on the left side of component */
-    icon: PropTypes.elementType,
+    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
     /** Icon Height */
     iconWidth: PropTypes.number,
@@ -59,6 +61,9 @@ const propTypes = {
 
     /** A right-aligned subtitle for this menu option */
     subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+
+    /** Flag to choose between avatar image or an icon */
+    iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON]),
 };
 
 const defaultProps = {
@@ -76,6 +81,7 @@ const defaultProps = {
     focused: false,
     disabled: false,
     subtitle: undefined,
+    iconType: 'icon',
 };
 
 const MenuItem = ({
@@ -95,6 +101,7 @@ const MenuItem = ({
     focused,
     disabled,
     subtitle,
+    iconType,
 }) => (
     <Pressable
         onPress={(e) => {
@@ -113,7 +120,7 @@ const MenuItem = ({
         {({hovered, pressed}) => (
             <>
                 <View style={styles.flexRow}>
-                    {icon && (
+                    {(icon && iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
                                 styles.popoverMenuIcon,
@@ -130,6 +137,19 @@ const MenuItem = ({
                             />
                         </View>
                     )}
+                    {(icon && iconType === CONST.ICON_TYPE_AVATAR) && (
+                        <View
+                            style={[
+                                styles.popoverMenuIcon,
+                                ...iconStyles,
+                            ]}
+                        >
+                            <Avatar
+                                imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                source={icon}
+                            />
+                        </View>
+                    )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
                         <Text style={[
                             styles.popoverMenuText,
@@ -140,7 +160,7 @@ const MenuItem = ({
                             {title}
                         </Text>
                         {description && (
-                            <Text style={[styles.popoverMenuDescription, styles.ml3, styles.mt1]}>
+                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
                                 {description}
                             </Text>
                         )}
@@ -151,7 +171,7 @@ const MenuItem = ({
                     {subtitle && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text
-                                style={styles.popoverMenuDescription}
+                                style={styles.textLabelSupporting}
                             >
                                 {subtitle}
                             </Text>

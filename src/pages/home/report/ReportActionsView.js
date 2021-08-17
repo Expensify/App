@@ -8,7 +8,6 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {
     fetchActions,
@@ -18,7 +17,6 @@ import {
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
-import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -36,6 +34,8 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
+import variables from '../../../styles/variables';
+import MarkerBadge from './MarkerBadge';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -98,11 +98,17 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isLoadingMoreChats: false,
+            isMarkerActive: false,
         };
 
+        this.currentScrollOffset = 0;
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
+        this.trackScroll = this.trackScroll.bind(this);
+        this.showMarker = this.showMarker.bind(this);
+        this.hideMarker = this.hideMarker.bind(this);
+        this.toggleMarker = this.toggleMarker.bind(this);
     }
 
     componentDidMount() {
@@ -151,6 +157,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (nextState.isMarkerActive !== this.state.isMarkerActive) {
+            return true;
+        }
+
         if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
             return true;
         }
@@ -188,6 +198,9 @@ class ReportActionsView extends React.Component {
             if (shouldRecordMaxAction) {
                 updateLastReadActionID(this.props.reportID);
             }
+
+            // show new MarkerBadge when there is a new Message
+            this.toggleMarker();
         }
 
         // We want to mark the unread comments when user resize the screen to desktop
@@ -257,6 +270,20 @@ class ReportActionsView extends React.Component {
                 .then(() => this.setState({isLoadingMoreChats: false}));
         });
     }
+
+    /**
+     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
+     * the height of the smallest report action possible.
+     * @return {Number}
+     */
+    calculateInitialNumToRender() {
+        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom
+            + variables.fontSizeNormalHeight;
+        const availableHeight = this.props.windowHeight
+            - (styles.chatItemCompose.minHeight + variables.contentHeaderHeight);
+        return Math.ceil(availableHeight / minimumReportActionHeight);
+    }
+
 
     /**
      * Updates and sorts the report actions by sequence number
@@ -329,6 +356,43 @@ class ReportActionsView extends React.Component {
     scrollToListBottom() {
         scrollToBottom();
         updateLastReadActionID(this.props.reportID);
+    }
+
+    /**
+     * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
+     */
+    toggleMarker() {
+        if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
+            this.showMarker();
+        }
+
+        if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
+            this.hideMarker();
+        }
+    }
+
+    /**
+     * Show the new MarkerBadge
+     */
+    showMarker() {
+        this.setState({isMarkerActive: true});
+    }
+
+    /**
+     * Hide the new MarkerBadge
+     */
+    hideMarker() {
+        this.setState({isMarkerActive: false});
+    }
+
+    /**
+     * keeps track of the Scroll offset of the main messages list
+     *
+     * @param {Object} {nativeEvent}
+     */
+    trackScroll({nativeEvent}) {
+        this.currentScrollOffset = -nativeEvent.contentOffset.y;
+        this.toggleMarker();
     }
 
     /**
@@ -412,6 +476,12 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
+                <MarkerBadge
+                    active={this.state.isMarkerActive}
+                    count={this.props.report.unreadActionCount}
+                    onClick={scrollToBottom}
+                    onClose={this.hideMarker}
+                />
                 <InvertedFlatList
                     ref={flatListRef}
                     data={this.sortedReportActions}
@@ -420,6 +490,7 @@ class ReportActionsView extends React.Component {
                     contentContainerStyle={styles.chatContentScrollView}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
+                    initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.loadMoreChats}
                     onEndReachedThreshold={0.75}
                     ListFooterComponent={this.state.isLoadingMoreChats
@@ -427,6 +498,7 @@ class ReportActionsView extends React.Component {
                         : null}
                     keyboardShouldPersistTaps="handled"
                     onLayout={this.recordTimeToMeasureItemLayout}
+                    onScroll={this.trackScroll}
                 />
                 <PopoverReportActionContextMenu ref={contextMenuRef} />
             </>
@@ -441,16 +513,4 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            canEvict: false,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
 )(ReportActionsView);

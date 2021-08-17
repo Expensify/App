@@ -59,7 +59,7 @@ jobs:
 
       - name: Get Release Pull Request List
         id: getReleasePRList
-        uses: Expensify/Expensify.cash/.github/actions/getDeployPullRequestList@main
+        uses: Expensify/App/.github/actions/getDeployPullRequestList@main
         with:
           TAG: ${{ env.PRODUCTION_VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -67,7 +67,7 @@ jobs:
 
       - name: Generate Release Body
         id: getReleaseBody
-        uses: Expensify/Expensify.cash/.github/actions/getReleaseBody@main
+        uses: Expensify/App/.github/actions/getReleaseBody@main
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
 
@@ -79,4 +79,3 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-

@@ -37,7 +37,7 @@ const secureURLRoot = useNgrok && secureNgrokURL ? secureNgrokURL : expensifyURL
 const expensifyURLRoot = useNgrok && ngrokURL ? ngrokURL : expensifyComWithProxy;
 
 export default {
-    APP_NAME: 'ExpensifyCash',
+    APP_NAME: 'NewExpensify',
     AUTH_TOKEN_EXPIRATION_TIME: 1000 * 60 * 90,
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL_COM whether the proxy is enabled or not.
@@ -60,4 +60,5 @@ export default {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
     },
+    CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', false),
 };
