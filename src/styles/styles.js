@@ -548,6 +548,13 @@ const styles = {
         padding: 0,
         left,
     }),
+    secureInputEyeButton: {
+        alignSelf: 'flex-end',
+        borderRadius: 6,
+        height: 32,
+        margin: 3,
+        justifyContent: 'center',
+    },
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
