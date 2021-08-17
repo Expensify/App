@@ -34,7 +34,7 @@ class BaseExpensiTextInput extends Component {
             labelTranslateX: new Animated.Value(hasValue
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
-            passwordHidden: true,
+            passwordHidden: props.defaultHidePassword,
         };
 
         this.input = null;
