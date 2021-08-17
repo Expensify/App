@@ -4,7 +4,7 @@ import SCREENS from '../../SCREENS';
 export default {
     prefixes: [
         'expensify-cash://',
-        'https://expensify.cash',
+        'https://new.expensify.com',
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',

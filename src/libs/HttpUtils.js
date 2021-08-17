@@ -2,6 +2,9 @@ import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
 
+// To avoid a circular dependency, we can't include Log here, so instead, we define an empty logging method and expose the setLogger method to set the logger from outside this file
+let info = () => {};
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -28,10 +31,30 @@ function processHTTPRequest(url, method = 'get', body = null) {
  * @returns {Promise}
  */
 function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
+    if (command !== 'Log') {
+        info('Making API request', false, {
+            command,
+            type,
+            shouldUseSecure,
+            rvl: data.returnValueList,
+        });
+    }
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
     const apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData);
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData)
+        .then((response) => {
+            if (command !== 'Log') {
+                info('Finished API request', false, {
+                    command,
+                    type,
+                    shouldUseSecure,
+                    jsonCode: response.jsonCode,
+                    requestID: response.requestID,
+                });
+            }
+            return response;
+        });
 }
 
 /**
@@ -51,7 +74,12 @@ function download(relativePath) {
     return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
 }
 
+function setLogger(logger) {
+    info = logger.info;
+}
+
 export default {
+    setLogger,
     download,
     xhr,
 };

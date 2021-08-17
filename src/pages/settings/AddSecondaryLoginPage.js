@@ -72,6 +72,7 @@ class AddSecondaryLoginPage extends Component {
         };
         this.formType = props.route.params.type;
         this.submitForm = this.submitForm.bind(this);
+        this.onSecondaryLoginChange = this.onSecondaryLoginChange.bind(this);
         this.validateForm = this.validateForm.bind(this);
 
         this.phoneNumberInputRef = null;
@@ -79,6 +80,15 @@ class AddSecondaryLoginPage extends Component {
 
     componentWillUnmount() {
         Onyx.merge(ONYXKEYS.USER, {error: ''});
+    }
+
+    onSecondaryLoginChange(login) {
+        if (this.formType === CONST.LOGIN_TYPE.EMAIL) {
+            this.setState({login});
+        } else if (this.formType === CONST.LOGIN_TYPE.PHONE
+            && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
+            this.setState({login});
+        }
     }
 
     /**
@@ -133,7 +143,7 @@ class AddSecondaryLoginPage extends Component {
                                     : 'profilePage.emailAddress')}
                                 ref={el => this.phoneNumberInputRef = el}
                                 value={this.state.login}
-                                onChangeText={login => this.setState({login})}
+                                onChangeText={this.onSecondaryLoginChange}
                                 keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                                 returnKeyType="done"

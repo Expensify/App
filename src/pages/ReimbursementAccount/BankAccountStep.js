@@ -23,7 +23,7 @@ import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
     goToWithdrawalAccountSetupStep,
-    hideExistingOwnersError,
+    hideBankAccountErrors,
     setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import ConfirmModal from '../../components/ConfirmModal';
@@ -130,8 +130,8 @@ class BankAccountStep extends React.Component {
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
         const existingOwners = this.props.reimbursementAccount.existingOwners;
-        const isExistingOwnersErrorVisible = Boolean(this.props.reimbursementAccount.error
-            && existingOwners);
+        const error = this.props.reimbursementAccount.error;
+        const isExistingOwnersErrorVisible = Boolean(error && existingOwners);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -211,8 +211,15 @@ class BankAccountStep extends React.Component {
                                 placeholder={this.props.translate('bankAccount.routingNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
-                                onChangeText={routingNumber => this.setState({routingNumber})}
+                                onChangeText={(routingNumber) => {
+                                    if (error === this.props.translate('bankAccount.error.routingNumber')) {
+                                        hideBankAccountErrors();
+                                    }
+                                    this.setState({routingNumber});
+                                }}
                                 disabled={shouldDisableInputs}
+                                errorText={error === this.props.translate('bankAccount.error.routingNumber')
+                                    ? error : ''}
                             />
                             <ExpensiTextInput
                                 placeholder={this.props.translate('bankAccount.accountNumber')}
@@ -250,7 +257,7 @@ class BankAccountStep extends React.Component {
                 <ConfirmModal
                     title={this.props.translate('bankAccount.error.existingOwners.unableToAddBankAccount')}
                     isVisible={isExistingOwnersErrorVisible}
-                    onConfirm={hideExistingOwnersError}
+                    onConfirm={hideBankAccountErrors}
                     shouldShowCancelButton={false}
                     prompt={(
                         <View>

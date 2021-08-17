@@ -123,12 +123,11 @@ export default {
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
-    contextMenuItem: {
+    reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
         copied: '¡Copiado!',
-    },
-    reportActionContextMenu: {
         copyLink: 'Copiar Enlace',
+        copyURLToClipboard: 'Copiar URL al Portapapeles',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar Commentario',
         deleteComment: 'Eliminar Comentario',
@@ -136,6 +135,9 @@ export default {
     },
     reportActionsView: {
         beFirstPersonToComment: 'Sé el primero en comentar',
+    },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
     },
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
@@ -217,7 +219,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'El nuevo Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
+            description: 'El nuevo aplicación Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
@@ -337,8 +339,9 @@ export default {
         createGroup: 'Crear Grupo',
     },
     notFound: {
-        chatYouLookingForCannotBeFound: 'No se pudo encontrar el chat que estabas buscando.',
+        chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
+        iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
