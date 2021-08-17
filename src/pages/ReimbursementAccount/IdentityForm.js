@@ -113,7 +113,7 @@ const IdentityForm = ({
                 errorText={error === translateLocal('bankAccount.error.ssnLast4') ? error : ''}
             />
             <ExpensiTextInput
-                label={translate('common.addressNoPO')}
+                label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
                 value={street}
                 onChangeText={(val) => {
@@ -124,6 +124,7 @@ const IdentityForm = ({
                 }}
                 errorText={error === translateLocal('bankAccount.error.address') ? error : ''}
             />
+            <Text style={[styles.mutedTextLabel, styles.mt1]}>{translate('common.noPO')}</Text>
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
                     <ExpensiTextInput
