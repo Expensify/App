@@ -6,7 +6,7 @@ function requestConciergeDMCall(policyID, firstName, lastName, phoneNumber) {
         firstName,
         lastName,
         phoneNumber,
-        taskID: 'ExpensifyCashConciergeDM',
+        taskID: 'NewExpensifyConciergeDM',
     });
 }
 

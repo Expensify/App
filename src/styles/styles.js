@@ -15,6 +15,19 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
+import visibility from './utilities/visibility';
+
+const expensiPicker = {
+    backgroundColor: 'transparent',
+    color: themeColors.text,
+    fontFamily: fontFamily.GTA,
+    fontSize: variables.fontSizeNormal,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    paddingTop: 24,
+    height: 52,
+    borderRadius: variables.componentBorderRadiusNormal,
+};
 
 const styles = {
     // Add all of our utility and helper styles
@@ -238,7 +251,8 @@ const styles = {
     },
 
     buttonDropdown: {
-        marginLeft: 1,
+        borderLeftWidth: 1,
+        borderColor: themeColors.textReversed,
     },
 
     noRightBorderRadius: {
@@ -284,20 +298,23 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    loadingVBAAnimation: {
+        width: 160,
+        height: 160,
+    },
+
     picker: {
         inputIOS: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderRadius: variables.componentBorderRadius,
+            flex: 1,
             borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
             borderColor: themeColors.border,
-            color: themeColors.text,
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
+            paddingTop: 25,
+            paddingHorizontal: 12,
+            paddingBottom: 8,
+            justifyContent: 'center',
+            height: '100%',
+            backgroundColor: themeColors.componentBG,
         },
         inputWeb: {
             fontFamily: fontFamily.GTA,
@@ -432,6 +449,14 @@ const styles = {
         borderColor: themeColors.border,
     },
 
+    borderColorFocus: {
+        borderColor: themeColors.borderFocus,
+    },
+
+    borderColorDanger: {
+        borderColor: themeColors.badgeDangerBG,
+    },
+
     headerText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -474,6 +499,49 @@ const styles = {
         marginRight: 8,
     },
 
+    componentHeightLarge: {
+        height: variables.componentSizeLarge,
+    },
+    expensiTextInputContainer: {
+        flex: 1,
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 12,
+        justifyContent: 'center',
+        height: '100%',
+        backgroundColor: themeColors.componentBG,
+    },
+    expensiTextInputLabel: {
+        position: 'absolute',
+        left: 12,
+        top: 14,
+        fontSize: variables.fontSizeNormal,
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        width: '100%',
+    },
+    expensiTextInputLabelDesktop: {
+        transformOrigin: 'left center',
+    },
+    expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
+        transform: [
+            {translateY},
+            {translateX},
+            {scale},
+        ],
+    }),
+    expensiTextInput: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeNormal,
+    },
+    expensiTextInputDesktop: addOutlineWidth({}, 0),
+    expensiTextInputAndroid: left => ({
+        padding: 0,
+        left,
+    }),
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -490,11 +558,39 @@ const styles = {
         textAlignVertical: 'center',
     },
 
+    expensiPickerContainer: {
+        borderWidth: 1,
+        borderRadius: variables.componentBorderRadiusNormal,
+        borderColor: themeColors.border,
+        justifyContent: 'center',
+        backgroundColor: themeColors.componentBG,
+    },
+    expensiPickerLabel: {
+        position: 'absolute',
+        left: 12,
+        top: 8,
+    },
+    expensiPicker: (disabled = false) => ({
+        iconContainer: {
+            top: 16,
+            right: 12,
+        },
+        inputWeb: {
+            appearance: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            border: 'none',
+            ...expensiPicker,
+        },
+        inputNative: {
+            ...expensiPicker,
+        },
+    }),
+
     disabledText: {
         color: colors.gray3,
     },
 
-    disabledTextInput: {
+    inputDisabled: {
         backgroundColor: colors.gray1,
         color: colors.gray3,
     },
@@ -510,6 +606,16 @@ const styles = {
     },
 
     noOutline: addOutlineWidth({}, 0),
+
+    errorOutline: {
+        borderColor: colors.red,
+    },
+
+    textLabelSupporting: {
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeLabel,
+        color: themeColors.textSupporting,
+    },
 
     formLabel: {
         fontFamily: fontFamily.GTA_BOLD,
@@ -534,12 +640,6 @@ const styles = {
         marginBottom: 4,
     },
 
-    formHint: {
-        color: themeColors.textSupporting,
-        fontSize: variables.fontSizeLabel,
-        lineHeight: 18,
-    },
-
     signInPage: {
         backgroundColor: themeColors.sidebar,
         minHeight: '100%',
@@ -549,10 +649,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    signInPageLogoNative: {
-        height: variables.componentSizeLarge,
     },
 
     signinWelcomeScreenshot: {
@@ -604,7 +700,7 @@ const styles = {
     },
 
     signInPageNarrowContentContainer: {
-        maxWidth: 295,
+        maxWidth: 335,
     },
 
     signInPageWideLeftContainer: {
@@ -787,12 +883,6 @@ const styles = {
         color: themeColors.heading,
     },
 
-    popoverMenuDescription: {
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
-        color: themeColors.textSupporting,
-    },
-
     menuItemTextContainer: {
         minHeight: variables.componentSizeNormal,
     },
@@ -881,9 +971,6 @@ const styles = {
     },
 
     optionAlternateText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeLabel,
         height: 16,
         lineHeight: 16,
     },
@@ -1487,12 +1574,6 @@ const styles = {
         color: themeColors.heading,
     },
 
-    settingsLoginName: {
-        fontSize: variables.fontSizeLabel,
-        fontFamily: fontFamily.GTA,
-        color: themeColors.textSupporting,
-    },
-
     pageWrapper: {
         width: '100%',
         alignItems: 'center',
@@ -1548,6 +1629,12 @@ const styles = {
 
     navigationScreenCardStyle: {
         backgroundColor: themeColors.appBG,
+        height: '100%',
+    },
+
+    navigationSceneFullScreenWrapper: {
+        borderRadius: variables.componentBorderRadiusCard,
+        overflow: 'hidden',
         height: '100%',
     },
 
@@ -1702,11 +1789,10 @@ const styles = {
     },
 
     hiddenElementOutsideOfWindow: {
-        position: 'fixed',
+        position: 'absolute',
         top: 0,
         left: 0,
         opacity: 0,
-        transform: 'translateX(-100%)',
     },
 
     growlNotificationWrapper: {
@@ -1856,6 +1942,22 @@ const styles = {
         ...whiteSpace.noWrap,
     },
 
+    cardOverlay: {
+        backgroundColor: themeColors.modalBackdrop,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0.5,
+    },
+
+    communicationsLinkIcon: {
+        right: -36,
+        top: 0,
+        bottom: 0,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -1885,6 +1987,25 @@ const styles = {
     communicationsLinkHeight: {
         height: 20,
     },
+
+    reportMarkerBadgeWrapper: {
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        zIndex: 100,
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadge: {
+        left: '-50%',
+        ...visibility('visible'),
+    },
+
+    reportMarkerBadgeTransformation: translateY => ({
+        transform: [
+            {translateY},
+        ],
+    }),
 };
 
 const baseCodeTagStyles = {
@@ -1995,20 +2116,18 @@ function getSafeAreaMargins(insets) {
 /**
  * Return navigation menu styles.
  *
- * @param {Number} windowWidth
- * @param {Number} windowHeight
  * @param {Boolean} isSmallScreenWidth
  * @returns {Object}
  */
-function getNavigationDrawerStyle(windowWidth, windowHeight, isSmallScreenWidth) {
+function getNavigationDrawerStyle(isSmallScreenWidth) {
     return isSmallScreenWidth
         ? {
-            width: windowWidth,
-            height: windowHeight,
+            width: '100%',
+            height: '100%',
             borderColor: themeColors.border,
         }
         : {
-            height: windowHeight,
+            height: '100%',
             width: variables.sideBarWidth,
             borderRightColor: themeColors.border,
         };
