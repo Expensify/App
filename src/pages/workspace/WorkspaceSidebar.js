@@ -38,7 +38,9 @@ const propTypes = {
     }),
 
     /** All the polices that we have loaded in Onyx */
-    allPolicies: PropTypes.object,
+    allPolicies: PropTypes.shape({
+        id: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -72,6 +74,7 @@ const WorkspaceSidebar = ({
     ];
 
     // After all the policies have loaded, we can know if the given policyID points to a nonexistant workspace
+    // allPolicies as a prop can be removed after Permissions.canUseFreePlan() is no longer needed and free plan is out of beta.
     if (allPolicies !== null && _.isEmpty(policy)) {
         Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
         Navigation.dismissModal();

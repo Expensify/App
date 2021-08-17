@@ -95,8 +95,6 @@ function getPolicyList() {
                     // And overwrite them with only the ones returned by the API call
                     ...policyDataToStore,
                 });
-
-                Onyx.set(ONYXKEYS.ARE_ALL_POLICIES_LOADED, true);
             }
         });
 }
