@@ -91,7 +91,7 @@ export default {
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
-        whatsItFor: 'WHAT\'S IT FOR?',
+        whatsItFor: 'What\'s it for?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a Currency',
