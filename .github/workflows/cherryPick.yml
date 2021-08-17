@@ -77,7 +77,7 @@ jobs:
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
-        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}
@@ -95,7 +95,7 @@ jobs:
 
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
-        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: OSBotify
