@@ -98,7 +98,7 @@ class NewPasswordForm extends React.Component {
                         secureTextEntry
                         autoCompleteType="password"
                         textContentType="password"
-                        value={this.state.password}
+                        value={this.props.password}
                         onChangeText={password => this.props.updatePassword(password)}
                         onBlur={() => this.onBlurNewPassword()}
                     />

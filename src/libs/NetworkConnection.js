@@ -19,7 +19,7 @@ const reconnectionCallbacks = [];
  * Loop over all reconnection callbacks and fire each one
  */
 const triggerReconnectionCallbacks = _.throttle((reason) => {
-    logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`, true);
+    logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
     Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, true);
     promiseAllSettled(_.map(reconnectionCallbacks, callback => callback()))
         .then(() => Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, false));
@@ -49,7 +49,7 @@ function setOfflineStatus(isCurrentlyOffline) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function listenForReconnect() {
-    logInfo('[NetworkConnection] listenForReconnect called', true);
+    logInfo('[NetworkConnection] listenForReconnect called');
 
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
@@ -67,7 +67,7 @@ function listenForReconnect() {
  * Tear down the event listeners when we are finished with them.
  */
 function stopListeningForReconnect() {
-    logInfo('[NetworkConnection] stopListeningForReconnect called', true);
+    logInfo('[NetworkConnection] stopListeningForReconnect called');
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;

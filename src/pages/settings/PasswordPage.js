@@ -71,15 +71,15 @@ class PasswordPage extends Component {
 
         if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
             stateToUpdate.shouldShowPasswordConfirmError = true;
+        } else {
+            stateToUpdate.shouldShowPasswordConfirmError = false;
         }
 
-        if (!isEmpty(stateToUpdate)) {
-            this.setState(stateToUpdate);
-        }
+        this.setState(stateToUpdate);
     }
 
     onBlurConfirmPassword() {
-        if (!this.state.confirmNewPassword || !this.doPasswordsMatch()) {
+        if ((this.state.newPassword && !this.state.confirmNewPassword) || !this.doPasswordsMatch()) {
             this.setState({shouldShowPasswordConfirmError: true});
         } else {
             this.setState({shouldShowPasswordConfirmError: false});
