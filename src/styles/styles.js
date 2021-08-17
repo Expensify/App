@@ -1788,6 +1788,14 @@ const styles = {
         zIndex: 10,
     },
 
+    vbaFullScreenLoading: {
+        backgroundColor: themeColors.componentBG,
+        opacity: 0.8,
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
     hiddenElementOutsideOfWindow: {
         position: 'absolute',
         top: 0,

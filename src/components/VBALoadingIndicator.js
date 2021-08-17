@@ -10,7 +10,7 @@ const propTypes = {
 };
 
 const VBALoadingIndicator = ({translate}) => (
-    <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading]}>
+    <View style={[StyleSheet.absoluteFillObject, styles.vbaFullScreenLoading]}>
         <View style={[styles.pageWrapper]}>
             <Image
                 source={{uri: `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}}
