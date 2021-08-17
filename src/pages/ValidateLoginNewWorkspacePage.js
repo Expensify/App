@@ -7,8 +7,8 @@ import validateLinkPropTypes from './validateLinkPropTypes';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
+import {create} from '../libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -47,7 +47,7 @@ class ValidateLoginNewWorkspacePage extends Component {
             if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
             } else {
-                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+                create();
             }
             return;
         }

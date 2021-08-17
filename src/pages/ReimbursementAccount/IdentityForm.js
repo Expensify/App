@@ -1,9 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../components/Text';
 import StatePicker from '../../components/StatePicker';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 
@@ -68,56 +67,56 @@ const IdentityForm = ({
         <View style={style}>
             <View style={[styles.flexRow]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInputWithLabel
+                    <ExpensiTextInput
                         label={`${translate('common.firstName')}`}
                         value={firstName}
                         onChangeText={val => onFieldChange('firstName', val)}
                     />
                 </View>
                 <View style={[styles.flex2]}>
-                    <TextInputWithLabel
+                    <ExpensiTextInput
                         label={`${translate('common.lastName')}`}
                         value={lastName}
                         onChangeText={val => onFieldChange('lastName', val)}
                     />
                 </View>
             </View>
-            <TextInputWithLabel
+            <ExpensiTextInput
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
                 value={dob}
                 onChangeText={val => onFieldChange('dob', val)}
             />
-            <TextInputWithLabel
+            <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
                 value={ssnLast4}
                 onChangeText={val => onFieldChange('ssnLast4', val)}
             />
-            <TextInputWithLabel
-                label={translate('common.addressNoPO')}
+            <ExpensiTextInput
+                label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
                 value={street}
                 onChangeText={val => onFieldChange('street', val)}
             />
+            <Text style={[styles.mutedTextLabel, styles.mt1]}>{translate('common.noPO')}</Text>
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
-                    <TextInputWithLabel
+                    <ExpensiTextInput
                         label={translate('common.city')}
                         value={city}
                         onChangeText={val => onFieldChange('city', val)}
                     />
                 </View>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.formLabel]}>{translate('common.state')}</Text>
                     <StatePicker
                         value={state}
                         onChange={val => onFieldChange('state', val)}
                     />
                 </View>
             </View>
-            <TextInputWithLabel
+            <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
                 value={zipCode}

@@ -72,8 +72,8 @@ jobs:
       - name: Create branch for new pull request
         run: |
           git config user.name ${{ github.actor }}
-          git checkout -b cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
-          git push --set-upstream origin cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          git checkout -b ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          git push --set-upstream origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
@@ -128,7 +128,7 @@ jobs:
         # Version: 2.4.3
         uses: repo-sync/pull-request@65194d8015be7624d231796ddee1cd52a5023cb3
         with:
-          source_branch: cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+          source_branch: ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           destination_branch: staging
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           pr_title: '🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒'
