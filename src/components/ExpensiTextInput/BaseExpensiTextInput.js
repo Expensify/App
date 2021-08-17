@@ -34,6 +34,7 @@ class BaseExpensiTextInput extends Component {
             labelTranslateX: new Animated.Value(hasValue
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            passwordHidden: true,
         };
 
         this.input = null;
@@ -114,6 +115,11 @@ class BaseExpensiTextInput extends Component {
         ]).start();
     }
 
+    togglePasswordVisibility() {
+        this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
+    }
+
+
     render() {
         const {
             label,
@@ -156,17 +162,16 @@ class BaseExpensiTextInput extends Component {
                         {secureTextEntry && (
                         <Pressable
                             accessibilityRole="button"
-
+                            // eslint-disable-next-line lines-around-comment
                             // accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            // eslint-disable-next-line react/jsx-props-no-multi-spaces
                             style={[
                                 styles.secureInputEyeButton,
                             ]}
-                            onPress={this.toggleSecureTextEntry}
+                            onPress={() => this.togglePasswordVisibility()}
                         >
                             {({hovered, pressed}) => (
                                 <Icon
-                                    src={Eye}
+                                    src={this.state.passwordHidden ? EyeDisabled : Eye}
                                     fill={getIconFillColor(getButtonState(hovered, pressed))}
                                 />
                             )}
@@ -187,6 +192,7 @@ class BaseExpensiTextInput extends Component {
                             onFocus={this.onFocus}
                             onBlur={this.onBlur}
                             onChangeText={this.setValue}
+                            secureTextEntry={this.state.passwordHidden}
                         />
                     </View>
                 </TouchableWithoutFeedback>
