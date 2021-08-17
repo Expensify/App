@@ -66,13 +66,21 @@ class LoginWithValidateCodePage extends Component {
     }
 
     rerouteToRelevantPage() {
-        if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD) {
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
-        } else if (this.props.route.name === SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE) {
-            // Create a new workspace so that the user will be routed to its settings page afterwards
-            create();
-        } else {
-            Navigation.navigate(ROUTES.HOME);
+        // Since all validate code login routes lead to this component, redirect to the appropriate page based on
+        // the original route.
+        switch (this.props.route.name) {
+            case SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD:
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
+                break;
+
+            case SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE:
+                // Creating a policy will reroute the user to the settings page afterwards
+                create();
+                break;
+
+            default:
+                Navigation.navigate(ROUTES.HOME);
+                break;
         }
     }
 
