@@ -41,7 +41,7 @@ const SignInPageLayoutNarrow = props => (
                         styles.mt40Percentage,
                     ]}
                 >
-                    <View style={[styles.signInPageLogoNative, styles.mb2]}>
+                    <View style={[styles.componentHeightLarge, styles.mb2]}>
                         <ExpensifyCashLogo
                             width={variables.componentSizeLarge}
                             height={variables.componentSizeLarge}

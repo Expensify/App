@@ -17,7 +17,7 @@ import Text from '../components/Text';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
+import {create} from '../libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -71,7 +71,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
             if (_.isEmpty(this.props.betas)) {
                 setRedirectToWorkspaceNewAfterSignIn(true);
             } else {
-                Navigation.navigate(ROUTES.WORKSPACE_NEW);
+                create();
             }
         }
     }
@@ -101,7 +101,7 @@ class ValidateLogin2FANewWorkspacePage extends Component {
 
         return (
             <View style={[styles.signInPageInnerNative]}>
-                <View style={[styles.signInPageLogoNative]}>
+                <View style={[styles.componentHeightLarge]}>
                     <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
                 <View style={[styles.mb6, styles.alignItemsCenter]}>

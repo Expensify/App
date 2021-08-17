@@ -14,6 +14,7 @@ export default {
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
+        saveChanges: 'Guardar cambios',
         password: 'Contraseña',
         profile: 'Perfil',
         payments: 'Pagos',
@@ -43,8 +44,9 @@ export default {
         here: 'aquí',
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
-        addressNoPO: 'Dirección física personal (no se aceptan apartados ni direcciones postales)',
-        companyAddressNoPO: 'Dirección física de la empresa (no se aceptan apartados ni direcciones postales)',
+        personalAddress: 'Dirección física personal',
+        companyAddress: 'Dirección física de la empresa',
+        noPO: '(No se aceptan apartados ni direcciones postales)',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código Postal',
@@ -388,8 +390,9 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Escribe una contraseña',
+        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
+        chooseAccountLabel: 'Cuenta',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
@@ -548,6 +551,10 @@ export default {
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'Un momento...',
+        explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
+    },
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
         offlineMessage: 'Parece que estás desconectado.',
@@ -560,10 +567,6 @@ export default {
         new: {
             newWorkspace: 'Nuevo Espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
-            welcome: 'Bienvenido/a',
-            chooseAName: 'Elige un nombre',
-            helpText: 'Elige un nombre para el espacio de trabajo antes de activar las tarjetas Expensify',
-            getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
         },
         people: {
@@ -588,6 +591,7 @@ export default {
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             enterEmailOrPhone: 'Email o teléfono',
             pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
+            pleaseEnterUniqueLogin: 'Ese usuario ya es miembro de este espacio de trabajo.',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
@@ -598,6 +602,9 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+        },
+        error: {
+            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido! Un nuevo espacio de trabajo ha sido creado.',
         },
     },
     requestCallPage: {
