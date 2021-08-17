@@ -142,11 +142,12 @@ class CompanyStep extends React.Component {
                             disabled={shouldDisableCompanyName}
                         />
                         <ExpensiTextInput
-                            label={this.props.translate('common.companyAddressNoPO')}
+                            label={this.props.translate('common.companyAddress')}
                             containerStyles={[styles.mt4]}
                             onChangeText={addressStreet => this.setState({addressStreet})}
                             value={this.state.addressStreet}
                         />
+                        <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 <ExpensiTextInput

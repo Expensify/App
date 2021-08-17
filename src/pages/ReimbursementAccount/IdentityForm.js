@@ -95,11 +95,12 @@ const IdentityForm = ({
                 onChangeText={val => onFieldChange('ssnLast4', val)}
             />
             <ExpensiTextInput
-                label={translate('common.addressNoPO')}
+                label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
                 value={street}
                 onChangeText={val => onFieldChange('street', val)}
             />
+            <Text style={[styles.mutedTextLabel, styles.mt1]}>{translate('common.noPO')}</Text>
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
                     <ExpensiTextInput
