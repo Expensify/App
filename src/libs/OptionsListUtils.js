@@ -678,7 +678,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
             return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
-        return searchValue;
+        return translate(preferredLocale, 'common.noResultsFound');
     }
 
     return '';
