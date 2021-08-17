@@ -69,11 +69,11 @@ class LoginWithValidateCodePage extends Component {
         // Since all validate code login routes lead to this component, redirect to the appropriate page based on
         // the original route.
         switch (this.props.route.name) {
-            case SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD:
+            case SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD:
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
                 break;
 
-            case SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE:
+            case SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE:
                 // Creating a policy will reroute the user to the settings page afterwards
                 create();
                 break;
