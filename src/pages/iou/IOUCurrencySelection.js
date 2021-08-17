@@ -158,7 +158,12 @@ class IOUCurrencySelection extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.textInput) {
+                    this.textInput.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('iOUCurrencySelection.selectCurrency')}
@@ -190,6 +195,7 @@ class IOUCurrencySelection extends Component {
                                         <OptionRow
                                             key={key}
                                             mode="compact"
+                                            hoverStyle={styles.hoveredComponentBG}
                                             option={item}
                                             onSelectRow={() => this.toggleOption(item.currencyCode)}
                                             isSelected={
