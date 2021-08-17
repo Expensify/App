@@ -15,9 +15,11 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
+import visibility from './utilities/visibility';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
+    color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
     paddingHorizontal: 12,
@@ -249,7 +251,8 @@ const styles = {
     },
 
     buttonDropdown: {
-        marginLeft: 1,
+        borderLeftWidth: 1,
+        borderColor: themeColors.textReversed,
     },
 
     noRightBorderRadius: {
@@ -293,6 +296,11 @@ const styles = {
         justifyContent: 'center',
         marginRight: 8,
         width: variables.componentSizeNormal,
+    },
+
+    loadingVBAAnimation: {
+        width: 160,
+        height: 160,
     },
 
     picker: {
@@ -598,6 +606,10 @@ const styles = {
     },
 
     noOutline: addOutlineWidth({}, 0),
+
+    errorOutline: {
+        borderColor: colors.red,
+    },
 
     textLabelSupporting: {
         fontFamily: fontFamily.GTA,
@@ -1979,6 +1991,25 @@ const styles = {
     communicationsLinkHeight: {
         height: 20,
     },
+
+    reportMarkerBadgeWrapper: {
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        zIndex: 100,
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadge: {
+        left: '-50%',
+        ...visibility('visible'),
+    },
+
+    reportMarkerBadgeTransformation: translateY => ({
+        transform: [
+            {translateY},
+        ],
+    }),
 };
 
 const baseCodeTagStyles = {
@@ -1995,10 +2026,6 @@ const webViewStyles = {
     // styles from the renderer, just pass the "style" prop to the underlying
     // component.
     tagStyles: {
-        body: {
-            flexDirection: 'row',
-        },
-
         em: {
             fontFamily: fontFamily.GTA_ITALIC,
             fontStyle: 'italic',
@@ -2064,7 +2091,6 @@ const webViewStyles = {
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
-        alignSelf: 'flex-start',
     },
 };
 

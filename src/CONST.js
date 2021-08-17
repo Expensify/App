@@ -6,7 +6,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: 'https://new.expensify.com/Expensify.cash.dmg',
+        DESKTOP: 'https://new.expensify.com/NewExpensify.dmg',
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -122,8 +122,8 @@ const CONST = {
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
-    UPWORK_URL: 'https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&user_location_match=2',
-    GITHUB_URL: 'https://github.com/Expensify/Expensify.cash',
+    UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
+    GITHUB_URL: 'https://github.com/Expensify/App',
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
@@ -344,6 +344,7 @@ const CONST = {
         ERROR: 'error',
         WARNING: 'warning',
         DURATION: 2000,
+        DURATION_LONG: 3500,
     },
 
     DEFAULT_LOCALE: 'en',
@@ -365,6 +366,9 @@ const CONST = {
         FDIC_PREPAID: 'fdic.gov/deposit/deposits/prepaid.html',
         USE_EXPENSIFY_FEES: 'use.expensify.com/fees',
     },
+
+    ICON_TYPE_ICON: 'icon',
+    ICON_TYPE_AVATAR: 'avatar',
 
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,

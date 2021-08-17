@@ -1,14 +1,14 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** HTML string to render */
-    html: PropTypes.string.isRequired,
+    children: PropTypes.node,
 
-    /** Optional debug flag */
+    /** Optional debug flag. Prints the TRT in the console when true. */
     debug: PropTypes.bool,
 };
 
 const defaultProps = {
+    children: null,
     debug: false,
 };
 

@@ -107,7 +107,7 @@ class IOUDetailsModal extends Component {
 
     componentDidMount() {
         this.isComponentMounted = true;
-        fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID);
+        fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, true);
         this.addVenmoPaymentOptionIfAvailable();
         this.addExpensifyPaymentOptionIfAvailable();
     }

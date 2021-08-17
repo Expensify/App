@@ -56,6 +56,7 @@ import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** Beta features list */
@@ -686,6 +687,8 @@ export default compose(
     withDrawerState,
     withNavigationFocus,
     withLocalize,
+    withPersonalDetails(),
+    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -696,21 +699,8 @@ export default compose(
         modal: {
             key: ONYXKEYS.MODAL,
         },
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            canEvict: false,
-        },
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,

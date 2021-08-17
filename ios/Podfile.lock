@@ -420,6 +420,8 @@ PODS:
     - React-Core
   - react-native-pdf (6.2.2):
     - React-Core
+  - react-native-performance (2.0.0):
+    - React-Core
   - react-native-plaid-link-sdk (7.0.5):
     - Plaid (~> 2.1.2)
     - React-Core
@@ -638,6 +640,7 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
   - react-native-pdf (from `../node_modules/react-native-pdf`)
+  - react-native-performance (from `../node_modules/react-native-performance/ios`)
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - "react-native-progress-bar-android (from `../node_modules/@react-native-community/progress-bar-android`)"
   - "react-native-progress-view (from `../node_modules/@react-native-community/progress-view`)"
@@ -772,6 +775,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-community/netinfo"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
+  react-native-performance:
+    :path: "../node_modules/react-native-performance/ios"
   react-native-plaid-link-sdk:
     :path: "../node_modules/react-native-plaid-link-sdk"
   react-native-progress-bar-android:
@@ -872,7 +877,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: c783a75db87c963c60afcd461fc38358805fe5ba
+  FBReactNativeSpec: 884d4cc2b011759361797a4035c47e10099393b5
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
   FirebaseABTesting: 4cb61aeeb50f60680af1c01fff781dfaf9293916
   FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
@@ -922,6 +927,7 @@ SPEC CHECKSUMS:
   react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
+  react-native-performance: 8edfa2bbc9a2af4a02f01d342118e413a95145e0
   react-native-plaid-link-sdk: 1a6593e2d3d790e8113c29178d883eb883f8c032
   react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
   react-native-progress-view: 5816e8a6be812c2b122c6225a2a3db82d9008640
@@ -970,6 +976,6 @@ SPEC CHECKSUMS:
   Yoga: a7de31c64fe738607e7a3803e3f591a4b1df7393
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 2092930e33e7aa4d68cdf783d6174465bd3ce380
+PODFILE CHECKSUM: 7cebe371d8801e93b6e15eb27f446fd20f0c1526
 
-COCOAPODS: 1.10.2
+COCOAPODS: 1.10.1

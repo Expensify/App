@@ -1,8 +1,10 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
-import React from 'react';
-import {useWindowDimensions, TouchableOpacity} from 'react-native';
-import HTML, {
+import React, {useMemo} from 'react';
+import {TouchableOpacity} from 'react-native';
+import {
+    TRenderEngineProvider,
+    RenderHTMLConfigProvider,
     defaultHTMLElementModels,
     TNodeChildrenRenderer,
     splitBoxModelStyle,
@@ -18,20 +20,16 @@ import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import Text from '../Text';
-import {
-    propTypes as renderHTMLPropTypes,
-    defaultProps as renderHTMLDefaultProps,
-} from './renderHTMLPropTypes';
 
 const propTypes = {
     /** Whether text elements should be selectable */
     textSelectable: PropTypes.bool,
-    ...renderHTMLPropTypes,
+    children: PropTypes.node,
 };
 
 const defaultProps = {
     textSelectable: false,
-    ...renderHTMLDefaultProps,
+    children: null,
 };
 
 const MAX_IMG_DIMENSIONS = 512;
@@ -221,30 +219,40 @@ const renderersProps = {
     },
 };
 
-const BaseRenderHTML = ({html, debug, textSelectable}) => {
-    const {width} = useWindowDimensions();
-    const containerWidth = width * 0.8;
+const defaultViewProps = {style: {alignItems: 'flex-start'}};
+
+// We are using the explicit composite architecture for performance gains.
+// Configuration for RenderHTML is handled in a top-level component providing
+// context to RenderHTMLSource components. See https://git.io/JRcZb
+// Beware that each prop should be referentialy stable between renders to avoid
+// costly invalidations and commits.
+const BaseHTMLEngineProvider = ({children, textSelectable}) => {
+    // We need to memoize this prop to make it referentially stable.
+    const defaultTextProps = useMemo(() => ({selectable: textSelectable}), [textSelectable]);
     return (
-        <HTML
-            defaultTextProps={{selectable: textSelectable}}
+        <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
-            renderers={renderers}
-            renderersProps={renderersProps}
             baseStyle={webViewStyles.baseFontStyle}
             tagsStyles={webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing={false}
-            contentWidth={containerWidth}
-            computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
             systemFonts={EXTRA_FONTS}
-            source={{html}}
-            debug={debug}
-        />
+        >
+            <RenderHTMLConfigProvider
+                defaultTextProps={defaultTextProps}
+                defaultViewProps={defaultViewProps}
+                renderers={renderers}
+                renderersProps={renderersProps}
+                computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
+            >
+                {children}
+            </RenderHTMLConfigProvider>
+        </TRenderEngineProvider>
     );
 };
 
-BaseRenderHTML.displayName = 'BaseRenderHTML';
-BaseRenderHTML.propTypes = propTypes;
-BaseRenderHTML.defaultProps = defaultProps;
+BaseHTMLEngineProvider.displayName = 'BaseHTMLEngineProvider';
+BaseHTMLEngineProvider.propTypes = propTypes;
+BaseHTMLEngineProvider.defaultProps = defaultProps;
 
-export default BaseRenderHTML;
+export default BaseHTMLEngineProvider;
