@@ -25,7 +25,7 @@ const defaultProps = {
 const InboxCallButton = props => (
     <>
         <View
-            style={[styles.flex1, styles.flexRow, styles.justifyContentCenter, styles.alignItemsCenter]}
+            style={[styles.justifyContentCenter, styles.alignItemsCenter]}
         >
             <Pressable
                 onPress={() => {
