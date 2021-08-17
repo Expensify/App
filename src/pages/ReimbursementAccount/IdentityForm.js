@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../components/Text';
 import StatePicker from '../../components/StatePicker';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
@@ -114,7 +113,7 @@ const IdentityForm = ({
                 errorText={error === translateLocal('bankAccount.error.ssnLast4') ? error : ''}
             />
             <ExpensiTextInput
-                label={translate('common.addressNoPO')}
+                label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
                 value={street}
                 onChangeText={(val) => {
@@ -125,6 +124,7 @@ const IdentityForm = ({
                 }}
                 errorText={error === translateLocal('bankAccount.error.address') ? error : ''}
             />
+            <Text style={[styles.mutedTextLabel, styles.mt1]}>{translate('common.noPO')}</Text>
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
                     <ExpensiTextInput
@@ -134,7 +134,6 @@ const IdentityForm = ({
                     />
                 </View>
                 <View style={[styles.flex1]}>
-                    <Text style={[styles.formLabel]}>{translate('common.state')}</Text>
                     <StatePicker
                         value={state}
                         onChange={val => onFieldChange('state', val)}
