@@ -14,6 +14,7 @@ export default {
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
+        saveChanges: 'Guardar cambios',
         password: 'Contraseña',
         profile: 'Perfil',
         payments: 'Pagos',
@@ -121,12 +122,11 @@ export default {
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
     },
-    contextMenuItem: {
+    reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
         copied: '¡Copiado!',
-    },
-    reportActionContextMenu: {
         copyLink: 'Copiar Enlace',
+        copyURLToClipboard: 'Copiar URL al Portapapeles',
         markAsUnread: 'Marcar como no leído',
         editComment: 'Editar Commentario',
         deleteComment: 'Eliminar Comentario',
@@ -134,6 +134,9 @@ export default {
     },
     reportActionsView: {
         beFirstPersonToComment: 'Sé el primero en comentar',
+    },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
     },
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
@@ -215,7 +218,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'El nuevo Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
+            description: 'El nuevo aplicación Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
@@ -335,8 +338,9 @@ export default {
         createGroup: 'Crear Grupo',
     },
     notFound: {
-        chatYouLookingForCannotBeFound: 'No se pudo encontrar el chat que estabas buscando.',
+        chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
+        iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -388,8 +392,9 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Escribe una contraseña',
+        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
+        chooseAccountLabel: 'Cuenta',
     },
     attachmentView: {
         unknownFilename: 'Archivo desconocido',
@@ -548,6 +553,10 @@ export default {
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
+    vbaLoadingAnimation: {
+        oneMoment: 'Un momento...',
+        explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
+    },
     session: {
         offlineMessageRetry: 'Parece que estás desconectado. Por favor chequea tu conexión e inténtalo otra vez',
         offlineMessage: 'Parece que estás desconectado.',
@@ -560,10 +569,6 @@ export default {
         new: {
             newWorkspace: 'Nuevo Espacio de trabajo',
             getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
-            welcome: 'Bienvenido/a',
-            chooseAName: 'Elige un nombre',
-            helpText: 'Elige un nombre para el espacio de trabajo antes de activar las tarjetas Expensify',
-            getStarted: '¡Empezar!',
             genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
         },
         people: {
@@ -588,6 +593,7 @@ export default {
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             enterEmailOrPhone: 'Email o teléfono',
             pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
+            pleaseEnterUniqueLogin: 'Ese usuario ya es miembro de este espacio de trabajo.',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
@@ -598,6 +604,9 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+        },
+        error: {
+            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido! Un nuevo espacio de trabajo ha sido creado.',
         },
     },
     requestCallPage: {
