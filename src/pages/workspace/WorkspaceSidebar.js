@@ -39,6 +39,7 @@ const propTypes = {
 
     /** All the polices that we have loaded in Onyx */
     allPolicies: PropTypes.shape({
+        /** ID of the policy */
         id: PropTypes.string,
     }),
 
