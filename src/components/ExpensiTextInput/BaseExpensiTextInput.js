@@ -159,7 +159,7 @@ class BaseExpensiTextInput extends Component {
                                 labelScale={this.state.labelScale}
                             />
                         ) : null}
-                        <View style={{display: 'flex', flexDirection: 'row'}}>
+                        <View style={styles.flexRow}>
                             <TextInput
                                 ref={(ref) => {
                                     if (typeof innerRef === 'function') { innerRef(ref); }
@@ -171,7 +171,7 @@ class BaseExpensiTextInput extends Component {
                                 placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
-                                style={[...inputStyle, {flex: 1, paddingTop: 13}]}
+                                style={[...inputStyle, styles.flex1, styles.pt3, !hasLabel && styles.pv0]}
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
