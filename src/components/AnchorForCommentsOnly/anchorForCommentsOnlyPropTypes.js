@@ -24,6 +24,8 @@ const propTypes = {
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
+
+    text: PropTypes.string,
 };
 
 const defaultProps = {
@@ -33,6 +35,7 @@ const defaultProps = {
     shouldDownloadFile: false,
     children: null,
     style: {},
+    text: '',
 };
 
 export {propTypes, defaultProps};
