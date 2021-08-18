@@ -18,7 +18,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import SCREENS from '../SCREENS';
-import {create} from '../libs/actions/Policy';
+import * as Policy from '../libs/actions/Policy';
 import Permissions from '../libs/Permissions';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
@@ -93,7 +93,7 @@ class LoginWithValidateCode2FAPage extends Component {
 
             case SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE:
                 // Creating a policy will reroute the user to the settings page afterwards
-                create();
+                Policy.create();
                 break;
 
             default:
