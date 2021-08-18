@@ -20,6 +20,8 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
+    rightElement: PropTypes.element,
+
     ...withLocalizePropTypes,
 };
 
@@ -27,6 +29,7 @@ const defaultProps = {
     file: {
         name: '',
     },
+    rightElement: undefined,
 };
 
 const AttachmentView = (props) => {
@@ -58,6 +61,11 @@ const AttachmentView = (props) => {
                 <Icon src={Paperclip} />
             </View>
             <Text style={[styles.textStrong]}>{props.file && props.file.name}</Text>
+            {props.rightElement && (
+                <View style={styles.ml2}>
+                    {props.rightElement}
+                </View>
+            )}
         </View>
     );
 };
