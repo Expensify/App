@@ -13,7 +13,6 @@ import {
     EyeDisabled,
 } from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
-import display from '../../styles/utilities/display';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -10;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
