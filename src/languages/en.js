@@ -44,8 +44,9 @@ export default {
         here: 'here',
         dob: 'Date of Birth',
         ssnLast4: 'Last 4 Digits of SSN',
-        addressNoPO: 'Personal Address (PO Boxes and mail drop addresses are NOT allowed)',
-        companyAddressNoPO: 'Company Address (PO Boxes and mail drop addresses are NOT allowed)',
+        personalAddress: 'Personal Address',
+        companyAddress: 'Company Address',
+        noPO: '(PO Boxes and mail drop addresses are NOT allowed)',
         city: 'City',
         state: 'State',
         zip: 'Zip Code',
@@ -134,6 +135,9 @@ export default {
     },
     reportActionsView: {
         beFirstPersonToComment: 'Be the first person to comment',
+    },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     },
     reportTypingIndicator: {
         isTyping: 'is typing...',
@@ -337,6 +341,7 @@ export default {
     notFound: {
         chatYouLookingForCannotBeFound: 'The chat you are looking for cannot be found.',
         getMeOutOfHere: 'Get me out of here',
+        iouReportNotFound: 'The payment details you are looking for cannot be found.',
     },
     setPasswordPage: {
         enterPassword: 'Enter a password',

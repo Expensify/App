@@ -208,10 +208,8 @@ jobs:
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
-      # TODO: uncomment when we want to release iOS to production
       - name: Run Fastlane for App Store release
-        #              if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'false' == 'true' }}
+        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: bundle exec fastlane ios production
         env:
           VERSION: ${{ env.NEW_IOS_VERSION }}
@@ -354,7 +352,6 @@ jobs:
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
           IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
-          STAGING_DEPLOY_NUMBER: ${{ steps.isStagingDeployLocked.outputs.NUMBER }}
           DEPLOY_VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}
