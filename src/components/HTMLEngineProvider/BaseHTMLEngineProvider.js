@@ -68,7 +68,7 @@ function AnchorRenderer({tnode, key, style}) {
 
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    const fileName = isAttachment ? lodashGet(tnode, 'domNode.children[0].data') : null;
+    const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
 
     return (
         <AnchorForCommentsOnly
@@ -84,7 +84,7 @@ function AnchorRenderer({tnode, key, style}) {
             rel={htmlAttribs.rel || 'noopener noreferrer'}
             style={style}
             key={key}
-            text={fileName}
+            fileName={fileName}
         >
             <TNodeChildrenRenderer tnode={tnode} />
         </AnchorForCommentsOnly>

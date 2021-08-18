@@ -21,11 +21,13 @@ const propTypes = {
     /** Any children to display */
     children: PropTypes.node,
 
+    /** Display label in case of attachments */
+    fileName: PropTypes.string,
+
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
 
-    text: PropTypes.string,
 };
 
 const defaultProps = {
@@ -35,7 +37,7 @@ const defaultProps = {
     shouldDownloadFile: false,
     children: null,
     style: {},
-    text: '',
+    fileName: '',
 };
 
 export {propTypes, defaultProps};

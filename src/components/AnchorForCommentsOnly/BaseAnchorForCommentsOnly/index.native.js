@@ -19,7 +19,7 @@ const BaseAnchorForCommentsOnly = ({
     children,
     style,
     shouldDownloadFile,
-    text,
+    fileName,
     ...props
 }) => {
     let linkRef;
@@ -32,7 +32,7 @@ const BaseAnchorForCommentsOnly = ({
                 >
                     <AttachmentView
                         sourceURL={href}
-                        file={{name: text}}
+                        file={{name: fileName}}
                         rightElement={(
                             <Icon src={Download} />
                         )}
