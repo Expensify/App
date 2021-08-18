@@ -75,7 +75,7 @@ const WorkspaceSidebar = ({
     ];
 
     // After all the policies have loaded, we can know if the given policyID points to a nonexistant workspace
-    // TODO: When free plan is out of beta and Permissions.canUseFreePlan() gets removed,
+    // @TODO: When free plan is out of beta and Permissions.canUseFreePlan() gets removed,
     // all code involving 'allPolicies' can be removed since policy loading will no longer be delayed on login.
     if (allPolicies !== null && _.isEmpty(policy)) {
         Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
