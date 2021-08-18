@@ -215,7 +215,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'El nuevo aplicación Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
+            description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
