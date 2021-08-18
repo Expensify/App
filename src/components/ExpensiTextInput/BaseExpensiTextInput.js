@@ -13,6 +13,7 @@ import {
     EyeDisabled,
 } from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
+import display from '../../styles/utilities/display';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -10;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
@@ -34,7 +35,7 @@ class BaseExpensiTextInput extends Component {
             labelTranslateX: new Animated.Value(hasValue
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
-            passwordHidden: props.defaultHidePassword,
+            passwordHidden: props.defaultHidePassword && props.secureTextEntry,
         };
 
         this.input = null;
@@ -159,41 +160,43 @@ class BaseExpensiTextInput extends Component {
                                 labelScale={this.state.labelScale}
                             />
                         ) : null}
-                        {secureTextEntry && (
-                        <Pressable
-                            accessibilityRole="button"
-                            // eslint-disable-next-line lines-around-comment
-                            // accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                            style={[
-                                styles.secureInputEyeButton,
-                            ]}
-                            onPress={() => this.togglePasswordVisibility()}
-                        >
-                            {({hovered, pressed}) => (
-                                <Icon
-                                    src={this.state.passwordHidden ? EyeDisabled : Eye}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
-                                />
-                            )}
-                        </Pressable>
-                        )}
-                        <TextInput
-                            ref={(ref) => {
-                                if (typeof innerRef === 'function') { innerRef(ref); }
-                                this.input = ref;
-                            }}
+                        <View style={{display: 'flex', flexDirection: 'row'}}>
+                            <TextInput
+                                ref={(ref) => {
+                                    if (typeof innerRef === 'function') { innerRef(ref); }
+                                    this.input = ref;
+                                }}
                             // eslint-disable-next-line
                             {...inputProps}
-                            value={value}
-                            placeholder={(this.state.isFocused || !label) ? placeholder : null}
-                            placeholderTextColor={themeColors.placeholderText}
-                            underlineColorAndroid="transparent"
-                            style={[...inputStyle]}
-                            onFocus={this.onFocus}
-                            onBlur={this.onBlur}
-                            onChangeText={this.setValue}
-                            secureTextEntry={this.state.passwordHidden}
-                        />
+                                value={value}
+                                placeholder={(this.state.isFocused || !label) ? placeholder : null}
+                                placeholderTextColor={themeColors.placeholderText}
+                                underlineColorAndroid="transparent"
+                                style={[...inputStyle, {flex: 1, paddingTop: 13}]}
+                                onFocus={this.onFocus}
+                                onBlur={this.onBlur}
+                                onChangeText={this.setValue}
+                                secureTextEntry={this.state.passwordHidden}
+                            />
+                            {secureTextEntry && (
+                            <Pressable
+                                accessibilityRole="button"
+                            // eslint-disable-next-line lines-around-comment
+                            // accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                                style={[
+                                    styles.secureInputEyeButton,
+                                ]}
+                                onPress={() => this.togglePasswordVisibility()}
+                            >
+                                {({hovered, pressed}) => (
+                                    <Icon
+                                        src={this.state.passwordHidden ? EyeDisabled : Eye}
+                                        fill={getIconFillColor(getButtonState(hovered, pressed))}
+                                    />
+                                )}
+                            </Pressable>
+                            )}
+                        </View>
                     </View>
                 </TouchableWithoutFeedback>
             </View>
