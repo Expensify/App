@@ -619,5 +619,6 @@ export default {
         growlMessageEmptyName: 'Please provide both a first and last name so our Guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         needHelp: 'Help',
+        needHelpTooltip: 'Get live help from our team',
     },
 };

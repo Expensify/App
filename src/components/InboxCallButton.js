@@ -12,6 +12,7 @@ import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -25,8 +26,9 @@ const defaultProps = {
 };
 
 const InboxCallButton = props => (
-    <View
-        style={[styles.justifyContentCenter, styles.alignItemsCenter]}
+    <Tooltip
+        text={props.translate('requestCallPage.needHelpTooltip')}
+        containerStyles={[styles.justifyContentCenter, styles.alignItemsCenter]}
     >
         <Pressable
             onPress={() => {
@@ -49,7 +51,7 @@ const InboxCallButton = props => (
                 </View>
             </View>
         </Pressable>
-    </View>
+    </Tooltip>
 );
 
 InboxCallButton.propTypes = propTypes;
