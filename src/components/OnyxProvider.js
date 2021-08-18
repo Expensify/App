@@ -7,11 +7,13 @@ import ComposeProviders from './ComposeProviders';
 import CONST from '../CONST';
 import Log from '../libs/Log';
 import listenToStorageEvents from '../libs/listenToStorageEvents';
+import canCapturePerformanceMetrics from '../libs/canCapturePerformanceMetrics';
 
 // Initialize the store when the app loads for the first time
 Onyx.init({
     keys: ONYXKEYS,
     safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+    captureMetrics: canCapturePerformanceMetrics(),
     initialKeyStates: {
 
         // Clear any loading and error messages so they do not appear on app startup
