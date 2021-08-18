@@ -6,7 +6,7 @@ import styles from '../styles/styles';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
 import Icon from './Icon';
-import {Paperclip} from './Icon/Expensicons';
+import {Paperclip, Download} from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Text from './Text';
@@ -20,7 +20,8 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    rightElement: PropTypes.element,
+    /** Flag to show/hide download icon */
+    shouldShowDownloadIcon: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
@@ -29,7 +30,7 @@ const defaultProps = {
     file: {
         name: '',
     },
-    rightElement: undefined,
+    shouldShowDownloadIcon: false,
 };
 
 const AttachmentView = (props) => {
@@ -61,9 +62,9 @@ const AttachmentView = (props) => {
                 <Icon src={Paperclip} />
             </View>
             <Text style={[styles.textStrong]}>{props.file && props.file.name}</Text>
-            {props.rightElement && (
+            {props.shouldShowDownloadIcon && (
                 <View style={styles.ml2}>
-                    {props.rightElement}
+                    <Icon src={Download} />
                 </View>
             )}
         </View>

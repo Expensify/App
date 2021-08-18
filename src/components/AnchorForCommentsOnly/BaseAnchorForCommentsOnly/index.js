@@ -2,12 +2,10 @@ import React from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
 import Text from '../../Text';
-import Icon from '../../Icon';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
-import {Download} from '../../Icon/Expensicons';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
 
@@ -36,9 +34,7 @@ const BaseAnchorForCommentsOnly = ({
                     <AttachmentView
                         sourceURL={href}
                         file={{name: fileName}}
-                        rightElement={(
-                            <Icon src={Download} />
-                        )}
+                        shouldShowDownloadIcon
                     />
                 </Pressable>
             )

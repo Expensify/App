@@ -7,8 +7,6 @@ import Text from '../../Text';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
-import Icon from '../../Icon';
-import {Download} from '../../Icon/Expensicons';
 import AttachmentView from '../../AttachmentView';
 
 /*
@@ -33,9 +31,7 @@ const BaseAnchorForCommentsOnly = ({
                     <AttachmentView
                         sourceURL={href}
                         file={{name: fileName}}
-                        rightElement={(
-                            <Icon src={Download} />
-                        )}
+                        shouldShowDownloadIcon
                     />
                 </Pressable>
             )
