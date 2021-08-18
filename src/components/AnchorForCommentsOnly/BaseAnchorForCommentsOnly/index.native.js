@@ -18,13 +18,13 @@ const BaseAnchorForCommentsOnly = ({
     href,
     children,
     style,
-    shouldDownloadFile,
+    isAttachment,
     fileName,
     ...props
 }) => {
     let linkRef;
     return (
-        shouldDownloadFile
+        isAttachment
             ? (
                 <Pressable onPress={() => {
                     fileDownload(href);

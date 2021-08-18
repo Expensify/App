@@ -27,7 +27,7 @@ const BaseAnchorForCommentsOnly = ({
     let linkRef;
     return (
 
-        props.shouldDownloadFile
+        props.isAttachment
             ? (
                 <Pressable onPress={() => {
                     fileDownload(href);

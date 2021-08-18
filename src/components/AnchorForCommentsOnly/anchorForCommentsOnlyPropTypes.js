@@ -15,8 +15,9 @@ const propTypes = {
         This is unused in native, but is here for parity with web */
     target: PropTypes.string,
 
-    /** Should the link be treated as a file download or a regular hyperlink? (relevant to native platforms only)  */
-    shouldDownloadFile: PropTypes.bool,
+    /** Flag to differentiate attachments and hyperlink. Base on flag link will be treated as a file download or a regular hyperlink?
+     * (relevant to native platforms only)  */
+    isAttachment: PropTypes.bool,
 
     /** Any children to display */
     children: PropTypes.node,
@@ -34,7 +35,7 @@ const defaultProps = {
     href: '',
     rel: '',
     target: '',
-    shouldDownloadFile: false,
+    isAttachment: false,
     children: null,
     style: {},
     fileName: '',
