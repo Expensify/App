@@ -48,7 +48,6 @@ class PasswordPage extends Component {
         this.state = {
             currentPassword: '',
             newPassword: '',
-            confirmNewPassword: '',
             isPasswordRequirementsVisible: false,
             shouldShowPasswordConfirmError: false,
         };
@@ -62,29 +61,11 @@ class PasswordPage extends Component {
     }
 
     onBlurNewPassword() {
-        const stateToUpdate = {};
-        if (!this.state.newPassword || !this.isValidPassword()) {
-            stateToUpdate.isPasswordRequirementsVisible = true;
-        } else {
-            stateToUpdate.isPasswordRequirementsVisible = false;
-        }
-
-        if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
-            stateToUpdate.shouldShowPasswordConfirmError = true;
-        } else {
-            stateToUpdate.shouldShowPasswordConfirmError = false;
-        }
-
-        this.setState(stateToUpdate);
+        this.setState(prevState => (
+            {isPasswordRequirementsVisible: !prevState.newPassword || !this.isValidPassword()}
+        ));
     }
 
-    onBlurConfirmPassword() {
-        if ((this.state.newPassword && !this.state.confirmNewPassword) || !this.doPasswordsMatch()) {
-            this.setState({shouldShowPasswordConfirmError: true});
-        } else {
-            this.setState({shouldShowPasswordConfirmError: false});
-        }
-    }
 
     isValidPassword() {
         return this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
@@ -100,9 +81,6 @@ class PasswordPage extends Component {
             });
     }
 
-    doPasswordsMatch() {
-        return this.state.newPassword === this.state.confirmNewPassword;
-    }
 
     render() {
         return (
@@ -143,6 +121,7 @@ class PasswordPage extends Component {
                                 textContentType="password"
                                 value={this.state.newPassword}
                                 onChangeText={newPassword => this.setState({newPassword})}
+                                onSubmitEditing={this.handleChangePassword}
                                 onFocus={() => this.setState({isPasswordRequirementsVisible: true})}
                                 onBlur={() => this.onBlurNewPassword()}
                             />
@@ -152,26 +131,9 @@ class PasswordPage extends Component {
                                 </Text>
                             )}
                         </View>
-                        <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                label={`${this.props.translate('passwordPage.confirmNewPassword')}*`}
-                                secureTextEntry
-                                autoCompleteType="password"
-                                textContentType="password"
-                                value={this.state.confirmNewPassword}
-                                onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
-                                onSubmitEditing={this.handleChangePassword}
-                                onBlur={() => this.onBlurConfirmPassword()}
-                            />
-                        </View>
                         {!this.state.shouldShowPasswordConfirmError && !isEmpty(this.props.account.error) && (
                             <Text style={styles.formError}>
                                 {this.props.account.error}
-                            </Text>
-                        )}
-                        {this.state.shouldShowPasswordConfirmError && (
-                            <Text style={[styles.formError, styles.mt1]}>
-                                {this.props.translate('setPasswordPage.passwordsDontMatch')}
                             </Text>
                         )}
                     </ScrollView>
@@ -180,8 +142,6 @@ class PasswordPage extends Component {
                             success
                             style={[styles.mb2]}
                             isDisabled={!this.state.currentPassword || !this.state.newPassword
-                                || !this.state.confirmNewPassword
-                                || (this.state.newPassword !== this.state.confirmNewPassword)
                                 || (this.state.currentPassword === this.state.newPassword)
                                 || !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING)}
                             isLoading={this.props.account.loading}

@@ -29,17 +29,14 @@ class NewPasswordForm extends React.Component {
         super(props);
 
         this.state = {
-            confirmNewPassword: '',
             passwordHintError: false,
-            shouldShowPasswordConfirmError: false,
         };
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        const eitherPasswordChanged = (this.props.password !== prevProps.password)
-        || this.state.confirmNewPassword !== prevState.confirmNewPassword;
-        if (eitherPasswordChanged) {
-            this.props.updateIsFormValid(this.isValidForm());
+    componentDidUpdate(prevProps) {
+        const passwordChanged = (this.props.password !== prevProps.password);
+        if (passwordChanged) {
+            this.props.updateIsFormValid(this.isValidPassword());
         }
     }
 
@@ -52,34 +49,11 @@ class NewPasswordForm extends React.Component {
         }
     }
 
-    onBlurConfirmPassword() {
-        if (this.state.shouldShowPasswordConfirmError) {
-            return;
-        }
-        if (this.state.confirmNewPassword && !this.doPasswordsMatch()) {
-            this.setState({shouldShowPasswordConfirmError: true});
-        }
-    }
 
     isValidPassword() {
         return this.props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
-    doPasswordsMatch() {
-        return this.props.password === this.state.confirmNewPassword;
-    }
-
-    isValidForm() {
-        return this.isValidPassword() && this.doPasswordsMatch();
-    }
-
-    showPasswordMatchError() {
-        return Boolean(
-            !this.doPasswordsMatch()
-            && this.state.shouldShowPasswordConfirmError
-            && this.state.confirmNewPassword,
-        );
-    }
 
     render() {
         let passwordHintStyle;
@@ -100,28 +74,12 @@ class NewPasswordForm extends React.Component {
                         textContentType="password"
                         value={this.props.password}
                         onChangeText={password => this.props.updatePassword(password)}
+                        onSubmitEditing={() => this.props.onSubmitEditing()}
                         onBlur={() => this.onBlurNewPassword()}
                     />
                     <Text style={[styles.textLabelSupporting, styles.mt1, passwordHintStyle]}>
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
                     </Text>
-                </View>
-                <View style={styles.mb6}>
-                    <ExpensiTextInput
-                        label={`${this.props.translate('setPasswordPage.confirmNewPassword')}*`}
-                        secureTextEntry
-                        autoCompleteType="password"
-                        textContentType="password"
-                        value={this.state.confirmNewPassword}
-                        onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
-                        onSubmitEditing={() => this.props.onSubmitEditing()}
-                        onBlur={() => this.onBlurConfirmPassword()}
-                    />
-                    {this.showPasswordMatchError() && (
-                    <Text style={[styles.formError, styles.mt1]}>
-                        {this.props.translate('setPasswordPage.passwordsDontMatch')}
-                    </Text>
-                    )}
                 </View>
             </>
         );
