@@ -10,6 +10,7 @@ import {
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import Config from '../../CONFIG';
 import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
@@ -67,7 +68,7 @@ function AnchorRenderer({tnode, key, style}) {
 
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    const fileName = isAttachment && tnode.domNode && tnode.domNode.children && tnode.domNode.children[0] && tnode.domNode.children[0].data ? tnode.domNode.children[0].data : null;
+    const fileName = isAttachment ? lodashGet(tnode, 'domNode.children[0].data') : null;
 
     return (
         <AnchorForCommentsOnly
