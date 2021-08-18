@@ -7,6 +7,7 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {translateLocal} from '../../libs/translate';
 import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
+import Text from '../../components/Text'
 
 const propTypes = {
     /** Style for wrapping View */
