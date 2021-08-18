@@ -293,6 +293,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeConcierge = false,
+    excludeChronos = false,
+    excludeReceipts = false,
     excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
@@ -384,6 +386,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
     }
 
+    if (excludeChronos) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CHRONOS});
+    }
+
+    if (excludeReceipts) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.RECEIPTS});
+    }
+
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -468,6 +478,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         && personalDetailsOptions.length === 0
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
@@ -527,7 +538,10 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
- * @param {Boolean} excludeConcierge
+ * @param {Object} excludedOptions
+ * @param {Boolean} excludedOptions.excludeConcierge
+ * @param {Boolean} excludedOptions.excludeChronos
+ * @param {Boolean} excludedOptions.excludeReceipts
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -535,7 +549,11 @@ function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
-    excludeConcierge,
+    {
+        excludeConcierge = false,
+        excludeChronos = false,
+        excludeReceipts = true,
+    } = {},
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -546,6 +564,8 @@ function getNewChatOptions(
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
         excludeConcierge,
+        excludeChronos,
+        excludeReceipts,
     });
 }
 
@@ -588,7 +608,10 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
- * @param {Boolean} excludeConcierge
+ * @param {Object} excludedOptions
+ * @param {Boolean} excludedOptions.excludeConcierge
+ * @param {Boolean} excludedOptions.excludeChronos
+ * @param {Boolean} excludedOptions.excludeReceipts
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -597,7 +620,11 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
-    excludeConcierge,
+    {
+        excludeConcierge = false,
+        excludeChronos = false,
+        excludeReceipts = true,
+    } = {},
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -610,6 +637,8 @@ function getNewGroupOptions(
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
         excludeConcierge,
+        excludeChronos,
+        excludeReceipts,
     });
 }
 
