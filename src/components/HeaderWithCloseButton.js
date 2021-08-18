@@ -86,10 +86,7 @@ const HeaderWithCloseButton = props => (
                     )
                 }
 
-                {
-                    props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />
-
-                }
+                {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
                 <TouchableOpacity
                     onPress={props.onCloseButtonPress}

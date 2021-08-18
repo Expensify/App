@@ -53,8 +53,10 @@ const propTypes = {
         type: PropTypes.string,
     }).isRequired,
 
+    /** Route object from navigation */
     route: PropTypes.shape({
         params: PropTypes.shape({
+            /** The task ID to request the call for */
             taskID: PropTypes.string,
         }),
     }).isRequired,
