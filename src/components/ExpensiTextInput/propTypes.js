@@ -4,6 +4,9 @@ const propTypes = {
     /** Input label */
     label: PropTypes.string,
 
+    /** Text to show if there is an error */
+    errorText: PropTypes.string,
+
     /** Input value */
     value: PropTypes.string.isRequired,
 
@@ -28,6 +31,7 @@ const propTypes = {
 
 const defaultProps = {
     label: '',
+    errorText: '',
     placeholder: '',
     error: false,
     containerStyles: [],
