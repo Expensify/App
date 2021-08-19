@@ -434,6 +434,7 @@ class ReportActionCompose extends React.Component {
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExpensifyEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
+        const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
