@@ -352,3 +352,20 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
+
+      - name: 'Announces the deploy in the #announce Slack room'
+        if: ${{ success() }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: 'good',
+                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' ? 'production' : 'staging' }}.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
