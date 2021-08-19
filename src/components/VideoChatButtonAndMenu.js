@@ -101,7 +101,7 @@ class VideoChatButtonAndMenu extends Component {
                             onPress={() => {
                                 // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
                                 if (this.props.isConcierge) {
-                                    Navigation.navigate(ROUTES.REQUEST_CALL);
+                                    Navigation.navigate(ROUTES.getRequestCallRoute('NewExpensifyConciergeDM'));
                                     return;
                                 }
                                 this.toggleVideoChatMenu();

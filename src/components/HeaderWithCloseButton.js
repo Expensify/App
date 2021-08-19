@@ -10,6 +10,7 @@ import {Close, Download, BackArrow} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
+import InboxCallButton from './InboxCallButton';
 
 const propTypes = {
     /** Title of the Header */
@@ -33,6 +34,12 @@ const propTypes = {
     /** Whether we should show a download button */
     shouldShowDownloadButton: PropTypes.bool,
 
+    /** Whether we should show a inbox call button */
+    shouldShowInboxCallButton: PropTypes.bool,
+
+    /** The task ID to associate with the call button, if we show it */
+    inboxCallTaskID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -44,6 +51,8 @@ const defaultProps = {
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
+    shouldShowInboxCallButton: false,
+    inboxCallTaskID: '',
 };
 
 const HeaderWithCloseButton = props => (
@@ -83,8 +92,9 @@ const HeaderWithCloseButton = props => (
                     )
                 }
 
-                <Tooltip text={props.translate('common.close')}>
+                {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
+                <Tooltip text={props.translate('common.close')}>
                     <TouchableOpacity
                         onPress={props.onCloseButtonPress}
                         style={[styles.touchableButtonImage]}

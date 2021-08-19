@@ -48,8 +48,9 @@ export default {
         here: 'aquí',
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
-        addressNoPO: 'Dirección física personal (no se aceptan apartados ni direcciones postales)',
-        companyAddressNoPO: 'Dirección física de la empresa (no se aceptan apartados ni direcciones postales)',
+        personalAddress: 'Dirección física personal',
+        companyAddress: 'Dirección física de la empresa',
+        noPO: '(No se aceptan apartados ni direcciones postales)',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código Postal',
@@ -227,7 +228,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'El nuevo aplicación Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
+            description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
@@ -628,5 +629,7 @@ export default {
         growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
+        needHelp: 'Ayuda',
+        needHelpTooltip: 'Recibe ayuda telefónica de nuestro equipo',
     },
 };

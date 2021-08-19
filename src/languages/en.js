@@ -48,8 +48,9 @@ export default {
         here: 'here',
         dob: 'Date of Birth',
         ssnLast4: 'Last 4 Digits of SSN',
-        addressNoPO: 'Personal Address (PO Boxes and mail drop addresses are NOT allowed)',
-        companyAddressNoPO: 'Company Address (PO Boxes and mail drop addresses are NOT allowed)',
+        personalAddress: 'Personal Address',
+        companyAddress: 'Company Address',
+        noPO: '(PO Boxes and mail drop addresses are NOT allowed)',
         city: 'City',
         state: 'State',
         zip: 'Zip Code',
@@ -227,7 +228,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'The New Expensify App is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -626,5 +627,7 @@ export default {
         growlMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code.\ne.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our Guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
+        needHelp: 'Help',
+        needHelpTooltip: 'Get live help from our team',
     },
 };
