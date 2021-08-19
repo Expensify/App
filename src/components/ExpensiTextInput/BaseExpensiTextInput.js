@@ -177,5 +177,6 @@ class BaseExpensiTextInput extends Component {
 
 BaseExpensiTextInput.propTypes = propTypes;
 BaseExpensiTextInput.defaultProps = defaultProps;
+BaseExpensiTextInput.displayName = 'BaseExpensiTextInput';
 
 export default BaseExpensiTextInput;
