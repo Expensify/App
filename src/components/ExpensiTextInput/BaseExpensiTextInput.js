@@ -167,8 +167,8 @@ class BaseExpensiTextInput extends Component {
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {errorText !== '' && (
-                    <Text style={[styles.formError]}>{errorText}</Text>
+                {Boolean(errorText) && (
+                    <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
                 )}
             </View>
         );
