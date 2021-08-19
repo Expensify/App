@@ -34,6 +34,26 @@ const metro = {
     ],
 };
 
+const {CAPTURE_METRICS} = require('dotenv').config().parsed;
+
+/* When the CAPTURE_METRICS env var is set we add these aliases to also capture
+ * React.Profiler metrics for release builds */
+if (CAPTURE_METRICS) {
+    const path = require('path');
+    const profilingRenderer = path.resolve(
+        __dirname,
+        './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling',
+    );
+
+    metro.plugins.push(['module-resolver', {
+        root: ['./'],
+        alias: {
+            'ReactNativeRenderer-prod': profilingRenderer,
+            'scheduler/tracing': 'scheduler/tracing-profiling',
+        },
+    }]);
+}
+
 module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"
     // For `webpack` (Web) caller will be "@babel-loader"
