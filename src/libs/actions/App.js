@@ -7,8 +7,7 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
-import {printPerformanceMetrics} from '../Performance';
-import canCapturePerformanceMetrics from '../canCapturePerformanceMetrics';
+import {markEnd, markStart} from '../Performance';
 import Timing from './Timing';
 
 let currentUserAccountID;
@@ -61,15 +60,8 @@ function setSidebarLoaded() {
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
-
-    if (!canCapturePerformanceMetrics()) {
-        return;
-    }
-
-    const performance = require('react-native-performance').default;
-    performance.mark('sidebarLoadEnd');
-    performance.measure('timeToInteractive', 'nativeLaunchStart', 'sidebarLoadEnd');
-    printPerformanceMetrics();
+    markEnd(CONST.TIMING.SIDEBAR_LOADED);
+    markStart(CONST.TIMING.SWITCH_REPORT);
 }
 
 let appState;
