@@ -113,13 +113,13 @@ class BaseExpensiTextInput extends Component {
             label,
             value,
             placeholder,
+            errorText,
             hasError,
             containerStyles,
             inputStyle,
             ignoreLabelTranslateX,
             innerRef,
             autoFocus,
-            errorText,
             ...inputProps
         } = this.props;
 
