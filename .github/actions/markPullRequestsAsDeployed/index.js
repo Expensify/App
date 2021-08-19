@@ -60,7 +60,8 @@ function getDeployMessage(deployer, deployVerb, prTitle) {
     message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
 
     if (deployVerb === 'Cherry-picked' && !(/no qa/gi).test(prTitle)) {
-        message += '\n\nThe PR title did not include [No QA], so this CP requires QA @Expensify/applauseleads';
+        // eslint-disable-next-line max-len
+        message += '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
     }
 
     return message;
