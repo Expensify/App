@@ -64,8 +64,13 @@ if (canCapturePerformanceMetrics()) {
                     }
                     if (entry.name === 'downloadEnd') {
                         performance.measure('jsBundleDownload', 'downloadStart', 'downloadEnd');
+                    }
+                    if (entry.name === 'runJsBundleEnd') {
+                        performance.measure('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+                    }
 
-                        // We don't need to keep the observer past this point
+                    // We don't need to keep the observer past this point
+                    if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
                         observer.disconnect();
                     }
                 });
@@ -93,9 +98,14 @@ if (canCapturePerformanceMetrics()) {
      * Outputs performance stats. We alert these so that they are easy to access in release builds.
      */
     printPerformanceMetrics = () => {
-        const stats = [...performance.getEntriesByType('measure'), ...performance.getEntriesByType('react-native-mark')]
+        const stats = [
+            ...performance.getEntriesByName('nativeLaunch'),
+            ...performance.getEntriesByName('runJsBundle'),
+            ...performance.getEntriesByName('jsBundleDownload'),
+            ...performance.getEntriesByName('TTI'),
+        ]
             .filter(entry => entry.duration > 0)
-            .map(entry => `\u2022 ${entry.name}: ${entry.value || entry.duration.toFixed(1)}ms`);
+            .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`);
 
         Alert.alert('Performance', stats.join('\n'));
     };
