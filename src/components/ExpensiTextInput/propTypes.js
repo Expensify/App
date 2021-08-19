@@ -4,14 +4,14 @@ const propTypes = {
     /** Input label */
     label: PropTypes.string,
 
-    /** Text to show if there is an error */
-    errorText: PropTypes.string,
-
     /** Input value */
     value: PropTypes.string.isRequired,
 
     /** Input value placeholder */
     placeholder: PropTypes.string,
+
+    /** Error text to display */
+    errorText: PropTypes.string,
 
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
