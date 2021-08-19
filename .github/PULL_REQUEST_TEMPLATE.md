@@ -7,7 +7,7 @@
 <!---
 Please replace GH_LINK with the link to the GitHub issue this Pull Request is fixing.
 Do NOT add the special GH keywords like `fixed` etc, we have our own process of managing the flow.
-It MUST be an entire link to the issue, otherwise the linking will not work as expected.
+It MUST be an entire link to the issue; otherwise, the linking will not work as expected.
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
