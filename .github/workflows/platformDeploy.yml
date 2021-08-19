@@ -330,12 +330,6 @@ jobs:
         with:
           node-version: '14.x'
 
-      - name: Determine if this was a cherry-pick
-        id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/isStagingDeployLocked@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
 
