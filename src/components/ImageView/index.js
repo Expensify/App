@@ -23,7 +23,7 @@ class ImageView extends PureComponent {
             initialX: 0,
             initialY: 0,
             imgWidth: 0,
-            imgHeight: 0
+            imgHeight: 0,
         };
     }
 
@@ -31,8 +31,8 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return;
         }
-        Image.getSize(this.props.url, (width,height) => {
-            this.setState({imgWidth:width,imgHeight:height});
+        Image.getSize(this.props.url, (width, height) => {
+            this.setState({imgWidth: width, imgHeight: height});
         });
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
@@ -130,7 +130,7 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={getZoomSizingStyle(this.state.isZoomed,this.state.imgWidth,this.state.imgHeight)}
+                        style={getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight)}
                         resizeMode="contain"
                     />
                 </Pressable>
