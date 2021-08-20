@@ -188,6 +188,12 @@ class ReportActionCompose extends React.Component {
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
         }
+
+        // If we switch from a sidebar, the component does not mount again
+        // so we need to update the comment manually.
+        if (prevProps.comment !== this.props.comment && this.textInput) {
+            this.textInput.setNativeProps({text: this.props.comment});
+        }
     }
 
     componentWillUnmount() {
