@@ -346,7 +346,7 @@ class IOUConfirmationList extends Component {
                         disableRowInteractivity={!this.props.hasMultipleParticipants}
                         optionHoveredStyle={hoverStyle}
                     />
-                    <View style={[styles.ph5, styles.pb5]}>
+                    <View style={[styles.ph5, styles.pb5, styles.mt4]}>
                         <ExpensiTextInput
                             label={this.props.translate('iOUConfirmationList.whatsItFor')}
                             value={this.props.comment}

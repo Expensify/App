@@ -56,7 +56,11 @@ class IOUParticipantsRequest extends Component {
             props.reports,
             props.personalDetails,
             '',
-            true,
+            {
+                excludeConcierge: true,
+                excludeChronos: true,
+                excludeReceipts: true,
+            },
             props.betas,
         );
 
@@ -128,7 +132,11 @@ class IOUParticipantsRequest extends Component {
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
-                        true,
+                        {
+                            excludeConcierge: true,
+                            excludeChronos: true,
+                            excludeReceipts: true,
+                        },
                         this.props.betas,
                     );
                     this.setState({
