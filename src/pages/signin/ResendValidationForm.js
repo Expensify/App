@@ -16,6 +16,7 @@ import compose from '../../libs/compose';
 const propTypes = {
     /* Onyx Props */
 
+    /** The credentials of the logged in person */
     credentials: PropTypes.shape({
         /** The email/phone the user logged in with */
         login: PropTypes.string,
