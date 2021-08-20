@@ -191,7 +191,7 @@ class ReportActionCompose extends React.Component {
 
         // If we switch from a sidebar, the component does not mount again
         // so we need to update the comment manually.
-        if (prevProps.comment !== this.props.comment && this.textInput) {
+        if (prevProps.comment !== this.props.comment) {
             this.textInput.setNativeProps({text: this.props.comment});
         }
     }
