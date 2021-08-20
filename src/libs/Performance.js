@@ -76,6 +76,7 @@ if (canCapturePerformanceMetrics()) {
                 });
         }).observe({type: 'react-native-mark', buffered: true});
 
+        // Monitor for "_end" marks and capture "_start" to "_end" measures
         new perfModule.PerformanceObserver((list) => {
             list.getEntriesByType('mark')
                 .forEach((mark) => {
@@ -86,6 +87,7 @@ if (canCapturePerformanceMetrics()) {
                         performance.measure(name, start, end);
                     }
 
+                    // Capture any custom measures or metrics below
                     if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
                         performance.measure('TTI', 'nativeLaunchStart', mark.name);
                         printPerformanceMetrics();
@@ -111,7 +113,7 @@ if (canCapturePerformanceMetrics()) {
     };
 
     /**
-     * Adds a start mark to the performance entries
+     * Add a start mark to the performance entries
      * @param {string} name
      * @param {Object} [detail]
      * @returns {PerformanceMark}
@@ -119,8 +121,8 @@ if (canCapturePerformanceMetrics()) {
     markStart = (name, detail) => performance.mark(`${name}_start`, {detail});
 
     /**
-     * Adds an end mark to the performance entries
-     * This would also automatically create a measure between start and end
+     * Add an end mark to the performance entries
+     * A measure between start and end is captured automatically
      * @param {string} name
      * @param {Object} [detail]
      * @returns {PerformanceMark}
