@@ -1,15 +1,14 @@
 import React, {PureComponent} from 'react';
 import {Animated, Text, View} from 'react-native';
 import PropTypes from 'prop-types';
-import styles from '../../../styles/styles';
-import Button from '../../../components/Button';
-import Icon from '../../../components/Icon';
-import {Close, DownArrow} from '../../../components/Icon/Expensicons';
-import themeColors from '../../../styles/themes/default';
-import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import styles from '../../../../styles/styles';
+import Button from '../../../../components/Button';
+import Icon from '../../../../components/Icon';
+import {Close, DownArrow} from '../../../../components/Icon/Expensicons';
+import themeColors from '../../../../styles/themes/default';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import MarkerBadgeContainer from './MarkerBadgeContainer';
 
-const MARKER_NOT_ACTIVE_TRANSLATE_Y = -30;
-const MARKER_ACTIVE_TRANSLATE_Y = 10;
 const propTypes = {
     /** Count of new messages to show in the badge */
     count: PropTypes.number,
@@ -25,13 +24,18 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 };
+
 const defaultProps = {
     count: 0,
     active: false,
     onClose: () => {},
     onClick: () => {},
 };
-class MarkerBadge extends PureComponent {
+
+const MARKER_NOT_ACTIVE_TRANSLATE_Y = -30;
+const MARKER_ACTIVE_TRANSLATE_Y = 10;
+
+class BaseMarkerBadge extends PureComponent {
     constructor(props) {
         super(props);
         this.translateY = new Animated.Value(MARKER_NOT_ACTIVE_TRANSLATE_Y);
@@ -65,12 +69,8 @@ class MarkerBadge extends PureComponent {
 
     render() {
         return (
-            <View style={styles.reportMarkerBadgeWrapper}>
-                <Animated.View style={[
-                    styles.reportMarkerBadge,
-                    styles.reportMarkerBadgeTransformation(this.translateY),
-                ]}
-                >
+            <MarkerBadgeContainer containerStyles={[styles.reportMarkerBadgeTransformation(this.translateY)]}>
+                <View style={styles.reportMarkerBadge}>
                     <View style={[
                         styles.flexRow,
                         styles.justifyContentBetween,
@@ -112,14 +112,14 @@ class MarkerBadge extends PureComponent {
                             )}
                         />
                     </View>
-                </Animated.View>
-            </View>
+                </View>
+            </MarkerBadgeContainer>
         );
     }
 }
 
-MarkerBadge.propTypes = propTypes;
-MarkerBadge.defaultProps = defaultProps;
-MarkerBadge.displayName = 'MarkerBadge';
+BaseMarkerBadge.propTypes = propTypes;
+BaseMarkerBadge.defaultProps = defaultProps;
+BaseMarkerBadge.displayName = 'BaseMarkerBadge';
 
-export default withLocalize(MarkerBadge);
+export default withLocalize(BaseMarkerBadge);
