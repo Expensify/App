@@ -515,6 +515,9 @@ export default {
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         companyPhonePlaceholder: '10 digits, no hyphens',
+        confirmModalTitle: 'Are you sure?',
+        confirmModalPrompt: 'Please double check any highlighted fields and try again.',
+        confirmModalConfirmText: 'Got it',
     },
     requestorStep: {
         headerTitle: 'Requestor Information',
