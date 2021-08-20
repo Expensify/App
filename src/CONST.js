@@ -261,6 +261,7 @@ const CONST = {
     EMAIL: {
         CHRONOS: 'chronos@expensify.com',
         CONCIERGE: 'concierge@expensify.com',
+        RECEIPTS: 'receipts@expensify.com',
     },
 
     ENVIRONMENT: {

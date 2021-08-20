@@ -1,14 +1,15 @@
+import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import {Linking} from 'react-native';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import Log from '../Log';
 import CONFIG from '../../CONFIG';
-import Firebase from '../Firebase';
 import ROUTES from '../../ROUTES';
 import {printPerformanceMetrics} from '../Performance';
 import canCapturePerformanceMetrics from '../canCapturePerformanceMetrics';
+import Timing from './Timing';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -59,7 +60,7 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
+    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
 
     if (!canCapturePerformanceMetrics()) {
         return;
@@ -70,6 +71,14 @@ function setSidebarLoaded() {
     performance.measure('timeToInteractive', 'nativeLaunchStart', 'sidebarLoadEnd');
     printPerformanceMetrics();
 }
+
+let appState;
+AppState.addEventListener('change', (nextAppState) => {
+    if (nextAppState.match(/inactive|background/) && appState === 'active') {
+        Log.info('Flushing logs as app is going inactive', true, {}, true);
+    }
+    appState = nextAppState;
+});
 
 export {
     setCurrentURL,

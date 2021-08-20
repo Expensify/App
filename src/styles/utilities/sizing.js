@@ -24,6 +24,10 @@ export default {
         maxWidth: 'auto',
     },
 
+    mw100: {
+        maxWidth: '100%',
+    },
+
     w1: {
         width: 4,
     },

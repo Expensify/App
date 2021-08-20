@@ -1,14 +1,14 @@
 import {Inbox_CallUser} from '../API';
 
-function requestConciergeDMCall(policyID, firstName, lastName, phoneNumber) {
+function requestInboxCall(taskID, policyID, firstName, lastName, phoneNumber) {
     return Inbox_CallUser({
         policyID,
         firstName,
         lastName,
         phoneNumber,
-        taskID: 'NewExpensifyConciergeDM',
+        taskID,
     });
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {requestConciergeDMCall};
+export {requestInboxCall};

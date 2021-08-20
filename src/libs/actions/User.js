@@ -271,7 +271,7 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[User] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
             );
         });

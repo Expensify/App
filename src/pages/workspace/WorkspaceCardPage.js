@@ -110,6 +110,8 @@ const WorkspaceCardPage = ({
                 onCloseButtonPress={() => Navigation.dismissModal()}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={isSmallScreenWidth}
+                shouldShowInboxCallButton
+                inboxCallTaskID="WorkspaceCompanyCards"
             />
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.pageWrapper}>
