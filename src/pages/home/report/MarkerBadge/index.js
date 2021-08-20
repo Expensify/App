@@ -35,7 +35,7 @@ const defaultProps = {
 const MARKER_NOT_ACTIVE_TRANSLATE_Y = -30;
 const MARKER_ACTIVE_TRANSLATE_Y = 10;
 
-class BaseMarkerBadge extends PureComponent {
+class MarkerBadge extends PureComponent {
     constructor(props) {
         super(props);
         this.translateY = new Animated.Value(MARKER_NOT_ACTIVE_TRANSLATE_Y);
@@ -118,8 +118,8 @@ class BaseMarkerBadge extends PureComponent {
     }
 }
 
-BaseMarkerBadge.propTypes = propTypes;
-BaseMarkerBadge.defaultProps = defaultProps;
-BaseMarkerBadge.displayName = 'BaseMarkerBadge';
+MarkerBadge.propTypes = propTypes;
+MarkerBadge.defaultProps = defaultProps;
+MarkerBadge.displayName = 'MarkerBadge';
 
-export default withLocalize(BaseMarkerBadge);
+export default withLocalize(MarkerBadge);
