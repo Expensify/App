@@ -2176,14 +2176,13 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @return {Object}
  */
 function getZoomSizingStyle(isZoomed, imgWidth, imgHeight) {
-    const MIN_ZOOM_SIZE = 2000;
     if (imgWidth === 0 || imgHeight === 0) {
         return {
             height: isZoomed ? '250%' : '100%',
             width: isZoomed ? '250%' : '100%',
         };
     }
-    const scaleZoom = Math.max(MIN_ZOOM_SIZE / imgWidth, MIN_ZOOM_SIZE / imgHeight);
+    const scaleZoom = Math.max(CONST.MIN_ZOOM_SIZE / imgWidth, CONST.MIN_ZOOM_SIZE / imgHeight);
     return {
         height: isZoomed ? `${(imgHeight * scaleZoom)}px` : '100%',
         width: isZoomed ? `${(imgWidth * scaleZoom)}px` : '100%',
