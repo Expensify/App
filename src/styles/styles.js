@@ -2171,12 +2171,23 @@ function getZoomCursorStyle(isZoomed, isDragging) {
 
 /**
  * @param {Boolean} isZoomed
+ * @param {Number} imgWidth
+ * @param {Number} imgHeight
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed) {
+function getZoomSizingStyle(isZoomed,imgWidth,imgHeight) {
+    var MIN_ZOOM_SIZE = 2000;
+    if (imgWidth == 0 || imgHeight == 0)
+    {
+        return {
+            height: isZoomed ? '250%' : '100%',
+            width: isZoomed ? '250%' : '100%',
+        };
+    }
+    var scaleZoom = Math.max(MIN_ZOOM_SIZE / imgWidth, MIN_ZOOM_SIZE / imgHeight);
     return {
-        height: isZoomed ? '250%' : '100%',
-        width: isZoomed ? '250%' : '100%',
+        height: isZoomed ? (imgHeight * scaleZoom) + 'px' : '100%',
+        width: isZoomed ? (imgWidth * scaleZoom) + 'px'  : '100%',
     };
 }
 
