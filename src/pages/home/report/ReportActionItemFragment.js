@@ -11,7 +11,9 @@ import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import {isSingleEmoji} from '../../../libs/ValidationUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -30,6 +32,9 @@ const propTypes = {
     isSingleLine: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
+
+    /** localization props */
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -117,4 +122,7 @@ ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default withWindowDimensions(ReportActionItemFragment);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(ReportActionItemFragment);

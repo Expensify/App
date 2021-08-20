@@ -122,6 +122,7 @@ export default {
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        edited: '(editar)',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
