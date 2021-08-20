@@ -122,6 +122,7 @@ export default {
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
+        edited: '(edited)',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
