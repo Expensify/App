@@ -77,13 +77,13 @@ class EmojiPickerMenu extends Component {
 
         const emojiCode = types && types[this.props.preferredSkinTone]
             ? types[this.props.preferredSkinTone]
-            : code;
+            : `${code}\uFE0F`;
 
 
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={`${emojiCode}\uFE0F`}
+                emoji={emojiCode}
                 emojiSize={this.emojiSize}
             />
         );

@@ -332,14 +332,14 @@ class EmojiPickerMenu extends Component {
 
         const emojiCode = types && types[this.props.preferredSkinTone]
             ? types[this.props.preferredSkinTone]
-            : code;
+            : `${code}\uFE0F`;
 
 
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 onHover={() => this.setState({highlightedIndex: index})}
-                emoji={`${emojiCode}\uFE0F`}
+                emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
                 emojiSize={this.emojiSize}
             />
