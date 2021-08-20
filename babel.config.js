@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow'];
 const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
@@ -34,11 +36,9 @@ const metro = {
     ],
 };
 
-const {CAPTURE_METRICS} = require('dotenv').config().parsed;
-
-/* When the CAPTURE_METRICS env var is set we add these aliases to also capture
+/* When CAPTURE_METRICS is set we add these aliases to also capture
  * React.Profiler metrics for release builds */
-if (CAPTURE_METRICS) {
+if (process.env.CAPTURE_METRICS) {
     const path = require('path');
     const profilingRenderer = path.resolve(
         __dirname,
