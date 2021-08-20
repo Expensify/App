@@ -15,8 +15,7 @@ const propTypes = {
         This is unused in native, but is here for parity with web */
     target: PropTypes.string,
 
-    /** Flag to differentiate attachments and hyperlink. Base on flag link will be treated as a file download or a regular hyperlink?
-     * (relevant to native platforms only)  */
+    /** Flag to differentiate attachments and hyperlink. Base on flag link will be treated as a file download or a regular hyperlink */
     isAttachment: PropTypes.bool,
 
     /** Any children to display */
