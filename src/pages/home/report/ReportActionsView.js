@@ -205,14 +205,16 @@ class ReportActionsView extends React.Component {
                 updateLastReadActionID(this.props.reportID);
             }
 
-            // Only update the UnreadCount when Marker is visible
-            // Otheriwise marker will be shown when scroll up from the bottom even if we read those messages
-            if (this.state.isMarkerActive) {
-                this.updateUnreadMessageCount();
-            }
+            if (lastAction && (lastAction.actorEmail !== this.props.session.email)) {
+                // Only update the UnreadCount when Marker is visible
+                // Otheriwise marker will be shown when scroll up from the bottom even if we read those messages
+                if (this.state.isMarkerActive) {
+                    this.updateUnreadMessageCount();
+                }
 
-            // show new MarkerBadge when there is a new Message
-            this.toggleMarker();
+                // show new MarkerBadge when there is a new Message
+                this.toggleMarker();
+            }
         }
 
         // We want to mark the unread comments when user resize the screen to desktop
@@ -496,9 +498,6 @@ class ReportActionsView extends React.Component {
                 </View>
             );
         }
-
-        console.debug('unread messages', this.state.unreadActionCount);
-        console.debug('marker shows', this.state.isMarkerActive);
 
         return (
             <>
