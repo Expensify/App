@@ -35,9 +35,7 @@ export default function fileDownload(url, fileName) {
             // Clean up and remove the link
             URL.revokeObjectURL(link.href);
             link.parentNode.removeChild(link);
-        }).catch((err) => {
-            console.error('Down Err', err);
-
+        }).catch(() => {
             // file could not be downloaded, open sourceURL in new tab
             Linking.openURL(url);
         });
