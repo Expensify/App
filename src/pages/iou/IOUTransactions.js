@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -72,6 +73,14 @@ class IOUTransactions extends Component {
     }
 
     render() {
+        const {session, personalDetails, iouReport} = this.props;
+        const sessionEmail = lodashGet(session, 'email', null);
+        const managerEmail = iouReport.managerEmail || '';
+        const ownerEmail = iouReport.ownerEmail || '';
+
+        const managerName = lodashGet(personalDetails, [managerEmail, 'firstName'], '')
+                        || Str.removeSMSDomain(managerEmail);
+        const ownerName = lodashGet(personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
         return (
             <View style={[styles.mt3]}>
                 {_.map(this.props.reportActions, (reportAction) => {
@@ -88,6 +97,9 @@ class IOUTransactions extends Component {
                                 action={reportAction}
                                 key={reportAction.sequenceNumber}
                                 canBeRejected={canBeRejected}
+                                managerName={managerName}
+                                ownerName={ownerName}
+                                sessionEmail={sessionEmail}
                                 rejectButtonLabelText={isCurrentUserTransactionCreator
                                     ? this.props.translate('common.cancel')
                                     : this.props.translate('iou.decline')}
@@ -105,9 +117,18 @@ IOUTransactions.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
+        },
+        iouReport: {
+            key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOUTransactions);
