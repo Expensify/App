@@ -13,6 +13,8 @@ import {rejectTransaction} from '../libs/actions/IOU';
 import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -40,6 +42,9 @@ const propTypes = {
         /** IOUTransactionID that's being rejected */
         transactionID: PropTypes.bool,
     }),
+
+    /* Localization props */
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -76,6 +81,20 @@ class ReportTransaction extends Component {
     }
 
     render() {
+        const {
+            type: messageType, amount, currency, comment,
+        } = this.props.action.originalMessage;
+        console.log('MEssage Type', messageType, amount, currency);
+
+        const messageText = this.props.translate(`iou.transactions.${messageType}`, {
+            comment,
+            amount: this.props.numberFormat(
+                Math.abs(amount) / 100,
+                {style: 'currency', currency},
+            ),
+            participant: 'MJ',
+        });
+
         return (
             <View styles={[styles.mb5]}>
                 <ReportActionItemSingle
@@ -83,6 +102,8 @@ class ReportTransaction extends Component {
                     wrapperStyles={[styles.reportTransactionWrapper]}
                 >
                     <Text style={[styles.chatItemMessage]}>
+                        {messageText}
+                        {'\n'}
                         {this.props.action.message[0].text}
                     </Text>
                 </ReportActionItemSingle>
@@ -122,8 +143,11 @@ class ReportTransaction extends Component {
 ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
-export default withOnyx({
-    transactionsBeingRejected: {
-        key: ONYXKEYS.TRANSACTIONS_BEING_REJECTED,
-    },
-})(ReportTransaction);
+export default compose(
+    withLocalize,
+    withOnyx({
+        transactionsBeingRejected: {
+            key: ONYXKEYS.TRANSACTIONS_BEING_REJECTED,
+        },
+    }),
+)(ReportTransaction);
