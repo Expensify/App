@@ -34,6 +34,15 @@ const propTypes = {
     /** Text label for the reject transaction button */
     rejectButtonLabelText: PropTypes.string.isRequired,
 
+    /** Manager name */
+    managerName: PropTypes.string.isRequired,
+
+    /** Owner name */
+    ownerName: PropTypes.string.isRequired,
+
+    /** Current user email */
+    sessionEmail: PropTypes.string.isRequired,
+
     /* Onyx Props */
 
     /** List of transactionIDs in process of rejection */
@@ -82,17 +91,18 @@ class ReportTransaction extends Component {
 
     render() {
         const {
+            sessionEmail, action, managerName, ownerName,
+        } = this.props;
+        const {
             type: messageType, amount, currency, comment,
-        } = this.props.action.originalMessage;
-        console.log('MEssage Type', messageType, amount, currency);
-
+        } = action.originalMessage;
         const messageText = this.props.translate(`iou.transactions.${messageType}`, {
             comment,
             amount: this.props.numberFormat(
                 Math.abs(amount) / 100,
                 {style: 'currency', currency},
             ),
-            participant: 'MJ',
+            participant: sessionEmail === action.actorEmail ? managerName : ownerName,
         });
 
         return (
