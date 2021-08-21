@@ -50,7 +50,7 @@ const IOUQuote = ({
     } = action.originalMessage;
     const messageText = translate(`iou.transactions.${messageType}`, {
         comment,
-        amount: typeof amount === 'number' ? numberFormat(
+        amount: !_.isNaN(Number(amount)) ? numberFormat(
             Math.abs(amount) / 100,
             {style: 'currency', currency},
         ) : '',

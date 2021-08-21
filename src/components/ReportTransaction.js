@@ -98,7 +98,7 @@ class ReportTransaction extends Component {
         } = action.originalMessage;
         const messageText = this.props.translate(`iou.transactions.${messageType}`, {
             comment,
-            amount: typeof amount === 'number' ? this.props.numberFormat(
+            amount: !_.isNaN(Number(amount)) ? this.props.numberFormat(
                 Math.abs(amount) / 100,
                 {style: 'currency', currency},
             ) : '',
