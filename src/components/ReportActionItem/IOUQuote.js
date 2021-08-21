@@ -65,8 +65,6 @@ const IOUQuote = ({
                     <View style={[styles.blockquote]}>
                         <Text style={[styles.chatItemMessage]}>
                             {messageText}
-                            {'\n'}
-                            {fragment.text}
                         </Text>
                         {shouldShowViewDetailsLink && (
                             <Text

@@ -114,8 +114,6 @@ class ReportTransaction extends Component {
                 >
                     <Text style={[styles.chatItemMessage]}>
                         {messageText}
-                        {'\n'}
-                        {this.props.action.message[0].text}
                     </Text>
                 </ReportActionItemSingle>
                 {this.props.canBeRejected && (
