@@ -20,6 +20,7 @@ import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import Text from '../Text';
+import withLocalize from '../withLocalize';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -132,7 +133,7 @@ function EditedRenderer(props) {
         >
             {/* Native devices do not support margin between nested text */}
             <Text style={styles.w1}>{' '}</Text>
-            (edited)
+            {props.translate('reportActionCompose.edited')}
         </Text>
     );
 }
@@ -207,7 +208,7 @@ const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
-    edited: EditedRenderer,
+    edited: withLocalize(EditedRenderer),
 };
 
 const renderersProps = {
@@ -229,6 +230,7 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 const BaseHTMLEngineProvider = ({children, textSelectable}) => {
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: textSelectable}), [textSelectable]);
+
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
