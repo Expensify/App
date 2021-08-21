@@ -14,6 +14,7 @@ import {
     Plus,
 } from '../../../components/Icon/Expensicons';
 import getBankIcon from '../../../components/Icon/BankIcons';
+import variables from '../../../styles/variables';
 
 const MENU_ITEM = 'menuItem';
 
@@ -94,6 +95,7 @@ class PaymentMethodList extends Component {
                     // eslint-disable-next-line
                     description: formattedBankAccountNumber,
                     icon: getBankIcon(bankAccount.additionalData.bankName),
+                    iconSize: variables.iconSizeExtraLarge,
                     onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
                 });
@@ -113,6 +115,7 @@ class PaymentMethodList extends Component {
                     // eslint-disable-next-line
                     description: formattedCardNumber,
                     icon: getBankIcon(card.bank),
+                    iconSize: variables.iconSizeExtraLarge,
                     onPress: e => this.props.onPress(e, card.cardID),
                     key: `card-${card.cardID}`,
                 });
@@ -167,6 +170,8 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
+                    iconHeight={item.iconSize}
+                    iconWidth={item.iconSize}
                 />
             );
         }
