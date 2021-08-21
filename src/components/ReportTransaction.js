@@ -93,9 +93,8 @@ class ReportTransaction extends Component {
         const {
             sessionEmail, action, currentUserName, participantName,
         } = this.props;
-        console.log('Message', action);
         const {
-            type: messageType, amount, currency, comment,
+            type: messageType, amount, currency, comment, paymentType,
         } = action.originalMessage;
         const messageText = this.props.translate(`iou.transactions.${messageType}`, {
             comment,
@@ -104,6 +103,7 @@ class ReportTransaction extends Component {
                 {style: 'currency', currency},
             ) : '',
             participant: sessionEmail === action.actorEmail ? participantName : currentUserName,
+            paymentType,
         });
 
         return (
