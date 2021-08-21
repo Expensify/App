@@ -17,6 +17,16 @@ const propTypes = {
     /** Callback invoked when View Details is pressed */
     onViewDetailsPressed: PropTypes.func,
 
+    /** Current logged in User's name */
+    currentUserName: PropTypes.string.isRequired,
+
+    /** Participants' name */
+    participantName: PropTypes.string.isRequired,
+
+    /** Current user email */
+    sessionEmail: PropTypes.string.isRequired,
+
+
     ...withLocalizePropTypes,
 };
 
@@ -30,27 +40,48 @@ const IOUQuote = ({
     shouldShowViewDetailsLink,
     onViewDetailsPressed,
     translate,
-}) => (
-    <View style={[styles.chatItemMessage]}>
-        {_.map(action.message, (fragment, index) => (
-            <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
-                <View style={[styles.blockquote]}>
-                    <Text style={[styles.chatItemMessage]}>
-                        {fragment.text}
-                    </Text>
-                    {shouldShowViewDetailsLink && (
-                        <Text
-                            style={[styles.chatItemMessageLink]}
-                            onPress={onViewDetailsPressed}
-                        >
-                            {translate('iou.viewDetails')}
+    numberFormat,
+    currentUserName,
+    participantName,
+    sessionEmail,
+}) => {
+    const {
+        type: messageType, amount, currency, comment, paymentType,
+    } = action.originalMessage;
+    const messageText = translate(`iou.transactions.${messageType}`, {
+        comment,
+        amount: typeof amount === 'number' ? numberFormat(
+            Math.abs(amount) / 100,
+            {style: 'currency', currency},
+        ) : '',
+        participant: sessionEmail === action.actorEmail ? participantName : currentUserName,
+        paymentType,
+    });
+
+    return (
+        <View style={[styles.chatItemMessage]}>
+            {_.map(action.message, (fragment, index) => (
+                <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
+                    <View style={[styles.blockquote]}>
+                        <Text style={[styles.chatItemMessage]}>
+                            {messageText}
+                            {'\n'}
+                            {fragment.text}
                         </Text>
-                    )}
+                        {shouldShowViewDetailsLink && (
+                            <Text
+                                style={[styles.chatItemMessageLink]}
+                                onPress={onViewDetailsPressed}
+                            >
+                                {translate('iou.viewDetails')}
+                            </Text>
+                        )}
+                    </View>
                 </View>
-            </View>
-        ))}
-    </View>
-);
+            ))}
+        </View>
+    );
+};
 
 IOUQuote.propTypes = propTypes;
 IOUQuote.defaultProps = defaultProps;
