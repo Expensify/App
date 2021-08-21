@@ -17,6 +17,7 @@ import KeyboardSpacer from '../../components/KeyboardSpacer';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import ReportActionPropTypes from './report/ReportActionPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -35,6 +36,24 @@ const propTypes = {
     session: PropTypes.shape({
         shouldShowComposeInput: PropTypes.bool,
     }),
+
+    /** The report currently being looked at */
+    report: PropTypes.shape({
+        /** Number of actions unread */
+        unreadActionCount: PropTypes.number,
+
+        /** The largest sequenceNumber on this report */
+        maxSequenceNumber: PropTypes.number,
+
+        /** The current position of the new marker */
+        newMarkerSequenceNumber: PropTypes.number,
+
+        /** Whether there is an outstanding amount in IOU */
+        hasOutstandingIOU: PropTypes.bool,
+    }),
+
+    /** Array of report actions for this report */
+    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
 const defaultProps = {
@@ -42,7 +61,26 @@ const defaultProps = {
     session: {
         shouldShowComposeInput: true,
     },
+    reportActions: {},
+    report: {
+        unreadActionCount: 0,
+        maxSequenceNumber: 0,
+        hasOutstandingIOU: false,
+    },
 };
+
+/**
+ * Get the currently viewed report ID as number
+ *
+ * @param {Object} route
+ * @param {Object} route.params
+ * @param {String} route.params.reportID
+ * @returns {Number}
+ */
+function getReportID(route) {
+    const params = route.params;
+    return Number.parseInt(params.reportID, 10);
+}
 
 class ReportScreen extends React.Component {
     constructor(props) {
@@ -76,17 +114,7 @@ class ReportScreen extends React.Component {
      * @param {String} text
      */
     onSubmitComment(text) {
-        addAction(this.getReportID(), text);
-    }
-
-    /**
-     * Get the currently viewed report ID as number
-     *
-     * @returns {Number}
-     */
-    getReportID() {
-        const params = this.props.route.params;
-        return Number.parseInt(params.reportID, 10);
+        addAction(getReportID(this.props.route), text);
     }
 
     /**
@@ -95,7 +123,7 @@ class ReportScreen extends React.Component {
      * @returns {Boolean}
      */
     shouldShowLoader() {
-        return this.state.isLoading || !this.getReportID();
+        return this.state.isLoading || !getReportID(this.props.route);
     }
 
     /**
@@ -111,7 +139,7 @@ class ReportScreen extends React.Component {
      * Persists the currently viewed report id
      */
     storeCurrentlyViewedReport() {
-        const reportID = this.getReportID();
+        const reportID = getReportID(this.props.route);
         if (_.isNaN(reportID)) {
             handleInaccessibleReport();
             return;
@@ -124,7 +152,7 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        const reportID = this.getReportID();
+        const reportID = getReportID(this.props.route);
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
@@ -137,12 +165,21 @@ class ReportScreen extends React.Component {
                     style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                 >
                     <FullScreenLoadingIndicator visible={this.shouldShowLoader()} />
-                    {!this.shouldShowLoader() && <ReportActionsView reportID={reportID} />}
+                    {!this.shouldShowLoader() && (
+                        <ReportActionsView
+                            reportID={reportID}
+                            reportActions={this.props.reportActions}
+                            report={this.props.report}
+                            session={this.props.session}
+                        />
+                    )}
                     {this.props.session.shouldShowComposeInput && (
                         <SwipeableView onSwipeDown={() => Keyboard.dismiss()}>
                             <ReportActionCompose
                                 onSubmit={this.onSubmitComment}
                                 reportID={reportID}
+                                reportActions={this.props.reportActions}
+                                report={this.props.report}
                             />
                         </SwipeableView>
                     )}
@@ -162,5 +199,12 @@ export default withOnyx({
     },
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    reportActions: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getReportID(route)}`,
+        canEvict: false,
+    },
+    report: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
     },
 })(ReportScreen);

@@ -56,6 +56,7 @@ import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** Beta features list */
@@ -186,6 +187,12 @@ class ReportActionCompose extends React.Component {
         if (this.shouldFocusInputOnScreenFocus && this.props.isFocused
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
+        }
+
+        // If we switch from a sidebar, the component does not mount again
+        // so we need to update the comment manually.
+        if (prevProps.comment !== this.props.comment) {
+            this.textInput.setNativeProps({text: this.props.comment});
         }
     }
 
@@ -673,6 +680,8 @@ export default compose(
     withDrawerState,
     withNavigationFocus,
     withLocalize,
+    withPersonalDetails(),
+    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
@@ -683,21 +692,8 @@ export default compose(
         modal: {
             key: ONYXKEYS.MODAL,
         },
-        network: {
-            key: ONYXKEYS.NETWORK,
-        },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            canEvict: false,
-        },
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,

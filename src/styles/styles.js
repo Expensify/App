@@ -85,6 +85,12 @@ const styles = {
         lineHeight: 18,
     },
 
+    mutedTextLabel: {
+        color: themeColors.textSupporting,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
+
     textMicro: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,

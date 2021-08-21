@@ -60,4 +60,5 @@ export default {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
     },
+    CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', false),
 };
