@@ -28,6 +28,37 @@ const propTypes = {
     /** Does the associaed have an outstanding IOU? */
     hasOutstandingIOU: PropTypes.bool,
 
+    /** IOU Report data object */
+    iouReport: PropTypes.shape({
+        /** The report ID of the IOU */
+        reportID: PropTypes.number,
+
+        /** The report ID of the chat associated with the IOU */
+        chatReportID: PropTypes.number,
+
+        /** The total amount in cents */
+        total: PropTypes.number,
+
+        /** The owner of the IOUReport */
+        ownerEmail: PropTypes.string,
+
+        /** The currency of the IOUReport */
+        currency: PropTypes.string,
+    }).isRequired,
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(PropTypes.shape({
+
+        /** This is either the user's full name, or their login if full name is an empty string */
+        displayName: PropTypes.string.isRequired,
+    })).isRequired,
+
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
