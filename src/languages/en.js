@@ -179,10 +179,10 @@ export default {
             other: 'Unexpected error, please try again later',
         },
         transactions: {
-            cancel: ({amount, comment}) => `Cancelled the ${amount} request ${comment ? ` for ${comment}` : ''}`,
-            create: ({amount, participant, comment}) => `Requested ${amount} from ${participant} ${comment ? ` for ${comment}` : ''}`,
-            decline: ({amount}) => `Declined the ${amount} request`,
-            split: ({amount, participant, comment}) => `Split ${amount} with ${participant} ${comment ? ` for ${comment}` : ''}`,
+            cancel: ({amount, comment}) => `Cancelled the ${amount} request${comment ? ` for ${comment}` : ''}.`,
+            create: ({amount, participant, comment}) => `Requested ${amount} from ${participant}${comment ? ` for ${comment}` : ''}.`,
+            decline: ({amount}) => `Declined the ${amount} request.`,
+            split: ({amount, participant, comment}) => `Split ${amount} with ${participant}${comment ? ` for ${comment}` : ''}.`,
         },
     },
     reportDetailsPage: {

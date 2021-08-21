@@ -179,10 +179,10 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
         transactions: {
-            cancel: ({amount, comment}) => `Cancelado el pedido de ${amount} ${comment ? ` por ${comment}` : ''}`,
-            create: ({amount, participant, comment}) => `Solicitado ${amount} de ${participant} ${comment ? ` por ${comment}` : ''}`,
+            cancel: ({amount, comment}) => `Cancelado el pedido de ${amount}${comment ? ` por ${comment}` : ''}.`,
+            create: ({amount, participant, comment}) => `Solicitado ${amount} de ${participant}${comment ? ` por ${comment}` : ''}.`,
             decline: ({amount}) => `Rechazó la solicitud de ${amount}`,
-            split: ({amount, participant, comment}) => `Dividir ${amount} con ${participant} ${comment ? ` por ${comment}` : ''}`,
+            split: ({amount, participant, comment}) => `Dividir ${amount} con ${participant}${comment ? ` por ${comment}` : ''}.`,
         },
     },
     reportDetailsPage: {
