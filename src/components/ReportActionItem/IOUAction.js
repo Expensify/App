@@ -1,6 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import IOUQuote from './IOUQuote';
 import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
@@ -24,6 +27,18 @@ const propTypes = {
         /** The participants of this report */
         participants: PropTypes.arrayOf(PropTypes.string),
     }),
+
+    /** Session of currently logged in user */
+    session: PropTypes.shape({
+        email: PropTypes.string.isRequired,
+    }).isRequired,
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(PropTypes.shape({
+
+        /** This is either the user's full name, or their login if full name is an empty string */
+        displayName: PropTypes.string.isRequired,
+    })).isRequired,
 };
 
 const defaultProps = {
@@ -36,16 +51,31 @@ const IOUAction = ({
     action,
     chatReportID,
     isMostRecentIOUReportAction,
+    chatReport,
+    session,
+    personalDetails,
 }) => {
     const launchDetailsModal = () => {
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
+
+    const sessionEmail = lodashGet(session, 'email', null);
+    const participantName = _.map(chatReport.participants, participant => lodashGet(personalDetails, [participant, 'firstName'], '')
+            || Str.removeSMSDomain(participant)).join(', ');
+
+    const currentUserName = lodashGet(personalDetails, [sessionEmail, 'firstName'], '')
+                        || Str.removeSMSDomain(sessionEmail);
+
     return (
         <>
             <IOUQuote
                 action={action}
                 shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
+                chatReport={chatReport}
+                currentUserName={currentUserName}
+                participantName={participantName}
+                sessionEmail={sessionEmail}
             />
             {((isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID))
                 || (action.originalMessage.type === 'pay')) && (
@@ -67,5 +97,11 @@ IOUAction.displayName = 'IOUAction';
 export default withOnyx({
     chatReport: {
         key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+    },
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    personalDetails: {
+        key: ONYXKEYS.PERSONAL_DETAILS,
     },
 })(IOUAction);
