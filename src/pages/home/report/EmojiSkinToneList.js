@@ -73,7 +73,7 @@ class EmojiSkinToneList extends Component {
                             ]}
                         >
                             <Text style={[styles.emojiText, this.props.emojiSize]}>
-                                {`${selectedEmoji.code}\uFE0F`}
+                                {selectedEmoji.code}
                             </Text>
                             <Text style={[styles.emojiHeaderStyle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
@@ -92,7 +92,7 @@ class EmojiSkinToneList extends Component {
                                             onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
                                             key={skinToneEmoji.code}
                                             emojiItemStyle={[styles.emojiSkinToneItem, styles.emojiSkinToneItem]}
-                                            emoji={`${skinToneEmoji.code}\uFE0F`}
+                                            emoji={skinToneEmoji.code}
                                             isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
                                             emojiSize={this.props.emojiSize}
                                         />
