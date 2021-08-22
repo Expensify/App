@@ -309,8 +309,6 @@ class EmojiPickerMenu extends Component {
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
-     * We add '\uFE0F' to our unicode to force the correct emoji presentation (VS16)
-     * on emojis that also have a text style presentation (VS15).
      *
      * @param {Object} item
      * @param {Number} index
