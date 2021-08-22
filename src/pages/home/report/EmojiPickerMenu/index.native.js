@@ -70,14 +70,14 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
-                    {`${item.code}\uFE0F`}
+                    {item.code}
                 </Text>
             );
         }
 
         const emojiCode = types && types[this.props.preferredSkinTone]
             ? types[this.props.preferredSkinTone]
-            : `${code}\uFE0F`;
+            : code;
 
 
         return (
