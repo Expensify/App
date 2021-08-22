@@ -3,10 +3,9 @@ import {TextInput, View} from 'react-native';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import validateLinkPropTypes from './validateLinkPropTypes';
-import {continueSessionFromECom, setRedirectToWorkspaceNewAfterSignIn} from '../libs/actions/Session';
+import {continueSessionFromECom} from '../libs/actions/Session';
 import styles from '../styles/styles';
 import ExpensifyCashLogo from '../components/ExpensifyCashLogo';
 import variables from '../styles/variables';
@@ -17,7 +16,11 @@ import Text from '../components/Text';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
-import {create} from '../libs/actions/Policy';
+import ROUTES from '../ROUTES';
+import SCREENS from '../SCREENS';
+import * as Policy from '../libs/actions/Policy';
+import Permissions from '../libs/Permissions';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /* Onyx Props */
@@ -28,7 +31,7 @@ const propTypes = {
         authToken: PropTypes.string,
     }),
 
-    /** The accountID and validateCode are passed via the URL */
+    /** The route name, accountID, and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
     /** List of betas */
@@ -44,7 +47,7 @@ const defaultProps = {
     session: {},
     betas: [],
 };
-class ValidateLogin2FANewWorkspacePage extends Component {
+class LoginWithValidateCode2FAPage extends Component {
     constructor(props) {
         super(props);
 
@@ -58,21 +61,44 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     }
 
     componentDidMount() {
-        // If the user has an active session already, they need to be redirected straight to the new workspace page
+        // If the user has an active session already, they need to be redirected straight to the relevant page
         if (this.props.session.authToken) {
             // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-            // modal you say? I know, it confuses me too. Without dismissing the current modal, if they user cancels
-            // out of the new workspace modal, then they will be routed back to
-            // /v/<accountID>/<validateCode>/new-workspace and we don't want that. We want them to go back to `/` and
-            // by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
+            // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
+            // of the new workspace modal, then they will be routed back to
+            // /v/<accountID>/<validateCode>/workspace/123/card and we don't want that. We want them to go back to `/`
+            // and by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
-
-            if (_.isEmpty(this.props.betas)) {
-                setRedirectToWorkspaceNewAfterSignIn(true);
-            } else {
-                create();
+            if (Permissions.canUseFreePlan(this.props.betas)) {
+                this.rerouteToRelevantPage();
             }
+        }
+    }
+
+    componentDidUpdate() {
+        // Betas can be loaded a little after a user is authenticated, so check again if the betas have been updated
+        if (this.props.session.authToken && Permissions.canUseFreePlan(this.props.betas)) {
+            this.rerouteToRelevantPage();
+        }
+    }
+
+    rerouteToRelevantPage() {
+        // Since all 2FA validate code login routes lead to this component, redirect to the appropriate page based on
+        // the original route.
+        switch (this.props.route.name) {
+            case SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD:
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(this.props.route.params.policyID));
+                break;
+
+            case SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE:
+                // Creating a policy will reroute the user to the settings page afterwards
+                Policy.create();
+                break;
+
+            default:
+                Navigation.navigate(ROUTES.HOME);
+                break;
         }
     }
 
@@ -93,18 +119,17 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     }
 
     render() {
-        // If the user is already logged in, don't need to display anything because they will get redirected to the
-        // new workspace page in componentDidMount
+        // Show a loader so that the user isn't immediately kicked to the home page before rerouteToRelevantPage runs
         if (this.props.session.authToken) {
-            return null;
+            return <FullScreenLoadingIndicator />;
         }
 
         return (
-            <View style={[styles.signInPageInnerNative]}>
+            <View style={[styles.signInPageInnerNative, styles.alignItemsCenter, styles.mt6]}>
                 <View style={[styles.componentHeightLarge]}>
                     <ExpensifyCashLogo width={variables.componentSizeLarge} height={variables.componentSizeLarge} />
                 </View>
-                <View style={[styles.mb6, styles.alignItemsCenter]}>
+                <View style={[styles.mb6]}>
                     <Text style={[styles.h1]}>
                         {this.props.translate('signInPage.expensifyDotCash')}
                     </Text>
@@ -145,8 +170,8 @@ class ValidateLogin2FANewWorkspacePage extends Component {
     }
 }
 
-ValidateLogin2FANewWorkspacePage.propTypes = propTypes;
-ValidateLogin2FANewWorkspacePage.defaultProps = defaultProps;
+LoginWithValidateCode2FAPage.propTypes = propTypes;
+LoginWithValidateCode2FAPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -158,4 +183,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(ValidateLogin2FANewWorkspacePage);
+)(LoginWithValidateCode2FAPage);

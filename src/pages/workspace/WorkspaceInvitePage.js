@@ -55,7 +55,9 @@ class WorkspaceInvitePage extends React.Component {
             welcomeNote: this.getWelcomeNotePlaceholder(),
         };
 
+        this.focusEmailOrPhoneInput = this.focusEmailOrPhoneInput.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
+        this.emailOrPhoneInputRef = null;
     }
 
     /**
@@ -67,6 +69,13 @@ class WorkspaceInvitePage extends React.Component {
         return this.props.translate('workspace.invite.welcomeNote', {
             workspaceName: this.props.policy.name,
         });
+    }
+
+    focusEmailOrPhoneInput() {
+        if (!this.emailOrPhoneInputRef) {
+            return;
+        }
+        this.emailOrPhoneInputRef.focus();
     }
 
     /**
@@ -93,7 +102,7 @@ class WorkspaceInvitePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={this.focusEmailOrPhoneInput}>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.invite.invitePeople')}
@@ -105,6 +114,7 @@ class WorkspaceInvitePage extends React.Component {
                         </Text>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
+                                ref={el => this.emailOrPhoneInputRef = el}
                                 label={this.props.translate('workspace.invite.enterEmailOrPhone')}
                                 autoCompleteType="email"
                                 autoCorrect={false}
