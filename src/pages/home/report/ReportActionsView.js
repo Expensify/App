@@ -206,13 +206,13 @@ class ReportActionsView extends React.Component {
             }
 
             if (lastAction && (lastAction.actorEmail !== this.props.session.email)) {
-                // Only update the UnreadCount when Marker is visible
-                // Otheriwise marker will be shown when scroll up from the bottom even if we read those messages
+                // Only update the unread count when MarkerBadge is visible
+                // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
                 if (this.state.isMarkerActive) {
                     this.updateUnreadMessageCount();
                 }
 
-                // show new MarkerBadge when there is a new Message
+                // show new MarkerBadge when there is a new message
                 this.toggleMarker();
             }
         }
@@ -376,7 +376,7 @@ class ReportActionsView extends React.Component {
      * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
      */
     toggleMarker() {
-        // Update the unread message count while the
+        // Update the unread message count before MarkerBadge is about to show
         if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
             this.updateUnreadMessageCount();
             this.showMarker();
