@@ -175,7 +175,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
