@@ -330,12 +330,6 @@ jobs:
         with:
           node-version: '14.x'
 
-      - name: Determine if this was a cherry-pick
-        id: isStagingDeployLocked
-        uses: Expensify/App/.github/actions/isStagingDeployLocked@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Set version
         run: echo "VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
 
@@ -358,3 +352,36 @@ jobs:
           DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iOS.result }}
           WEB: ${{ needs.web.result }}
+
+      - name: 'Announces the deploy in the #announce Slack room'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: 'good',
+                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' ? 'production' : 'staging' }}.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+      
+      - name: 'Announces a production deploy in the #expensify-open-source Slack room'
+        uses: 8398a7/action-slack@v3
+        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#expensify-open-source',
+              attachments: [{
+                color: 'good',
+                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production.`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
