@@ -71,6 +71,7 @@ const WorkspaceCardPage = ({
     user,
     translate,
     isSmallScreenWidth,
+    isMediumScreenWidth,
     reimbursementAccount,
 }) => {
     const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.VERIFYING;
@@ -120,12 +121,17 @@ const WorkspaceCardPage = ({
                         styles.flexRow,
                         styles.workspaceCard,
                         isSmallScreenWidth && styles.workspaceCardMobile,
+                        isMediumScreenWidth && styles.workspaceCardTablet,
                     ]}
                     >
-                        {isSmallScreenWidth
+                        {isSmallScreenWidth || isMediumScreenWidth
                             ? (
                                 <HeroCardMobileImage
-                                    style={StyleSheet.flatten([styles.fullscreenCard, styles.fullscreenCardMobile])}
+                                    style={StyleSheet.flatten([
+                                        styles.fullscreenCard,
+                                        isSmallScreenWidth && styles.fullscreenCardMobile,
+                                        isMediumScreenWidth && styles.fullscreenCardTablet,
+                                    ])}
                                 />
                             )
                             : (
@@ -138,6 +144,7 @@ const WorkspaceCardPage = ({
                             styles.fullscreenCard,
                             styles.workspaceCardContent,
                             isSmallScreenWidth && styles.p5,
+                            isMediumScreenWidth && styles.workspaceCardContentTablet,
                         ]}
                         >
                             <View
@@ -146,6 +153,7 @@ const WorkspaceCardPage = ({
                                     styles.justifyContentEnd,
                                     styles.alignItemsStart,
                                     !isSmallScreenWidth && styles.w50,
+                                    isMediumScreenWidth && styles.w100,
                                 ]}
                             >
                                 <Text
