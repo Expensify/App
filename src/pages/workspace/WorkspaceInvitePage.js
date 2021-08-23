@@ -124,6 +124,7 @@ class WorkspaceInvitePage extends React.Component {
                             <ExpensiTextInput
                                 ref={el => this.emailOrPhoneInputRef = el}
                                 label={this.props.translate('workspace.invite.enterEmailOrPhone')}
+                                placeholder={this.props.translate('workspace.invite.EmailOrPhonePlaceholder')}
                                 autoCompleteType="email"
                                 autoCorrect={false}
                                 autoCapitalize="none"

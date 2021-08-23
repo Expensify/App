@@ -588,9 +588,10 @@ export default {
         },
         invite: {
             invitePeople: 'Invite People',
-            invitePeoplePrompt: 'Invite a colleague to your workspace.',
+            invitePeoplePrompt: 'Invite colleagues to your workspace.',
             personalMessagePrompt: 'Add a Personal Message (Optional)',
-            enterEmailOrPhone: 'Email or Phone',
+            enterEmailOrPhone: 'Emails or Phones',
+            EmailOrPhonePlaceholder: 'Enter comma-separated emails or phones',
             pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
             pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
