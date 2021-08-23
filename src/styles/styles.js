@@ -717,6 +717,12 @@ const styles = {
         maxWidth: 400,
     },
 
+    changeExpensifyLoginLinkContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        ...wordBreak.breakWord,
+    },
+
     loginTermsText: {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
