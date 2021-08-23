@@ -517,6 +517,9 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '10 dígitos, sin guiones',
+        confirmModalTitle: '¿Estás seguro?',
+        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
+        confirmModalConfirmText: 'OK',
     },
     requestorStep: {
         headerTitle: 'Información del solicitante',
