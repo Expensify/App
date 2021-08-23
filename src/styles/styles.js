@@ -183,7 +183,7 @@ const styles = {
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
