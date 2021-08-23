@@ -316,7 +316,9 @@ class ReportActionCompose extends React.Component {
         });
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
-        this.debouncedBroadcastUserIsTyping();
+        if (newComment) {
+            this.debouncedBroadcastUserIsTyping();
+        }
     }
 
     /**
