@@ -36,7 +36,7 @@ import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
-import {markEnd, markStart, withRenderTrace} from '../../../libs/Performance';
+import {markEnd, withRenderTrace} from '../../../libs/Performance';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -87,7 +87,6 @@ class ReportActionsView extends React.Component {
     constructor(props) {
         super(props);
 
-        markStart('ReportActionsView Mounting');
         this.renderItem = this.renderItem.bind(this);
         this.renderCell = this.renderCell.bind(this);
         this.scrollToListBottom = this.scrollToListBottom.bind(this);
@@ -139,8 +138,6 @@ class ReportActionsView extends React.Component {
         setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
 
         fetchActions(this.props.reportID);
-
-        markEnd('ReportActionsView Mounting');
     }
 
     shouldComponentUpdate(nextProps, nextState) {
