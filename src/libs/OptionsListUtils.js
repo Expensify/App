@@ -280,7 +280,7 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 /**
  * Returns the given userDetails is currentUser or not.
  * @param {Object} userDetails
- * @returns {Bool}
+ * @returns {Boolean}
  */
 
 function isCurrentUser(userDetails) {
@@ -309,8 +309,8 @@ function isCurrentUser(userDetails) {
 
 /**
  * Returns whether the given userDetails is excluded from IOU request
- * @param {Objecy} userDetails
- *  @returns {Bool}
+ * @param {Object} userDetails
+ *  @returns {Boolean}
  */
 function isExcludedIOUUsers(userDetails) {
     if (isCurrentUser(userDetails)) {
@@ -320,7 +320,7 @@ function isExcludedIOUUsers(userDetails) {
 
     if (userDetails && userDetails.login) {
         const login = userDetails.login.toLowerCase();
-        return login === CONST.EMAIL.CHRONOS || login === CONST.EMAIL.CONCIERGE || login === CONST.EMAIL.RECEIPTS;
+        return _.contains(CONST.EXPENSIFY_EMAILS, login);
     }
 
     return false;

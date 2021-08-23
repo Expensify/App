@@ -263,6 +263,14 @@ const CONST = {
         RECEIPTS: 'receipts@expensify.com',
     },
 
+    get EXPENSIFY_EMAILS() {
+        return [
+            this.EMAIL.CHRONOS,
+            this.EMAIL.CONCIERGE,
+            this.EMAIL.RECEIPTS,
+        ];
+    },
+
     ENVIRONMENT: {
         DEV: 'DEV',
         STAGING: 'STG',
