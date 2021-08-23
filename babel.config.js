@@ -36,8 +36,11 @@ const metro = {
     ],
 };
 
-/* When CAPTURE_METRICS is set we add these aliases to also capture
- * React.Profiler metrics for release builds */
+/*
+ * We use Flipper, <React.Profiler> and react-native-performance to capture/monitor stats
+ * By default <React.Profiler> is disabled in production as it adds small overhead
+ * When CAPTURE_METRICS is set we're explicitly saying that we want to capture metrics
+ * To enable the <Profiler> for release builds we add these aliases */
 if (process.env.CAPTURE_METRICS) {
     const path = require('path');
     const profilingRenderer = path.resolve(
