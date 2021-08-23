@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
+import Text from '../Text';
 import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
@@ -112,6 +113,7 @@ class BaseExpensiTextInput extends Component {
             label,
             value,
             placeholder,
+            errorText,
             hasError,
             containerStyles,
             inputStyle,
@@ -123,46 +125,51 @@ class BaseExpensiTextInput extends Component {
 
         const hasLabel = Boolean(label.length);
         return (
-            <View style={[styles.componentHeightLarge, ...containerStyles]}>
-                <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
-                    <View
-                        style={[
-                            styles.expensiTextInputContainer,
-                            !hasLabel && styles.pv0,
-                            this.state.isFocused && styles.borderColorFocus,
-                            hasError && styles.borderColorDanger,
-                        ]}
-                    >
-                        {hasLabel ? (
-                            <ExpensiTextInputLabel
-                                label={label}
-                                labelTranslateX={
-                                    ignoreLabelTranslateX
-                                        ? new Animated.Value(0)
-                                        : this.state.labelTranslateX
-                                }
-                                labelTranslateY={this.state.labelTranslateY}
-                                labelScale={this.state.labelScale}
+            <View>
+                <View style={[styles.componentHeightLarge, ...containerStyles]}>
+                    <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
+                        <View
+                            style={[
+                                styles.expensiTextInputContainer,
+                                !hasLabel && styles.pv0,
+                                this.state.isFocused && styles.borderColorFocus,
+                                (hasError || errorText) && styles.borderColorDanger,
+                            ]}
+                        >
+                            {hasLabel ? (
+                                <ExpensiTextInputLabel
+                                    label={label}
+                                    labelTranslateX={
+                                        ignoreLabelTranslateX
+                                            ? new Animated.Value(0)
+                                            : this.state.labelTranslateX
+                                    }
+                                    labelTranslateY={this.state.labelTranslateY}
+                                    labelScale={this.state.labelScale}
+                                />
+                            ) : null}
+                            <TextInput
+                                ref={(ref) => {
+                                    if (typeof innerRef === 'function') { innerRef(ref); }
+                                    this.input = ref;
+                                }}
+                                // eslint-disable-next-line
+                                {...inputProps}
+                                value={value}
+                                placeholder={(this.state.isFocused || !label) ? placeholder : null}
+                                placeholderTextColor={themeColors.placeholderText}
+                                underlineColorAndroid="transparent"
+                                style={[...inputStyle, errorText ? styles.errorOutline : undefined]}
+                                onFocus={this.onFocus}
+                                onBlur={this.onBlur}
+                                onChangeText={this.setValue}
                             />
-                        ) : null}
-                        <TextInput
-                            ref={(ref) => {
-                                if (typeof innerRef === 'function') { innerRef(ref); }
-                                this.input = ref;
-                            }}
-                            // eslint-disable-next-line
-                            {...inputProps}
-                            value={value}
-                            placeholder={(this.state.isFocused || !label) ? placeholder : null}
-                            placeholderTextColor={themeColors.placeholderText}
-                            underlineColorAndroid="transparent"
-                            style={inputStyle}
-                            onFocus={this.onFocus}
-                            onBlur={this.onBlur}
-                            onChangeText={this.setValue}
-                        />
-                    </View>
-                </TouchableWithoutFeedback>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </View>
+                {Boolean(errorText) && (
+                    <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
+                )}
             </View>
         );
     }
