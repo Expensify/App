@@ -2173,19 +2173,19 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Boolean} isZoomed
  * @param {Number} imgWidth
  * @param {Number} imgHeight
+ * @param {Number} zoomScale
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight) {
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale) {
     if (imgWidth === 0 || imgHeight === 0) {
         return {
             height: isZoomed ? '250%' : '100%',
             width: isZoomed ? '250%' : '100%',
         };
     }
-    const scaleZoom = Math.max(CONST.MIN_ZOOM_SIZE / imgWidth, CONST.MIN_ZOOM_SIZE / imgHeight);
     return {
-        height: isZoomed ? `${(imgHeight * scaleZoom)}px` : '100%',
-        width: isZoomed ? `${(imgWidth * scaleZoom)}px` : '100%',
+        height: isZoomed ? `${(imgHeight * zoomScale)}px` : '100%',
+        width: isZoomed ? `${(imgWidth * zoomScale)}px` : '100%',
     };
 }
 

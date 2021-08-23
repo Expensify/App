@@ -1,6 +1,8 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, Image, Pressable} from 'react-native';
+import {
+    View, Image, Pressable, Dimensions,
+} from 'react-native';
 import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 
@@ -24,6 +26,13 @@ class ImageView extends PureComponent {
             initialY: 0,
             imgWidth: 0,
             imgHeight: 0,
+            screenWidth: 0,
+            screenHeight: 0,
+            zoomScale: 0,
+            rX1: 0,
+            rY1: 0,
+            rX2: 0,
+            rY2: 0,
         };
     }
 
@@ -31,8 +40,12 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return;
         }
+        const windowWidth = Dimensions.get('window').width;
+        const windowHeight = Dimensions.get('window').height;
+        this.setState({screenWidth: windowWidth, screenHeight: windowHeight});
         Image.getSize(this.props.url, (width, height) => {
-            this.setState({imgWidth: width, imgHeight: height});
+            const scale = Math.max(this.state.screenWidth / width, this.state.screenHeight / height);
+            this.setImageRegion(width, height, scale);
         });
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
@@ -43,6 +56,57 @@ class ImageView extends PureComponent {
         }
 
         document.removeEventListener('mousemove', this.trackMovement.bind(this));
+    }
+
+    setImageRegion(width, height, scale) {
+        let x1 = 0;
+        let x2 = 0;
+        let y1 = 0;
+        let y2 = 0;
+        const aspect = width / height;
+        if ((aspect > 1 && this.state.screenWidth / width > 1) || (aspect <= 1 && this.state.screenHeight / height > 1)) {
+            x1 = (this.state.screenWidth - width) / 2;
+            x2 = ((this.state.screenWidth - width) / 2) + width;
+            y1 = (this.state.screenHeight - height) / 2;
+            y2 = ((this.state.screenHeight - height) / 2) + height;
+        } else if (aspect > 1 && this.state.screenWidth / width <= 1) {
+            const rate = this.state.screenWidth / width;
+            x2 = this.state.screenWidth;
+            y1 = (this.state.screenHeight - (rate * height)) / 2;
+            y2 = y1 + (rate * height);
+        } else if (aspect <= 1 && this.state.screenHeight / height <= 1) {
+            const rate = this.state.screenHeight / height;
+            y2 = this.state.screenHeight;
+            x1 = (this.state.screenWidth - (rate * width)) / 2;
+            x2 = x1 + (rate * width);
+        }
+        this.setState({
+            imgWidth: width, imgHeight: height, zoomScale: scale, rX1: x1, rY1: y1, rX2: x2, rY2: y2,
+        });
+    }
+
+    getScrollOffset(x, y) {
+        let ratio = 1;
+        if (this.state.rY1 === 0) {
+            ratio = this.state.screenHeight / this.state.imgHeight;
+        } else if (this.state.rX1 === 0) {
+            ratio = this.state.screenWidth / this.state.imgWidth;
+        }
+        let sx = (x - this.state.rX1) / ratio;
+        let sy = (y - this.state.rY1) / ratio;
+        if (x < this.state.rX1) {
+            sx = 0;
+        }
+        if (x > this.state.rX2) {
+            sx = this.state.imgWidth;
+        }
+        if (y < this.state.rY1) {
+            sy = 0;
+        }
+        if (y > this.state.rY2) {
+            sy = this.state.imgHeight;
+        }
+        return {offsetX: sx, offsetY: sy};
     }
 
     trackMovement(e) {
@@ -109,8 +173,11 @@ class ImageView extends PureComponent {
                     onPress={(e) => {
                         if (this.state.isZoomed && !this.state.isDragging) {
                             const {offsetX, offsetY} = e.nativeEvent;
-                            this.scrollableRef.scrollTop = offsetY * 1.5;
-                            this.scrollableRef.scrollLeft = offsetX * 1.5;
+                            const delta = this.getScrollOffset(offsetX, offsetY);
+                            const sX = delta.offsetX;
+                            const sY = delta.offsetY;
+                            this.scrollableRef.scrollTop = sY * this.state.zoomScale;
+                            this.scrollableRef.scrollLeft = sX * this.state.zoomScale;
                         }
 
                         if (this.state.isZoomed && this.state.isDragging && this.state.isMouseDown) {
@@ -130,7 +197,7 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight)}
+                        style={getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale)}
                         resizeMode="contain"
                     />
                 </Pressable>
