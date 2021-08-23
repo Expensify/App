@@ -20,6 +20,7 @@ import Growl from '../../libs/Growl';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import {isSystemUser} from '../../libs/reportUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -88,6 +89,13 @@ class WorkspaceInvitePage extends React.Component {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
             return;
         }
+
+        const isEnteredLoginSystemLogin = _.some(logins, login => isSystemUser(login));
+        if (isEnteredLoginSystemLogin) {
+            Growl.error(this.props.translate('workspace.invite.systemUserError'), 5000);
+            return;
+        }
+
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         const AreLoginsDuplicate = _.every(logins, login => _.contains(policyEmployeeList, login));
         if (AreLoginsDuplicate) {
