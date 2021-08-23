@@ -6,7 +6,6 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import CONFIG from '../../CONFIG';
-import ROUTES from '../../ROUTES';
 import {printPerformanceMetrics} from '../Performance';
 import canCapturePerformanceMetrics from '../canCapturePerformanceMetrics';
 import Timing from './Timing';
@@ -47,10 +46,11 @@ function setLocale(locale) {
  * we want to visit
  * @param {string} url relative URL starting with `/` to open in expensify.com
  */
-function openSignedInLink(url) {
+function openSignedInLink(url = '') {
     API.GetAccountValidateCode().then((response) => {
-        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM
-            + ROUTES.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
+        const exitToURL = url ? `exitTo=${url}` : '';
+        const validateCodeUrl = `v/${currentUserAccountID}/${response.validateCode}${exitToURL}`;
+        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + validateCodeUrl);
     });
 }
 
