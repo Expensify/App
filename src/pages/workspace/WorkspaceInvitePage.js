@@ -97,8 +97,8 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const AreLoginsDuplicate = _.every(logins, login => _.contains(policyEmployeeList, login));
-        if (AreLoginsDuplicate) {
+        const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, login));
+        if (areLoginsDuplicate) {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterUniqueLogin'), 5000);
             return;
         }
