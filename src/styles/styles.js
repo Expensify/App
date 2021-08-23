@@ -2002,6 +2002,21 @@ const styles = {
         ...visibility('hidden'),
     },
 
+    reportMarkerBadgeWrapperAndroid: {
+        left: 0,
+        width: '100%',
+        alignItems: 'center',
+        position: 'absolute',
+        top: 0,
+        zIndex: 100,
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadgeSubWrapperAndroid: {
+        left: '50%',
+        width: 'auto',
+    },
+
     reportMarkerBadge: {
         left: '-50%',
         ...visibility('visible'),
