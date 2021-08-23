@@ -1202,8 +1202,8 @@ const styles = {
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         textAlign: 'center',
-        ...spacing.pv1,
-        ...spacing.ph2,
+        ...spacing.pv0,
+        ...spacing.ph1,
     },
 
     emojiExtraSmall: {
