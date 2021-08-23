@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /** Container Styles */
+    /** Styles to be assigned to Container */
     containerStyles: PropTypes.arrayOf(PropTypes.object).isRequired,
 
-    /** Children of the MakerBadgeContainer */
+    /** Rendered child component */
     children: PropTypes.element.isRequired,
 };
 
