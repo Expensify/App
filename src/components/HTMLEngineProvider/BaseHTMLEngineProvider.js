@@ -20,7 +20,7 @@ import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import Text from '../Text';
-import withLocalize from '../withLocalize';
+import {translateLocal} from '../../libs/translate';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -133,7 +133,7 @@ function EditedRenderer(props) {
         >
             {/* Native devices do not support margin between nested text */}
             <Text style={styles.w1}>{' '}</Text>
-            {props.translate('reportActionCompose.edited')}
+            {translateLocal('reportActionCompose.edited')}
         </Text>
     );
 }
@@ -208,7 +208,7 @@ const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
-    edited: withLocalize(EditedRenderer),
+    edited: EditedRenderer,
 };
 
 const renderersProps = {
