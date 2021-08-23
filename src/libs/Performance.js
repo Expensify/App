@@ -80,17 +80,22 @@ if (canCapturePerformanceMetrics()) {
         new perfModule.PerformanceObserver((list) => {
             list.getEntriesByType('mark')
                 .forEach((mark) => {
-                    if (mark.name.endsWith('_end')) {
-                        const end = mark.name;
-                        const name = end.replace(/_end$/, '');
-                        const start = `${name}_start`;
-                        performance.measure(name, start, end);
-                    }
+                    try {
+                        if (mark.name.endsWith('_end')) {
+                            const end = mark.name;
+                            const name = end.replace(/_end$/, '');
+                            const start = `${name}_start`;
+                            performance.measure(name, start, end);
+                        }
 
-                    // Capture any custom measures or metrics below
-                    if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                        performance.measure('TTI', 'nativeLaunchStart', mark.name);
-                        printPerformanceMetrics();
+                        // Capture any custom measures or metrics below
+                        if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
+                            performance.measure('TTI', 'nativeLaunchStart', mark.name);
+                            printPerformanceMetrics();
+                        }
+                    } catch (error) {
+                        // Sometimes there might be no start mark recorded and the measure will fail with an error
+                        console.debug(error.message);
                     }
                 });
         }).observe({type: 'mark', buffered: true});
