@@ -21,7 +21,6 @@ import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
-import {markStart} from '../../../libs/Performance';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -172,7 +171,6 @@ class SidebarLinks extends React.Component {
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
-                        markStart(CONST.TIMING.SWITCH_REPORT, option);
                         Navigation.navigate(ROUTES.getReportRoute(option.reportID));
                         this.props.onLinkClick();
                     }}

@@ -86,6 +86,7 @@ class SidebarScreen extends Component {
      */
     startTimer() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
+        markStart(CONST.TIMING.SWITCH_REPORT);
     }
 
     render() {
