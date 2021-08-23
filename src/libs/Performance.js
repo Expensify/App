@@ -3,7 +3,7 @@ import lodashTransform from 'lodash/transform';
 import React, {Profiler, forwardRef} from 'react';
 import {Alert} from 'react-native';
 
-import canCapturePerformanceMetrics from './canCapturePerformanceMetrics';
+import {canCapturePerformanceMetrics} from './canCaptureMetrics';
 import getComponentDisplayName from './getComponentDisplayName';
 import CONST from '../CONST';
 
