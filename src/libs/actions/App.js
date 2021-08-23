@@ -61,7 +61,7 @@ function setSidebarLoaded() {
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
     markEnd(CONST.TIMING.SIDEBAR_LOADED);
-    markStart(CONST.TIMING.SWITCH_REPORT);
+    markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
 
 let appState;
