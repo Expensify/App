@@ -36,7 +36,7 @@ import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
-import {markEnd, withRenderTrace} from '../../../libs/Performance';
+import Performance from '../../../libs/Performance';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -409,10 +409,10 @@ class ReportActionsView extends React.Component {
 
         // Capture the init measurement only once not per each chat switch as the value gets overwritten
         if (!ReportActionsView.initMeasured) {
-            markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
+            Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
             ReportActionsView.initMeasured = true;
         } else {
-            markEnd(CONST.TIMING.SWITCH_REPORT);
+            Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
         }
     }
 
@@ -519,7 +519,7 @@ ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
 export default compose(
-    withRenderTrace({id: '<ReportActionsView> rendering'}),
+    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
     withDrawerState,
     withLocalize,

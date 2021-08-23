@@ -24,7 +24,7 @@ import {
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {create} from '../../../libs/actions/Policy';
-import {markStart} from '../../../libs/Performance';
+import Performance from '../../../libs/Performance';
 
 const propTypes = {
     /** Beta features list */
@@ -50,7 +50,7 @@ class SidebarScreen extends Component {
     }
 
     componentDidMount() {
-        markStart(CONST.TIMING.SIDEBAR_LOADED);
+        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
     }
 
@@ -86,7 +86,7 @@ class SidebarScreen extends Component {
      */
     startTimer() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
-        markStart(CONST.TIMING.SWITCH_REPORT);
+        Performance.markStart(CONST.TIMING.SWITCH_REPORT);
     }
 
     render() {

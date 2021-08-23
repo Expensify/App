@@ -7,7 +7,7 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
-import {markEnd, markStart} from '../Performance';
+import Performance from '../Performance';
 import Timing from './Timing';
 
 let currentUserAccountID;
@@ -60,8 +60,8 @@ function setSidebarLoaded() {
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
-    markEnd(CONST.TIMING.SIDEBAR_LOADED);
-    markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
+    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
+    Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
 
 let appState;

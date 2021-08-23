@@ -8,7 +8,7 @@ import getComponentDisplayName from './getComponentDisplayName';
 import CONST from '../CONST';
 
 /** @type {import('react-native-performance').Performance} */
-let performance;
+let rnPerformance;
 
 /**
  * Deep diff between two objects. Useful for figuring out what changed about an object from one render to the next so
@@ -33,40 +33,41 @@ function diffObject(object, base) {
     return changes(object, base);
 }
 
-// When performance monitoring is disabled the implementations are blank
-/* eslint-disable import/no-mutable-exports */
-let setupPerformanceObserver = () => {};
-let printPerformanceMetrics = () => {};
-let markStart = () => {};
-let markEnd = () => {};
-let traceRender = () => {};
-let withRenderTrace = () => Component => Component;
-/* eslint-enable import/no-mutable-exports */
+const Performance = {
+    // When performance monitoring is disabled the implementations are blank
+    diffObject,
+    setupPerformanceObserver: () => {},
+    printPerformanceMetrics: () => {},
+    markStart: () => {},
+    markEnd: () => {},
+    traceRender: () => {},
+    withRenderTrace: () => Component => Component,
+};
 
 if (canCapturePerformanceMetrics()) {
     /**
      * Sets up an observer to capture events recorded in the native layer before the app fully initializes.
      */
-    setupPerformanceObserver = () => {
+    Performance.setupPerformanceObserver = () => {
         const performanceReported = require('react-native-performance-flipper-reporter');
         performanceReported.setupDefaultFlipperReporter();
 
         const perfModule = require('react-native-performance');
         perfModule.setResourceLoggingEnabled(true);
-        performance = perfModule.default;
+        rnPerformance = perfModule.default;
 
         // Monitor some native marks that we want to put on the timeline
         new perfModule.PerformanceObserver((list, observer) => {
             list.getEntries()
                 .forEach((entry) => {
                     if (entry.name === 'nativeLaunchEnd') {
-                        performance.measure('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
+                        rnPerformance.measure('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
                     }
                     if (entry.name === 'downloadEnd') {
-                        performance.measure('jsBundleDownload', 'downloadStart', 'downloadEnd');
+                        rnPerformance.measure('jsBundleDownload', 'downloadStart', 'downloadEnd');
                     }
                     if (entry.name === 'runJsBundleEnd') {
-                        performance.measure('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
+                        rnPerformance.measure('runJsBundle', 'runJsBundleStart', 'runJsBundleEnd');
                     }
 
                     // We don't need to keep the observer past this point
@@ -85,13 +86,13 @@ if (canCapturePerformanceMetrics()) {
                             const end = mark.name;
                             const name = end.replace(/_end$/, '');
                             const start = `${name}_start`;
-                            performance.measure(name, start, end);
+                            rnPerformance.measure(name, start, end);
                         }
 
                         // Capture any custom measures or metrics below
                         if (mark.name === `${CONST.TIMING.SIDEBAR_LOADED}_end`) {
-                            performance.measure('TTI', 'nativeLaunchStart', mark.name);
-                            printPerformanceMetrics();
+                            rnPerformance.measure('TTI', 'nativeLaunchStart', mark.name);
+                            Performance.printPerformanceMetrics();
                         }
                     } catch (error) {
                         // Sometimes there might be no start mark recorded and the measure will fail with an error
@@ -104,12 +105,12 @@ if (canCapturePerformanceMetrics()) {
     /**
      * Outputs performance stats. We alert these so that they are easy to access in release builds.
      */
-    printPerformanceMetrics = () => {
+    Performance.printPerformanceMetrics = () => {
         const stats = [
-            ...performance.getEntriesByName('nativeLaunch'),
-            ...performance.getEntriesByName('runJsBundle'),
-            ...performance.getEntriesByName('jsBundleDownload'),
-            ...performance.getEntriesByName('TTI'),
+            ...rnPerformance.getEntriesByName('nativeLaunch'),
+            ...rnPerformance.getEntriesByName('runJsBundle'),
+            ...rnPerformance.getEntriesByName('jsBundleDownload'),
+            ...rnPerformance.getEntriesByName('TTI'),
         ]
             .filter(entry => entry.duration > 0)
             .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`);
@@ -123,7 +124,7 @@ if (canCapturePerformanceMetrics()) {
      * @param {Object} [detail]
      * @returns {PerformanceMark}
      */
-    markStart = (name, detail) => performance.mark(`${name}_start`, {detail});
+    Performance.markStart = (name, detail) => rnPerformance.mark(`${name}_start`, {detail});
 
     /**
      * Add an end mark to the performance entries
@@ -132,7 +133,7 @@ if (canCapturePerformanceMetrics()) {
      * @param {Object} [detail]
      * @returns {PerformanceMark}
      */
-    markEnd = (name, detail) => performance.mark(`${name}_end`, {detail});
+    Performance.markEnd = (name, detail) => rnPerformance.mark(`${name}_end`, {detail});
 
     /**
      * Put data emitted by Profiler components on the timeline
@@ -145,7 +146,7 @@ if (canCapturePerformanceMetrics()) {
      * @param {Set} interactions the Set of interactions belonging to this update
      * @returns {PerformanceMeasure}
      */
-    traceRender = (
+    Performance.traceRender = (
         id,
         phase,
         actualDuration,
@@ -153,7 +154,7 @@ if (canCapturePerformanceMetrics()) {
         startTime,
         commitTime,
         interactions,
-    ) => performance.measure(id, {
+    ) => rnPerformance.measure(id, {
         start: startTime,
         duration: actualDuration,
         detail: {
@@ -170,9 +171,9 @@ if (canCapturePerformanceMetrics()) {
      * @param {string} config.id
      * @returns {function(React.Component): React.FunctionComponent}
      */
-    withRenderTrace = ({id}) => (WrappedComponent) => {
+    Performance.withRenderTrace = ({id}) => (WrappedComponent) => {
         const WithRenderTrace = forwardRef((props, ref) => (
-            <Profiler id={id} onRender={traceRender}>
+            <Profiler id={id} onRender={Performance.traceRender}>
                 {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                 <WrappedComponent {...props} ref={ref} />
             </Profiler>
@@ -183,12 +184,4 @@ if (canCapturePerformanceMetrics()) {
     };
 }
 
-export {
-    diffObject,
-    printPerformanceMetrics,
-    setupPerformanceObserver,
-    markStart,
-    markEnd,
-    traceRender,
-    withRenderTrace,
-};
+export default Performance;

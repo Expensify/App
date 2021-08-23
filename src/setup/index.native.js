@@ -1,4 +1,4 @@
-import {setupPerformanceObserver} from '../libs/Performance';
+import Performance from '../libs/Performance';
 
 // Setup Flipper plugins when on dev
 export default function () {
@@ -10,5 +10,5 @@ export default function () {
         RNAsyncStorageFlipper(AsyncStorage);
     }
 
-    setupPerformanceObserver();
+    Performance.setupPerformanceObserver();
 }
