@@ -21,6 +21,7 @@ import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import {isSystemUser} from '../../libs/reportUtils';
+import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -97,7 +98,7 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, login));
+        const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, addSMSDomainIfPhoneNumber(login)));
         if (areLoginsDuplicate) {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterUniqueLogin'), 5000);
             return;
