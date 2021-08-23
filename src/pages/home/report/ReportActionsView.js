@@ -99,7 +99,7 @@ class ReportActionsView extends React.Component {
         this.state = {
             isLoadingMoreChats: false,
             isMarkerActive: false,
-            unreadActionCount: this.props.report.unreadActionCount,
+            localUnreadActionCount: this.props.report.unreadActionCount,
         };
 
         this.currentScrollOffset = 0;
@@ -110,7 +110,7 @@ class ReportActionsView extends React.Component {
         this.showMarker = this.showMarker.bind(this);
         this.hideMarker = this.hideMarker.bind(this);
         this.toggleMarker = this.toggleMarker.bind(this);
-        this.updateUnreadMessageCount = this.updateUnreadMessageCount.bind(this);
+        this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
     }
 
     componentDidMount() {
@@ -163,7 +163,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.unreadActionCount !== this.state.unreadActionCount) {
+        if (nextState.localUnreadActionCount !== this.state.localUnreadActionCount) {
             return true;
         }
 
@@ -205,11 +205,11 @@ class ReportActionsView extends React.Component {
                 updateLastReadActionID(this.props.reportID);
             }
 
-            if (lastAction && (lastAction.actorEmail !== this.props.session.email)) {
+            if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
                 // Only update the unread count when MarkerBadge is visible
                 // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
                 if (this.state.isMarkerActive) {
-                    this.updateUnreadMessageCount();
+                    this.updateLocalUnreadActionCount();
                 }
 
                 // show new MarkerBadge when there is a new message
@@ -378,7 +378,7 @@ class ReportActionsView extends React.Component {
     toggleMarker() {
         // Update the unread message count before MarkerBadge is about to show
         if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
-            this.updateUnreadMessageCount();
+            this.updateLocalUnreadActionCount();
             this.showMarker();
         }
 
@@ -390,8 +390,8 @@ class ReportActionsView extends React.Component {
     /**
      * Update the unread messages count to show in the MarkerBadge
      */
-    updateUnreadMessageCount() {
-        this.setState(prevState => ({unreadActionCount: prevState.unreadActionCount + this.props.report.unreadActionCount}));
+    updateLocalUnreadActionCount() {
+        this.setState(prevState => ({localUnreadActionCount: prevState.localUnreadActionCount + this.props.report.unreadActionCount}));
     }
 
     /**
@@ -406,7 +406,7 @@ class ReportActionsView extends React.Component {
      */
     hideMarker() {
         this.setState({isMarkerActive: false}, () => {
-            this.setState({unreadActionCount: 0});
+            this.setState({localUnreadActionCount: 0});
         });
     }
 
@@ -503,7 +503,7 @@ class ReportActionsView extends React.Component {
             <>
                 <MarkerBadge
                     active={this.state.isMarkerActive}
-                    count={this.state.unreadActionCount}
+                    count={this.state.localUnreadActionCount}
                     onClick={scrollToBottom}
                     onClose={this.hideMarker}
                 />
