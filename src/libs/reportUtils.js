@@ -152,20 +152,6 @@ function isConciergeChatReport(report) {
         && report.participants[0] === CONST.EMAIL.CONCIERGE;
 }
 
-/**
- * Whether a login is system email
- *
- * @param {String} login - user email
- * @return {Boolean}
- */
-function isSystemUser(login) {
-    return [
-        CONST.EMAIL.CONCIERGE,
-        CONST.EMAIL.CHRONOS,
-        CONST.EMAIL.RECEIPTS,
-    ].includes(login);
-}
-
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -177,5 +163,4 @@ export {
     getDefaultRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,
-    isSystemUser,
 };

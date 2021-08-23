@@ -20,7 +20,7 @@ import Growl from '../../libs/Growl';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import {isSystemUser} from '../../libs/reportUtils';
+import {isSystemUser} from '../../libs/userUtils';
 import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
 
 const propTypes = {
@@ -91,9 +91,9 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const isEnteredLoginSystemLogin = _.some(logins, login => isSystemUser(login));
-        if (isEnteredLoginSystemLogin) {
-            Growl.error(this.props.translate('workspace.invite.systemUserError'), 5000);
+        const foundSystemLogin = _.find(logins, login => isSystemUser(login));
+        if (foundSystemLogin) {
+            Growl.error(this.props.translate('workspace.invite.systemUserError', {email: foundSystemLogin}), 5000);
             return;
         }
 
