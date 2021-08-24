@@ -1202,16 +1202,9 @@ const styles = {
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         textAlign: 'center',
+        fontSize: variables.emojiSize,
         ...spacing.pv0,
-        ...spacing.ph1,
-    },
-
-    emojiExtraSmall: {
-        fontSize: variables.iconSizeExtraSmall,
-    },
-
-    emojiLarge: {
-        fontSize: variables.iconSizeLarge,
+        ...spacing.ph0,
     },
 
     emojiItem: {
