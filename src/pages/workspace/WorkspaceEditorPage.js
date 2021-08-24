@@ -41,6 +41,8 @@ class WorkspaceEditorPage extends React.Component {
             name: props.policy.name,
             avatarURL: props.policy.avatarURL,
             previewAvatarURL: props.policy.avatarURL,
+            isAvatarUploading: false,
+            isSubmitting: false,
         };
 
         this.submit = this.submit.bind(this);
@@ -50,11 +52,11 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     onImageSelected(image) {
-        this.setState({previewAvatarURL: image.uri});
+        this.setState({previewAvatarURL: image.uri, isAvatarUploading: true});
 
         // Store the upload avatar promise so we can wait for it to finish before updating the policy
         this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
-            this.setState({avatarURL: url}, resolve);
+            this.setState({avatarURL: url, isAvatarUploading: false}, resolve);
         }));
     }
 
@@ -63,13 +65,20 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     submit() {
+        this.setState({isSubmitting: true});
+
         // Wait for the upload avatar promise to finish before updating the policy
         this.uploadAvatarPromise.then(() => {
             const name = this.state.name.trim();
             const avatarURL = this.state.avatarURL;
             const policyID = this.props.policy.id;
 
-            update(policyID, {name, avatarURL});
+            update(policyID, {name, avatarURL}).then(() => {
+                this.setState({isSubmitting: false});
+            });
+        }).catch(() => {
+            // TODO: Throw error ?
+            this.setState({isSubmitting: false});
         });
     }
 
@@ -85,6 +94,9 @@ class WorkspaceEditorPage extends React.Component {
             return null;
         }
 
+        const isButtonDisabled = this.state.isAvatarUploading
+                                  || (this.state.avatarURL === this.props.policy.avatarURL
+                                    && this.state.name === this.props.policy.name);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -95,6 +107,7 @@ class WorkspaceEditorPage extends React.Component {
                 <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
                     <View style={[styles.w100, styles.flex1]}>
                         <AvatarWithImagePicker
+                            isUploading={this.state.isAvatarUploading}
                             avatarURL={this.state.previewAvatarURL}
                             DefaultAvatar={() => (
                                 <Icon
@@ -124,6 +137,8 @@ class WorkspaceEditorPage extends React.Component {
 
                     <Button
                         success
+                        isLoading={this.state.isSubmitting}
+                        isDisabled={isButtonDisabled}
                         style={[styles.w100]}
                         text={this.props.translate('workspace.editor.save')}
                         onPress={this.submit}

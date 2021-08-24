@@ -239,9 +239,10 @@ function uploadAvatar(file) {
  *
  * @param {String} policyID
  * @param {Object} values
+ * @returns {Promise}
  */
 function update(policyID, values) {
-    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+    return API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
                 // Show the user feedback
