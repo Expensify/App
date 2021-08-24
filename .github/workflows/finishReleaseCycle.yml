@@ -45,8 +45,6 @@ jobs:
   # Update the production branch to trigger the production deploy.
   updateProduction:
     runs-on: ubuntu-latest
-
-    # Note: Anyone with Triage access to the New Expensify repo can trigger a production deploy
     needs: validate
     if: ${{ needs.validate.outputs.isValid }}
     steps:
