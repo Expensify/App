@@ -31,20 +31,22 @@ const propTypes = {
     /** Session of currently logged in user */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(PropTypes.shape({
 
         /** This is either the user's full name, or their login if full name is an empty string */
         displayName: PropTypes.string.isRequired,
-    })).isRequired,
+    })),
 };
 
 const defaultProps = {
     chatReport: {
         participants: [],
     },
+    session: {},
+    personalDetails: {},
 };
 
 const IOUAction = ({
@@ -59,7 +61,7 @@ const IOUAction = ({
         Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
     };
 
-    const sessionEmail = lodashGet(session, 'email', null);
+    const sessionEmail = lodashGet(session, 'email', '');
     const participantName = _.map(chatReport.participants, participant => lodashGet(personalDetails, [participant, 'firstName'], '')
             || Str.removeSMSDomain(participant)).join(', ');
 

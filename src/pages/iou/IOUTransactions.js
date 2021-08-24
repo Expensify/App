@@ -51,13 +51,13 @@ const propTypes = {
 
         /** This is either the user's full name, or their login if full name is an empty string */
         displayName: PropTypes.string.isRequired,
-    })).isRequired,
+    })),
 
 
     /** Session of currently logged in user */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
@@ -65,6 +65,8 @@ const propTypes = {
 const defaultProps = {
     reportActions: {},
     hasOutstandingIOU: false,
+    session: {},
+    personalDetails: {},
 };
 
 class IOUTransactions extends Component {
@@ -105,7 +107,7 @@ class IOUTransactions extends Component {
 
     render() {
         const {session, personalDetails, iouReport} = this.props;
-        const sessionEmail = lodashGet(session, 'email', null);
+        const sessionEmail = lodashGet(session, 'email', '');
         const participantEmail = sessionEmail === iouReport.managerEmail ? iouReport.ownerEmail : iouReport.managerEmail;
 
         const currentUserName = lodashGet(personalDetails, [sessionEmail, 'firstName'], '')
