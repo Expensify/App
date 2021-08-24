@@ -1757,6 +1757,10 @@ const styles = {
         paddingEnd: 20,
     },
 
+    iouConfirmComment: {
+        flexBasis: 92,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
