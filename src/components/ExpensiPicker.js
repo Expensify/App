@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React, {Component} from 'react';
 import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Picker from './Picker';
@@ -17,7 +17,7 @@ const defaultProps = {
     isDisabled: false,
 };
 
-class ExpensiPicker extends PureComponent {
+class ExpensiPicker extends Component {
     constructor() {
         super();
         this.state = {
