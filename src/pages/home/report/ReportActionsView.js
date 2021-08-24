@@ -100,6 +100,7 @@ class ReportActionsView extends React.Component {
         this.state = {
             isLoadingMoreChats: false,
             isMarkerActive: false,
+            localUnreadActionCount: this.props.report.unreadActionCount,
         };
 
         this.currentScrollOffset = 0;
@@ -110,6 +111,7 @@ class ReportActionsView extends React.Component {
         this.showMarker = this.showMarker.bind(this);
         this.hideMarker = this.hideMarker.bind(this);
         this.toggleMarker = this.toggleMarker.bind(this);
+        this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
     }
 
     componentDidMount() {
@@ -162,6 +164,10 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (nextState.localUnreadActionCount !== this.state.localUnreadActionCount) {
+            return true;
+        }
+
         if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
             return true;
         }
@@ -200,8 +206,16 @@ class ReportActionsView extends React.Component {
                 updateLastReadActionID(this.props.reportID);
             }
 
-            // show new MarkerBadge when there is a new Message
-            this.toggleMarker();
+            if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
+                // Only update the unread count when MarkerBadge is visible
+                // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
+                if (this.state.isMarkerActive) {
+                    this.updateLocalUnreadActionCount();
+                }
+
+                // show new MarkerBadge when there is a new message
+                this.toggleMarker();
+            }
         }
 
         // We want to mark the unread comments when user resize the screen to desktop
@@ -363,13 +377,22 @@ class ReportActionsView extends React.Component {
      * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
      */
     toggleMarker() {
+        // Update the unread message count before MarkerBadge is about to show
         if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
+            this.updateLocalUnreadActionCount();
             this.showMarker();
         }
 
         if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
             this.hideMarker();
         }
+    }
+
+    /**
+     * Update the unread messages count to show in the MarkerBadge
+     */
+    updateLocalUnreadActionCount() {
+        this.setState(prevState => ({localUnreadActionCount: prevState.localUnreadActionCount + this.props.report.unreadActionCount}));
     }
 
     /**
@@ -383,7 +406,9 @@ class ReportActionsView extends React.Component {
      * Hide the new MarkerBadge
      */
     hideMarker() {
-        this.setState({isMarkerActive: false});
+        this.setState({isMarkerActive: false}, () => {
+            this.setState({localUnreadActionCount: 0});
+        });
     }
 
     /**
@@ -487,7 +512,7 @@ class ReportActionsView extends React.Component {
             <>
                 <MarkerBadge
                     active={this.state.isMarkerActive}
-                    count={this.props.report.unreadActionCount}
+                    count={this.state.localUnreadActionCount}
                     onClick={scrollToBottom}
                     onClose={this.hideMarker}
                 />
