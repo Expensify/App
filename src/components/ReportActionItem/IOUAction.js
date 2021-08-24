@@ -12,6 +12,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
 import {withPersonalDetails, withSession} from '../OnyxProvider';
+import personalDetailsPropType from '../../pages/personalDetailsPropType';
+
 
 const propTypes = {
     /** All the data of the action */
@@ -36,11 +38,7 @@ const propTypes = {
     }),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-
-        /** This is either the user's full name, or their login if full name is an empty string */
-        displayName: PropTypes.string.isRequired,
-    })),
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 };
 
 const defaultProps = {
