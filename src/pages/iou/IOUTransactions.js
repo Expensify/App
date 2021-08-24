@@ -11,6 +11,8 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
+import personalDetailsPropType from '../personalDetailsPropType';
+import {withPersonalDetails, withSession} from '../../components/OnyxProvider';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -47,11 +49,7 @@ const propTypes = {
     }).isRequired,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(PropTypes.shape({
-
-        /** This is either the user's full name, or their login if full name is an empty string */
-        displayName: PropTypes.string.isRequired,
-    })),
+    personalDetails: PropTypes.objectOf(personalDetailsPropType),
 
 
     /** Session of currently logged in user */
@@ -149,19 +147,15 @@ IOUTransactions.defaultProps = defaultProps;
 IOUTransactions.propTypes = propTypes;
 export default compose(
     withLocalize,
+    withPersonalDetails(),
+    withSession(),
     withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
             canEvict: false,
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOUTransactions);

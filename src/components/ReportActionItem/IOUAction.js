@@ -10,6 +10,8 @@ import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
+import compose from '../../libs/compose';
+import {withPersonalDetails, withSession} from '../OnyxProvider';
 
 const propTypes = {
     /** All the data of the action */
@@ -96,14 +98,12 @@ IOUAction.propTypes = propTypes;
 IOUAction.defaultProps = defaultProps;
 IOUAction.displayName = 'IOUAction';
 
-export default withOnyx({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    personalDetails: {
-        key: ONYXKEYS.PERSONAL_DETAILS,
-    },
-})(IOUAction);
+export default compose(
+    withPersonalDetails(),
+    withSession(),
+    withOnyx({
+        chatReport: {
+            key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
+    }),
+)(IOUAction);
