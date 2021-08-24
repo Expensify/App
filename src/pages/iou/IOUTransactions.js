@@ -12,7 +12,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 import personalDetailsPropType from '../personalDetailsPropType';
-import {withPersonalDetails, withSession} from '../../components/OnyxProvider';
+import {withPersonalDetails} from '../../components/OnyxProvider';
 
 const propTypes = {
     /** Actions from the ChatReport */
@@ -148,7 +148,6 @@ IOUTransactions.propTypes = propTypes;
 export default compose(
     withLocalize,
     withPersonalDetails(),
-    withSession(),
     withOnyx({
         reportActions: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
@@ -156,6 +155,9 @@ export default compose(
         },
         iouReport: {
             key: ({iouReportID}) => `${ONYXKEYS.COLLECTION.REPORT_IOUS}${iouReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOUTransactions);

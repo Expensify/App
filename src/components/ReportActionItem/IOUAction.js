@@ -11,7 +11,7 @@ import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import compose from '../../libs/compose';
-import {withPersonalDetails, withSession} from '../OnyxProvider';
+import {withPersonalDetails} from '../OnyxProvider';
 import personalDetailsPropType from '../../pages/personalDetailsPropType';
 
 
@@ -98,10 +98,12 @@ IOUAction.displayName = 'IOUAction';
 
 export default compose(
     withPersonalDetails(),
-    withSession(),
     withOnyx({
         chatReport: {
             key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(IOUAction);
