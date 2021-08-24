@@ -590,7 +590,7 @@ export default {
             invitePeople: 'Invite People',
             invitePeoplePrompt: 'Invite colleagues to your workspace.',
             personalMessagePrompt: 'Add a Personal Message (Optional)',
-            enterEmailOrPhone: 'Emails or phone numbers',
+            enterEmailOrPhone: 'Emails or Phone Numbers',
             EmailOrPhonePlaceholder: 'Enter comma-separated list of emails or phone numbers',
             pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
             pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
