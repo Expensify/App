@@ -60,23 +60,22 @@ const IOUQuote = ({
 
     return (
         <View style={[styles.chatItemMessage]}>
-            {_.map(action.message, (fragment, index) => (
-                <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
-                    <View style={[styles.blockquote]}>
-                        <Text style={[styles.chatItemMessage]}>
-                            {messageText}
-                        </Text>
-                        {shouldShowViewDetailsLink && (
-                            <Text
-                                style={[styles.chatItemMessageLink]}
-                                onPress={onViewDetailsPressed}
-                            >
-                                {translate('iou.viewDetails')}
-                            </Text>
-                        )}
-                    </View>
+            <View key={`iouQuote-${action.sequenceNumber}`}>
+                <View style={[styles.blockquote]}>
+                    <Text style={[styles.chatItemMessage]}>
+                        {messageText}
+                    </Text>
+                    {shouldShowViewDetailsLink && (
+                    <Text
+                        style={[styles.chatItemMessageLink]}
+                        onPress={onViewDetailsPressed}
+                    >
+                        {translate('iou.viewDetails')}
+                    </Text>
+                    )}
                 </View>
-            ))}
+            </View>
+
         </View>
     );
 };
