@@ -64,7 +64,6 @@ import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
-import DateUtils from '../../DateUtils';
 
 const RootStack = createCustomModalStackNavigator();
 
@@ -180,9 +179,6 @@ class AuthScreens extends React.Component {
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
         }, groupShortcutModifiers, true);
-        setTimeout(() => {
-            DateUtils.updateTimezone();
-        }, 1000);
     }
 
     shouldComponentUpdate(nextProps) {

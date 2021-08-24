@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import moment from 'moment';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
@@ -94,6 +95,38 @@ function formatPersonalDetails(personalDetailsList) {
 }
 
 /**
+ * Merges partial details object into the local store.
+ *
+ * @param {Object} details
+ * @private
+ */
+function mergeLocalPersonalDetails(details) {
+    // We are merging the partial details provided to this method with the existing details we have for the user so
+    // that we don't overwrite any values that may exist in storage.
+    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
+
+    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
+    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
+
+    // Update the associated Onyx keys
+    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
+}
+
+/**
+ * Sets the personal details object for the current user
+ *
+ * @param {Object} details
+ */
+function setPersonalDetails(details) {
+    API.PersonalDetails_Update({details: JSON.stringify(details)});
+    if (details.timezone) {
+        NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
+    }
+    mergeLocalPersonalDetails(details);
+}
+
+/**
  * Get the personal details for our organization
  * @returns {Promise}
  */
@@ -119,6 +152,14 @@ function fetchPersonalDetails() {
             // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
             myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
             myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
+
+
+            // Update user's timezone, if their timezone is set to automatic and
+            // is different from current timezone
+            const currentTimezone = moment.tz.guess(true);
+            if (myPersonalDetails.timezone.automatic && myPersonalDetails.timezone.selected !== currentTimezone) {
+                myPersonalDetails.timezone.selected = currentTimezone;
+            }
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
@@ -185,38 +226,6 @@ function getFromReportParticipants(reports) {
             // than updating props for each report and re-rendering had merge been used.
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportsToUpdate);
         });
-}
-
-/**
- * Merges partial details object into the local store.
- *
- * @param {Object} details
- * @private
- */
-function mergeLocalPersonalDetails(details) {
-    // We are merging the partial details provided to this method with the existing details we have for the user so
-    // that we don't overwrite any values that may exist in storage.
-    const mergedDetails = lodashMerge(personalDetails[currentUserEmail], details);
-
-    // displayName is a generated field so we'll use the firstName and lastName + login to update it.
-    mergedDetails.displayName = getDisplayName(currentUserEmail, mergedDetails);
-
-    // Update the associated Onyx keys
-    Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, mergedDetails);
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, {[currentUserEmail]: mergedDetails});
-}
-
-/**
- * Sets the personal details object for the current user
- *
- * @param {Object} details
- */
-function setPersonalDetails(details) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)});
-    if (details.timezone) {
-        NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-    }
-    mergeLocalPersonalDetails(details);
 }
 
 /**
