@@ -181,7 +181,7 @@ export default {
         transactions: {
             cancel: ({amount, comment}) => `Cancelled the ${amount} request${comment ? ` for ${comment}` : ''}.`,
             create: ({amount, participant, comment}) => `Requested ${amount} from ${participant}${comment ? ` for ${comment}` : ''}.`,
-            decline: ({amount}) => `Declined the ${amount} request.`,
+            decline: ({amount, comment}) => `Declined the ${amount} request for ${comment}.`,
             split: ({amount, participant, comment}) => `Split ${amount} with ${participant}${comment ? ` for ${comment}` : ''}.`,
             pay: ({paymentType}) => `Settled up ${paymentType === 'Elsewhere' ? '' : 'using '}${paymentType}.`,
         },

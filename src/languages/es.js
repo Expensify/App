@@ -179,11 +179,11 @@ export default {
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
         transactions: {
-            cancel: ({amount, comment}) => `Cancelado el pedido de ${amount}${comment ? ` por ${comment}` : ''}.`,
-            create: ({amount, participant, comment}) => `Solicitado ${amount} de ${participant}${comment ? ` por ${comment}` : ''}.`,
-            decline: ({amount}) => `Rechazó la solicitud de ${amount}.`,
-            split: ({amount, participant, comment}) => `Dividir ${amount} con ${participant}${comment ? ` por ${comment}` : ''}.`,
-            pay: ({paymentType}) => `Establecido ${paymentType === 'Elsewhere' ? 'en otro lugar' : `usando ${paymentType}`}.`,
+            cancel: ({amount, comment}) => `Canceló el pedido de ${amount}${comment ? ` por ${comment}` : ''}.`,
+            create: ({amount, participant, comment}) => `Pidió ${amount} a ${participant}${comment ? ` para ${comment}` : ''}.`,
+            decline: ({amount, comment}) => `Rechazó la petición de ${amount}${comment ? ` para ${comment}` : ''}.`,
+            split: ({amount, participant, comment}) => `Dividió la factura${comment ? ` de ${comment}` : ''} por ${amount} con ${participant}.`,
+            pay: ({paymentType}) => `Pagó ${paymentType === 'Elsewhere' ? 'por otro medio' : `con ${paymentType}`}.`,
         },
     },
     reportDetailsPage: {
