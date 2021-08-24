@@ -1,14 +1,17 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {
-    View, Image, Pressable, Dimensions,
+    View, Image, Pressable,
 } from 'react-native';
 import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import compose from '../../libs/compose';
 
 const propTypes = {
     /** URL to full-sized image */
     url: PropTypes.string.isRequired,
+    ...windowDimensionsPropTypes,
 };
 
 class ImageView extends PureComponent {
@@ -26,13 +29,11 @@ class ImageView extends PureComponent {
             initialY: 0,
             imgWidth: 0,
             imgHeight: 0,
-            screenWidth: 0,
-            screenHeight: 0,
             zoomScale: 0,
-            rX1: 0,
-            rY1: 0,
-            rX2: 0,
-            rY2: 0,
+            imageLeft: 0,
+            imageTop: 0,
+            imageRight: 0,
+            imageBottom: 0,
         };
     }
 
@@ -40,11 +41,8 @@ class ImageView extends PureComponent {
         if (this.canUseTouchScreen) {
             return;
         }
-        const windowWidth = Dimensions.get('window').width;
-        const windowHeight = Dimensions.get('window').height;
-        this.setState({screenWidth: windowWidth, screenHeight: windowHeight});
         Image.getSize(this.props.url, (width, height) => {
-            const scale = Math.max(this.state.screenWidth / width, this.state.screenHeight / height);
+            const scale = Math.max(this.props.windowWidth / width, this.props.windowHeight / height);
             this.setImageRegion(width, height, scale);
         });
         document.addEventListener('mousemove', this.trackMovement.bind(this));
@@ -58,52 +56,70 @@ class ImageView extends PureComponent {
         document.removeEventListener('mousemove', this.trackMovement.bind(this));
     }
 
+    /**
+     * When open image, set image left/right/top/bottom point and width, height
+     * @param {Boolean} width image width
+     * @param {Boolean} height image height
+     * @param {Boolean} scale zoomscale when click zoom
+     */
     setImageRegion(width, height, scale) {
-        let x1 = 0;
-        let x2 = 0;
-        let y1 = 0;
-        let y2 = 0;
+        let imgLeft = (this.props.windowWidth - width) / 2;
+        let imgRight = ((this.props.windowWidth - width) / 2) + width;
+        let imgTop = (this.props.windowHeight - height) / 2;
+        let imgBottom = ((this.props.windowHeight - height) / 2) + height;
+        const isScreenWiderThanImage = (this.props.windowWidth / width) > 1;
+        const isScreenTallerThanImage = (this.props.windowHeight / height) > 1;
         const aspect = width / height;
-        if ((aspect > 1 && this.state.screenWidth / width > 1) || (aspect <= 1 && this.state.screenHeight / height > 1)) {
-            x1 = (this.state.screenWidth - width) / 2;
-            x2 = ((this.state.screenWidth - width) / 2) + width;
-            y1 = (this.state.screenHeight - height) / 2;
-            y2 = ((this.state.screenHeight - height) / 2) + height;
-        } else if (aspect > 1 && this.state.screenWidth / width <= 1) {
-            const rate = this.state.screenWidth / width;
-            x2 = this.state.screenWidth;
-            y1 = (this.state.screenHeight - (rate * height)) / 2;
-            y2 = y1 + (rate * height);
-        } else if (aspect <= 1 && this.state.screenHeight / height <= 1) {
-            const rate = this.state.screenHeight / height;
-            y2 = this.state.screenHeight;
-            x1 = (this.state.screenWidth - (rate * width)) / 2;
-            x2 = x1 + (rate * width);
+        if (aspect > 1 && !isScreenWiderThanImage) {
+            // In case Width fit Screen width and Height not fit the Screen height
+            const fitRate = this.props.windowWidth / width;
+            imgLeft = 0;
+            imgRight = this.props.windowWidth;
+            imgTop = (this.props.windowHeight - (fitRate * height)) / 2;
+            imgBottom = imgTop + (fitRate * height);
+        } else if (aspect <= 1 && !isScreenTallerThanImage) {
+            // In case Height fit Screen height and Width not fit the Screen width
+            const fitRate = this.props.windowHeight / height;
+            imgTop = 0;
+            imgBottom = this.props.windowHeight;
+            imgLeft = (this.props.windowWidth - (fitRate * width)) / 2;
+            imgRight = imgLeft + (fitRate * width);
         }
+
         this.setState({
-            imgWidth: width, imgHeight: height, zoomScale: scale, rX1: x1, rY1: y1, rX2: x2, rY2: y2,
+            imgWidth: width, imgHeight: height, zoomScale: scale, imageLeft: imgLeft, imageTop: imgTop, imageRight: imgRight, imageBottom: imgBottom,
         });
     }
 
+    /**
+     * Convert touch point to zoomed point
+     * @param {Boolean} x x point when click zoom
+     * @param {Boolean} y y point when click zoom
+     * @returns {Object} converted touch point
+     */
     getScrollOffset(x, y) {
-        let ratio = 1;
-        if (this.state.rY1 === 0) {
-            ratio = this.state.screenHeight / this.state.imgHeight;
-        } else if (this.state.rX1 === 0) {
-            ratio = this.state.screenWidth / this.state.imgWidth;
+        let fitRatio = 1;
+        if (this.state.imageTop === 0) {
+            // Fit Height
+            fitRatio = this.props.windowHeight / this.state.imgHeight;
+        } else if (this.state.imageLeft === 0) {
+            // Fit Width
+            fitRatio = this.props.windowWidth / this.state.imgWidth;
         }
-        let sx = (x - this.state.rX1) / ratio;
-        let sy = (y - this.state.rY1) / ratio;
-        if (x < this.state.rX1) {
+        let sx = (x - this.state.imageLeft) / fitRatio;
+        let sy = (y - this.state.imageTop) / fitRatio;
+
+        // White blank touch
+        if (x < this.state.imageLeft) {
             sx = 0;
         }
-        if (x > this.state.rX2) {
+        if (x > this.state.imageRight) {
             sx = this.state.imgWidth;
         }
-        if (y < this.state.rY1) {
+        if (y < this.state.imageTop) {
             sy = 0;
         }
-        if (y > this.state.rY2) {
+        if (y > this.state.imageBottom) {
             sy = this.state.imgHeight;
         }
         return {offsetX: sx, offsetY: sy};
@@ -207,4 +223,6 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
-export default ImageView;
+export default compose(
+    withWindowDimensions,
+)(ImageView);
