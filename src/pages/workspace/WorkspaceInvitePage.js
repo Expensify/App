@@ -129,6 +129,8 @@ class WorkspaceInvitePage extends React.Component {
                                 autoCompleteType="email"
                                 autoCorrect={false}
                                 autoCapitalize="none"
+                                multiline
+                                numberOfLines={2}
                                 value={this.state.userLogins}
                                 onChangeText={text => this.setState({userLogins: text})}
                             />
