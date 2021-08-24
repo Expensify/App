@@ -74,7 +74,6 @@ const IOUAction = ({
                 action={action}
                 shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
-                chatReport={chatReport}
                 currentUserFirstName={currentUserFirstName}
                 participantFirstName={participantFirstName}
                 sessionEmail={sessionEmail}
