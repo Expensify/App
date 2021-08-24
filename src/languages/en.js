@@ -283,7 +283,7 @@ export default {
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
+        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
         focus: '#focus',
         focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',

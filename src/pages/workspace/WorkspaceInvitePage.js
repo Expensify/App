@@ -52,7 +52,7 @@ class WorkspaceInvitePage extends React.Component {
 
         this.state = {
             userLogins: '',
-            welcomeNote: '',
+            welcomeNote: this.getWelcomeNotePlaceholder(),
         };
 
         this.focusEmailOrPhoneInput = this.focusEmailOrPhoneInput.bind(this);
@@ -128,7 +128,7 @@ class WorkspaceInvitePage extends React.Component {
                                 label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                numberOfLines={10}
+                                numberOfLines={5}
                                 textAlignVertical="top"
                                 multiline
                                 value={this.state.welcomeNote}

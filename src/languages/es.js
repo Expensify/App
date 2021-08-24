@@ -283,7 +283,7 @@ export default {
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
-        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',
+        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo.',
         focus: '#concentración',
         focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',

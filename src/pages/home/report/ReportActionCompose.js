@@ -11,6 +11,7 @@ import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import lodashIntersection from 'lodash/intersection';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -41,7 +42,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST from '../../../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -441,13 +442,12 @@ class ReportActionCompose extends React.Component {
         // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasChronosParticipant = _.contains(reportParticipants, CONST.EMAIL.CHRONOS);
+        const hasExpensifyEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
         const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const shouldShowReportRecipientLocalTime = !hasConciergeParticipant
-            && !hasChronosParticipant
+        const shouldShowReportRecipientLocalTime = !hasExpensifyEmails
             && !hasMultipleParticipants
             && reportRecipient
             && reportRecipientTimezone
