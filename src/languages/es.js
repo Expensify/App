@@ -37,6 +37,10 @@ export default {
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
+        download: 'Descargar',
+        pin: 'Fijar',
+        unPin: 'Desfijar',
+        back: 'Volver',
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
@@ -103,6 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
     },
     videoChatButtonAndMenu: {
+        tooltip: 'Videollamada',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -115,6 +120,7 @@ export default {
         phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
+        addAction: 'Acción',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar Archivo Adjunto',
         writeSomething: 'Escribe algo...',
@@ -123,6 +129,7 @@ export default {
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        emoji: 'Emoji',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -146,6 +153,7 @@ export default {
         multipleUsers: 'Varios usuarios',
     },
     sidebarScreen: {
+        fabAction: 'Nuevo Chat',
         newChat: 'Nuevo Chat',
         newGroup: 'Nuevo Grupo',
         headerChat: 'Chats',
@@ -196,6 +204,7 @@ export default {
     avatarWithImagePicker: {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
+        editImage: 'Editar Foto',
     },
     profilePage: {
         profile: 'Perfil',

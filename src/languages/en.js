@@ -37,6 +37,10 @@ export default {
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        download: 'Download',
+        pin: 'Pin',
+        unPin: 'Unpin',
+        back: 'Back',
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
@@ -103,6 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
     },
     videoChatButtonAndMenu: {
+        tooltip: 'Video Chat',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -115,6 +120,7 @@ export default {
         phrase4: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
+        addAction: 'Actions',
         sendAttachment: 'Send Attachment',
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
@@ -123,6 +129,7 @@ export default {
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
+        emoji: 'Emoji',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
@@ -146,6 +153,7 @@ export default {
         multipleUsers: 'Multiple users',
     },
     sidebarScreen: {
+        fabAction: 'New Chat',
         newChat: 'New Chat',
         newGroup: 'New Group',
         headerChat: 'Chats',
@@ -196,6 +204,7 @@ export default {
     avatarWithImagePicker: {
         uploadPhoto: 'Upload Photo',
         removePhoto: 'Remove Photo',
+        editImage: 'Edit Photo',
     },
     profilePage: {
         profile: 'Profile',

@@ -11,6 +11,7 @@ import {
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
+import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 
@@ -99,45 +100,47 @@ class AvatarWithImagePicker extends React.Component {
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
-                <View style={[styles.pRelative, styles.avatarLarge]}>
-                    {this.props.avatarURL
-                        ? (
-                            <Avatar
-                                containerStyles={styles.avatarLarge}
-                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                source={this.props.avatarURL}
-                            />
-                        )
-                        : (
-                            <DefaultAvatar />
-                        )}
-                    <AttachmentPicker>
-                        {({openPicker}) => (
-                            <>
-                                <Pressable
-                                    style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
-                                    onPress={() => this.setState({isMenuVisible: true})}
-                                >
-                                    <Icon
-                                        src={Pencil}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
-                                        fill={themeColors.iconReversed}
-                                    />
-                                </Pressable>
-                                <PopoverMenu
-                                    isVisible={this.state.isMenuVisible}
-                                    onClose={() => this.setState({isMenuVisible: false})}
-                                    onItemSelected={() => this.setState({isMenuVisible: false})}
-                                    menuItems={this.createMenuItems(openPicker)}
-                                    anchorPosition={this.props.anchorPosition}
-                                    animationIn="fadeInDown"
-                                    animationOut="fadeOutUp"
+                <Tooltip text={this.props.translate('avatarWithImagePicker.editImage')}>
+                    <View style={[styles.pRelative, styles.avatarLarge]}>
+                        {this.props.avatarURL
+                            ? (
+                                <Avatar
+                                    containerStyles={styles.avatarLarge}
+                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                    source={this.props.avatarURL}
                                 />
-                            </>
-                        )}
-                    </AttachmentPicker>
-                </View>
+                            )
+                            : (
+                                <DefaultAvatar />
+                            )}
+                        <AttachmentPicker>
+                            {({openPicker}) => (
+                                <>
+                                    <Pressable
+                                        style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
+                                        onPress={() => this.setState({isMenuVisible: true})}
+                                    >
+                                        <Icon
+                                            src={Pencil}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                            fill={themeColors.iconReversed}
+                                        />
+                                    </Pressable>
+                                    <PopoverMenu
+                                        isVisible={this.state.isMenuVisible}
+                                        onClose={() => this.setState({isMenuVisible: false})}
+                                        onItemSelected={() => this.setState({isMenuVisible: false})}
+                                        menuItems={this.createMenuItems(openPicker)}
+                                        anchorPosition={this.props.anchorPosition}
+                                        animationIn="fadeInDown"
+                                        animationOut="fadeOutUp"
+                                    />
+                                </>
+                            )}
+                        </AttachmentPicker>
+                    </View>
+                </Tooltip>
             </View>
         );
     }
