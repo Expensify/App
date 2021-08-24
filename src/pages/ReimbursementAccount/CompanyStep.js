@@ -170,7 +170,7 @@ class CompanyStep extends React.Component {
                             disabled={shouldDisableCompanyName}
                         />
                         <ExpensiTextInput
-                            label={this.props.translate('common.companyAddressNoPO')}
+                            label={this.props.translate('common.companyAddress')}
                             containerStyles={[styles.mt4]}
                             onChangeText={(addressStreet) => {
                                 if (error === this.props.translate('bankAccount.error.addressStreet')) {
@@ -183,6 +183,7 @@ class CompanyStep extends React.Component {
                                 ? this.props.translate('bankAccount.error.addressStreet')
                                 : ''}
                         />
+                        <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 <ExpensiTextInput
