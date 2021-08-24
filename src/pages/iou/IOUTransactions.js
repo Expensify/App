@@ -108,9 +108,9 @@ class IOUTransactions extends Component {
         const sessionEmail = lodashGet(session, 'email', '');
         const participantEmail = sessionEmail === iouReport.managerEmail ? iouReport.ownerEmail : iouReport.managerEmail;
 
-        const currentUserName = lodashGet(personalDetails, [sessionEmail, 'firstName'], '')
+        const currentUserFirstName = lodashGet(personalDetails, [sessionEmail, 'firstName'], '')
                         || Str.removeSMSDomain(sessionEmail);
-        const participantName = lodashGet(personalDetails, [participantEmail, 'firstName'], '') || Str.removeSMSDomain(participantEmail);
+        const participantFirstName = lodashGet(personalDetails, [participantEmail, 'firstName'], '') || Str.removeSMSDomain(participantEmail);
 
         return (
             <View style={[styles.mt3]}>
@@ -128,8 +128,8 @@ class IOUTransactions extends Component {
                                 action={reportAction}
                                 key={reportAction.sequenceNumber}
                                 canBeRejected={canBeRejected}
-                                currentUserName={currentUserName}
-                                participantName={participantName}
+                                currentUserFirstName={currentUserFirstName}
+                                participantFirstName={participantFirstName}
                                 sessionEmail={sessionEmail}
                                 rejectButtonLabelText={isCurrentUserTransactionCreator
                                     ? this.props.translate('common.cancel')

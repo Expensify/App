@@ -34,11 +34,11 @@ const propTypes = {
     /** Text label for the reject transaction button */
     rejectButtonLabelText: PropTypes.string.isRequired,
 
-    /** Current logged in User's name */
-    currentUserName: PropTypes.string.isRequired,
+    /** Current logged in user's first name */
+    currentUserFirstName: PropTypes.string.isRequired,
 
-    /** Participant's name */
-    participantName: PropTypes.string.isRequired,
+    /** Participant's first name */
+    participantFirstName: PropTypes.string.isRequired,
 
     /** Current user email */
     sessionEmail: PropTypes.string.isRequired,
@@ -91,7 +91,7 @@ class ReportTransaction extends Component {
 
     render() {
         const {
-            sessionEmail, action, currentUserName, participantName,
+            sessionEmail, action, currentUserFirstName, participantFirstName,
         } = this.props;
         const {
             type: messageType, amount, currency, comment, paymentType,
@@ -102,7 +102,7 @@ class ReportTransaction extends Component {
                 Math.abs(amount) / 100,
                 {style: 'currency', currency},
             ) : '',
-            participant: sessionEmail === action.actorEmail ? participantName : currentUserName,
+            participant: sessionEmail === action.actorEmail ? participantFirstName : currentUserFirstName,
             paymentType,
         });
 

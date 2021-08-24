@@ -17,11 +17,11 @@ const propTypes = {
     /** Callback invoked when View Details is pressed */
     onViewDetailsPressed: PropTypes.func,
 
-    /** Current logged in User's name */
-    currentUserName: PropTypes.string.isRequired,
+    /** Current logged in user's first name */
+    currentUserFirstName: PropTypes.string.isRequired,
 
-    /** Participants' name */
-    participantName: PropTypes.string.isRequired,
+    /** Participants' first name */
+    participantFirstName: PropTypes.string.isRequired,
 
     /** Current user email */
     sessionEmail: PropTypes.string.isRequired,
@@ -41,8 +41,8 @@ const IOUQuote = ({
     onViewDetailsPressed,
     translate,
     numberFormat,
-    currentUserName,
-    participantName,
+    currentUserFirstName,
+    participantFirstName,
     sessionEmail,
 }) => {
     const {
@@ -54,7 +54,7 @@ const IOUQuote = ({
             Math.abs(amount) / 100,
             {style: 'currency', currency},
         ) : '',
-        participant: sessionEmail === action.actorEmail ? participantName : currentUserName,
+        participant: sessionEmail === action.actorEmail ? participantFirstName : currentUserFirstName,
         paymentType,
     });
 

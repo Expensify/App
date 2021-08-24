@@ -62,10 +62,10 @@ const IOUAction = ({
     };
 
     const sessionEmail = lodashGet(session, 'email', '');
-    const participantName = _.map(chatReport.participants, participant => lodashGet(personalDetails, [participant, 'firstName'], '')
+    const participantFirstName = _.map(chatReport.participants, participant => lodashGet(personalDetails, [participant, 'firstName'], '')
             || Str.removeSMSDomain(participant)).join(', ');
 
-    const currentUserName = lodashGet(personalDetails, [sessionEmail, 'firstName'], '')
+    const currentUserFirstName = lodashGet(personalDetails, [sessionEmail, 'firstName'], '')
                         || Str.removeSMSDomain(sessionEmail);
 
     return (
@@ -75,8 +75,8 @@ const IOUAction = ({
                 shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
                 chatReport={chatReport}
-                currentUserName={currentUserName}
-                participantName={participantName}
+                currentUserFirstName={currentUserFirstName}
+                participantFirstName={participantFirstName}
                 sessionEmail={sessionEmail}
             />
             {((isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID))
