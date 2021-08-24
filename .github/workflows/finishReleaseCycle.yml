@@ -6,14 +6,22 @@ on:
 
 # The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
 jobs:
-  checkDeployBlockers:
+  validate:
     runs-on: ubuntu-latest
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
 
     outputs:
-      hasDeployBlockers: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS }}
+      isValid: ${{ steps.validateActor.outputs.isTeamMember && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'false' }}
 
     steps:
+      - name: Validate actor is deployer
+        id: validateActor
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: mobile-deployers
+
       - name: Check for any deploy blockers
         id: checkDeployBlockers
         uses: Expensify/App/.github/actions/checkDeployBlockers@main
@@ -28,7 +36,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
-            This issue either has unchecked QA steps or has not yet been marked with the `:shipit:` emoji of approval.
+            Oops, something went wrong! This issue must:
+                1. Have unchecked QA steps, or
+                2. Not have been marked with the `:shipit:` emoji of approval, or
+                3. Have been closed by someone who is not a member of @Expensify/Mobile-Deployers.
             Reopening!
 
   # Update the production branch to trigger the production deploy.
@@ -36,8 +47,8 @@ jobs:
     runs-on: ubuntu-latest
 
     # Note: Anyone with Triage access to the New Expensify repo can trigger a production deploy
-    needs: checkDeployBlockers
-    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    needs: validate
+    if: ${{ needs.validate.outputs.isValid }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
@@ -54,8 +65,8 @@ jobs:
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
     runs-on: macos-11
-    needs: checkDeployBlockers
-    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    needs: validate
+    if: ${{ needs.validate.outputs.isValid }}
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
