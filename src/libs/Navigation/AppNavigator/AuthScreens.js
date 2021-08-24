@@ -124,7 +124,6 @@ class AuthScreens extends React.Component {
     }
 
     componentDidMount() {
-        DateUtils.updateTimezone();
         NetworkConnection.listenForReconnect();
         PusherConnectionManager.init();
         Pusher.init({
@@ -181,6 +180,9 @@ class AuthScreens extends React.Component {
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
         }, groupShortcutModifiers, true);
+        setTimeout(() => {
+            DateUtils.updateTimezone();
+        }, 1000);
     }
 
     shouldComponentUpdate(nextProps) {
