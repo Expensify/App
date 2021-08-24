@@ -1880,7 +1880,7 @@ const styles = {
         width: '150%',
     },
 
-    fullscreenCardTablet: {
+    fullscreenCardMediumScreen: {
         left: '-15%',
         top: '-30%',
         width: '145%',
@@ -1916,7 +1916,7 @@ const styles = {
         height: 475,
     },
 
-    workspaceCardTablet: {
+    workspaceCardMediumScreen: {
         height: 540,
     },
 
@@ -1931,7 +1931,7 @@ const styles = {
         padding: 50,
     },
 
-    workspaceCardContentTablet: {
+    workspaceCardContentMediumScreen: {
         padding: 25,
     },
 

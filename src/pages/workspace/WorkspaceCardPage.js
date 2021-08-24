@@ -121,7 +121,7 @@ const WorkspaceCardPage = ({
                         styles.flexRow,
                         styles.workspaceCard,
                         isSmallScreenWidth && styles.workspaceCardMobile,
-                        isMediumScreenWidth && styles.workspaceCardTablet,
+                        isMediumScreenWidth && styles.workspaceCardMediumScreen,
                     ]}
                     >
                         {isSmallScreenWidth || isMediumScreenWidth
@@ -130,7 +130,7 @@ const WorkspaceCardPage = ({
                                     style={StyleSheet.flatten([
                                         styles.fullscreenCard,
                                         isSmallScreenWidth && styles.fullscreenCardMobile,
-                                        isMediumScreenWidth && styles.fullscreenCardTablet,
+                                        isMediumScreenWidth && styles.fullscreenCardMediumScreen,
                                     ])}
                                 />
                             )
@@ -144,7 +144,7 @@ const WorkspaceCardPage = ({
                             styles.fullscreenCard,
                             styles.workspaceCardContent,
                             isSmallScreenWidth && styles.p5,
-                            isMediumScreenWidth && styles.workspaceCardContentTablet,
+                            isMediumScreenWidth && styles.workspaceCardContentMediumScreen,
                         ]}
                         >
                             <View
