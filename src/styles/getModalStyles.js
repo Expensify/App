@@ -134,7 +134,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             };
 
             shouldAddBottomSafeAreaPadding = true;
-            swipeDirection = undefined;
+            swipeDirection = 'down';
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
             break;
