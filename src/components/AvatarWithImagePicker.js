@@ -6,7 +6,7 @@ import Avatar from './Avatar';
 import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
 import {
-    Upload, Trashcan, Pencil,
+    Upload, Trashcan, Pencil, Sync,
 } from './Icon/Expensicons';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -41,6 +41,9 @@ const propTypes = {
         left: PropTypes.number,
     }).isRequired,
 
+    /** Flag to see if image is being uploaded */
+    isUploading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -51,6 +54,7 @@ const defaultProps = {
     style: [],
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
+    isUploading: false,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -115,11 +119,12 @@ class AvatarWithImagePicker extends React.Component {
                         {({openPicker}) => (
                             <>
                                 <Pressable
+                                    disabled={this.props.isUploading}
                                     style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
                                     onPress={() => this.setState({isMenuVisible: true})}
                                 >
                                     <Icon
-                                        src={Pencil}
+                                        src={this.props.isUploading ? Sync : Pencil}
                                         width={variables.iconSizeSmall}
                                         height={variables.iconSizeSmall}
                                         fill={themeColors.iconReversed}
