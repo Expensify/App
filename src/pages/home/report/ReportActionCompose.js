@@ -57,6 +57,7 @@ import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import DateUtils from '../../../libs/DateUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -425,6 +426,8 @@ class ReportActionCompose extends React.Component {
         if (!trimmedComment) {
             return;
         }
+
+        DateUtils.throttledUpdateTimezone();
 
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
