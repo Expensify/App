@@ -106,7 +106,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login: addSMSDomainIfPhoneNumber(login),
+                login,
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };

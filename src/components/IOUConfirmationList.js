@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
 import {
+    addSMSDomainIfPhoneNumber,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
 } from '../libs/OptionsListUtils';
@@ -225,7 +226,7 @@ class IOUConfirmationList extends Component {
         }
         const selectedParticipants = this.getSelectedParticipants();
         const splits = _.map(selectedParticipants, participant => ({
-            email: participant.login,
+            email: addSMSDomainIfPhoneNumber(participant.login),
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
@@ -233,7 +234,7 @@ class IOUConfirmationList extends Component {
         }));
 
         splits.push({
-            email: this.props.myPersonalDetails.login,
+            email: addSMSDomainIfPhoneNumber(this.props.myPersonalDetails.login),
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future

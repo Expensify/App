@@ -17,7 +17,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import {addSMSDomainIfPhoneNumber, getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import CONST from '../../CONST';
@@ -269,7 +269,7 @@ class IOUModal extends Component {
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: this.state.participants[0].login,
+            debtorEmail: addSMSDomainIfPhoneNumber(this.state.participants[0].login),
         });
     }
 
