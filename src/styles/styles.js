@@ -1884,6 +1884,12 @@ const styles = {
         width: '150%',
     },
 
+    fullscreenCardMediumScreen: {
+        left: '-15%',
+        top: '-30%',
+        width: '145%',
+    },
+
     smallEditIcon: {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
@@ -1914,6 +1920,10 @@ const styles = {
         height: 475,
     },
 
+    workspaceCardMediumScreen: {
+        height: 540,
+    },
+
     workspaceCardMainText: {
         fontSize: variables.fontSizeXXXLarge,
         fontWeight: 'bold',
@@ -1923,6 +1933,10 @@ const styles = {
     workspaceCardContent: {
         zIndex: 1,
         padding: 50,
+    },
+
+    workspaceCardContentMediumScreen: {
+        padding: 25,
     },
 
     workspaceCardCTA: {
