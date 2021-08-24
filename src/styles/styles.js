@@ -175,7 +175,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
@@ -183,7 +183,7 @@ const styles = {
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
