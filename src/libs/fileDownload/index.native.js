@@ -109,7 +109,7 @@ export default function fileDownload(url) {
     const permissionError = {
         title: 'Access Needed',
         // eslint-disable-next-line max-len
-        message: 'ExpensifyCash does not have access to save attachments. To enable access, tap Settings and allow access.',
+        message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
         options: [
             {
                 text: 'Cancel',
