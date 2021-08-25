@@ -4,6 +4,7 @@ export default {
     componentSizeNormal: 40,
     inputComponentSizeNormal: 42,
     componentSizeLarge: 52,
+    componentBorderRadiusNone: 0,
     componentBorderRadius: 8,
     componentBorderRadiusSmall: 4,
     componentBorderRadiusNormal: 8,

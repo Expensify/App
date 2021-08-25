@@ -90,6 +90,13 @@ export default function getTooltipStyles(
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
 
+    const topCornerBorderRadius = {};
+    if (horizontalShift < 0) {
+        topCornerBorderRadius.borderTopRightRadius = variables.componentBorderRadiusNone;
+    } else if (horizontalShift > 0) {
+        topCornerBorderRadius.borderTopLeftRadius = variables.componentBorderRadiusNone;
+    }
+
     return {
         animationStyle: {
             // remember Transform causes a new Local cordinate system
@@ -105,6 +112,7 @@ export default function getTooltipStyles(
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
+            ...topCornerBorderRadius,
             zIndex: variables.tooltipzIndex,
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
