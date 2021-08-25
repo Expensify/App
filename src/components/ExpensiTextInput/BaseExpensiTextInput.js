@@ -159,12 +159,7 @@ class BaseExpensiTextInput extends Component {
                                 placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
-<<<<<<< HEAD
-                                style={[...inputStyle, errorText ? styles.errorOutline : undefined]}
-=======
                                 style={inputStyle}
-                                multiline={multiline}
->>>>>>> 411265605 (Merge pull request #4807 from Expensify/aldo_fix-android-input-value-with-error)
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
