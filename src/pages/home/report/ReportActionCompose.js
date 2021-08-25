@@ -189,7 +189,8 @@ class ReportActionCompose extends React.Component {
             this.focus();
         }
 
-        // If we switch the reports, make sure to update the composer comment; otherwise return early
+        // As the report IDs change, make sure to update the composer comment as we need to make sure
+        // we do not show incorrect data in there (ie. draft of message from other report).
         if (this.props.report.reportID === prevProps.report.reportID) {
             return;
         }
