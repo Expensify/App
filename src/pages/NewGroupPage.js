@@ -70,10 +70,9 @@ class NewGroupPage extends Component {
             props.personalDetails,
             '',
             [],
-            false,
+            EXLCUDED_GROUP_EMAILS,
             props.betas,
         );
-
         this.state = {
             searchValue: '',
             recentReports,
