@@ -99,7 +99,6 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // If we do not switch between reports, return early
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
         }
