@@ -26,6 +26,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import CONST from '../../CONST';
 import {create} from '../../libs/actions/Policy';
+import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
     /** Policy for the current route */
@@ -134,17 +135,20 @@ const WorkspaceSidebar = ({
                                     styles.alignSelfCenter,
                                     styles.mt4,
                                     styles.mb6,
+                                    styles.w100,
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Text
-                                    numberOfLines={1}
-                                    style={[
-                                        styles.displayName,
-                                    ]}
-                                >
-                                    {policy.name}
-                                </Text>
+                                <Tooltip text={policy.name}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[
+                                            styles.displayName,
+                                        ]}
+                                    >
+                                        {policy.name}
+                                    </Text>
+                                </Tooltip>
                             </Pressable>
                         </View>
                     </View>
