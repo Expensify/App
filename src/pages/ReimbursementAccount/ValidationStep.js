@@ -54,6 +54,12 @@ class ValidationStep extends React.Component {
             amount3: '',
             error: '',
         };
+
+        this.requiredFields = [
+            'amount1',
+            'amount2',
+            'amount3',
+        ]
     }
 
     submit() {
@@ -104,6 +110,9 @@ class ValidationStep extends React.Component {
         }
 
         const state = this.props.achData.state;
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.maxAttemptsReached;
+
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -153,7 +162,7 @@ class ValidationStep extends React.Component {
                             text={this.props.translate('validationStep.buttonText')}
                             style={[styles.m5]}
                             onPress={this.submit}
-                            isDisabled={this.props.maxAttemptsReached}
+                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 )}
