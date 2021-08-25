@@ -190,10 +190,11 @@ class ReportActionCompose extends React.Component {
         }
 
         // If we switch the reports, make sure to update the composer comment
-        const reportChanged = this.props.report.reportID !== prevProps.report.reportID;
-        if (reportChanged) {
-            this.updateComment(this.props.comment);
+        if (this.props.report.reportID === prevProps.report.reportID) {
+            return;
         }
+
+        this.updateComment(this.props.comment);
     }
 
     componentWillUnmount() {
