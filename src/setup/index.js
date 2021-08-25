@@ -4,12 +4,14 @@ import CONST from '../CONST';
 import listenToStorageEvents from '../libs/listenToStorageEvents';
 import Log from '../libs/Log';
 import platformSetup from './platformSetup';
+import {canCaptureOnyxMetrics} from '../libs/canCaptureMetrics';
 
 export default function () {
     // Initialize the Onyx store when the app loads for the first time
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        captureMetrics: canCaptureOnyxMetrics(),
         initialKeyStates: {
 
             // Clear any loading and error messages so they do not appear on app startup

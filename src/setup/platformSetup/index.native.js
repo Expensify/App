@@ -1,6 +1,6 @@
 import PushNotification from '../../libs/Notification/PushNotification';
 import {subscribeToReportCommentPushNotifications} from '../../libs/actions/Report';
-import {setupPerformanceObserver} from '../../libs/Performance';
+import Performance from '../../libs/Performance';
 
 /**
  * Register callbacks for push notifications.
@@ -18,5 +18,5 @@ export default function () {
         RNAsyncStorageFlipper(AsyncStorage);
     }
 
-    setupPerformanceObserver();
+    Performance.setupPerformanceObserver();
 }
