@@ -180,14 +180,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           PULL_REQUEST: ${{ steps.createPullRequest.outputs.pr_number }}
 
-      # Note: we only run this action if the PR was manually CP'd. Otherwise, the deploy checklist is updated from preDeploy.yml
-      - name: Update StagingDeployCash
-        if: ${{ github.actor != 'OSBotify' }}
-        uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          NPM_VERSION: ${{ env.NEW_VERSION }}
-
       - name: 'Announces a CP failure in the #announce Slack room'
         uses: 8398a7/action-slack@v3
         if: ${{ failure() }}
