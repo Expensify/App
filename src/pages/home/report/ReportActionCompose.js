@@ -11,6 +11,7 @@ import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import lodashIntersection from 'lodash/intersection';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -41,7 +42,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST from '../../../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -57,6 +58,7 @@ import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
     /** Beta features list */
@@ -188,6 +190,12 @@ class ReportActionCompose extends React.Component {
             && prevProps.modal.isVisible && !this.props.modal.isVisible) {
             this.focus();
         }
+
+        // If we switch from a sidebar, the component does not mount again
+        // so we need to update the comment manually.
+        if (prevProps.comment !== this.props.comment) {
+            this.textInput.setNativeProps({text: this.props.comment});
+        }
     }
 
     componentWillUnmount() {
@@ -310,7 +318,9 @@ class ReportActionCompose extends React.Component {
         });
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
-        this.debouncedBroadcastUserIsTyping();
+        if (newComment) {
+            this.debouncedBroadcastUserIsTyping();
+        }
     }
 
     /**
@@ -432,13 +442,12 @@ class ReportActionCompose extends React.Component {
         // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasChronosParticipant = _.contains(reportParticipants, CONST.EMAIL.CHRONOS);
+        const hasExpensifyEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
         const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const shouldShowReportRecipientLocalTime = !hasConciergeParticipant
-            && !hasChronosParticipant
+        const shouldShowReportRecipientLocalTime = !hasExpensifyEmails
             && !hasMultipleParticipants
             && reportRecipient
             && reportRecipientTimezone
@@ -484,17 +493,19 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <TouchableOpacity
-                                                onPress={(e) => {
-                                                    e.preventDefault();
-                                                    this.setMenuVisibility(true);
-                                                }}
-                                                style={styles.chatItemAttachButton}
-                                                underlayColor={themeColors.componentBG}
-                                                disabled={isBlockedFromConcierge || isArchivedChatRoom}
-                                            >
-                                                <Icon src={Plus} />
-                                            </TouchableOpacity>
+                                            <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
+                                                <TouchableOpacity
+                                                    onPress={(e) => {
+                                                        e.preventDefault();
+                                                        this.setMenuVisibility(true);
+                                                    }}
+                                                    style={styles.chatItemAttachButton}
+                                                    underlayColor={themeColors.componentBG}
+                                                    disabled={isBlockedFromConcierge || isArchivedChatRoom}
+                                                >
+                                                    <Icon src={Plus} />
+                                                </TouchableOpacity>
+                                            </Tooltip>
                                             <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
@@ -626,22 +637,26 @@ class ReportActionCompose extends React.Component {
                         disabled={isBlockedFromConcierge || isArchivedChatRoom}
                     >
                         {({hovered, pressed}) => (
-                            <Icon
-                                src={Emoji}
-                                fill={getIconFillColor(getButtonState(hovered, pressed))}
-                            />
+                            <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
+                                <Icon
+                                    src={Emoji}
+                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
+                                />
+                            </Tooltip>
                         )}
                     </Pressable>
-                    <TouchableOpacity
-                        style={[styles.chatItemSubmitButton,
-                            this.state.isCommentEmpty
-                                ? styles.buttonDisable : styles.buttonSuccess]}
-                        onPress={this.submitForm}
-                        underlayColor={themeColors.componentBG}
-                        disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
-                    >
-                        <Icon src={Send} fill={themeColors.componentBG} />
-                    </TouchableOpacity>
+                    <Tooltip text={this.props.translate('common.send')}>
+                        <TouchableOpacity
+                            style={[styles.chatItemSubmitButton,
+                                this.state.isCommentEmpty
+                                    ? styles.buttonDisable : styles.buttonSuccess]}
+                            onPress={this.submitForm}
+                            underlayColor={themeColors.componentBG}
+                            disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                        >
+                            <Icon src={Send} fill={themeColors.componentBG} />
+                        </TouchableOpacity>
+                    </Tooltip>
                 </View>
                 {this.props.network.isOffline ? (
                     <View style={[styles.chatItemComposeSecondaryRow]}>

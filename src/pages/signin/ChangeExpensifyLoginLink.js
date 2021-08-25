@@ -22,19 +22,23 @@ const propTypes = {
 };
 
 const ChangeExpensifyLoginLink = ({credentials, translate, toLocalPhone}) => (
-    <View style={[styles.mb4]}>
+    <View style={[styles.changeExpensifyLoginLinkContainer, styles.mb4, styles.mt3]}>
+        <Text>
+            {translate('common.not')}
+            &nbsp;
+            {Str.isSMSLogin(credentials.login)
+                ? toLocalPhone(Str.removeSMSDomain(credentials.login))
+                : Str.removeSMSDomain(credentials.login)}
+            {'? '}
+        </Text>
         <TouchableOpacity
             style={[styles.link]}
             onPress={restartSignin}
             underlayColor={themeColors.componentBG}
         >
-            <Text style={[styles.link, styles.mt3]}>
-                {translate('common.not')}
-                &nbsp;
-                {Str.isSMSLogin(credentials.login)
-                    ? toLocalPhone(Str.removeSMSDomain(credentials.login))
-                    : Str.removeSMSDomain(credentials.login)}
-                ?
+            <Text style={[styles.link]}>
+                {translate('common.goBack')}
+                {'.'}
             </Text>
         </TouchableOpacity>
     </View>

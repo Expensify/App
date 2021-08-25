@@ -9,6 +9,7 @@ import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
 
 const propTypes = {
@@ -66,36 +67,43 @@ const HeaderWithCloseButton = props => (
         ]}
         >
             {props.shouldShowBackButton && (
-            <TouchableOpacity
-                onPress={props.onBackButtonPress}
-                style={[styles.touchableButtonImage]}
-            >
-                <Icon src={BackArrow} />
-            </TouchableOpacity>
+                <Tooltip text={props.translate('common.back')}>
+                    <TouchableOpacity
+                        onPress={props.onBackButtonPress}
+                        style={[styles.touchableButtonImage]}
+                    >
+                        <Icon src={BackArrow} />
+                    </TouchableOpacity>
+                </Tooltip>
             )}
             <Header title={props.title} />
             <View style={[styles.reportOptions, styles.flexRow]}>
                 {
                     props.shouldShowDownloadButton && (
+                    <Tooltip text={props.translate('common.download')}>
+
                         <TouchableOpacity
                             onPress={props.onDownloadButtonPress}
                             style={[styles.touchableButtonImage]}
                         >
                             <Icon src={Download} />
                         </TouchableOpacity>
+                    </Tooltip>
                     )
                 }
 
                 {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
-                <TouchableOpacity
-                    onPress={props.onCloseButtonPress}
-                    style={[styles.touchableButtonImage]}
-                    accessibilityRole="button"
-                    accessibilityLabel={props.translate('common.close')}
-                >
-                    <Icon src={Close} />
-                </TouchableOpacity>
+                <Tooltip text={props.translate('common.close')}>
+                    <TouchableOpacity
+                        onPress={props.onCloseButtonPress}
+                        style={[styles.touchableButtonImage]}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('common.close')}
+                    >
+                        <Icon src={Close} />
+                    </TouchableOpacity>
+                </Tooltip>
             </View>
         </View>
     </View>
