@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const ActionUtils = require('../../libs/ActionUtils');
-const GithubUtils = require('../../libs/GithubUtils');
+const ActionUtils = require('../../../libs/ActionUtils');
+const GithubUtils = require('../../../libs/GithubUtils');
 
 const DEFAULT_PAYLOAD = {
     owner: GithubUtils.GITHUB_OWNER,

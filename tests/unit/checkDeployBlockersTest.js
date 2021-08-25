@@ -3,7 +3,7 @@
  */
 const core = require('@actions/core');
 const GithubUtils = require('../../.github/libs/GithubUtils');
-const run = require('../../.github/actions/checkDeployBlockers/checkDeployBlockers');
+const run = require('../../.github/actions/javascript/checkDeployBlockers/checkDeployBlockers');
 
 // Static mock function for core.getInput
 const mockGetInput = jest.fn().mockImplementation((arg) => {

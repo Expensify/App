@@ -1,6 +1,6 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const GithubUtils = require('../../libs/GithubUtils');
+const GithubUtils = require('../../../libs/GithubUtils');
 
 const run = function () {
     return GithubUtils.getStagingDeployCash()

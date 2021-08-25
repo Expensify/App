@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const GithubUtils = require('../../libs/GithubUtils');
-const promiseWhile = require('../../libs/promiseWhile');
+const GithubUtils = require('../../../libs/GithubUtils');
+const promiseWhile = require('../../../libs/promiseWhile');
 
 const run = function () {
     const pullRequestNumber = Number(core.getInput('PULL_REQUEST_NUMBER', {required: true}));

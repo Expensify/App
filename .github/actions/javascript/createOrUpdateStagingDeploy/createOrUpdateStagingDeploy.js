@@ -1,8 +1,8 @@
 const _ = require('underscore');
 const core = require('@actions/core');
 const moment = require('moment');
-const GithubUtils = require('../../libs/GithubUtils');
-const GitUtils = require('../../libs/GitUtils');
+const GithubUtils = require('../../../libs/GithubUtils');
+const GitUtils = require('../../../libs/GitUtils');
 
 const run = function () {
     const newVersion = core.getInput('NPM_VERSION');

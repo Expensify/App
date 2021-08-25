@@ -1,5 +1,5 @@
 const core = require('@actions/core');
-const GithubUtils = require('../../libs/GithubUtils');
+const GithubUtils = require('../../../libs/GithubUtils');
 
 const issueNumber = core.getInput('ISSUE_NUMBER', {required: true});
 const comment = core.getInput('COMMENT', {required: true});

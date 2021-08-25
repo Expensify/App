@@ -1,8 +1,8 @@
 const _ = require('underscore');
 const core = require('@actions/core');
-const ActionUtils = require('../../libs/ActionUtils');
-const GithubUtils = require('../../libs/GithubUtils');
-const promiseWhile = require('../../libs/promiseWhile');
+const ActionUtils = require('../../../libs/ActionUtils');
+const GithubUtils = require('../../../libs/GithubUtils');
+const promiseWhile = require('../../../libs/promiseWhile');
 
 /**
  * The maximum amount of time (in ms) we'll wait for a new workflow to start after sending the workflow_dispatch event.

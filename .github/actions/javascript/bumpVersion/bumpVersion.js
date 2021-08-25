@@ -3,8 +3,8 @@ const fs = require('fs');
 const exec = promisify(require('child_process').exec);
 const _ = require('underscore');
 const core = require('@actions/core');
-const versionUpdater = require('../../libs/versionUpdater');
-const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = require('../../libs/nativeVersionUpdater');
+const versionUpdater = require('../../../libs/versionUpdater');
+const {updateAndroidVersion, updateiOSVersion, generateAndroidVersionCode} = require('../../../libs/nativeVersionUpdater');
 
 /**
  * Update the native app versions.
