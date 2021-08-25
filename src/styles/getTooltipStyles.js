@@ -90,11 +90,9 @@ export default function getTooltipStyles(
     const tooltipVerticalPadding = spacing.pv1;
     const tooltipFontSize = variables.fontSizeSmall;
 
-    const topCornerBorderRadius = {};
-    if (horizontalShift < 0) {
-        topCornerBorderRadius.borderTopRightRadius = variables.componentBorderRadiusNone;
-    } else if (horizontalShift > 0) {
-        topCornerBorderRadius.borderTopLeftRadius = variables.componentBorderRadiusNone;
+    let pointerTopMargin = 0;
+    if (horizontalShift !== 0) {
+        pointerTopMargin = 2;
     }
 
     return {
@@ -112,7 +110,6 @@ export default function getTooltipStyles(
             borderRadius: variables.componentBorderRadiusSmall,
             ...tooltipVerticalPadding,
             ...spacing.ph2,
-            ...topCornerBorderRadius,
             zIndex: variables.tooltipzIndex,
 
             // Because it uses fixed positioning, the top-left corner of the tooltip is aligned
@@ -126,10 +123,10 @@ export default function getTooltipStyles(
             top: shouldShowBelow
 
                 // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                ? yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical
+                ? (yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical) - pointerTopMargin
 
                 // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                : (yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical,
+                : ((yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical) + pointerTopMargin,
 
             // Next, we'll position it horizontally.
             // we will use xOffset to position the tooltip relative to the Wrapped Component
@@ -166,7 +163,7 @@ export default function getTooltipStyles(
             //      so that the top of the pointer aligns with the bottom of the component.
             //
             // Always add the manual vertical shift passed in as a parameter.
-            top: shouldShowBelow ? manualShiftVertical - POINTER_HEIGHT : tooltipHeight + manualShiftVertical,
+            top: shouldShowBelow ? (manualShiftVertical - POINTER_HEIGHT) + pointerTopMargin : (tooltipHeight + manualShiftVertical) - pointerTopMargin,
 
             // To align it horizontally, we'll:
             //   1) Shift the pointer to the right (+) by the half the tooltipWidth's width,
