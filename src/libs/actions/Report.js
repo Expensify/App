@@ -1,3 +1,4 @@
+import {Linking} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -753,7 +754,7 @@ function subscribeToReportCommentPushNotifications() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        Linking.openURL(`expensify-cash://${ROUTES.getReportRoute(reportID)}`);
     });
 }
 
