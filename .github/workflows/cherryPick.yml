@@ -200,7 +200,8 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: "#DB4545",
-                text: `🔥️ Failed to CP https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🔥️`,
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Failed to CP https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 💥`,
               }]
             }
         env:
