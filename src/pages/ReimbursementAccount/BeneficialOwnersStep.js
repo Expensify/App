@@ -235,6 +235,7 @@ class BeneficialOwnersStep extends React.Component {
                         success
                         text={this.props.translate('common.saveAndContinue')}
                         onPress={this.submit}
+                        isDisabled={!this.state.acceptTermsAndConditions || !this.state.certifyTrueInformation}
                     />
                 </FixedFooter>
             </>
