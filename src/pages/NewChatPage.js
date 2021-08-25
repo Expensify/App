@@ -65,7 +65,11 @@ class NewChatPage extends Component {
             props.reports,
             props.personalDetails,
             '',
-            false,
+            {
+                excludeConcierge: false,
+                excludeChronos: false,
+                excludeReceipts: true,
+            },
             props.betas,
         );
 
