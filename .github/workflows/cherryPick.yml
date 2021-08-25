@@ -57,6 +57,10 @@ jobs:
           echo "New version is $(npm run print-version --silent)"
           echo "::set-output name=NEW_VERSION::$(npm run print-version --silent)"
 
+      - name: Job failed Slack notification
+        if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
+
   cherryPick:
     needs: [validateActor, createNewVersion]
     if: ${{ always() && needs.validateActor.outputs.IS_DEPLOYER }}
@@ -187,3 +191,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           NPM_VERSION: ${{ env.NEW_VERSION }}
+
+      - name: Job failed Slack notification
+        if: ${{ failure() }}
+        uses: Expensify/App/.github/actions/composite/announceFailedWorkflowInSlack@main
