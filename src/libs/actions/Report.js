@@ -309,7 +309,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
         .then(({reportSummaryList, jsonCode}) => {
-            Log.info('[Report] successfully fetched report data', true);
+            Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
 
             // If we receive a 404 response while fetching a single report, treat that report as inacessible.
@@ -329,7 +329,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
                     return;
                 }
                 if (participants.length === 0) {
-                    Log.alert('[Report] Report with IOU action but does not have any participant.', true, {
+                    Log.alert('[Report] Report with IOU action but does not have any participant.', {
                         reportID: chatReport.reportID,
                         participants,
                     });
@@ -686,7 +686,7 @@ function subscribeToUserEvents() {
     // Live-update a report's actions when a 'report comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
         Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, false, {reportID: pushJSON.reportID},
         );
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
     }, false,
@@ -696,7 +696,7 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
             );
         });
@@ -704,7 +704,7 @@ function subscribeToUserEvents() {
     // Live-update a report's actions when an 'edit comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
         Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, true, {
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, false, {
                 reportActionID: pushJSON.reportActionID,
             },
         );
@@ -716,7 +716,7 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
             );
         });
@@ -725,7 +725,7 @@ function subscribeToUserEvents() {
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
-            true,
+            false,
             {reportID: pushJSON.reportID},
         );
         updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
@@ -736,7 +736,7 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
             );
         });
@@ -747,7 +747,7 @@ function subscribeToUserEvents() {
  */
 function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
-        Log.info('[Report] Handled event sent by Airship', true, {reportID});
+        Log.info('[Report] Handled event sent by Airship', false, {reportID});
         updateReportWithNewAction(reportID, reportAction);
     });
 
@@ -819,7 +819,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+            Log.info('[Report] Failed to initially subscribe to Pusher channel', false, {error, pusherChannelName});
         });
 }
 
@@ -886,7 +886,7 @@ function fetchActions(reportID, offset) {
     const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
 
     if (!_.isNumber(reportActionsOffset)) {
-        Log.alert('[Report] Offset provided is not a number', true, {
+        Log.alert('[Report] Offset provided is not a number', {
             offset,
             reportActionsOffset,
         });

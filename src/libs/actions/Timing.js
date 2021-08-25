@@ -1,6 +1,7 @@
 import getPlatform from '../getPlatform';
 import {Graphite_Timer} from '../API';
 import {isDevelopment} from '../Environment/Environment';
+import Firebase from '../Firebase';
 
 let timestampData = {};
 
@@ -8,9 +9,16 @@ let timestampData = {};
  * Start a performance timing measurement
  *
  * @param {String} eventName
+ * @param {Boolean} shouldUseFirebase - adds an additional trace in Firebase
  */
-function start(eventName) {
-    timestampData[eventName] = Date.now();
+function start(eventName, shouldUseFirebase = false) {
+    timestampData[eventName] = {startTime: Date.now(), shouldUseFirebase};
+
+    if (!shouldUseFirebase) {
+        return;
+    }
+
+    Firebase.startTrace(eventName);
 }
 
 /**
@@ -21,7 +29,13 @@ function start(eventName) {
  */
 function end(eventName, secondaryName = '') {
     if (eventName in timestampData) {
-        const eventTime = Date.now() - timestampData[eventName];
+        const {startTime, shouldUseFirebase} = timestampData[eventName];
+        const eventTime = Date.now() - startTime;
+
+        if (shouldUseFirebase) {
+            Firebase.stopTrace(eventName);
+        }
+
         const grafanaEventName = secondaryName
             ? `expensify.cash.${eventName}.${secondaryName}`
             : `expensify.cash.${eventName}`;

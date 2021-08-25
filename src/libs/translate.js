@@ -45,7 +45,7 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
         return Str.result(translationValue, variables);
     }
     if (localeLanguage !== 'en') {
-        Log.alert(`${phrase} was not found in the ${localeLanguage} locale`, 0, {}, false);
+        Log.alert(`${phrase} was not found in the ${localeLanguage} locale`);
     }
 
     // Phrase is not translated, search it in default language (en)
@@ -58,7 +58,7 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
     // on development throw an error
     if (Config.IS_IN_PRODUCTION) {
         const phraseString = Array.isArray(phrase) ? phrase.join('.') : phrase;
-        Log.alert(`${phraseString} was not found in the en locale`, 0, {}, false);
+        Log.alert(`${phraseString} was not found in the en locale`);
         return phraseString;
     }
     throw new Error(`${phrase} was not found in the default language`);

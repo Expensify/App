@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -95,24 +96,26 @@ class VideoChatButtonAndMenu extends Component {
                     ref={el => this.videoChatIconWrapper = el}
                     onLayout={this.measureVideoChatIconPosition}
                 >
-                    <Pressable
-                        onPress={() => {
-                            // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
-                            if (this.props.isConcierge) {
-                                Navigation.navigate(ROUTES.REQUEST_CALL);
-                                return;
-                            }
-                            this.toggleVideoChatMenu();
-                        }}
-                        style={[styles.touchableButtonImage, styles.mr0]}
-                    >
-                        <Icon
-                            src={Phone}
-                            fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
-                                ? themeColors.heading
-                                : themeColors.icon}
-                        />
-                    </Pressable>
+                    <Tooltip text={this.props.translate('videoChatButtonAndMenu.tooltip')}>
+                        <Pressable
+                            onPress={() => {
+                                // If this is the Concierge chat, we'll open the modal for requesting a setup call instead
+                                if (this.props.isConcierge) {
+                                    Navigation.navigate(ROUTES.getRequestCallRoute('NewExpensifyConciergeDM'));
+                                    return;
+                                }
+                                this.toggleVideoChatMenu();
+                            }}
+                            style={[styles.touchableButtonImage, styles.mr0]}
+                        >
+                            <Icon
+                                src={Phone}
+                                fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
+                                    ? themeColors.heading
+                                    : themeColors.icon}
+                            />
+                        </Pressable>
+                    </Tooltip>
                 </View>
                 <Popover
                     onClose={this.toggleVideoChatMenu}

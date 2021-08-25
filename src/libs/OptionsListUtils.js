@@ -278,6 +278,36 @@ function isSearchStringMatch(searchValue, searchText, participantNames = new Set
 }
 
 /**
+ * Returns the given userDetails is currentUser or not.
+ * @param {Object} userDetails
+ * @returns {Bool}
+ */
+
+function isCurrentUser(userDetails) {
+    if (!userDetails) {
+        // If userDetails is null or undefined
+        return false;
+    }
+
+    // If user login is mobile number, append sms domain if not appended already just a fail safe.
+    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
+
+    // Initial check with currentUserLogin
+    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
+    const loginList = _.isEmpty(currentUser) || _.isEmpty(currentUser.loginList) ? [] : currentUser.loginList;
+    let index = 0;
+
+    // Checking userDetailsLogin against to current user login options.
+    while (index < loginList.length && !result) {
+        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
+            result = true;
+        }
+        index++;
+    }
+    return result;
+}
+
+/**
  * Build the options
  *
  * @param {Object} reports
@@ -293,6 +323,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     selectedOptions = [],
     maxRecentReportsToShow = 0,
     excludeConcierge = false,
+    excludeChronos = false,
+    excludeReceipts = false,
     excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
@@ -384,6 +416,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
     }
 
+    if (excludeChronos) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.CHRONOS});
+    }
+
+    if (excludeReceipts) {
+        loginOptionsToExclude.push({login: CONST.EMAIL.RECEIPTS});
+    }
+
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
             // Stop adding options to the recentReports array when we reach the maxRecentReportsToShow value
@@ -466,8 +506,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     if (searchValue
         && recentReportOptions.length === 0
         && personalDetailsOptions.length === 0
+        && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
@@ -527,7 +569,10 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
- * @param {Boolean} excludeConcierge
+ * @param {Object} excludedOptions
+ * @param {Boolean} excludedOptions.excludeConcierge
+ * @param {Boolean} excludedOptions.excludeChronos
+ * @param {Boolean} excludedOptions.excludeReceipts
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -535,7 +580,11 @@ function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
-    excludeConcierge,
+    {
+        excludeConcierge = false,
+        excludeChronos = false,
+        excludeReceipts = true,
+    } = {},
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -546,6 +595,8 @@ function getNewChatOptions(
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
         excludeConcierge,
+        excludeChronos,
+        excludeReceipts,
     });
 }
 
@@ -588,7 +639,10 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
- * @param {Boolean} excludeConcierge
+ * @param {Object} excludedOptions
+ * @param {Boolean} excludedOptions.excludeConcierge
+ * @param {Boolean} excludedOptions.excludeChronos
+ * @param {Boolean} excludedOptions.excludeReceipts
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -597,7 +651,11 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
-    excludeConcierge,
+    {
+        excludeConcierge = false,
+        excludeChronos = false,
+        excludeReceipts = true,
+    } = {},
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -610,6 +668,8 @@ function getNewGroupOptions(
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
         excludeConcierge,
+        excludeChronos,
+        excludeReceipts,
     });
 }
 
@@ -678,7 +738,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
             return translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
-        return searchValue;
+        return translate(preferredLocale, 'common.noResultsFound');
     }
 
     return '';
@@ -722,38 +782,9 @@ function getReportIcons(report, personalDetails) {
         .map(item => item.avatar);
 }
 
-/**
- * Returns the given userDetails is currentUser or not.
- * @param {Object} userDetails
- * @returns {Bool}
- */
-
-function isCurrentUser(userDetails) {
-    if (!userDetails) {
-        // If userDetails is null or undefined
-        return false;
-    }
-
-    // If user login is mobile number, append sms domain if not appended already just a fail safe.
-    const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
-
-    // Initial check with currentUserLogin
-    let result = currentUserLogin.toLowerCase() === userDetailsLogin.toLowerCase();
-    const {loginList} = currentUser;
-    let index = 0;
-
-    // Checking userDetailsLogin against to current user login options.
-    while (index < loginList.length && !result) {
-        if (loginList[index].partnerUserID.toLowerCase() === userDetailsLogin.toLowerCase()) {
-            result = true;
-        }
-        index++;
-    }
-    return result;
-}
-
 export {
     addSMSDomainIfPhoneNumber,
+    isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
     getNewGroupOptions,
@@ -765,5 +796,4 @@ export {
     getIOUConfirmationOptionsFromParticipants,
     getDefaultAvatar,
     getReportIcons,
-    isCurrentUser,
 };
