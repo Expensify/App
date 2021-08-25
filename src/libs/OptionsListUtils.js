@@ -322,9 +322,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
-    excludeConcierge = false,
-    excludeChronos = false,
-    excludeReceipts = false,
+    excludeLogins = [],
     excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
@@ -412,16 +410,10 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
-    if (excludeConcierge) {
-        loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
-    }
-
-    if (excludeChronos) {
-        loginOptionsToExclude.push({login: CONST.EMAIL.CHRONOS});
-    }
-
-    if (excludeReceipts) {
-        loginOptionsToExclude.push({login: CONST.EMAIL.RECEIPTS});
+    if (excludeLogins) {
+        excludeLogins.forEach((excludeLogin) => {
+            loginOptionsToExclude.push({login: excludeLogin});
+        });
     }
 
     if (includeRecentReports) {
@@ -639,10 +631,7 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Object} personalDetails
  * @param {String} searchValue
  * @param {Array} selectedOptions
- * @param {Object} excludedOptions
- * @param {Boolean} excludedOptions.excludeConcierge
- * @param {Boolean} excludedOptions.excludeChronos
- * @param {Boolean} excludedOptions.excludeReceipts
+ * @param {Array} excludeLogins
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -651,11 +640,7 @@ function getNewGroupOptions(
     personalDetails,
     searchValue = '',
     selectedOptions = [],
-    {
-        excludeConcierge = false,
-        excludeChronos = false,
-        excludeReceipts = true,
-    } = {},
+    excludeLogins = [],
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -667,9 +652,7 @@ function getNewGroupOptions(
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
-        excludeConcierge,
-        excludeChronos,
-        excludeReceipts,
+        excludeLogins,
     });
 }
 
