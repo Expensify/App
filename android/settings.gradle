@@ -1,4 +1,4 @@
-rootProject.name = 'ExpensifyCash'
+rootProject.name = 'NewExpensify'
 apply from: '../node_modules/react-native-unimodules/gradle.groovy'; includeUnimodulesProjects()
 include ':react-native-config'
 project(':react-native-config').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-config/android')

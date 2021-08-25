@@ -55,9 +55,9 @@ const CommunicationsLink = props => (
                     {props.children}
                     <ContextMenuItem
                         icon={ClipboardIcon}
-                        text={props.translate('contextMenuItem.copyToClipboard')}
+                        text={props.translate('reportActionContextMenu.copyToClipboard')}
                         successIcon={Checkmark}
-                        successText={props.translate('contextMenuItem.copied')}
+                        successText={props.translate('reportActionContextMenu.copied')}
                         isMini
                         autoReset
                         onPress={() => Clipboard.setString(props.value)}

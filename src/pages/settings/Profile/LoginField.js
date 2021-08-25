@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Pressable} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
@@ -12,6 +12,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import {resendValidateCode} from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
+import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
     /** Label to display on login form */
@@ -85,21 +86,14 @@ class LoginField extends Component {
             <View style={styles.mb6}>
                 <Text style={styles.formLabel}>{this.props.label}</Text>
                 {!this.props.login.partnerUserID ? (
-                    <Pressable
-                        style={[styles.createMenuItem, styles.ph0]}
-                        onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
-                    >
-                        <View style={styles.flexRow}>
-                            <View style={styles.createMenuIcon}>
-                                <Icon src={Plus} />
-                            </View>
-                            <View style={styles.justifyContentCenter}>
-                                <Text style={[styles.createMenuText, styles.ml3]}>
-                                    {`${this.props.translate('common.add')} ${this.props.label}`}
-                                </Text>
-                            </View>
-                        </View>
-                    </Pressable>
+                    <View style={[styles.mln5, styles.mrn5]}>
+                        <MenuItem
+                            key={`common.add.${this.props.type}`}
+                            title={`${this.props.translate('common.add')} ${this.props.label}`}
+                            icon={Plus}
+                            onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
+                        />
+                    </View>
                 ) : (
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Text numberOfLines={1}>

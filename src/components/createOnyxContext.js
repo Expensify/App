@@ -26,7 +26,7 @@ export default (onyxKeyName) => {
         },
     })(Provider);
 
-    const withOnyxKey = ({propName = onyxKeyName, transformValue = () => {}} = {}) => (WrappedComponent) => {
+    const withOnyxKey = ({propName = onyxKeyName, transformValue} = {}) => (WrappedComponent) => {
         const Consumer = forwardRef((props, ref) => (
             <Context.Consumer>
                 {(value) => {

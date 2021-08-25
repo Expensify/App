@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    /** The function that should be called when this pressable is pressed */
+    onPress: PropTypes.func,
+
     /** The function that should be called when this pressable is pressedIn */
     onPressIn: PropTypes.func,
 
