@@ -96,7 +96,7 @@ describe('checkDeployBlockers', () => {
             mockGetIssue.mockResolvedValue(checkedBoxesNoShipitIssue);
             // eslint-disable-next-line max-len
             baseComments.data.push({body: 'This issue either has unchecked QA steps or has not yet been stamped with a :shipit: comment. Reopening!'});
-            baseComments.data.push({body: 'This is another comment"'});
+            baseComments.data.push({body: 'This is another comment!'});
             mockListComments.mockResolvedValue(baseComments);
             return run().then(() => {
                 expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
