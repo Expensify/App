@@ -120,13 +120,19 @@ class BaseExpensiTextInput extends Component {
             ignoreLabelTranslateX,
             innerRef,
             autoFocus,
+            multiline,
             ...inputProps
         } = this.props;
 
         const hasLabel = Boolean(label.length);
         return (
             <View>
-                <View style={[styles.componentHeightLarge, ...containerStyles]}>
+                <View
+                    style={[
+                        !multiline && styles.componentHeightLarge,
+                        ...containerStyles,
+                    ]}
+                >
                     <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
                         <View
                             style={[
@@ -160,6 +166,7 @@ class BaseExpensiTextInput extends Component {
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={inputStyle}
+                                multiline={multiline}
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
