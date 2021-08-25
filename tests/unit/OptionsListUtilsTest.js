@@ -318,7 +318,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', {excludeConcierge: true},
+            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', ['concierge@expensify.com'],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -331,7 +331,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, '', {excludeChronos: true},
+            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, '', ['chronos@expensify.com'],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -344,7 +344,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, '', {excludeReceipts: true},
+            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, '', ['receipts@expensify.com'],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -474,9 +474,7 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_CONCIERGE,
             '',
             [],
-            {
-                excludeConcierge: true,
-            },
+            ['concierge@expensify.com'],
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
@@ -500,9 +498,7 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_CHRONOS,
             '',
             [],
-            {
-                excludeChronos: true,
-            },
+            ['chronos@expensify.com'],
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
@@ -525,9 +521,7 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_RECEIPTS,
             '',
             [],
-            {
-                excludeReceipts: true,
-            },
+            ['receipts@expensify.com'],
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
