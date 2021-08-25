@@ -561,10 +561,7 @@ function getSearchOptions(
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
- * @param {Object} excludedOptions
- * @param {Boolean} excludedOptions.excludeConcierge
- * @param {Boolean} excludedOptions.excludeChronos
- * @param {Boolean} excludedOptions.excludeReceipts
+ * @param {Array} excludeLogins
  * @param {Array<String>} betas
  * @returns {Object}
  */
@@ -572,11 +569,7 @@ function getNewChatOptions(
     reports,
     personalDetails,
     searchValue = '',
-    {
-        excludeConcierge = false,
-        excludeChronos = false,
-        excludeReceipts = true,
-    } = {},
+    excludeLogins = [],
     betas,
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
@@ -586,9 +579,7 @@ function getNewChatOptions(
         includePersonalDetails: true,
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
-        excludeConcierge,
-        excludeChronos,
-        excludeReceipts,
+        excludeLogins,
     });
 }
 
