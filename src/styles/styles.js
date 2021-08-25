@@ -895,6 +895,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+        maxWidth: 240,
     },
 
     menuItemTextContainer: {
