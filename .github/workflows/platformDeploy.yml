@@ -362,7 +362,7 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: 'good',
-                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'production' || 'staging' }}.`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
@@ -379,7 +379,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: 'good',
-                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production.`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production 🎉️`,
               }]
             }
         env:
