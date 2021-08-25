@@ -7,7 +7,7 @@ import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import {EXLCUDED_IOU_EMAILS} from '../../../../CONST';
+import {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -57,7 +57,7 @@ class IOUParticipantsRequest extends Component {
             props.reports,
             props.personalDetails,
             '',
-            EXLCUDED_IOU_EMAILS,
+            EXCLUDED_IOU_EMAILS,
             props.betas,
         );
 
@@ -129,7 +129,7 @@ class IOUParticipantsRequest extends Component {
                         this.props.reports,
                         this.props.personalDetails,
                         searchValue,
-                        EXLCUDED_IOU_EMAILS,
+                        EXCLUDED_IOU_EMAILS,
                         this.props.betas,
                     );
                     this.setState({

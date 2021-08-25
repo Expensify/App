@@ -7,7 +7,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
-import CONST, {EXLCUDED_IOU_EMAILS} from '../../../../CONST';
+import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
@@ -82,7 +82,7 @@ class IOUParticipantsSplit extends Component {
             props.personalDetails,
             '',
             props.participants,
-            EXLCUDED_IOU_EMAILS,
+            EXCLUDED_IOU_EMAILS,
             props.betas,
         );
 
@@ -183,7 +183,7 @@ class IOUParticipantsSplit extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                EXLCUDED_IOU_EMAILS,
+                EXCLUDED_IOU_EMAILS,
                 this.props.betas,
             );
             return {
@@ -220,7 +220,7 @@ class IOUParticipantsSplit extends Component {
                                 this.props.personalDetails,
                                 searchValue,
                                 [],
-                                EXLCUDED_IOU_EMAILS,
+                                EXCLUDED_IOU_EMAILS,
                                 this.props.betas,
                             );
                             this.setState({
