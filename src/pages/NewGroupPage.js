@@ -8,7 +8,7 @@ import {getNewGroupOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
-import CONST from '../CONST';
+import CONST, {EXLCUDED_GROUP_EMAILS} from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -169,7 +169,7 @@ class NewGroupPage extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                false,
+                EXLCUDED_GROUP_EMAILS,
                 this.props.betas,
             );
 
@@ -221,7 +221,7 @@ class NewGroupPage extends Component {
                                                     this.props.personalDetails,
                                                     searchValue,
                                                     [],
-                                                    false,
+                                                    EXLCUDED_GROUP_EMAILS,
                                                     this.props.betas,
                                                 );
                                                 this.setState({
