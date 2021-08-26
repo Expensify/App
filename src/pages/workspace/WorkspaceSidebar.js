@@ -80,7 +80,6 @@ const WorkspaceSidebar = ({
     if (allPolicies !== null && _.isEmpty(policy)) {
         Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
         Navigation.dismissModal();
-        create();
         return null;
     }
 

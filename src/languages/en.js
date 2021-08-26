@@ -618,7 +618,7 @@ export default {
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
         error: {
-            growlMessageInvalidPolicy: 'Invalid workspace! A new workspace has been created.',
+            growlMessageInvalidPolicy: 'Invalid workspace!',
         },
     },
     requestCallPage: {
