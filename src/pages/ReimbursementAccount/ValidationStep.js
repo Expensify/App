@@ -59,7 +59,7 @@ class ValidationStep extends React.Component {
             'amount1',
             'amount2',
             'amount3',
-        ]
+        ];
     }
 
     submit() {
