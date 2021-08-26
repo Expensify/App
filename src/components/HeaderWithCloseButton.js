@@ -77,7 +77,7 @@ const HeaderWithCloseButton = props => (
                 </Tooltip>
             )}
             <Header title={props.title} />
-            <View style={[styles.reportOptions, styles.flexRow]}>
+            <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
                     props.shouldShowDownloadButton && (
                     <Tooltip text={props.translate('common.download')}>
@@ -97,7 +97,7 @@ const HeaderWithCloseButton = props => (
                 <Tooltip text={props.translate('common.close')}>
                     <TouchableOpacity
                         onPress={props.onCloseButtonPress}
-                        style={[styles.touchableButtonImage]}
+                        style={[styles.touchableButtonImage, styles.mr0]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('common.close')}
                     >
