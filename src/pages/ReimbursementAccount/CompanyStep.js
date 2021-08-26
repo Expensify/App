@@ -303,7 +303,7 @@ class CompanyStep extends React.Component {
                                 : ''}
                         />
                         <ExpensiTextInput
-                            autoCompleteType="password"
+                            autoCompleteType="new-password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry

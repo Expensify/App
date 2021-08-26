@@ -7,6 +7,7 @@ const ExpensiTextInput = forwardRef((props, ref) => (
     <BaseExpensiTextInput
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
+        autoCompleteType={props.autoCompleteType === 'new-password' ? 'password' : props.autoCompleteType}
         innerRef={ref}
         inputStyle={[
             styles.expensiTextInput,
