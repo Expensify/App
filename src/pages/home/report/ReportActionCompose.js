@@ -493,19 +493,22 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                <TouchableOpacity
-                                                    onPress={(e) => {
-                                                        e.preventDefault();
-                                                        this.setMenuVisibility(true);
-                                                    }}
-                                                    style={styles.chatItemAttachButton}
-                                                    underlayColor={themeColors.componentBG}
-                                                    disabled={isBlockedFromConcierge || isArchivedChatRoom}
-                                                >
-                                                    <Icon src={Plus} />
-                                                </TouchableOpacity>
-                                            </Tooltip>
+                                            <View style={[styles.justifyContentEnd]}>
+                                                <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
+                                                    <TouchableOpacity
+                                                        onPress={(e) => {
+                                                            e.preventDefault();
+                                                            this.setMenuVisibility(true);
+                                                        }}
+                                                        style={styles.chatItemAttachButton}
+                                                        underlayColor={themeColors.componentBG}
+                                                        disabled={isBlockedFromConcierge || isArchivedChatRoom}
+                                                    >
+
+                                                        <Icon src={Plus} />
+                                                    </TouchableOpacity>
+                                                </Tooltip>
+                                            </View>
                                             <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
@@ -645,18 +648,24 @@ class ReportActionCompose extends React.Component {
                             </Tooltip>
                         )}
                     </Pressable>
-                    <Tooltip text={this.props.translate('common.send')}>
-                        <TouchableOpacity
-                            style={[styles.chatItemSubmitButton,
-                                this.state.isCommentEmpty
-                                    ? styles.buttonDisable : styles.buttonSuccess]}
-                            onPress={this.submitForm}
-                            underlayColor={themeColors.componentBG}
-                            disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
-                        >
-                            <Icon src={Send} fill={themeColors.componentBG} />
-                        </TouchableOpacity>
-                    </Tooltip>
+                    <View style={[styles.justifyContentEnd]}>
+                        <Tooltip text={this.props.translate('common.send')}>
+                            <TouchableOpacity
+                                style={[styles.chatItemSubmitButton,
+                                    this.state.isCommentEmpty
+                                        ? styles.buttonDisable : styles.buttonSuccess]}
+                                onPress={this.submitForm}
+                                underlayColor={themeColors.componentBG}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                            >
+
+                                <Icon src={Send} fill={themeColors.componentBG} />
+
+                            </TouchableOpacity>
+                        </Tooltip>
+                    </View>
+
+
                 </View>
                 {this.props.network.isOffline ? (
                     <View style={[styles.chatItemComposeSecondaryRow]}>
