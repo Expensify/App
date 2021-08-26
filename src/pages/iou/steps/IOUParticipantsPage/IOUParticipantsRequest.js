@@ -56,9 +56,9 @@ class IOUParticipantsRequest extends Component {
         } = getNewChatOptions(
             props.reports,
             props.personalDetails,
+            props.betas,
             '',
             EXCLUDED_IOU_EMAILS,
-            props.betas,
         );
 
         this.state = {
@@ -128,9 +128,9 @@ class IOUParticipantsRequest extends Component {
                     } = getNewChatOptions(
                         this.props.reports,
                         this.props.personalDetails,
+                        this.props.betas,
                         searchValue,
                         EXCLUDED_IOU_EMAILS,
-                        this.props.betas,
                     );
                     this.setState({
                         searchValue,

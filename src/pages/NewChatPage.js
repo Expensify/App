@@ -64,8 +64,6 @@ class NewChatPage extends Component {
         } = getNewChatOptions(
             props.reports,
             props.personalDetails,
-            '',
-            [],
             props.betas,
         );
 
@@ -153,9 +151,8 @@ class NewChatPage extends Component {
                                     } = getNewChatOptions(
                                         this.props.reports,
                                         this.props.personalDetails,
-                                        searchValue,
-                                        [],
                                         this.props.betas,
+                                        searchValue,
                                     );
                                     this.setState({
                                         searchValue,
