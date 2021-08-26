@@ -165,7 +165,7 @@ class BaseExpensiTextInput extends Component {
                                 placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
-                                style={[...inputStyle, errorText ? styles.errorOutline : undefined]}
+                                style={inputStyle}
                                 multiline={multiline}
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
