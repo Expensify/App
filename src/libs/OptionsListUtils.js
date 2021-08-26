@@ -208,7 +208,7 @@ function createOption(personalDetailList, report, draftComments, {
         ? (hasMultipleParticipants && lastActorDetails
             ? `${lastActorDetails.displayName}: `
             : '')
-        + _.unescape(report.lastMessageText)
+        + Str.htmlDecode(report.lastMessageText)
         : '';
 
     const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
