@@ -11,6 +11,7 @@ export default {
         new: 'NUEVO',
         search: 'Buscar',
         next: 'Siguiente',
+        goBack: 'Regresar',
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
@@ -36,6 +37,10 @@ export default {
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
+        download: 'Descargar',
+        pin: 'Fijar',
+        unPin: 'Desfijar',
+        back: 'Volver',
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
@@ -102,6 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
     },
     videoChatButtonAndMenu: {
+        tooltip: 'Videollamada',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -114,6 +120,7 @@ export default {
         phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
+        addAction: 'Acción',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar Archivo Adjunto',
         writeSomething: 'Escribe algo...',
@@ -122,6 +129,7 @@ export default {
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        emoji: 'Emoji',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -145,6 +153,7 @@ export default {
         multipleUsers: 'Varios usuarios',
     },
     sidebarScreen: {
+        fabAction: 'Nuevo Chat',
         newChat: 'Nuevo Chat',
         newGroup: 'Nuevo Grupo',
         headerChat: 'Chats',
@@ -195,6 +204,7 @@ export default {
     avatarWithImagePicker: {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
+        editImage: 'Editar Foto',
     },
     profilePage: {
         profile: 'Perfil',
@@ -273,7 +283,7 @@ export default {
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
-        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',
+        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo.',
         focus: '#concentración',
         focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
@@ -329,7 +339,7 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: '¡Te hemos enviado un enlace - simplemente haz click en él para conectarte!',
+        weSentYouMagicSignInLink: ({loginType}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${loginType}.`,
         resendLink: 'Reenviar Enlace',
     },
     detailsPage: {
@@ -517,6 +527,9 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '10 dígitos, sin guiones',
+        confirmModalTitle: '¿Estás seguro?',
+        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
+        confirmModalConfirmText: 'OK',
     },
     requestorStep: {
         headerTitle: 'Información del solicitante',

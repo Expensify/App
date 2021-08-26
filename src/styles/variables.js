@@ -29,7 +29,7 @@ export default {
     iconSizeLarge: 24,
     iouAmountTextSize: 40,
     mobileResponsiveWidthBreakpoint: 800,
-    mediumScreenResponsiveWidthBreakpoint: 1024,
+    tabletResponsiveWidthBreakpoint: 1024,
     safeInsertPercentage: 0.7,
     sideBarWidth: 375,
     pdfPageMaxWidth: 992,

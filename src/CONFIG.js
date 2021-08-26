@@ -61,4 +61,5 @@ export default {
         UNREAD: '/favicon-unread.png',
     },
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', false),
+    ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', false),
 };

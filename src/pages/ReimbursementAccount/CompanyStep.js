@@ -303,7 +303,7 @@ class CompanyStep extends React.Component {
                                 : ''}
                         />
                         <ExpensiTextInput
-                            autoCompleteType="new-password"
+                            autoCompleteType="password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
@@ -341,11 +341,11 @@ class CompanyStep extends React.Component {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title="Are you sure?"
+                    title={this.props.translate('companyStep.confirmModalTitle')}
                     onConfirm={() => this.setState({isConfirmModalOpen: false})}
-                    prompt="Please double check any highlighted fields and try again."
+                    prompt={this.props.translate('companyStep.confirmModalPrompt')}
                     isVisible={this.state.isConfirmModalOpen}
-                    confirmText="Got it"
+                    confirmText={this.props.translate('companyStep.confirmModalConfirmText')}
                     shouldShowCancelButton={false}
                 />
 
