@@ -25,7 +25,6 @@ import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import CONST from '../../CONST';
-import {create} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Policy for the current route */
