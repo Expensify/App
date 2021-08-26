@@ -15,24 +15,29 @@ const propTypes = {
         This is unused in native, but is here for parity with web */
     target: PropTypes.string,
 
-    /** Should the link be treated as a file download or a regular hyperlink? (relevant to native platforms only)  */
-    shouldDownloadFile: PropTypes.bool,
+    /** Flag to differentiate attachments and hyperlink. Base on flag link will be treated as a file download or a regular hyperlink */
+    isAttachment: PropTypes.bool,
 
     /** Any children to display */
     children: PropTypes.node,
 
+    /** Display label in case of attachments */
+    fileName: PropTypes.string,
+
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
     style: PropTypes.any,
+
 };
 
 const defaultProps = {
     href: '',
     rel: '',
     target: '',
-    shouldDownloadFile: false,
+    isAttachment: false,
     children: null,
     style: {},
+    fileName: '',
 };
 
 export {propTypes, defaultProps};
