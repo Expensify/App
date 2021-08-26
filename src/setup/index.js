@@ -7,7 +7,10 @@ import platformSetup from './platformSetup';
 import {canCaptureOnyxMetrics} from '../libs/canCaptureMetrics';
 
 export default function () {
-    // Initialize the Onyx store when the app loads for the first time
+    // Initialize the Onyx store when the app loads for the first time.
+    // Note: This Onyx initialization has been very intentionally placed outside of the React lifecycle of the main App component.
+    //       This enables us to use Onyx in a headless JS context (i.e: to update Onyx data in response to a push notification received when the app is completely killed).
+    //       More info here: https://github.com/transistorsoft/react-native-background-fetch/issues/165#issuecomment-514255928
     Onyx.init({
         keys: ONYXKEYS,
         safeEvictionKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
