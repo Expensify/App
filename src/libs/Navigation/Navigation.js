@@ -20,8 +20,10 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
+// If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens).
+// This probably indicates that we're trying to deeplink to a report when the react-navigation is not fully loaded yet,
+// such as when the app is awoken from a push notification. In such a case, we need the drawer to start closed so it doesn't cover the report we're trying to link to.
 let startWithDrawerClosed = false;
-export const shouldStartWithDrawerClosed = () => startWithDrawerClosed;
 
 export const navigationRef = createNavigationContainerRef();
 
@@ -43,6 +45,17 @@ function closeDrawer() {
     }
 
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
+}
+
+/**
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {String}
+ */
+function getDefaultDrawerState(isSmallScreenWidth) {
+    if (startWithDrawerClosed) {
+        return 'closed';
+    }
+    return isSmallScreenWidth ? 'open' : 'closed';
 }
 
 /**
@@ -191,4 +204,5 @@ export default {
     goBack,
     DismissModal,
     closeDrawer,
+    getDefaultDrawerState,
 };
