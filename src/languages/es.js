@@ -590,10 +590,10 @@ export default {
         },
         invite: {
             invitePeople: 'Invitar a la gente',
-            invitePeoplePrompt: 'Invita a sus colegas a tu espacio de trabajo.',
+            invitePeoplePrompt: 'Invita a tus compañeros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             enterEmailOrPhone: 'Correos electrónicos o números de teléfono',
-            EmailOrPhonePlaceholder: 'Ingrese una lista separada por comas de correos electrónicos o números de teléfono',
+            EmailOrPhonePlaceholder: 'Introduce una lista de correos electrónicos o números de teléfono separado por comas',
             pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
             pleaseEnterUniqueLogin: 'Ese usuario ya es miembro de este espacio de trabajo.',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
