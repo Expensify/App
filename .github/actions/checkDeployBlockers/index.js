@@ -59,7 +59,7 @@ const run = function () {
 
             console.log('Verifying that the last comment is the :shipit: seal of approval');
             const lastComment = comments.data.pop();
-            const shipItRegex = /^:shipit:/g;
+            const shipItRegex = /:shipit:/g;
             if (_.isNull(shipItRegex.exec(lastComment.body))) {
                 console.log('The last comment on the issue was not :shipit');
                 core.setOutput('HAS_DEPLOY_BLOCKERS', true);
