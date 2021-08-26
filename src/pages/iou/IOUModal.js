@@ -21,6 +21,7 @@ import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
@@ -310,23 +311,27 @@ class IOUModal extends Component {
                             >
                                 {this.state.currentStepIndex > 0
                                     && (
-                                        <TouchableOpacity
-                                            onPress={this.navigateToPreviousStep}
-                                            style={[styles.touchableButtonImage]}
-                                        >
-                                            <Icon src={BackArrow} />
-                                        </TouchableOpacity>
+                                        <Tooltip text={this.props.translate('common.back')}>
+                                            <TouchableOpacity
+                                                onPress={this.navigateToPreviousStep}
+                                                style={[styles.touchableButtonImage]}
+                                            >
+                                                <Icon src={BackArrow} />
+                                            </TouchableOpacity>
+                                        </Tooltip>
                                     )}
                                 <Header title={this.getTitleForStep()} />
-                                <View style={[styles.reportOptions, styles.flexRow]}>
-                                    <TouchableOpacity
-                                        onPress={() => Navigation.dismissModal()}
-                                        style={[styles.touchableButtonImage]}
-                                        accessibilityRole="button"
-                                        accessibilityLabel={this.props.translate('common.close')}
-                                    >
-                                        <Icon src={Close} />
-                                    </TouchableOpacity>
+                                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                                    <Tooltip text={this.props.translate('common.close')}>
+                                        <TouchableOpacity
+                                            onPress={() => Navigation.dismissModal()}
+                                            style={[styles.touchableButtonImage, styles.mr0]}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={this.props.translate('common.close')}
+                                        >
+                                            <Icon src={Close} />
+                                        </TouchableOpacity>
+                                    </Tooltip>
                                 </View>
                             </View>
                         </View>

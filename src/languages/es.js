@@ -11,6 +11,7 @@ export default {
         new: 'NUEVO',
         search: 'Buscar',
         next: 'Siguiente',
+        goBack: 'Regresar',
         add: 'Agregar',
         resend: 'Reenviar',
         save: 'Guardar',
@@ -36,6 +37,10 @@ export default {
         contacts: 'Contactos',
         recents: 'Recientes',
         close: 'Cerrar',
+        download: 'Descargar',
+        pin: 'Fijar',
+        unPin: 'Desfijar',
+        back: 'Volver',
         saveAndContinue: 'Guardar y Continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
@@ -44,8 +49,9 @@ export default {
         here: 'aquí',
         dob: 'Fecha de Nacimiento',
         ssnLast4: 'Últimos 4 dígitos de su SSN',
-        addressNoPO: 'Dirección física personal (no se aceptan apartados ni direcciones postales)',
-        companyAddressNoPO: 'Dirección física de la empresa (no se aceptan apartados ni direcciones postales)',
+        personalAddress: 'Dirección física personal',
+        companyAddress: 'Dirección física de la empresa',
+        noPO: '(No se aceptan apartados ni direcciones postales)',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código Postal',
@@ -91,7 +97,7 @@ export default {
     iOUConfirmationList: {
         whoPaid: '¿QUIÉN PAGO?',
         whoWasThere: '¿QUIÉN ASISTIÓ?',
-        whatsItFor: '¿PARA QUÉ ES?',
+        whatsItFor: '¿Para qué es?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Selecciona una moneda',
@@ -101,6 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
     },
     videoChatButtonAndMenu: {
+        tooltip: 'Videollamada',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -113,6 +120,7 @@ export default {
         phrase4: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, introduce tu contraseña.',
     },
     reportActionCompose: {
+        addAction: 'Acción',
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar Archivo Adjunto',
         writeSomething: 'Escribe algo...',
@@ -121,6 +129,7 @@ export default {
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        emoji: 'Emoji',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copiar al Portapapeles',
@@ -135,12 +144,16 @@ export default {
     reportActionsView: {
         beFirstPersonToComment: 'Sé el primero en comentar',
     },
+    reportActionsViewMarkerBadge: {
+        newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
+    },
     reportTypingIndicator: {
         isTyping: 'está escribiendo...',
         areTyping: 'están escribiendo...',
         multipleUsers: 'Varios usuarios',
     },
     sidebarScreen: {
+        fabAction: 'Nuevo Chat',
         newChat: 'Nuevo Chat',
         newGroup: 'Nuevo Grupo',
         headerChat: 'Chats',
@@ -191,6 +204,7 @@ export default {
     avatarWithImagePicker: {
         uploadPhoto: 'Subir Foto',
         removePhoto: 'Eliminar Foto',
+        editImage: 'Editar Foto',
     },
     profilePage: {
         profile: 'Perfil',
@@ -215,7 +229,7 @@ export default {
     initialSettingsPage: {
         about: 'Acerca de',
         aboutPage: {
-            description: 'El nuevo aplicación Expensify está creado por una comunidad de desarrolladores de código abierto de todo el mundo. Ven y ayúdanos a construir la próxima generación de Expensify.',
+            description: 'La nueva Expensify está creada por una comunidad de desarrolladores de código abierto de todo el mundo. Ayúdanos a construir el futuro de Expensify.',
             appDownloadLinks: 'Enlaces para descargar la App',
             viewTheCode: 'Ver codigo',
             viewOpenJobs: 'Ver trabajos disponibles',
@@ -269,7 +283,7 @@ export default {
     },
     preferencesPage: {
         mostRecent: 'Más Recientes',
-        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo',
+        mostRecentModeDescription: 'Esta opción muestra por defecto todos los chats, ordenados a partir del más reciente, con los chats destacados arriba de todo.',
         focus: '#concentración',
         focusModeDescription: '#concentración – Muestra sólo los chats no leídos y destacados ordenados alfabéticamente.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Recibir noticias sobre Expensify y actualizaciones del producto',
@@ -325,7 +339,7 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: '¡Te hemos enviado un enlace - simplemente haz click en él para conectarte!',
+        weSentYouMagicSignInLink: ({loginType}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${loginType}.`,
         resendLink: 'Reenviar Enlace',
     },
     detailsPage: {
@@ -335,8 +349,9 @@ export default {
         createGroup: 'Crear Grupo',
     },
     notFound: {
-        chatYouLookingForCannotBeFound: 'No se pudo encontrar el chat que estabas buscando.',
+        chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
         getMeOutOfHere: 'Sácame de aquí',
+        iouReportNotFound: 'Los detalles del pago que estás buscando no se han podido encontrar.',
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
@@ -512,6 +527,9 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '10 dígitos, sin guiones',
+        confirmModalTitle: '¿Estás seguro?',
+        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
+        confirmModalConfirmText: 'OK',
     },
     requestorStep: {
         headerTitle: 'Información del solicitante',
@@ -615,5 +633,7 @@ export default {
         growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
+        needHelp: 'Ayuda',
+        needHelpTooltip: 'Recibe ayuda telefónica de nuestro equipo',
     },
 };

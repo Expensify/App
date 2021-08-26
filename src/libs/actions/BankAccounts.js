@@ -577,7 +577,7 @@ function validateBankAccount(bankAccountID, validateCode) {
     API.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
+                Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {

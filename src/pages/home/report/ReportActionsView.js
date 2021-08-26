@@ -8,7 +8,6 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
 import Text from '../../../components/Text';
 import {
     fetchActions,
@@ -18,7 +17,6 @@ import {
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
-import ONYXKEYS from '../../../ONYXKEYS';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -37,6 +35,8 @@ import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFo
 import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
 import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionContextMenu';
 import variables from '../../../styles/variables';
+import MarkerBadge from './MarkerBadge';
+import Performance from '../../../libs/Performance';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -99,11 +99,19 @@ class ReportActionsView extends React.Component {
 
         this.state = {
             isLoadingMoreChats: false,
+            isMarkerActive: false,
+            localUnreadActionCount: this.props.report.unreadActionCount,
         };
 
+        this.currentScrollOffset = 0;
         this.updateSortedReportActions(props.reportActions);
         this.updateMostRecentIOUReportActionNumber(props.reportActions);
         this.keyExtractor = this.keyExtractor.bind(this);
+        this.trackScroll = this.trackScroll.bind(this);
+        this.showMarker = this.showMarker.bind(this);
+        this.hideMarker = this.hideMarker.bind(this);
+        this.toggleMarker = this.toggleMarker.bind(this);
+        this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
     }
 
     componentDidMount() {
@@ -152,6 +160,14 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
+        if (nextState.isMarkerActive !== this.state.isMarkerActive) {
+            return true;
+        }
+
+        if (nextState.localUnreadActionCount !== this.state.localUnreadActionCount) {
+            return true;
+        }
+
         if (this.props.isSmallScreenWidth !== nextProps.isSmallScreenWidth) {
             return true;
         }
@@ -188,6 +204,17 @@ class ReportActionsView extends React.Component {
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
                 updateLastReadActionID(this.props.reportID);
+            }
+
+            if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
+                // Only update the unread count when MarkerBadge is visible
+                // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
+                if (this.state.isMarkerActive) {
+                    this.updateLocalUnreadActionCount();
+                }
+
+                // show new MarkerBadge when there is a new message
+                this.toggleMarker();
             }
         }
 
@@ -347,6 +374,54 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
+     */
+    toggleMarker() {
+        // Update the unread message count before MarkerBadge is about to show
+        if (this.currentScrollOffset < -200 && !this.state.isMarkerActive) {
+            this.updateLocalUnreadActionCount();
+            this.showMarker();
+        }
+
+        if (this.currentScrollOffset > -200 && this.state.isMarkerActive) {
+            this.hideMarker();
+        }
+    }
+
+    /**
+     * Update the unread messages count to show in the MarkerBadge
+     */
+    updateLocalUnreadActionCount() {
+        this.setState(prevState => ({localUnreadActionCount: prevState.localUnreadActionCount + this.props.report.unreadActionCount}));
+    }
+
+    /**
+     * Show the new MarkerBadge
+     */
+    showMarker() {
+        this.setState({isMarkerActive: true});
+    }
+
+    /**
+     * Hide the new MarkerBadge
+     */
+    hideMarker() {
+        this.setState({isMarkerActive: false}, () => {
+            this.setState({localUnreadActionCount: 0});
+        });
+    }
+
+    /**
+     * keeps track of the Scroll offset of the main messages list
+     *
+     * @param {Object} {nativeEvent}
+     */
+    trackScroll({nativeEvent}) {
+        this.currentScrollOffset = -nativeEvent.contentOffset.y;
+        this.toggleMarker();
+    }
+
+    /**
      * Runs when the FlatList finishes laying out
      */
     recordTimeToMeasureItemLayout() {
@@ -356,6 +431,14 @@ class ReportActionsView extends React.Component {
 
         this.didLayout = true;
         Timing.end(CONST.TIMING.SWITCH_REPORT, CONST.TIMING.COLD);
+
+        // Capture the init measurement only once not per each chat switch as the value gets overwritten
+        if (!ReportActionsView.initMeasured) {
+            Performance.markEnd(CONST.TIMING.REPORT_INITIAL_RENDER);
+            ReportActionsView.initMeasured = true;
+        } else {
+            Performance.markEnd(CONST.TIMING.SWITCH_REPORT);
+        }
     }
 
     /**
@@ -427,6 +510,12 @@ class ReportActionsView extends React.Component {
 
         return (
             <>
+                <MarkerBadge
+                    active={this.state.isMarkerActive}
+                    count={this.state.localUnreadActionCount}
+                    onClick={scrollToBottom}
+                    onClose={this.hideMarker}
+                />
                 <InvertedFlatList
                     ref={flatListRef}
                     data={this.sortedReportActions}
@@ -443,6 +532,7 @@ class ReportActionsView extends React.Component {
                         : null}
                     keyboardShouldPersistTaps="handled"
                     onLayout={this.recordTimeToMeasureItemLayout}
+                    onScroll={this.trackScroll}
                 />
                 <PopoverReportActionContextMenu ref={contextMenuRef} />
             </>
@@ -454,19 +544,8 @@ ReportActionsView.propTypes = propTypes;
 ReportActionsView.defaultProps = defaultProps;
 
 export default compose(
+    Performance.withRenderTrace({id: '<ReportActionsView> rendering'}),
     withWindowDimensions,
     withDrawerState,
     withLocalize,
-    withOnyx({
-        report: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-        },
-        reportActions: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            canEvict: false,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-    }),
 )(ReportActionsView);

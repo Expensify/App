@@ -27,7 +27,7 @@ If you are hired for an Upwork job and have any job-specific questions, please a
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Payment for your contributions will be made no less than 7 days after the pull request is merged to allow for regression testing. We hire one contributor for each Upwork job. New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. If you have not received payment after 8 days of the PR being deployed to production, please email contributors@expensify.com referencing the GH issue and your GH handle.
+We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. We hire one contributor for each Upwork job. New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. If you have not received payment after 8 days of the PR being deployed to production, please email contributors@expensify.com referencing the GH issue and your GH handle.
 
 ## Finding Jobs
 There are two ways you can find a job that you can contribute to:
@@ -87,7 +87,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 10. An Expensify engineer will be assigned to your pull request automatically to review.
 11. Provide daily updates until reaching completion of your PR.
 
-#### Submit your pull request for final request
+#### Submit your pull request for final review
 12. When you are ready to submit your pull request for final review, make sure the following checks pass:
 	1. CLA - You must sign our [Contributor License Agreement](https://github.com/Expensify/App/blob/main/CLA.md) by following the CLA bot instructions that will be posted on your PR
 	2. Tests - All tests must pass before a merge of a pull request

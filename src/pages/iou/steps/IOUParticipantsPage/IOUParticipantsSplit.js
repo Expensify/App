@@ -82,7 +82,11 @@ class IOUParticipantsSplit extends Component {
             props.personalDetails,
             '',
             props.participants,
-            true,
+            {
+                excludeConcierge: true,
+                excludeChronos: true,
+                excludeReceipts: true,
+            },
             props.betas,
         );
 
@@ -183,7 +187,11 @@ class IOUParticipantsSplit extends Component {
                 this.props.personalDetails,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                true,
+                {
+                    excludeConcierge: true,
+                    excludeChronos: true,
+                    excludeReceipts: true,
+                },
                 this.props.betas,
             );
             return {
@@ -220,7 +228,11 @@ class IOUParticipantsSplit extends Component {
                                 this.props.personalDetails,
                                 searchValue,
                                 [],
-                                true,
+                                {
+                                    excludeConcierge: true,
+                                    excludeChronos: true,
+                                    excludeReceipts: true,
+                                },
                                 this.props.betas,
                             );
                             this.setState({
