@@ -60,11 +60,13 @@ const styles = {
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
     },
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
     },
 
     textAlignCenter: {
@@ -175,7 +177,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
@@ -183,7 +185,7 @@ const styles = {
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
@@ -542,6 +544,8 @@ const styles = {
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
+        color: themeColors.text,
+        ...spacing.pv0,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -893,6 +897,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+        maxWidth: 240,
     },
 
     menuItemTextContainer: {
@@ -1884,6 +1889,12 @@ const styles = {
         width: '150%',
     },
 
+    fullscreenCardMediumScreen: {
+        left: '-15%',
+        top: '-30%',
+        width: '145%',
+    },
+
     smallEditIcon: {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
@@ -1914,6 +1925,10 @@ const styles = {
         height: 475,
     },
 
+    workspaceCardMediumScreen: {
+        height: 540,
+    },
+
     workspaceCardMainText: {
         fontSize: variables.fontSizeXXXLarge,
         fontWeight: 'bold',
@@ -1923,6 +1938,10 @@ const styles = {
     workspaceCardContent: {
         zIndex: 1,
         padding: 50,
+    },
+
+    workspaceCardContentMediumScreen: {
+        padding: 25,
     },
 
     workspaceCardCTA: {
