@@ -354,24 +354,30 @@ class IOUModal extends Component {
                                         </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
-                                        <IOUParticipantsPage
+                                        <AnimatedStep
                                             direction={this.getDirection()}
-                                            participants={this.state.participants}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            onAddParticipants={this.addParticipants}
-                                            onStepComplete={this.navigateToNextStep}
-                                        />
+                                        >
+                                            <IOUParticipantsPage
+                                                participants={this.state.participants}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                onAddParticipants={this.addParticipants}
+                                                onStepComplete={this.navigateToNextStep}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
-                                        <IOUConfirmPage
+                                        <AnimatedStep
                                             direction={this.getDirection()}
-                                            onConfirm={this.createTransaction}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            participants={this.state.participants}
-                                            iouAmount={this.state.amount}
-                                            comment={this.state.comment}
-                                            onUpdateComment={this.updateComment}
-                                        />
+                                        >
+                                            <IOUConfirmPage
+                                                onConfirm={this.createTransaction}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                participants={this.state.participants}
+                                                iouAmount={this.state.amount}
+                                                comment={this.state.comment}
+                                                onUpdateComment={this.updateComment}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                 </>
                             )}

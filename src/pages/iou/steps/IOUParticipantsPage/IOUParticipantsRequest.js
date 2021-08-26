@@ -116,7 +116,6 @@ class IOUParticipantsRequest extends Component {
         const sections = this.getSections();
         return (
             <OptionsSelector
-                direction={this.props.direction}
                 sections={sections}
                 value={this.state.searchValue}
                 onSelectRow={this.addSingleParticipant}
@@ -142,6 +141,7 @@ class IOUParticipantsRequest extends Component {
                 disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
+                animated
             />
         );
     }

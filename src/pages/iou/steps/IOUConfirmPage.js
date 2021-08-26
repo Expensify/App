@@ -3,9 +3,6 @@ import PropTypes from 'prop-types';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
 
 const propTypes = {
-    /** String containing the direction to animate */
-    direction: PropTypes.string,
-
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
@@ -39,14 +36,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-    direction: undefined,
     onUpdateComment: null,
     comment: '',
 };
 
 const IOUConfirmPage = props => (
     <IOUConfirmationList
-        direction={props.direction}
         hasMultipleParticipants={props.hasMultipleParticipants}
         participants={props.participants}
         comment={props.comment}

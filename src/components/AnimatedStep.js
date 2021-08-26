@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import * as Animatable from 'react-native-animatable';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Children to wrap in AnimatedStep. */
@@ -32,7 +33,7 @@ const AnimatedStep = (props) => {
 
     return (
         <Animatable.View
-            duration={300}
+            duration={CONST.ANIMATED_TRANSITION}
             animation={getAnimationStyle(props.direction)}
             useNativeDriver
             style={[...props.style]}

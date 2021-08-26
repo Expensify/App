@@ -3,12 +3,16 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import OptionsList from './OptionsList';
+import CONST from '../CONST';
 import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
+    /** If the OptionsSelector is animated or not  */
+    animated: PropTypes.bool,
+
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
@@ -67,6 +71,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    animated: false,
     onSelectRow: () => {},
     placeholderText: '',
     selectedOptions: [],
@@ -94,7 +99,11 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.textInput.focus();
+        if (this.props.animated) {
+            setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -205,7 +214,6 @@ class OptionsSelector extends Component {
                 </View>
                 <OptionsList
                     ref={el => this.list = el}
-                    direction={this.props.direction}
                     optionHoveredStyle={styles.hoveredComponentBG}
                     onSelectRow={this.selectRow}
                     sections={this.props.sections}

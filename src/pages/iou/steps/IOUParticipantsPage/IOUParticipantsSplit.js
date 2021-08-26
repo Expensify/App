@@ -205,7 +205,6 @@ class IOUParticipantsSplit extends Component {
                         {this.props.translate('common.to')}
                     </Text>
                     <OptionsSelector
-                        direction={this.props.direction}
                         canSelectMultipleOptions
                         sections={sections}
                         selectedOptions={this.props.participants}
@@ -234,6 +233,7 @@ class IOUParticipantsSplit extends Component {
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
+                        animated
                     />
                 </View>
                 {this.props.participants?.length > 0 && (

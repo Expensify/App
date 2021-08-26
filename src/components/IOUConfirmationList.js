@@ -20,14 +20,10 @@ import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
-import AnimatedStep from './AnimatedStep';
 import ExpensiTextInput from './ExpensiTextInput';
 import CONST from '../CONST';
 
 const propTypes = {
-    /** String containing the direction to animate */
-    direction: PropTypes.string,
-
     /** Callback to inform parent modal of success */
     onConfirm: PropTypes.func.isRequired,
 
@@ -103,7 +99,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    direction: undefined,
     iou: {
         selectedCurrencyCode: CONST.CURRENCY.USD,
     },
@@ -130,6 +125,10 @@ class IOUConfirmationList extends Component {
         this.state = {
             participants: formattedParticipants,
         };
+    }
+
+    componentDidMount() {
+        setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
     }
 
     /**
@@ -333,34 +332,32 @@ class IOUConfirmationList extends Component {
         return (
             <>
                 <ScrollView style={[styles.flex1, styles.w100]}>
-                    <AnimatedStep direction={this.props.direction}>
-                        <OptionsList
-                            listContainerStyles={[{
-                                // Give max height to the list container so that it does not extend
-                                // beyond the comment view as well as button
-                                maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
-                                    - this.props.insets.top - this.props.insets.bottom,
-                            }]}
-                            sections={this.getSections()}
-                            disableArrowKeysActions
-                            disableFocusOptions
-                            hideAdditionalOptionStates
-                            forceTextUnreadStyle
-                            canSelectMultipleOptions={this.props.hasMultipleParticipants}
-                            selectedOptions={this.getSelectedOptions()}
-                            onSelectRow={toggleOption}
-                            disableRowInteractivity={!this.props.hasMultipleParticipants}
-                            optionHoveredStyle={hoverStyle}
-                        />
-                    </AnimatedStep>
+                    <OptionsList
+                        listContainerStyles={[{
+                            // Give max height to the list container so that it does not extend
+                            // beyond the comment view as well as button
+                            maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
+                                - this.props.insets.top - this.props.insets.bottom,
+                        }]}
+                        sections={this.getSections()}
+                        disableArrowKeysActions
+                        disableFocusOptions
+                        hideAdditionalOptionStates
+                        forceTextUnreadStyle
+                        canSelectMultipleOptions={this.props.hasMultipleParticipants}
+                        selectedOptions={this.getSelectedOptions()}
+                        onSelectRow={toggleOption}
+                        disableRowInteractivity={!this.props.hasMultipleParticipants}
+                        optionHoveredStyle={hoverStyle}
+                    />
                     <View style={[styles.ph5, styles.pb5]}>
                         <ExpensiTextInput
+                            ref={el => this.textInput = el}
                             label={this.props.translate('iOUConfirmationList.whatsItFor')}
                             value={this.props.comment}
                             onChangeText={this.props.onUpdateComment}
                             placeholder={this.props.translate('common.optional')}
                             placeholderTextColor={themeColors.placeholderText}
-                            autoFocus
                         />
                     </View>
                 </ScrollView>

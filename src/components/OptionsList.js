@@ -6,13 +6,9 @@ import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
 import SectionList from './SectionList';
-import AnimatedStep from './AnimatedStep';
 import Text from './Text';
 
 const propTypes = {
-    /** String containing the direction to animate */
-    direction: PropTypes.string,
-
     /** option Background Color */
     optionBackgroundColor: PropTypes.string,
 
@@ -88,7 +84,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    direction: undefined,
     optionBackgroundColor: undefined,
     optionHoveredStyle: undefined,
     contentContainerStyles: [],
@@ -227,8 +222,7 @@ class OptionsList extends Component {
 
     render() {
         return (
-            <AnimatedStep
-                direction={this.props.direction}
+            <View
                 style={[...this.props.listContainerStyles]}
             >
                 {this.props.headerMessage ? (
@@ -258,7 +252,7 @@ class OptionsList extends Component {
                     viewabilityConfig={this.viewabilityConfig}
                     onViewableItemsChanged={this.onViewableItemsChanged}
                 />
-            </AnimatedStep>
+            </View>
         );
     }
 }
