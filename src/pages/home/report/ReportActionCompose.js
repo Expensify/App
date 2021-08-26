@@ -504,7 +504,6 @@ class ReportActionCompose extends React.Component {
                                                         underlayColor={themeColors.componentBG}
                                                         disabled={isBlockedFromConcierge || isArchivedChatRoom}
                                                     >
-
                                                         <Icon src={Plus} />
                                                     </TouchableOpacity>
                                                 </Tooltip>
@@ -658,14 +657,10 @@ class ReportActionCompose extends React.Component {
                                 underlayColor={themeColors.componentBG}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                             >
-
                                 <Icon src={Send} fill={themeColors.componentBG} />
-
                             </TouchableOpacity>
                         </Tooltip>
                     </View>
-
-
                 </View>
                 {this.props.network.isOffline ? (
                     <View style={[styles.chatItemComposeSecondaryRow]}>
