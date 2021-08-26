@@ -22,7 +22,18 @@ jobs:
           username: ${{ github.actor }}
           team: mobile-deployers
 
+      - name: Reopen and comment on issue
+        if: ${{ !steps.validateActor.outputs.isTeamMember }}
+        uses: Expensify/App/.github/actions/reopenIssueWithComment@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT: |
+            Sorry, only members of @Expensify/Mobile-Deployers can close deploy checklists.
+            Reopening!
+
       - name: Check for any deploy blockers
+        if: ${{ steps.validateActor.outputs.isTeamMember }}
         id: checkDeployBlockers
         uses: Expensify/App/.github/actions/checkDeployBlockers@main
         with:
@@ -30,16 +41,13 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue
-        if: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
+        if: ${{ steps.validateActor.outputs.isTeamMember && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
         uses: Expensify/App/.github/actions/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
-            Oops, something went wrong! This issue must:
-                1. Have unchecked QA steps, or
-                2. Not have been marked with the `:shipit:` emoji of approval, or
-                3. Have been closed by someone who is not a member of @Expensify/Mobile-Deployers.
+            This issue either has unchecked QA steps or has not yet been marked with the `:shipit:` emoji of approval.
             Reopening!
 
   # Update the production branch to trigger the production deploy.
