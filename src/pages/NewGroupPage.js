@@ -68,10 +68,10 @@ class NewGroupPage extends Component {
         } = getNewGroupOptions(
             props.reports,
             props.personalDetails,
+            props.betas,
             '',
             [],
             EXCLUDED_GROUP_EMAILS,
-            props.betas,
         );
         this.state = {
             searchValue: '',
@@ -166,10 +166,10 @@ class NewGroupPage extends Component {
             } = getNewGroupOptions(
                 this.props.reports,
                 this.props.personalDetails,
+                this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
                 EXCLUDED_GROUP_EMAILS,
-                this.props.betas,
             );
 
             return {
@@ -218,10 +218,10 @@ class NewGroupPage extends Component {
                                                 } = getNewGroupOptions(
                                                     this.props.reports,
                                                     this.props.personalDetails,
+                                                    this.props.betas,
                                                     searchValue,
                                                     [],
                                                     EXCLUDED_GROUP_EMAILS,
-                                                    this.props.betas,
                                                 );
                                                 this.setState({
                                                     searchValue,

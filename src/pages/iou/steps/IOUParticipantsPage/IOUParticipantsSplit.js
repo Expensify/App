@@ -80,10 +80,10 @@ class IOUParticipantsSplit extends Component {
         } = getNewGroupOptions(
             props.reports,
             props.personalDetails,
+            props.betas,
             '',
             props.participants,
             EXCLUDED_IOU_EMAILS,
-            props.betas,
         );
 
         this.state = {
@@ -181,10 +181,10 @@ class IOUParticipantsSplit extends Component {
             } = getNewGroupOptions(
                 this.props.reports,
                 this.props.personalDetails,
+                this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
                 EXCLUDED_IOU_EMAILS,
-                this.props.betas,
             );
             return {
                 recentReports,
@@ -218,10 +218,10 @@ class IOUParticipantsSplit extends Component {
                             } = getNewGroupOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
+                                this.props.betas,
                                 searchValue,
                                 [],
                                 EXCLUDED_IOU_EMAILS,
-                                this.props.betas,
                             );
                             this.setState({
                                 searchValue,
