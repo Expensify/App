@@ -80,7 +80,7 @@ export default {
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
         errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor intentalo con otro archivo',
-        takePhoto: 'Hacer una Foto',
+        takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
@@ -221,7 +221,7 @@ export default {
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
-        addEmailAddress: 'Agregar dirección de Email',
+        addEmailAddress: 'Agregar dirección de email',
         enterPreferredPhoneNumberToSendValidationLink: 'Escribe tu número de teléfono y contraseña para recibir el enlace de validación.',
         enterPreferredEmailToSendValidationLink: 'Escribe tu email y contraseña para recibir el enlace de validación.',
         sendValidation: 'Enviar validación',
@@ -346,7 +346,7 @@ export default {
         localTime: 'Hora local',
     },
     newGroupPage: {
-        createGroup: 'Crear crupo',
+        createGroup: 'Crear grupo',
     },
     notFound: {
         chatYouLookingForCannotBeFound: 'El chat que estás buscando no se ha podido encontrar.',
@@ -582,8 +582,8 @@ export default {
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
-            getTheExpensifyCardAndMore: 'Consigue la Expensify Card y más',
-            genericFailureMessage: 'Se ha producido un error al intentar crear el Workspace. Por favor, inténtalo de nuevo.',
+            getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
+            genericFailureMessage: 'Se ha producido un error al intentar crear el espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
         people: {
             assignee: 'Persona asignada',
@@ -595,7 +595,7 @@ export default {
             addEmail: 'Agregar correo electrónico',
             tagline: 'La tarjeta corporativa más inteligente de la habitación.',
             publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario.',
-            privateCopy: 'Simplemente deslice su tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
+            privateCopy: 'Simplemente deslice su Tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
             getStarted: 'Empezar',
             finishSetup: 'Finalizar configuración',
             manageCards: 'Administrar tarjetas',
