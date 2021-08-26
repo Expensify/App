@@ -315,7 +315,7 @@ class CompanyStep extends React.Component {
                                 this.setState({password});
                             }}
                             value={this.state.password}
-                            onSubmitEditing={this.submit}
+                            onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
                             errorText={error === this.props.translate('common.passwordCannotBeBlank')
                                 ? this.props.translate('common.passwordCannotBeBlank')
                                 : ''}
