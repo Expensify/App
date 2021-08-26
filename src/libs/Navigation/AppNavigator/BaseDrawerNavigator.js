@@ -5,6 +5,7 @@ import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
 import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import {shouldStartWithDrawerClosed} from '../Navigation';
 
 const propTypes = {
     /** Screens to be passed in the Drawer */
@@ -34,7 +35,7 @@ const Drawer = createDrawerNavigator();
 const BaseDrawerNavigator = (props) => {
     const content = (
         <Drawer.Navigator
-            defaultStatus={props.isSmallScreenWidth ? 'open' : 'closed'}
+            defaultStatus={(props.isSmallScreenWidth && !shouldStartWithDrawerClosed()) ? 'open' : 'closed'}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={props.drawerContent}
             screenOptions={{

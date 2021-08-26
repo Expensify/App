@@ -1,6 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
-import {StackActions, DrawerActions, useLinkBuilder} from '@react-navigation/native';
+import {
+    StackActions,
+    DrawerActions,
+    useLinkBuilder,
+    createNavigationContainerRef,
+} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
@@ -15,7 +20,10 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
-export const navigationRef = React.createRef();
+let startWithDrawerClosed = false;
+export const shouldStartWithDrawerClosed = () => startWithDrawerClosed;
+
+export const navigationRef = createNavigationContainerRef();
 
 /**
  * Opens the LHN drawer.
@@ -30,6 +38,10 @@ function openDrawer() {
  * @private
  */
 function closeDrawer() {
+    if (!navigationRef.isReady()) {
+        startWithDrawerClosed = true;
+    }
+
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
 }
 
