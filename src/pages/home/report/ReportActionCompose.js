@@ -42,7 +42,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST, {EXPENSIFY_EMAILS} from '../../../CONST';
+import CONST, {EXCLUDED_IOU_EMAILS, EXPENSIFY_EMAILS} from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -443,7 +443,7 @@ class ReportActionCompose extends React.Component {
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExpensifyEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
-        const hasConciergeParticipant = _.contains(reportParticipants, CONST.EMAIL.CONCIERGE);
+        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXCLUDED_IOU_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
@@ -514,7 +514,7 @@ class ReportActionCompose extends React.Component {
                                                 animationIn="fadeInUp"
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
-                                                    ...(!hasConciergeParticipant
+                                                    ...(!hasExcludedIOUEmails
                                                         && Permissions.canUseIOU(this.props.betas) ? [
                                                             hasMultipleParticipants
                                                                 ? {
