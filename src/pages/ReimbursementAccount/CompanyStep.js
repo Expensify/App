@@ -303,7 +303,6 @@ class CompanyStep extends React.Component {
                                 : ''}
                         />
                         <ExpensiTextInput
-                            autoCompleteType="new-password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
@@ -319,6 +318,10 @@ class CompanyStep extends React.Component {
                             errorText={error === this.props.translate('common.passwordCannotBeBlank')
                                 ? this.props.translate('common.passwordCannotBeBlank')
                                 : ''}
+
+                            // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
+                            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                            autoCompleteType="new-password"
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
