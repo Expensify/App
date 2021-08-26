@@ -11,7 +11,7 @@ import {translateLocal} from './translate';
  * @param {String} val
  * @returns {Boolean}
  */
-function luhnFormula(val) {
+function validCardNumber(val) {
     let sum = 0;
     for (let i = 0; i < val.length; i++) {
         let intVal = parseInt(val.substr(i, 1), 10);
@@ -89,7 +89,7 @@ function isValidDebitCard(string) {
         return false;
     }
 
-    return luhnFormula(string);
+    return validCardNumber(string);
 }
 
 /**

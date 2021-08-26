@@ -39,7 +39,7 @@ function getPaymentMethods() {
 function addBillingCard(params) {
     API.AddBillingCard({
         cardNumber: params.cardNumber,
-        cardYear: params.expirationDate.substr(3, 4),
+        cardYear: params.expirationDate.substr(3),
         cardMonth: params.expirationDate.substr(0, 2),
         cardCvv: params.securityCode,
         addressName: params.nameOnCard,

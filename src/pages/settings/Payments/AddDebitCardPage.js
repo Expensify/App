@@ -48,18 +48,6 @@ class DebitCardPage extends Component {
             acceptedTerms: false,
         };
 
-        // These fields need to be filled out in order to submit the form
-        this.requiredFields = [
-            'nameOnCard',
-            'cardNumber',
-            'expirationDate',
-            'securityCode',
-            'billingAddress',
-            'city',
-            'selectedState',
-            'zipCode',
-        ];
-
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
         this.submit = this.submit.bind(this);
     }
