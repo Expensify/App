@@ -410,11 +410,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
-    if (excludeLogins && _.isArray(excludeLogins)) {
-        _.each(excludeLogins, (excludeLogin) => {
-            loginOptionsToExclude.push({login: excludeLogin});
-        });
-    }
+    _.each(excludeLogins, (excludeLogin) => {
+        loginOptionsToExclude.push({login: excludeLogin});
+    });
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
@@ -560,17 +558,18 @@ function getSearchOptions(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
+ * @param {Array<String>} betas
  * @param {String} searchValue
  * @param {Array} excludeLogins
- * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewChatOptions(
     reports,
     personalDetails,
+    betas,
     searchValue = '',
     excludeLogins = [],
-    betas,
+
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
@@ -620,19 +619,20 @@ function getIOUConfirmationOptionsFromParticipants(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
+ * @param {Array<String>} betas
  * @param {String} searchValue
  * @param {Array} selectedOptions
  * @param {Array} excludeLogins
- * @param {Array<String>} betas
  * @returns {Object}
  */
 function getNewGroupOptions(
     reports,
     personalDetails,
+    betas,
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
-    betas,
+
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
