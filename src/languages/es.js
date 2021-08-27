@@ -380,6 +380,7 @@ export default {
             taxID: 'Ingrese un número de identificación fiscal válido',
             website: 'Ingrese un sitio web válido',
             zipCode: 'Ingrese un código postal válido',
+            phoneNumber: 'Ingrese un teléfono válido',
             addressStreet: 'Ingrese una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingrese una fecha de incorporación válida',

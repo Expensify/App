@@ -98,6 +98,14 @@ class CompanyStep extends React.Component {
         ];
     }
 
+    getErrors() {
+        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+    }
+
+    getErrorKey(valueKey) {
+        return `companyStep${valueKey[0].toUpperCase()}${valueKey.slice(1)}`;
+    }
+
     /**
      * @returns {Boolean}
      */
@@ -138,9 +146,19 @@ class CompanyStep extends React.Component {
         if (!this.state.hasNoConnectionToCannabis) {
             errors.companyStepHasNoConnectionToCannabis = true;
         }
-        // TODO: set the validation errors outside?
         setBankAccountFormValidationErrors(errors);
-        return Object.keys(errors).length === 0;
+        return _.size(errors) === 0;
+    }
+
+    validateAndSetTextValue(valueKey, value) {
+        const errors = this.getErrors();
+        const errorKey = this.getErrorKey(valueKey);
+        if (errors[errorKey]) {
+            const newErrors = {...errors};
+            delete newErrors[errorKey];
+            setBankAccountFormValidationErrors(newErrors);
+        }
+        this.setState({[valueKey]: value});
     }
 
     submit() {
@@ -160,12 +178,6 @@ class CompanyStep extends React.Component {
         const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis || missingRequiredFields;
 
         const errors = lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-        const getTextChangeHandler = (valueKey, errorKey) => (newValue) => {
-            if (errors[errorKey]) {
-                setBankAccountFormValidationErrors({});
-            }
-            this.setState({[valueKey]: newValue});
-        };
 
         const getErrorText = (errorKey, errorTranslateKey) => (errors[errorKey] ? this.props.translate(errorTranslateKey)
             : '');
@@ -192,7 +204,7 @@ class CompanyStep extends React.Component {
                         <ExpensiTextInput
                             label={this.props.translate('common.companyAddress')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={getTextChangeHandler('addressStreet', 'companyStepAddressStreet')}
+                            onChangeText={value => this.validateAndSetTextValue('addressStreet', value)}
                             value={this.state.addressStreet}
                             errorText={getErrorText('companyStepAddressStreet', 'bankAccount.error.addressStreet')}
                         />
@@ -215,7 +227,7 @@ class CompanyStep extends React.Component {
                         <ExpensiTextInput
                             label={this.props.translate('common.zip')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={getTextChangeHandler('addressZipCode', 'companyStepAddressZipCode')}
+                            onChangeText={value => this.validateAndSetTextValue('addressZipCode', value)}
                             value={this.state.addressZipCode}
                             errorText={getErrorText('companyStepAddressZipCode', 'bankAccount.error.zipCode')}
                         />
@@ -223,14 +235,15 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('common.phoneNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChangeText={companyPhone => this.setState({companyPhone})}
+                            onChangeText={value => this.validateAndSetTextValue('companyPhone', value)}
                             value={this.state.companyPhone}
                             placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
+                            errorText={getErrorText('companyStepPhoneNumber', 'bankAccount.error.phoneNumber')}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.companyWebsite')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={getTextChangeHandler('website', 'companyStepWebsite')}
+                            onChangeText={value => this.validateAndSetTextValue('website', value)}
                             value={this.state.website}
                             errorText={getErrorText('companyStepWebsite', 'bankAccount.error.website')}
                         />
@@ -238,7 +251,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('companyStep.taxIDNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChangeText={getTextChangeHandler('companyTaxID', 'companyStepCompanyTaxID')}
+                            onChangeText={value => this.validateAndSetTextValue('companyTaxID', value)}
                             value={this.state.companyTaxID}
                             disabled={shouldDisableCompanyTaxID}
                             errorText={getErrorText('companyStepCompanyTaxID', 'bankAccount.error.taxID')}
@@ -257,7 +270,7 @@ class CompanyStep extends React.Component {
                                 {/* TODO: Replace with date picker */}
                                 <ExpensiTextInput
                                     label={this.props.translate('companyStep.incorporationDate')}
-                                    onChangeText={getTextChangeHandler('incorporationDate', 'companyStepIncorporationDate')}
+                                    onChangeText={value => this.validateAndSetTextValue('incorporationDate', value)}
                                     value={this.state.incorporationDate}
                                     placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                                     errorText={getErrorText('companyStepIncorporationDate', 'bankAccount.error.incorporationDate')}
@@ -276,7 +289,7 @@ class CompanyStep extends React.Component {
                             helpLinkText={this.props.translate('common.whatThis')}
                             helpLinkURL="https://www.naics.com/search/"
                             containerStyles={[styles.mt4]}
-                            onChangeText={getTextChangeHandler('industryCode', 'companyStepIndustryCode')}
+                            onChangeText={value => this.validateAndSetTextValue('industryCode', value)}
                             value={this.state.industryCode}
                             errorText={getErrorText('companyStepIndustryCode', 'bankAccount.error.industryCode')}
                         />
@@ -285,7 +298,7 @@ class CompanyStep extends React.Component {
                             containerStyles={[styles.mt4]}
                             secureTextEntry
                             textContentType="password"
-                            onChangeText={getTextChangeHandler('password', 'companyStepPassword')}
+                            onChangeText={value => this.validateAndSetTextValue('password', value)}
                             value={this.state.password}
                             onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
                             errorText={getErrorText('companyStepPassword', 'common.passwordCannotBeBlank')}

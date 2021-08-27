@@ -380,6 +380,7 @@ export default {
             taxID: 'Please enter a valid Tax ID Number',
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
+            phoneNumber: 'Please enter a valid phone number',
             addressStreet: 'Please enter a valid address street that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',

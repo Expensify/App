@@ -510,6 +510,12 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
         });
 }
 
+const JSON_CODE_TO_ERROR_KEYS = {
+    678: 'companyStepIncorporationDate',
+    679: 'companyStepPhoneNumber',
+    680: 'companyStepWebsite',
+};
+
 const WITHDRAWAL_ACCOUNT_STEPS = [
     {
         id: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
@@ -616,13 +622,22 @@ function showBankAccountFormValidationError(error, shouldGrowl) {
 }
 
 /**
- * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
+ * Set the current fields with errors.
  *
  * @param {String} errors
  */
 function setBankAccountFormValidationErrors(errors) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null}); // TOOD: How to force removal
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
+}
+
+/**
+ * Set the modal to show a generic error message visible or not.
+ *
+ * @param {String} isVisible
+ */
+function setErrorModalVisible(isVisible) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: isVisible});
 }
 
 /**
@@ -770,9 +785,10 @@ function setupWithdrawalAccount(data) {
             } else {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
                     error = response.message;
-                }
-
-                if (response.jsonCode === 402) {
+                } else if (JSON_CODE_TO_ERROR_KEYS[response.jsonCode]) {
+                    setBankAccountFormValidationErrors({[JSON_CODE_TO_ERROR_KEYS[response.jsonCode]]: true});
+                    setErrorModalVisible(true);
+                } else if (response.jsonCode === 402) {
                     if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
                         || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
                     ) {
@@ -810,9 +826,6 @@ function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
-function setErrorModalVisible(isVisible) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: isVisible});
-}
 
 export {
     activateWallet,
