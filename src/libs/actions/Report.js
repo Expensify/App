@@ -1073,10 +1073,8 @@ function addAction(reportID, text, file) {
         file,
         clientID: optimisticReportActionID,
 
-        // The persist flag enables this request to be retried if we are offline and the app is completely killed. We do
-        // not retry attachments as we have no solution for storing them persistently and attachments can't be "lost" in
-        // the same way report actions can.
-        persist: !isAttachment,
+        // The persist flag enables this request to be retried if we are offline and the app is completely killed.
+        persist: true,
     })
         .then((response) => {
             if (response.jsonCode === 408) {
