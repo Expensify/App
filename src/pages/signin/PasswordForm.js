@@ -44,6 +44,7 @@ class PasswordForm extends React.Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.isFormValid = this.isFormValid.bind(this);
 
         this.state = {
             formError: false,
@@ -53,9 +54,11 @@ class PasswordForm extends React.Component {
     }
 
     /**
-     * Check that all the form fields are valid, then trigger the submit callback
+     * Check that all the form fields are valid
+     * @returns {Boolean}
      */
-    validateAndSubmitForm() {
+
+    isFormValid() {
         if (!this.state.password.trim()
             || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
         ) {
@@ -66,8 +69,16 @@ class PasswordForm extends React.Component {
         this.setState({
             formError: null,
         });
+    }
 
-        signIn(this.state.password, this.state.twoFactorAuthCode);
+    /**
+     * Check if form is valid, then trigger the submit callback
+     */
+    validateAndSubmitForm() {
+        const isValid = this.isFormValid();
+        if (isValid) {
+            signIn(this.state.password, this.state.twoFactorAuthCode);
+        }
     }
 
     render() {
@@ -84,6 +95,7 @@ class PasswordForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                         translateX={-18}
+                        onBlur={this.isFormValid}
                     />
                     <TouchableOpacity
                         style={[styles.mt2]}
