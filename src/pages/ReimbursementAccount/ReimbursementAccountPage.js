@@ -6,7 +6,7 @@ import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import {fetchFreePlanVerifiedBankAccount, setErrorModalVisible} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import VBALoadingIndicator from '../../components/VBALoadingIndicator';
 import Permissions from '../../libs/Permissions';
@@ -27,6 +27,7 @@ import BeneficialOwnersStep from './BeneficialOwnersStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const propTypes = {
     /** List of betas */
@@ -238,6 +239,14 @@ class ReimbursementAccountPage extends React.Component {
                             achData={this.props.reimbursementAccount.achData}
                         />
                     )}
+                    <ConfirmModal
+                        title={this.props.translate('companyStep.confirmModalTitle')} // TODO: Update translation key
+                        onConfirm={() => setErrorModalVisible(false)}
+                        prompt={this.props.translate('companyStep.confirmModalPrompt')}
+                        isVisible={this.props.reimbursementAccount.isErrorModalVisible}
+                        confirmText={this.props.translate('companyStep.confirmModalConfirmText')}
+                        shouldShowCancelButton={false}
+                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
