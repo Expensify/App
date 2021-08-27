@@ -603,7 +603,7 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 function showBankAccountFormValidationError(error) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => Growl.error(error));
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
 }
 
 /**
