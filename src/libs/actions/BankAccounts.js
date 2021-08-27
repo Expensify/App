@@ -354,25 +354,15 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
             const failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
 
             // Now that we have the bank account. Lets grab the rest of the bank info we need
-            promiseAllSettled([
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: failedValidationAttemptsName,
-                }),
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: 'expensify_migration_2020_04_28_RunKycVerifications',
-                }),
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: CONST.NVP.ACH_DATA_THROTTLED,
-                }),
-                API.Get({returnValueList: 'bankAccountList'}),
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
-                }),
-            ])
+            API.Get({
+                returnValueList: 'nameValuePairs,bankAccountList',
+                nvpNames: [
+                    failedValidationAttemptsName,
+                    'expensify_migration_2020_04_28_RunKycVerifications',
+                    CONST.NVP.ACH_DATA_THROTTLED,
+                    CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
+                ].join(),
+            })
                 .then(([
                     failedValidationAttemptsResponse,
                     kycVerificationsMigrationResponse,
