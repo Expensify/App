@@ -157,7 +157,10 @@ function processNetworkRequestQueue() {
         // We filter persisted requests from the normal Queue to remove duplicates
         networkRequestQueue = _.reject(networkRequestQueue, (request) => {
             if (!request.data.doNotRetry && request.data.persist) {
-                retryableRequests.push(request);
+                // exclude functions as they cannot be persisted
+                const requestToPersist = _.omit(request, val => _.isFunction(val));
+                retryableRequests.push(requestToPersist);
+
                 return true;
             }
         });
