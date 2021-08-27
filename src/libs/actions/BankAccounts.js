@@ -358,40 +358,25 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                 returnValueList: 'nameValuePairs,bankAccountList',
                 nvpNames: [
                     failedValidationAttemptsName,
-                    'expensify_migration_2020_04_28_RunKycVerifications',
+                    CONST.NVP.KYC_MIGRATION,
                     CONST.NVP.ACH_DATA_THROTTLED,
                     CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
+                    CONST.NVP.PRIORITY_MODE,
                 ].join(),
             })
-                .then(([
-                    failedValidationAttemptsResponse,
-                    kycVerificationsMigrationResponse,
-                    achDataThrottledResponse,
-                    bankAccountListResponse,
-                    throttledBankAccountGetResponse,
-                ]) => {
+                .then(({bankAccountList, nameValuePairs}) => {
                     // Users have a limited amount of attempts to get the validations amounts correct.
                     // Once exceeded, we need to block them from attempting to validate.
-                    const failedValidationAttempts = lodashGet(failedValidationAttemptsResponse, [
-                        'value', 'nameValuePairs', failedValidationAttemptsName,
-                    ], 0);
+                    const failedValidationAttempts = lodashGet(nameValuePairs, failedValidationAttemptsName, 0);
                     const maxAttemptsReached = failedValidationAttempts > CONST.BANK_ACCOUNT.VERIFICATION_MAX_ATTEMPTS;
 
-                    const kycVerificationsMigration = lodashGet(kycVerificationsMigrationResponse, [
-                        'value', 'nameValuePairs', 'expensify_migration_2020_04_28_RunKycVerifications',
-                    ], '');
-                    const throttledDate = lodashGet(achDataThrottledResponse, [
-                        'value', 'nameValuePairs', CONST.NVP.ACH_DATA_THROTTLED,
-                    ], '');
-                    const bankAccountJSON = _.find(
-                        lodashGet(bankAccountListResponse, ['value', 'bankAccountList'], []), account => (
-                            account.bankAccountID === bankAccountID
-                        ),
-                    );
+                    const kycVerificationsMigration = lodashGet(nameValuePairs, CONST.NVP.KYC_MIGRATION, '');
+                    const throttledDate = lodashGet(nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
+                    const bankAccountJSON = _.find(bankAccountList, account => (
+                        account.bankAccountID === bankAccountID
+                    ));
                     const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
-                    const throttledHistoryCount = lodashGet(throttledBankAccountGetResponse, [
-                        'value', 'nameValuePairs', CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
-                    ], 0);
+                    const throttledHistoryCount = lodashGet(nameValuePairs, CONST.NVP.BANK_ACCOUNT_GET_THROTTLED, 0);
                     const isPlaidDisabled = throttledHistoryCount > CONST.BANK_ACCOUNT.PLAID.ALLOWED_THROTTLED_COUNT;
 
                     // Next we'll build the achData and save it to Onyx
