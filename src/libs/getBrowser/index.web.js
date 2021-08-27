@@ -1,7 +1,7 @@
 import CONST from '../../CONST';
 
 /**
- * fetch Browser name from UA string
+ * Fetch browser name from UA string
  *
  * @return {String} e.g. Chrome
  */
