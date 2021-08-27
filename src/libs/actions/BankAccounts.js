@@ -602,8 +602,18 @@ function validateBankAccount(bankAccountID, validateCode) {
         });
 }
 
-function showBankAccountFormValidationError(error) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => Growl.error(error));
+/**
+ * Set the current error message. Show Growl for server errors as they are not yet handled by the error Modal.
+ *
+ * @param {String} error
+ * @param {Boolean} isServerError
+ */
+function showBankAccountFormValidationError(error, isServerError) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => {
+        if (isServerError) {
+            Growl.error(error);
+        }
+    });
 }
 
 /**
@@ -777,7 +787,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                showBankAccountFormValidationError(error);
+                showBankAccountFormValidationError(error, true);
             }
         })
         .catch((response) => {
