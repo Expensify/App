@@ -123,7 +123,7 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.error) && (
                     <Text style={[styles.formError]}>
                         {this.props.account.error}
                     </Text>
