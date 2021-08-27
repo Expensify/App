@@ -105,6 +105,8 @@ PODS:
     - OpenSSL-Universal (= 1.1.180)
   - Flipper-Glog (0.3.6)
   - Flipper-PeerTalk (0.0.4)
+  - flipper-plugin-react-native-performance (0.6.0):
+    - React
   - Flipper-RSocket (1.3.1):
     - Flipper-Folly (~> 2.5)
   - FlipperKit (0.75.1):
@@ -412,7 +414,7 @@ PODS:
     - React-Core
   - react-native-document-picker (5.1.0):
     - React-Core
-  - react-native-flipper (0.100.0):
+  - react-native-flipper (0.103.0):
     - React-Core
   - react-native-image-picker (4.0.3):
     - React-Core
@@ -598,6 +600,7 @@ DEPENDENCIES:
   - Flipper-Folly (~> 2.5.3)
   - Flipper-Glog (= 0.3.6)
   - Flipper-PeerTalk (~> 0.0.4)
+  - flipper-plugin-react-native-performance (from `../node_modules/flipper-plugin-react-native-performance/ios`)
   - Flipper-RSocket (~> 1.3)
   - FlipperKit (~> 0.75.1)
   - FlipperKit/Core (~> 0.75.1)
@@ -731,6 +734,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
     :path: "../node_modules/react-native/React/FBReactNativeSpec"
+  flipper-plugin-react-native-performance:
+    :path: "../node_modules/flipper-plugin-react-native-performance/ios"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   onfido-react-native-sdk:
@@ -877,7 +882,7 @@ SPEC CHECKSUMS:
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: 884d4cc2b011759361797a4035c47e10099393b5
+  FBReactNativeSpec: d2bbf7ed8374a5ef7e82afdce19c4e50731f1f0e
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
   FirebaseABTesting: 4cb61aeeb50f60680af1c01fff781dfaf9293916
   FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
@@ -892,6 +897,7 @@ SPEC CHECKSUMS:
   Flipper-Folly: 755929a4f851b2fb2c347d533a23f191b008554c
   Flipper-Glog: 1dfd6abf1e922806c52ceb8701a3599a79a200a6
   Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
+  flipper-plugin-react-native-performance: c639bbaf0e0444bab8eeb86dad93651c2e13291e
   Flipper-RSocket: 127954abe8b162fcaf68d2134d34dc2bd7076154
   FlipperKit: 8a20b5c5fcf9436cac58551dc049867247f64b00
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
@@ -923,7 +929,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 500a59626037be5b3b3d89c5151bc3baa9abf1a9
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-document-picker: 0e3602a4064da040321bafad6848d8b0edcb1d55
-  react-native-flipper: 1943b82f2e494c77b741eb1ed257b6734a334b83
+  react-native-flipper: 169e8ba429b73ad637ce007337ce4b415e783799
   react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f

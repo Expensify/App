@@ -9,6 +9,8 @@ import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import Tooltip from './Tooltip';
+import InboxCallButton from './InboxCallButton';
 
 const propTypes = {
     /** Title of the Header */
@@ -32,6 +34,12 @@ const propTypes = {
     /** Whether we should show a download button */
     shouldShowDownloadButton: PropTypes.bool,
 
+    /** Whether we should show a inbox call button */
+    shouldShowInboxCallButton: PropTypes.bool,
+
+    /** The task ID to associate with the call button, if we show it */
+    inboxCallTaskID: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -43,6 +51,8 @@ const defaultProps = {
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
+    shouldShowInboxCallButton: false,
+    inboxCallTaskID: '',
 };
 
 const HeaderWithCloseButton = props => (
@@ -57,34 +67,43 @@ const HeaderWithCloseButton = props => (
         ]}
         >
             {props.shouldShowBackButton && (
-            <TouchableOpacity
-                onPress={props.onBackButtonPress}
-                style={[styles.touchableButtonImage]}
-            >
-                <Icon src={BackArrow} />
-            </TouchableOpacity>
+                <Tooltip text={props.translate('common.back')}>
+                    <TouchableOpacity
+                        onPress={props.onBackButtonPress}
+                        style={[styles.touchableButtonImage]}
+                    >
+                        <Icon src={BackArrow} />
+                    </TouchableOpacity>
+                </Tooltip>
             )}
             <Header title={props.title} />
-            <View style={[styles.reportOptions, styles.flexRow]}>
+            <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
                     props.shouldShowDownloadButton && (
+                    <Tooltip text={props.translate('common.download')}>
+
                         <TouchableOpacity
                             onPress={props.onDownloadButtonPress}
                             style={[styles.touchableButtonImage]}
                         >
                             <Icon src={Download} />
                         </TouchableOpacity>
+                    </Tooltip>
                     )
                 }
 
-                <TouchableOpacity
-                    onPress={props.onCloseButtonPress}
-                    style={[styles.touchableButtonImage]}
-                    accessibilityRole="button"
-                    accessibilityLabel={props.translate('common.close')}
-                >
-                    <Icon src={Close} />
-                </TouchableOpacity>
+                {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
+
+                <Tooltip text={props.translate('common.close')}>
+                    <TouchableOpacity
+                        onPress={props.onCloseButtonPress}
+                        style={[styles.touchableButtonImage, styles.mr0]}
+                        accessibilityRole="button"
+                        accessibilityLabel={props.translate('common.close')}
+                    >
+                        <Icon src={Close} />
+                    </TouchableOpacity>
+                </Tooltip>
             </View>
         </View>
     </View>

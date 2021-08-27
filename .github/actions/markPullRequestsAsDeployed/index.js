@@ -50,13 +50,20 @@ const workflowURL = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOS
 /**
  * @param {String} deployer
  * @param {String} deployVerb
+ * @param {String} prTitle
  * @returns {String}
  */
-function getDeployMessage(deployer, deployVerb) {
+function getDeployMessage(deployer, deployVerb, prTitle) {
     let message = `🚀 [${deployVerb}](${workflowURL}) to ${isProd ? 'production' : 'staging'}`;
     message += ` by @${deployer} in version: ${version} 🚀`;
     message += `\n\n platform | result \n ---|--- \n🤖 android 🤖|${androidResult} \n🖥 desktop 🖥|${desktopResult}`;
     message += `\n🍎 iOS 🍎|${iOSResult} \n🕸 web 🕸|${webResult}`;
+
+    if (deployVerb === 'Cherry-picked' && !(/no qa/gi).test(prTitle)) {
+        // eslint-disable-next-line max-len
+        message += '\n\n@Expensify/applauseleads please QA this PR and check it off on the [deploy checklist](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3AStagingDeployCash) if it passes.';
+    }
+
     return message;
 }
 
@@ -127,6 +134,7 @@ const run = function () {
                      *      (reflected in the branch name).
                      */
                     let deployer = lodashGet(response, 'data.merged_by.login', '');
+                    const issueTitle = lodashGet(response, 'data.title', '');
                     const CPActorMatches = data.message
                         .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
                     if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
@@ -134,7 +142,7 @@ const run = function () {
                     }
 
                     // Finally, comment on the PR
-                    const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed');
+                    const deployMessage = getDeployMessage(deployer, isCP ? 'Cherry-picked' : 'Deployed', issueTitle);
                     return commentPR(PR, deployMessage);
                 }),
             Promise.resolve());

@@ -14,6 +14,9 @@ const windowDimensionsPropTypes = {
 
     // Is the window width narrow, like on a mobile device?
     isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Is the window width narrow, like on a tablet device?
+    isMediumScreenWidth: PropTypes.bool.isRequired,
 };
 
 export default function (WrappedComponent) {
@@ -40,10 +43,14 @@ export default function (WrappedComponent) {
 
             const initialDimensions = Dimensions.get('window');
             const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+            const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
+              && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
+
             this.state = {
                 windowHeight: initialDimensions.height,
                 windowWidth: initialDimensions.width,
                 isSmallScreenWidth,
+                isMediumScreenWidth,
             };
         }
 
@@ -81,6 +88,7 @@ export default function (WrappedComponent) {
                     windowHeight={this.state.windowHeight}
                     windowWidth={this.state.windowWidth}
                     isSmallScreenWidth={this.state.isSmallScreenWidth}
+                    isMediumScreenWidth={this.state.isMediumScreenWidth}
                 />
             );
         }

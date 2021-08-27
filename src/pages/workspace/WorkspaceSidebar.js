@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
@@ -25,7 +25,7 @@ import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import CONST from '../../CONST';
-import {create} from '../../libs/actions/Policy';
+import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
     /** Policy for the current route */
@@ -37,15 +37,24 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
+    /** All the polices that we have loaded in Onyx */
+    allPolicies: PropTypes.shape({
+        /** ID of the policy */
+        id: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     policy: {},
+    allPolicies: null,
 };
 
-const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
+const WorkspaceSidebar = ({
+    translate, isSmallScreenWidth, policy, allPolicies,
+}) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
@@ -65,14 +74,14 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
         },
     ];
 
-    useEffect(() => {
-        if (_.isEmpty(policy)) {
-            Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
-            Navigation.dismissModal();
-            create();
-            return null;
-        }
-    }, [policy]);
+    // After all the policies have loaded, we can know if the given policyID points to a nonexistant workspace
+    // When free plan is out of beta and Permissions.canUseFreePlan() gets removed,
+    // all code involving 'allPolicies' can be removed since policy loading will no longer be delayed on login.
+    if (allPolicies !== null && _.isEmpty(policy)) {
+        Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
+        Navigation.dismissModal();
+        return null;
+    }
 
 
     const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
@@ -124,17 +133,20 @@ const WorkspaceSidebar = ({translate, isSmallScreenWidth, policy}) => {
                                     styles.alignSelfCenter,
                                     styles.mt4,
                                     styles.mb6,
+                                    styles.w100,
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Text
-                                    numberOfLines={1}
-                                    style={[
-                                        styles.displayName,
-                                    ]}
-                                >
-                                    {policy.name}
-                                </Text>
+                                <Tooltip text={policy.name}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[
+                                            styles.displayName,
+                                        ]}
+                                    >
+                                        {policy.name}
+                                    </Text>
+                                </Tooltip>
                             </Pressable>
                         </View>
                     </View>
@@ -171,6 +183,9 @@ export default compose(
                 const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
+        },
+        allPolicies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(WorkspaceSidebar);
