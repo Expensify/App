@@ -45,7 +45,6 @@ class LoginForm extends React.Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.isFormValid = this.isFormValid.bind(this);
 
         this.state = {
             formError: false,
@@ -54,33 +53,20 @@ class LoginForm extends React.Component {
     }
 
     /**
-     * Check that all the form fields are valid
-     * @returns {Boolean}
+     * Check that all the form fields are valid, then trigger the submit callback
      */
-    isFormValid() {
+    validateAndSubmitForm() {
         if (!this.state.login.trim()) {
             this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
-            return false;
+            return;
         }
 
         this.setState({
             formError: null,
         });
 
-        return true;
-    }
-
-
-    /**
-     * Check if form is valid, then trigger the submit callback
-     */
-    validateAndSubmitForm() {
-        const isValid = this.isFormValid();
-
-        if (isValid) {
-            // Check if this login has an account associated with it or not
-            fetchAccountDetails(this.state.login);
-        }
+        // Check if this login has an account associated with it or not
+        fetchAccountDetails(this.state.login);
     }
 
     render() {
@@ -101,7 +87,6 @@ class LoginForm extends React.Component {
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                         translateX={-18}
-                        onBlur={this.isFormValid}
                     />
                 </View>
                 {this.state.formError && (
