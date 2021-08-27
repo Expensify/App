@@ -102,7 +102,7 @@
     "react-web-config": "^1.0.0",
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
-    "underscore": "^1.10.2",
+    "underscore": "^1.13.1",
     "urbanairship-react-native": "^11.0.1"
   },
   "devDependencies": {
@@ -119,8 +119,8 @@
     "@octokit/rest": "^18.3.5",
     "@react-native-community/eslint-config": "^2.0.0",
     "@storybook/addon-a11y": "^6.2.9",
-    "@storybook/addon-essentials": "^6.2.9",
-    "@storybook/react": "^6.2.9",
+    "@storybook/addon-essentials": "^6.3.7",
+    "@storybook/react": "^6.3.7",
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-native": "^3.4.2",
     "@testing-library/react-native": "^7.0.2",
@@ -141,7 +141,7 @@
     "detox": "^17.8.3",
     "diff-so-fancy": "^1.3.0",
     "electron": "^11.4.8",
-    "electron-builder": "^22.8.0",
+    "electron-builder": "^22.13.1",
     "electron-notarize": "^1.0.0",
     "electron-reloader": "^1.2.0",
     "eslint": "^7.6.0",
