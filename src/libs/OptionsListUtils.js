@@ -340,11 +340,13 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     sortByAlphaAsc = false,
     forcePolicyNamePreview = false,
     prioritizeIOUDebts = false,
+    prioritizeReportsWithDraftComments = false,
 }) {
     let recentReportOptions = [];
     const pinnedReportOptions = [];
     const personalDetailsOptions = [];
     const iouDebtReportOptions = [];
+    const draftReportOptions = [];
 
     const reportMapForLogins = {};
     let sortProperty = sortByLastMessageTimestamp
@@ -456,6 +458,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
                 pinnedReportOptions.push(reportOption);
             } else if (prioritizeIOUDebts && reportOption.hasOutstandingIOU && !reportOption.isIOUReportOwner) {
                 iouDebtReportOptions.push(reportOption);
+            } else if (prioritizeReportsWithDraftComments && reportOption.hasDraftComment) {
+                draftReportOptions.push(reportOption);
             } else {
                 recentReportOptions.push(reportOption);
             }
@@ -467,7 +471,15 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         }
     }
 
-    // If we are prioritizing IOUs the user owes, add them before the normal recent report options
+    // If we are prioritizing reports with draft comments, add them before the normal recent report options
+    // and sort them by report name.
+    if (prioritizeReportsWithDraftComments) {
+        const sortedDraftReports = lodashOrderBy(draftReportOptions, ['text'], ['asc']);
+        recentReportOptions = sortedDraftReports.concat(recentReportOptions);
+    }
+
+    // If we are prioritizing IOUs the user owes, add them before the normal recent report options and reports
+    // with draft comments.
     if (prioritizeIOUDebts) {
         const sortedIOUReports = lodashOrderBy(iouDebtReportOptions, ['iouReportAmount'], ['desc']);
         recentReportOptions = sortedIOUReports.concat(recentReportOptions);
@@ -695,6 +707,7 @@ function getSidebarOptions(
     let sideBarOptions = {
         prioritizePinnedReports: true,
         prioritizeIOUDebts: true,
+        prioritizeReportsWithDraftComments: true,
     };
     if (priorityMode === CONST.PRIORITY_MODE.GSD) {
         sideBarOptions = {
