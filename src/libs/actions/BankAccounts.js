@@ -604,7 +604,7 @@ function validateBankAccount(bankAccountID, validateCode) {
 
 /**
  * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
- *
+ * @deprecated
  * @param {String} error
  * @param {Boolean} shouldGrowl
  */
@@ -613,6 +613,16 @@ function showBankAccountFormValidationError(error, shouldGrowl) {
     if (shouldGrowl) {
         Growl.error(error);
     }
+}
+
+/**
+ * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
+ *
+ * @param {String} errors
+ */
+function setBankAccountFormValidationErrors(errors) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null}); // TOOD: How to force removal
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
 }
 
 /**
@@ -819,4 +829,5 @@ export {
     hideBankAccountErrors,
     setErrorModalVisible,
     showBankAccountFormValidationError,
+    setBankAccountFormValidationErrors,
 };
