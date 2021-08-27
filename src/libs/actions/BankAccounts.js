@@ -803,6 +803,10 @@ function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
+function setErrorModalVisible(isVisible) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: isVisible});
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -816,5 +820,6 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
+    setErrorModalVisible,
     showBankAccountFormValidationError,
 };
