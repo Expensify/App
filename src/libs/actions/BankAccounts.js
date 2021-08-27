@@ -602,8 +602,12 @@ function validateBankAccount(bankAccountID, validateCode) {
         });
 }
 
-function showBankAccountFormValidationError(error) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+function showBankAccountFormValidationError(error, isServerError) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => {
+        if (isServerError) {
+            Growl.error(error);
+        }
+    })
 }
 
 /**
@@ -777,7 +781,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                showBankAccountFormValidationError(error);
+                showBankAccountFormValidationError(error, true);
             }
         })
         .catch((response) => {
