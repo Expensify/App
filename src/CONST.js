@@ -336,6 +336,16 @@ const CONST = {
         NATIVE: 'Native',
     },
 
+    BROWSER: {
+        CHROME: 'chrome',
+        FIREFOX: 'firefox',
+        IE: 'ie',
+        EDGE: 'edge',
+        Opera: 'opera',
+        SAFARI: 'safari',
+        OTHER: 'other',
+    },
+
     IOU: {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.

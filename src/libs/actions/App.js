@@ -36,7 +36,9 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    if (currentUserAccountID) {
+        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
