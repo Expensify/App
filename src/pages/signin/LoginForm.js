@@ -45,6 +45,7 @@ class LoginForm extends React.Component {
         super(props);
 
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.isFormValid = this.isFormValid.bind(this);
 
         this.state = {
             formError: false,
@@ -53,20 +54,33 @@ class LoginForm extends React.Component {
     }
 
     /**
-     * Check that all the form fields are valid, then trigger the submit callback
+     * Check that all the form fields are valid
+     * @returns {Boolean}
      */
-    validateAndSubmitForm() {
+    isFormValid() {
         if (!this.state.login.trim()) {
-            this.setState({formError: this.props.translate('loginForm.pleaseEnterEmailOrPhoneNumber')});
-            return;
+            this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
+            return false;
         }
 
         this.setState({
             formError: null,
         });
 
-        // Check if this login has an account associated with it or not
-        fetchAccountDetails(this.state.login);
+        return true;
+    }
+
+
+    /**
+     * Check if form is valid, then trigger the submit callback
+     */
+    validateAndSubmitForm() {
+        const isValid = this.isFormValid();
+
+        if (isValid) {
+            // Check if this login has an account associated with it or not
+            fetchAccountDetails(this.state.login);
+        }
     }
 
     render() {
@@ -87,15 +101,16 @@ class LoginForm extends React.Component {
                         placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                         translateX={-18}
+                        onBlur={this.isFormValid}
                     />
                 </View>
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
-                        {this.state.formError}
+                        {this.props.translate(this.state.formError)}
                     </Text>
                 )}
 
-                {!_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && !_.isEmpty(this.props.account.error) && (
                     <Text style={[styles.formError]}>
                         {this.props.account.error}
                     </Text>
