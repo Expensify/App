@@ -111,6 +111,7 @@ class ReportActionsView extends React.Component {
         this.showMarker = this.showMarker.bind(this);
         this.hideMarker = this.hideMarker.bind(this);
         this.toggleMarker = this.toggleMarker.bind(this);
+        this.updateUnreadIndicatorPosition = this.updateUnreadIndicatorPosition.bind(this);
         this.updateLocalUnreadActionCount = this.updateLocalUnreadActionCount.bind(this);
     }
 
@@ -129,16 +130,7 @@ class ReportActionsView extends React.Component {
             }
         });
         updateLastReadActionID(this.props.reportID);
-
-        // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
-        // We determine the last read action by deducting the number of unread actions from the total number.
-        // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
-        const oldestUnreadSequenceNumber = this.props.report.unreadActionCount === 0
-            ? 0
-            : (this.props.report.maxSequenceNumber - this.props.report.unreadActionCount) + 1;
-
-        setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
-
+        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
         fetchActions(this.props.reportID);
     }
 
@@ -149,10 +141,8 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        // If the new marker has changed places (because the user manually marked a comment as Unread), we have to
-        // update the component.
-        if (nextProps.report.newMarkerSequenceNumber > 0
-            && nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
+        // If the new marker has changed places so update the component.
+        if (nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
             return true;
         }
 
@@ -216,15 +206,12 @@ class ReportActionsView extends React.Component {
                 // show new MarkerBadge when there is a new message
                 this.toggleMarker();
             }
-        }
-
-        // We want to mark the unread comments when user resize the screen to desktop
-        // Or user move back to report from LHN
-        if (shouldRecordMaxAction && (
+        } else if (shouldRecordMaxAction && (
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
             updateLastReadActionID(this.props.reportID);
+            this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
         }
     }
 
@@ -374,6 +361,19 @@ class ReportActionsView extends React.Component {
     }
 
     /**
+     * Updates NEW marker position
+     */
+
+    updateUnreadIndicatorPosition(unreadActionCount) {
+        // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
+        // We determine the last read action by deducting the number of unread actions from the total number.
+        // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
+        const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : (this.props.report.maxSequenceNumber - unreadActionCount) + 1;
+        setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
+    }
+
+
+    /**
      * Show/hide the new MarkerBadge when user is scrolling back/forth in the history of messages.
      */
     toggleMarker() {
@@ -513,6 +513,10 @@ class ReportActionsView extends React.Component {
             );
         }
 
+        // Native mobile does not render updates flatlist the changes even though component did update called.
+        // To notify there something changes we can use extraData prop to flatlist
+        const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
+
         return (
             <>
                 <MarkerBadge
@@ -538,6 +542,7 @@ class ReportActionsView extends React.Component {
                     keyboardShouldPersistTaps="handled"
                     onLayout={this.recordTimeToMeasureItemLayout}
                     onScroll={this.trackScroll}
+                    extraData={extraData}
                 />
                 <PopoverReportActionContextMenu ref={contextMenuRef} />
             </>
