@@ -162,6 +162,32 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORTS_WITH_CHRONOS = {
+        ...REPORTS,
+        11: {
+            lastVisitedTimestamp: 1610666739302,
+            lastMessageTimestamp: 1,
+            isPinned: false,
+            reportID: 10,
+            participants: ['chronos@expensify.com'],
+            reportName: 'Chronos',
+            unreadActionCount: 1,
+        },
+    };
+
+    const REPORTS_WITH_RECEIPTS = {
+        ...REPORTS,
+        12: {
+            lastVisitedTimestamp: 1610666739302,
+            lastMessageTimestamp: 1,
+            isPinned: false,
+            reportID: 10,
+            participants: ['receipts@expensify.com'],
+            reportName: 'Receipts',
+            unreadActionCount: 1,
+        },
+    };
+
     const PERSONAL_DETAILS_WITH_CONCIERGE = {
         ...PERSONAL_DETAILS,
 
@@ -170,6 +196,26 @@ describe('OptionsListUtils', () => {
             login: 'concierge@expensify.com',
         },
     };
+
+    const PERSONAL_DETAILS_WITH_CHRONOS = {
+        ...PERSONAL_DETAILS,
+
+        'chronos@expensify.com': {
+            displayName: 'Chronos',
+            login: 'chronos@expensify.com',
+        },
+    };
+
+    const PERSONAL_DETAILS_WITH_RECEIPTS = {
+        ...PERSONAL_DETAILS,
+
+        'receipts@expensify.com': {
+            displayName: 'Receipts',
+            login: 'receipts@expensify.com',
+        },
+    };
+
+    const REPORT_DRAFT_COMMENTS = {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'Draft comment'};
 
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
@@ -273,13 +319,41 @@ describe('OptionsListUtils', () => {
         );
 
         // Test by excluding Concierge from the results
-        results = OptionsListUtils.getNewChatOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', true);
+        results = OptionsListUtils.getNewChatOptions(
+            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', {excludeConcierge: true},
+        );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
         expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CONCIERGE) - 2 - MAX_RECENT_REPORTS);
         expect(results.personalDetails).not.toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'concierge@expensify.com'}),
+            ]),
+        );
+
+        // Test by excluding Chronos from the results
+        results = OptionsListUtils.getNewChatOptions(
+            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, '', {excludeChronos: true},
+        );
+
+        // All the personalDetails should be returned minus the currently logged in user and Concierge
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CHRONOS) - 2 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'chronos@expensify.com'}),
+            ]),
+        );
+
+        // Test by excluding Receipts from the results
+        results = OptionsListUtils.getNewChatOptions(
+            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, '', {excludeReceipts: true},
+        );
+
+        // All the personalDetails should be returned minus the currently logged in user and Concierge
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_RECEIPTS) - 2 - MAX_RECENT_REPORTS);
+        expect(results.personalDetails).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'receipts@expensify.com'}),
             ]),
         );
     });
@@ -402,7 +476,9 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_CONCIERGE,
             '',
             [],
-            true,
+            {
+                excludeConcierge: true,
+            },
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
@@ -416,6 +492,57 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports).not.toEqual(
             expect.arrayContaining([
                 expect.objectContaining({login: 'concierge@expensify.com'}),
+            ]),
+        );
+
+
+        // Test by excluding Chronos from the results
+        results = OptionsListUtils.getNewGroupOptions(
+            REPORTS_WITH_CHRONOS,
+            PERSONAL_DETAILS_WITH_CHRONOS,
+            '',
+            [],
+            {
+                excludeChronos: true,
+            },
+        );
+
+        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // the currently logged in user and Concierge)
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_CHRONOS) - 7);
+        expect(results.personalDetails).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'chronos@expensify.com'}),
+            ]),
+        );
+        expect(results.recentReports).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'chronos@expensify.com'}),
+            ]),
+        );
+
+        // Test by excluding Receipts from the results
+        results = OptionsListUtils.getNewGroupOptions(
+            REPORTS_WITH_RECEIPTS,
+            PERSONAL_DETAILS_WITH_RECEIPTS,
+            '',
+            [],
+            {
+                excludeReceipts: true,
+            },
+        );
+
+        // We should expect all the personalDetails to show (minus the 5 that are already showing,
+        // the currently logged in user and Concierge)
+        expect(results.personalDetails.length).toBe(_.size(PERSONAL_DETAILS_WITH_RECEIPTS) - 7);
+        expect(results.personalDetails).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'receipts@expensify.com'}),
+            ]),
+        );
+        expect(results.recentReports).not.toEqual(
+            expect.arrayContaining([
+                expect.objectContaining({login: 'receipts@expensify.com'}),
             ]),
         );
     });
@@ -439,7 +566,7 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getSidebarOptions(
             reportsWithAddedPinnedMessagelessReport,
             PERSONAL_DETAILS,
-            {},
+            REPORT_DRAFT_COMMENTS,
             0,
             CONST.PRIORITY_MODE.DEFAULT,
         );
@@ -460,13 +587,16 @@ describe('OptionsListUtils', () => {
         // And the third report is the report with an IOU debt
         expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
 
-        // And the fourth report is the report with the lastMessage timestamp
-        expect(results.recentReports[3].login).toBe('steverogers@expensify.com');
+        // And the fourth report is the report with a draft comment
+        expect(results.recentReports[3].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
+
+        // And the fifth report is the report with the lastMessage timestamp
+        expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
     });
 
     it('getSidebarOptions() with GSD priority mode', () => {
         // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, CONST.PRIORITY_MODE.GSD);
+        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, REPORT_DRAFT_COMMENTS, 0, CONST.PRIORITY_MODE.GSD);
 
         // Then expect all of the reports to be shown both multiple and single participant except the
         // report that has no lastMessageTimestamp and the chat with Thor who's message is read

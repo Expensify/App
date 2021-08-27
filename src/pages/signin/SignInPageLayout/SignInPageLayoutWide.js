@@ -19,11 +19,14 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    /* Flag to check medium screen with device */
+    isMediumScreenWidth: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
 const SignInPageLayoutWide = props => (
-    <View style={[styles.signInPageInner]}>
+    <View style={[styles.flex1, styles.signInPageInner]}>
         <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
             <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
                 <View style={[
@@ -61,7 +64,9 @@ const SignInPageLayoutWide = props => (
                 styles.justifyContentAround,
                 styles.backgroundBlue,
                 styles.pb10Percentage,
-                styles.p20,
+                !props.isMediumScreenWidth && styles.p20,
+                props.isMediumScreenWidth && styles.p10,
+                props.isMediumScreenWidth && styles.alignItemsCenter,
             ]}
             >
                 <View style={[styles.dFlex, styles.flexColumnReverse, styles.alignItemsCenter, styles.w50]}>

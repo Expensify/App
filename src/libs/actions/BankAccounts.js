@@ -577,7 +577,7 @@ function validateBankAccount(bankAccountID, validateCode) {
     API.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 3000);
+                Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {
@@ -602,8 +602,17 @@ function validateBankAccount(bankAccountID, validateCode) {
         });
 }
 
-function showBankAccountFormValidationError(error) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => Growl.error(error));
+/**
+ * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
+ *
+ * @param {String} error
+ * @param {Boolean} shouldGrowl
+ */
+function showBankAccountFormValidationError(error, shouldGrowl) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+    if (shouldGrowl) {
+        Growl.error(error);
+    }
 }
 
 /**
@@ -777,7 +786,7 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                showBankAccountFormValidationError(error);
+                showBankAccountFormValidationError(error, true);
             }
         })
         .catch((response) => {

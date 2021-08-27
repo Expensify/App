@@ -6,15 +6,34 @@ on:
 
 # The updateProduction and createNewStagingDeployCash jobs are executed when a StagingDeployCash is closed.
 jobs:
-  checkDeployBlockers:
+  validate:
     runs-on: ubuntu-latest
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
 
     outputs:
-      hasDeployBlockers: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS }}
+      isValid: ${{ steps.validateActor.outputs.isTeamMember && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'false' }}
 
     steps:
+      - name: Validate actor is deployer
+        id: validateActor
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: mobile-deployers
+
+      - name: Reopen and comment on issue
+        if: ${{ !steps.validateActor.outputs.isTeamMember }}
+        uses: Expensify/App/.github/actions/reopenIssueWithComment@main
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          COMMENT: |
+            Sorry, only members of @Expensify/Mobile-Deployers can close deploy checklists.
+            Reopening!
+
       - name: Check for any deploy blockers
+        if: ${{ steps.validateActor.outputs.isTeamMember }}
         id: checkDeployBlockers
         uses: Expensify/App/.github/actions/checkDeployBlockers@main
         with:
@@ -22,7 +41,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue
-        if: ${{ steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
+        if: ${{ steps.validateActor.outputs.isTeamMember && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
         uses: Expensify/App/.github/actions/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -34,10 +53,8 @@ jobs:
   # Update the production branch to trigger the production deploy.
   updateProduction:
     runs-on: ubuntu-latest
-
-    # Note: Anyone with Triage access to the New Expensify repo can trigger a production deploy
-    needs: checkDeployBlockers
-    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    needs: validate
+    if: ${{ needs.validate.outputs.isValid }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
@@ -54,8 +71,8 @@ jobs:
   # Deploy deferred PRs to staging and create a new StagingDeployCash for the next release cycle.
   createNewStagingDeployCash:
     runs-on: macos-11
-    needs: checkDeployBlockers
-    if: ${{ needs.checkDeployBlockers.outputs.hasDeployBlockers == 'false' }}
+    needs: validate
+    if: ${{ needs.validate.outputs.isValid }}
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
@@ -114,7 +131,7 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: "#DB4545",
-                pretext: `<!here>`,
+                pretext: `<!subteam^S4TJJ3PSL>`,
                 text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
               }]
             }

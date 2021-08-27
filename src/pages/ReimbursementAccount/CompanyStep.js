@@ -303,7 +303,6 @@ class CompanyStep extends React.Component {
                                 : ''}
                         />
                         <ExpensiTextInput
-                            autoCompleteType="new-password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
@@ -315,10 +314,14 @@ class CompanyStep extends React.Component {
                                 this.setState({password});
                             }}
                             value={this.state.password}
-                            onSubmitEditing={this.submit}
+                            onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
                             errorText={error === this.props.translate('common.passwordCannotBeBlank')
                                 ? this.props.translate('common.passwordCannotBeBlank')
                                 : ''}
+
+                            // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
+                            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                            autoCompleteType="new-password"
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
@@ -341,11 +344,11 @@ class CompanyStep extends React.Component {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title="Are you sure?"
+                    title={this.props.translate('companyStep.confirmModalTitle')}
                     onConfirm={() => this.setState({isConfirmModalOpen: false})}
-                    prompt="Please double check any highlighted fields and try again."
+                    prompt={this.props.translate('companyStep.confirmModalPrompt')}
                     isVisible={this.state.isConfirmModalOpen}
-                    confirmText="Got it"
+                    confirmText={this.props.translate('companyStep.confirmModalConfirmText')}
                     shouldShowCancelButton={false}
                 />
 

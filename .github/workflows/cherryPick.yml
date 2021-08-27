@@ -15,14 +15,14 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember }}
+      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember || github.actor == 'OSBotify' }}
     steps:
       - id: isUserDeployer
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
-          team: expensify-cash-deployers
+          team: mobile-deployers
 
   createNewVersion:
     needs: validateActor
@@ -179,3 +179,20 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           PULL_REQUEST: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: 'Announces a CP failure in the #announce Slack room'
+        uses: 8398a7/action-slack@v3
+        if: ${{ failure() }}
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                text: `@mobile-deployers 💥 Failed to CP https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

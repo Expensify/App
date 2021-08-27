@@ -16,7 +16,7 @@ import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestConciergeDMCall} from '../libs/actions/Inbox';
+import {requestInboxCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
@@ -52,6 +52,14 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     }).isRequired,
+
+    /** Route object from navigation */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** The task ID to request the call for */
+            taskID: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 class RequestCallPage extends Component {
@@ -83,7 +91,7 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-        requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
