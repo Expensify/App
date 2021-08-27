@@ -219,6 +219,10 @@ export default {
         paddingHorizontal: 0,
     },
 
+    ph1: {
+        paddingHorizontal: 4,
+    },
+
     ph2: {
         paddingHorizontal: 8,
     },

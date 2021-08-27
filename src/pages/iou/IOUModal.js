@@ -303,11 +303,11 @@ class IOUModal extends Component {
                                         </Tooltip>
                                     )}
                                 <Header title={this.getTitleForStep()} />
-                                <View style={[styles.reportOptions, styles.flexRow]}>
+                                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                                     <Tooltip text={this.props.translate('common.close')}>
                                         <TouchableOpacity
                                             onPress={() => Navigation.dismissModal()}
-                                            style={[styles.touchableButtonImage]}
+                                            style={[styles.touchableButtonImage, styles.mr0]}
                                             accessibilityRole="button"
                                             accessibilityLabel={this.props.translate('common.close')}
                                         >
