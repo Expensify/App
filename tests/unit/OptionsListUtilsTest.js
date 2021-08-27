@@ -318,7 +318,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', ['concierge@expensify.com'],
+            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', [CONST.EMAIL.CONCIERGE],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -331,7 +331,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, '', ['chronos@expensify.com'],
+            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, '', [CONST.EMAIL.CHRONOS],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -344,7 +344,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, '', ['receipts@expensify.com'],
+            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, '', [CONST.EMAIL.RECEIPTS],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -474,7 +474,7 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_CONCIERGE,
             '',
             [],
-            ['concierge@expensify.com'],
+            [CONST.EMAIL.CONCIERGE],
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
@@ -498,7 +498,7 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_CHRONOS,
             '',
             [],
-            ['chronos@expensify.com'],
+            [CONST.EMAIL.CHRONOS],
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
@@ -521,7 +521,7 @@ describe('OptionsListUtils', () => {
             PERSONAL_DETAILS_WITH_RECEIPTS,
             '',
             [],
-            ['receipts@expensify.com'],
+            [CONST.EMAIL.RECEIPTS],
         );
 
         // We should expect all the personalDetails to show (minus the 5 that are already showing,
