@@ -606,14 +606,13 @@ function validateBankAccount(bankAccountID, validateCode) {
  * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
  *
  * @param {String} error
- * @param {Boolean} isUnhandledError
+ * @param {Boolean} shouldGrowl
  */
-function showBankAccountFormValidationError(error, isUnhandledError) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => {
-        if (isUnhandledError) {
-            Growl.error(error);
-        }
-    });
+function showBankAccountFormValidationError(error, shouldGrowl) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+    if (shouldGrowl) {
+        Growl.error(error);
+    }
 }
 
 /**
