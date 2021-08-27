@@ -7,6 +7,7 @@ import org.unimodules.core.interfaces.Package;
 public class BasePackageList {
   public List<Package> getPackageList() {
     return Arrays.<Package>asList(
+        new expo.modules.filesystem.FileSystemPackage(),
         new expo.modules.haptics.HapticsPackage()
     );
   }
