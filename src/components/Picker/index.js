@@ -28,6 +28,10 @@ const Picker = ({
         fixAndroidTouchableBug
         onOpen={onOpen}
         onClose={onClose}
+        pickerProps={{
+            onFocus: onOpen,
+            onBlur: onClose,
+        }}
     />
 );
 

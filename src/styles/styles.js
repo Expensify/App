@@ -372,6 +372,7 @@ const styles = {
             borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -387,6 +388,7 @@ const styles = {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             appearance: 'none',
             height: variables.componentSizeSmall,
@@ -404,6 +406,7 @@ const styles = {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -1213,16 +1216,9 @@ const styles = {
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         textAlign: 'center',
-        ...spacing.pv1,
-        ...spacing.ph2,
-    },
-
-    emojiExtraSmall: {
-        fontSize: variables.iconSizeExtraSmall,
-    },
-
-    emojiLarge: {
-        fontSize: variables.iconSizeLarge,
+        fontSize: variables.emojiSize,
+        ...spacing.pv0,
+        ...spacing.ph0,
     },
 
     emojiItem: {
@@ -2215,12 +2211,21 @@ function getZoomCursorStyle(isZoomed, isDragging) {
 
 /**
  * @param {Boolean} isZoomed
+ * @param {Number} imgWidth
+ * @param {Number} imgHeight
+ * @param {Number} zoomScale
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed) {
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale) {
+    if (imgWidth === 0 || imgHeight === 0) {
+        return {
+            height: isZoomed ? '250%' : '100%',
+            width: isZoomed ? '250%' : '100%',
+        };
+    }
     return {
-        height: isZoomed ? '250%' : '100%',
-        width: isZoomed ? '250%' : '100%',
+        height: isZoomed ? `${(imgHeight * zoomScale)}px` : '100%',
+        width: isZoomed ? `${(imgWidth * zoomScale)}px` : '100%',
     };
 }
 

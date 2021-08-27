@@ -601,13 +601,15 @@ export default {
         },
         invite: {
             invitePeople: 'Invite people',
-            invitePeoplePrompt: 'Invite a colleague to your workspace.',
+            invitePeoplePrompt: 'Invite colleagues to your workspace.',
             personalMessagePrompt: 'Add a personal message (optional)',
-            enterEmailOrPhone: 'Email or phone',
+            enterEmailOrPhone: 'Emails or phone numbers',
+            EmailOrPhonePlaceholder: 'Enter comma-separated list of emails or phone numbers',
             pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
             pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} workspace! Download the Expensify mobile App to start tracking your expenses.`,
+            systemUserError: ({email}) => `Sorry, you cannot invite ${email} to a workspace.`,
+            welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} workspace! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
             title: 'Edit workspace',
@@ -618,7 +620,7 @@ export default {
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         },
         error: {
-            growlMessageInvalidPolicy: 'Invalid workspace! A new workspace has been created.',
+            growlMessageInvalidPolicy: 'Invalid workspace!',
         },
     },
     requestCallPage: {
