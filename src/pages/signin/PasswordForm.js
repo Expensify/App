@@ -63,12 +63,13 @@ class PasswordForm extends React.Component {
             || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
         ) {
             this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
-            return;
+            return false;
         }
 
         this.setState({
             formError: null,
         });
+        return true;
     }
 
     /**
