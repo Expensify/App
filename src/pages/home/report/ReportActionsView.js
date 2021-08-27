@@ -93,6 +93,8 @@ class ReportActionsView extends React.Component {
         this.onVisibilityChange = this.onVisibilityChange.bind(this);
         this.recordTimeToMeasureItemLayout = this.recordTimeToMeasureItemLayout.bind(this);
         this.loadMoreChats = this.loadMoreChats.bind(this);
+        this.loadOlderChats = this.loadOlderChats.bind(this);
+        this.loadNewerChats = this.loadNewerChats.bind(this);
         this.sortedReportActions = [];
 
         this.didLayout = false;
@@ -259,31 +261,67 @@ class ReportActionsView extends React.Component {
     }
 
     /**
-     * Retrieves the next set of report actions for the chat once we are nearing the end of what we are currently
-     * displaying.
+     * Retrieves a set of report actions.
+     * Note that this must return a promise, because the `onStartReached` and `onEndReached` props of react-native-bidirectional-infinite-scroll
+     * expect a function that returns a promise.
+     * Internally, this addresses a race conditions between `onStartReached` and `onEndReached` that causes "scroll jumps".
+     *
+     * @param {Number} offset
+     * @returns {Promise}
      */
-    loadMoreChats() {
+    loadMoreChats(offset) {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (this.state.isLoadingMoreChats) {
-            return;
+            Promise.resolve();
         }
 
+        return new Promise((resolve) => {
+            this.setState({isLoadingMoreChats: true}, () => {
+                fetchActions(this.props.reportID, offset)
+                    .then(() => this.setState({isLoadingMoreChats: false}, resolve));
+            });
+        });
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the top end of what we are currently displaying.
+     *
+     * @returns {Promise}
+     */
+    loadOlderChats() {
         const minSequenceNumber = _.chain(this.props.reportActions)
             .pluck('sequenceNumber')
             .min()
             .value();
 
         if (minSequenceNumber === 0) {
-            return;
+            return Promise.resolve();
         }
 
-        this.setState({isLoadingMoreChats: true}, () => {
-            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-            // case just get everything starting from 0.
-            const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-            fetchActions(this.props.reportID, offset)
-                .then(() => this.setState({isLoadingMoreChats: false}));
-        });
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
+        // case just get everything starting from 0.
+        return this.loadMoreChats(Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0));
+    }
+
+    /**
+     * Retrieves the next set of report actions for the chat once we are nearing the bottom end of what we are currently displaying.
+     *
+     * @returns {Promise}
+     */
+    loadNewerChats() {
+        // TODO: Implement a noop pull-to-refresh like Slack that affirms the user that they've reached the end.
+        // TODO: optimize this so we're storing this locally and don't have to loop through the list of reportActions every time.
+        const maxSequenceNumberFromFetchedActions = _.chain(this.props.reportActions)
+            .pluck('sequenceNumber')
+            .max()
+            .value();
+
+        if (maxSequenceNumberFromFetchedActions === this.props.report.maxSequenceNumber) {
+            return Promise.resolve();
+        }
+
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments AHEAD of the highest sequence number we have so far.
+        return this.loadMoreChats(Math.min(maxSequenceNumberFromFetchedActions + CONST.REPORT.ACTIONS.LIMIT, this.props.report.maxSequenceNumber));
     }
 
     /**
@@ -530,8 +568,8 @@ class ReportActionsView extends React.Component {
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
-                    onEndReached={this.loadMoreChats}
-                    onEndReachedThreshold={0.75}
+                    onStartReached={this.loadNewerChats}
+                    onEndReached={this.loadOlderChats}
                     ListFooterComponent={this.state.isLoadingMoreChats
                         ? <ActivityIndicator size="small" color={themeColors.spinner} />
                         : null}
