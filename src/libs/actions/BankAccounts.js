@@ -602,12 +602,18 @@ function validateBankAccount(bankAccountID, validateCode) {
         });
 }
 
+/**
+ * Set the current error message. Show Growl for server errors as they are not yet handled by the error Modal.
+ *
+ * @param {String} error
+ * @param {Boolean} isServerError
+ */
 function showBankAccountFormValidationError(error, isServerError) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => {
         if (isServerError) {
             Growl.error(error);
         }
-    })
+    });
 }
 
 /**
