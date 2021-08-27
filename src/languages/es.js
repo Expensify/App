@@ -568,7 +568,7 @@ export default {
         },
     },
     vbaLoadingAnimation: {
-        oneMoment: 'Un momento...',
+        oneMoment: 'Un Momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
     session: {
