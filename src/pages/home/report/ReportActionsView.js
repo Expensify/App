@@ -37,6 +37,7 @@ import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionCon
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
+import ChatAvatars from '../../../components/ChatAvatars';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -506,9 +507,19 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text>
-                        {this.props.translate('reportActionsView.beFirstPersonToComment')}
-                    </Text>
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, {flex: 0.95}]}>
+                        <ChatAvatars
+                            avatarImageURLs={this.props.report.icons}
+                            secondAvatarStyle={[styles.secondAvatarHovered]}
+                            isDefaultChatRoom={false}
+                            isArchivedRoom={false}
+                        />
+                    </View>
+                    <View style={[styles.justifyContentEnd, {flex: 0.05}]}>
+                        <Text>
+                            {this.props.translate('reportActionsView.beFirstPersonToComment')}
+                        </Text>
+                    </View>
                 </View>
             );
         }
