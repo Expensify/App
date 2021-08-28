@@ -28,6 +28,11 @@ const CONST = {
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
             EXISTING_OWNERS: '402 Existing Owners',
         },
+        ERROR_CODE: {
+            INVALID_INCORPORATION_DATE: 678,
+            INVALID_PHONE: 679,
+            INVALID_WEBSITE: 680,
+        },
         STEP: {
             // In the order they appear in the VBA flow
             BANK_ACCOUNT: 'BankAccountStep',

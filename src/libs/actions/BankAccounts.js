@@ -510,12 +510,6 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
         });
 }
 
-const JSON_CODE_TO_ERROR_KEYS = {
-    678: 'companyStepIncorporationDate',
-    679: 'companyStepPhoneNumber',
-    680: 'companyStepWebsite',
-};
-
 const WITHDRAWAL_ACCOUNT_STEPS = [
     {
         id: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
@@ -694,6 +688,7 @@ function setupWithdrawalAccount(data) {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            const errors = {};
 
             if (response.jsonCode === 200 && !error) {
                 // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
@@ -785,9 +780,12 @@ function setupWithdrawalAccount(data) {
             } else {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
                     error = response.message;
-                } else if (JSON_CODE_TO_ERROR_KEYS[response.jsonCode]) {
-                    setBankAccountFormValidationErrors({[JSON_CODE_TO_ERROR_KEYS[response.jsonCode]]: true});
-                    setErrorModalVisible(true);
+                } else if (response.jsonCode === CONST.BANK_ACCOUNT.ERROR_CODE.INVALID_PHONE) {
+                    errors.companyPhone = true;
+                } else if (response.jsonCode === CONST.BANK_ACCOUNT.ERROR_CODE.INVALID_WEBSITE) {
+                    errors.website = true;
+                } else if (response.jsonCode === CONST.BANK_ACCOUNT.ERROR_CODE.INVALID_INCORPORATION_DATE) {
+                    errors.incorporationDate = true;
                 } else if (response.jsonCode === 402) {
                     if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
                         || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
@@ -811,6 +809,10 @@ function setupWithdrawalAccount(data) {
             // Go to next step
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
+            if (_.size(errors)) {
+                setBankAccountFormValidationErrors(errors);
+                setErrorModalVisible(true);
+            }
             if (error) {
                 showBankAccountFormValidationError(error, true);
             }
