@@ -51,6 +51,9 @@ function pushNotificationEventCallback(eventType, notification) {
 /**
  * Register push notification callbacks. This is separate from namedUser registration because it needs to be executed
  * from a headless JS process, outside of any react lifecycle.
+ *
+ * WARNING: Moving or changing this code could break Push Notification processing in non-obvious ways.
+ *          DO NOT ALTER UNLESS YOU KNOW WHAT YOU'RE DOING. See this PR for details: https://github.com/Expensify/App/pull/3877
  */
 function init() {
     // Setup event listeners
