@@ -143,7 +143,9 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
-        beFirstPersonToComment: 'Sé el primero en comentar',
+        beginingOfChatHistroy: 'This is the beginning of your chat history with',
+        beginingOfChatHistroyPrivate: 'This is the beginning of the private',
+        beginingOfChatHistroyPrivateSectionPart: 'room, invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,

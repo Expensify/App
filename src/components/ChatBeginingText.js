@@ -3,11 +3,14 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Text from './Text';
 import colors from '../styles/colors';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
 
 const propTypes = {
 
     isDefaultChatRoom: PropTypes.bool,
     chatUsers: PropTypes.arrayOf(PropTypes.object),
+    ...withLocalizePropTypes,
 
 };
 
@@ -16,16 +19,15 @@ const defaultProps = {
     isDefaultChatRoom: false,
 };
 
-const ChatBeginingText = ({isDefaultChatRoom, chatUsers}) => (
+const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
     <Text style={[styles.mt3, styles.w50, styles.textAlignCenter]}>
         <Text style={[{color: colors.dark}]}>
-            {/* {this.props.translate('reportActionsView.beFirstPersonToComment')} */}
-            {isDefaultChatRoom ? 'This is the beginning of the private ' : 'This is the beginning of your chat history with '}
+            {isDefaultChatRoom ? `${translate('reportActionsView.beginingOfChatHistroyPrivate')} ` : `${translate('reportActionsView.beginingOfChatHistroy')} `}
         </Text>
         {isDefaultChatRoom
             && (
                 <Text style={[{color: colors.dark}]}>
-                    {`${chatUsers?.[0]?.displayName} room, invite others by @mentioning them.`}
+                    {`${chatUsers?.[0]?.displayName} ${translate('reportActionsView.beginingOfChatHistroyPrivateSectionPart')}`}
                 </Text>
             )}
         {!isDefaultChatRoom
@@ -43,7 +45,7 @@ const ChatBeginingText = ({isDefaultChatRoom, chatUsers}) => (
                                 </Text>
                                 )}
                             {(chatUsers.length === 1 || chatUsers.length - 1 === index) && '.'}
-                            {(chatUsers.length - 2 === index && chatUsers.length > 1) && ' and '}
+                            {(chatUsers.length - 2 === index && chatUsers.length > 1) && ` ${translate('common.and')} `}
                             {(chatUsers.length - 2 !== index && chatUsers.length - 1 !== index) && chatUsers.length > 1 && ', '}
 
                         </Text>
@@ -56,4 +58,4 @@ const ChatBeginingText = ({isDefaultChatRoom, chatUsers}) => (
 
 ChatBeginingText.defaultProps = defaultProps;
 ChatBeginingText.propTypes = propTypes;
-export default memo(ChatBeginingText);
+export default compose(memo, withLocalize)(ChatBeginingText);
