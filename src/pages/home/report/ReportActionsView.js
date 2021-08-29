@@ -511,7 +511,7 @@ class ReportActionsView extends React.Component {
                         <ChatAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isCustomChatRoom = {true}
+                            isCustomChatRoom
                         />
                     </View>
                     <View style={[styles.justifyContentEnd, {flex: 0.05}]}>

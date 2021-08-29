@@ -1,5 +1,5 @@
-import React, { PureComponent } from 'react';
-import { Image, View ,StyleSheet } from 'react-native';
+import React, {PureComponent} from 'react';
+import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import ActiveRoomAvatar from '../../assets/images/avatars/room.svg';
@@ -19,8 +19,9 @@ const propTypes = {
 
     /** Whether this avatar is for an custom room */
     isCustomChatRoom: PropTypes.bool,
-        /** Whether this avatar is for an custom room */
-        CustomChatRoomIcon: PropTypes.any,
+
+    /** Whether this avatar is for an custom room */
+    CustomChatRoomIcon: PropTypes.func,
 
 };
 
@@ -36,9 +37,8 @@ const defaultProps = {
 };
 
 class ChatCustomAvatar extends PureComponent {
-
     render() {
-        const {CustomChatRoomIcon}= this.props;
+        const {CustomChatRoomIcon} = this.props;
         if (!this.props.source && !this.props.isCustomChatRoom) {
             return null;
         }
@@ -51,7 +51,7 @@ class ChatCustomAvatar extends PureComponent {
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {this.props.isCustomChatRoom
                     ? <CustomChatRoomIcon style={StyleSheet.flatten(imageStyle)} />
-                    : <Image source={{ uri: this.props.source }} style={imageStyle} />}
+                    : <Image source={{uri: this.props.source}} style={imageStyle} />}
             </View>
         );
     }

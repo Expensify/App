@@ -15,14 +15,14 @@ const propTypes = {
     isCustomChatRoom: PropTypes.bool,
 
     /** Whether this avatar is for an custom room */
-    CustomChatRoomIcon: PropTypes.any
+    CustomChatRoomIcon: PropTypes.func,
 
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     isCustomChatRoom: false,
-    CustomChatRoomIcon: ActiveRoomAvatar
+    CustomChatRoomIcon: ActiveRoomAvatar,
 };
 
 const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) => {
@@ -37,8 +37,8 @@ const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) =>
             <ChatCustomAvatar
                 source={avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
-                isCustomChatRoom = {isCustomChatRoom}
-                CustomChatRoomIcon = {CustomChatRoomIcon}
+                isCustomChatRoom={isCustomChatRoom}
+                CustomChatRoomIcon={CustomChatRoomIcon}
             />
         );
     }
