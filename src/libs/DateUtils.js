@@ -115,6 +115,11 @@ function startCurrentDateUpdater() {
     });
 }
 
+export const currentTimeStampFromProvidedZone = (userTimeZone, format) => {
+    const currentTime = moment().tz(userTimeZone);
+    return moment(currentTime).format(format);
+};
+
 /**
  * @namespace DateUtils
  */

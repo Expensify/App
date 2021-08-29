@@ -1583,7 +1583,6 @@ const styles = {
         height: 57,
         width: 57,
         borderRadius: 100,
-        padding: 5,
         backgroundColor: colors.white,
         marginLeft: -15,
     },

@@ -8,6 +8,8 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import Text from '../../../components/Text';
 import {
     fetchActions,
@@ -17,6 +19,7 @@ import {
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
+import {currentTimeStampFromProvidedZone} from '../../../libs/DateUtils';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -38,6 +41,10 @@ import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
 import ChatAvatars from '../../../components/ChatAvatars';
+import {isDefaultRoom} from '../../../libs/reportUtils';
+import ONYXKEYS from '../../../ONYXKEYS';
+import {getPersonalDetailsForLogins} from '../../../libs/OptionsListUtils';
+import ChatBeginingText from '../../../components/ChatBeginingText';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -498,6 +505,36 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        const isDefaultChatRoom = isDefaultRoom(this.props.report);
+        const participants = lodashGet(this.props.report, 'participants', []);
+        const isMultipleParticipant = participants.length > 1;
+        const displayNamesWithTooltips = _.map(
+            getPersonalDetailsForLogins(participants, this.props.personalDetails),
+            ({
+                displayName, firstName, login, pronouns,
+            }) => {
+                const displayNameTrimmed = Str.isSMSLogin(login) ? this.props.toLocalPhone(displayName) : displayName;
+
+                return {
+                    displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
+                    tooltip: Str.removeSMSDomain(login),
+                    pronouns,
+                };
+            },
+        );
+
+        const displayTimeWithTimeZone = _.map(
+            getPersonalDetailsForLogins(participants, this.props.personalDetails),
+            ({timezone}) => ({
+                timezone: timezone.selected,
+            }),
+        );
+        const chatUserTimeZone = isMultipleParticipant ? false : displayTimeWithTimeZone.map(({timezone}) => timezone).join('');
+
+        const chatUsers = isDefaultChatRoom ? [{displayName: this.props.report.reportName}] : displayNamesWithTooltips;
+
+        const userTime = currentTimeStampFromProvidedZone(chatUserTimeZone, 'hh:mm a');
+
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
@@ -511,13 +548,16 @@ class ReportActionsView extends React.Component {
                         <ChatAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isCustomChatRoom
+                            isCustomChatRoom={isDefaultChatRoom}
                         />
+                        <ChatBeginingText chatUsers={chatUsers} isDefaultChatRoom={isDefaultChatRoom} />
                     </View>
                     <View style={[styles.justifyContentEnd, {flex: 0.05}]}>
+                        {chatUserTimeZone !== false && (
                         <Text>
-                            {this.props.translate('reportActionsView.beFirstPersonToComment')}
+                            {`It's ${userTime} for ${chatUsers?.[0]?.displayName}.`}
                         </Text>
+                        )}
                     </View>
                 </View>
             );
@@ -563,4 +603,12 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+        policies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
+    }),
 )(ReportActionsView);

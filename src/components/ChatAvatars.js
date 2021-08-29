@@ -26,8 +26,6 @@ const defaultProps = {
 };
 
 const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) => {
-    const avatarContainerStyles = styles.emptyAvatar;
-
     if (!avatarImageURLs.length) {
         return null;
     }
@@ -44,12 +42,12 @@ const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) =>
     }
 
     return (
-        <View pointerEvents="none" style={avatarContainerStyles}>
-            <View style={styles.flexRow}>
+        <View pointerEvents="none">
+            <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {avatarImageURLs.map((val, index) => {
                     if (index <= 3) {
                         return (
-                            <View style={[styles.chatAvatarWraper]}>
+                            <View key={val} style={[styles.chatAvatarWraper, styles.justifyContentCenter, styles.alignItemsCenter]}>
                                 <Image source={{uri: val}} style={[styles.chatAvatar]} />
 
                                 {index === 3 && (
