@@ -190,7 +190,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
+        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
