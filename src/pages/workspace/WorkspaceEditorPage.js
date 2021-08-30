@@ -16,7 +16,7 @@ import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import {
-    uploadAvatar, update,
+    uploadAvatar, update, updateLocalPolicyValues,
 } from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
 import {Workspace} from '../../components/Icon/Expensicons';
@@ -41,8 +41,6 @@ class WorkspaceEditorPage extends React.Component {
             name: props.policy.name,
             avatarURL: props.policy.avatarURL,
             previewAvatarURL: props.policy.avatarURL,
-            isAvatarUploading: false,
-            isSubmitting: false,
         };
 
         this.submit = this.submit.bind(this);
@@ -52,11 +50,13 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     onImageSelected(image) {
-        this.setState({previewAvatarURL: image.uri, isAvatarUploading: true});
+        updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
+        this.setState({previewAvatarURL: image.uri});
 
         // Store the upload avatar promise so we can wait for it to finish before updating the policy
         this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
-            this.setState({avatarURL: url, isAvatarUploading: false}, resolve);
+            updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
+            this.setState({avatarURL: url}, resolve);
         }));
     }
 
@@ -65,7 +65,7 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     submit() {
-        this.setState({isSubmitting: true});
+        updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
 
         // Wait for the upload avatar promise to finish before updating the policy
         this.uploadAvatarPromise.then(() => {
@@ -73,12 +73,9 @@ class WorkspaceEditorPage extends React.Component {
             const avatarURL = this.state.avatarURL;
             const policyID = this.props.policy.id;
 
-            update(policyID, {name, avatarURL}).then(() => {
-                this.setState({isSubmitting: false});
-            });
+            update(policyID, {name, avatarURL});
         }).catch(() => {
-            // TODO: Throw error ?
-            this.setState({isSubmitting: false});
+            updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
         });
     }
 
@@ -94,7 +91,7 @@ class WorkspaceEditorPage extends React.Component {
             return null;
         }
 
-        const isButtonDisabled = this.state.isAvatarUploading
+        const isButtonDisabled = policy.isAvatarUploading
                                   || (this.state.avatarURL === this.props.policy.avatarURL
                                     && this.state.name === this.props.policy.name);
         return (
@@ -107,7 +104,7 @@ class WorkspaceEditorPage extends React.Component {
                 <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
                     <View style={[styles.w100, styles.flex1]}>
                         <AvatarWithImagePicker
-                            isUploading={this.state.isAvatarUploading}
+                            isUploading={policy.isAvatarUploading}
                             avatarURL={this.state.previewAvatarURL}
                             DefaultAvatar={() => (
                                 <Icon
@@ -137,7 +134,7 @@ class WorkspaceEditorPage extends React.Component {
 
                     <Button
                         success
-                        isLoading={this.state.isSubmitting}
+                        isLoading={policy.isPolicyUpdating}
                         isDisabled={isButtonDisabled}
                         style={[styles.w100]}
                         text={this.props.translate('workspace.editor.save')}
