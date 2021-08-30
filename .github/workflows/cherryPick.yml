@@ -27,7 +27,7 @@ jobs:
   createNewVersion:
     needs: validateActor
     runs-on: ubuntu-latest
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER && github.event.inputs.NEW_VERSION == '' }}
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' && github.event.inputs.NEW_VERSION == '' }}
     outputs:
       NEW_VERSION: ${{ steps.getNewVersion.outputs.NEW_VERSION }}
     steps:
@@ -59,7 +59,7 @@ jobs:
 
   cherryPick:
     needs: [validateActor, createNewVersion]
-    if: ${{ always() && needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ always() && needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: ubuntu-latest
     steps:
       # Version: 2.3.4
