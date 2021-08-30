@@ -605,11 +605,11 @@ function validateBankAccount(bankAccountID, validateCode) {
 /**
  * Show error modal and optionally a specific error message
  *
- * @param {String} errorMessage The error message to be displayed in the modal's body. We show translate('companyStep.confirmModalPrompt') if not provided.
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body. We show translate('companyStep.confirmModalPrompt') if not provided.
  */
 
-function showErrorModal(errorMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage: errorMessage});
+function showErrorModal(errorModalMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
 }
 
 /**
