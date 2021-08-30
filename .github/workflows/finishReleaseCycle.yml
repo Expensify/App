@@ -41,7 +41,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue
-        if: ${{ steps.validateActor.outputs.isTeamMember == 'false' && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
+        if: ${{ steps.validateActor.outputs.isTeamMember == 'true' && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
         uses: Expensify/App/.github/actions/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
