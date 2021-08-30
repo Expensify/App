@@ -28,7 +28,7 @@ jobs:
   android:
     name: Build and deploy Android
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -92,7 +92,7 @@ jobs:
   desktop:
     name: Build and deploy Desktop
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -148,7 +148,7 @@ jobs:
   iOS:
     name: Build and deploy iOS
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -232,7 +232,7 @@ jobs:
   web:
     name: Build and deploy Web
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
