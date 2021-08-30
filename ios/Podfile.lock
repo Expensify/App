@@ -14,7 +14,19 @@ PODS:
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.5)
   - DoubleConversion (1.1.6)
+  - EXFileSystem (11.1.3):
+    - ExpoModulesCore
+    - UMCore
   - EXHaptics (10.0.0):
+    - UMCore
+  - ExpoModulesCore (0.2.0):
+    - ExpoModulesCore/Core (= 0.2.0)
+    - ExpoModulesCore/Interfaces (= 0.2.0)
+    - UMCore
+  - ExpoModulesCore/Core (0.2.0):
+    - UMCore
+  - ExpoModulesCore/Interfaces (0.2.0):
+    - ExpoModulesCore/Core
     - UMCore
   - FBLazyVector (0.64.1)
   - FBReactNativeSpec (0.64.1):
@@ -416,7 +428,7 @@ PODS:
     - React-Core
   - react-native-flipper (0.103.0):
     - React-Core
-  - react-native-image-picker (4.0.3):
+  - react-native-image-picker (4.0.6):
     - React-Core
   - react-native-netinfo (5.9.10):
     - React-Core
@@ -592,7 +604,9 @@ PODS:
 
 DEPENDENCIES:
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - EXFileSystem (from `../node_modules/expo-file-system/ios`)
   - EXHaptics (from `../node_modules/expo-haptics/ios`)
+  - ExpoModulesCore (from `../node_modules/expo-modules-core/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - Flipper (~> 0.75.1)
@@ -728,8 +742,12 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  EXFileSystem:
+    :path: "../node_modules/expo-file-system/ios"
   EXHaptics:
     :path: "../node_modules/expo-haptics/ios"
+  ExpoModulesCore:
+    :path: "../node_modules/expo-modules-core/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FBReactNativeSpec:
@@ -880,7 +898,9 @@ SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
-  EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
+  EXFileSystem: 94496f1160b0bf7f000fe04e38ecb2aa63083a2c
+  EXHaptics: 2de40c5f50a9e78da92c209db06db5134d8cac0b
+  ExpoModulesCore: 730c7158b2fb179ba5921230e56a083a2304974d
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
   FBReactNativeSpec: d2bbf7ed8374a5ef7e82afdce19c4e50731f1f0e
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
@@ -897,7 +917,7 @@ SPEC CHECKSUMS:
   Flipper-Folly: 755929a4f851b2fb2c347d533a23f191b008554c
   Flipper-Glog: 1dfd6abf1e922806c52ceb8701a3599a79a200a6
   Flipper-PeerTalk: 116d8f857dc6ef55c7a5a75ea3ceaafe878aadc9
-  flipper-plugin-react-native-performance: c639bbaf0e0444bab8eeb86dad93651c2e13291e
+  flipper-plugin-react-native-performance: 82e0d9bf8f330d2e256ff018978e2a19b86fec17
   Flipper-RSocket: 127954abe8b162fcaf68d2134d34dc2bd7076154
   FlipperKit: 8a20b5c5fcf9436cac58551dc049867247f64b00
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
@@ -910,9 +930,9 @@ SPEC CHECKSUMS:
   Onfido: 116a268e4cb8b767c15285e8071c2e8304673cdf
   onfido-react-native-sdk: b8f1b7cbe1adab6479d735275772390161630dcd
   OpenSSL-Universal: 1aa4f6a6ee7256b83db99ec1ccdaa80d10f9af9b
-  Permission-LocationAccuracy: e8adff9ede1b23b43b7054a4500113d515fc87a8
-  Permission-LocationAlways: 7f7f373d086af7a81b2f4f20d65d29266ca2043b
-  Permission-LocationWhenInUse: 3ae82a9feb5da4e94e386dba17c7dd3531af9feb
+  Permission-LocationAccuracy: 76669f87b4c276f5ae803cc0ddd1862a4c0e9dd8
+  Permission-LocationAlways: a274bc04bb386068782468dbdaca3859f51634ca
+  Permission-LocationWhenInUse: 3a2b0dbc167d79e8e920a4377ff9520cdc108407
   Plaid: f55c6acdc249245c6778a4045757eb4e839cca61
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
   Protobuf: 7327d4444215b5f18e560a97f879ff5503c4581c
@@ -928,16 +948,16 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 124e8f99992490d0d13e0649d950d3e1aae06fe9
   React-jsinspector: 500a59626037be5b3b3d89c5151bc3baa9abf1a9
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
-  react-native-document-picker: 0e3602a4064da040321bafad6848d8b0edcb1d55
+  react-native-document-picker: f2f73db94328c84e22144e369fb4a3ede47bc1f5
   react-native-flipper: 169e8ba429b73ad637ce007337ce4b415e783799
-  react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
-  react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
+  react-native-image-picker: 7bda3c7297c3ea16f4f504ad6174aa7e548192ef
+  react-native-netinfo: 30fb89fa913c342be82a887b56e96be6d71201dd
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
-  react-native-performance: 8edfa2bbc9a2af4a02f01d342118e413a95145e0
-  react-native-plaid-link-sdk: 1a6593e2d3d790e8113c29178d883eb883f8c032
-  react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
-  react-native-progress-view: 5816e8a6be812c2b122c6225a2a3db82d9008640
-  react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
+  react-native-performance: 6bd6cfac80594775fb782405fceaaf206becf53b
+  react-native-plaid-link-sdk: 59b7376efca9f00e9693321c5cf7c6ab2c567635
+  react-native-progress-bar-android: be43138ab7da30d51fc038bafa98e9ed594d0c40
+  react-native-progress-view: 21b1e29e70c7559c16c9e0a04c4adc19fce6ede2
+  react-native-safe-area-context: 79fea126c6830c85f65947c223a5e3058a666937
   React-perflogger: aad6d4b4a267936b3667260d1f649b6f6069a675
   React-RCTActionSheet: fc376be462c9c8d6ad82c0905442fd77f82a9d2a
   React-RCTAnimation: ba0a1c3a2738be224a08092fa7f1b444ab77d309
@@ -951,34 +971,34 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: ff951a0c241bfaefc4940a3f1f1a229e7cb32fa6
   ReactCommon: bedc99ed4dae329c4fcf128d0c31b9115e5365ca
   rn-fetch-blob: f065bb7ab7fb48dd002629f8bdcb0336602d3cba
-  RNBootSplash: 3123ba68fe44d8be09a014e89cc8f0f55b68a521
-  RNCAsyncStorage: 8324611026e8dc3706f829953aa6e3899f581589
-  RNCClipboard: 5e299c6df8e0c98f3d7416b86ae563d3a9f768a3
-  RNCMaskedView: 138134c4d8a9421b4f2bf39055a79aa05c2d47b1
+  RNBootSplash: 24175aa28fe203b10c48dc34e78d946fd33c77af
+  RNCAsyncStorage: 56a3355a10b5d660c48c6e37325ac85ebfd09885
+  RNCClipboard: 41d8d918092ae8e676f18adada19104fa3e68495
+  RNCMaskedView: fc29d354a40316a990e8fb46391f08aea829c3aa
   RNCPicker: 6780c753e9e674065db90d9c965920516402579d
   RNFBAnalytics: 8ba84c2d31c64374d054c8621b998f25145ffddc
   RNFBApp: 64c90ab78b6010ed5c3ade026dfe5ff6442c21fd
   RNFBCrashlytics: 1de18b8cc36d9bcf86407c4a354399228cc84a61
   RNFBPerf: e3a7269f573a4787810a32de51647cdcbe08dfb4
   RNGestureHandler: 9b7e605a741412e20e13c512738a31bd1611759b
-  RNPermissions: eb94f9fdc0a8ecd02fcce0676d56ffb1395d41e1
+  RNPermissions: 4c8a37b4dde50f1f152bf8cd08c4a43d2355829e
   RNReanimated: 833ebd229b31e18a8933ebd0cd744a0f47d88c42
   RNScreens: e8e8dd0588b5da0ab57dcca76ab9b2d8987757e0
   RNSVG: ce9d996113475209013317e48b05c21ee988d42e
-  UMAppLoader: aae896b81e3fcaa6528992e2e19ec8db38c2cedd
-  UMBarCodeScannerInterface: 96a01d81ff0c7febbfefc2d7396db9e7462d8c68
-  UMCameraInterface: 8ad433fdadca22703ebeb614d42b814092d38d69
-  UMConstantsInterface: 55c79ca258a3ede70480fed85e3843899cd47ea3
-  UMCore: 063edcab3a9de0c44301fe77af147aa1a654b40f
-  UMFaceDetectorInterface: 4db950a25e785796a237bcebb8fff05078c4fb61
-  UMFileSystemInterface: 4a92ee36e6c2757833031718f8496690fa931280
-  UMFontInterface: 81a951117d03f57aa636fba3992adefd0191f200
-  UMImageLoaderInterface: 5cd09b41630dc8aef7619fabc497c01c0f6b715c
-  UMPermissionsInterface: 4351145563e703c521fe2299e08227bc3584b94a
-  UMReactNativeAdapter: 7b458ca3d4497b5114e6bb766b223432bad22d8a
-  UMSensorsInterface: 50439b47826e716a514cbd7384aebe9ab4fde5f4
-  UMTaskManagerInterface: 482155764886069beb1bc7fcf6036f12e4ad0751
-  urbanairship-react-native: d415a12e67ba93bf3ce914df9a310b66a88a5cc3
+  UMAppLoader: fe2708bb0ac5cd70052bc207d06aa3b7e72b9e97
+  UMBarCodeScannerInterface: 79f92bea5f7af39b381a4c82298105ceb537408a
+  UMCameraInterface: 81ff46700da88435f17afedfc88915eaede7e6a6
+  UMConstantsInterface: bb94dd46039dcde276ed50225b29e22785e604bf
+  UMCore: 2f671796d7439604a1cf8ac7bbe5809cd5c50437
+  UMFaceDetectorInterface: 791eec55ffca1171992976b7eceb73e69e391c58
+  UMFileSystemInterface: f72245e90ce78fa6427180ff0b0904ead13d8161
+  UMFontInterface: 5843cff7db85a42ba629aaac53d33091c35524d3
+  UMImageLoaderInterface: 9ddffeb644b3f45d4eb0c2f51a2fd95fd5c8d1a4
+  UMPermissionsInterface: 40b72935a7d12a3f60dc6b7bb99ce47908380cb1
+  UMReactNativeAdapter: 65ada852a648fcb6674acfbfe72ccb095f2f5b75
+  UMSensorsInterface: a5e9db661e5d9ae214762033d725989880ae6993
+  UMTaskManagerInterface: 203c11259d2699b5b3a4eda4adbc466f5cb5c561
+  urbanairship-react-native: a05a913d6f9559141d477ff4d380bcd616b5c59d
   Yoga: a7de31c64fe738607e7a3803e3f591a4b1df7393
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
