@@ -6,7 +6,6 @@ import createOnyxContext from './createOnyxContext';
 import ComposeProviders from './ComposeProviders';
 import CONST from '../CONST';
 import Log from '../libs/Log';
-import listenToStorageEvents from '../libs/listenToStorageEvents';
 import {canCaptureOnyxMetrics} from '../libs/canCaptureMetrics';
 
 // Initialize the store when the app loads for the first time
@@ -24,9 +23,6 @@ Onyx.init({
             loading: false, error: false, creatingIOUTransaction: false, isRetrievingCurrency: false,
         },
         [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
-    },
-    registerStorageEventListener: (onStorageEvent) => {
-        listenToStorageEvents(onStorageEvent);
     },
 });
 Onyx.registerLogger(({level, message}) => {
