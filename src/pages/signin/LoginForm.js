@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import {fetchAccountDetails} from '../../libs/actions/Session';
