@@ -428,7 +428,7 @@ PODS:
     - React-Core
   - react-native-flipper (0.103.0):
     - React-Core
-  - react-native-image-picker (4.0.6):
+  - react-native-image-picker (4.0.3):
     - React-Core
   - react-native-netinfo (5.9.10):
     - React-Core
@@ -950,7 +950,7 @@ SPEC CHECKSUMS:
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
   react-native-document-picker: f2f73db94328c84e22144e369fb4a3ede47bc1f5
   react-native-flipper: 169e8ba429b73ad637ce007337ce4b415e783799
-  react-native-image-picker: 7bda3c7297c3ea16f4f504ad6174aa7e548192ef
+  react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
   react-native-netinfo: 30fb89fa913c342be82a887b56e96be6d71201dd
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-performance: 6bd6cfac80594775fb782405fceaaf206becf53b
