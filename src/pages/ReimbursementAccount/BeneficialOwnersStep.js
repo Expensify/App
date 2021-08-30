@@ -14,12 +14,12 @@ import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
+    setErrorModalVisible,
     setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import {isValidIdentity} from '../../libs/ValidationUtils';
-import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 
@@ -67,12 +67,12 @@ class BeneficialOwnersStep extends React.Component {
         }
 
         if (!this.state.acceptTermsAndConditions) {
-            Growl.error(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
+            setErrorModalVisible(true, this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
             return false;
         }
 
         if (!this.state.certifyTrueInformation) {
-            Growl.error(this.props.translate('beneficialOwnersStep.error.certify'));
+            setErrorModalVisible(true, this.props.translate('beneficialOwnersStep.error.certify'));
             return false;
         }
 

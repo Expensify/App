@@ -13,13 +13,13 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
+    setErrorModalVisible,
     setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
-import Growl from '../../libs/Growl';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -71,7 +71,7 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            Growl.error(this.props.translate('requestorStep.isControllingOfficerError'));
+            setErrorModalVisible(true, this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
 

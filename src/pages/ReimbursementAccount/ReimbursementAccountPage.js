@@ -242,7 +242,7 @@ class ReimbursementAccountPage extends React.Component {
                     <ConfirmModal
                         title={this.props.translate('companyStep.confirmModalTitle')} // TODO: Update translation key
                         onConfirm={() => setErrorModalVisible(false)}
-                        prompt={this.props.translate('companyStep.confirmModalPrompt')}
+                        prompt={this.props.reimbursementAccount.errorModalMessage || this.props.translate('companyStep.confirmModalPrompt')}
                         isVisible={Boolean(this.props.reimbursementAccount.isErrorModalVisible)}
                         confirmText={this.props.translate('companyStep.confirmModalConfirmText')}
                         shouldShowCancelButton={false}

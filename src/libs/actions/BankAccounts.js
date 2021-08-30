@@ -603,15 +603,26 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
+ * Set visibility and error message of the error modal.
+ *
+ * @param {Boolean} isVisible
+ * @param {String} errorMessage The error message to be displayed in the modal's body. We show translate(companyStep.confirmModalPrompt) if not provided.
+ */
+
+function setErrorModalVisible(isVisible, errorMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: isVisible, errorModalMessage: errorMessage});
+}
+
+/**
+ * Set the current error message.
  *
  * @param {String} error
- * @param {Boolean} shouldGrowl
+ * @param {Boolean} showInErrorModal
  */
-function showBankAccountFormValidationError(error, shouldGrowl) {
+function showBankAccountFormValidationError(error, showInErrorModal) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
-    if (shouldGrowl) {
-        Growl.error(error);
+    if (showInErrorModal) {
+        setErrorModalVisible(true, error);
     }
 }
 
@@ -795,16 +806,12 @@ function setupWithdrawalAccount(data) {
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             console.error(response.stack);
-            Growl.error(translateLocal('common.genericErrorMessage'), 5000);
+            setErrorModalVisible(true, translateLocal('common.genericErrorMessage'));
         });
 }
 
 function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
-}
-
-function setErrorModalVisible(isVisible) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: isVisible});
 }
 
 export {
