@@ -564,6 +564,7 @@ export default {
         error: {
             termsAndConditions: 'Must accept terms and conditions',
             certify: 'Must certify information is true and accurate',
+            invalidBeneficialOwner: 'There is an invalid Beneficial Owner',
         },
     },
     vbaLoadingAnimation: {

@@ -14,8 +14,8 @@ import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
-    setErrorModalVisible,
     setupWithdrawalAccount,
+    showErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -62,17 +62,18 @@ class BeneficialOwnersStep extends React.Component {
             ));
 
             if (invalidBeneficifialOwner) {
+                showErrorModal(this.props.translate('beneficialOwnersStep.error.invalidBeneficialOwner'));
                 return false;
             }
         }
 
         if (!this.state.acceptTermsAndConditions) {
-            setErrorModalVisible(true, this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
+            showErrorModal(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
             return false;
         }
 
         if (!this.state.certifyTrueInformation) {
-            setErrorModalVisible(true, this.props.translate('beneficialOwnersStep.error.certify'));
+            showErrorModal(this.props.translate('beneficialOwnersStep.error.certify'));
             return false;
         }
 

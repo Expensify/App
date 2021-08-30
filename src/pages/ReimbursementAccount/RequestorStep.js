@@ -13,13 +13,14 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
-    setErrorModalVisible,
     setupWithdrawalAccount,
+    showBankAccountFormValidationError,
+    showErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
-import {isValidIdentity} from '../../libs/ValidationUtils';
+import {getIdentityError} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -71,17 +72,21 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            setErrorModalVisible(true, this.props.translate('requestorStep.isControllingOfficerError'));
+            showErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
 
-        if (!isValidIdentity({
+        const identity = {
             street: this.state.requestorAddressStreet,
             state: this.state.requestorAddressState,
             zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
-        })) {
+        };
+        const identityError = getIdentityError(identity);
+        if (identityError) {
+            showBankAccountFormValidationError(identityError);
+            showErrorModal();
             return false;
         }
 

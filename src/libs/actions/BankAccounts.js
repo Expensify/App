@@ -603,27 +603,29 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Set visibility and error message of the error modal.
+ * Show error modal and optionally a specific error message
  *
- * @param {Boolean} isVisible
- * @param {String} errorMessage The error message to be displayed in the modal's body. We show translate(companyStep.confirmModalPrompt) if not provided.
+ * @param {String} errorMessage The error message to be displayed in the modal's body. We show translate('companyStep.confirmModalPrompt') if not provided.
  */
 
-function setErrorModalVisible(isVisible, errorMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: isVisible, errorModalMessage: errorMessage});
+function showErrorModal(errorMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage: errorMessage});
+}
+
+/**
+ * Hide error modal
+ */
+function hideErrorModal() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: false});
 }
 
 /**
  * Set the current error message.
  *
  * @param {String} error
- * @param {Boolean} showInErrorModal
  */
-function showBankAccountFormValidationError(error, showInErrorModal) {
+function showBankAccountFormValidationError(error) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
-    if (showInErrorModal) {
-        setErrorModalVisible(true, error);
-    }
 }
 
 /**
@@ -800,13 +802,14 @@ function setupWithdrawalAccount(data) {
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (error) {
-                showBankAccountFormValidationError(error, true);
+                showBankAccountFormValidationError(error);
+                showErrorModal(error);
             }
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             console.error(response.stack);
-            setErrorModalVisible(true, translateLocal('common.genericErrorMessage'));
+            showErrorModal(translateLocal('common.genericErrorMessage'));
         });
 }
 
@@ -827,6 +830,7 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
-    setErrorModalVisible,
+    hideErrorModal,
+    showErrorModal,
     showBankAccountFormValidationError,
 };

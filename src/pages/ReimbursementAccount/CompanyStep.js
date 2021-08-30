@@ -5,14 +5,14 @@ import {View, ScrollView} from 'react-native';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import {
     goToWithdrawalAccountSetupStep, hideBankAccountErrors,
-    setErrorModalVisible,
     setupWithdrawalAccount,
     showBankAccountFormValidationError,
+    showErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -135,7 +135,7 @@ class CompanyStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            setErrorModalVisible(true);
+            showErrorModal();
             return;
         }
 

@@ -6,7 +6,7 @@ import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {fetchFreePlanVerifiedBankAccount, setErrorModalVisible} from '../../libs/actions/BankAccounts';
+import {fetchFreePlanVerifiedBankAccount, hideErrorModal} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import VBALoadingIndicator from '../../components/VBALoadingIndicator';
 import Permissions from '../../libs/Permissions';
@@ -241,7 +241,7 @@ class ReimbursementAccountPage extends React.Component {
                     )}
                     <ConfirmModal
                         title={this.props.translate('companyStep.confirmModalTitle')} // TODO: Update translation key
-                        onConfirm={() => setErrorModalVisible(false)}
+                        onConfirm={() => hideErrorModal()}
                         prompt={this.props.reimbursementAccount.errorModalMessage || this.props.translate('companyStep.confirmModalPrompt')}
                         isVisible={Boolean(this.props.reimbursementAccount.isErrorModalVisible)}
                         confirmText={this.props.translate('companyStep.confirmModalConfirmText')}
