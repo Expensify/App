@@ -13,7 +13,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
-import dynamicEmojiSize from './dynamicEmojiSize';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -68,9 +67,6 @@ class EmojiPickerMenu extends Component {
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
         this.currentScrollOffset = 0;
-        this.emojiSize = {
-            fontSize: dynamicEmojiSize(this.props.windowWidth),
-        };
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -326,7 +322,6 @@ class EmojiPickerMenu extends Component {
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={`${code}\uFE0F`}
                 isHighlighted={index === this.state.highlightedIndex}
-                emojiSize={this.emojiSize}
             />
         );
     }
