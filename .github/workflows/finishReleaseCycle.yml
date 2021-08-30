@@ -14,6 +14,7 @@ jobs:
       isValid: ${{ fromJSON(steps.validateActor.outputs.isTeamMember) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
 
     steps:
+      # First validate the actor
       - name: Validate actor is deployer
         id: validateActor
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
@@ -32,6 +33,7 @@ jobs:
             Sorry, only members of @Expensify/Mobile-Deployers can close deploy checklists.
             Reopening!
 
+      # Then validate the checklist
       - name: Check for any deploy blockers
         if: ${{ steps.validateActor.outputs.isTeamMember == 'true' }}
         id: checkDeployBlockers
