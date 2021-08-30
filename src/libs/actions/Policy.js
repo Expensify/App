@@ -251,9 +251,19 @@ function update(policyID, values) {
                 return;
             }
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+            const updatedValues = {...values, ...{isPolicyUpdating: false}};
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
             Navigation.dismissModal();
         });
+}
+
+/**
+ * Sets local values for the policy
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function updateLocalPolicyValues(policyID, values) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
 export {
@@ -264,4 +274,5 @@ export {
     create,
     uploadAvatar,
     update,
+    updateLocalPolicyValues,
 };
