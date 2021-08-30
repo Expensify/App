@@ -58,6 +58,7 @@ import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
@@ -429,6 +430,8 @@ class ReportActionCompose extends React.Component {
         if (!trimmedComment) {
             return;
         }
+
+        DateUtils.throttledUpdateTimezone();
 
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
