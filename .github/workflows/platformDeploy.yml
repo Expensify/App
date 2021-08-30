@@ -13,9 +13,22 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
 
 jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember || github.actor == 'OSBotify' }}
+    steps:
+      - id: isUserDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: mobile-deployers
+
   android:
     name: Build and deploy Android
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -78,7 +91,8 @@ jobs:
 
   desktop:
     name: Build and deploy Desktop
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -133,7 +147,8 @@ jobs:
 
   iOS:
     name: Build and deploy iOS
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -216,7 +231,8 @@ jobs:
 
   web:
     name: Build and deploy Web
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ needs.validateActor.outputs.IS_DEPLOYER == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -362,13 +378,13 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: 'good',
-                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' ? 'production' : 'staging' }}.`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-      
+
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
         uses: 8398a7/action-slack@v3
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
@@ -379,7 +395,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: 'good',
-                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production.`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production 🎉️`,
               }]
             }
         env:

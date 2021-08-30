@@ -58,6 +58,7 @@ import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
@@ -191,11 +192,13 @@ class ReportActionCompose extends React.Component {
             this.focus();
         }
 
-        // If we switch from a sidebar, the component does not mount again
-        // so we need to update the comment manually.
-        if (prevProps.comment !== this.props.comment) {
-            this.textInput.setNativeProps({text: this.props.comment});
+        // As the report IDs change, make sure to update the composer comment as we need to make sure
+        // we do not show incorrect data in there (ie. draft of message from other report).
+        if (this.props.report.reportID === prevProps.report.reportID) {
+            return;
         }
+
+        this.updateComment(this.props.comment);
     }
 
     componentWillUnmount() {
@@ -428,6 +431,8 @@ class ReportActionCompose extends React.Component {
             return;
         }
 
+        DateUtils.throttledUpdateTimezone();
+
         this.props.onSubmit(trimmedComment);
         this.updateComment('');
         this.setTextInputShouldClear(true);
@@ -493,19 +498,21 @@ class ReportActionCompose extends React.Component {
                                 <AttachmentPicker>
                                     {({openPicker}) => (
                                         <>
-                                            <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
-                                                <TouchableOpacity
-                                                    onPress={(e) => {
-                                                        e.preventDefault();
-                                                        this.setMenuVisibility(true);
-                                                    }}
-                                                    style={styles.chatItemAttachButton}
-                                                    underlayColor={themeColors.componentBG}
-                                                    disabled={isBlockedFromConcierge || isArchivedChatRoom}
-                                                >
-                                                    <Icon src={Plus} />
-                                                </TouchableOpacity>
-                                            </Tooltip>
+                                            <View style={[styles.justifyContentEnd]}>
+                                                <Tooltip text={this.props.translate('reportActionCompose.addAction')}>
+                                                    <TouchableOpacity
+                                                        onPress={(e) => {
+                                                            e.preventDefault();
+                                                            this.setMenuVisibility(true);
+                                                        }}
+                                                        style={styles.chatItemAttachButton}
+                                                        underlayColor={themeColors.componentBG}
+                                                        disabled={isBlockedFromConcierge || isArchivedChatRoom}
+                                                    >
+                                                        <Icon src={Plus} />
+                                                    </TouchableOpacity>
+                                                </Tooltip>
+                                            </View>
                                             <PopoverMenu
                                                 isVisible={this.state.isMenuVisible}
                                                 onClose={() => this.setMenuVisibility(false)}
@@ -645,18 +652,20 @@ class ReportActionCompose extends React.Component {
                             </Tooltip>
                         )}
                     </Pressable>
-                    <Tooltip text={this.props.translate('common.send')}>
-                        <TouchableOpacity
-                            style={[styles.chatItemSubmitButton,
-                                this.state.isCommentEmpty
-                                    ? styles.buttonDisable : styles.buttonSuccess]}
-                            onPress={this.submitForm}
-                            underlayColor={themeColors.componentBG}
-                            disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
-                        >
-                            <Icon src={Send} fill={themeColors.componentBG} />
-                        </TouchableOpacity>
-                    </Tooltip>
+                    <View style={[styles.justifyContentEnd]}>
+                        <Tooltip text={this.props.translate('common.send')}>
+                            <TouchableOpacity
+                                style={[styles.chatItemSubmitButton,
+                                    this.state.isCommentEmpty
+                                        ? styles.buttonDisable : styles.buttonSuccess]}
+                                onPress={this.submitForm}
+                                underlayColor={themeColors.componentBG}
+                                disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
+                            >
+                                <Icon src={Send} fill={themeColors.componentBG} />
+                            </TouchableOpacity>
+                        </Tooltip>
+                    </View>
                 </View>
                 {this.props.network.isOffline ? (
                     <View style={[styles.chatItemComposeSecondaryRow]}>

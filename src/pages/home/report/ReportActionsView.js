@@ -210,7 +210,7 @@ class ReportActionsView extends React.Component {
                 // Only update the unread count when MarkerBadge is visible
                 // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
                 if (this.state.isMarkerActive) {
-                    this.updateLocalUnreadActionCount();
+                    this.updateLocalUnreadActionCount(!shouldRecordMaxAction);
                 }
 
                 // show new MarkerBadge when there is a new message
@@ -390,9 +390,14 @@ class ReportActionsView extends React.Component {
 
     /**
      * Update the unread messages count to show in the MarkerBadge
+     * @param {Boolean} [shouldResetLocalCount=false] Whether count should increment or reset
      */
-    updateLocalUnreadActionCount() {
-        this.setState(prevState => ({localUnreadActionCount: prevState.localUnreadActionCount + this.props.report.unreadActionCount}));
+    updateLocalUnreadActionCount(shouldResetLocalCount = false) {
+        this.setState(prevState => ({
+            localUnreadActionCount: shouldResetLocalCount
+                ? this.props.report.unreadActionCount
+                : prevState.localUnreadActionCount + this.props.report.unreadActionCount,
+        }));
     }
 
     /**
