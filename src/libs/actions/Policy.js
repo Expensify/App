@@ -239,10 +239,9 @@ function uploadAvatar(file) {
  *
  * @param {String} policyID
  * @param {Object} values
- * @returns {Promise}
  */
 function update(policyID, values) {
-    return API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
                 // Show the user feedback
@@ -254,6 +253,9 @@ function update(policyID, values) {
             const updatedValues = {...values, ...{isPolicyUpdating: false}};
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
             Navigation.dismissModal();
+        }).catch(() => {
+            const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+            Growl.error(errorMessage, 5000);
         });
 }
 
