@@ -265,10 +265,11 @@ function fetchLocalCurrency() {
  * @param {File|Object} file
  */
 function setAvatar(file) {
+    setPersonalDetails({avatarUploading: true});
     API.User_UploadAvatar({file}).then((response) => {
         // Once we get the s3url back, update the personal details for the user with the new avatar URL
         if (response.jsonCode === 200) {
-            setPersonalDetails({avatar: response.s3url});
+            setPersonalDetails({avatar: response.s3url, avatarUploading: false});
         }
     });
 }

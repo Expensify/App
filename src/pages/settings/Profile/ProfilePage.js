@@ -206,6 +206,7 @@ class ProfilePage extends Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
+                            isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.props.myPersonalDetails.avatar}
                             onImageSelected={setAvatar}
                             onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
