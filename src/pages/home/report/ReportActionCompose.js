@@ -261,7 +261,11 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
 
-        return this.props.translate('reportActionCompose.sayHello');
+        if (_.size(this.props.reportActions) === 1) {
+            return this.props.translate('reportActionCompose.sayHello');
+        }
+
+        return this.props.translate('reportActionCompose.writeSomething');
     }
 
     /**
