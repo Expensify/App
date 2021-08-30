@@ -22,6 +22,7 @@ import Icon from '../../components/Icon';
 import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
+import Growl from '../../libs/Growl';
 
 const propTypes = {
     /** List of betas */
@@ -57,7 +58,10 @@ class WorkspaceEditorPage extends React.Component {
         this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
             updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
             this.setState({avatarURL: url}, resolve);
-        }));
+        })).catch(() => {
+            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
+            updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
+        });
     }
 
     onImageRemoved() {
