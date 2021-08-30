@@ -566,7 +566,7 @@ function getSearchOptions(
 function getNewChatOptions(
     reports,
     personalDetails,
-    betas,
+    betas = [],
     searchValue = '',
     excludeLogins = [],
 
@@ -628,7 +628,7 @@ function getIOUConfirmationOptionsFromParticipants(
 function getNewGroupOptions(
     reports,
     personalDetails,
-    betas,
+    betas = [],
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
