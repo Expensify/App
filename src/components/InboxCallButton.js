@@ -40,19 +40,3 @@ InboxCallButton.propTypes = propTypes;
 InboxCallButton.defaultProps = defaultProps;
 InboxCallButton.displayName = 'InboxCallButton';
 export default compose(withLocalize)(InboxCallButton);
-
-// <View style={[styles.flexRow, styles.alignItemsCenter]}>
-//                 <View style={styles.mr1}>
-//                     <Icon
-//                         src={Phone}
-//                         fill={themeColors.heading}
-//                         width={12}
-//                         height={12}
-//                     />
-//                 </View>
-//                 <View>
-//                     <Text style={styles.buttonSmallText}>
-//                         {props.translate('requestCallPage.needHelp')}
-//                     </Text>
-//                 </View>
-//             </View>
