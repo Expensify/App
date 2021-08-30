@@ -83,8 +83,6 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        placeholder={this.props.translate('loginForm.enterYourPhoneOrEmail')}
-                        placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                         translateX={-18}
                     />
