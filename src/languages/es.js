@@ -124,6 +124,7 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
+        sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',

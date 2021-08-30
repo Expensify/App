@@ -124,6 +124,7 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
+        sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
