@@ -99,6 +99,7 @@ class AvatarWithImagePicker extends React.Component {
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
+
                 <View style={[styles.pRelative, styles.avatarLarge]}>
                     {this.props.avatarURL
                         ? (

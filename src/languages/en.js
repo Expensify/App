@@ -11,6 +11,7 @@ export default {
         new: 'NEW',
         search: 'Search',
         next: 'Next',
+        goBack: 'Go back',
         add: 'Add',
         resend: 'Resend',
         save: 'Save',
@@ -36,6 +37,10 @@ export default {
         contacts: 'Contacts',
         recents: 'Recents',
         close: 'Close',
+        download: 'Download',
+        pin: 'Pin',
+        unPin: 'Unpin',
+        back: 'Back',
         saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of Service',
@@ -92,7 +97,7 @@ export default {
     iOUConfirmationList: {
         whoPaid: 'WHO PAID?',
         whoWasThere: 'WHO WAS THERE?',
-        whatsItFor: 'WHAT\'S IT FOR?',
+        whatsItFor: 'What\'s it for?',
     },
     iOUCurrencySelection: {
         selectCurrency: 'Select a Currency',
@@ -102,6 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
     },
     videoChatButtonAndMenu: {
+        tooltip: 'Video Chat',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -114,6 +120,7 @@ export default {
         phrase4: 'Welcome back to the New Expensify! Please enter your password.',
     },
     reportActionCompose: {
+        addAction: 'Actions',
         sendAttachment: 'Send Attachment',
         addAttachment: 'Add Attachment',
         writeSomething: 'Write something...',
@@ -122,6 +129,7 @@ export default {
         fileUploadFailed: 'Upload Failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
+        emoji: 'Emoji',
     },
     reportActionContextMenu: {
         copyToClipboard: 'Copy to Clipboard',
@@ -145,6 +153,7 @@ export default {
         multipleUsers: 'Multiple users',
     },
     sidebarScreen: {
+        fabAction: 'New Chat',
         newChat: 'New Chat',
         newGroup: 'New Group',
         headerChat: 'Chats',
@@ -195,6 +204,7 @@ export default {
     avatarWithImagePicker: {
         uploadPhoto: 'Upload Photo',
         removePhoto: 'Remove Photo',
+        editImage: 'Edit Photo',
     },
     profilePage: {
         profile: 'Profile',
@@ -219,7 +229,7 @@ export default {
     initialSettingsPage: {
         about: 'About',
         aboutPage: {
-            description: 'The New Expensify App is built by a community of open source developers from around the world. Come help us build the next generation of Expensify.',
+            description: 'The New Expensify App is built by a community of open source developers from around the world. Help us build the future of Expensify.',
             appDownloadLinks: 'App download links',
             viewTheCode: 'View the code',
             viewOpenJobs: 'View open jobs',
@@ -273,7 +283,7 @@ export default {
     },
     preferencesPage: {
         mostRecent: 'Most Recent',
-        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top',
+        mostRecentModeDescription: 'This will display all chats by default, sorted by most recent, with pinned items at the top.',
         focus: '#focus',
         focusModeDescription: '#focus – This will only display unread and pinned chats, all sorted alphabetically.',
         receiveRelevantFeatureUpdatesAndExpensifyNews: 'Receive relevant feature updates and Expensify news',
@@ -329,7 +339,7 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: 'We\'ve sent you a magic sign in link – just click on it to log in!',
+        weSentYouMagicSignInLink: ({loginType}) => `We've sent a magic sign in link to your ${loginType}.`,
         resendLink: 'Resend Link',
     },
     detailsPage: {
@@ -515,6 +525,9 @@ export default {
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         companyPhonePlaceholder: '10 digits, no hyphens',
+        confirmModalTitle: 'Are you sure?',
+        confirmModalPrompt: 'Please double check any highlighted fields and try again.',
+        confirmModalConfirmText: 'Got it',
     },
     requestorStep: {
         headerTitle: 'Requestor Information',
@@ -618,5 +631,7 @@ export default {
         growlMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code.\ne.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our Guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
+        needHelp: 'Help',
+        needHelpTooltip: 'Get live help from our team',
     },
 };

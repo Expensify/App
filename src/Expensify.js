@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -17,8 +16,6 @@ import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
-import {setRedirectToWorkspaceNewAfterSignIn} from './libs/actions/Session';
-import {create} from './libs/actions/Policy';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,9 +28,6 @@ const propTypes = {
 
         /** Currently logged in user accountID */
         accountID: PropTypes.number,
-
-        /** Should app immediately redirect to new workspace route once authenticated */
-        redirectToWorkspaceNewAfterSignIn: PropTypes.bool,
     }),
 
     /** Whether a new update is available and ready to install. */
@@ -44,21 +38,16 @@ const propTypes = {
 
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: PropTypes.bool,
-
-    /** List of betas */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     session: {
         authToken: null,
         accountID: null,
-        redirectToWorkspaceNewAfterSignIn: false,
     },
     updateAvailable: false,
     initialReportDataLoaded: false,
     isSidebarLoaded: false,
-    betas: [],
 };
 
 class Expensify extends PureComponent {
@@ -109,13 +98,6 @@ class Expensify extends PureComponent {
         const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
             BootSplash.show({fade: true});
-        }
-
-        if (this.getAuthToken()
-            && !_.isEmpty(this.props.betas)
-            && lodashGet(this.props, 'session.redirectToWorkspaceNewAfterSignIn', false)) {
-            setRedirectToWorkspaceNewAfterSignIn(false);
-            create();
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
@@ -171,9 +153,6 @@ Expensify.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
-    },
-    betas: {
-        key: ONYXKEYS.BETAS,
     },
     updateAvailable: {
         key: ONYXKEYS.UPDATE_AVAILABLE,
