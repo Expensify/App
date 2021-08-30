@@ -603,17 +603,16 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Set the current error message. Show Growl for server errors as they are not yet handled by the error Modal.
+ * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
  *
  * @param {String} error
- * @param {Boolean} isServerError
+ * @param {Boolean} shouldGrowl
  */
-function showBankAccountFormValidationError(error, isServerError) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => {
-        if (isServerError) {
-            Growl.error(error);
-        }
-    });
+function showBankAccountFormValidationError(error, shouldGrowl) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+    if (shouldGrowl) {
+        Growl.error(error);
+    }
 }
 
 /**
@@ -643,6 +642,9 @@ function setupWithdrawalAccount(data) {
             ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
+
+    // Convert the errorAttemptsCount to an object to prevent it from being wiped out by JSON.stringify
+    newACHData.errorAttemptsCount = {...newACHData.errorAttemptsCount};
 
     nextStep = newACHData.currentStep;
 

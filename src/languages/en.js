@@ -129,6 +129,7 @@ export default {
         fileUploadFailed: 'Upload failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
+        edited: '(edited)',
         emoji: 'Emoji',
     },
     reportActionContextMenu: {
@@ -189,7 +190,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
+        notificationPreferencesDescription: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
@@ -566,7 +567,7 @@ export default {
         },
     },
     vbaLoadingAnimation: {
-        oneMoment: 'One moment...',
+        oneMoment: 'One Moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
     session: {

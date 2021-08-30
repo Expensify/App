@@ -184,7 +184,9 @@ export default {
     p5: {
         padding: 20,
     },
-
+    p10: {
+        padding: 40,
+    },
     p20: {
         padding: 80,
     },

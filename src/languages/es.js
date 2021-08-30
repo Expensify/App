@@ -129,6 +129,7 @@ export default {
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        edited: '(editado)',
         emoji: 'Emoji',
     },
     reportActionContextMenu: {
@@ -189,7 +190,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
+        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
@@ -568,7 +569,7 @@ export default {
         },
     },
     vbaLoadingAnimation: {
-        oneMoment: 'Un momento...',
+        oneMoment: 'Un Momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
     session: {
