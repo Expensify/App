@@ -16,7 +16,6 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Timing from '../libs/actions/Timing';
 import CONST from '../CONST';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 
@@ -80,6 +79,7 @@ class SearchPage extends Component {
         );
 
         this.state = {
+            isLoading: true,
             searchValue: '',
             recentReports,
             personalDetails,
@@ -170,31 +170,25 @@ class SearchPage extends Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                            {didScreenTransitionEnd && (
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                hideAdditionalOptionStates
-                                showTitleTooltip
-                            />
-                            )}
-                        </View>
-                        <KeyboardSpacer />
-                    </>
-                )}
+            <ScreenWrapper onTransitionEnd={() => this.setState({isLoading: false})}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.search')}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <OptionsSelector
+                        isLoading={this.state.isLoading}
+                        sections={sections}
+                        value={this.state.searchValue}
+                        onSelectRow={this.selectReport}
+                        onChangeText={this.onChangeText}
+                        headerMessage={headerMessage}
+                        hideSectionHeaders
+                        hideAdditionalOptionStates
+                        showTitleTooltip
+                    />
+                </View>
+                <KeyboardSpacer />
             </ScreenWrapper>
         );
     }

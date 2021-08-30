@@ -7,8 +7,11 @@ import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ExpensiTextInput from './ExpensiTextInput';
+import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 const propTypes = {
+    isLoading: PropTypes.bool,
+
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
@@ -67,6 +70,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    isLoading: false,
     onSelectRow: () => {},
     placeholderText: '',
     selectedOptions: [],
@@ -94,7 +98,15 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.textInput.focus();
+        if (!this.props.isLoading) {
+            this.textInput.focus();
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.isLoading !== prevProps.isLoading) {
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -203,21 +215,26 @@ class OptionsSelector extends Component {
                             || this.props.translate('optionsSelector.nameEmailOrPhoneNumber')}
                     />
                 </View>
-                <OptionsList
-                    ref={el => this.list = el}
-                    optionHoveredStyle={styles.hoveredComponentBG}
-                    onSelectRow={this.selectRow}
-                    sections={this.props.sections}
-                    focusedIndex={this.state.focusedIndex}
-                    selectedOptions={this.props.selectedOptions}
-                    canSelectMultipleOptions={this.props.canSelectMultipleOptions}
-                    hideSectionHeaders={this.props.hideSectionHeaders}
-                    headerMessage={this.props.headerMessage}
-                    disableFocusOptions={this.props.disableArrowKeysActions}
-                    hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
-                    forceTextUnreadStyle={this.props.forceTextUnreadStyle}
-                    showTitleTooltip={this.props.showTitleTooltip}
-                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    {!this.props.isLoading ? (
+                        <OptionsList
+                            ref={el => this.list = el}
+                            optionHoveredStyle={styles.hoveredComponentBG}
+                            onSelectRow={this.selectRow}
+                            sections={this.props.sections}
+                            focusedIndex={this.state.focusedIndex}
+                            selectedOptions={this.props.selectedOptions}
+                            canSelectMultipleOptions={this.props.canSelectMultipleOptions}
+                            hideSectionHeaders={this.props.hideSectionHeaders}
+                            headerMessage={this.props.headerMessage}
+                            disableFocusOptions={this.props.disableArrowKeysActions}
+                            hideAdditionalOptionStates={this.props.hideAdditionalOptionStates}
+                            forceTextUnreadStyle={this.props.forceTextUnreadStyle}
+                            showTitleTooltip={this.props.showTitleTooltip}
+                        />
+                    ) : <FullScreenLoadingIndicator isVisible={this.props.isLoading} />}
+                </View>
+
             </View>
         );
     }
