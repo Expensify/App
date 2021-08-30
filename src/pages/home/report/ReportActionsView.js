@@ -45,6 +45,7 @@ import {isDefaultRoom} from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {getPersonalDetailsForLogins} from '../../../libs/OptionsListUtils';
 import ChatBeginingText from '../../../components/ChatBeginingText';
+import colors from '../../../styles/colors';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -554,7 +555,7 @@ class ReportActionsView extends React.Component {
                     </View>
                     <View style={[styles.justifyContentEnd, {flex: 0.05}]}>
                         {chatUserTimeZone !== false && (
-                        <Text>
+                        <Text style={{fontSize: variables.fontSizeSmall, color: colors.gray4}}>
                             {`It's ${userTime} for ${chatUsers?.[0]?.displayName}.`}
                         </Text>
                         )}

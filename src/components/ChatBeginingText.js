@@ -35,10 +35,10 @@ const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
                 <Text>
                     {chatUsers.map(({displayName, pronouns}, index) => (
                         <Text key={displayName}>
-                            <Text style={[{color: colors.dark, fontWeight: 700}]}>
+                            <Text style={[{color: colors.dark, fontWeight: '700'}]}>
                                 {displayName}
                             </Text>
-                            {pronouns !== undefined
+                            {(pronouns !== undefined && pronouns !== '')
                                 && (
                                 <Text>
                                     {`(${pronouns})`}

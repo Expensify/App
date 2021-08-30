@@ -145,7 +145,7 @@ class ReportActionCompose extends React.Component {
         this.addEmojiToTextBox = this.addEmojiToTextBox.bind(this);
         this.focus = this.focus.bind(this);
         this.comment = props.comment;
-        this.shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+        this.shouldFocusInputOnScreenFocus = !canFocusInputOnScreenFocus();
         this.focusEmojiSearchInput = this.focusEmojiSearchInput.bind(this);
         this.measureEmojiPopoverAnchorPosition = this.measureEmojiPopoverAnchorPosition.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -153,7 +153,6 @@ class ReportActionCompose extends React.Component {
         this.emojiSearchInput = null;
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
-
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
             textInputShouldClear: false,

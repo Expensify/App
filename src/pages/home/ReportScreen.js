@@ -180,6 +180,7 @@ class ReportScreen extends React.Component {
                                 reportID={reportID}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
+                                isFocused
                             />
                         </SwipeableView>
                     )}
