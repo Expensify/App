@@ -62,7 +62,6 @@ class BeneficialOwnersStep extends React.Component {
             ));
 
             if (invalidBeneficifialOwner) {
-                showErrorModal(this.props.translate('beneficialOwnersStep.error.invalidBeneficialOwner'));
                 return false;
             }
         }

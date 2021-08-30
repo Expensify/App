@@ -1,5 +1,6 @@
 import moment from 'moment';
 import CONST from '../CONST';
+import {showBankAccountFormValidationError, showErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
 
 /**
@@ -68,45 +69,45 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
- * Get error translation keys associated with the first invalid field found
- *
- * @param {Object} identity
- * @returns {string|undefined}
- */
-
-function getIdentityError(identity) {
-    if (!isValidAddress(identity.street)) {
-        return translateLocal('bankAccount.error.address');
-    }
-
-    if (identity.state === '') {
-        return translateLocal('bankAccount.error.addressState');
-    }
-
-    if (!isValidZipCode(identity.zipCode)) {
-        return translateLocal('bankAccount.error.zipCode');
-    }
-
-    if (!isValidDate(identity.dob)) {
-        return translateLocal('bankAccount.error.dob');
-    }
-
-    if (!isValidSSNLastFour(identity.ssnLast4)) {
-        return translateLocal('bankAccount.error.ssnLast4');
-    }
-    return undefined;
-}
-
-/**
  * @param {Object} identity
  * @returns {Boolean}
  */
 function isValidIdentity(identity) {
-    return !getIdentityError(identity);
+    if (!isValidAddress(identity.street)) {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'), true);
+        showErrorModal();
+        return false;
+    }
+
+    if (identity.state === '') {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'), true);
+        showErrorModal();
+        return false;
+    }
+
+    if (!isValidZipCode(identity.zipCode)) {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'), true);
+        showErrorModal();
+        return false;
+    }
+
+    if (!isValidDate(identity.dob)) {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'), true);
+        showErrorModal();
+        return false;
+    }
+
+    if (!isValidSSNLastFour(identity.ssnLast4)) {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'), true);
+        showErrorModal();
+        return false;
+    }
+
+    return true;
 }
 
+
 export {
-    getIdentityError,
     isValidAddress,
     isValidDate,
     isValidIndustryCode,
