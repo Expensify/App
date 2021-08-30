@@ -20,7 +20,7 @@ const TermsWithLicenses = ({translate}) => (
                 styles.justifyContentCenter,
             ]}
         >
-            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.dFlex, styles.flexRow, styles.flexWrap, styles.alignItemsCenter]}>
                 <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
                     {translate('termsOfUse.phrase1')}
                 </Text>

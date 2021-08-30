@@ -57,7 +57,7 @@ class LoginForm extends React.Component {
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: this.props.translate('loginForm.pleaseEnterEmailOrPhoneNumber')});
+            this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
             return;
         }
 
@@ -91,11 +91,11 @@ class LoginForm extends React.Component {
                 </View>
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
-                        {this.state.formError}
+                        {this.props.translate(this.state.formError)}
                     </Text>
                 )}
 
-                {!_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && !_.isEmpty(this.props.account.error) && (
                     <Text style={[styles.formError]}>
                         {this.props.account.error}
                     </Text>

@@ -1267,6 +1267,12 @@ function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
     const htmlForNewComment = parser.replace(textForNewComment);
 
+    //  Delete the comment if it's empty
+    if (_.isEmpty(htmlForNewComment)) {
+        deleteReportComment(reportID, originalReportAction);
+        return;
+    }
+
     // Skip the Edit if message is not changed
     if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
         return;

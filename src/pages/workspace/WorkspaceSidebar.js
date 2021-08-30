@@ -25,7 +25,6 @@ import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import CONST from '../../CONST';
-import {create} from '../../libs/actions/Policy';
 import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
@@ -81,7 +80,6 @@ const WorkspaceSidebar = ({
     if (allPolicies !== null && _.isEmpty(policy)) {
         Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
         Navigation.dismissModal();
-        create();
         return null;
     }
 
@@ -144,6 +142,7 @@ const WorkspaceSidebar = ({
                                         numberOfLines={1}
                                         style={[
                                             styles.displayName,
+                                            styles.alignSelfCenter,
                                         ]}
                                     >
                                         {policy.name}
