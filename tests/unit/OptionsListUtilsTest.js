@@ -262,7 +262,7 @@ describe('OptionsListUtils', () => {
         const MAX_RECENT_REPORTS = 5;
 
         // When we call getNewChatOptions() with no search value
-        let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, '');
+        let results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
         // We should expect maximimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(MAX_RECENT_REPORTS);
@@ -279,13 +279,13 @@ describe('OptionsListUtils', () => {
         expect(personalDetailWithExistingReport.reportID).toBe(2);
 
         // When we provide a search value that does not match any personal details
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'magneto');
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'magneto');
 
         // Then no options will be returned
         expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches an email
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'peterparker@expensify.com');
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'peterparker@expensify.com');
 
         // Then one recentReports will be returned and it will be the correct option
         // personalDetails should be empty array
@@ -294,7 +294,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.length).toBe(0);
 
         // When we provide a search value that matches a partial display name or email
-        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, 'man');
+        results = OptionsListUtils.getNewChatOptions(REPORTS, PERSONAL_DETAILS, [], 'man');
 
         // Then several options will be returned and they will be each have the search string in their email or name
         // even though the currently logged in user matches they should not show.
@@ -318,7 +318,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, '', [CONST.EMAIL.CONCIERGE],
+            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [CONST.EMAIL.CONCIERGE],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -331,7 +331,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, '', [CONST.EMAIL.CHRONOS],
+            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [CONST.EMAIL.CHRONOS],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -344,7 +344,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, '', [CONST.EMAIL.RECEIPTS],
+            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [CONST.EMAIL.RECEIPTS],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -358,7 +358,7 @@ describe('OptionsListUtils', () => {
 
     it('getNewGroupOptions()', () => {
         // When we call getNewGroupOptions() with no search value
-        let results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, '');
+        let results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], '');
 
         // Then we should expect only a maxmimum of 5 recent reports to be returned
         expect(results.recentReports.length).toBe(5);
@@ -375,7 +375,7 @@ describe('OptionsListUtils', () => {
         expect(personalDetailsOverlapWithReports).toBe(false);
 
         // When we search for an option that is only in a personalDetail with no existing report
-        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'hulk');
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], 'hulk');
 
         // Then reports should return no results
         expect(results.recentReports.length).toBe(0);
@@ -385,7 +385,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[0].login).toBe('brucebanner@expensify.com');
 
         // When we search for an option that matches things in both personalDetails and reports
-        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'man');
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], 'man');
 
         // Then all single participant reports that match will show up in the recentReports array
         expect(results.recentReports.length).toBe(2);
@@ -397,7 +397,7 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails[0].login).toBe('natasharomanoff@expensify.com');
 
         // When we provide no selected options to getNewGroupOptions()
-        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, '', []);
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], '', []);
 
         // Then one of our older report options (not in our five most recent) should appear in the personalDetails
         // but not in recentReports
@@ -408,6 +408,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getNewGroupOptions(
             REPORTS,
             PERSONAL_DETAILS,
+            [],
             '',
             [{login: 'peterparker@expensify.com'}],
         );
@@ -418,7 +419,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is not a potential email or phone
-        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'marc@expensify');
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], 'marc@expensify');
 
         // Then we should have no options or personal details at all and also that there is no userToInvite
         expect(results.recentReports.length).toBe(0);
@@ -427,7 +428,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential email
-        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, 'marc@expensify.com');
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], 'marc@expensify.com');
 
         // Then we should have no options or personal details at all but there should be a userToInvite
         expect(results.recentReports.length).toBe(0);
@@ -436,7 +437,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number without country code added
-        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, '5005550006');
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], '5005550006');
 
         // Then we should have no options or personal details at all but there should be a userToInvite and the login
         // should have the country code included
@@ -447,7 +448,7 @@ describe('OptionsListUtils', () => {
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number with country code added
-        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, '+15005550006');
+        results = OptionsListUtils.getNewGroupOptions(REPORTS, PERSONAL_DETAILS, [], '+15005550006');
 
         // Then we should have no options or personal details at all but there should be a userToInvite and the login
         // should have the country code included
@@ -472,6 +473,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getNewGroupOptions(
             REPORTS_WITH_CONCIERGE,
             PERSONAL_DETAILS_WITH_CONCIERGE,
+            [],
             '',
             [],
             [CONST.EMAIL.CONCIERGE],
@@ -496,6 +498,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getNewGroupOptions(
             REPORTS_WITH_CHRONOS,
             PERSONAL_DETAILS_WITH_CHRONOS,
+            [],
             '',
             [],
             [CONST.EMAIL.CHRONOS],
@@ -519,6 +522,7 @@ describe('OptionsListUtils', () => {
         results = OptionsListUtils.getNewGroupOptions(
             REPORTS_WITH_RECEIPTS,
             PERSONAL_DETAILS_WITH_RECEIPTS,
+            [],
             '',
             [],
             [CONST.EMAIL.RECEIPTS],
