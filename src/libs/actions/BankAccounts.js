@@ -605,7 +605,7 @@ function validateBankAccount(bankAccountID, validateCode) {
 /**
  * Show error modal and optionally a specific error message
  *
- * @param {String} errorModalMessage The error message to be displayed in the modal's body. We show translate('companyStep.confirmModalPrompt') if not provided.
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
  */
 
 function showErrorModal(errorModalMessage = null) {
