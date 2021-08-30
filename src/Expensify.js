@@ -101,14 +101,7 @@ class Expensify extends PureComponent {
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
-            BootSplash.getVisibilityStatus()
-                .then((value) => {
-                    if (value !== 'visible') {
-                        return;
-                    }
-
-                    this.hideSplash();
-                });
+            this.hideSplash();
         }
     }
 
