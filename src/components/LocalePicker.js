@@ -6,7 +6,6 @@ import {setLocale} from '../libs/actions/App';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import Permissions from '../libs/Permissions';
 import {translate} from '../libs/translate';
 import ExpensiPicker from './ExpensiPicker';
 
@@ -43,25 +42,19 @@ const localesToLanguages = {
 const LocalePicker = ({
     // eslint-disable-next-line no-shadow
     preferredLocale, translate, betas, size,
-}) => {
-    if (!Permissions.canUseInternationalization(betas)) {
-        return null;
-    }
-
-    return (
-        <ExpensiPicker
-            label={size === 'normal' ? translate('preferencesPage.language') : null}
-            onChange={(locale) => {
-                if (locale !== preferredLocale) {
-                    setLocale(locale);
-                }
-            }}
-            items={Object.values(localesToLanguages)}
-            size={size}
-            value={preferredLocale}
-        />
-    );
-};
+}) => (
+    <ExpensiPicker
+        label={size === 'normal' ? translate('preferencesPage.language') : null}
+        onChange={(locale) => {
+            if (locale !== preferredLocale) {
+                setLocale(locale);
+            }
+        }}
+        items={Object.values(localesToLanguages)}
+        size={size}
+        value={preferredLocale}
+    />
+);
 
 LocalePicker.defaultProps = defaultProps;
 LocalePicker.propTypes = propTypes;
