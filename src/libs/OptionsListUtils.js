@@ -410,8 +410,8 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
-    _.each(excludeLogins, (excludeLogin) => {
-        loginOptionsToExclude.push({login: excludeLogin});
+    _.each(excludeLogins, (login) => {
+        loginOptionsToExclude.push({login});
     });
 
     if (includeRecentReports) {
