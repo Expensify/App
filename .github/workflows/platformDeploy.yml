@@ -223,11 +223,15 @@ jobs:
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
+      - name: Set iOS version in ENV
+        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> $GITHUB_ENV
+
       - name: Run Fastlane for App Store release
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: bundle exec fastlane ios production
         env:
-          VERSION: ${{ env.NEW_IOS_VERSION }}
+          VERSION: ${{ env.IOS_VERSION }}
 
   web:
     name: Build and deploy Web
