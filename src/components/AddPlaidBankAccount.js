@@ -20,7 +20,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
-import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
