@@ -15,7 +15,6 @@ import {
 } from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
@@ -93,7 +92,6 @@ class AddPlaidBankAccount extends React.Component {
 
         this.state = {
             selectedIndex: undefined,
-            password: '',
             isCreatingAccount: false,
             institution: {},
         };
@@ -174,16 +172,6 @@ class AddPlaidBankAccount extends React.Component {
                                     value={this.state.selectedIndex}
                                 />
                             </View>
-                            {/* {!_.isUndefined(this.state.selectedIndex) && (
-                                <View style={[styles.mb5]}>
-                                    <ExpensiTextInput
-                                        label={'DELET THIS'}
-                                        value={this.state.password} // delete
-                                        autoFocus={canFocusInputOnScreenFocus()} // delete
-                                        onChangeText={text => this.setState({password: text})} // delete
-                                    />
-                                </View>
-                            )} */}
                         </View>
                         <View style={[styles.m5]}>
                             <Button
