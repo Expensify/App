@@ -31,7 +31,7 @@ mc mb electron-builder/electron-builder
 6. Verify that the new bucket has been created by navigating to https://localhost:9000/minio/electron-builder in your browser and confriming you see an interface like this:
 ![electron-builder](https://user-images.githubusercontent.com/3981102/120376267-8842d700-c2d0-11eb-86cb-f595f27d535d.png)
 
-7. Set your testing bucket to be public, which will allow the e.cash dmg access the local latest-mac.yml file we'll be publishing
+7. Set your testing bucket to be public, which will allow the NewExpensify.dmg access the local latest-mac.yml file we'll be publishing
 ```
 mc policy set public electron-builder/electron-builder
 ```

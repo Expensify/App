@@ -750,7 +750,7 @@ function subscribeToUserEvents() {
 
 /**
  * There are 2 possibilities that we can receive via pusher for a user's typing status:
- * 1. The "new" way from e.cash is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+ * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
  * is whether the user with that login is typing on the report or not.
  * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
  *
