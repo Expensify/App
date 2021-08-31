@@ -20,7 +20,7 @@ const defaultProps = {
 };
 
 const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
-    <Text style={[styles.mt3, styles.w50, styles.textAlignCenter]}>
+    <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
         <Text style={[{color: colors.dark}]}>
             {isDefaultChatRoom ? `${translate('reportActionsView.beginingOfChatHistroyPrivate')} ` : `${translate('reportActionsView.beginingOfChatHistroy')} `}
         </Text>

@@ -527,7 +527,7 @@ class ReportActionsView extends React.Component {
         const displayTimeWithTimeZone = _.map(
             getPersonalDetailsForLogins(participants, this.props.personalDetails),
             ({timezone}) => ({
-                timezone: timezone.selected,
+                timezone: timezone?.selected ?? null,
             }),
         );
         const chatUserTimeZone = isMultipleParticipant ? false : displayTimeWithTimeZone.map(({timezone}) => timezone).join('');

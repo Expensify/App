@@ -16,6 +16,10 @@ export default {
         width: '50%',
     },
 
+    w70: {
+        width: '70%',
+    },
+
     w20: {
         width: '20%',
     },

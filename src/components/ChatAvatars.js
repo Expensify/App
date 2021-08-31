@@ -60,7 +60,7 @@ const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) =>
                                         ]}
                                     >
                                         <Text style={styles.avatarInnerTextChat}>
-                                            {`+${avatarImageURLs.length}`}
+                                            {`+${avatarImageURLs.length - 4}`}
                                         </Text>
                                     </View>
                                 )}

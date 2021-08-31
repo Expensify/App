@@ -1594,11 +1594,10 @@ const styles = {
     },
     chatOverLay: {
         position: 'absolute',
-        top: 0,
+        top: 3,
         right: 0,
         bottom: 0,
-        left: 0,
-        margin: 5,
+        left: 3,
         backgroundColor: 'black',
         opacity: 0.6,
     },
