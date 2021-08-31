@@ -6,7 +6,7 @@ import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import {fetchFreePlanVerifiedBankAccount, clearReimbursementAccountError} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import VBALoadingIndicator from '../../components/VBALoadingIndicator';
 import Permissions from '../../libs/Permissions';
@@ -106,6 +106,7 @@ class ReimbursementAccountPage extends React.Component {
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
+        clearReimbursementAccountError();
     }
 
     /**
