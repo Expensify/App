@@ -174,20 +174,16 @@ class AddPlaidBankAccount extends React.Component {
                                     value={this.state.selectedIndex}
                                 />
                             </View>
-                            {!_.isUndefined(this.state.selectedIndex) && (
+                            {/* {!_.isUndefined(this.state.selectedIndex) && (
                                 <View style={[styles.mb5]}>
                                     <ExpensiTextInput
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                        secureTextEntry
-                                        value={this.state.password}
-                                        autoCompleteType="password"
-                                        textContentType="password"
-                                        autoCapitalize="none"
-                                        autoFocus={canFocusInputOnScreenFocus()}
-                                        onChangeText={text => this.setState({password: text})}
+                                        label={'DELET THIS'}
+                                        value={this.state.password} // delete
+                                        autoFocus={canFocusInputOnScreenFocus()} // delete
+                                        onChangeText={text => this.setState({password: text})} // delete
                                     />
                                 </View>
-                            )}
+                            )} */}
                         </View>
                         <View style={[styles.m5]}>
                             <Button
@@ -195,7 +191,7 @@ class AddPlaidBankAccount extends React.Component {
                                 text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.state.isCreatingAccount}
                                 onPress={this.selectAccount}
-                                isDisabled={_.isUndefined(this.state.selectedIndex) || !this.state.password}
+                                isDisabled={_.isUndefined(this.state.selectedIndex)}
                             />
                         </View>
                     </>
