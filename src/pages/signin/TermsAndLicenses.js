@@ -19,43 +19,43 @@ const TermsAndLicenses = ({translate}) => (
                 styles.alignItemsCenter,
             ]}
         >
-            <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {translate('termsOfUse.phrase1')}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLinkNative]}
+                style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.TERMS_URL}
             >
                 {' '}
                 {translate('termsOfUse.phrase2')}
                 {' '}
             </TextLink>
-            <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {translate('termsOfUse.phrase3')}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLinkNative]}
+                style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.PRIVACY_URL}
             >
                 {' '}
                 {translate('termsOfUse.phrase4')}
             </TextLink>
-            <Text style={[styles.textAlignCenter, styles.loginTermsText]}>.</Text>
-            <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {translate('termsOfUse.phrase5')}
                 {' '}
             </Text>
-            <Text style={[styles.textAlignCenter, styles.loginTermsText]}>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
                 {translate('termsOfUse.phrase6')}
             </Text>
             <TextLink
-                style={[styles.loginTermsText, styles.termsLinkNative]}
+                style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.LICENSES_URL}
             >
                 {' '}
                 {translate('termsOfUse.phrase7')}
             </TextLink>
-            <Text style={[styles.textAlignCenter, styles.loginTermsText]}>.</Text>
+            <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
         </View>
         <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
             <LogoWordmark height={30} width={80} />
