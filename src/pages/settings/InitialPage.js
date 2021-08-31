@@ -27,6 +27,7 @@ import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
+import DateUtils from '../../libs/DateUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -90,7 +91,10 @@ const defaultMenuItems = [
     {
         translationKey: 'common.profile',
         icon: Profile,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PROFILE); },
+        action: () => {
+            DateUtils.updateTimezone();
+            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+        },
     },
     {
         translationKey: 'common.preferences',

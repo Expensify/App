@@ -30,6 +30,14 @@ Onyx.connect({
     },
 });
 
+let reimbursementAccountWorkspaceID = null;
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID,
+    callback: (val) => {
+        reimbursementAccountWorkspaceID = val;
+    },
+});
+
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
@@ -409,7 +417,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
                     achData.useOnfido = true;
-                    achData.policyID = '';
+                    achData.policyID = reimbursementAccountWorkspaceID || '';
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
@@ -817,6 +825,10 @@ function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
+function setWorkspaceIDForReimbursementAccount(workspaceID) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -833,4 +845,5 @@ export {
     hideBankAccountErrorModal,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
+    setWorkspaceIDForReimbursementAccount,
 };

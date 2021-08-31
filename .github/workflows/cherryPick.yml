@@ -15,7 +15,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
     steps:
       - id: isUserDeployer
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
@@ -190,7 +190,8 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: "#DB4545",
-                text: `@mobile-deployers 💥 Failed to CP https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 💥`,
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Failed to CP https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 💥`,
               }]
             }
         env:
