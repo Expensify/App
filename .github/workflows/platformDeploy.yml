@@ -16,7 +16,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
     steps:
       - id: isUserDeployer
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
@@ -28,7 +28,7 @@ jobs:
   android:
     name: Build and deploy Android
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -92,7 +92,7 @@ jobs:
   desktop:
     name: Build and deploy Desktop
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -148,7 +148,7 @@ jobs:
   iOS:
     name: Build and deploy iOS
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -232,7 +232,7 @@ jobs:
   web:
     name: Build and deploy Web
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

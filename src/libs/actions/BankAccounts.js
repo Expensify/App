@@ -30,6 +30,14 @@ Onyx.connect({
     },
 });
 
+let reimbursementAccountWorkspaceID = null;
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID,
+    callback: (val) => {
+        reimbursementAccountWorkspaceID = val;
+    },
+});
+
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
@@ -409,7 +417,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
                     achData.useOnfido = true;
-                    achData.policyID = '';
+                    achData.policyID = reimbursementAccountWorkspaceID || '';
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
@@ -643,6 +651,9 @@ function setupWithdrawalAccount(data) {
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
+    // Convert the errorAttemptsCount to an object to prevent it from being wiped out by JSON.stringify
+    newACHData.errorAttemptsCount = {...newACHData.errorAttemptsCount};
+
     nextStep = newACHData.currentStep;
 
     // If we are setting up a Plaid account replace the accountNumber with the unmasked number
@@ -800,6 +811,10 @@ function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
+function setWorkspaceIDForReimbursementAccount(workspaceID) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -814,4 +829,5 @@ export {
     validateBankAccount,
     hideBankAccountErrors,
     showBankAccountFormValidationError,
+    setWorkspaceIDForReimbursementAccount,
 };

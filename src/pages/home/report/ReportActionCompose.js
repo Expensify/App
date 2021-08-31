@@ -58,6 +58,7 @@ import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
+import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 
 const propTypes = {
@@ -190,11 +191,13 @@ class ReportActionCompose extends React.Component {
             this.focus();
         }
 
-        // If we switch from a sidebar, the component does not mount again
-        // so we need to update the comment manually.
-        if (prevProps.comment !== this.props.comment) {
-            this.textInput.setNativeProps({text: this.props.comment});
+        // As the report IDs change, make sure to update the composer comment as we need to make sure
+        // we do not show incorrect data in there (ie. draft of message from other report).
+        if (this.props.report.reportID === prevProps.report.reportID) {
+            return;
         }
+
+        this.updateComment(this.props.comment);
     }
 
     componentWillUnmount() {
@@ -430,6 +433,8 @@ class ReportActionCompose extends React.Component {
         if (!trimmedComment) {
             return;
         }
+
+        DateUtils.throttledUpdateTimezone();
 
         this.props.onSubmit(trimmedComment);
         this.updateComment('');

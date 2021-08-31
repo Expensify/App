@@ -194,7 +194,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
+        notificationPreferencesDescription: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
