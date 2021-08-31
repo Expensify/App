@@ -1,15 +1,15 @@
 import React from 'react';
-import {Text, View} from 'react-native';
-import styles from '../../../styles/styles';
-import CONST from '../../../CONST';
-import TextLink from '../../../components/TextLink';
-import withLocalize, {
-    withLocalizePropTypes,
-} from '../../../components/withLocalize';
-import TermsAndLicensesFooter from './TermsAndLicensesFooter';
+import {View} from 'react-native';
+import styles from '../../styles/styles';
+import CONST from '../../CONST';
+import Text from '../../components/Text';
+import TextLink from '../../components/TextLink';
+import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
+import LocalePicker from '../../components/LocalePicker';
 
 const TermsAndLicenses = ({translate}) => (
-    <View>
+    <>
         <View
             style={[
                 styles.dFlex,
@@ -57,8 +57,11 @@ const TermsAndLicenses = ({translate}) => (
             </TextLink>
             <Text style={[styles.textAlignCenter, styles.loginTermsText]}>.</Text>
         </View>
-        <TermsAndLicensesFooter />
-    </View>
+        <View style={[styles.mt4, styles.alignItemsCenter, styles.mb2, styles.flexRow, styles.justifyContentBetween]}>
+            <LogoWordmark height={30} width={80} />
+            <LocalePicker size="small" />
+        </View>
+    </>
 );
 
 TermsAndLicenses.propTypes = {...withLocalizePropTypes};
