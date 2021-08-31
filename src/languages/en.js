@@ -319,6 +319,8 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
+        pleaseFillPassword: 'Please enter your password',
+        pleaseFillTwoFactorAuth: 'Please enter your two factor code',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
         twoFactorCode: 'Two factor code',
