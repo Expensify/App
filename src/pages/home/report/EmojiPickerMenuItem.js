@@ -18,11 +18,6 @@ const propTypes = {
 
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
-
-    /** Size of the emoji item */
-    emojiSize: PropTypes.shape({
-        fontSize: PropTypes.number,
-    }).isRequired,
 };
 
 const EmojiPickerMenuItem = props => (
@@ -38,7 +33,7 @@ const EmojiPickerMenuItem = props => (
         ])}
     >
         <Hoverable onHoverIn={props.onHover}>
-            <Text style={[styles.emojiText, props.emojiSize]}>
+            <Text style={[styles.emojiText]}>
                 {props.emoji}
             </Text>
         </Hoverable>

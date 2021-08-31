@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const defaultPresets = ['@babel/preset-react', '@babel/preset-env', '@babel/preset-flow'];
 const defaultPlugins = [
     // Adding the commonjs: true option to react-native-web plugin can cause styling conflicts
@@ -33,6 +35,27 @@ const metro = {
         'react-native-reanimated/plugin',
     ],
 };
+
+/*
+ * We use Flipper, <React.Profiler> and react-native-performance to capture/monitor stats
+ * By default <React.Profiler> is disabled in production as it adds small overhead
+ * When CAPTURE_METRICS is set we're explicitly saying that we want to capture metrics
+ * To enable the <Profiler> for release builds we add these aliases */
+if (process.env.CAPTURE_METRICS === 'true') {
+    const path = require('path');
+    const profilingRenderer = path.resolve(
+        __dirname,
+        './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling',
+    );
+
+    metro.plugins.push(['module-resolver', {
+        root: ['./'],
+        alias: {
+            'ReactNativeRenderer-prod': profilingRenderer,
+            'scheduler/tracing': 'scheduler/tracing-profiling',
+        },
+    }]);
+}
 
 module.exports = ({caller}) => {
     // For `react-native` (iOS/Android) caller will be "metro"

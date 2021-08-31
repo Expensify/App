@@ -1,9 +1,6 @@
 name: Update Deploy Blockers
 
 on:
-  pull_request:
-    types:
-      - labeled
   issues:
     types:
       - labeled
@@ -25,13 +22,6 @@ jobs:
           echo "DEPLOY_BLOCKER_URL=${{ github.event.issue.html_url }}" >> $GITHUB_ENV
           echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.issue.number }}" >> $GITHUB_ENV
           echo "DEPLOY_BLOCKER_TITLE=$(sed -e "s/'/'\\\\''/g; s/\`/\\\\\`/g; 1s/^/'/; \$s/\$/'/" <<< "'${{ github.event.issue.title }}'")" >> $GITHUB_ENV
-
-      - name: Get URL, title, & number of new deploy blocker (pull request)
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          echo "DEPLOY_BLOCKER_URL=${{ github.event.pull_request.html_url }}" >> $GITHUB_ENV
-          echo "DEPLOY_BLOCKER_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
-          echo "DEPLOY_BLOCKER_TITLE=$(sed -e "s/'/'\\\\''/g; s/\`/\\\\\`/g; 1s/^/'/; \$s/\$/'/" <<< "'${{ github.event.pull_request.title }}'")" >> $GITHUB_ENV
 
       - name: Update StagingDeployCash with new deploy blocker
         uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
@@ -85,7 +75,7 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: "#DB4545",
-                pretext: `<!here>`,
+                pretext: `<!subteam^S4TJJ3PSL>`,
                 text: `💥 ${process.env.AS_REPO} failed on ${process.env.AS_WORKFLOW} workflow 💥`,
               }]
             }

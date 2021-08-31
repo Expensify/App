@@ -7,8 +7,7 @@ import CONST from '../../CONST';
 import Log from '../Log';
 import CONFIG from '../../CONFIG';
 import ROUTES from '../../ROUTES';
-import {printPerformanceMetrics} from '../Performance';
-import canCapturePerformanceMetrics from '../canCapturePerformanceMetrics';
+import Performance from '../Performance';
 import Timing from './Timing';
 
 let currentUserAccountID;
@@ -37,7 +36,9 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    if (currentUserAccountID) {
+        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
@@ -61,15 +62,8 @@ function setSidebarLoaded() {
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
-
-    if (!canCapturePerformanceMetrics()) {
-        return;
-    }
-
-    const performance = require('react-native-performance').default;
-    performance.mark('sidebarLoadEnd');
-    performance.measure('timeToInteractive', 'nativeLaunchStart', 'sidebarLoadEnd');
-    printPerformanceMetrics();
+    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
+    Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
 
 let appState;

@@ -215,6 +215,8 @@ describe('OptionsListUtils', () => {
         },
     };
 
+    const REPORT_DRAFT_COMMENTS = {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'Draft comment'};
+
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
         Onyx.init({
@@ -443,7 +445,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite.login).toBe(`+15005550006${CONST.SMS.DOMAIN}`);
+        expect(results.userToInvite.login).toBe('+15005550006');
 
         // When we add a search term for which no options exist and the searchValue itself
         // is a potential phone number with country code added
@@ -454,7 +456,7 @@ describe('OptionsListUtils', () => {
         expect(results.recentReports.length).toBe(0);
         expect(results.personalDetails.length).toBe(0);
         expect(results.userToInvite).not.toBe(null);
-        expect(results.userToInvite.login).toBe(`+15005550006${CONST.SMS.DOMAIN}`);
+        expect(results.userToInvite.login).toBe('+15005550006');
 
         // Test Concierge's existence in new group options
         results = OptionsListUtils.getNewGroupOptions(REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE);
@@ -564,7 +566,7 @@ describe('OptionsListUtils', () => {
         const results = OptionsListUtils.getSidebarOptions(
             reportsWithAddedPinnedMessagelessReport,
             PERSONAL_DETAILS,
-            {},
+            REPORT_DRAFT_COMMENTS,
             0,
             CONST.PRIORITY_MODE.DEFAULT,
         );
@@ -585,13 +587,16 @@ describe('OptionsListUtils', () => {
         // And the third report is the report with an IOU debt
         expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
 
-        // And the fourth report is the report with the lastMessage timestamp
-        expect(results.recentReports[3].login).toBe('steverogers@expensify.com');
+        // And the fourth report is the report with a draft comment
+        expect(results.recentReports[3].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
+
+        // And the fifth report is the report with the lastMessage timestamp
+        expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
     });
 
     it('getSidebarOptions() with GSD priority mode', () => {
         // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, {}, 0, CONST.PRIORITY_MODE.GSD);
+        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, REPORT_DRAFT_COMMENTS, 0, CONST.PRIORITY_MODE.GSD);
 
         // Then expect all of the reports to be shown both multiple and single participant except the
         // report that has no lastMessageTimestamp and the chat with Thor who's message is read
