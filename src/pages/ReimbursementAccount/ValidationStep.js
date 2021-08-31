@@ -160,7 +160,7 @@ class ValidationStep extends React.Component {
                         <Button
                             success
                             text={this.props.translate('validationStep.buttonText')}
-                            style={[styles.m5]}
+                            style={[styles.mh5, styles.mb5]}
                             onPress={this.submit}
                             isDisabled={shouldDisableSubmitButton}
                         />

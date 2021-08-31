@@ -349,7 +349,7 @@ class CompanyStep extends React.Component {
                     shouldShowCancelButton={false}
                 />
 
-                <FixedFooter style={[styles.mt5]}>
+                <FixedFooter>
                     <Button
                         success
                         onPress={this.submit}

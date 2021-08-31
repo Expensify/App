@@ -206,7 +206,7 @@ class RequestorStep extends React.Component {
                                 </Text>
                             </View>
                         </ScrollView>
-                        <FixedFooter style={[styles.mt5]}>
+                        <FixedFooter>
                             <Button
                                 success
                                 onPress={this.submit}
