@@ -1,15 +1,15 @@
 import React from 'react';
 import {Text, View} from 'react-native';
-import styles from '../../../../styles/styles';
-import CONST from '../../../../CONST';
-import TextLink from '../../../../components/TextLink';
+import styles from '../../../styles/styles';
+import CONST from '../../../CONST';
+import TextLink from '../../../components/TextLink';
 import withLocalize, {
     withLocalizePropTypes,
-} from '../../../../components/withLocalize';
-import LogoWordmark from '../../../../../assets/images/expensify-wordmark.svg';
-import LocalePicker from '../../../../components/LocalePicker';
+} from '../../../components/withLocalize';
+import LogoWordmark from '../../../../assets/images/expensify-wordmark.svg';
+import LocalePicker from '../../../components/LocalePicker';
 
-const TermsWithLicenses = ({translate}) => (
+const TermsAndLicenses = ({translate}) => (
     <View>
         <View
             style={[
@@ -73,6 +73,6 @@ const TermsWithLicenses = ({translate}) => (
     </View>
 );
 
-TermsWithLicenses.propTypes = {...withLocalizePropTypes};
+TermsAndLicenses.propTypes = {...withLocalizePropTypes};
 
-export default withLocalize(TermsWithLicenses);
+export default withLocalize(TermsAndLicenses);
