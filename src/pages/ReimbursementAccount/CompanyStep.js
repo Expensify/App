@@ -12,7 +12,7 @@ import {
     goToWithdrawalAccountSetupStep, hideBankAccountErrors,
     setupWithdrawalAccount,
     showBankAccountFormValidationError,
-    showErrorModal,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -135,7 +135,7 @@ class CompanyStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            showErrorModal();
+            showBankAccountErrorModal();
             return;
         }
 

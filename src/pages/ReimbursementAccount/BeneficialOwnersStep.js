@@ -15,7 +15,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
-    showErrorModal,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -67,12 +67,12 @@ class BeneficialOwnersStep extends React.Component {
         }
 
         if (!this.state.acceptTermsAndConditions) {
-            showErrorModal(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
+            showBankAccountErrorModal(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
             return false;
         }
 
         if (!this.state.certifyTrueInformation) {
-            showErrorModal(this.props.translate('beneficialOwnersStep.error.certify'));
+            showBankAccountErrorModal(this.props.translate('beneficialOwnersStep.error.certify'));
             return false;
         }
 

@@ -608,14 +608,14 @@ function validateBankAccount(bankAccountID, validateCode) {
  * @param {String} errorModalMessage The error message to be displayed in the modal's body.
  */
 
-function showErrorModal(errorModalMessage = null) {
+function showBankAccountErrorModal(errorModalMessage = null) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
 }
 
 /**
  * Hide error modal
  */
-function hideErrorModal() {
+function hideBankAccountErrorModal() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: false});
 }
 
@@ -803,13 +803,13 @@ function setupWithdrawalAccount(data) {
 
             if (error) {
                 showBankAccountFormValidationError(error);
-                showErrorModal(error);
+                showBankAccountErrorModal(error);
             }
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             console.error(response.stack);
-            showErrorModal(translateLocal('common.genericErrorMessage'));
+            showBankAccountErrorModal(translateLocal('common.genericErrorMessage'));
         });
 }
 
@@ -830,7 +830,7 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
-    hideErrorModal,
-    showErrorModal,
+    hideBankAccountErrorModal,
+    showBankAccountErrorModal,
     showBankAccountFormValidationError,
 };

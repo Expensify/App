@@ -14,7 +14,7 @@ import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
-    showErrorModal,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
@@ -71,7 +71,7 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            showErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
+            showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
 
