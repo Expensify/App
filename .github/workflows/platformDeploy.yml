@@ -225,7 +225,9 @@ jobs:
 
       - name: Set iOS version in ENV
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
-        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> $GITHUB_ENV
+        run: |
+          echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> $GITHUB_ENV
+          echo "iOS version is: ${{ env.IOS_VERSION }}"
 
       - name: Run Fastlane for App Store release
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
