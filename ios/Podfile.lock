@@ -37,7 +37,7 @@ PODS:
   - Firebase/Performance (8.4.0):
     - Firebase/CoreOnly
     - FirebasePerformance (~> 8.4.0)
-  - FirebaseABTesting (8.4.0):
+  - FirebaseABTesting (8.6.0):
     - FirebaseCore (~> 8.0)
   - FirebaseAnalytics (8.4.0):
     - FirebaseAnalytics/AdIdSupport (= 8.4.0)
@@ -61,7 +61,7 @@ PODS:
     - FirebaseCoreDiagnostics (~> 8.0)
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/Logger (~> 7.4)
-  - FirebaseCoreDiagnostics (8.4.0):
+  - FirebaseCoreDiagnostics (8.6.0):
     - GoogleDataTransport (~> 9.0)
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/Logger (~> 7.4)
@@ -73,7 +73,7 @@ PODS:
     - GoogleUtilities/Environment (~> 7.4)
     - nanopb (~> 2.30908.0)
     - PromisesObjC (< 3.0, >= 1.2)
-  - FirebaseInstallations (8.4.0):
+  - FirebaseInstallations (8.6.0):
     - FirebaseCore (~> 8.0)
     - GoogleUtilities/Environment (~> 7.4)
     - GoogleUtilities/UserDefaults (~> 7.4)
@@ -87,7 +87,7 @@ PODS:
     - GoogleUtilities/ISASwizzler (~> 7.4)
     - GoogleUtilities/MethodSwizzler (~> 7.4)
     - Protobuf (~> 3.15)
-  - FirebaseRemoteConfig (8.4.0):
+  - FirebaseRemoteConfig (8.6.0):
     - FirebaseABTesting (~> 8.0)
     - FirebaseCore (~> 8.0)
     - FirebaseInstallations (~> 8.0)
@@ -159,25 +159,25 @@ PODS:
     - GoogleUtilities/Environment (~> 7.2)
     - nanopb (~> 2.30908.0)
     - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/AppDelegateSwizzler (7.5.0):
+  - GoogleUtilities/AppDelegateSwizzler (7.5.1):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
     - GoogleUtilities/Network
-  - GoogleUtilities/Environment (7.5.0):
+  - GoogleUtilities/Environment (7.5.1):
     - PromisesObjC (< 3.0, >= 1.2)
-  - GoogleUtilities/ISASwizzler (7.5.0)
-  - GoogleUtilities/Logger (7.5.0):
+  - GoogleUtilities/ISASwizzler (7.5.1)
+  - GoogleUtilities/Logger (7.5.1):
     - GoogleUtilities/Environment
-  - GoogleUtilities/MethodSwizzler (7.5.0):
+  - GoogleUtilities/MethodSwizzler (7.5.1):
     - GoogleUtilities/Logger
-  - GoogleUtilities/Network (7.5.0):
+  - GoogleUtilities/Network (7.5.1):
     - GoogleUtilities/Logger
     - "GoogleUtilities/NSData+zlib"
     - GoogleUtilities/Reachability
-  - "GoogleUtilities/NSData+zlib (7.5.0)"
-  - GoogleUtilities/Reachability (7.5.0):
+  - "GoogleUtilities/NSData+zlib (7.5.1)"
+  - GoogleUtilities/Reachability (7.5.1):
     - GoogleUtilities/Logger
-  - GoogleUtilities/UserDefaults (7.5.0):
+  - GoogleUtilities/UserDefaults (7.5.1):
     - GoogleUtilities/Logger
   - hermes-engine (0.7.2)
   - libevent (2.1.12)
@@ -197,7 +197,7 @@ PODS:
     - RNPermissions
   - Permission-LocationWhenInUse (3.0.1):
     - RNPermissions
-  - Plaid (2.1.3)
+  - Plaid (2.2.0)
   - PromisesObjC (2.0.0)
   - Protobuf (3.17.0)
   - RCT-Folly (2020.01.13.00):
@@ -424,8 +424,8 @@ PODS:
     - React-Core
   - react-native-performance (2.0.0):
     - React-Core
-  - react-native-plaid-link-sdk (7.0.5):
-    - Plaid (~> 2.1.2)
+  - react-native-plaid-link-sdk (7.1.0):
+    - Plaid (~> 2.2.0)
     - React-Core
   - react-native-progress-bar-android (1.0.4):
     - React
@@ -622,7 +622,7 @@ DEPENDENCIES:
   - Permission-LocationAccuracy (from `../node_modules/react-native-permissions/ios/LocationAccuracy`)
   - Permission-LocationAlways (from `../node_modules/react-native-permissions/ios/LocationAlways`)
   - Permission-LocationWhenInUse (from `../node_modules/react-native-permissions/ios/LocationWhenInUse`)
-  - Plaid (~> 2.1.2)
+  - Plaid (~> 2.2.0)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -882,16 +882,16 @@ SPEC CHECKSUMS:
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: d2bbf7ed8374a5ef7e82afdce19c4e50731f1f0e
+  FBReactNativeSpec: 884d4cc2b011759361797a4035c47e10099393b5
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
-  FirebaseABTesting: 4cb61aeeb50f60680af1c01fff781dfaf9293916
+  FirebaseABTesting: c3e48ebf5e7e5c674c5a131c68e941d7921d83dc
   FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
   FirebaseCore: 31f389c37ac1ea52454a53d3081f2d7019485a4a
-  FirebaseCoreDiagnostics: cad03be1904b975f845e632f2720c3337da27faf
+  FirebaseCoreDiagnostics: 3721920bde3a9a6d5aa093c1d25e9d3e47f694af
   FirebaseCrashlytics: c9eb562b2f6bd5ee5e880144fd5ef1bfe46c5dc5
-  FirebaseInstallations: 1585729afc787877763208c2088ed84221161f77
+  FirebaseInstallations: 0ede6ffcd215b8f93c19d9b06c1c54e2d4107e98
   FirebasePerformance: b6a1fd3ca81f5d54c4216e43562aa9dcd4f54b19
-  FirebaseRemoteConfig: 0b813f093033c56fe74a91996044a239ab5acb02
+  FirebaseRemoteConfig: 9ee4672d4eacf646256e26cfac61021b3a390ea4
   Flipper: d3da1aa199aad94455ae725e9f3aa43f3ec17021
   Flipper-DoubleConversion: 38631e41ef4f9b12861c67d17cb5518d06badc41
   Flipper-Folly: 755929a4f851b2fb2c347d533a23f191b008554c
@@ -903,7 +903,7 @@ SPEC CHECKSUMS:
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
   GoogleAppMeasurement: 6b6a08fd9c71f4dbc89e0e812acca81d797aa342
   GoogleDataTransport: 85fd18ff3019bb85d3f2c551d04c481dedf71fc9
-  GoogleUtilities: eea970f4a389963963bffe8d8fabe43540678b9c
+  GoogleUtilities: 3df19e3c24f7bbc291d8b5809aa6b0d41e642437
   hermes-engine: 7d97ba46a1e29bacf3e3c61ecb2804a5ddd02d4f
   libevent: 4049cae6c81cdb3654a443be001fb9bdceff7913
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
@@ -913,7 +913,7 @@ SPEC CHECKSUMS:
   Permission-LocationAccuracy: e8adff9ede1b23b43b7054a4500113d515fc87a8
   Permission-LocationAlways: 7f7f373d086af7a81b2f4f20d65d29266ca2043b
   Permission-LocationWhenInUse: 3ae82a9feb5da4e94e386dba17c7dd3531af9feb
-  Plaid: f55c6acdc249245c6778a4045757eb4e839cca61
+  Plaid: 3485574bd01075562d969a2d9384cde1ed7d9252
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
   Protobuf: 7327d4444215b5f18e560a97f879ff5503c4581c
   RCT-Folly: ec7a233ccc97cc556cf7237f0db1ff65b986f27c
@@ -934,7 +934,7 @@ SPEC CHECKSUMS:
   react-native-netinfo: 52cf0ee8342548a485e28f4b09e56b477567244d
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-performance: 8edfa2bbc9a2af4a02f01d342118e413a95145e0
-  react-native-plaid-link-sdk: 1a6593e2d3d790e8113c29178d883eb883f8c032
+  react-native-plaid-link-sdk: dcc247a441571b6e0b9029ab00a30f82e4cfa906
   react-native-progress-bar-android: ce95a69f11ac580799021633071368d08aaf9ad8
   react-native-progress-view: 5816e8a6be812c2b122c6225a2a3db82d9008640
   react-native-safe-area-context: 01158a92c300895d79dee447e980672dc3fb85a6
@@ -982,6 +982,6 @@ SPEC CHECKSUMS:
   Yoga: a7de31c64fe738607e7a3803e3f591a4b1df7393
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 
-PODFILE CHECKSUM: 7cebe371d8801e93b6e15eb27f446fd20f0c1526
+PODFILE CHECKSUM: 7160d92f9ed0406e25fcbd1377bc0ee08c9cdfe3
 
 COCOAPODS: 1.10.1
