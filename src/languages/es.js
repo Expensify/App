@@ -190,7 +190,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
+        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
@@ -336,7 +336,6 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
         phoneOrEmail: 'Número de teléfono o email',
-        enterYourPhoneOrEmail: 'Escribe tu número de teléfono o email:',
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
@@ -404,7 +403,6 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
     },
@@ -552,17 +550,17 @@ export default {
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
     },
     beneficialOwnersStep: {
-        beneficialOwners: 'Beneficial Owners',
-        additionalInformation: 'Additional Information',
-        checkAllThatApply: '(check all that apply, otherwise leave blank)',
-        iOwnMoreThan25Percent: 'I own more than 25% of ',
-        someoneOwnsMoreThan25Percent: 'Somebody else owns more than 25% of ',
-        additionalOwner: 'Additional Beneficial Owner',
-        removeOwner: 'Remove this beneficial owner',
-        addAnotherIndividual: 'Add another individual who owns more than 25% of ',
-        agreement: 'Agreement:',
-        termsAndConditions: 'terms and conditions',
-        certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        beneficialOwners: 'Beneficiario efectivo',
+        additionalInformation: 'Información adicional',
+        checkAllThatApply: '(marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco)',
+        iOwnMoreThan25Percent: 'Soy dueño de mas de 25% de ',
+        someoneOwnsMoreThan25Percent: 'Otra persona es dueña de mas de 25% de ',
+        additionalOwner: 'Beneficiario efectivo adicional',
+        removeOwner: 'Eliminar este beneficiario efectivo',
+        addAnotherIndividual: 'Agregar otra persona que es dueña de mas de 25% de ',
+        agreement: 'Acuerdo:',
+        termsAndConditions: 'Términos y condiciones',
+        certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
         error: {
             termsAndConditions: 'Debe aceptar términos y condiciones',
             certify: 'Debe certificar que la información es verdadera y precisa',
