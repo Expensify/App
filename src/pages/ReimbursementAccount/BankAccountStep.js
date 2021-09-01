@@ -222,7 +222,7 @@ class BankAccountStep extends React.Component {
                                     ? error : ''}
                             />
                             <ExpensiTextInput
-                                containerStyles={[styles.mt4]} 
+                                containerStyles={[styles.mt4]}
                                 placeholder={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}
