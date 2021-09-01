@@ -27,25 +27,28 @@ If you are hired for an Upwork job and have any job-specific questions, please a
 If you've found a vulnerability, please email security@expensify.com with the subject `Vulnerability Report` instead of creating an issue.
 
 ## Payment for Contributions
-We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. We hire one contributor for each Upwork job. New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. If you have not received payment after 8 days of the PR being deployed to production, please email contributors@expensify.com referencing the GH issue and your GH handle.
+We hire and pay external contributors via Upwork.com. If you'd like to be paid for contributing, please create an Upwork account and apply for a job in the [Upwork issue list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). If you think your compensation should be increased for a specific job, you can request a reevaluation by commenting in the Github issue where the Upwork job was posted. 
+
+Payment for your contributions will be made no less than 7 days after the pull request is deployed to production to allow for regression testing. If a regression occurs, payment will be issued 7 days after all regressions are fixed. If you have not received payment after 8 days of the PR being deployed to production and there being no regressions, please email contributors@expensify.com referencing the GH issue and your GH handle. 
+
+New contributors are limited to working on one job at a time, however experienced contributors may work on numerous jobs simultaneously. 
 
 ## Finding Jobs
 There are two ways you can find a job that you can contribute to:
 
 #### Finding a job that Expensify posted
-This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow.
+This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view [open issues in GitHub with the `Help Wanted` label.](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22) 
 
 #### Proposing a job that Expensify hasn’t posted
 
 In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) or [Github repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement. Note: If your solution is also merged, this $250 is *in addition to* the price you will be paid for completing the job. 
 
-    1. Check to ensure an issue does not already exist in the New Expensify Issue list or Upwork job list. Please use your best judgement to search for similar titles and issue descriptions.
-    2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it’ll help solve a problem.
-    3. If there is no existing issue or Upwork job, create a new GitHub issue in the Expensify/App repo.
-    4. Make sure to fill out all the required information fields in the issue template.
-    5. Add the `AutoAssignerTriage` label to your issue.
-    6. Before starting your PR to solve the bug or enhancement that you are proposing, please add a comment on your issue with a solution proposal.
-    7. Pause on this step until a member of the Expensify team responds on your issue with next steps.
+1. Check to ensure an issue does not already exist in the [New Expensify Issue list](https://github.com/Expensify/App/issues) or [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Please use your best judgement to search for similar titles and issue descriptions.
+2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it will help solve a problem.
+3. If there is no existing GitHub issue or Upwork job, report the issues in the #expensify-open-source Slack channel, prefix the post with `BUG:` or `Feature Request:`. Include all relevant data, screenshots and examples in the post or thread.
+4. After review in #expensify-open-source, if we choose to implement your proposal, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
+5. If an external contributor is hired in Upwork to work on the issue, you will also be hired for the same job. No additional work is needed. If the issue is fixed internally, a dedicated job will be created to hire and pay after the issue is fixed. 
+6. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression occurs, payment will be issued 7 days after all regressions are fixed. 
 
 >**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
 >
