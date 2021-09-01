@@ -26,11 +26,12 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>expensify-cash</string>
+				<string>new-expensify</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>1.0.91.0</string>
+	<string>1.0.91.1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationQueriesSchemes</key>

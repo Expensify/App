@@ -9,7 +9,7 @@ import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 
-const ACTIVE_LABEL_TRANSLATE_Y = -10;
+const ACTIVE_LABEL_TRANSLATE_Y = -12;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
