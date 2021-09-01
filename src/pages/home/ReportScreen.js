@@ -26,6 +26,10 @@ const propTypes = {
         params: PropTypes.shape({
             /** The ID of the report this screen should display */
             reportID: PropTypes.string,
+
+            /** The ID of the report action to load.
+             *  If present, we'll fetch one page before and after the report action, and render it in the center of the screen. */
+            reportActionID: PropTypes.string,
         }).isRequired,
     }).isRequired,
 
@@ -52,7 +56,7 @@ const propTypes = {
         hasOutstandingIOU: PropTypes.bool,
     }),
 
-    /** Array of report actions for this report */
+    /** Array of report actions loaded for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 };
 
@@ -78,8 +82,7 @@ const defaultProps = {
  * @returns {Number}
  */
 function getReportID(route) {
-    const params = route.params;
-    return Number.parseInt(params.reportID, 10);
+    return Number.parseInt(route.params.reportID, 10);
 }
 
 class ReportScreen extends React.Component {
@@ -170,6 +173,7 @@ class ReportScreen extends React.Component {
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
+                            currentReportActionID={this.props.route.params.reportActionID}
                             report={this.props.report}
                             session={this.props.session}
                         />

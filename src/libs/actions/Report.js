@@ -882,23 +882,32 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
  *
  * @param {Number} reportID
  * @param {Number} [offset]
+ * @param {Number} [pages]
  * @returns {Promise}
  */
-function fetchActions(reportID, offset) {
-    const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
-
+function fetchActions(reportID, offset = -1, pages = 1) {
+    const reportActionsOffset = offset ?? -1;
     if (!_.isNumber(reportActionsOffset)) {
         Log.alert('[Report] Offset provided is not a number', {
             offset,
             reportActionsOffset,
         });
-        return;
+        return Promise.reject();
+    }
+
+    const numPages = pages ?? 1;
+    if (!_.isNumber(numPages)) {
+        Log.alert('[Report] Pages provides is not a number', {
+            pages,
+            numPages,
+        });
+        return Promise.reject();
     }
 
     return API.Report_GetHistory({
         reportID,
         reportActionsOffset,
-        reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT,
+        reportActionsLimit: CONST.REPORT.ACTIONS.LIMIT * numPages,
     })
         .then((data) => {
             // We must remove all optimistic actions so there will not be any stuck comments. At this point, we should

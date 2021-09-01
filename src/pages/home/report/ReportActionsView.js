@@ -62,6 +62,9 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
+    /** The reportActionID to focus and center on */
+    currentReportActionID: PropTypes.string,
+
     /** The session of the logged in person */
     session: PropTypes.shape({
         /** Email of the logged in person */
@@ -80,6 +83,7 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     reportActions: {},
+    currentReportActionID: null,
     session: {},
 };
 
@@ -141,7 +145,13 @@ class ReportActionsView extends React.Component {
 
         setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
 
-        fetchActions(this.props.reportID);
+        // Load initial chats.
+        // If we have an currentReportActionID, then load one page before and after that reportAction
+        fetchActions(
+            this.props.reportID,
+            this.props.currentReportActionID ? this.props.currentReportActionID - CONST.REPORT.ACTIONS.LIMIT : null,
+            this.props.currentReportActionID ? 2 : 1,
+        );
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -535,7 +545,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        // Comments have not loaded at all yet do nothing
+        // Comments have not loaded at all yet - do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
         }
