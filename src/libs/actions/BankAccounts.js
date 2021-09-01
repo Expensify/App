@@ -784,6 +784,8 @@ function setupWithdrawalAccount(data) {
                         error = translateLocal('bankAccount.error.incorporationState');
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
                         error = translateLocal('bankAccount.error.companyType');
+                    } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_COMPANY_PHONE) {
+                        error = translateLocal('bankAccount.error.companyPhone');
                     } else {
                         console.error(response.message);
                     }
