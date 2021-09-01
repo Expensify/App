@@ -27,6 +27,7 @@ const CONST = {
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
             EXISTING_OWNERS: '402 Existing Owners',
+            MISSING_COMPANY_PHONE: '402 Missing companyPhone in additionalData',
         },
         STEP: {
             // In the order they appear in the VBA flow
