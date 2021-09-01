@@ -342,7 +342,7 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                 </ScrollView>
-                <FixedFooter style={[styles.mt5]}>
+                <FixedFooter>
                     <Button
                         success
                         onPress={this.submit}
