@@ -1,15 +1,15 @@
 PODS:
-  - Airship (14.3.0):
-    - Airship/Automation (= 14.3.0)
-    - Airship/Core (= 14.3.0)
-    - Airship/ExtendedActions (= 14.3.0)
-    - Airship/MessageCenter (= 14.3.0)
-  - Airship/Automation (14.3.0):
+  - Airship (14.4.2):
+    - Airship/Automation (= 14.4.2)
+    - Airship/Core (= 14.4.2)
+    - Airship/ExtendedActions (= 14.4.2)
+    - Airship/MessageCenter (= 14.4.2)
+  - Airship/Automation (14.4.2):
     - Airship/Core
-  - Airship/Core (14.3.0)
-  - Airship/ExtendedActions (14.3.0):
+  - Airship/Core (14.4.2)
+  - Airship/ExtendedActions (14.4.2):
     - Airship/Core
-  - Airship/MessageCenter (14.3.0):
+  - Airship/MessageCenter (14.4.2):
     - Airship/Core
   - boost-for-react-native (1.63.0)
   - CocoaAsyncSocket (7.6.5)
@@ -583,8 +583,8 @@ PODS:
     - UMCore
   - UMTaskManagerInterface (6.1.0):
     - UMCore
-  - urbanairship-react-native (11.0.1):
-    - Airship (= 14.3.0)
+  - urbanairship-react-native (11.0.2):
+    - Airship (= 14.4.2)
     - React-Core
   - Yoga (1.14.0)
   - YogaKit (1.18.1):
@@ -876,13 +876,13 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Airship: 7609d263d3a207f112d6db066af5852b80af6819
+  Airship: 29d674abeac754f783fc46c7d383d6f046687341
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cf9b38bf0b2d048436d9a82ad2abe1404f11e7de
   EXHaptics: 337c160c148baa6f0e7166249f368965906e346b
   FBLazyVector: 7b423f9e248eae65987838148c36eec1dbfe0b53
-  FBReactNativeSpec: d33acb7e904759ab96287c68c28405171451f211
+  FBReactNativeSpec: 7c304782592aaf95fe9fc6add0746906d6562739
   Firebase: 54cdc8bc9c9b3de54f43dab86e62f5a76b47034f
   FirebaseABTesting: 4cb61aeeb50f60680af1c01fff781dfaf9293916
   FirebaseAnalytics: 4751d6a49598a2b58da678cc07df696bcd809ab9
@@ -978,7 +978,7 @@ SPEC CHECKSUMS:
   UMReactNativeAdapter: 7b458ca3d4497b5114e6bb766b223432bad22d8a
   UMSensorsInterface: 50439b47826e716a514cbd7384aebe9ab4fde5f4
   UMTaskManagerInterface: 482155764886069beb1bc7fcf6036f12e4ad0751
-  urbanairship-react-native: d415a12e67ba93bf3ce914df9a310b66a88a5cc3
+  urbanairship-react-native: 60b4b4235838ff109a2639b639e2ef01d54ad455
   Yoga: a7de31c64fe738607e7a3803e3f591a4b1df7393
   YogaKit: f782866e155069a2cca2517aafea43200b01fd5a
 

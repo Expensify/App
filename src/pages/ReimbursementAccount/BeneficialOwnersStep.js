@@ -230,11 +230,12 @@ class BeneficialOwnersStep extends React.Component {
                         )}
                     />
                 </ScrollView>
-                <FixedFooter style={[styles.mt5]}>
+                <FixedFooter>
                     <Button
                         success
                         text={this.props.translate('common.saveAndContinue')}
                         onPress={this.submit}
+                        isDisabled={!this.state.acceptTermsAndConditions || !this.state.certifyTrueInformation}
                     />
                 </FixedFooter>
             </>

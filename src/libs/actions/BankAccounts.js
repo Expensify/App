@@ -30,6 +30,14 @@ Onyx.connect({
     },
 });
 
+let reimbursementAccountWorkspaceID = null;
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID,
+    callback: (val) => {
+        reimbursementAccountWorkspaceID = val;
+    },
+});
+
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
@@ -338,6 +346,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
         loading: true,
+        error: '',
 
         // We temporarily keep the achData state to prevent UI changes while fetching.
         achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
@@ -409,7 +418,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
                     achData.useOnfido = true;
-                    achData.policyID = '';
+                    achData.policyID = reimbursementAccountWorkspaceID || '';
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
@@ -455,7 +464,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                             : CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
                         // @TODO Again, not sure how much of this logic is needed right now
-                        // as we shouldn't be handling any open accounts in E.cash yet that need to pass any more
+                        // as we shouldn't be handling any open accounts in New Expensify yet that need to pass any more
                         // checks or can be upgraded, but leaving in for possible future compatibility.
                         if (bankAccount.isOpen()) {
                             if (bankAccount.needsToPassLatestChecks()) {
@@ -603,17 +612,16 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Set the current error message. Show Growl for server errors as they are not yet handled by the error Modal.
+ * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
  *
  * @param {String} error
- * @param {Boolean} isServerError
+ * @param {Boolean} shouldGrowl
  */
-function showBankAccountFormValidationError(error, isServerError) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error}).then(() => {
-        if (isServerError) {
-            Growl.error(error);
-        }
-    });
+function showBankAccountFormValidationError(error, shouldGrowl) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+    if (shouldGrowl) {
+        Growl.error(error);
+    }
 }
 
 /**
@@ -643,6 +651,9 @@ function setupWithdrawalAccount(data) {
             ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
+
+    // Convert the errorAttemptsCount to an object to prevent it from being wiped out by JSON.stringify
+    newACHData.errorAttemptsCount = {...newACHData.errorAttemptsCount};
 
     nextStep = newACHData.currentStep;
 
@@ -801,6 +812,10 @@ function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
 }
 
+function setWorkspaceIDForReimbursementAccount(workspaceID) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -815,4 +830,5 @@ export {
     validateBankAccount,
     hideBankAccountErrors,
     showBankAccountFormValidationError,
+    setWorkspaceIDForReimbursementAccount,
 };

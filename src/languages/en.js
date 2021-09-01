@@ -190,7 +190,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
+        notificationPreferencesDescription: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
@@ -336,7 +336,6 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
-        enterYourPhoneOrEmail: 'Enter your phone or email:',
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
@@ -404,7 +403,6 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
     },

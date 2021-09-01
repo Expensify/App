@@ -92,7 +92,6 @@ class BankAccountStep extends React.Component {
 
     /**
      * @param {Object} params
-     * @param {String} params.password
      * @param {Object} params.account
      * @param {String} params.account.bankName
      * @param {Boolean} params.account.isSavings
@@ -108,7 +107,6 @@ class BankAccountStep extends React.Component {
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
             // Params passed via the Plaid callback when an account is selected
-            password: params.password,
             plaidAccessToken: params.plaidLinkToken,
             accountNumber: params.account.accountNumber,
             routingNumber: params.account.routingNumber,
