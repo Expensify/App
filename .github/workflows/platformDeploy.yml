@@ -100,7 +100,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the Google Play Store. 💥`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
               }]
             }
         env:
@@ -264,7 +264,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 iOS production deploy failed. Please manually submit ${{ env.IOS_VERSION }} in the App Store. 💥`,
+                text: `💥 iOS production deploy failed. Please manually submit ${{ env.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/1530278510/appstore|App Store>. 💥`,
               }]
             }
         env:
