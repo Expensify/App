@@ -113,6 +113,12 @@ const styles = {
         lineHeight: 14,
     },
 
+    textExtraSmallSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeExtraSmall,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
     },
@@ -728,21 +734,6 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         ...wordBreak.breakWord,
-    },
-
-    loginTermsText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeExtraSmall,
-    },
-
-    termsLink: {
-        color: themeColors.link,
-    },
-
-    termsLinkNative: {
-        color: themeColors.link,
-        margin: 0,
     },
 
     // Sidebar Styles
