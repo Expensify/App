@@ -168,15 +168,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
-            return true;
-        }
-
-        if (nextState.isMarkerActive !== this.state.isMarkerActive) {
-            return true;
-        }
-
-        if (nextState.localUnreadActionCount !== this.state.localUnreadActionCount) {
+        if (!_.isEqual(this.state, nextState)) {
             return true;
         }
 
