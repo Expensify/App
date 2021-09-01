@@ -16,13 +16,11 @@ import {
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
-import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -94,7 +92,6 @@ class AddPlaidBankAccount extends React.Component {
 
         this.state = {
             selectedIndex: undefined,
-            password: '',
             isCreatingAccount: false,
             institution: {},
         };
@@ -117,7 +114,7 @@ class AddPlaidBankAccount extends React.Component {
     selectAccount() {
         const account = this.getAccounts()[this.state.selectedIndex];
         this.props.onSubmit({
-            account, password: this.state.password, plaidLinkToken: this.props.plaidLinkToken,
+            account, plaidLinkToken: this.props.plaidLinkToken,
         });
         this.setState({isCreatingAccount: true});
     }
@@ -174,20 +171,6 @@ class AddPlaidBankAccount extends React.Component {
                                     value={this.state.selectedIndex}
                                 />
                             </View>
-                            {!_.isUndefined(this.state.selectedIndex) && (
-                                <View style={[styles.mb5]}>
-                                    <ExpensiTextInput
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                        secureTextEntry
-                                        value={this.state.password}
-                                        autoCompleteType="password"
-                                        textContentType="password"
-                                        autoCapitalize="none"
-                                        autoFocus={canFocusInputOnScreenFocus()}
-                                        onChangeText={text => this.setState({password: text})}
-                                    />
-                                </View>
-                            )}
                         </View>
                         <View style={[styles.m5]}>
                             <Button
@@ -195,7 +178,7 @@ class AddPlaidBankAccount extends React.Component {
                                 text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.state.isCreatingAccount}
                                 onPress={this.selectAccount}
-                                isDisabled={_.isUndefined(this.state.selectedIndex) || !this.state.password}
+                                isDisabled={_.isUndefined(this.state.selectedIndex)}
                             />
                         </View>
                     </>

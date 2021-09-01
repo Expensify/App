@@ -346,6 +346,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
         loading: true,
+        error: '',
 
         // We temporarily keep the achData state to prevent UI changes while fetching.
         achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
@@ -463,7 +464,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                             : CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
 
                         // @TODO Again, not sure how much of this logic is needed right now
-                        // as we shouldn't be handling any open accounts in E.cash yet that need to pass any more
+                        // as we shouldn't be handling any open accounts in New Expensify yet that need to pass any more
                         // checks or can be upgraded, but leaving in for possible future compatibility.
                         if (bankAccount.isOpen()) {
                             if (bankAccount.needsToPassLatestChecks()) {

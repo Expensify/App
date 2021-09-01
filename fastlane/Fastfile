@@ -113,15 +113,8 @@ platform :ios do
 
     upload_to_testflight(
         api_key_path: "./ios/ios-fastlane-json-key.json",
-        # TODO: Remove skip_waiting_for_build_processing when https://github.com/fastlane/fastlane/issues/18408 is resolved
-        # See: https://github.com/Expensify/App/pull/1984 for more information
-        skip_waiting_for_build_processing: true,
-        # TODO: Set distribute_external back to true when https://github.com/fastlane/fastlane/issues/18408 is resolved
-        # See: https://github.com/Expensify/App/pull/1984 for more information
-        distribute_external: false,
-        # TODO: Set reject_build_waiting_for_review back to true when https://github.com/fastlane/fastlane/issues/18408 is resolved
-        # See: https://github.com/Expensify/App/pull/1984 for more information
-        reject_build_waiting_for_review: false,
+        distribute_external: true,
+        notify_external_testers: true,
         changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
         groups: ["Beta"],
         demo_account_required: true,
