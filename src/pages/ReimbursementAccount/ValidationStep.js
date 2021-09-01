@@ -142,7 +142,7 @@ class ValidationStep extends React.Component {
                                 value={this.state.amount3}
                                 onChangeText={amount3 => this.setState({amount3})}
                             />
-                            {errorMessage && (
+                            {_.isEmpty(errorMessage) && (
                                 <Text style={[styles.mb5, styles.textDanger]}>
                                     {errorMessage}
                                 </Text>

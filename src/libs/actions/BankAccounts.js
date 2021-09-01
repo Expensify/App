@@ -332,15 +332,6 @@ function fetchUserWallet() {
 }
 
 /**
- * Clears the error in the REIMBURSEMENT_ACCOUNT onyx key
- */
-function clearReimbursementAccountError() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        error: '',
-    });
-}
-
-/**
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  *
  * @param {String} [stepToOpen]
@@ -830,7 +821,6 @@ export {
     addPersonalBankAccount,
     clearPlaidBankAccountsAndToken,
     fetchFreePlanVerifiedBankAccount,
-    clearReimbursementAccountError,
     fetchOnfidoToken,
     fetchPlaidLinkToken,
     fetchUserWallet,
