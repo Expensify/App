@@ -616,7 +616,6 @@ function validateBankAccount(bankAccountID, validateCode) {
  *
  * @param {String} errorModalMessage The error message to be displayed in the modal's body.
  */
-
 function showBankAccountErrorModal(errorModalMessage = null) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
 }

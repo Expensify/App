@@ -106,7 +106,6 @@ function isValidIdentity(identity) {
     return true;
 }
 
-
 export {
     isValidAddress,
     isValidDate,
