@@ -74,27 +74,27 @@ function isValidSSNLastFour(ssnLast4) {
  */
 function isValidIdentity(identity) {
     if (!isValidAddress(identity.street)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'), true);
         return false;
     }
 
     if (identity.state === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'), true);
         return false;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'), true);
         return false;
     }
 
     if (!isValidDate(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'), true);
         return false;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'), true);
         return false;
     }
 
