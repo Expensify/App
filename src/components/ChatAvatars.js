@@ -47,7 +47,7 @@ const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) =>
                 {avatarImageURLs.map((val, index) => {
                     if (index <= 3) {
                         return (
-                            <View key={val} style={[styles.chatAvatarWraper, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                                 <Image source={{uri: val}} style={[styles.chatAvatar]} />
 
                                 {index === 3 && (

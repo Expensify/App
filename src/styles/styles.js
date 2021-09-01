@@ -1579,36 +1579,32 @@ const styles = {
         width: 80,
         height: 80,
     },
-    chatAvatarWraper: {
-        height: 57,
-        width: 57,
-        borderRadius: 100,
-        backgroundColor: colors.white,
-        marginLeft: -15,
-    },
 
     chatAvatar: {
         height: 52,
         width: 52,
         borderRadius: 100,
+        borderColor: colors.white,
+        borderWidth: 3,
+        marginLeft: -15,
     },
+
     chatOverLay: {
         position: 'absolute',
-        top: 3,
+        top: 0,
         right: 0,
         bottom: 0,
-        left: 3,
-        backgroundColor: 'black',
-        opacity: 0.6,
+        left: 0,
+        backgroundColor: colors.dark,
+        opacity: 0.5,
     },
 
     avatarInnerTextChat: {
-        color: colors.white,
+        color: themeColors.textReversed,
         fontSize: variables.fontSizeNormal,
-        lineHeight: undefined,
         marginLeft: -2,
         textAlign: 'center',
-        fontWeight: '600',
+        fontWeight: 'normal',
     },
 
     displayName: {
