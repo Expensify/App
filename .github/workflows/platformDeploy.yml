@@ -89,6 +89,24 @@ jobs:
         env:
           VERSION: ${{ env.VERSION_CODE }}
 
+      - name: Warn deployers if Android production deploy failed
+        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the Google Play Store. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   desktop:
     name: Build and deploy Desktop
     needs: validateActor
@@ -234,6 +252,24 @@ jobs:
         run: bundle exec fastlane ios production
         env:
           VERSION: ${{ env.IOS_VERSION }}
+
+      - name: Warn deployers if iOS production deploy failed
+        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 iOS production deploy failed. Please manually submit ${{ env.IOS_VERSION }} in the App Store. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   web:
     name: Build and deploy Web
