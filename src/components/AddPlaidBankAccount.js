@@ -197,9 +197,9 @@ export default compose(
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
 
-            // We always fetch a new token to call Plaid. If we don't then it's possible to open multiple Plaid Link instances. In particular, this can cause issues for Android e.g. very
-            // slow loading of the Plaid UI and inability to hand off to React Native once the bank connection is made. This is because an old stashed token will mount the PlaidLink
-            // component then it gets set again which will mount another PlaidLink component.
+            // We always fetch a new token to call Plaid. If we don't then it's possible to open multiple Plaid Link instances. In particular, this can cause issues for Android e.g.
+            // inability to hand off to React Native once the bank connection is made. This is because an old stashed token will mount the PlaidLink component then it gets set again
+            // which will mount another PlaidLink component.
             initWithStoredValues: false,
         },
         plaidBankAccounts: {
