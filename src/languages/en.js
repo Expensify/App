@@ -336,7 +336,6 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
-        enterYourPhoneOrEmail: 'Enter your phone or email:',
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
