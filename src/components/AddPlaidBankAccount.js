@@ -113,7 +113,7 @@ class AddPlaidBankAccount extends React.Component {
     selectAccount() {
         const account = this.getAccounts()[this.state.selectedIndex];
         this.props.onSubmit({
-            account, password: this.state.password, plaidLinkToken: this.props.plaidLinkToken,
+            account, plaidLinkToken: this.props.plaidLinkToken,
         });
         this.setState({isCreatingAccount: true});
     }
