@@ -221,9 +221,6 @@ class CompanyStep extends React.Component {
                             onChangeText={companyPhone => this.setState({companyPhone})}
                             value={this.state.companyPhone}
                             placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
-                            errorText={error === this.props.translate('bankAccount.error.companyPhone')
-                                ? this.props.translate('bankAccount.error.companyPhone')
-                                : ''}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.companyWebsite')}
