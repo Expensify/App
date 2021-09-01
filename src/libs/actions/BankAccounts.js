@@ -346,6 +346,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
         loading: true,
+        error: '',
 
         // We temporarily keep the achData state to prevent UI changes while fetching.
         achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},

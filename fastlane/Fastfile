@@ -142,7 +142,7 @@ platform :ios do
       api_key_path: "./ios/ios-fastlane-json-key.json",
       build_number: ENV["VERSION"],
       submit_for_review: true,
-      automatic_release: false,
+      automatic_release: true,
       skip_metadata: true,
       skip_screenshots: true,
       skip_binary_upload: true,
