@@ -87,7 +87,6 @@ const CONST = {
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        INTERNATIONALIZATION: 'internationalization',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -251,7 +250,7 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
     },
 
-    EMOJI_PICKER_SIZE: 392,
+    EMOJI_PICKER_SIZE: 320,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
     EMOJI_PICKER_HEADER_HEIGHT: 38,
@@ -334,6 +333,16 @@ const CONST = {
         IOS: 'iOS',
         LINUX: 'Linux',
         NATIVE: 'Native',
+    },
+
+    BROWSER: {
+        CHROME: 'chrome',
+        FIREFOX: 'firefox',
+        IE: 'ie',
+        EDGE: 'edge',
+        Opera: 'opera',
+        SAFARI: 'safari',
+        OTHER: 'other',
     },
 
     IOU: {
