@@ -86,6 +86,8 @@ You are first required to build the tests, then you can run them:
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser.
 3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
 
+Alternatively, you can also setup debugger using [Flipper](https://fbflipper.com/). After installation, press `⌘D` and select "Open Debugger". This will open Flipper window. To view data stored by Onyx, go to Plugin Manager and install `async-storage` plugin.
+
 ## Android
 Our React Native Android app now uses the `Hermes` JS engine which requires your browser for remote debugging. These instructions are specific to Chrome since that's what the Hermes documentation provided.
 1. Navigate to `chrome://inspect`
