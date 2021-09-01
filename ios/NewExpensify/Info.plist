@@ -26,6 +26,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>expensify-cash</string>
+				<string>new-expensify</string>
 			</array>
 		</dict>
 	</array>

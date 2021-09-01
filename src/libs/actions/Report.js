@@ -1,3 +1,4 @@
+import {Linking} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -535,9 +536,13 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
  *
  * @param {Number} reportID
  * @param {Object} reportAction
- * @param {String} notificationPreference On what cadence the user would like to be notified
+ * @param {String} [notificationPreference] On what cadence the user would like to be notified
  */
-function updateReportWithNewAction(reportID, reportAction, notificationPreference) {
+function updateReportWithNewAction(
+    reportID,
+    reportAction,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
     const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
@@ -736,7 +741,12 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
             );
         });
+}
 
+/**
+ * Setup reportComment push notification callbacks.
+ */
+function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
         Log.info('[Report] Handled event sent by Airship', false, {reportID});
         updateReportWithNewAction(reportID, reportAction);
@@ -744,7 +754,8 @@ function subscribeToUserEvents() {
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        Navigation.setDidTapNotification();
+        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
     });
 }
 
@@ -1393,6 +1404,7 @@ export {
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
+    subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,
