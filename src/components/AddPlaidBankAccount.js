@@ -15,6 +15,7 @@ import {
 } from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
@@ -123,16 +124,15 @@ class AddPlaidBankAccount extends React.Component {
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
-
         return (
             <>
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
                     && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <ActivityIndicator size="large" />
+                            <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                {!_.isEmpty(this.props.plaidLinkToken) && (
+                {!_.isEmpty(this.props.plaidLinkToken) && _.isEmpty(this.state.institution) && (
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
@@ -196,6 +196,11 @@ export default compose(
     withOnyx({
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
+
+            // We always fetch a new token to call Plaid. If we don't then it's possible to open multiple Plaid Link instances. In particular, this can cause issues for Android e.g.
+            // inability to hand off to React Native once the bank connection is made. This is because an old stashed token will mount the PlaidLink component then it gets set again
+            // which will mount another PlaidLink component.
+            initWithStoredValues: false,
         },
         plaidBankAccounts: {
             key: ONYXKEYS.PLAID_BANK_ACCOUNTS,
