@@ -56,10 +56,18 @@ class PasswordForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        if (!this.state.password.trim()
-            || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
-        ) {
-            this.setState({formError: this.props.translate('passwordForm.pleaseFillOutAllFields')});
+        if (!this.state.password.trim() && this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
+            this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
+            return;
+        }
+
+        if (!this.state.password.trim()) {
+            this.setState({formError: 'passwordForm.pleaseFillPassword'});
+            return;
+        }
+
+        if (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
+            this.setState({formError: 'passwordForm.pleaseFillTwoFactorAuth'});
             return;
         }
 
@@ -111,7 +119,7 @@ class PasswordForm extends React.Component {
                     </View>
                 )}
 
-                {this.props.account && !_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.error) && (
                     <Text style={[styles.formError]}>
                         {this.props.account.error}
                     </Text>
@@ -119,7 +127,7 @@ class PasswordForm extends React.Component {
 
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
-                        {this.state.formError}
+                        {this.props.translate(this.state.formError)}
                     </Text>
                 )}
                 <View>

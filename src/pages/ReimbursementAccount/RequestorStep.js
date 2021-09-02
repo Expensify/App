@@ -14,12 +14,12 @@ import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
-import Growl from '../../libs/Growl';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -53,6 +53,17 @@ class RequestorStep extends React.Component {
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
+
+        this.requiredFields = [
+            'firstName',
+            'lastName',
+            'requestorAddressStreet',
+            'requestorAddressCity',
+            'requestorAddressZipCode',
+            'dob',
+            'ssnLast4',
+            'requestorAddressState',
+        ];
     }
 
     onFieldChange(field, value) {
@@ -71,7 +82,7 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            Growl.error(this.props.translate('requestorStep.isControllingOfficerError'));
+            showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
 
@@ -96,6 +107,9 @@ class RequestorStep extends React.Component {
     }
 
     render() {
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || !this.state.isControllingOfficer;
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -192,12 +206,13 @@ class RequestorStep extends React.Component {
                                 </Text>
                             </View>
                         </ScrollView>
-                        <FixedFooter style={[styles.mt5]}>
+                        <FixedFooter>
                             <Button
                                 success
                                 onPress={this.submit}
                                 style={[styles.w100]}
                                 text={this.props.translate('common.saveAndContinue')}
+                                isDisabled={shouldDisableSubmitButton}
                             />
                         </FixedFooter>
                     </>

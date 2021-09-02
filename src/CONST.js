@@ -87,7 +87,6 @@ const CONST = {
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
-        INTERNATIONALIZATION: 'internationalization',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -120,6 +119,7 @@ const CONST = {
     CLOUDFRONT_URL,
     NEW_ZOOM_MEETING_URL: 'https://zoom.us/start/videomeeting',
     NEW_GOOGLE_MEET_MEETING_URL: 'https://meet.google.com/new',
+    DEEPLINK_BASE_URL: 'new-expensify://',
     PDF_VIEWER_URL: '/pdf/web/viewer.html',
     EXPENSIFY_ICON_URL: `${CLOUDFRONT_URL}/images/favicon-2019.png`,
     UPWORK_URL: 'https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22',
