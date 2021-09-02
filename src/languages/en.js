@@ -391,6 +391,7 @@ export default {
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid Routing Number',
+            accountNumber: 'Please enter a valid Account Number',
             companyType: 'Please enter a valid Company Type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',

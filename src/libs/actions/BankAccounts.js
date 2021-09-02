@@ -628,6 +628,16 @@ function hideBankAccountErrorModal() {
 }
 
 /**
+ * Set the current fields with errors.
+ *
+ * @param {String} errors
+ */
+function setBankAccountFormValidationErrors(errors) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null}); // TOOD: How to force removal
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
+}
+
+/**
  * Set the current error message.
  *
  * @param {String} error
@@ -822,7 +832,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: '', errors: {}});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
@@ -845,5 +855,6 @@ export {
     hideBankAccountErrorModal,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
+    setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
 };

@@ -391,6 +391,7 @@ export default {
             industryCode: 'Ingrese un código de clasificación de industria válido',
             restrictedBusiness: 'Confirme que la empresa no está en la lista de negocios restringidos',
             routingNumber: 'Ingrese un número de ruta válido',
+            accountNumber: 'Ingrese un número de cuenta válido',
             companyType: 'Ingrese un tipo de compañía válido',
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelva a intentarlo más tarde o introduzca los detalles manualmente.',
             address: 'Ingrese una dirección válida',
