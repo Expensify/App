@@ -67,6 +67,8 @@ import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
+import * as API from '../../API';
+import {setLocale} from '../../actions/App';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -85,6 +87,12 @@ Onyx.connect({
             PersonalDetails.setPersonalDetails({timezone});
         }
     },
+});
+
+let currentPreferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 const RootStack = createCustomModalStackNavigator();
@@ -158,7 +166,19 @@ class AuthScreens extends React.Component {
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        }).then((response) => {
+            const preferredLocale = response.nameValuePairs.preferredLocale || CONST.DEFAULT_LOCALE;
+            if (currentPreferredLocale !== CONST.DEFAULT_LOCALE && preferredLocale !== currentPreferredLocale) {
+                setLocale(currentPreferredLocale);
+            } else {
+                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+            }
+        });
+
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
