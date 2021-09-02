@@ -10,8 +10,8 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
-    /** If the OptionsSelector is animated or not  */
-    animated: PropTypes.bool,
+    /** Wether we should wait before focusing the TextInput, useful when using transitions  */
+    shouldDelayFocus: PropTypes.bool,
 
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
@@ -71,7 +71,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    animated: false,
+    shouldDelayFocus: false,
     onSelectRow: () => {},
     placeholderText: '',
     selectedOptions: [],
@@ -99,7 +99,7 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        if (this.props.animated) {
+        if (this.props.shouldDelayFocus) {
             setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
         } else {
             this.textInput.focus();

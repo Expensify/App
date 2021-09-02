@@ -245,7 +245,7 @@ class IOUParticipantsSplit extends Component {
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
-                        animated
+                        shouldDelayFocus
                     />
                 </View>
                 {this.props.participants?.length > 0 && (

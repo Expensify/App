@@ -119,6 +119,8 @@ class IOUConfirmationList extends Component {
     }
 
     componentDidMount() {
+        // We need to wait for the transition animation to end before focusing the TextInput,
+        // otherwise the TextInput isn't animated correctly
         setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
     }
 

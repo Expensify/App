@@ -149,7 +149,7 @@ class IOUParticipantsRequest extends Component {
                 disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle
-                animated
+                shouldDelayFocus
             />
         );
     }
