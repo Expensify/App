@@ -2,11 +2,14 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import {goToWithdrawalAccountSetupStep} from '../../libs/actions/BankAccounts';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     /** Reimbursement account state with list of existing owners */
@@ -17,55 +20,60 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ExistingOwners = (props) => {
-    const existingOwners = props.reimbursementAccount.existingOwners;
-    return (
-        <View>
-            <Text style={[styles.mb4]}>
-                <Text>
-                    {props.translate('bankAccount.error.existingOwners.alreadyInUse')}
-                </Text>
-                {existingOwners && _.map(existingOwners, (existingOwner, i) => {
-                    let separator = ', ';
-                    if (i === 0) {
-                        separator = '';
-                    } else if (i === existingOwners.length - 1) {
-                        separator = ` ${props.translate('common.and')} `;
-                    }
-                    return (
-                        <>
-                            <Text>{separator}</Text>
-                            <Text style={styles.textStrong}>{existingOwner}</Text>
-                            {i === existingOwners.length - 1 && <Text>.</Text>}
-                        </>
-                    );
-                })}
+const ExistingOwners = ({reimbursementAccount, translate}) => (
+    <View>
+        <Text style={[styles.mb4]}>
+            <Text>
+                {translate('bankAccount.error.existingOwners.alreadyInUse')}
             </Text>
-            <Text style={[styles.mb4]}>
-                {props.translate('bankAccount.error.existingOwners.pleaseAskThemToShare')}
+            {reimbursementAccount.existingOwners && _.map(reimbursementAccount.existingOwners, (existingOwner, i) => {
+                let separator = ', ';
+                if (i === 0) {
+                    separator = '';
+                } else if (i === reimbursementAccount.existingOwners.length - 1) {
+                    separator = ` ${translate('common.and')} `;
+                }
+                return (
+                    <>
+                        <Text>{separator}</Text>
+                        <Text style={styles.textStrong}>{existingOwner}</Text>
+                        {i === reimbursementAccount.existingOwners.length - 1 && <Text>.</Text>}
+                    </>
+                );
+            })}
+        </Text>
+        <Text style={[styles.mb4]}>
+            {translate('bankAccount.error.existingOwners.pleaseAskThemToShare')}
+        </Text>
+        <Text>
+            <Text>
+                {translate('bankAccount.error.existingOwners.alternatively')}
+            </Text>
+            <Text
+                style={styles.link}
+                onPress={() => goToWithdrawalAccountSetupStep(
+                    CONST.BANK_ACCOUNT.STEP.COMPANY,
+                    reimbursementAccount.achData || {},
+                )}
+            >
+                {translate(
+                    'bankAccount.error.existingOwners.setUpThisAccountByYourself',
+                )}
             </Text>
             <Text>
-                <Text>
-                    {props.translate('bankAccount.error.existingOwners.alternatively')}
-                </Text>
-                <Text
-                    style={styles.link}
-                    onPress={() => goToWithdrawalAccountSetupStep(
-                        CONST.BANK_ACCOUNT.STEP.COMPANY,
-                        props.achData,
-                    )}
-                >
-                    {props.translate(
-                        'bankAccount.error.existingOwners.setUpThisAccountByYourself',
-                    )}
-                </Text>
-                <Text>
-                    {props.translate('bankAccount.error.existingOwners.validationProcessAgain')}
-                </Text>
+                {translate('bankAccount.error.existingOwners.validationProcessAgain')}
             </Text>
-        </View>
-    );
-};
+        </Text>
+    </View>
+);
+
 
 ExistingOwners.propTypes = propTypes;
-export default withLocalize(ExistingOwners);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    }),
+)(ExistingOwners);
