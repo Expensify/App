@@ -311,53 +311,6 @@ const styles = {
         height: 160,
     },
 
-    picker: {
-        inputIOS: {
-            flex: 1,
-            borderWidth: 0,
-            borderRadius: variables.componentBorderRadiusNormal,
-            paddingTop: 25,
-            paddingHorizontal: 12,
-            paddingBottom: 8,
-            justifyContent: 'center',
-            height: '100%',
-            backgroundColor: themeColors.componentBG,
-        },
-        inputWeb: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
-            color: themeColors.text,
-            appearance: 'none',
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
-            cursor: 'pointer',
-        },
-        inputAndroid: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderWidth: 0,
-            borderRadius: variables.componentBorderRadius,
-            color: themeColors.text,
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
-        },
-        iconContainer: {
-            top: 12,
-            right: 12,
-            pointerEvents: 'none',
-        },
-    },
-
     pickerSmall: {
         inputIOS: {
             fontFamily: fontFamily.GTA,
