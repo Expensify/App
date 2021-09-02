@@ -49,7 +49,7 @@ export default function (WrappedComponent) {
             const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
               && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
 
-            const isLandscape = (isMediumScreenWidth || isSmallScreenWidth) && initialDimensions.width >= initialDimensions.height;
+            const isLandscape = initialDimensions.width >= initialDimensions.height;
 
             this.state = {
                 windowHeight: initialDimensions.height,
@@ -78,7 +78,7 @@ export default function (WrappedComponent) {
             const {window} = newDimensions;
             const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
             const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.mediumScreenResponsiveWidthBreakpoint;
-            const isLandscape = (isMediumScreenWidth || isSmallScreenWidth) && window.width >= window.height;
+            const isLandscape = window.width >= window.height;
 
             this.setState({
                 windowHeight: window.height,
