@@ -78,6 +78,7 @@ class CompanyStep extends React.Component {
             'incorporationType',
             'industryCode',
             'password',
+            'companyPhone',
         ];
     }
 
