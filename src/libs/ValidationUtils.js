@@ -2,6 +2,7 @@ import moment from 'moment';
 import CONST from '../CONST';
 import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
+import getEmojiUnicode from './Emoji/getEmojiUnicode';
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -31,7 +32,9 @@ function isSingleEmoji(message) {
     }
 
     const matchedEmoji = match[0];
-    return message.length === matchedEmoji.length;
+    const matchedUnicode = getEmojiUnicode(matchedEmoji).trim();
+    const currentMessageUnicode = getEmojiUnicode(message).replace(/fe0f$/, '').trim();
+    return matchedUnicode === currentMessageUnicode;
 }
 
 /**
