@@ -131,7 +131,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 paddingTop: 12,
                 justifyContent: 'center',
                 overflow: 'hidden',
-                ...isLandscape ? {height: 300} : {},
+                ...isLandscape ? {top: 40} : {},
             };
 
             shouldAddBottomSafeAreaPadding = true;
