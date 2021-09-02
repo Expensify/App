@@ -129,6 +129,7 @@ export default {
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         roomIsArchived: 'Esta sala de chat ha sido eliminada',
         localTime: ({user, time}) => `Son las ${time} para ${user}`,
+        edited: '(editado)',
         emoji: 'Emoji',
     },
     reportActionContextMenu: {
@@ -189,7 +190,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'Cada cuanto tiempo quieres que te avisemos que hay nuevos mensajes en este canal?',
+        notificationPreferencesDescription: 'Avisar sobre nuevos mensajes',
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
@@ -335,7 +336,6 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
         phoneOrEmail: 'Número de teléfono o email',
-        enterYourPhoneOrEmail: 'Escribe tu número de teléfono o email:',
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
@@ -374,6 +374,9 @@ export default {
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrese de que su inicio de sesión principal sea un correo electrónico válido y vuelva a intentarlo. Puede agregar su número de teléfono como inicio de sesión secundario.',
         hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso de la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
+        confirmModalTitle: 'Ups',
+        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
+        confirmModalConfirmText: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             taxID: 'Ingrese un número de identificación fiscal válido',
@@ -403,7 +406,6 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
     },
@@ -527,9 +529,6 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '10 dígitos, sin guiones',
-        confirmModalTitle: '¿Estás seguro?',
-        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
-        confirmModalConfirmText: 'OK',
     },
     requestorStep: {
         headerTitle: 'Información del solicitante',
@@ -551,24 +550,24 @@ export default {
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
     },
     beneficialOwnersStep: {
-        beneficialOwners: 'Beneficial Owners',
-        additionalInformation: 'Additional Information',
-        checkAllThatApply: '(check all that apply, otherwise leave blank)',
-        iOwnMoreThan25Percent: 'I own more than 25% of ',
-        someoneOwnsMoreThan25Percent: 'Somebody else owns more than 25% of ',
-        additionalOwner: 'Additional Beneficial Owner',
-        removeOwner: 'Remove this beneficial owner',
-        addAnotherIndividual: 'Add another individual who owns more than 25% of ',
-        agreement: 'Agreement:',
-        termsAndConditions: 'terms and conditions',
-        certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
+        beneficialOwners: 'Beneficiario efectivo',
+        additionalInformation: 'Información adicional',
+        checkAllThatApply: '(marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco)',
+        iOwnMoreThan25Percent: 'Soy dueño de mas de 25% de ',
+        someoneOwnsMoreThan25Percent: 'Otra persona es dueña de mas de 25% de ',
+        additionalOwner: 'Beneficiario efectivo adicional',
+        removeOwner: 'Eliminar este beneficiario efectivo',
+        addAnotherIndividual: 'Agregar otra persona que es dueña de mas de 25% de ',
+        agreement: 'Acuerdo:',
+        termsAndConditions: 'Términos y condiciones',
+        certifyTrueAndAccurate: 'Certifico que la información dada es correcta',
         error: {
             termsAndConditions: 'Debe aceptar términos y condiciones',
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
     vbaLoadingAnimation: {
-        oneMoment: 'Un momento...',
+        oneMoment: 'Un Momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
     session: {

@@ -129,6 +129,7 @@ export default {
         fileUploadFailed: 'Upload failed. File is not supported.',
         roomIsArchived: 'This chat room has been deleted',
         localTime: ({user, time}) => `It's ${time} for ${user}`,
+        edited: '(edited)',
         emoji: 'Emoji',
     },
     reportActionContextMenu: {
@@ -189,7 +190,7 @@ export default {
         },
     },
     reportDetailsPage: {
-        notificationPreferencesDescription: 'How often should we notify you when there are new messages to catch up on in this room?',
+        notificationPreferencesDescription: 'Notify me about new messages',
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
@@ -335,7 +336,6 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
-        enterYourPhoneOrEmail: 'Enter your phone or email:',
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
@@ -374,6 +374,9 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
+        confirmModalTitle: 'Oops',
+        confirmModalPrompt: 'Please double check any highlighted fields and try again.',
+        confirmModalConfirmText: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             taxID: 'Please enter a valid Tax ID Number',
@@ -403,7 +406,6 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
-        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
     },
@@ -525,9 +527,6 @@ export default {
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         companyPhonePlaceholder: '10 digits, no hyphens',
-        confirmModalTitle: 'Are you sure?',
-        confirmModalPrompt: 'Please double check any highlighted fields and try again.',
-        confirmModalConfirmText: 'Got it',
     },
     requestorStep: {
         headerTitle: 'Requestor information',
@@ -566,7 +565,7 @@ export default {
         },
     },
     vbaLoadingAnimation: {
-        oneMoment: 'One moment...',
+        oneMoment: 'One Moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
     session: {
