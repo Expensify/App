@@ -196,7 +196,7 @@ class AvatarWithImagePicker extends React.Component {
             getSyncingStyles(this.rotate, this.scale),
         ];
 
-        const indicatorIconSize = this.props.size === CONST.AVATAR_SIZE.LARGE ? variables.iconSizeExtraSmall : variables.iconSizeXXSmall;
+        const indicatorIconSize = this.props.size === CONST.AVATAR_SIZE.LARGE ? variables.iconSizeXXSmall : variables.iconSizeXXXSmall;
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
