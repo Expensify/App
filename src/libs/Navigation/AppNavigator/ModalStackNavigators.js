@@ -54,6 +54,7 @@ function createModalStackNavigator(screens) {
                     key={screen.name}
                     name={screen.name}
                     component={screen.Component}
+                    options={screen.options}
                 />
             ))}
         </ModalStackNavigator.Navigator>
@@ -113,9 +114,31 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
+// https://reactnavigation.org/docs/stack-navigator/#options
+// We can refactor and move this somewhere else
+const searchNavigationOptions = {
+    transitionSpec: {
+        open: {
+            animation: 'timing',
+            config: {
+                duration: 200,
+                delay: 0,
+            },
+        },
+        close: {
+            animation: 'timing',
+            config: {
+                duration: 300,
+                delay: 0,
+            },
+        },
+    },
+};
+
 const SearchModalStackNavigator = createModalStackNavigator([{
     Component: SearchPage,
     name: 'Search_Root',
+    options: searchNavigationOptions,
 }]);
 
 const NewGroupModalStackNavigator = createModalStackNavigator([{
