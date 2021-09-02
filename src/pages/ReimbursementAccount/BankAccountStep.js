@@ -22,11 +22,9 @@ import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
-    goToWithdrawalAccountSetupStep,
     hideBankAccountErrors,
     setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
-import ConfirmModal from '../../components/ConfirmModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 
@@ -35,9 +33,6 @@ const propTypes = {
     reimbursementAccount: PropTypes.shape({
         /** Error set when handling the API response */
         error: PropTypes.string,
-
-        /** The existing owners for if the bank account is already owned */
-        existingOwners: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -127,9 +122,7 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const existingOwners = this.props.reimbursementAccount.existingOwners;
         const error = this.props.reimbursementAccount.error;
-        const isExistingOwnersErrorVisible = Boolean(error && existingOwners);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -252,60 +245,6 @@ class BankAccountStep extends React.Component {
                         />
                     </>
                 )}
-
-                <ConfirmModal
-                    title={this.props.translate('bankAccount.error.existingOwners.unableToAddBankAccount')}
-                    isVisible={isExistingOwnersErrorVisible}
-                    onConfirm={hideBankAccountErrors}
-                    shouldShowCancelButton={false}
-                    prompt={(
-                        <View>
-                            <Text style={[styles.mb4]}>
-                                <Text>
-                                    {this.props.translate('bankAccount.error.existingOwners.alreadyInUse')}
-                                </Text>
-                                {existingOwners && existingOwners.map((existingOwner, i) => {
-                                    let separator = ', ';
-                                    if (i === 0) {
-                                        separator = '';
-                                    } else if (i === existingOwners.length - 1) {
-                                        separator = ` ${this.props.translate('common.and')} `;
-                                    }
-                                    return (
-                                        <>
-                                            <Text>{separator}</Text>
-                                            <Text style={styles.textStrong}>{existingOwner}</Text>
-                                            {i === existingOwners.length - 1 && <Text>.</Text>}
-                                        </>
-                                    );
-                                })}
-                            </Text>
-                            <Text style={[styles.mb4]}>
-                                {this.props.translate('bankAccount.error.existingOwners.pleaseAskThemToShare')}
-                            </Text>
-                            <Text>
-                                <Text>
-                                    {this.props.translate('bankAccount.error.existingOwners.alternatively')}
-                                </Text>
-                                <Text
-                                    style={styles.link}
-                                    onPress={() => goToWithdrawalAccountSetupStep(
-                                        CONST.BANK_ACCOUNT.STEP.COMPANY,
-                                        this.props.achData,
-                                    )}
-                                >
-                                    {this.props.translate(
-                                        'bankAccount.error.existingOwners.setUpThisAccountByYourself',
-                                    )}
-                                </Text>
-                                <Text>
-                                    {this.props.translate('bankAccount.error.existingOwners.validationProcessAgain')}
-                                </Text>
-                            </Text>
-                        </View>
-                    )}
-                    confirmText={this.props.translate('common.ok')}
-                />
             </View>
         );
     }

@@ -32,6 +32,7 @@ import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ConfirmModal from '../../components/ConfirmModal';
+import ExistingOwners from './ExistingOwners';
 
 const propTypes = {
     /** List of betas */
@@ -154,6 +155,14 @@ class ReimbursementAccountPage extends React.Component {
         }
     }
 
+    getErrorModalPrompt() {
+        if (this.props.reimbursementAccount.error === CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS) {
+            return <ExistingOwners />;
+        }
+
+        return this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt');
+    }
+
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing new bank account page because user is not on free plan beta');
@@ -247,7 +256,7 @@ class ReimbursementAccountPage extends React.Component {
                     <ConfirmModal
                         title={this.props.translate('bankAccount.confirmModalTitle')}
                         onConfirm={hideBankAccountErrorModal}
-                        prompt={this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt')}
+                        prompt={this.getErrorModalPrompt()}
                         isVisible={lodashGet(this.props, 'reimbursementAccount.isErrorModalVisible', false)}
                         confirmText={this.props.translate('bankAccount.confirmModalConfirmText')}
                         shouldShowCancelButton={false}

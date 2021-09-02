@@ -398,7 +398,6 @@ export default {
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             existingOwners: {
-                unableToAddBankAccount: 'Unable to add bank account',
                 alreadyInUse: 'This bank account is already in use by ',
                 pleaseAskThemToShare: 'Please ask them to share it with you.',
                 alternatively: 'Alternatively, you can ',
