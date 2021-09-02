@@ -34,11 +34,11 @@ const ExistingOwners = ({reimbursementAccount, translate}) => (
                     separator = ` ${translate('common.and')} `;
                 }
                 return (
-                    <>
+                    <React.Fragment key={existingOwner}>
                         <Text>{separator}</Text>
                         <Text style={styles.textStrong}>{existingOwner}</Text>
                         {i === reimbursementAccount.existingOwners.length - 1 && <Text>.</Text>}
-                    </>
+                    </React.Fragment>
                 );
             })}
         </Text>
