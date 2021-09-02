@@ -8,7 +8,6 @@ import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
-import dynamicEmojiSize from './dynamicEmojiSize';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -36,10 +35,6 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
-
-        this.emojiSize = {
-            fontSize: dynamicEmojiSize(this.props.windowWidth),
-        };
     }
 
     /**
@@ -67,7 +62,6 @@ class EmojiPickerMenu extends Component {
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 emoji={`${item.code}\uFE0F`}
-                emojiSize={this.emojiSize}
             />
         );
     }

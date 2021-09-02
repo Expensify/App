@@ -150,8 +150,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1001008606
-        versionName "1.0.86-6"
+        versionCode 1001009200
+        versionName "1.0.92-0"
     }
     splits {
         abi {
@@ -238,8 +238,8 @@ dependencies {
     implementation "com.google.firebase:firebase-perf"
 
     // GIF support
-    implementation 'com.facebook.fresco:fresco:2.3.0'
-    implementation 'com.facebook.fresco:animated-gif:2.3.0'
+    implementation 'com.facebook.fresco:fresco:2.5.0'
+    implementation 'com.facebook.fresco:animated-gif:2.5.0'
 
     // Android support library
     implementation 'com.android.support:support-core-utils:28.0.0'

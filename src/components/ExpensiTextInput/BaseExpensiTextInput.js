@@ -9,7 +9,7 @@ import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 
-const ACTIVE_LABEL_TRANSLATE_Y = -10;
+const ACTIVE_LABEL_TRANSLATE_Y = -12;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
@@ -120,13 +120,19 @@ class BaseExpensiTextInput extends Component {
             ignoreLabelTranslateX,
             innerRef,
             autoFocus,
+            multiline,
             ...inputProps
         } = this.props;
 
         const hasLabel = Boolean(label.length);
         return (
             <View>
-                <View style={[styles.componentHeightLarge, ...containerStyles]}>
+                <View
+                    style={[
+                        !multiline && styles.componentHeightLarge,
+                        ...containerStyles,
+                    ]}
+                >
                     <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
                         <View
                             style={[
@@ -159,7 +165,8 @@ class BaseExpensiTextInput extends Component {
                                 placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
-                                style={[...inputStyle, errorText ? styles.errorOutline : undefined]}
+                                style={inputStyle}
+                                multiline={multiline}
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
