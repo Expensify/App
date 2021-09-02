@@ -147,6 +147,7 @@ class ReportActionsView extends React.Component {
 
         // Load initial chats.
         // If we have an currentReportActionID, then load one page before and after that reportAction
+        // FIXME: currentReportActionID is a string, not a number
         fetchActions(
             this.props.reportID,
             this.props.currentReportActionID ? this.props.currentReportActionID - CONST.REPORT.ACTIONS.LIMIT : null,
@@ -155,6 +156,17 @@ class ReportActionsView extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
+        if (nextProps.currentReportActionID && this.props.currentReportActionID !== nextProps.currentReportActionID) {
+            if (!_.any(this.props.reportActions, reportAction => reportAction.reportActionID === nextProps.currentReportActionID)) {
+                // We do not yet have the reportAction that was linked – load it now (one page before and one after) then jump to that reportAction
+                this.loadMoreChats(Math.max(nextProps.currentReportActionID - CONST.REPORT.ACTIONS.LIMIT, 0), 2)
+                    .then(() => {
+                        // TODO: scrollToIndex
+                    });
+            }
+            return true;
+        }
+
         if (!_.isEqual(nextProps.reportActions, this.props.reportActions)) {
             this.updateSortedReportActions(nextProps.reportActions);
             this.updateMostRecentIOUReportActionNumber(nextProps.reportActions);
@@ -269,9 +281,10 @@ class ReportActionsView extends React.Component {
      * Internally, this addresses a race conditions between `onStartReached` and `onEndReached` that causes "scroll jumps".
      *
      * @param {Number} offset
+     * @param {Number} [pages]
      * @returns {Promise}
      */
-    loadMoreChats(offset) {
+    loadMoreChats(offset, pages = 1) {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
         if (this.state.isLoadingMoreChats) {
             Promise.resolve();
@@ -279,7 +292,7 @@ class ReportActionsView extends React.Component {
 
         return new Promise((resolve) => {
             this.setState({isLoadingMoreChats: true}, () => {
-                fetchActions(this.props.reportID, offset)
+                fetchActions(this.props.reportID, offset, pages)
                     .then(() => this.setState({isLoadingMoreChats: false}, resolve));
             });
         });
