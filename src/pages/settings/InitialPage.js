@@ -71,7 +71,7 @@ const propTypes = {
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
-        availableBalance: PropTypes.number,
+        currentBalance: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -83,7 +83,7 @@ const defaultProps = {
     session: {},
     policies: {},
     userWallet: {
-        availableBalance: 0,
+        currentBalance: 0,
     },
 };
 
@@ -133,7 +133,7 @@ const InitialSettingsPage = ({
     userWallet,
 }) => {
     const walletBalance = numberFormat(
-        userWallet.availableBalance,
+        userWallet.currentBalance,
         {style: 'currency', currency: 'USD'},
     );
 

@@ -13,7 +13,7 @@ const propTypes = {
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
-        availableBalance: PropTypes.number,
+        currentBalance: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -35,7 +35,7 @@ const CurrentWalletBalance = (props) => {
     }
 
     const formattedBalance = props.numberFormat(
-        props.userWallet.availableBalance,
+        props.userWallet.currentBalance,
         {style: 'currency', currency: 'USD'},
     );
     return (
