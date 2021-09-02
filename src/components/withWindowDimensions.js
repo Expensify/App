@@ -17,6 +17,9 @@ const windowDimensionsPropTypes = {
 
     // Is the window width narrow, like on a tablet device?
     isMediumScreenWidth: PropTypes.bool.isRequired,
+
+    // Is device in landscape mode,
+    isLandscape: PropTypes.bool.isRequired,
 };
 
 export default function (WrappedComponent) {
@@ -46,11 +49,14 @@ export default function (WrappedComponent) {
             const isMediumScreenWidth = initialDimensions.width > variables.mobileResponsiveWidthBreakpoint
               && initialDimensions.width <= variables.tabletResponsiveWidthBreakpoint;
 
+            const isLandscape = (isMediumScreenWidth || isSmallScreenWidth) && initialDimensions.width >= initialDimensions.height;
+
             this.state = {
                 windowHeight: initialDimensions.height,
                 windowWidth: initialDimensions.width,
                 isSmallScreenWidth,
                 isMediumScreenWidth,
+                isLandscape,
             };
         }
 
@@ -72,11 +78,14 @@ export default function (WrappedComponent) {
             const {window} = newDimensions;
             const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
             const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.mediumScreenResponsiveWidthBreakpoint;
+            const isLandscape = (isMediumScreenWidth || isSmallScreenWidth) && window.width >= window.height;
+
             this.setState({
                 windowHeight: window.height,
                 windowWidth: window.width,
                 isSmallScreenWidth,
                 isMediumScreenWidth,
+                isLandscape,
             });
         }
 
@@ -91,6 +100,7 @@ export default function (WrappedComponent) {
                     windowWidth={this.state.windowWidth}
                     isSmallScreenWidth={this.state.isSmallScreenWidth}
                     isMediumScreenWidth={this.state.isMediumScreenWidth}
+                    isLandscape={this.state.isLandscape}
                 />
             );
         }
