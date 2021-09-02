@@ -374,6 +374,9 @@ export default {
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque para la cuenta.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrese de que su inicio de sesión principal sea un correo electrónico válido y vuelva a intentarlo. Puede agregar su número de teléfono como inicio de sesión secundario.',
         hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso de la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
+        confirmModalTitle: 'Ups',
+        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
+        confirmModalConfirmText: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             taxID: 'Ingrese un número de identificación fiscal válido',
@@ -526,9 +529,6 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '10 dígitos, sin guiones',
-        confirmModalTitle: '¿Estás seguro?',
-        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
-        confirmModalConfirmText: 'OK',
     },
     requestorStep: {
         headerTitle: 'Información del solicitante',
