@@ -11,7 +11,7 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'StagingDeployCash')
 
     outputs:
-      isValid: ${{ steps.validateActor.outputs.isTeamMember && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'false' }}
+      isValid: ${{ fromJSON(steps.validateActor.outputs.isTeamMember) && !fromJSON(steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS) }}
 
     steps:
       - name: Validate actor is deployer
@@ -23,7 +23,7 @@ jobs:
           team: mobile-deployers
 
       - name: Reopen and comment on issue
-        if: ${{ !steps.validateActor.outputs.isTeamMember }}
+        if: ${{ steps.validateActor.outputs.isTeamMember == 'false' }}
         uses: Expensify/App/.github/actions/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -33,7 +33,7 @@ jobs:
             Reopening!
 
       - name: Check for any deploy blockers
-        if: ${{ steps.validateActor.outputs.isTeamMember }}
+        if: ${{ steps.validateActor.outputs.isTeamMember == 'true' }}
         id: checkDeployBlockers
         uses: Expensify/App/.github/actions/checkDeployBlockers@main
         with:
@@ -41,7 +41,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
 
       - name: Reopen and comment on issue
-        if: ${{ steps.validateActor.outputs.isTeamMember && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
+        if: ${{ steps.validateActor.outputs.isTeamMember == 'true' && steps.checkDeployBlockers.outputs.HAS_DEPLOY_BLOCKERS == 'true' }}
         uses: Expensify/App/.github/actions/reopenIssueWithComment@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -54,7 +54,7 @@ jobs:
   updateProduction:
     runs-on: ubuntu-latest
     needs: validate
-    if: ${{ needs.validate.outputs.isValid }}
+    if: ${{ needs.validate.outputs.isValid == 'true' }}
     steps:
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
@@ -72,7 +72,7 @@ jobs:
   createNewStagingDeployCash:
     runs-on: macos-11
     needs: validate
-    if: ${{ needs.validate.outputs.isValid }}
+    if: ${{ needs.validate.outputs.isValid == 'true' }}
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f

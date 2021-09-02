@@ -16,7 +16,7 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember || github.actor == 'OSBotify' }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
     steps:
       - id: isUserDeployer
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
@@ -28,7 +28,7 @@ jobs:
   android:
     name: Build and deploy Android
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -89,10 +89,28 @@ jobs:
         env:
           VERSION: ${{ env.VERSION_CODE }}
 
+      - name: Warn deployers if Android production deploy failed
+        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   desktop:
     name: Build and deploy Desktop
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -148,7 +166,7 @@ jobs:
   iOS:
     name: Build and deploy iOS
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -223,16 +241,40 @@ jobs:
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
+      - name: Set iOS version in ENV
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: |
+          echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> $GITHUB_ENV
+          echo "iOS version is: ${{ env.IOS_VERSION }}"
+
       - name: Run Fastlane for App Store release
         if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
         run: bundle exec fastlane ios production
         env:
-          VERSION: ${{ env.NEW_IOS_VERSION }}
+          VERSION: ${{ env.IOS_VERSION }}
+
+      - name: Warn deployers if iOS production deploy failed
+        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 iOS production deploy failed. Please manually submit ${{ env.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/1530278510/appstore|App Store>. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   web:
     name: Build and deploy Web
     needs: validateActor
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
