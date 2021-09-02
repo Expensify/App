@@ -269,6 +269,7 @@ const CONST = {
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         BILLS: 'bills@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
     },
 
     ENVIRONMENT: {
@@ -407,6 +408,7 @@ const EXPENSIFY_EMAILS = [
     CONST.EMAIL.CONCIERGE, CONST.EMAIL.CONTRIBUTORS, CONST.EMAIL.FIRST_RESPONDER,
     CONST.EMAIL.HELP, CONST.EMAIL.QA, CONST.EMAIL.CHRONOS, CONST.EMAIL.RECEIPTS,
     CONST.EMAIL.BILLS, CONST.EMAIL.STUDENT_AMBASSADOR, CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.INTEGRATION_TESTING_CREDS,
 ];
 
 export {
