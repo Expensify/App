@@ -7,7 +7,6 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import BankAccount from '../models/BankAccount';
-import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
