@@ -15,7 +15,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    direction: "in",
+    direction: 'in',
     style: [],
 };
 

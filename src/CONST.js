@@ -2,6 +2,7 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 
 const CONST = {
     ANIMATED_TRANSITION: 300,
+
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     APP_DOWNLOAD_LINKS: {
