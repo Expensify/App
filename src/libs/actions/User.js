@@ -230,8 +230,8 @@ function getDomainInfo() {
     }
 
     // If it is not a common public domain, check the API
-    _.reduce(userLoginList, (promise, userLogin) => {
-        return promise.then(() => {
+    _.reduce(userLoginList, (promise, userLogin) => (
+        promise.then(() => {
             API.User_IsFromPublicDomain({email: userLogin.partnerUserID})
                 .then((response) => {
                     if (response.jsonCode === 200) {
@@ -254,8 +254,7 @@ function getDomainInfo() {
                         setTimeout(getDomainInfo, RETRY_TIMEOUT);
                     }
                 });
-        });
-    }, Promise.resolve());
+        })), Promise.resolve());
 }
 
 /**
