@@ -12,7 +12,7 @@ inputs:
     required: false
   USER:
     description: The creator of the pull request
-    required: false
+    required: true
 outputs:
   MERGE_COMMIT_SHA:
     description: 'The merge_commit_sha of the given pull request'
