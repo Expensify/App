@@ -1,4 +1,4 @@
-import DefaultBank from '../../../assets/images/bank.svg';
+import {Bank, CreditCard, ExpensifyCard} from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -21,10 +21,11 @@ import USAA from '../../../assets/images/bankicons/usaa.svg';
 /**
  * Returns matching asset icon for bankName
  * @param {String} bankName
- * @returns
+ * @param {Boolean} isCard
+ * @returns {Object}
  */
 
-function getAssetIcon(bankName) {
+function getAssetIcon(bankName, isCard) {
     if (bankName.includes('americanexpress')) {
         return AmericanExpress;
     }
@@ -97,19 +98,25 @@ function getAssetIcon(bankName) {
         return USAA;
     }
 
-    return DefaultBank;
+    return isCard ? CreditCard : Bank;
 }
 
 /**
-* Returns Bank Icon that matches to existing bank icons or default Icon
-* @param {String} bankName
-* @returns
-*/
+ * Returns Bank Icon that matches to existing bank icons or default icons
+ * @param {String} bankName
+ * @param {Boolean} [isCard = false]
+ * @returns {Object}
+ */
 
-export default function getBankIcon(bankName) {
+export default function getBankIcon(bankName, isCard) {
     if (!bankName) {
-        return DefaultBank;
+        // Returns default card or bank icon, if bankName is missing
+        return isCard ? CreditCard : Bank;
     }
 
-    return getAssetIcon(bankName.toLowerCase());
+    if (bankName === 'Expensify Card') {
+        return ExpensifyCard;
+    }
+
+    return getAssetIcon(bankName.toLowerCase(), isCard);
 }

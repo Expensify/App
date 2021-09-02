@@ -114,7 +114,7 @@ class PaymentMethodList extends Component {
 
                     // eslint-disable-next-line
                     description: formattedCardNumber,
-                    icon: getBankIcon(card.bank),
+                    icon: getBankIcon(card.bank, true),
                     iconSize: variables.iconSizeExtraLarge,
                     onPress: e => this.props.onPress(e, card.cardID),
                     key: `card-${card.cardID}`,
