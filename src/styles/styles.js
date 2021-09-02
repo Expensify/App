@@ -60,11 +60,13 @@ const styles = {
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
     },
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
     },
 
     textAlignCenter: {
@@ -109,6 +111,12 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
         lineHeight: 14,
+    },
+
+    textExtraSmallSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeExtraSmall,
     },
 
     textLarge: {
@@ -175,7 +183,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
@@ -183,7 +191,7 @@ const styles = {
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
@@ -370,6 +378,7 @@ const styles = {
             borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -385,6 +394,7 @@ const styles = {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             appearance: 'none',
             height: variables.componentSizeSmall,
@@ -402,6 +412,7 @@ const styles = {
             borderWidth: 1,
             borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -523,7 +534,7 @@ const styles = {
     expensiTextInputLabel: {
         position: 'absolute',
         left: 12,
-        top: 14,
+        top: 16,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
@@ -542,6 +553,8 @@ const styles = {
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
+        color: themeColors.text,
+        ...spacing.pv0,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -717,19 +730,10 @@ const styles = {
         maxWidth: 400,
     },
 
-    loginTermsText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeExtraSmall,
-    },
-
-    termsLink: {
-        color: themeColors.link,
-    },
-
-    termsLinkNative: {
-        color: themeColors.link,
-        margin: 0,
+    changeExpensifyLoginLinkContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        ...wordBreak.breakWord,
     },
 
     // Sidebar Styles
@@ -887,6 +891,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+        maxWidth: 240,
     },
 
     menuItemTextContainer: {
@@ -1202,16 +1207,9 @@ const styles = {
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         textAlign: 'center',
-        ...spacing.pv1,
-        ...spacing.ph2,
-    },
-
-    emojiExtraSmall: {
-        fontSize: variables.iconSizeExtraSmall,
-    },
-
-    emojiLarge: {
-        fontSize: variables.iconSizeLarge,
+        fontSize: variables.emojiSize,
+        ...spacing.pv0,
+        ...spacing.ph0,
     },
 
     emojiItem: {
@@ -1755,6 +1753,10 @@ const styles = {
         paddingEnd: 20,
     },
 
+    iouConfirmComment: {
+        flexBasis: 92,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -1794,6 +1796,14 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    vbaFullScreenLoading: {
+        backgroundColor: themeColors.componentBG,
+        opacity: 0.8,
+        justifyContent: 'flex-start',
         alignItems: 'center',
         zIndex: 10,
     },
@@ -1878,6 +1888,12 @@ const styles = {
         width: '150%',
     },
 
+    fullscreenCardMediumScreen: {
+        left: '-15%',
+        top: '-30%',
+        width: '145%',
+    },
+
     smallEditIcon: {
         alignItems: 'center',
         backgroundColor: themeColors.icon,
@@ -1908,6 +1924,10 @@ const styles = {
         height: 475,
     },
 
+    workspaceCardMediumScreen: {
+        height: 540,
+    },
+
     workspaceCardMainText: {
         fontSize: variables.fontSizeXXXLarge,
         fontWeight: 'bold',
@@ -1917,6 +1937,10 @@ const styles = {
     workspaceCardContent: {
         zIndex: 1,
         padding: 50,
+    },
+
+    workspaceCardContentMediumScreen: {
+        padding: 25,
     },
 
     workspaceCardCTA: {
@@ -2004,6 +2028,21 @@ const styles = {
         top: 0,
         zIndex: 100,
         ...visibility('hidden'),
+    },
+
+    reportMarkerBadgeWrapperAndroid: {
+        left: 0,
+        width: '100%',
+        alignItems: 'center',
+        position: 'absolute',
+        top: 0,
+        zIndex: 100,
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadgeSubWrapperAndroid: {
+        left: '50%',
+        width: 'auto',
     },
 
     reportMarkerBadge: {
@@ -2175,12 +2214,21 @@ function getZoomCursorStyle(isZoomed, isDragging) {
 
 /**
  * @param {Boolean} isZoomed
+ * @param {Number} imgWidth
+ * @param {Number} imgHeight
+ * @param {Number} zoomScale
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed) {
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale) {
+    if (imgWidth === 0 || imgHeight === 0) {
+        return {
+            height: isZoomed ? '250%' : '100%',
+            width: isZoomed ? '250%' : '100%',
+        };
+    }
     return {
-        height: isZoomed ? '250%' : '100%',
-        width: isZoomed ? '250%' : '100%',
+        height: isZoomed ? `${(imgHeight * zoomScale)}px` : '100%',
+        width: isZoomed ? `${(imgWidth * zoomScale)}px` : '100%',
     };
 }
 

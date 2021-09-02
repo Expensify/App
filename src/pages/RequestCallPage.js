@@ -130,7 +130,7 @@ class RequestCallPage extends Component {
         let firstName;
         let lastName;
 
-        if (login === displayName) {
+        if (Str.removeSMSDomain(login) === displayName) {
             firstName = '';
             lastName = '';
         } else {

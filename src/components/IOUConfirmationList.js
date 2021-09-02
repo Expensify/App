@@ -3,12 +3,12 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
-import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
 import {
+    addSMSDomainIfPhoneNumber,
     getIOUConfirmationOptionsFromMyPersonalDetail,
     getIOUConfirmationOptionsFromParticipants,
 } from '../libs/OptionsListUtils';
@@ -16,7 +16,6 @@ import OptionsList from './OptionsList';
 import Button from './Button';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import SafeAreaInsetPropTypes from '../pages/SafeAreaInsetPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import compose from '../libs/compose';
 import FixedFooter from './FixedFooter';
@@ -35,9 +34,6 @@ const propTypes = {
 
     /** Should we request a single or multiple participant selection from user */
     hasMultipleParticipants: PropTypes.bool.isRequired,
-
-    /** Safe area insets required for mobile devices margins */
-    insets: SafeAreaInsetPropTypes.isRequired,
 
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
@@ -107,10 +103,6 @@ const defaultProps = {
     network: {},
     myPersonalDetails: {},
 };
-
-// Gives minimum height to offset the height of
-// button and comment box
-const MINIMUM_BOTTOM_OFFSET = 240;
 
 class IOUConfirmationList extends Component {
     constructor(props) {
@@ -234,7 +226,7 @@ class IOUConfirmationList extends Component {
         }
         const selectedParticipants = this.getSelectedParticipants();
         const splits = _.map(selectedParticipants, participant => ({
-            email: participant.login,
+            email: addSMSDomainIfPhoneNumber(participant.login),
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
@@ -242,7 +234,7 @@ class IOUConfirmationList extends Component {
         }));
 
         splits.push({
-            email: this.props.myPersonalDetails.login,
+            email: addSMSDomainIfPhoneNumber(this.props.myPersonalDetails.login),
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future
@@ -327,14 +319,8 @@ class IOUConfirmationList extends Component {
         const selectedParticipants = this.getSelectedParticipants();
         return (
             <>
-                <ScrollView style={[styles.flex1, styles.w100]}>
+                <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
                     <OptionsList
-                        listContainerStyles={[{
-                            // Give max height to the list container so that it does not extend
-                            // beyond the comment view as well as button
-                            maxHeight: this.props.windowHeight - MINIMUM_BOTTOM_OFFSET
-                                - this.props.insets.top - this.props.insets.bottom,
-                        }]}
                         sections={this.getSections()}
                         disableArrowKeysActions
                         disableFocusOptions
@@ -346,17 +332,17 @@ class IOUConfirmationList extends Component {
                         disableRowInteractivity={!this.props.hasMultipleParticipants}
                         optionHoveredStyle={hoverStyle}
                     />
-                    <View style={[styles.ph5, styles.pb5, styles.mt4]}>
-                        <ExpensiTextInput
-                            label={this.props.translate('iOUConfirmationList.whatsItFor')}
-                            value={this.props.comment}
-                            onChangeText={this.props.onUpdateComment}
-                            placeholder={this.props.translate('common.optional')}
-                            placeholderTextColor={themeColors.placeholderText}
-                            autoFocus
-                        />
-                    </View>
                 </ScrollView>
+                <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
+                    <ExpensiTextInput
+                        label={this.props.translate('iOUConfirmationList.whatsItFor')}
+                        value={this.props.comment}
+                        onChangeText={this.props.onUpdateComment}
+                        placeholder={this.props.translate('common.optional')}
+                        placeholderTextColor={themeColors.placeholderText}
+                        autoFocus
+                    />
+                </View>
                 <FixedFooter>
                     {this.props.network.isOffline && (
                         <Text style={[styles.formError, styles.pb2]}>
@@ -384,7 +370,6 @@ IOUConfirmationList.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withSafeAreaInsets,
     withWindowDimensions,
     withOnyx({
         iou: {key: ONYXKEYS.IOU},

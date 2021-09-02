@@ -1,11 +1,13 @@
 import React from 'react';
-import {StyleSheet} from 'react-native';
+import {Pressable, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
 import Text from '../../Text';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
+import AttachmentView from '../../AttachmentView';
+import fileDownload from '../../../libs/fileDownload';
 
 
 /*
@@ -17,34 +19,52 @@ const BaseAnchorForCommentsOnly = ({
     target,
     children,
     style,
+    fileName,
     ...props
 }) => {
     let linkRef;
     return (
-        <PressableWithSecondaryInteraction
-            onSecondaryInteraction={
-                (event) => {
-                    showContextMenu(
-                        CONTEXT_MENU_TYPES.LINK,
-                        event,
-                        href,
-                        lodashGet(linkRef, 'current'),
-                    );
-                }
-            }
-        >
-            <Text
-                ref={el => linkRef = el}
-                style={StyleSheet.flatten(style)}
-                accessibilityRole="link"
-                href={href}
-                hrefAttrs={{rel, target}}
+
+        props.isAttachment
+            ? (
+                <Pressable onPress={() => {
+                    fileDownload(href, fileName);
+                }}
+                >
+                    <AttachmentView
+                        sourceURL={href}
+                        file={{name: fileName}}
+                        shouldShowDownloadIcon
+                    />
+                </Pressable>
+            )
+            : (
+                <PressableWithSecondaryInteraction
+                    onSecondaryInteraction={
+                            (event) => {
+                                showContextMenu(
+                                    CONTEXT_MENU_TYPES.LINK,
+                                    event,
+                                    href,
+                                    lodashGet(linkRef, 'current'),
+                                );
+                            }
+                        }
+                >
+                    <Text
+                        ref={el => linkRef = el}
+                        style={StyleSheet.flatten(style)}
+                        accessibilityRole="link"
+                        href={href}
+                        hrefAttrs={{rel, target}}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            >
-                {children}
-            </Text>
-        </PressableWithSecondaryInteraction>
+                        {...props}
+                    >
+                        {children}
+                    </Text>
+                </PressableWithSecondaryInteraction>
+            )
+
     );
 };
 

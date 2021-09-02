@@ -49,7 +49,6 @@ export default {
         PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
     },
-    // eslint-disable-next-line no-undef
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     PUSHER: {
         APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
@@ -61,4 +60,5 @@ export default {
         UNREAD: '/favicon-unread.png',
     },
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', false),
+    ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', false),
 };
