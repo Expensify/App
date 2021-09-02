@@ -62,7 +62,6 @@ class BaseModal extends PureComponent {
                 windowWidth: this.props.windowWidth,
                 windowHeight: this.props.windowHeight,
                 isSmallScreenWidth: this.props.isSmallScreenWidth,
-                isLandscape: this.props.isLandscape,
             },
             this.props.popoverAnchorPosition,
         );
