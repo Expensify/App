@@ -43,7 +43,6 @@ function end(eventName, secondaryName = '') {
         console.debug(`Timing:${grafanaEventName}`, eventTime);
         delete timestampData[eventName];
 
-        // eslint-disable-next-line no-undef
         if (isDevelopment()) {
             // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
             return;
