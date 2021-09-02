@@ -79,6 +79,12 @@ jobs:
           WORKFLOW: createNewVersion.yml
           INPUTS: '{ "SEMVER_LEVEL": "BUILD" }'
 
+      - name: Pull main to get the new version
+        run: |
+          git pull origin main
+          echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
+          echo "New version is ${{ env.NEW_VERSION }}"
+
       - name: Update staging branch from main
         if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
@@ -87,23 +93,20 @@ jobs:
           WORKFLOW: updateProtectedBranch.yml
           INPUTS: '{ "TARGET_BRANCH": "staging" }'
 
-      - name: Pull main to get the new version
-        run: |
-          git pull origin main
-          echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
-          echo "New version is ${{ env.NEW_VERSION }}"
-
-      # Note: we need to create this tag but not push it, because of how GitUtils.getPullRequestsMergedBetween works
-      - name: Tag version
-        run: git tag ${{ env.NEW_VERSION }}
-
       - name: Cherry pick to staging
         if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.shouldCherryPick == 'true' }}
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           WORKFLOW: cherryPick.yml
-          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.mergedPullRequest }}", "NEW_VERSION": "${{ env.NEW_VERSION }}" }'
+          INPUTS: '{ "PULL_REQUEST_NUMBER": "${{ needs.chooseDeployActions.outputs.mergedPullRequest }}", "NEW_VERSION": "${{ env.MAIN_VERSION }}" }'
+
+      # Note: we need to create this tag but not push it, because GitUtils.getPullRequestsMergedBetween uses tags to generate a list of merged pull requests
+      - name: Tag staging
+        run: |
+          git checkout staging
+          git pull origin staging
+          git tag ${{ env.NEW_VERSION }}
 
       - name: Update StagingDeployCash
         uses: Expensify/App/.github/actions/createOrUpdateStagingDeploy@main
