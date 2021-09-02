@@ -319,6 +319,8 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
+        pleaseFillPassword: 'Por favor, introduce tu contraseña',
+        pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Ingrese su código de autenticación de dos factores para continuar',
         forgot: '¿Te has olvidado?',
         twoFactorCode: 'Autenticación de 2 factores',
