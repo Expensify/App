@@ -1220,6 +1220,7 @@ const styles = {
 
     emojiSkinToneItem: {
         width: 'auto',
+        ...spacing.ph1,
     },
 
     emojiItemHighlighted: {

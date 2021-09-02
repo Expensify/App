@@ -34,7 +34,7 @@ const EmojiPickerMenuItem = props => (
             styles.pv1,
             getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted ? styles.emojiItemHighlighted : {},
-            props.emojiItemStyle ? styles.emojiItemStyle : styles.emojiItem,
+            props.emojiItemStyle ? props.emojiItemStyle : styles.emojiItem,
         ])}
     >
         <Hoverable onHoverIn={props.onHover}>

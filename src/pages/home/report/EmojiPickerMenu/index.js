@@ -391,7 +391,6 @@ class EmojiPickerMenu extends Component {
                     )}
                 <EmojiSkinToneList
                     setPreferredSkinTone={this.props.updatePreferredSkinTone}
-                    emojiSize={this.emojiSize}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
             </View>
