@@ -155,6 +155,9 @@ class ReimbursementAccountPage extends React.Component {
         }
     }
 
+    /**
+     * @returns {React.Component|string}
+     */
     getErrorModalPrompt() {
         if (this.props.reimbursementAccount.error === CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS) {
             return <ExistingOwners />;
