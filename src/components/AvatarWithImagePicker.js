@@ -16,6 +16,7 @@ import AttachmentPicker from './AttachmentPicker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import {getSyncingStyles} from '../styles/getAvatarWithIndicatorStyles';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -47,6 +48,9 @@ const propTypes = {
     /** Flag to see if image is being uploaded */
     isUploading: PropTypes.bool,
 
+    /** Size of Indicator */
+    size: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -58,6 +62,7 @@ const defaultProps = {
     DefaultAvatar: () => {},
     isUsingDefaultAvatar: false,
     isUploading: false,
+    size: CONST.AVATAR_SIZE.DEFAULT,
 };
 
 class AvatarWithImagePicker extends React.Component {
@@ -186,10 +191,12 @@ class AvatarWithImagePicker extends React.Component {
         const indicatorStyles = [
             styles.alignItemsCenter,
             styles.justifyContentCenter,
-            this.props.size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
+            this.props.size === CONST.AVATAR_SIZE.LARGE ? styles.statusIndicatorLarge : styles.statusIndicator,
             styles.statusIndicatorOnline,
             getSyncingStyles(this.rotate, this.scale),
         ];
+
+        const indicatorIconSize = this.props.size === CONST.AVATAR_SIZE.LARGE ? variables.iconSizeExtraSmall : variables.iconSizeXXSmall;
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
@@ -217,8 +224,8 @@ class AvatarWithImagePicker extends React.Component {
                                           <Icon
                                               src={Sync}
                                               fill={themeColors.textReversed}
-                                              width={6}
-                                              height={6}
+                                              width={indicatorIconSize}
+                                              height={indicatorIconSize}
                                           />
                                       </Animated.View>
                                   )

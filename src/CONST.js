@@ -386,6 +386,10 @@ const CONST = {
 
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
+    AVATAR_SIZE: {
+        LARGE: 'large',
+        DEFAULT: 'default',
+    },
 
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,

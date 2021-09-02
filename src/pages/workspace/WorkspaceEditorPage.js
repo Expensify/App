@@ -23,6 +23,7 @@ import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** List of betas */
@@ -56,12 +57,10 @@ class WorkspaceEditorPage extends React.Component {
 
         // Store the upload avatar promise so we can wait for it to finish before updating the policy
         this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
-            updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
             this.setState({avatarURL: url}, resolve);
         })).catch(() => {
             Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
-            updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
-        });
+        }).finally(() => updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
     }
 
     onImageRemoved() {
@@ -110,6 +109,7 @@ class WorkspaceEditorPage extends React.Component {
                         <AvatarWithImagePicker
                             isUploading={policy.isAvatarUploading}
                             avatarURL={this.state.previewAvatarURL}
+                            size={CONST.AVATAR_SIZE.LARGE}
                             DefaultAvatar={() => (
                                 <Icon
                                     src={Workspace}

@@ -213,6 +213,7 @@ class ProfilePage extends Component {
                             // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}
+                            size={CONST.AVATAR_SIZE.LARGE}
                         />
                         <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
