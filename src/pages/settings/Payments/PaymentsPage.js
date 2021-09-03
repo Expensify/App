@@ -16,15 +16,22 @@ import {PayPal} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
+import {withOnyx} from 'react-native-onyx';
+import ONYXKEYS from '../../../ONYXKEYS';
+import PropTypes from 'prop-types';
+import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
-    payPalMeUsername: '',
+    betas: [],
 };
 
 class PaymentsPage extends React.Component {
@@ -103,7 +110,9 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View>
-                        <CurrentWalletBalance />
+                        {
+                            Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
+                        }
                         <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
@@ -141,4 +150,9 @@ PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
 )(PaymentsPage);

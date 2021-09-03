@@ -87,6 +87,7 @@ const CONST = {
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
+        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
