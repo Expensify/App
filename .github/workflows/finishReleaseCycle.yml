@@ -108,7 +108,10 @@ jobs:
           echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
           echo "New version is ${{ env.NEW_VERSION }}"
 
-      # Note: we need to create this tag but not push it, because of how GitUtils.getPullRequestsMergedBetween works
+        # Create a local git tag so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
+        # list of pull requests that were merged between this version tag and another.
+        # NOTE: It's important to not push this tag now, because that would cause a staging deploy,
+        # which is handled separately in the deploy.yml workflow.
       - name: Tag version
         run: git tag ${{ env.NEW_VERSION }}
 
