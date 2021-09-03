@@ -103,8 +103,8 @@ jobs:
 
       # Create a local git tag on staging so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
       # list of pull requests that were merged between this version tag and another.
-      # NOTE: It's important to not push this tag now, because that would cause a staging deploy,
-      # which is handled separately in the deploy.yml workflow.
+      # NOTE: This tag is only used locally and shouldn't be pushed to the remote.
+      # If it was pushed, that would trigger the staging deploy which is handled in a separate workflow (deploy.yml)
       - name: Tag staging
         run: |
           git checkout staging
