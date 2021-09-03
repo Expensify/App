@@ -633,7 +633,8 @@ function hideBankAccountErrorModal() {
  * @param {String} errors
  */
 function setBankAccountFormValidationErrors(errors) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null}); // TOOD: How to force removal
+    // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
 }
 
@@ -834,7 +835,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: '', errors: {}});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: [], errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
