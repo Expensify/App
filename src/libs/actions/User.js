@@ -213,7 +213,7 @@ function isBlockedFromConcierge(expiresAt) {
  * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
  * If that happens, this function will automatically retry itself in 10 minutes.
  */
- function getDomainInfo() {
+function getDomainInfo() {
     // If this command fails, we'll retry again in 10 minutes,
     // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
     const RETRY_TIMEOUT = 600000;
