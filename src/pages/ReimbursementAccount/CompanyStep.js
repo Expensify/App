@@ -11,8 +11,8 @@ import CONST from '../../CONST';
 import {
     goToWithdrawalAccountSetupStep, hideBankAccountErrors,
     setupWithdrawalAccount,
-    showBankAccountFormValidationError,
     showBankAccountErrorModal,
+    setBankAccountFormValidationErrors,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -80,58 +80,106 @@ class CompanyStep extends React.Component {
             'password',
             'companyPhone',
         ];
+
+        // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
+        this.errorTranslationKeys = {
+            addressStreet: 'bankAccount.error.addressStreet',
+            addressCity: 'bankAccount.error.addressCity',
+            addressZipCode: 'bankAccount.error.zipCode',
+            companyName: 'bankAccount.error.companyName',
+            companyPhone: 'bankAccount.error.phoneNumber',
+            website: 'bankAccount.error.website',
+            companyTaxID: 'bankAccount.error.taxID',
+            incorporationDate: 'bankAccount.error.incorporationDate',
+            industryCode: 'bankAccount.error.industryCode',
+            password: 'common.passwordCannotBeBlank',
+        };
+    }
+
+    /**
+     * @returns {Object}
+     */
+    getErrors() {
+        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+    }
+
+    /**
+     * @param {String} inputKey
+     * @returns {string}
+     */
+    getErrorText(inputKey) {
+        const errors = this.getErrors();
+        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
+    }
+
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setState({[inputKey]: value});
+        const errors = this.getErrors();
+        if (!errors[inputKey]) {
+            // No error found for this inputKey
+            return;
+        }
+
+        // Clear the existing error for this inputKey
+        const newErrors = {...errors};
+        delete newErrors[inputKey];
+        setBankAccountFormValidationErrors(newErrors);
     }
 
     /**
      * @returns {Boolean}
      */
     validate() {
+        const errors = {};
         if (!this.state.password.trim()) {
-            showBankAccountFormValidationError(this.props.translate('common.passwordCannotBeBlank'));
-            return false;
+            errors.password = true;
         }
 
         if (!isValidAddress(this.state.addressStreet)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.addressStreet'));
-            return false;
+            errors.addressStreet = true;
         }
 
         if (this.state.addressState === '') {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.addressState'));
-            return false;
+            errors.addressState = true;
         }
 
         if (!isValidZipCode(this.state.addressZipCode)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.zipCode'));
-            return false;
+            errors.addressZipCode = true;
         }
 
         if (!Str.isValidURL(this.state.website)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.website'));
-            return false;
+            errors.website = true;
         }
 
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.taxID'));
-            return false;
+            errors.companyTaxID = true;
         }
 
         if (!isValidDate(this.state.incorporationDate)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.incorporationDate'));
-            return false;
+            errors.incorporationDate = true;
         }
 
         if (!isValidIndustryCode(this.state.industryCode)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.industryCode'));
-            return false;
+            errors.industryCode = true;
         }
 
         if (!this.state.hasNoConnectionToCannabis) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.restrictedBusiness'));
-            return false;
+            errors.hasNoConnectionToCannabis = true;
         }
+        this.requiredFields.forEach((inputKey) => {
+            if (!this.state[inputKey].trim()) {
+                errors[inputKey] = true;
+            }
+        });
 
-        return true;
+        setBankAccountFormValidationErrors(errors);
+        return _.size(errors) === 0;
     }
 
     submit() {
@@ -147,10 +195,7 @@ class CompanyStep extends React.Component {
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
-        const missingRequiredFields = this.requiredFields.reduce((acc, curr) => acc || !this.state[curr].trim(), false);
-        const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis || missingRequiredFields;
-        const error = this.props.reimbursementAccount.error;
-
+        const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis;
         return (
             <>
                 <HeaderWithCloseButton
@@ -165,31 +210,26 @@ class CompanyStep extends React.Component {
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.legalBusinessName')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={companyName => this.setState({companyName})}
+                            onChangeText={value => this.clearErrorAndSetValue('companyName', value)}
                             value={this.state.companyName}
                             disabled={shouldDisableCompanyName}
+                            errorText={this.getErrorText('companyName')}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('common.companyAddress')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={(addressStreet) => {
-                                if (error === this.props.translate('bankAccount.error.addressStreet')) {
-                                    hideBankAccountErrors();
-                                }
-                                this.setState({addressStreet});
-                            }}
+                            onChangeText={value => this.clearErrorAndSetValue('addressStreet', value)}
                             value={this.state.addressStreet}
-                            errorText={error === this.props.translate('bankAccount.error.addressStreet')
-                                ? this.props.translate('bankAccount.error.addressStreet')
-                                : ''}
+                            errorText={this.getErrorText('addressStreet')}
                         />
                         <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 <ExpensiTextInput
                                     label={this.props.translate('common.city')}
-                                    onChangeText={addressCity => this.setState({addressCity})}
+                                    onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
                                     value={this.state.addressCity}
+                                    errorText={this.getErrorText('addressCity')}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
@@ -202,54 +242,34 @@ class CompanyStep extends React.Component {
                         <ExpensiTextInput
                             label={this.props.translate('common.zip')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={(addressZipCode) => {
-                                if (error === this.props.translate('bankAccount.error.zipCode')) {
-                                    hideBankAccountErrors();
-                                }
-                                this.setState({addressZipCode});
-                            }}
+                            onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                             value={this.state.addressZipCode}
-                            errorText={error === this.props.translate('bankAccount.error.zipCode')
-                                ? this.props.translate('bankAccount.error.zipCode')
-                                : ''}
+                            errorText={this.getErrorText('addressZipCode')}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('common.phoneNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChangeText={companyPhone => this.setState({companyPhone})}
+                            onChangeText={value => this.clearErrorAndSetValue('companyPhone', value)}
                             value={this.state.companyPhone}
                             placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
+                            errorText={this.getErrorText('companyPhone')}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.companyWebsite')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={(website) => {
-                                if (error === this.props.translate('bankAccount.error.website')) {
-                                    hideBankAccountErrors();
-                                }
-                                this.setState({website});
-                            }}
+                            onChangeText={value => this.clearErrorAndSetValue('website', value)}
                             value={this.state.website}
-                            errorText={error === this.props.translate('bankAccount.error.website')
-                                ? this.props.translate('bankAccount.error.website')
-                                : ''}
+                            errorText={this.getErrorText('website')}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.taxIDNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChangeText={(companyTaxID) => {
-                                if (error === this.props.translate('bankAccount.error.taxID')) {
-                                    hideBankAccountErrors();
-                                }
-                                this.setState({companyTaxID});
-                            }}
+                            onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                             value={this.state.companyTaxID}
                             disabled={shouldDisableCompanyTaxID}
-                            errorText={error === this.props.translate('bankAccount.error.taxID')
-                                ? this.props.translate('bankAccount.error.taxID')
-                                : ''}
+                            errorText={this.getErrorText('companyTaxID')}
                         />
                         <View style={styles.mt4}>
                             <ExpensiPicker
@@ -265,17 +285,10 @@ class CompanyStep extends React.Component {
                                 {/* TODO: Replace with date picker */}
                                 <ExpensiTextInput
                                     label={this.props.translate('companyStep.incorporationDate')}
-                                    onChangeText={(incorporationDate) => {
-                                        if (error === this.props.translate('bankAccount.error.incorporationDate')) {
-                                            hideBankAccountErrors();
-                                        }
-                                        this.setState({incorporationDate});
-                                    }}
+                                    onChangeText={value => this.clearErrorAndSetValue('incorporationDate', value)}
                                     value={this.state.incorporationDate}
                                     placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                                    errorText={error === this.props.translate('bankAccount.error.incorporationDate')
-                                        ? this.props.translate('bankAccount.error.incorporationDate')
-                                        : ''}
+                                    errorText={this.getErrorText('incorporationDate')}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
@@ -291,33 +304,19 @@ class CompanyStep extends React.Component {
                             helpLinkText={this.props.translate('common.whatThis')}
                             helpLinkURL="https://www.naics.com/search/"
                             containerStyles={[styles.mt4]}
-                            onChangeText={(industryCode) => {
-                                if (error === this.props.translate('bankAccount.error.industryCode')) {
-                                    hideBankAccountErrors();
-                                }
-                                this.setState({industryCode});
-                            }}
+                            onChangeText={value => this.clearErrorAndSetValue('industryCode', value)}
                             value={this.state.industryCode}
-                            errorText={error === this.props.translate('bankAccount.error.industryCode')
-                                ? this.props.translate('bankAccount.error.industryCode')
-                                : ''}
+                            errorText={this.getErrorText('industryCode')}
                         />
                         <ExpensiTextInput
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
                             textContentType="password"
-                            onChangeText={(password) => {
-                                if (error === this.props.translate('common.passwordCannotBeBlank')) {
-                                    hideBankAccountErrors();
-                                }
-                                this.setState({password});
-                            }}
+                            onChangeText={value => this.clearErrorAndSetValue('password', value)}
                             value={this.state.password}
                             onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
-                            errorText={error === this.props.translate('common.passwordCannotBeBlank')
-                                ? this.props.translate('common.passwordCannotBeBlank')
-                                : ''}
+                            errorText={this.getErrorText('password')}
 
                             // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
                             // eslint-disable-next-line react/jsx-props-no-multi-spaces
