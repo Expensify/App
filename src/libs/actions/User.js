@@ -35,7 +35,7 @@ let userLoginList;
 Onyx.connect({
     key: ONYXKEYS.USER,
     callback: (val) => {
-        userLoginList = lodashGet(val, 'loginList', []);
+        userLoginList = _.map(lodashGet(val, 'loginList', []), userLogin => userLogin.partnerUserID);
     },
 });
 
@@ -206,8 +206,15 @@ function isBlockedFromConcierge(expiresAt) {
     return moment().isBefore(moment(expiresAt), 'day');
 }
 
+function getDomainFromEmail(email) {
+    if (_.indexOf(email, '@') > -1) {
+        return email.split('@')[1];
+    }
+    return '';
+}
+
 /**
- * Fetch the public domain info for the current user.
+ * Fetch the public domain info for the current user (includes secondary logins).
  *
  * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
  * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
@@ -218,14 +225,19 @@ function getDomainInfo() {
     // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
     const RETRY_TIMEOUT = 600000;
 
-    // First check list of common public domains
-    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
+    // First we filter out any domains that are in the list of common public domains
+    const emailList = _.filter(userLoginList, email => (
+        !_.contains(COMMON_PUBLIC_DOMAINS, getDomainFromEmail(email))
+    ));
+
+    // If there are no emails left, we have a public domain
+    if (!emailList.length) {
         Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
         return;
     }
 
     // If it is not a common public domain, check the API
-    API.User_IsFromPublicDomain({email: sessionEmail})
+    API.User_IsFromPublicDomain({email: sessionEmail}) // change to emailList
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
