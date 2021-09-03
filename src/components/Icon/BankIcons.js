@@ -17,6 +17,7 @@ import SunTrust from '../../../assets/images/bankicons/suntrust.svg';
 import TdBank from '../../../assets/images/bankicons/td-bank.svg';
 import USBank from '../../../assets/images/bankicons/us-bank.svg';
 import USAA from '../../../assets/images/bankicons/usaa.svg';
+import variables from '../../styles/variables';
 
 /**
  * Returns matching asset icon for bankName
@@ -26,6 +27,10 @@ import USAA from '../../../assets/images/bankicons/usaa.svg';
  */
 
 function getAssetIcon(bankName, isCard) {
+    if (bankName === 'expensify card') {
+        return ExpensifyCard;
+    }
+
     if (bankName.includes('americanexpress')) {
         return AmericanExpress;
     }
@@ -102,21 +107,25 @@ function getAssetIcon(bankName, isCard) {
 }
 
 /**
- * Returns Bank Icon that matches to existing bank icons or default icons
+ * Returns Bank Icon Object that matches to existing bank icons or default icons
  * @param {String} bankName
  * @param {Boolean} [isCard = false]
- * @returns {Object}
+ * @returns {Object} Object includes props icon, iconSize only if applicable
  */
 
 export default function getBankIcon(bankName, isCard) {
-    if (!bankName) {
-        // Returns default card or bank icon, if bankName is missing
-        return isCard ? CreditCard : Bank;
+    const bankIcon = {
+        icon: isCard ? CreditCard : Bank,
+    };
+
+    if (bankName) {
+        bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
     }
 
-    if (bankName === 'Expensify Card') {
-        return ExpensifyCard;
+    // For default icon & expensify (for now) the icon size should not be set.
+    if (![ExpensifyCard, CreditCard, Bank].includes(bankIcon.icon)) {
+        bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 
-    return getAssetIcon(bankName.toLowerCase(), isCard);
+    return bankIcon;
 }

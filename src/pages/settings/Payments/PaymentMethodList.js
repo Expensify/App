@@ -14,7 +14,6 @@ import {
     Plus,
 } from '../../../components/Icon/Expensicons';
 import getBankIcon from '../../../components/Icon/BankIcons';
-import variables from '../../../styles/variables';
 
 const MENU_ITEM = 'menuItem';
 
@@ -88,14 +87,15 @@ class PaymentMethodList extends Component {
                         bankAccount.accountNumber.slice(-4)
                     }`
                     : null;
+                const {icon, iconSize} = getBankIcon(bankAccount.additionalData.bankName);
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: bankAccount.addressName,
 
                     // eslint-disable-next-line
                     description: formattedBankAccountNumber,
-                    icon: getBankIcon(bankAccount.additionalData.bankName),
-                    iconSize: variables.iconSizeExtraLarge,
+                    icon,
+                    iconSize,
                     onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
                 });
@@ -108,14 +108,14 @@ class PaymentMethodList extends Component {
                 const formattedCardNumber = card.cardNumber
                     ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
                     : null;
+                const {icon, iconSize} = getBankIcon(card.bank, true);
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: card.cardName,
-
                     // eslint-disable-next-line
                     description: formattedCardNumber,
-                    icon: getBankIcon(card.bank, true),
-                    iconSize: variables.iconSizeExtraLarge,
+                    icon,
+                    iconSize,
                     onPress: e => this.props.onPress(e, card.cardID),
                     key: `card-${card.cardID}`,
                 });
