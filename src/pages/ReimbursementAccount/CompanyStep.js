@@ -91,6 +91,7 @@ class CompanyStep extends React.Component {
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
+            incorporationType: 'bankAccount.error.companyType',
             industryCode: 'bankAccount.error.industryCode',
             password: 'common.passwordCannotBeBlank',
         };
@@ -275,9 +276,10 @@ class CompanyStep extends React.Component {
                             <ExpensiPicker
                                 label={this.props.translate('companyStep.companyType')}
                                 items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
-                                onChange={incorporationType => this.setState({incorporationType})}
+                                onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                                 value={this.state.incorporationType}
                                 placeholder={{value: '', label: '-'}}
+                                errorText={this.getErrorText('incorporationType')}
                             />
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
