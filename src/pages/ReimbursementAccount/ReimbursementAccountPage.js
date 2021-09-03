@@ -159,7 +159,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {React.Component|string}
      */
     getErrorModalPrompt() {
-        if (this.props.reimbursementAccount.error === CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS) {
+        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
             return <ExistingOwners />;
         }
 

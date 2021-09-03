@@ -717,7 +717,6 @@ function setupWithdrawalAccount(data) {
                         ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                         {
                             existingOwners: response.existingOwners,
-                            error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS,
                             isErrorModalVisible: true,
                         },
                     );
