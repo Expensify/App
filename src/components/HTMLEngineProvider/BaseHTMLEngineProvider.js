@@ -70,6 +70,7 @@ function AnchorRenderer({tnode, key, style}) {
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
+    const parentStyle = lodashGet(tnode, 'parent.styles.nativeTextRet', {});
 
     return (
         <AnchorForCommentsOnly
@@ -83,7 +84,7 @@ function AnchorRenderer({tnode, key, style}) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={style}
+            style={{...style, ...parentStyle}}
             key={key}
             fileName={fileName}
         >
