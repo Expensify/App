@@ -730,7 +730,7 @@ export default compose(
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
         },
         preferredSkinTone: {
-            key: ONYXKEYS.NVP_PREFERRED_SKIN_TONE,
+            key: ONYXKEYS.PREFERRED_SKIN_TONE,
         },
     }),
 )(ReportActionCompose);

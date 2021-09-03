@@ -23,7 +23,7 @@ const propTypes = {
     forwardedRef: PropTypes.func,
 
     /** Stores user's preferred skin tone */
-    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func,
@@ -36,7 +36,6 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
-    preferredSkinTone: undefined,
     updatePreferredSkinTone: undefined,
 };
 
