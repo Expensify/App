@@ -183,6 +183,7 @@ export default {
         send: ({amount}) => `Enviar ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
             invalidAmount: 'Monto no válido',
             invalidSplit: 'La suma de las partes no equivale al monto total',
