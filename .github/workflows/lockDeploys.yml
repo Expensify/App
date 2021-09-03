@@ -38,11 +38,15 @@ jobs:
 
       - name: Pull staging to get the new version
         run: |
+          git checkout staging
           git pull origin staging
           echo "NEW_VERSION=$(npm run print-version --silent)" >> $GITHUB_ENV
           echo "New version is ${{ env.NEW_VERSION }}"
 
-      # Note: we need to create this tag but not push it, because of how GitUtils.getPullRequestsMergedBetween works
+        # Create a local git tag on staging so that GitUtils.getPullRequestsMergedBetween can use `git log` to generate a
+        # list of pull requests that were merged between this version tag and another.
+        # NOTE: This tag is only used locally and shouldn't be pushed to the remote.
+        # If it was pushed, that would trigger the staging deploy which is handled in a separate workflow (deploy.yml)
       - name: Tag version
         run: git tag ${{ env.NEW_VERSION }}
 
