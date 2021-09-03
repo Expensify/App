@@ -5,7 +5,7 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 265:
+/***/ 1751:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const _ = __nccwpck_require__(4987);
@@ -19,7 +19,7 @@ const DEFAULT_PAYLOAD = {
 };
 
 const pullRequestNumber = ActionUtils.getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
-const user = core.getInput('USER', {required: false});
+const user = core.getInput('USER', {required: true});
 let titleRegex = core.getInput('TITLE_REGEX', {required: false});
 
 if (pullRequestNumber) {
@@ -52,6 +52,27 @@ function outputMergeCommitHash(PR) {
 }
 
 /**
+ * Process a pull request and outputs it's merge actor
+ *
+ * @param {Object} PR
+ */
+function outputMergeActor(PR) {
+    if (!_.isEmpty(PR)) {
+        console.log(`Found matching pull request: ${PR.html_url}`);
+
+        if (user === 'OSBotify') {
+            core.setOutput('MERGE_ACTOR', PR.merged_by.login);
+        } else {
+            core.setOutput('MERGE_ACTOR', user);
+        }
+    } else {
+        const err = new Error('Could not find matching pull request');
+        console.error(err);
+        core.setFailed(err);
+    }
+}
+
+/**
  * Handle an unknown API error.
  *
  * @param {Error} err
@@ -66,7 +87,10 @@ if (pullRequestNumber) {
         ...DEFAULT_PAYLOAD,
         pull_number: pullRequestNumber,
     })
-        .then(({data}) => outputMergeCommitHash(data))
+        .then(({data}) => {
+            outputMergeCommitHash(data);
+            outputMergeActor(data);
+        })
         .catch(handleUnknownError);
 } else {
     GithubUtils.octokit.pulls.list({
@@ -76,6 +100,7 @@ if (pullRequestNumber) {
         .then(({data}) => {
             const matchingPR = _.find(data, PR => PR.user.login === user && titleRegex.test(PR.title));
             outputMergeCommitHash(matchingPR);
+            outputMergeActor(matchingPR);
         });
 }
 
@@ -15063,6 +15088,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(265);
+/******/ 	return __nccwpck_require__(1751);
 /******/ })()
 ;

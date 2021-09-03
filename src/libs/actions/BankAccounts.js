@@ -674,9 +674,6 @@ function setupWithdrawalAccount(data) {
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
-    // Convert the errorAttemptsCount to an object to prevent it from being wiped out by JSON.stringify
-    newACHData.errorAttemptsCount = {...newACHData.errorAttemptsCount};
-
     nextStep = newACHData.currentStep;
 
     // If we are setting up a Plaid account replace the accountNumber with the unmasked number
