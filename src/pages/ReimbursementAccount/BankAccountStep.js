@@ -116,6 +116,12 @@ class BankAccountStep extends React.Component {
         return _.size(errors) === 0;
     }
 
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
     clearErrorAndSetValue(inputKey, value) {
         this.setState({[inputKey]: value});
         const errors = this.getErrors();
