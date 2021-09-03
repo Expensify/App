@@ -12,6 +12,7 @@ import {
     goToWithdrawalAccountSetupStep, hideBankAccountErrors,
     setupWithdrawalAccount,
     showBankAccountFormValidationError,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -28,7 +29,6 @@ import {
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import ConfirmModal from '../../components/ConfirmModal';
 import ExpensiPicker from '../../components/ExpensiPicker';
 
 const propTypes = {
@@ -62,7 +62,6 @@ class CompanyStep extends React.Component {
             industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
-            isConfirmModalOpen: false,
         };
 
         // These fields need to be filled out in order to submit the form
@@ -79,6 +78,7 @@ class CompanyStep extends React.Component {
             'incorporationType',
             'industryCode',
             'password',
+            'companyPhone',
         ];
     }
 
@@ -136,7 +136,7 @@ class CompanyStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            this.setState({isConfirmModalOpen: true});
+            showBankAccountErrorModal();
             return;
         }
 
@@ -343,16 +343,7 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                 </ScrollView>
-                <ConfirmModal
-                    title={this.props.translate('companyStep.confirmModalTitle')}
-                    onConfirm={() => this.setState({isConfirmModalOpen: false})}
-                    prompt={this.props.translate('companyStep.confirmModalPrompt')}
-                    isVisible={this.state.isConfirmModalOpen}
-                    confirmText={this.props.translate('companyStep.confirmModalConfirmText')}
-                    shouldShowCancelButton={false}
-                />
-
-                <FixedFooter style={[styles.mt5]}>
+                <FixedFooter>
                     <Button
                         success
                         onPress={this.submit}
