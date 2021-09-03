@@ -136,7 +136,7 @@ const InitialSettingsPage = ({
     policies,
     translate,
     userWallet,
-    betas
+    betas,
 }) => {
     const walletBalance = numberFormat(
         userWallet.availableBalance,
