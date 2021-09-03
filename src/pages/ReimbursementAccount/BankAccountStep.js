@@ -61,20 +61,27 @@ class BankAccountStep extends React.Component {
             accountNumber: props.achData.accountNumber || '',
         };
 
+        // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
         this.errorTranslationKeys = {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
         };
     }
 
+    /**
+     * @returns {Object}
+     */
     getErrors() {
         return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
     }
 
+    /**
+     * @param {String} inputKey
+     * @returns {string}
+     */
     getErrorText(inputKey) {
         const errors = this.getErrors();
-        return (errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey])
-            : '');
+        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
     }
 
     toggleTerms() {
@@ -109,14 +116,18 @@ class BankAccountStep extends React.Component {
         return _.size(errors) === 0;
     }
 
-    validateAndSetTextValue(inputKey, value) {
-        const errors = this.getErrors();
-        if (errors[inputKey]) {
-            const newErrors = {...errors};
-            delete newErrors[inputKey];
-            setBankAccountFormValidationErrors(newErrors);
-        }
+    clearErrorAndSetValue(inputKey, value) {
         this.setState({[inputKey]: value});
+        const errors = this.getErrors();
+        if (!errors[inputKey]) {
+            // No error found for this inputKey
+            return;
+        }
+
+        // Clear the existing error for this inputKey
+        const newErrors = {...errors};
+        delete newErrors[inputKey];
+        setBankAccountFormValidationErrors(newErrors);
     }
 
     addManualAccount() {
@@ -256,7 +267,7 @@ class BankAccountStep extends React.Component {
                                 placeholder={this.props.translate('bankAccount.routingNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
-                                onChangeText={value => this.validateAndSetTextValue('routingNumber', value)}
+                                onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
                                 disabled={shouldDisableInputs}
                                 errorText={this.getErrorText('routingNumber')}
                             />
@@ -265,7 +276,7 @@ class BankAccountStep extends React.Component {
                                 placeholder={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}
-                                onChangeText={value => this.validateAndSetTextValue('accountNumber', value)}
+                                onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                                 disabled={shouldDisableInputs}
                                 errorText={this.getErrorText('accountNumber')}
                             />
