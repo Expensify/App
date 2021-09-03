@@ -183,6 +183,7 @@ export default {
         send: ({amount}) => `Enviar ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
             invalidAmount: 'Monto no válido',
             invalidSplit: 'La suma de las partes no equivale al monto total',
@@ -319,6 +320,8 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
+        pleaseFillPassword: 'Por favor, introduce tu contraseña',
+        pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Ingrese su código de autenticación de dos factores para continuar',
         forgot: '¿Te has olvidado?',
         twoFactorCode: 'Autenticación de 2 factores',

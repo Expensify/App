@@ -32,6 +32,7 @@ import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import Permissions from '../../Permissions';
 import getOperatingSystem from '../../getOperatingSystem';
+import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -167,6 +168,7 @@ class AuthScreens extends React.Component {
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
+        fetchFreePlanVerifiedBankAccount();
 
         loadPoliciesBehindBeta(this.props.betas);
 
