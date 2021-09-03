@@ -16,7 +16,7 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
-    setPreferredSkinTone: PropTypes.func.isRequired,
+    updatePreferredSkinTone: PropTypes.func.isRequired,
 
     /** Props related to translation */
     ...withLocalizePropTypes,
@@ -46,7 +46,7 @@ class EmojiSkinToneList extends Component {
      */
     updateSelectedSkinTone(skinToneEmoji) {
         this.setState(prev => ({isSkinToneListVisible: !prev.isSkinToneListVisible}));
-        this.props.setPreferredSkinTone(skinToneEmoji.skinTone);
+        this.props.updatePreferredSkinTone(skinToneEmoji.skinTone);
     }
 
     render() {
