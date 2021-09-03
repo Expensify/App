@@ -73,7 +73,7 @@ function getUserDetails() {
         returnValueList: 'account, loginList, nameValuePairs',
         nvpNames: [
             CONST.NVP.PAYPAL_ME_ADDRESS,
-            CONST.NVP.PREFERRED_SKIN_TONE,
+            CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
         ].join(','),
     })
         .then((response) => {
@@ -90,8 +90,8 @@ function getUserDetails() {
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
-            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_SKIN_TONE}`, {});
-            Onyx.merge(ONYXKEYS.PREFERRED_SKIN_TONE,
+            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
+            Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
         });
 }
@@ -282,7 +282,7 @@ function subscribeToUserEvents() {
  */
 
 function setPreferredSkinTone(skinTone) {
-    return NameValuePair.set(CONST.NVP.PREFERRED_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_SKIN_TONE);
+    return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 }
 
 export {

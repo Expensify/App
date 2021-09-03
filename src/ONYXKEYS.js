@@ -121,7 +121,7 @@ export default {
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
     // Store preferred skintone for emoji
-    PREFERRED_SKIN_TONE: 'preferredSkinTone',
+    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
 
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
