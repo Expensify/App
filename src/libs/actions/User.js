@@ -207,54 +207,46 @@ function isBlockedFromConcierge(expiresAt) {
 }
 
 /**
- * Fetch the public domain info for the current user (including secondary logins).
+ * Fetch the public domain info for the current user.
  *
  * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
  * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
  * If that happens, this function will automatically retry itself in 10 minutes.
  */
-function getDomainInfo() {
+ function getDomainInfo() {
     // If this command fails, we'll retry again in 10 minutes,
     // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
     const RETRY_TIMEOUT = 600000;
-    let isFromPublicDomain = true;
-
-    _.each(userLoginList, (userLogin) => {
-        isFromPublicDomain = isFromPublicDomain && _.contains(COMMON_PUBLIC_DOMAINS, userLogin.partnerUserID);
-    });
 
     // First check list of common public domains
-    if (isFromPublicDomain) {
+    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
         Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
         return;
     }
 
     // If it is not a common public domain, check the API
-    _.reduce(userLoginList, (promise, userLogin) => (
-        promise.then(() => {
-            API.User_IsFromPublicDomain({email: userLogin.partnerUserID})
-                .then((response) => {
-                    if (response.jsonCode === 200) {
-                        isFromPublicDomain = isFromPublicDomain && response.isFromPublicDomain;
-                        Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+    API.User_IsFromPublicDomain({email: sessionEmail})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                const {isFromPublicDomain} = response;
+                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 
-                        // If the user is not on a public domain we'll want to know whether they are on a domain that has
-                        // already provisioned the Expensify card
-                        if (isFromPublicDomain) {
-                            return;
-                        }
+                // If the user is not on a public domain we'll want to know whether they are on a domain that has
+                // already provisioned the Expensify card
+                if (isFromPublicDomain) {
+                    return;
+                }
 
-                        API.User_IsUsingExpensifyCard()
-                            .then(({isUsingExpensifyCard}) => {
-                                Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                            });
-                    } else {
-                        // eslint-disable-next-line max-len
-                        console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                        setTimeout(getDomainInfo, RETRY_TIMEOUT);
-                    }
-                });
-        })), Promise.resolve());
+                API.User_IsUsingExpensifyCard()
+                    .then(({isUsingExpensifyCard}) => {
+                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
+                    });
+            } else {
+                // eslint-disable-next-line max-len
+                console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
+                setTimeout(getDomainInfo, RETRY_TIMEOUT);
+            }
+        });
 }
 
 /**
