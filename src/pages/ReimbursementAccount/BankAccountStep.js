@@ -23,7 +23,6 @@ import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
-    hideBankAccountErrors,
     setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
