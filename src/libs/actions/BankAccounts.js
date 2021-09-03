@@ -703,6 +703,7 @@ function setupWithdrawalAccount(data) {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            const errors = {};
 
             if (response.jsonCode === 200 && !error) {
                 // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
@@ -800,7 +801,7 @@ function setupWithdrawalAccount(data) {
                     if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
                         || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
                     ) {
-                        error = translateLocal('bankAccount.error.routingNumber');
+                        errors.routingNumber = true;
                         achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
                         error = translateLocal('bankAccount.error.incorporationState');
@@ -819,6 +820,10 @@ function setupWithdrawalAccount(data) {
             // Go to next step
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
+            if (_.size(errors)) {
+                setBankAccountFormValidationErrors(errors);
+                showBankAccountErrorModal();
+            }
             if (error) {
                 showBankAccountFormValidationError(error);
                 showBankAccountErrorModal(error);
