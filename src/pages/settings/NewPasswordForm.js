@@ -67,8 +67,8 @@ class NewPasswordForm extends React.Component {
 
     /**
      * checks if the password invalid
-     * @returns boolean
-     */
+     * @returns {Boolean}
+    */
     isInvalidPassword() {
         return this.state.passwordHintError && this.props.password && !this.isValidPassword();
     }
@@ -106,7 +106,7 @@ class NewPasswordForm extends React.Component {
                         style={[
                             styles.textLabelSupporting,
                             styles.mt1,
-                            this.isInvalidPassword() && styles.formError
+                            this.isInvalidPassword() && styles.formError,
                         ]}
                     >
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
