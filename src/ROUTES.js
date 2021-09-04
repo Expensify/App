@@ -33,7 +33,7 @@ export default {
     NEW_CHAT: 'new/chat',
     REPORT,
     REPORT_WITH_ID: 'r/:reportID/:reportActionID?',
-    getReportRoute: (reportID, reportActionID = null) => reportActionID ? `r/${reportID}` : `r/${reportID}/${reportActionID}`,
+    getReportRoute: (reportID, reportActionID = null) => (reportActionID ? `r/${reportID}` : `r/${reportID}/${reportActionID}`),
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,
