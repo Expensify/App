@@ -105,17 +105,15 @@ class AvatarWithImagePicker extends React.Component {
      */
     startRotation() {
         this.rotate.setValue(0);
-        Animated.timing(this.rotate, {
-            toValue: 1,
-            duration: 2000,
-            easing: Easing.linear,
-            isInteraction: false,
-            useNativeDriver: true,
-        }).start(({finished}) => {
-            if (finished) {
-                this.startRotation();
-            }
-        });
+        Animated.loop(
+            Animated.timing(this.rotate, {
+                toValue: 1,
+                duration: 2000,
+                easing: Easing.linear,
+                isInteraction: false,
+                useNativeDriver: true,
+            }),
+        ).start();
     }
 
     /**
@@ -217,43 +215,43 @@ class AvatarWithImagePicker extends React.Component {
                         {({openPicker}) => (
                             <>
                                 {
-                              this.props.isUploading
-                                  ? (
-                                      <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
+                                    this.props.isUploading
+                                        ? (
+                                            <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
 
-                                          <Icon
-                                              src={Sync}
-                                              fill={themeColors.textReversed}
-                                              width={indicatorIconSize}
-                                              height={indicatorIconSize}
-                                          />
-                                      </Animated.View>
-                                  )
-                                  : (
-                                      <>
-                                          <Pressable
-                                              disabled={this.props.isUploading}
-                                              style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
-                                              onPress={() => this.setState({isMenuVisible: true})}
-                                          >
-                                              <Icon
-                                                  src={Pencil}
-                                                  width={variables.iconSizeSmall}
-                                                  height={variables.iconSizeSmall}
-                                                  fill={themeColors.iconReversed}
-                                              />
-                                          </Pressable>
-                                          <PopoverMenu
-                                              isVisible={this.state.isMenuVisible}
-                                              onClose={() => this.setState({isMenuVisible: false})}
-                                              onItemSelected={() => this.setState({isMenuVisible: false})}
-                                              menuItems={this.createMenuItems(openPicker)}
-                                              anchorPosition={this.props.anchorPosition}
-                                              animationIn="fadeInDown"
-                                              animationOut="fadeOutUp"
-                                          />
-                                      </>
-                                  )
+                                                <Icon
+                                                    src={Sync}
+                                                    fill={themeColors.textReversed}
+                                                    width={indicatorIconSize}
+                                                    height={indicatorIconSize}
+                                                />
+                                            </Animated.View>
+                                        )
+                                        : (
+                                            <>
+                                                <Pressable
+                                                    disabled={this.props.isUploading}
+                                                    style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
+                                                    onPress={() => this.setState({isMenuVisible: true})}
+                                                >
+                                                    <Icon
+                                                        src={Pencil}
+                                                        width={variables.iconSizeSmall}
+                                                        height={variables.iconSizeSmall}
+                                                        fill={themeColors.iconReversed}
+                                                    />
+                                                </Pressable>
+                                                <PopoverMenu
+                                                    isVisible={this.state.isMenuVisible}
+                                                    onClose={() => this.setState({isMenuVisible: false})}
+                                                    onItemSelected={() => this.setState({isMenuVisible: false})}
+                                                    menuItems={this.createMenuItems(openPicker)}
+                                                    anchorPosition={this.props.anchorPosition}
+                                                    animationIn="fadeInDown"
+                                                    animationOut="fadeOutUp"
+                                                />
+                                            </>
+                                        )
                                 }
                             </>
                         )}
