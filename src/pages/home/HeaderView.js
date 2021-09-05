@@ -4,6 +4,7 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import lodashIntersection from 'lodash/intersection';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -22,7 +23,7 @@ import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import CONST from '../../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../../CONST';
 import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../../libs/reportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
@@ -93,6 +94,9 @@ const HeaderView = (props) => {
     const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
 
+    // Show call button when there 1:1 chat with concierge. Else participants should not include automated expensify emails
+    const shouldShowCallButton = isConcierge || lodashIntersection(participants, EXPENSIFY_EMAILS).length === 0;
+
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
@@ -162,7 +166,7 @@ const HeaderView = (props) => {
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
 
-                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
+                            {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} />}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => togglePinnedState(props.report)}
