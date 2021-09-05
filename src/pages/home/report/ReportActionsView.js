@@ -141,7 +141,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        // If the new marker has changed places so update the component.
+        // If the new marker has changed places, update the component.
         if (nextProps.report.newMarkerSequenceNumber !== this.props.report.newMarkerSequenceNumber) {
             return true;
         }
@@ -362,8 +362,8 @@ class ReportActionsView extends React.Component {
 
     /**
      * Updates NEW marker position
+     * @param {Number} unreadActionCount
      */
-
     updateUnreadIndicatorPosition(unreadActionCount) {
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
         // We determine the last read action by deducting the number of unread actions from the total number.
