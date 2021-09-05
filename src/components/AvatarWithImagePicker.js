@@ -13,6 +13,7 @@ import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -112,7 +113,7 @@ class AvatarWithImagePicker extends React.Component {
                         : (
                             <DefaultAvatar />
                         )}
-                    <AttachmentPicker>
+                    <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
                         {({openPicker}) => (
                             <>
                                 <Pressable
