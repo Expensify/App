@@ -28,6 +28,7 @@ import {
     setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import ConfirmModal from '../../components/ConfirmModal';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -130,6 +131,7 @@ class BankAccountStep extends React.Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         this.setState({[inputKey]: value});
+        updateReimbursementAccountDraft({[inputKey]: value});
         const errors = this.getErrors();
         if (!errors[inputKey]) {
             // No error found for this inputKey
