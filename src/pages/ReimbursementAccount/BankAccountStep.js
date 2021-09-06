@@ -67,6 +67,7 @@ class BankAccountStep extends React.Component {
         this.toggleTerms = this.toggleTerms.bind(this);
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
+        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 1000, false);
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
@@ -138,7 +139,7 @@ class BankAccountStep extends React.Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         this.setState({[inputKey]: value});
-        updateReimbursementAccountDraft({[inputKey]: value});
+        this.debouncedUpdateReimbursementAccountDraft({[inputKey]: value});
         const errors = this.getErrors();
         if (!errors[inputKey]) {
             // No error found for this inputKey
@@ -200,6 +201,10 @@ class BankAccountStep extends React.Component {
             currency: CONST.CURRENCY.USD,
             fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
         });
+    }
+
+    debouncedUpdateReimbursementAccountDraft(value) {
+        updateReimbursementAccountDraft(value);
     }
 
     render() {
