@@ -34,6 +34,9 @@ const propTypes = {
         closed: PropTypes.bool,
     }),
 
+    /** Title to be shown in the form */
+    titleMessage: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -63,7 +66,7 @@ class ResendValidationForm extends React.Component {
      */
     validateAndSubmitForm() {
         this.setState({
-            formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
+            formSuccess: this.props.translate(''),
         });
 
         if (this.props.account.closed) {
@@ -84,7 +87,7 @@ class ResendValidationForm extends React.Component {
             <>
                 <View>
                     <Text>
-                        {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
+                        {this.props.translate(this.props.titleMessage, {
                             loginType: (Str.isSMSLogin(this.props.credentials.login)
                                 ? this.props.translate('common.phoneNumber').toLowerCase()
                                 : this.props.translate('common.email')).toLowerCase(),

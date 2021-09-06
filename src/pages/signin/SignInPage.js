@@ -68,7 +68,8 @@ class SignInPage extends Component {
 
         const validAccount = this.props.account.accountExists
             && this.props.account.validated
-            && !this.props.account.forgotPassword;
+            && !this.props.account.forgotPassword
+            && !this.props.account.validationCodeFailedMessage;
 
         // Show the password form if
         // - A login has been entered
@@ -85,7 +86,11 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
+        console.log('Test', showResendValidationLinkForm, this.props.credentials, this.props.account);
+
         const welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
+
+        const resendLinkTitleMessage = this.props.account.validationCodeFailedMessage ?? 'resendValidationForm.weSentYouMagicSignInLink';
 
         return (
             <>
@@ -99,7 +104,7 @@ class SignInPage extends Component {
 
                         {showPasswordForm && <PasswordForm />}
 
-                        {showResendValidationLinkForm && <ResendValidationForm />}
+                        {showResendValidationLinkForm && <ResendValidationForm titleMessage={resendLinkTitleMessage} />}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>

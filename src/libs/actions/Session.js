@@ -259,7 +259,7 @@ function restartSignin() {
  * @param {String} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validationCodeFailedMessage: ''});
 
     API.SetPassword({
         password,
@@ -274,8 +274,10 @@ function setPassword(password, validateCode, accountID) {
 
             // This request can fail if the password is not complex enough
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
-        })
-        .finally(() => {
+        }).catch(() => {
+            console.log('Date time', new Date());
+            Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, validationCodeFailedMessage: 'resendValidationForm.validationCodeFailedMessage'});
+        }).finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
 }
