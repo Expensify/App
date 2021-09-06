@@ -40,18 +40,25 @@ const propTypes = {
     }).isRequired,
 
     /** Draft of the bank account currently in setup */
-    reimbursementAccountDraft: PropTypes.shape({
-        routingNumber: PropTypes.string,
-        accountNumber: PropTypes.string,
-    }),
+    reimbursementAccountDraft: PropTypes.shape({}),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reimbursementAccountDraft: {
-        routingNumber: null,
-        accountNumber: null,
+        companyName: null,
+        addressStreet: null,
+        addressCity: null,
+        addressState: null,
+        addressZipCode: null,
+        companyPhone: null,
+        website: null,
+        companyTaxID: null,
+        incorporationType: null,
+        incorporationDate: null,
+        incorporationState: null,
+        industryCode: null,
     },
 };
 
