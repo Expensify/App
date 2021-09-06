@@ -313,9 +313,16 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
 
-            // If we receive a 404 response while fetching a single report, treat that report as inacessible.
+            // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
             if (jsonCode === 404 && shouldRedirectIfInacessible) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
+            }
+
+            // If the user doesn't have a report with Concierge yet, we need to create it
+            const hasConciergeChat = _.reduce(reportSummaryList, (exists, report) => exists || isConciergeChatReport(report), false);
+            if (!hasConciergeChat) {
+                // eslint-disable-next-line no-use-before-define
+                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
             }
 
             return Promise.all(_.map(fetchedReports, (chatReport) => {
@@ -940,12 +947,8 @@ function fetchAllReports(
                 .split(',')
                 .filter(_.identity);
 
-            // Get all the chat reports if they have any, otherwise create one with concierge
-            if (reportIDs.length > 0) {
-                return fetchChatReportsByIDs(reportIDs);
-            }
-
-            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+            // Get all the chat reports if they have any
+            return fetchChatReportsByIDs(reportIDs);
         })
         .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
