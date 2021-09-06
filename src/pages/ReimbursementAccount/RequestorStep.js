@@ -1,5 +1,6 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -15,6 +16,7 @@ import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
@@ -31,7 +33,32 @@ const propTypes = {
         error: PropTypes.string,
     }).isRequired,
 
+    /** Draft of the bank account currently in setup */
+    reimbursementAccountDraft: PropTypes.shape({
+        firstName: PropTypes.string,
+        lastName: PropTypes.string,
+        requestorAddressStreet: PropTypes.string,
+        requestorAddressCity: PropTypes.string,
+        requestorAddressState: PropTypes.string,
+        requestorAddressZipCode: PropTypes.string,
+        dob: PropTypes.string,
+        ssnLast4: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccountDraft: {
+        firstName: null,
+        lastName: null,
+        requestorAddressStreet: null,
+        requestorAddressCity: null,
+        requestorAddressState: null,
+        requestorAddressZipCode: null,
+        dob: null,
+        ssnLast4: null,
+    },
 };
 
 class RequestorStep extends React.Component {
@@ -39,16 +66,17 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 1000, false);
 
         this.state = {
-            firstName: lodashGet(props, ['achData', 'firstName'], ''),
-            lastName: lodashGet(props, ['achData', 'lastName'], ''),
-            requestorAddressStreet: lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
-            requestorAddressCity: lodashGet(props, ['achData', 'requestorAddressCity'], ''),
-            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || '',
-            requestorAddressZipCode: lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
-            dob: lodashGet(props, ['achData', 'dob'], ''),
-            ssnLast4: lodashGet(props, ['achData', 'ssnLast4'], ''),
+            firstName: lodashGet(props, ['reimbursementAccountDraft', 'firstName']) || lodashGet(props, ['achData', 'firstName'], ''),
+            lastName: lodashGet(props, ['reimbursementAccountDraft', 'lastName']) || lodashGet(props, ['achData', 'lastName'], ''),
+            requestorAddressStreet: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressStreet']) || lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
+            requestorAddressCity: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressCity']) || lodashGet(props, ['achData', 'requestorAddressCity'], ''),
+            requestorAddressState: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressState']) || lodashGet(props, ['achData', 'requestorAddressState'], ''),
+            requestorAddressZipCode: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressZipCode']) || lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
+            dob: lodashGet(props, ['reimbursementAccountDraft', 'dob']) || lodashGet(props, ['achData', 'dob'], ''),
+            ssnLast4: lodashGet(props, ['reimbursementAccountDraft', 'ssnLast4']) || lodashGet(props, ['achData', 'ssnLast4'], ''),
             isControllingOfficer: lodashGet(props, ['achData', 'isControllingOfficer'], false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
@@ -75,6 +103,15 @@ class RequestorStep extends React.Component {
         };
         const fieldName = lodashGet(renamedFields, field, field);
         this.setState({[fieldName]: value});
+        this.debouncedUpdateReimbursementAccountDraft({[fieldName]: value});
+    }
+
+    /**
+    *
+    * @param {Object} value
+    */
+    debouncedUpdateReimbursementAccountDraft(value) {
+        updateReimbursementAccountDraft(value);
     }
 
     /**
@@ -223,12 +260,17 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
+RequestorStep.defaultProps = defaultProps;
 RequestorStep.displayName = 'RequestorStep';
+
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(RequestorStep);
