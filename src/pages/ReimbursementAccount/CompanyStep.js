@@ -13,6 +13,7 @@ import {
     setupWithdrawalAccount,
     showBankAccountFormValidationError,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -38,7 +39,20 @@ const propTypes = {
         error: PropTypes.string,
     }).isRequired,
 
+    /** Draft of the bank account currently in setup */
+    reimbursementAccountDraft: PropTypes.shape({
+        routingNumber: PropTypes.string,
+        accountNumber: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    reimbursementAccountDraft: {
+        routingNumber: null,
+        accountNumber: null,
+    },
 };
 
 class CompanyStep extends React.Component {
@@ -46,20 +60,21 @@ class CompanyStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 1000, false);
 
         this.state = {
-            companyName: lodashGet(props, ['achData', 'companyName'], ''),
-            addressStreet: lodashGet(props, ['achData', 'addressStreet'], ''),
-            addressCity: lodashGet(props, ['achData', 'addressCity'], ''),
-            addressState: lodashGet(props, ['achData', 'addressState']) || '',
-            addressZipCode: lodashGet(props, ['achData', 'addressZipCode'], ''),
-            companyPhone: lodashGet(props, ['achData', 'companyPhone'], ''),
-            website: lodashGet(props, ['achData', 'website'], 'https://'),
-            companyTaxID: lodashGet(props, ['achData', 'companyTaxID'], ''),
-            incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
-            incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),
-            incorporationState: lodashGet(props, ['achData', 'incorporationState']) || '',
-            industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
+            companyName: lodashGet(this.props, 'reimbursementAccountDraft.companyName') || lodashGet(props, ['achData', 'companyName'], ''),
+            addressStreet: lodashGet(this.props, 'reimbursementAccountDraft.addressStreet') || lodashGet(props, ['achData', 'addressStreet'], ''),
+            addressCity: lodashGet(this.props, 'reimbursementAccountDraft.addressCity') || lodashGet(props, ['achData', 'addressCity'], ''),
+            addressState: lodashGet(this.props, 'reimbursementAccountDraft.addressState') || lodashGet(props, ['achData', 'addressState']) || '',
+            addressZipCode: lodashGet(this.props, 'reimbursementAccountDraft.addressZipCode') || lodashGet(props, ['achData', 'addressZipCode'], ''),
+            companyPhone: lodashGet(this.props, 'reimbursementAccountDraft.companyPhone') || lodashGet(props, ['achData', 'companyPhone'], ''),
+            website: lodashGet(this.props, 'reimbursementAccountDraft.website') || lodashGet(props, ['achData', 'website'], 'https://'),
+            companyTaxID: lodashGet(this.props, 'reimbursementAccountDraft.companyTaxID') || lodashGet(props, ['achData', 'companyTaxID'], ''),
+            incorporationType: lodashGet(this.props, 'reimbursementAccountDraft.incorporationType') || lodashGet(props, ['achData', 'incorporationType'], ''),
+            incorporationDate: lodashGet(this.props, 'reimbursementAccountDraft.incorporationDate') || lodashGet(props, ['achData', 'incorporationDate'], ''),
+            incorporationState: lodashGet(this.props, 'reimbursementAccountDraft.incorporationState') || lodashGet(props, ['achData', 'incorporationState']) || '',
+            industryCode: lodashGet(this.props, 'reimbursementAccountDraft.industryCode') || lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
         };
@@ -80,6 +95,15 @@ class CompanyStep extends React.Component {
             'password',
             'companyPhone',
         ];
+    }
+
+    /**
+    *
+    * @param {String} value
+    */
+    setValue(value) {
+        this.setState(value);
+        this.debouncedUpdateReimbursementAccountDraft(value);
     }
 
     /**
@@ -144,6 +168,14 @@ class CompanyStep extends React.Component {
         setupWithdrawalAccount({...this.state, incorporationDate});
     }
 
+    /**
+    *
+    * @param {Object} value
+    */
+    debouncedUpdateReimbursementAccountDraft(value) {
+        updateReimbursementAccountDraft(value);
+    }
+
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
@@ -165,7 +197,7 @@ class CompanyStep extends React.Component {
                         <ExpensiTextInput
                             label={this.props.translate('companyStep.legalBusinessName')}
                             containerStyles={[styles.mt4]}
-                            onChangeText={companyName => this.setState({companyName})}
+                            onChangeText={companyName => this.setValue({companyName})}
                             value={this.state.companyName}
                             disabled={shouldDisableCompanyName}
                         />
@@ -176,7 +208,7 @@ class CompanyStep extends React.Component {
                                 if (error === this.props.translate('bankAccount.error.addressStreet')) {
                                     hideBankAccountErrors();
                                 }
-                                this.setState({addressStreet});
+                                this.setValue({addressStreet});
                             }}
                             value={this.state.addressStreet}
                             errorText={error === this.props.translate('bankAccount.error.addressStreet')
@@ -188,13 +220,13 @@ class CompanyStep extends React.Component {
                             <View style={[styles.flex2, styles.mr2]}>
                                 <ExpensiTextInput
                                     label={this.props.translate('common.city')}
-                                    onChangeText={addressCity => this.setState({addressCity})}
+                                    onChangeText={addressCity => this.setValue({addressCity})}
                                     value={this.state.addressCity}
                                 />
                             </View>
                             <View style={[styles.flex1]}>
                                 <StatePicker
-                                    onChange={addressState => this.setState({addressState})}
+                                    onChange={addressState => this.setValue({addressState})}
                                     value={this.state.addressState}
                                 />
                             </View>
@@ -206,7 +238,7 @@ class CompanyStep extends React.Component {
                                 if (error === this.props.translate('bankAccount.error.zipCode')) {
                                     hideBankAccountErrors();
                                 }
-                                this.setState({addressZipCode});
+                                this.setValue({addressZipCode});
                             }}
                             value={this.state.addressZipCode}
                             errorText={error === this.props.translate('bankAccount.error.zipCode')
@@ -217,7 +249,7 @@ class CompanyStep extends React.Component {
                             label={this.props.translate('common.phoneNumber')}
                             containerStyles={[styles.mt4]}
                             keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                            onChangeText={companyPhone => this.setState({companyPhone})}
+                            onChangeText={companyPhone => this.setValue({companyPhone})}
                             value={this.state.companyPhone}
                             placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         />
@@ -228,7 +260,7 @@ class CompanyStep extends React.Component {
                                 if (error === this.props.translate('bankAccount.error.website')) {
                                     hideBankAccountErrors();
                                 }
-                                this.setState({website});
+                                this.setValue({website});
                             }}
                             value={this.state.website}
                             errorText={error === this.props.translate('bankAccount.error.website')
@@ -243,7 +275,7 @@ class CompanyStep extends React.Component {
                                 if (error === this.props.translate('bankAccount.error.taxID')) {
                                     hideBankAccountErrors();
                                 }
-                                this.setState({companyTaxID});
+                                this.setValue({companyTaxID});
                             }}
                             value={this.state.companyTaxID}
                             disabled={shouldDisableCompanyTaxID}
@@ -255,7 +287,7 @@ class CompanyStep extends React.Component {
                             <ExpensiPicker
                                 label={this.props.translate('companyStep.companyType')}
                                 items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
-                                onChange={incorporationType => this.setState({incorporationType})}
+                                onChange={incorporationType => this.setValue({incorporationType})}
                                 value={this.state.incorporationType}
                                 placeholder={{value: '', label: '-'}}
                             />
@@ -269,7 +301,7 @@ class CompanyStep extends React.Component {
                                         if (error === this.props.translate('bankAccount.error.incorporationDate')) {
                                             hideBankAccountErrors();
                                         }
-                                        this.setState({incorporationDate});
+                                        this.setValue({incorporationDate});
                                     }}
                                     value={this.state.incorporationDate}
                                     placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
@@ -280,7 +312,7 @@ class CompanyStep extends React.Component {
                             </View>
                             <View style={[styles.flex1]}>
                                 <StatePicker
-                                    onChange={incorporationState => this.setState({incorporationState})}
+                                    onChange={incorporationState => this.setValue({incorporationState})}
                                     value={this.state.incorporationState}
                                 />
                             </View>
@@ -295,7 +327,7 @@ class CompanyStep extends React.Component {
                                 if (error === this.props.translate('bankAccount.error.industryCode')) {
                                     hideBankAccountErrors();
                                 }
-                                this.setState({industryCode});
+                                this.setValue({industryCode});
                             }}
                             value={this.state.industryCode}
                             errorText={error === this.props.translate('bankAccount.error.industryCode')
@@ -358,11 +390,16 @@ class CompanyStep extends React.Component {
 }
 
 CompanyStep.propTypes = propTypes;
+CompanyStep.defaultProps = defaultProps;
+
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(CompanyStep);
