@@ -842,6 +842,10 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
 }
 
+function updateReimbursementAccountDraft(bankAccountData) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {...bankAccountData});
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -860,4 +864,5 @@ export {
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    updateReimbursementAccountDraft,
 };
