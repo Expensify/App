@@ -43,6 +43,12 @@ const propTypes = {
         existingOwners: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
+    /** Draft of the bank account currently in setup */
+    reimbursementAccountDraft: PropTypes.shape({
+        routingNumber: PropTypes.string,
+        accountNumber: PropTypes.string,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -57,8 +63,8 @@ class BankAccountStep extends React.Component {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
             hasAcceptedTerms: props.achData.acceptTerms || true,
-            routingNumber: props.achData.routingNumber || '',
-            accountNumber: props.achData.accountNumber || '',
+            routingNumber: lodashGet(this.props, 'reimbursementAccountDraft.routingNumber') || props.achData.routingNumber || '',
+            accountNumber: lodashGet(this.props, 'reimbursementAccountDraft.accountNumber') || props.achData.accountNumber || '',
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
@@ -378,5 +384,8 @@ export default compose(
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        }
     }),
 )(BankAccountStep);
