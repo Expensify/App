@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
@@ -16,6 +17,7 @@ import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -34,7 +36,25 @@ const propTypes = {
         /** Error set when handling the API response */
         error: PropTypes.string,
     }).isRequired,
+
+    /** Draft of the bank account currently in setup */
+    reimbursementAccountDraft: PropTypes.shape({
+        ownsMoreThan25Percent: PropTypes.bool,
+        hasOtherBeneficialOwners: PropTypes.bool,
+        acceptTermsAndConditions: PropTypes.bool,
+        certifyTrueInformation: PropTypes.bool,
+    }),
 };
+
+const defaultProps = {
+    reimbursementAccountDraft: {
+        ownsMoreThan25Percent: null,
+        hasOtherBeneficialOwners: null,
+        acceptTermsAndConditions: null,
+        certifyTrueInformation: null,
+    },
+};
+
 
 class BeneficialOwnersStep extends React.Component {
     constructor(props) {
@@ -42,12 +62,13 @@ class BeneficialOwnersStep extends React.Component {
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
+        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 1000, false);
 
         this.state = {
-            ownsMoreThan25Percent: false,
+            ownsMoreThan25Percent: lodashGet(props, ['reimbursementAccountDraft', 'ownsMoreThan25Percent'], false),
             hasOtherBeneficialOwners: false,
-            acceptTermsAndConditions: false,
-            certifyTrueInformation: false,
+            acceptTermsAndConditions: lodashGet(props, ['reimbursementAccountDraft', 'acceptTermsAndConditions'], false),
+            certifyTrueInformation: lodashGet(props, ['reimbursementAccountDraft', 'certifyTrueInformation'], false),
             beneficialOwners: [],
         };
     }
@@ -110,6 +131,25 @@ class BeneficialOwnersStep extends React.Component {
         () => setupWithdrawalAccount({...this.state}));
     }
 
+    /**
+    *
+    * @param {Object} value
+    */
+    debouncedUpdateReimbursementAccountDraft(value) {
+        updateReimbursementAccountDraft(value);
+    }
+
+    /**
+    *
+    * @param {Object} fieldName
+    */
+    toggleCheckbox(fieldName) {
+        this.setState((prevState) => {
+            this.debouncedUpdateReimbursementAccountDraft({[fieldName]: !prevState[fieldName]});
+            return {[fieldName]: !prevState[fieldName]};
+        });
+    }
+
     render() {
         return (
             <>
@@ -129,9 +169,7 @@ class BeneficialOwnersStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb2, styles.mr2]}
                         isChecked={this.state.ownsMoreThan25Percent}
-                        onPress={() => this.setState(prevState => ({
-                            ownsMoreThan25Percent: !prevState.ownsMoreThan25Percent,
-                        }))}
+                        onPress={() => this.toggleCheckbox('ownsMoreThan25Percent')}
                         LabelComponent={() => (
                             <Text>
                                 {this.props.translate('beneficialOwnersStep.iOwnMoreThan25Percent')}
@@ -207,9 +245,7 @@ class BeneficialOwnersStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb2]}
                         isChecked={this.state.acceptTermsAndConditions}
-                        onPress={() => this.setState(prevState => ({
-                            acceptTermsAndConditions: !prevState.acceptTermsAndConditions,
-                        }))}
+                        onPress={() => this.toggleCheckbox('acceptTermsAndConditions')}
                         LabelComponent={() => (
                             <View style={[styles.flexRow]}>
                                 <Text>{this.props.translate('common.iAcceptThe')}</Text>
@@ -222,9 +258,7 @@ class BeneficialOwnersStep extends React.Component {
                     <CheckboxWithLabel
                         style={[styles.mb2]}
                         isChecked={this.state.certifyTrueInformation}
-                        onPress={() => this.setState(prevState => ({
-                            certifyTrueInformation: !prevState.certifyTrueInformation,
-                        }))}
+                        onPress={() => this.toggleCheckbox('certifyTrueInformation')}
                         LabelComponent={() => (
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
@@ -244,11 +278,16 @@ class BeneficialOwnersStep extends React.Component {
 }
 
 BeneficialOwnersStep.propTypes = propTypes;
+BeneficialOwnersStep.defaultProps = defaultProps;
+
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(BeneficialOwnersStep);
