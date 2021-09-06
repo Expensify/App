@@ -43,6 +43,16 @@ const propTypes = {
         hasOtherBeneficialOwners: PropTypes.bool,
         acceptTermsAndConditions: PropTypes.bool,
         certifyTrueInformation: PropTypes.bool,
+        beneficialOwners: PropTypes.arrayOf(PropTypes.shape({
+            firstName: PropTypes.string,
+            lastName: PropTypes.string,
+            requestorAddressStreet: PropTypes.string,
+            requestorAddressCity: PropTypes.string,
+            requestorAddressState: PropTypes.string,
+            requestorAddressZipCode: PropTypes.string,
+            dob: PropTypes.string,
+            ssnLast4: PropTypes.string,
+        })),
     }),
 };
 
@@ -52,6 +62,7 @@ const defaultProps = {
         hasOtherBeneficialOwners: null,
         acceptTermsAndConditions: null,
         certifyTrueInformation: null,
+        beneficialOwners: null,
     },
 };
 
@@ -66,10 +77,10 @@ class BeneficialOwnersStep extends React.Component {
 
         this.state = {
             ownsMoreThan25Percent: lodashGet(props, ['reimbursementAccountDraft', 'ownsMoreThan25Percent'], false),
-            hasOtherBeneficialOwners: false,
+            hasOtherBeneficialOwners: lodashGet(props, ['reimbursementAccountDraft', 'hasOtherBeneficialOwners'], false),
             acceptTermsAndConditions: lodashGet(props, ['reimbursementAccountDraft', 'acceptTermsAndConditions'], false),
             certifyTrueInformation: lodashGet(props, ['reimbursementAccountDraft', 'certifyTrueInformation'], false),
-            beneficialOwners: [],
+            beneficialOwners: lodashGet(props, ['reimbursementAccountDraft', 'beneficialOwners'], []),
         };
     }
 
@@ -101,7 +112,15 @@ class BeneficialOwnersStep extends React.Component {
     }
 
     removeBeneficialOwner(beneficialOwner) {
-        this.setState(prevState => ({beneficialOwners: _.without(prevState.beneficialOwners, beneficialOwner)}));
+        this.setState((prevState) => {
+            const beneficialOwners = _.without(prevState.beneficialOwners, beneficialOwner);
+
+            // We set 'beneficialOwners' to null first because we don't have a way yet to replace a specific property without merging it.
+            // We don't use the debounced function because we want to make both function calls.
+            updateReimbursementAccountDraft({beneficialOwners: null});
+            updateReimbursementAccountDraft({beneficialOwners});
+            return {beneficialOwners};
+        });
     }
 
     addBeneficialOwner() {
@@ -183,6 +202,12 @@ class BeneficialOwnersStep extends React.Component {
                         onPress={() => {
                             this.setState((prevState) => {
                                 const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
+                                this.debouncedUpdateReimbursementAccountDraft({
+                                    hasOtherBeneficialOwners: !prevState.hasOtherBeneficialOwners,
+                                    beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
+                                        ? [{}]
+                                        : prevState.beneficialOwners,
+                                });
                                 return {
                                     hasOtherBeneficialOwners,
                                     beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
@@ -210,6 +235,7 @@ class BeneficialOwnersStep extends React.Component {
                                         onFieldChange={(fieldName, value) => this.setState((prevState) => {
                                             const beneficialOwners = [...prevState.beneficialOwners];
                                             beneficialOwners[index][fieldName] = value;
+                                            this.debouncedUpdateReimbursementAccountDraft({beneficialOwners});
                                             return {beneficialOwners};
                                         })}
                                         values={{
