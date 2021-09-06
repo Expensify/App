@@ -121,7 +121,7 @@ export default {
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
     // Stores draft information about the active reimbursement account being set up
-    REIMBURSEMENT_ACCOUNT_DRAFT: 'draftReimbursementAccount',
+    REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft',
 
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
