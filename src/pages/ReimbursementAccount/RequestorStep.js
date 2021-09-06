@@ -66,7 +66,7 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 1000, false);
+        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
             firstName: lodashGet(props, ['reimbursementAccountDraft', 'firstName']) || lodashGet(props, ['achData', 'firstName'], ''),

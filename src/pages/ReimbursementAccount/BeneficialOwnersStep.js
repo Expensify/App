@@ -73,7 +73,7 @@ class BeneficialOwnersStep extends React.Component {
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
-        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 1000, false);
+        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
             ownsMoreThan25Percent: lodashGet(props, ['reimbursementAccountDraft', 'ownsMoreThan25Percent'], false),
