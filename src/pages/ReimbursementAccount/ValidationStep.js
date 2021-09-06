@@ -67,6 +67,15 @@ class ValidationStep extends React.Component {
         ];
     }
 
+    /**
+    *
+    * @param {Object} value
+    */
+    setValue(value) {
+        this.debouncedUpdateReimbursementAccountDraft(value);
+        this.setState(value);
+    }
+
     submit() {
         const amount1 = this.filterInput(this.state.amount1);
         const amount2 = this.filterInput(this.state.amount2);
@@ -91,15 +100,6 @@ class ValidationStep extends React.Component {
     */
     debouncedUpdateReimbursementAccountDraft(value) {
         updateReimbursementAccountDraft(value);
-    }
-
-    /**
-    *
-    * @param {Object} value
-    */
-    setValue(value) {
-        this.debouncedUpdateReimbursementAccountDraft(value);
-        this.setState(value);
     }
 
     /**
