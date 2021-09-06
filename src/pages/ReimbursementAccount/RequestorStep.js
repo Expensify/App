@@ -33,15 +33,7 @@ const propTypes = {
         error: PropTypes.string,
     }).isRequired,
 
-    /** Draft of the bank account currently in setup */
-    // eslint-disable-next-line react/forbid-prop-types
-    reimbursementAccountDraft: PropTypes.object,
-
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccountDraft: {},
 };
 
 class RequestorStep extends React.Component {
@@ -244,7 +236,6 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.defaultProps = defaultProps;
 RequestorStep.displayName = 'RequestorStep';
 
 export default compose(

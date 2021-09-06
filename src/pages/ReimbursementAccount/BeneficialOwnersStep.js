@@ -36,16 +36,7 @@ const propTypes = {
         /** Error set when handling the API response */
         error: PropTypes.string,
     }).isRequired,
-
-    /** Draft of the bank account currently in setup */
-    // eslint-disable-next-line react/forbid-prop-types
-    reimbursementAccountDraft: PropTypes.object,
 };
-
-const defaultProps = {
-    reimbursementAccountDraft: {},
-};
-
 
 class BeneficialOwnersStep extends React.Component {
     constructor(props) {
@@ -284,8 +275,6 @@ class BeneficialOwnersStep extends React.Component {
 }
 
 BeneficialOwnersStep.propTypes = propTypes;
-BeneficialOwnersStep.defaultProps = defaultProps;
-
 export default compose(
     withLocalize,
     withOnyx({

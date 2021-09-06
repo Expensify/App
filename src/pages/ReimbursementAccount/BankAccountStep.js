@@ -44,15 +44,7 @@ const propTypes = {
         existingOwners: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
-    /** Draft of the bank account currently in setup */
-    // eslint-disable-next-line react/forbid-prop-types
-    reimbursementAccountDraft: PropTypes.object,
-
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    reimbursementAccountDraft: {},
 };
 
 class BankAccountStep extends React.Component {
@@ -390,8 +382,6 @@ class BankAccountStep extends React.Component {
 }
 
 BankAccountStep.propTypes = propTypes;
-BankAccountStep.defaultProps = defaultProps;
-
 export default compose(
     withLocalize,
     withOnyx({

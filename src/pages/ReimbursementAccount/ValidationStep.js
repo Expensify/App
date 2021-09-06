@@ -38,16 +38,11 @@ const propTypes = {
 
     /** Disable validation button if max attempts exceeded */
     maxAttemptsReached: PropTypes.bool,
-
-    /** Draft of the bank account currently in setup */
-    // eslint-disable-next-line react/forbid-prop-types
-    reimbursementAccountDraft: PropTypes.object,
 };
 
 const defaultProps = {
     error: '',
     maxAttemptsReached: false,
-    reimbursementAccountDraft: {},
 };
 
 class ValidationStep extends React.Component {
