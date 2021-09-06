@@ -58,7 +58,7 @@ class BankAccountStep extends React.Component {
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
-            hasAcceptedTerms: props.achData.acceptTerms || true,
+            hasAcceptedTerms: lodashGet(props, ['reimbursementAccountDraft', 'hasAcceptedTerms']) || lodashGet(props, ['achData', 'acceptTerms'], true),
             routingNumber: lodashGet(props, ['reimbursementAccountDraft', 'routingNumber']) || lodashGet(props, ['achData', 'routingNumber'], ''),
             accountNumber: lodashGet(props, ['reimbursementAccountDraft', 'accountNumber']) || lodashGet(props, ['achData', 'accountNumber'], ''),
         };
@@ -87,9 +87,10 @@ class BankAccountStep extends React.Component {
     }
 
     toggleTerms() {
-        this.setState(prevState => ({
-            hasAcceptedTerms: !prevState.hasAcceptedTerms,
-        }));
+        this.setState(prevState => {
+            this.debouncedUpdateReimbursementAccountDraft({hasAcceptedTerms: !prevState.hasAcceptedTerms});
+            return {hasAcceptedTerms: !prevState.hasAcceptedTerms};
+        });
     }
 
     /**
