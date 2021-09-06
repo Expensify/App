@@ -9,6 +9,7 @@ import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
 import styles, {getIconFillColor} from '../../styles/styles';
 import Icon from '../Icon';
+import './disableEdgeIcon.css';
 import {
     Eye,
     EyeDisabled,
