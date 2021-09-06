@@ -587,6 +587,7 @@ function validateBankAccount(bankAccountID, validateCode) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
+                Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {});
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {
