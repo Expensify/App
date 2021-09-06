@@ -59,7 +59,7 @@
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.3.5",
     "electron-serve": "^1.0.0",
-    "electron-updater": "^4.3.4",
+    "electron-updater": "^4.4.5",
     "expensify-common": "git://github.com/Expensify/expensify-common.git#e5a22b54cde72ff3b9b6b085ea4374144e8937b2",
     "expo-haptics": "^10.0.0",
     "file-loader": "^6.0.0",
