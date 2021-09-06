@@ -77,7 +77,7 @@ class RequestorStep extends React.Component {
             requestorAddressZipCode: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressZipCode']) || lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
             dob: lodashGet(props, ['reimbursementAccountDraft', 'dob']) || lodashGet(props, ['achData', 'dob'], ''),
             ssnLast4: lodashGet(props, ['reimbursementAccountDraft', 'ssnLast4']) || lodashGet(props, ['achData', 'ssnLast4'], ''),
-            isControllingOfficer: lodashGet(props, ['achData', 'isControllingOfficer'], false),
+            isControllingOfficer: lodashGet(props, ['reimbursementAccountDraft', 'isControllingOfficer']) || lodashGet(props, ['achData', 'isControllingOfficer'], false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
@@ -188,9 +188,10 @@ class RequestorStep extends React.Component {
                                 />
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
-                                    onPress={() => this.setState(prevState => ({
-                                        isControllingOfficer: !prevState.isControllingOfficer,
-                                    }))}
+                                    onPress={() => this.setState((prevState) => {
+                                        this.debouncedUpdateReimbursementAccountDraft({isControllingOfficer: !prevState.isControllingOfficer});
+                                        return {isControllingOfficer: !prevState.isControllingOfficer};
+                                    })}
                                     LabelComponent={() => (
                                         <View style={[styles.flex1, styles.pr1]}>
                                             <Text>
