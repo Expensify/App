@@ -53,6 +53,13 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    reimbursementAccountDraft: {
+        routingNumber: null,
+        accountNumber: null,
+    },
+};
+
 class BankAccountStep extends React.Component {
     constructor(props) {
         super(props);
@@ -379,6 +386,7 @@ class BankAccountStep extends React.Component {
 }
 
 BankAccountStep.propTypes = propTypes;
+BankAccountStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -388,6 +396,6 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
-        }
+        },
     }),
 )(BankAccountStep);
