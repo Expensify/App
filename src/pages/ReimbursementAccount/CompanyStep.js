@@ -40,7 +40,20 @@ const propTypes = {
     }).isRequired,
 
     /** Draft of the bank account currently in setup */
-    reimbursementAccountDraft: PropTypes.shape({}),
+    reimbursementAccountDraft: PropTypes.shape({
+        companyName: PropTypes.string,
+        addressStreet: PropTypes.string,
+        addressCity: PropTypes.string,
+        addressState: PropTypes.string,
+        addressZipCode: PropTypes.string,
+        companyPhone: PropTypes.string,
+        website: PropTypes.string,
+        companyTaxID: PropTypes.string,
+        incorporationType: PropTypes.string,
+        incorporationDate: PropTypes.string,
+        incorporationState: PropTypes.string,
+        industryCode: PropTypes.string,
+    }),
 
     ...withLocalizePropTypes,
 };
