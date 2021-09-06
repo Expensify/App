@@ -203,6 +203,10 @@ class BankAccountStep extends React.Component {
         });
     }
 
+    /**
+    *
+    * @param {Object} value
+    */
     debouncedUpdateReimbursementAccountDraft(value) {
         updateReimbursementAccountDraft(value);
     }
