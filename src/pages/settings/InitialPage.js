@@ -133,7 +133,7 @@ const InitialSettingsPage = ({
     userWallet,
 }) => {
     const walletBalance = numberFormat(
-        userWallet.currentBalance,
+        userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
         {style: 'currency', currency: 'USD'},
     );
 
