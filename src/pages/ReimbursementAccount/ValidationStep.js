@@ -1,11 +1,13 @@
 import React from 'react';
 import {Image, View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {validateBankAccount} from '../../libs/actions/BankAccounts';
+import {validateBankAccount, updateReimbursementAccountDraft} from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -15,6 +17,8 @@ import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
+import ONYXKEYS from '../../ONYXKEYS';
+import compose from '../../libs/compose';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -34,11 +38,16 @@ const propTypes = {
 
     /** Disable validation button if max attempts exceeded */
     maxAttemptsReached: PropTypes.bool,
+
+    /** Draft of the bank account currently in setup */
+    // eslint-disable-next-line react/forbid-prop-types
+    reimbursementAccountDraft: PropTypes.object,
 };
 
 const defaultProps = {
     error: '',
     maxAttemptsReached: false,
+    reimbursementAccountDraft: {},
 };
 
 class ValidationStep extends React.Component {
@@ -47,11 +56,12 @@ class ValidationStep extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
+        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
-            amount1: '',
-            amount2: '',
-            amount3: '',
+            amount1: lodashGet(props, ['reimbursementAccountDraft', 'amount1'], ''),
+            amount2: lodashGet(props, ['reimbursementAccountDraft', 'amount2'], ''),
+            amount3: lodashGet(props, ['reimbursementAccountDraft', 'amount3'], ''),
             error: '',
         };
 
@@ -78,6 +88,23 @@ class ValidationStep extends React.Component {
 
         // If any values are falsey, indicate to user that inputs are invalid
         this.setState({error: 'Invalid amounts'});
+    }
+
+    /**
+    *
+    * @param {Object} value
+    */
+    debouncedUpdateReimbursementAccountDraft(value) {
+        updateReimbursementAccountDraft(value);
+    }
+
+    /**
+    *
+    * @param {Object} value
+    */
+    setValue(value) {
+        this.debouncedUpdateReimbursementAccountDraft(value);
+        this.setState(value);
     }
 
     /**
@@ -135,21 +162,21 @@ class ValidationStep extends React.Component {
                                 placeholder="1.52"
                                 keyboardType="number-pad"
                                 value={this.state.amount1}
-                                onChangeText={amount1 => this.setState({amount1})}
+                                onChangeText={amount1 => this.setValue({amount1})}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="number-pad"
                                 value={this.state.amount2}
-                                onChangeText={amount2 => this.setState({amount2})}
+                                onChangeText={amount2 => this.setValue({amount2})}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="number-pad"
                                 value={this.state.amount3}
-                                onChangeText={amount3 => this.setState({amount3})}
+                                onChangeText={amount3 => this.setValue({amount3})}
                             />
                             {!_.isEmpty(errorMessage) && (
                                 <Text style={[styles.mb5, styles.textDanger]}>
@@ -198,4 +225,11 @@ class ValidationStep extends React.Component {
 ValidationStep.propTypes = propTypes;
 ValidationStep.defaultProps = defaultProps;
 
-export default withLocalize(ValidationStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+    }),
+)(ValidationStep);
