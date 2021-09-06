@@ -72,8 +72,8 @@ class BankAccountStep extends React.Component {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
             hasAcceptedTerms: props.achData.acceptTerms || true,
-            routingNumber: lodashGet(this.props, 'reimbursementAccountDraft.routingNumber') || props.achData.routingNumber || '',
-            accountNumber: lodashGet(this.props, 'reimbursementAccountDraft.accountNumber') || props.achData.accountNumber || '',
+            routingNumber: lodashGet(props, ['reimbursementAccountDraft', 'routingNumber']) || lodashGet(props, ['achData', 'routingNumber'], ''),
+            accountNumber: lodashGet(props, ['reimbursementAccountDraft', 'accountNumber']) || lodashGet(props, ['achData', 'accountNumber'], ''),
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
