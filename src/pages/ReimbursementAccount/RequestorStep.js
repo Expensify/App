@@ -34,31 +34,14 @@ const propTypes = {
     }).isRequired,
 
     /** Draft of the bank account currently in setup */
-    reimbursementAccountDraft: PropTypes.shape({
-        firstName: PropTypes.string,
-        lastName: PropTypes.string,
-        requestorAddressStreet: PropTypes.string,
-        requestorAddressCity: PropTypes.string,
-        requestorAddressState: PropTypes.string,
-        requestorAddressZipCode: PropTypes.string,
-        dob: PropTypes.string,
-        ssnLast4: PropTypes.string,
-    }),
+    // eslint-disable-next-line react/forbid-prop-types
+    reimbursementAccountDraft: PropTypes.object,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    reimbursementAccountDraft: {
-        firstName: null,
-        lastName: null,
-        requestorAddressStreet: null,
-        requestorAddressCity: null,
-        requestorAddressState: null,
-        requestorAddressZipCode: null,
-        dob: null,
-        ssnLast4: null,
-    },
+    reimbursementAccountDraft: {},
 };
 
 class RequestorStep extends React.Component {

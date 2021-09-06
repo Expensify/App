@@ -45,19 +45,14 @@ const propTypes = {
     }).isRequired,
 
     /** Draft of the bank account currently in setup */
-    reimbursementAccountDraft: PropTypes.shape({
-        routingNumber: PropTypes.string,
-        accountNumber: PropTypes.string,
-    }),
+    // eslint-disable-next-line react/forbid-prop-types
+    reimbursementAccountDraft: PropTypes.object,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    reimbursementAccountDraft: {
-        routingNumber: null,
-        accountNumber: null,
-    },
+    reimbursementAccountDraft: {},
 };
 
 class BankAccountStep extends React.Component {

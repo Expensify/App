@@ -38,32 +38,12 @@ const propTypes = {
     }).isRequired,
 
     /** Draft of the bank account currently in setup */
-    reimbursementAccountDraft: PropTypes.shape({
-        ownsMoreThan25Percent: PropTypes.bool,
-        hasOtherBeneficialOwners: PropTypes.bool,
-        acceptTermsAndConditions: PropTypes.bool,
-        certifyTrueInformation: PropTypes.bool,
-        beneficialOwners: PropTypes.arrayOf(PropTypes.shape({
-            firstName: PropTypes.string,
-            lastName: PropTypes.string,
-            requestorAddressStreet: PropTypes.string,
-            requestorAddressCity: PropTypes.string,
-            requestorAddressState: PropTypes.string,
-            requestorAddressZipCode: PropTypes.string,
-            dob: PropTypes.string,
-            ssnLast4: PropTypes.string,
-        })),
-    }),
+    // eslint-disable-next-line react/forbid-prop-types
+    reimbursementAccountDraft: PropTypes.object,
 };
 
 const defaultProps = {
-    reimbursementAccountDraft: {
-        ownsMoreThan25Percent: null,
-        hasOtherBeneficialOwners: null,
-        acceptTermsAndConditions: null,
-        certifyTrueInformation: null,
-        beneficialOwners: null,
-    },
+    reimbursementAccountDraft: {},
 };
 
 

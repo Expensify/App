@@ -40,39 +40,14 @@ const propTypes = {
     }).isRequired,
 
     /** Draft of the bank account currently in setup */
-    reimbursementAccountDraft: PropTypes.shape({
-        companyName: PropTypes.string,
-        addressStreet: PropTypes.string,
-        addressCity: PropTypes.string,
-        addressState: PropTypes.string,
-        addressZipCode: PropTypes.string,
-        companyPhone: PropTypes.string,
-        website: PropTypes.string,
-        companyTaxID: PropTypes.string,
-        incorporationType: PropTypes.string,
-        incorporationDate: PropTypes.string,
-        incorporationState: PropTypes.string,
-        industryCode: PropTypes.string,
-    }),
+    // eslint-disable-next-line react/forbid-prop-types
+    reimbursementAccountDraft: PropTypes.object,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
-    reimbursementAccountDraft: {
-        companyName: null,
-        addressStreet: null,
-        addressCity: null,
-        addressState: null,
-        addressZipCode: null,
-        companyPhone: null,
-        website: null,
-        companyTaxID: null,
-        incorporationType: null,
-        incorporationDate: null,
-        incorporationState: null,
-        industryCode: null,
-    },
+    reimbursementAccountDraft: {},
 };
 
 class CompanyStep extends React.Component {
