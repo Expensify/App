@@ -141,12 +141,10 @@ class BaseExpensiTextInput extends Component {
         const hasLabel = Boolean(label.length);
         return (
             <View>
-                <View
-                    style={[
-                        !multiline && styles.componentHeightLarge,
-                        ...containerStyles,
-                    ]}
-                >
+                {Boolean(errorText) && (
+                    <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
+                )}
+                <View style={[!multiline && styles.componentHeightLarge, ...containerStyles]}>
                     <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
                         <View
                             style={[
@@ -168,90 +166,47 @@ class BaseExpensiTextInput extends Component {
                                     labelScale={this.state.labelScale}
                                 />
                             ) : null}
-                            <TextInput
-                                ref={(ref) => {
-                                    if (typeof innerRef === 'function') { innerRef(ref); }
-                                    this.input = ref;
-                                }}
-                                // eslint-disable-next-line
-                                {...inputProps}
-                                value={value}
-                                placeholder={(this.state.isFocused || !label) ? placeholder : null}
-                                placeholderTextColor={themeColors.placeholderText}
-                                underlineColorAndroid="transparent"
-                                style={inputStyle}
-                                multiline={multiline}
-                                onFocus={this.onFocus}
-                                onBlur={this.onBlur}
-                                onChangeText={this.setValue}
-                            />
+                            <View style={styles.flexRow}>
+                                <TextInput
+                                    ref={(ref) => {
+                                        if (typeof innerRef === 'function') {innerRef(ref);}
+                                        this.input = ref;
+                                    }}
+                                    // eslint-disable-next-line
+                                    {...inputProps}
+                                    value={value}
+                                    placeholder={(this.state.isFocused || !label) ? placeholder : null}
+                                    placeholderTextColor={themeColors.placeholderText}
+                                    underlineColorAndroid="transparent"
+                                    style={[...inputStyle, styles.flex1, styles.pt3, !hasLabel && styles.pv0]}
+                                    onFocus={this.onFocus}
+                                    onBlur={this.onBlur}
+                                    onChangeText={this.setValue}
+                                    secureTextEntry={this.state.passwordHidden}
+                                />
+                                {secureTextEntry && (
+                                    <Pressable
+                                        accessibilityRole="button"
+                                        style={[
+                                            styles.secureInputEyeButton,
+                                        ]}
+                                        onPress={() => this.togglePasswordVisibility()}
+                                    >
+                                        {({hovered, pressed}) => (
+                                            <Icon
+                                                src={this.state.passwordHidden ? EyeDisabled : Eye}
+                                                fill={getIconFillColor(getButtonState(hovered, pressed))}
+                                            />
+                                        )}
+                                    </Pressable>
+                                )}
+                            </View>
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
                 {Boolean(errorText) && (
                     <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
                 )}
-            <View style={[styles.componentHeightLarge, ...containerStyles]}>
-                <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
-                    <View
-                        style={[
-                            styles.expensiTextInputContainer,
-                            !hasLabel && styles.pv0,
-                            this.state.isFocused && styles.borderColorFocus,
-                            hasError && styles.borderColorDanger,
-                        ]}
-                    >
-                        {hasLabel ? (
-                            <ExpensiTextInputLabel
-                                label={label}
-                                labelTranslateX={
-                                    ignoreLabelTranslateX
-                                        ? new Animated.Value(0)
-                                        : this.state.labelTranslateX
-                                }
-                                labelTranslateY={this.state.labelTranslateY}
-                                labelScale={this.state.labelScale}
-                            />
-                        ) : null}
-                        <View style={styles.flexRow}>
-                            <TextInput
-                                ref={(ref) => {
-                                    if (typeof innerRef === 'function') { innerRef(ref); }
-                                    this.input = ref;
-                                }}
-                            // eslint-disable-next-line
-                            {...inputProps}
-                                value={value}
-                                placeholder={(this.state.isFocused || !label) ? placeholder : null}
-                                placeholderTextColor={themeColors.placeholderText}
-                                underlineColorAndroid="transparent"
-                                style={[...inputStyle, styles.flex1, styles.pt3, !hasLabel && styles.pv0]}
-                                onFocus={this.onFocus}
-                                onBlur={this.onBlur}
-                                onChangeText={this.setValue}
-                                secureTextEntry={this.state.passwordHidden}
-                            />
-                            {secureTextEntry && (
-                            <Pressable
-                                accessibilityRole="button"
-                            // eslint-disable-next-line lines-around-comment
-                            // accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                                style={[
-                                    styles.secureInputEyeButton,
-                                ]}
-                                onPress={() => this.togglePasswordVisibility()}
-                            >
-                                {({hovered, pressed}) => (
-                                    <Icon
-                                        src={this.state.passwordHidden ? EyeDisabled : Eye}
-                                        fill={getIconFillColor(getButtonState(hovered, pressed))}
-                                    />
-                                )}
-                            </Pressable>
-                            )}
-                        </View>
-                    </View>
-                </TouchableWithoutFeedback>
             </View>
         );
     }

@@ -263,6 +263,7 @@ export default {
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        confirmNewPassword: 'Confirma la Nueva Contraseña',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
@@ -355,7 +356,9 @@ export default {
     },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
+        confirmNewPassword: 'Confirma la contraseña',
         setPassword: 'Configura tu contraseña',
+        passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
     },
