@@ -947,8 +947,12 @@ function fetchAllReports(
                 .split(',')
                 .filter(_.identity);
 
-            // Get all the chat reports if they have any
-            return fetchChatReportsByIDs(reportIDs);
+            // Get all the chat reports if they have any, otherwise create one with concierge
+            if (reportIDs.length > 0) {
+                return fetchChatReportsByIDs(reportIDs);
+            }
+
+            return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
         .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
