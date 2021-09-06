@@ -95,7 +95,7 @@ class CompanyStep extends React.Component {
             incorporationDate: lodashGet(props, ['reimbursementAccountDraft', 'incorporationDate']) || lodashGet(props, ['achData', 'incorporationDate'], ''),
             incorporationState: lodashGet(props, ['reimbursementAccountDraft', 'incorporationState']) || lodashGet(props, ['achData', 'incorporationState'], ''),
             industryCode: lodashGet(props, ['reimbursementAccountDraft', 'industryCode']) || lodashGet(props, ['achData', 'industryCode'], ''),
-            hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
+            hasNoConnectionToCannabis: lodashGet(props, ['reimbursementAccountDraft', 'hasNoConnectionToCannabis']) || lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
         };
 
@@ -377,9 +377,10 @@ class CompanyStep extends React.Component {
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
-                            onPress={() => this.setState(prevState => ({
-                                hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis,
-                            }))}
+                            onPress={() => this.setState(prevState => {
+                                this.debouncedUpdateReimbursementAccountDraft({hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis})
+                                return {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
+                            })}
                             LabelComponent={() => (
                                 <>
                                     <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
