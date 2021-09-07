@@ -16,6 +16,8 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    shouldShowWelcomeText: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -47,9 +49,11 @@ const SignInPageLayoutNarrow = props => (
                             height={variables.componentSizeLarge}
                         />
                     </View>
-                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                        {props.welcomeText}
-                    </Text>
+                    {props.shouldShowWelcomeText && (
+                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                            {props.welcomeText}
+                        </Text>
+                    )}
                     {props.children}
                 </View>
             </View>
