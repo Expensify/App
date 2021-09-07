@@ -83,7 +83,7 @@ class ResendValidationForm extends React.Component {
         return (
             <>
                 <View>
-                    <Text>
+                    <Text style={[styles.mt5, styles.mb1, styles.textLabel, styles.h3]}>
                         {this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
                             loginType: (Str.isSMSLogin(this.props.credentials.login)
                                 ? this.props.translate('common.phoneNumber').toLowerCase()
