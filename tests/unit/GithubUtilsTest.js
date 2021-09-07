@@ -289,42 +289,37 @@ describe('GithubUtils', () => {
         const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
         const openCheckbox = '  - [ ]';
         const closedCheckbox = '  - [x]';
+        const listStart = '- '
         const QA = ' QA'
         const accessibility = ' Accessibility'
-        const ccApplauseLeads = '\r\ncc @Expensify/applauseleads\r\n';
+        const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
+        const deployBlockerHeader = '\r\n**Deploy Blockers:**\r\n';
 
-        test('new formatting', () => {
-            githubUtils.generateStagingDeployCashBody(tag, basePRList)
-                .then((issueBody) => {
-                    expect(issueBody).toBe(
-                        `${baseExpectedOutput}\r\n
-                        - ${basePRList[3]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}\r\n\r\n- ${basePRList[0]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}\r\n\r\n- ${basePRList[1]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}\r\n${ccApplauseLeads}`
-                    );
-                })
-        });
-
-        test('Test no verified PRs', () => (
-            githubUtils.generateStagingDeployCashBody(tag, basePRList)
-                .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${baseExpectedOutput}${openCheckbox} ${basePRList[3]}\r\n${openCheckbox} ${basePRList[0]}\r\n${openCheckbox} ${basePRList[1]}\r\n${ccApplauseLeads}`);
-                })
-        ));
+        // Valid output which will be reused in the deploy blocker tests
+        const allVerifiedExpectedOutput = `${baseExpectedOutput}` +
+                `\r\n${listStart}${basePRList[3]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
+                `\r\n\r\n${listStart}${basePRList[0]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
+                `\r\n\r\n${listStart}${basePRList[1]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}`;
 
         test('Test some verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]])
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${baseExpectedOutput}${openCheckbox} ${basePRList[3]}\r\n${closedCheckbox} ${basePRList[0]}\r\n${openCheckbox} ${basePRList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}` +
+                        `\r\n${listStart}${basePRList[3]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
+                        `\r\n\r\n${listStart}${basePRList[0]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
+                        `\r\n\r\n${listStart}${basePRList[1]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
+                        `\r\n\r\n${ccApplauseLeads}`
+                    );
                 })
         ));
 
-        // eslint-disable-next-line max-len
-        const allVerifiedExpectedOutput = `${baseExpectedOutput}${closedCheckbox} ${basePRList[3]}\r\n${closedCheckbox} ${basePRList[0]}\r\n${closedCheckbox} ${basePRList[1]}\r\n`;
         test('Test all verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList)
                 .then((issueBody) => {
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${allVerifiedExpectedOutput}\r\n\r\n${ccApplauseLeads}`
+                    );
                 })
         ));
 
