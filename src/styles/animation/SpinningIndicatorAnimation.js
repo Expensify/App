@@ -4,41 +4,47 @@ class SpinningIndicatorAnimation {
     constructor() {
         this.rotate = new Animated.Value(0);
         this.scale = new Animated.Value(1);
+        this.startRotation = this.startRotation.bind(this);
         this.start = this.start.bind(this);
         this.stop = this.stop.bind(this);
         this.getSyncingStyles = this.getSyncingStyles.bind(this);
     }
 
     /**
-     * Start Animation for Indicator
+     * We need to manually loop the animations as `useNativeDriver` does not work well with Animated.loop.
      *
-     * We need to manually loop the animations as `useNativeDriver` does not work well with `Animated.loop`.
+     * @memberof AvatarWithIndicator
+     */
+    startRotation() {
+        this.rotate.setValue(0);
+        Animated.timing(this.rotate, {
+            toValue: 1,
+            duration: 2000,
+            easing: Easing.linear,
+            isInteraction: false,
+            useNativeDriver: true,
+        }).start(({finished}) => {
+            if (finished) {
+                this.startRotation();
+            }
+        });
+    }
+
+
+    /**
+     * Start Animation for Indicator
      *
      * @memberof AvatarWithImagePicker
      * @memberof
      */
     start() {
-        this.rotate.setValue(0);
-
-        Animated.parallel([
-            Animated.timing(this.rotate, {
-                toValue: 1,
-                duration: 2000,
-                easing: Easing.linear,
-                isInteraction: false,
-                useNativeDriver: true,
-            }),
-            Animated.spring(this.scale, {
-                toValue: 1.666,
-                tension: 1,
-                isInteraction: false,
-                useNativeDriver: true,
-            }),
-        ]).start(({finished}) => {
-            if (finished) {
-                this.start();
-            }
-        });
+        this.startRotation();
+        Animated.spring(this.scale, {
+            toValue: 1.666,
+            tension: 1,
+            isInteraction: false,
+            useNativeDriver: true,
+        }).start();
     }
 
     /**
