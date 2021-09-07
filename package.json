@@ -33,7 +33,7 @@
     "check-port": "node config/checkPort.js"
   },
   "dependencies": {
-    "@formatjs/intl-getcanonicallocales": "^1.5.8",
+    "@formatjs/intl-getcanonicallocales": "^1.7.3",
     "@formatjs/intl-locale": "^2.4.21",
     "@formatjs/intl-numberformat": "^6.2.5",
     "@formatjs/intl-pluralrules": "^4.0.13",
