@@ -53,7 +53,7 @@
     "@react-navigation/compat": "^5.3.15",
     "@react-navigation/drawer": "^6.0.0-next.17",
     "@react-navigation/native": "^6.0.0-next.13",
-    "@react-navigation/stack": "^6.0.0-next.25",
+    "@react-navigation/stack": "^6.0.7",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "dotenv": "^8.2.0",
     "electron-context-menu": "^2.3.0",
