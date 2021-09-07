@@ -206,6 +206,12 @@ function isBlockedFromConcierge(expiresAt) {
     return moment().isBefore(moment(expiresAt), 'day');
 }
 
+/**
+ * Checks if the expiresAt date of a user's ban is before right now
+ *
+ * @param {String} email
+ * @returns {String}
+ */
 function getDomainFromEmail(email) {
     if (_.indexOf(email, '@') > -1) {
         return email.split('@')[1];
