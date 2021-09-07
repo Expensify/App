@@ -223,10 +223,11 @@ class GithubUtils {
 
                 // PR list
                 if (!_.isEmpty(sortedPRList)) {
-                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
+                    issueBody += '\r\n**This release contains changes from the following pull requests:**';
                     _.each(sortedPRList, (URL) => {
-                        issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
+                        issueBody += `\r\n\r\n- ${URL}`;
+                        issueBody += _.contains(verifiedPRList, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
+                        issueBody += '\r\n  - [ ] Accessibility';
                     });
                 }
 
@@ -234,12 +235,13 @@ class GithubUtils {
                 if (!_.isEmpty(deployBlockers)) {
                     issueBody += '\r\n**Deploy Blockers:**\r\n';
                     _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
+                        issueBody += `\r\n\r\n- ${URL}`;
+                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
+                        issueBody += '\r\n  - [ ] Accessibility';
                     });
                 }
 
-                issueBody += '\r\ncc @Expensify/applauseleads\r\n';
+                issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
             })
             .catch(err => console.warn(
