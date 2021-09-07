@@ -96,6 +96,8 @@ class AttachmentPicker extends Component {
             },
         ];
 
+        // When selecting an image on a native device, it would be redundant to have a second option for choosing a document,
+        // so it is excluded in this case.
         if (this.props.type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
             this.menuItemData.push(
                 {

@@ -5,7 +5,7 @@ import * as attachmentPickerPropTypes from './AttachmentPickerPropTypes';
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
  * @param {String} type
- * @returns {String} file types string
+ * @returns {String|undefined} file types string
  */
 function getAcceptableFileTypes(type) {
     if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
@@ -13,7 +13,6 @@ function getAcceptableFileTypes(type) {
     }
 
     // Accept all file types when its undefined
-    return undefined;
 }
 
 /**
