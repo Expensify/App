@@ -25,7 +25,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
+    isValidAddress, isValidDate, isValidZipCode,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -59,7 +59,6 @@ class CompanyStep extends React.Component {
             incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
             incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),
             incorporationState: lodashGet(props, ['achData', 'incorporationState']) || '',
-            industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
         };
@@ -76,7 +75,6 @@ class CompanyStep extends React.Component {
             'incorporationDate',
             'incorporationState',
             'incorporationType',
-            'industryCode',
             'password',
             'companyPhone',
         ];
@@ -118,11 +116,6 @@ class CompanyStep extends React.Component {
 
         if (!isValidDate(this.state.incorporationDate)) {
             showBankAccountFormValidationError(this.props.translate('bankAccount.error.incorporationDate'));
-            return false;
-        }
-
-        if (!isValidIndustryCode(this.state.industryCode)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.industryCode'));
             return false;
         }
 
@@ -285,23 +278,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                         </View>
-                        {/* TODO: Replace with NAICS picker */}
-                        <ExpensiTextInput
-                            label={this.props.translate('companyStep.industryClassificationCode')}
-                            helpLinkText={this.props.translate('common.whatThis')}
-                            helpLinkURL="https://www.naics.com/search/"
-                            containerStyles={[styles.mt4]}
-                            onChangeText={(industryCode) => {
-                                if (error === this.props.translate('bankAccount.error.industryCode')) {
-                                    hideBankAccountErrors();
-                                }
-                                this.setState({industryCode});
-                            }}
-                            value={this.state.industryCode}
-                            errorText={error === this.props.translate('bankAccount.error.industryCode')
-                                ? this.props.translate('bankAccount.error.industryCode')
-                                : ''}
-                        />
                         <ExpensiTextInput
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
