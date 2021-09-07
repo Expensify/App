@@ -242,7 +242,7 @@ function getDomainInfo() {
         return;
     }
 
-    // If it is not a common public domain, check the API
+    // Check the API for the remaining uncommon domains
     API.User_IsFromPublicDomain({email: sessionEmail}) // change to emailList
         .then((response) => {
             if (response.jsonCode === 200) {
