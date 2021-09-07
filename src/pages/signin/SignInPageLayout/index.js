@@ -13,11 +13,19 @@ const SignInPageLayout = props => (
             <SignInPageLayoutWide
                 welcomeText={props.welcomeText}
                 isMediumScreenWidth={props.isMediumScreenWidth}
+                shouldShowWelcomeText={props.shouldShowWelcomeText}
             >
                 {props.children}
             </SignInPageLayoutWide>
         )
-        : <SignInPageLayoutNarrow welcomeText={props.welcomeText}>{props.children}</SignInPageLayoutNarrow>
+        : (
+            <SignInPageLayoutNarrow
+                welcomeText={props.welcomeText}
+                shouldShowWelcomeText={props.shouldShowWelcomeText}
+            >
+                {props.children}
+            </SignInPageLayoutNarrow>
+        )
 );
 
 SignInPageLayout.propTypes = propTypes;
