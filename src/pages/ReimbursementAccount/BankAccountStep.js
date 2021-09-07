@@ -208,7 +208,7 @@ class BankAccountStep extends React.Component {
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
         const existingOwners = this.props.reimbursementAccount.existingOwners;
         const error = this.getErrors();
-        const isExistingOwnersErrorVisible = Boolean(error && existingOwners);
+        const isExistingOwnersErrorVisible = Boolean(error && existingOwners && existingOwners.length);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
