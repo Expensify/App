@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
+import getEnvironment from './Environment/getEnvironment';
 
 // To avoid a circular dependency, we can't include Log here, so instead, we define an empty logging method and expose the setLogger method to set the logger from outside this file
 let info = () => {};
@@ -23,6 +24,27 @@ function processHTTPRequest(url, method = 'get', body = null) {
 }
 
 /**
+ * @param {Boolean} shouldUseSecure
+ * @returns {Promise}
+ */
+function getAPIRoot(shouldUseSecure) {
+    if (!shouldUseSecure) {
+        return Promise.resolve(CONFIG.EXPENSIFY.URL_API_ROOT);
+    }
+
+    return getEnvironment()
+        .then((env) => {
+            // The native apps will use the endpoints defined in .env.production as those builds are moved to release from Play Store / TestFlight respectively.
+            // We want to use the staging secure endpoint in these cases so that things like Plaid, Onfido, etc can be QA tested.
+            if (env === CONST.ENVIRONMENT.STAGING) {
+                return CONST.STAGING_SECURE_URL;
+            }
+
+            return CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE;
+        });
+}
+
+/**
  * Makes XHR request
  * @param {String} command the name of the API command
  * @param {Object} data parameters for the API command
@@ -41,8 +63,8 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     }
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    const apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData)
+    return getAPIRoot(shouldUseSecure)
+        .then(apiRoot => processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData))
         .then((response) => {
             if (command !== 'Log') {
                 info('Finished API request', false, {

@@ -132,6 +132,7 @@ const CONST = {
     MANAGE_CARDS_URL: '/domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
+    STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
