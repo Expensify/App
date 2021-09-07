@@ -97,7 +97,7 @@ class ValidationStep extends React.Component {
     /**
     * Save the input value in Onyx. We debounce this method in the constructor so that it's not called too often
     * to update Onyx and re-render this component.
-    * 
+    *
     * @param {Object} value
     */
     debouncedUpdateReimbursementAccountDraft(value) {

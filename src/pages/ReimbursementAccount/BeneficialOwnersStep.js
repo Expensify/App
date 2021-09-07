@@ -124,7 +124,7 @@ class BeneficialOwnersStep extends React.Component {
     /**
     * Save the input value in Onyx. We debounce this method in the constructor so that it's not called too often
     * to update Onyx and re-render this component.
-    * 
+    *
     * @param {Object} value
     */
     debouncedUpdateReimbursementAccountDraft(value) {
@@ -132,13 +132,13 @@ class BeneficialOwnersStep extends React.Component {
     }
 
     /**
-    *
     * @param {Object} fieldName
     */
     toggleCheckbox(fieldName) {
         this.setState((prevState) => {
-            this.debouncedUpdateReimbursementAccountDraft({[fieldName]: !prevState[fieldName]});
-            return {[fieldName]: !prevState[fieldName]};
+            const newState = {[fieldName]: !prevState[fieldName]};
+            this.debouncedUpdateReimbursementAccountDraft(newState);
+            return newState;
         });
     }
 
