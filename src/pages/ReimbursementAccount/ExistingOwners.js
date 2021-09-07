@@ -7,7 +7,7 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import {goToWithdrawalAccountSetupStep} from '../../libs/actions/BankAccounts';
+import {goToWithdrawalAccountSetupStep, hideBankAccountErrorModal} from '../../libs/actions/BankAccounts';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 
@@ -51,10 +51,13 @@ const ExistingOwners = ({reimbursementAccount, translate}) => (
             </Text>
             <Text
                 style={styles.link}
-                onPress={() => goToWithdrawalAccountSetupStep(
-                    CONST.BANK_ACCOUNT.STEP.COMPANY,
-                    reimbursementAccount.achData || {},
-                )}
+                onPress={() => {
+                    goToWithdrawalAccountSetupStep(
+                        CONST.BANK_ACCOUNT.STEP.COMPANY,
+                        reimbursementAccount.achData || {},
+                    );
+                    hideBankAccountErrorModal();
+                }}
             >
                 {translate(
                     'bankAccount.error.existingOwners.setUpThisAccountByYourself',
