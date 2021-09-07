@@ -319,7 +319,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             }
 
             // If the user doesn't have a report with Concierge yet, we need to create it
-            const hasConciergeChat = _.reduce(reportSummaryList, (exists, report) => exists || isConciergeChatReport(report), false);
+            const hasConciergeChat = _.some(reportSummaryList, report => isConciergeChatReport(report));
             if (!hasConciergeChat) {
                 // eslint-disable-next-line no-use-before-define
                 fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
