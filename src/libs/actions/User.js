@@ -268,6 +268,13 @@ function subscribeToUserEvents() {
         });
 }
 
+/**
+ * @param {Boolean} shouldUseSecureStaging
+ */
+function setShouldUseSecureStaging(shouldUseSecureStaging) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
+}
+
 export {
     changePassword,
     getBetas,
@@ -279,4 +286,5 @@ export {
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
+    setShouldUseSecureStaging,
 };

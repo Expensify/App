@@ -1,10 +1,17 @@
+import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import CONFIG from '../CONFIG';
 import CONST from '../CONST';
-import getEnvironment from './Environment/getEnvironment';
+import ONYXKEYS from '../ONYXKEYS';
 
 // To avoid a circular dependency, we can't include Log here, so instead, we define an empty logging method and expose the setLogger method to set the logger from outside this file
 let info = () => {};
+
+let shouldUseSecureStaging = false;
+Onyx.connect({
+    key: ONYXKEYS.USER,
+    callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
+});
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
@@ -21,27 +28,6 @@ function processHTTPRequest(url, method = 'get', body = null) {
         body,
     })
         .then(response => response.json());
-}
-
-/**
- * @param {Boolean} shouldUseSecure
- * @returns {Promise}
- */
-function getAPIRoot(shouldUseSecure) {
-    if (!shouldUseSecure) {
-        return Promise.resolve(CONFIG.EXPENSIFY.URL_API_ROOT);
-    }
-
-    return getEnvironment()
-        .then((env) => {
-            // The native apps will use the endpoints defined in .env.production as those builds are moved to release from Play Store / TestFlight respectively.
-            // We want to use the staging secure endpoint in these cases so that things like Plaid, Onfido, etc can be QA tested.
-            if (env === CONST.ENVIRONMENT.STAGING) {
-                return CONST.STAGING_SECURE_URL;
-            }
-
-            return CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE;
-        });
 }
 
 /**
@@ -63,8 +49,13 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
     }
     const formData = new FormData();
     _.each(data, (val, key) => formData.append(key, val));
-    return getAPIRoot(shouldUseSecure)
-        .then(apiRoot => processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData))
+    let apiRoot = shouldUseSecure ? CONFIG.EXPENSIFY.URL_EXPENSIFY_SECURE : CONFIG.EXPENSIFY.URL_API_ROOT;
+
+    if (shouldUseSecure && shouldUseSecureStaging) {
+        apiRoot = CONST.STAGING_SECURE_URL;
+    }
+
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData)
         .then((response) => {
             if (command !== 'Log') {
                 info('Finished API request', false, {
