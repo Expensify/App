@@ -10,13 +10,30 @@
 
 ## Tools
 
-### Chrome Dev Tools > Performance > Timing
+### Chrome Dev Tools > Performance > Timing (Web Only)
 
 - Profiling in Chrome Dev Tools performance tab in the "Timing" section
 - This will show various components and how long they took to render. It can be a little intense to dig through it all at first, but the more time you spend with it the easier it gets to separate the signal from noise.
 - The timing information might be inaccurate in development mode since this slows things down a ton. However, it's still useful for seeing which things take the longest and it's not too difficult to look and see which things are re-rendering.
 
 **Suggested:** [React Performance Profiling](https://calibreapp.com/blog/react-performance-profiling-optimization)
+
+### Hermes Profiling (Android only)
+
+It's possible, but slightly trickier to profile the JS running on Android devices as it does not run in a browser but a JS VM that React Native must spin up first then run the app code. The VM we are currently using on both Android and iOS is called [Hermes](https://reactnative.dev/docs/profile-hermes) and is developed by Facebook.
+
+In order to profile with Hermes follow these steps:
+
+- In the metro bundler window press `d` on your keyboard to bring up the developer menu on your device.
+- Select "Settings"
+- Select "Start Sampling Profiler on Init"
+- In metro bundler refresh by pressing r
+- The app will start up and a profile will begin
+- Once the app loads take whatever action you want to profile
+- Press `d` again and select "Disable Sampling Profiler"
+- A toast should appear with a path to a profile
+- We need to then convert this into something Chrome Dev Tools can use by typing into terminal `react-native profile-hermes .`
+- This should create a json file in the directory where we typed the previous command that we can load up into Chrome Dev Tools "Performance" tab via the "Load Profile" option and inspect further.
 
 ### React DevTools Profiler
 - The React DevTools Profiler can also be used to detect similar information to Chrome Dev Tools, but is a little more streamlined. There is also an options cog where you can filter events by cutting at a specified millisecond (length it took for the thing to happen)

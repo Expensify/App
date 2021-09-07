@@ -5,12 +5,6 @@ import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
 import Timers from '../Timers';
 
-let currentURL;
-Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
-});
-
 let currentActiveClients;
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -37,10 +31,6 @@ function redirectToSignIn(errorMessage) {
     PushNotification.clearNotifications();
     Pusher.disconnect();
     Timers.clearAll();
-
-    if (!currentURL) {
-        return;
-    }
 
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;

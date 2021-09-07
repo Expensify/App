@@ -13,9 +13,22 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
 
 jobs:
+  validateActor:
+    runs-on: ubuntu-latest
+    outputs:
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
+    steps:
+      - id: isUserDeployer
+        uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
+        with:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
+          username: ${{ github.actor }}
+          team: mobile-deployers
+
   android:
     name: Build and deploy Android
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -67,18 +80,37 @@ jobs:
         run: echo "VERSION_CODE=$(grep -o 'versionCode\s\+[0-9]\+' android/app/build.gradle | awk '{ print $2 }')" >> $GITHUB_ENV
 
       - name: Run Fastlane beta
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android beta
 
       - name: Run Fastlane production
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane android production
         env:
           VERSION: ${{ env.VERSION_CODE }}
 
+      - name: Warn deployers if Android production deploy failed
+        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Android production deploy failed. Please manually submit ${{ github.event.release.tag_name }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4973041797096886180/releases/overview|Google Play Store>. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   desktop:
     name: Build and deploy Desktop
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -110,7 +142,7 @@ jobs:
           DEVELOPER_ID_SECRET_PASSPHRASE: ${{ secrets.DEVELOPER_ID_SECRET_PASSPHRASE }}
 
       - name: Build production desktop app
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: npm run desktop-build -- --publish always -c.afterSign=desktop/notarize.js
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -121,7 +153,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Build staging desktop app
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: npm run desktop-build-staging -- --publish always -c.afterSign=desktop/notarize.js
         env:
           CSC_LINK: ${{ secrets.CSC_LINK }}
@@ -133,7 +165,8 @@ jobs:
 
   iOS:
     name: Build and deploy iOS
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
@@ -200,7 +233,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Run Fastlane
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios beta
         env:
           APPLE_CONTACT_EMAIL: ${{ secrets.APPLE_CONTACT_EMAIL }}
@@ -208,15 +241,38 @@ jobs:
           APPLE_DEMO_EMAIL: ${{ secrets.APPLE_DEMO_EMAIL }}
           APPLE_DEMO_PASSWORD: ${{ secrets.APPLE_DEMO_PASSWORD }}
 
+      - name: Set iOS version in ENV
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        run: echo "IOS_VERSION=$(echo '${{ github.event.release.tag_name }}' | tr '-' '.')" >> $GITHUB_ENV
+
       - name: Run Fastlane for App Store release
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: bundle exec fastlane ios production
         env:
-          VERSION: ${{ env.NEW_IOS_VERSION }}
+          VERSION: ${{ env.IOS_VERSION }}
+
+      - name: Warn deployers if iOS production deploy failed
+        if: ${{ failure() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 iOS production deploy failed. Please manually submit ${{ env.IOS_VERSION }} in the <https://appstoreconnect.apple.com/apps/1530278510/appstore|App Store>. 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
   web:
     name: Build and deploy Web
-    if: github.actor == 'OSBotify'
+    needs: validateActor
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -261,32 +317,32 @@ jobs:
           command: npm ci
 
       - name: Build web for production
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: npm run build
 
       - name: Build web for staging
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: npm run build-staging
 
       - name: Build docs
         run: npm run storybook-build
 
       - name: Deploy production to S3
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://expensify-cash/
 
       - name: Deploy staging to S3
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: aws s3 cp --recursive --acl public-read $GITHUB_WORKSPACE/dist s3://staging-expensify-cash/
 
       - name: Purge production Cloudflare cache
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: /home/runner/.local/bin/cli4 --delete hosts=["new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
       - name: Purge staging Cloudflare cache
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'false' }}
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: /home/runner/.local/bin/cli4 --delete hosts=["staging.new.expensify.com"] /zones/:9ee042e6cfc7fd45e74aa7d2f78d617b/purge_cache
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
@@ -339,13 +395,13 @@ jobs:
         with:
           TAG: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-          IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
 
       - name: Comment on issues
         uses: Expensify/App/.github/actions/markPullRequestsAsDeployed@main
         with:
           PR_LIST: ${{ steps.getReleasePRList.outputs.PR_LIST }}
-          IS_PRODUCTION_DEPLOY: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+          IS_PRODUCTION_DEPLOY: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
           DEPLOY_VERSION: ${{ env.VERSION }}
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           ANDROID: ${{ needs.android.result }}
@@ -362,16 +418,16 @@ jobs:
               channel: '#announce',
               attachments: [{
                 color: 'good',
-                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' ? 'production' : 'staging' }}.`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
               }]
             }
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-      
+
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
         uses: 8398a7/action-slack@v3
-        if: ${{ env.SHOULD_DEPLOY_PRODUCTION == 'true' }}
+        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         with:
           status: custom
           custom_payload: |
@@ -379,7 +435,7 @@ jobs:
               channel: '#expensify-open-source',
               attachments: [{
                 color: 'good',
-                text: `Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production.`,
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to production 🎉️`,
               }]
             }
         env:

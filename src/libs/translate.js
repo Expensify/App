@@ -25,7 +25,6 @@ Onyx.connect({
  * @param {Object} [variables]
  * @returns {String}
  */
-// eslint-disable-next-line no-undef
 function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
     const localeLanguage = locale.substring(0, 2);
     const fullLocale = lodashGet(translations, locale, {});

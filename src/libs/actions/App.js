@@ -6,7 +6,6 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import CONFIG from '../../CONFIG';
-import ROUTES from '../../ROUTES';
 import Performance from '../Performance';
 import Timing from './Timing';
 
@@ -36,7 +35,9 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    if (currentUserAccountID) {
+        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
@@ -46,10 +47,11 @@ function setLocale(locale) {
  * we want to visit
  * @param {string} url relative URL starting with `/` to open in expensify.com
  */
-function openSignedInLink(url) {
+function openSignedInLink(url = '') {
     API.GetAccountValidateCode().then((response) => {
-        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM
-            + ROUTES.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
+        const exitToURL = url ? `exitTo=${url}` : '';
+        const validateCodeUrl = `v/${currentUserAccountID}/${response.validateCode}${exitToURL}`;
+        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + validateCodeUrl);
     });
 }
 

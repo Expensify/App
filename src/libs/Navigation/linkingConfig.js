@@ -3,7 +3,8 @@ import SCREENS from '../../SCREENS';
 
 export default {
     prefixes: [
-        'expensify-cash://',
+        'new-expensify://',
+        'expensify-cash://', // DEPRECATED
         'https://new.expensify.com',
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
