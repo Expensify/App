@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import {
-    View, StyleSheet, Animated, Easing,
+    View, StyleSheet, Animated,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Avatar from './Avatar';
@@ -8,7 +8,7 @@ import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import Icon from './Icon';
 import {Sync} from './Icon/Expensicons';
-import {getSyncingStyles} from '../styles/getAvatarWithIndicatorStyles';
+import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 
 const propTypes = {
     /** Is user active? */
@@ -34,81 +34,27 @@ class AvatarWithIndicator extends PureComponent {
     constructor(props) {
         super(props);
 
-        this.rotate = new Animated.Value(0);
-        this.scale = new Animated.Value(1);
-        this.startRotation = this.startRotation.bind(this);
-        this.startSyncIndicator = this.startSyncIndicator.bind(this);
-        this.stopSyncIndicator = this.stopSyncIndicator.bind(this);
+        this.animation = new SpinningIndicatorAnimation();
     }
 
     componentDidMount() {
         if (this.props.isSyncing) {
-            this.startSyncIndicator();
+            this.animation.start();
         }
     }
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isSyncing && this.props.isSyncing) {
-            this.startSyncIndicator();
+            this.animation.start();
         } else if (prevProps.isSyncing && !this.props.isSyncing) {
-            this.stopSyncIndicator();
+            this.animation.stop();
         }
     }
 
     componentWillUnmount() {
-        this.stopSyncIndicator();
+        this.animation.stop();
     }
 
-    /**
-     * We need to manually loop the animations as `useNativeDriver` does not work well with Animated.loop.
-     *
-     * @memberof AvatarWithIndicator
-     */
-    startRotation() {
-        this.rotate.setValue(0);
-        Animated.loop(
-            Animated.timing(this.rotate, {
-                toValue: 1,
-                duration: 2000,
-                easing: Easing.linear,
-                isInteraction: false,
-                useNativeDriver: true,
-            }),
-        ).start();
-    }
-
-    /**
-     * Start Animation for Indicator
-     *
-     * @memberof AvatarWithIndicator
-     */
-    startSyncIndicator() {
-        this.startRotation();
-        Animated.spring(this.scale, {
-            toValue: 1.666,
-            tension: 1,
-            isInteraction: false,
-            useNativeDriver: true,
-        }).start();
-    }
-
-    /**
-     * Stop Animation for Indicator
-     *
-     * @memberof AvatarWithIndicator
-     */
-    stopSyncIndicator() {
-        Animated.spring(this.scale, {
-            toValue: 1,
-            tension: 1,
-            isInteraction: false,
-            useNativeDriver: true,
-        }).start(() => {
-            this.rotate.resetAnimation();
-            this.scale.resetAnimation();
-            this.rotate.setValue(0);
-        });
-    }
 
     render() {
         const indicatorStyles = [
@@ -116,7 +62,7 @@ class AvatarWithIndicator extends PureComponent {
             styles.justifyContentCenter,
             this.props.size === 'large' ? styles.statusIndicatorLarge : styles.statusIndicator,
             this.props.isActive ? styles.statusIndicatorOnline : styles.statusIndicatorOffline,
-            getSyncingStyles(this.rotate, this.scale),
+            this.animation.getSyncingStyles(),
         ];
 
         return (

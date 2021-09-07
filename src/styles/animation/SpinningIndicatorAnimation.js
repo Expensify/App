@@ -12,6 +12,8 @@ class SpinningIndicatorAnimation {
     /**
      * Start Animation for Indicator
      *
+     * We need to manually loop the animations as `useNativeDriver` does not work well with `Animated.loop`.
+     *
      * @memberof AvatarWithImagePicker
      * @memberof
      */
