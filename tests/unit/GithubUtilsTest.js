@@ -287,10 +287,21 @@ describe('GithubUtils', () => {
 
         // eslint-disable-next-line max-len
         const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
-        const openCheckbox = '- [ ]';
-        const closedCheckbox = '- [x]';
-
+        const openCheckbox = '  - [ ]';
+        const closedCheckbox = '  - [x]';
+        const QA = ' QA'
+        const accessibility = ' Accessibility'
         const ccApplauseLeads = '\r\ncc @Expensify/applauseleads\r\n';
+
+        test('new formatting', () => {
+            githubUtils.generateStagingDeployCashBody(tag, basePRList)
+                .then((issueBody) => {
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}\r\n
+                        - ${basePRList[3]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}\r\n\r\n- ${basePRList[0]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}\r\n\r\n- ${basePRList[1]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}\r\n${ccApplauseLeads}`
+                    );
+                })
+        });
 
         test('Test no verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList)
