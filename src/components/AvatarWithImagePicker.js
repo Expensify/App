@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {
-    Pressable, View, Animated, Easing, StyleSheet,
+    Pressable, View, Animated, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Avatar from './Avatar';
@@ -15,8 +15,8 @@ import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
-import {getSyncingStyles} from '../styles/getAvatarWithIndicatorStyles';
 import CONST from '../CONST';
+import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -68,13 +68,7 @@ const defaultProps = {
 class AvatarWithImagePicker extends React.Component {
     constructor(props) {
         super(props);
-
-        this.rotate = new Animated.Value(0);
-        this.scale = new Animated.Value(1);
-        this.startRotation = this.startRotation.bind(this);
-        this.startUploadIndicator = this.startUploadIndicator.bind(this);
-        this.stopUploadIndicator = this.stopUploadIndicator.bind(this);
-
+        this.animation = new SpinningIndicatorAnimation();
         this.state = {
             isMenuVisible: false,
         };
@@ -82,73 +76,21 @@ class AvatarWithImagePicker extends React.Component {
 
     componentDidMount() {
         if (this.props.isUploading) {
-            this.startUploadIndicator();
+            this.animation.start();
         }
     }
 
     componentDidUpdate(prevProps) {
         if (!prevProps.isUploading && this.props.isUploading) {
-            this.startUploadIndicator();
+            this.animation.start();
         } else if (prevProps.isUploading && !this.props.isUploading) {
-            this.stopUploadIndicator();
+            this.animation.stop();
         }
     }
 
     componentWillUnmount() {
-        this.stopUploadIndicator();
+        this.animation.stop();
     }
-
-    /**
-     * We need to manually loop the animations as `useNativeDriver` does not work well with Animated.loop.
-     *
-     * @memberof AvatarWithImagePicker
-     */
-    startRotation() {
-        this.rotate.setValue(0);
-        Animated.loop(
-            Animated.timing(this.rotate, {
-                toValue: 1,
-                duration: 2000,
-                easing: Easing.linear,
-                isInteraction: false,
-                useNativeDriver: true,
-            }),
-        ).start();
-    }
-
-    /**
-     * Start Animation for Indicator
-     *
-     * @memberof AvatarWithImagePicker
-     */
-    startUploadIndicator() {
-        this.startRotation();
-        Animated.spring(this.scale, {
-            toValue: 1.666,
-            tension: 1,
-            isInteraction: false,
-            useNativeDriver: true,
-        }).start();
-    }
-
-    /**
-     * Stop Animation for Indicator
-     *
-     * @memberof AvatarWithImagePicker
-     */
-    stopUploadIndicator() {
-        Animated.spring(this.scale, {
-            toValue: 1,
-            tension: 1,
-            isInteraction: false,
-            useNativeDriver: true,
-        }).start(() => {
-            this.rotate.resetAnimation();
-            this.scale.resetAnimation();
-            this.rotate.setValue(0);
-        });
-    }
-
 
     /**
      * Create menu items list for avatar menu
@@ -191,7 +133,7 @@ class AvatarWithImagePicker extends React.Component {
             styles.justifyContentCenter,
             this.props.size === CONST.AVATAR_SIZE.LARGE ? styles.statusIndicatorLarge : styles.statusIndicator,
             styles.statusIndicatorOnline,
-            getSyncingStyles(this.rotate, this.scale),
+            this.animation.getSyncingStyles(),
         ];
 
         const indicatorIconSize = this.props.size === CONST.AVATAR_SIZE.LARGE ? variables.iconSizeXXSmall : variables.iconSizeXXXSmall;
