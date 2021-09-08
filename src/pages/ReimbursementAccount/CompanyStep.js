@@ -47,7 +47,6 @@ class CompanyStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
             companyName: getDefaultStateForField(props, 'companyName'),
@@ -89,7 +88,7 @@ class CompanyStep extends React.Component {
     */
     setValue(value) {
         this.setState(value);
-        this.debouncedUpdateReimbursementAccountDraft(value);
+        updateReimbursementAccountDraft(value);
     }
 
     /**
@@ -152,16 +151,6 @@ class CompanyStep extends React.Component {
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
         setupWithdrawalAccount({...this.state, incorporationDate});
-    }
-
-    /**
-    * Save the input value in Onyx. We debounce this method in the constructor so that it's not called too often
-    * to update Onyx and re-render this component.
-    *
-    * @param {Object} value
-    */
-    debouncedUpdateReimbursementAccountDraft(value) {
-        updateReimbursementAccountDraft(value);
     }
 
     render() {
@@ -347,7 +336,7 @@ class CompanyStep extends React.Component {
                             isChecked={this.state.hasNoConnectionToCannabis}
                             onPress={() => this.setState((prevState) => {
                                 const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
-                                this.debouncedUpdateReimbursementAccountDraft(newState);
+                                updateReimbursementAccountDraft(newState);
                                 return newState;
                             })}
                             LabelComponent={() => (

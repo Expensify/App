@@ -55,7 +55,6 @@ class BankAccountStep extends React.Component {
         this.toggleTerms = this.toggleTerms.bind(this);
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
-        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
@@ -89,7 +88,7 @@ class BankAccountStep extends React.Component {
 
     toggleTerms() {
         this.setState((prevState) => {
-            this.debouncedUpdateReimbursementAccountDraft({acceptTerms: !prevState.hasAcceptedTerms});
+            updateReimbursementAccountDraft({acceptTerms: !prevState.hasAcceptedTerms});
             return {hasAcceptedTerms: !prevState.hasAcceptedTerms};
         });
     }
@@ -129,7 +128,7 @@ class BankAccountStep extends React.Component {
     clearErrorAndSetValue(inputKey, value) {
         const newState = {[inputKey]: value};
         this.setState(newState);
-        this.debouncedUpdateReimbursementAccountDraft(newState);
+        updateReimbursementAccountDraft(newState);
         const errors = this.getErrors();
         if (!errors[inputKey]) {
             // No error found for this inputKey
@@ -191,16 +190,6 @@ class BankAccountStep extends React.Component {
             currency: CONST.CURRENCY.USD,
             fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
         });
-    }
-
-    /**
-    * Save the input value in Onyx. We debounce this method in the constructor so that it's not called too often
-    * to update Onyx and re-render this component.
-    *
-    * @param {Object} value
-    */
-    debouncedUpdateReimbursementAccountDraft(value) {
-        updateReimbursementAccountDraft(value);
     }
 
     render() {

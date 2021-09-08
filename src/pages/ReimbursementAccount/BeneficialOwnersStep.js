@@ -44,7 +44,6 @@ class BeneficialOwnersStep extends React.Component {
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
-        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
             ownsMoreThan25Percent: lodashGet(props, ['reimbursementAccountDraft', 'ownsMoreThan25Percent'], false),
@@ -122,22 +121,12 @@ class BeneficialOwnersStep extends React.Component {
     }
 
     /**
-    * Save the input value in Onyx. We debounce this method in the constructor so that it's not called too often
-    * to update Onyx and re-render this component.
-    *
-    * @param {Object} value
-    */
-    debouncedUpdateReimbursementAccountDraft(value) {
-        updateReimbursementAccountDraft(value);
-    }
-
-    /**
     * @param {Object} fieldName
     */
     toggleCheckbox(fieldName) {
         this.setState((prevState) => {
             const newState = {[fieldName]: !prevState[fieldName]};
-            this.debouncedUpdateReimbursementAccountDraft(newState);
+            updateReimbursementAccountDraft(newState);
             return newState;
         });
     }
@@ -181,7 +170,7 @@ class BeneficialOwnersStep extends React.Component {
                                         ? [{}]
                                         : prevState.beneficialOwners,
                                 };
-                                this.debouncedUpdateReimbursementAccountDraft(newState);
+                                updateReimbursementAccountDraft(newState);
                                 return newState;
                             });
                         }}
@@ -204,7 +193,7 @@ class BeneficialOwnersStep extends React.Component {
                                         onFieldChange={(fieldName, value) => this.setState((prevState) => {
                                             const beneficialOwners = [...prevState.beneficialOwners];
                                             beneficialOwners[index][fieldName] = value;
-                                            this.debouncedUpdateReimbursementAccountDraft({beneficialOwners});
+                                            updateReimbursementAccountDraft({beneficialOwners});
                                             return {beneficialOwners};
                                         })}
                                         values={{

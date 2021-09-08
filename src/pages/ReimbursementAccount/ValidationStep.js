@@ -51,7 +51,6 @@ class ValidationStep extends React.Component {
 
         this.submit = this.submit.bind(this);
         this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
-        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
             amount1: lodashGet(props, ['reimbursementAccountDraft', 'amount1'], ''),
@@ -71,7 +70,7 @@ class ValidationStep extends React.Component {
     * @param {Object} value
     */
     setValue(value) {
-        this.debouncedUpdateReimbursementAccountDraft(value);
+        updateReimbursementAccountDraft(value);
         this.setState(value);
     }
 
@@ -91,16 +90,6 @@ class ValidationStep extends React.Component {
 
         // If any values are falsey, indicate to user that inputs are invalid
         this.setState({error: 'Invalid amounts'});
-    }
-
-    /**
-    * Save the input value in Onyx. We debounce this method in the constructor so that it's not called too often
-    * to update Onyx and re-render this component.
-    *
-    * @param {Object} value
-    */
-    debouncedUpdateReimbursementAccountDraft(value) {
-        updateReimbursementAccountDraft(value);
     }
 
     /**

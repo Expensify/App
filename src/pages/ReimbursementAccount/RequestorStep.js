@@ -42,7 +42,6 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
             firstName: getDefaultStateForField(props, 'firstName'),
@@ -80,17 +79,7 @@ class RequestorStep extends React.Component {
         const fieldName = lodashGet(renamedFields, field, field);
         const newState = {[fieldName]: value};
         this.setState(newState);
-        this.debouncedUpdateReimbursementAccountDraft(newState);
-    }
-
-    /**
-    * Save the input value in Onyx. We debounce this method in the constructor so that it's not called too often
-    * to update Onyx and re-render this component.
-    *
-    * @param {Object} value
-    */
-    debouncedUpdateReimbursementAccountDraft(value) {
-        updateReimbursementAccountDraft(value);
+        updateReimbursementAccountDraft(newState);
     }
 
     /**
@@ -169,7 +158,7 @@ class RequestorStep extends React.Component {
                                     isChecked={this.state.isControllingOfficer}
                                     onPress={() => this.setState((prevState) => {
                                         const newState = {isControllingOfficer: !prevState.isControllingOfficer};
-                                        this.debouncedUpdateReimbursementAccountDraft(newState);
+                                        updateReimbursementAccountDraft(newState);
                                         return newState;
                                     })}
                                     LabelComponent={() => (
