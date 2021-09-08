@@ -127,8 +127,9 @@ class BankAccountStep extends React.Component {
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setState({[inputKey]: value});
-        this.debouncedUpdateReimbursementAccountDraft({[inputKey]: value});
+        const newState = {[inputKey]: value};
+        this.setState(newState);
+        this.debouncedUpdateReimbursementAccountDraft(newState);
         const errors = this.getErrors();
         if (!errors[inputKey]) {
             // No error found for this inputKey

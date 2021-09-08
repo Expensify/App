@@ -346,8 +346,9 @@ class CompanyStep extends React.Component {
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
                             onPress={() => this.setState((prevState) => {
-                                this.debouncedUpdateReimbursementAccountDraft({hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis});
-                                return {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
+                                const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
+                                this.debouncedUpdateReimbursementAccountDraft(newState);
+                                return newState;
                             })}
                             LabelComponent={() => (
                                 <>

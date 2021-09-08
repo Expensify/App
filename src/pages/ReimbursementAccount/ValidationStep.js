@@ -68,7 +68,6 @@ class ValidationStep extends React.Component {
     }
 
     /**
-    *
     * @param {Object} value
     */
     setValue(value) {

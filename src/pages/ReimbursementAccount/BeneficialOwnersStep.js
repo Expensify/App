@@ -175,18 +175,14 @@ class BeneficialOwnersStep extends React.Component {
                         onPress={() => {
                             this.setState((prevState) => {
                                 const hasOtherBeneficialOwners = !prevState.hasOtherBeneficialOwners;
-                                this.debouncedUpdateReimbursementAccountDraft({
-                                    hasOtherBeneficialOwners: !prevState.hasOtherBeneficialOwners,
-                                    beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
-                                        ? [{}]
-                                        : prevState.beneficialOwners,
-                                });
-                                return {
+                                const newState = {
                                     hasOtherBeneficialOwners,
                                     beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
                                         ? [{}]
                                         : prevState.beneficialOwners,
-                                };
+                                }
+                                this.debouncedUpdateReimbursementAccountDraft(newState);
+                                return newState;
                             });
                         }}
                         LabelComponent={() => (

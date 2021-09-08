@@ -77,8 +77,9 @@ class RequestorStep extends React.Component {
             zipCode: 'requestorAddressZipCode',
         };
         const fieldName = lodashGet(renamedFields, field, field);
-        this.setState({[fieldName]: value});
-        this.debouncedUpdateReimbursementAccountDraft({[fieldName]: value});
+        const newState = {[fieldName]: value};
+        this.setState(newState);
+        this.debouncedUpdateReimbursementAccountDraft(newState);
     }
 
     /**
@@ -166,8 +167,9 @@ class RequestorStep extends React.Component {
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
                                     onPress={() => this.setState((prevState) => {
-                                        this.debouncedUpdateReimbursementAccountDraft({isControllingOfficer: !prevState.isControllingOfficer});
-                                        return {isControllingOfficer: !prevState.isControllingOfficer};
+                                        const newState = {isControllingOfficer: !prevState.isControllingOfficer};
+                                        this.debouncedUpdateReimbursementAccountDraft(newState);
+                                        return newState;
                                     })}
                                     LabelComponent={() => (
                                         <View style={[styles.flex1, styles.pr1]}>
