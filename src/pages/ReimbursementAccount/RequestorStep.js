@@ -1,6 +1,5 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
-import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
