@@ -180,7 +180,7 @@ class BeneficialOwnersStep extends React.Component {
                                     beneficialOwners: hasOtherBeneficialOwners && _.isEmpty(prevState.beneficialOwners)
                                         ? [{}]
                                         : prevState.beneficialOwners,
-                                }
+                                };
                                 this.debouncedUpdateReimbursementAccountDraft(newState);
                                 return newState;
                             });

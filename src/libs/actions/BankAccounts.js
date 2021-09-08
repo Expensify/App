@@ -828,7 +828,7 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
 }
 
 /**
- * @param {Object} bankAccountData 
+ * @param {Object} bankAccountData
  */
 function updateReimbursementAccountDraft(bankAccountData) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, {...bankAccountData});

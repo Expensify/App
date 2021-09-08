@@ -9,7 +9,7 @@ import lodashGet from 'lodash/get';
  * @returns {*}
  */
 function getDefaultStateForField(props, fieldName, defaultValue = '') {
-    return lodashGet(props, ['reimbursementAccountDraft', fieldName]) 
+    return lodashGet(props, ['reimbursementAccountDraft', fieldName])
         || lodashGet(props, ['achData', fieldName], defaultValue);
 }
 
