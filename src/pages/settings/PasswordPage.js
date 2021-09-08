@@ -49,7 +49,6 @@ class PasswordPage extends Component {
             currentPassword: '',
             newPassword: '',
             confirmNewPassword: '',
-            isPasswordRequirementsVisible: false,
             shouldShowPasswordConfirmError: false,
         };
 
@@ -63,11 +62,6 @@ class PasswordPage extends Component {
 
     onBlurNewPassword() {
         const stateToUpdate = {};
-        if (!this.state.newPassword || !this.isValidPassword()) {
-            stateToUpdate.isPasswordRequirementsVisible = true;
-        } else {
-            stateToUpdate.isPasswordRequirementsVisible = false;
-        }
 
         if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
             stateToUpdate.shouldShowPasswordConfirmError = true;
@@ -86,8 +80,8 @@ class PasswordPage extends Component {
         }
     }
 
-    isValidPassword() {
-        return this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    isInvalidPassword() {
+        return this.state.newPassword && !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
 
@@ -143,14 +137,13 @@ class PasswordPage extends Component {
                                 textContentType="password"
                                 value={this.state.newPassword}
                                 onChangeText={newPassword => this.setState({newPassword})}
-                                onFocus={() => this.setState({isPasswordRequirementsVisible: true})}
                                 onBlur={() => this.onBlurNewPassword()}
                             />
-                            {this.state.isPasswordRequirementsVisible && (
-                                <Text style={[styles.textLabelSupporting, styles.mt1]}>
-                                    {this.props.translate('passwordPage.newPasswordPrompt')}
-                                </Text>
-                            )}
+
+                            <Text style={[styles.textLabelSupporting, styles.mt1, this.isInvalidPassword() && styles.formError]}>
+                                {this.props.translate('passwordPage.newPasswordPrompt')}
+                            </Text>
+
                         </View>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
