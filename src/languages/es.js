@@ -534,7 +534,8 @@ export default {
         companyPhonePlaceholder: '10 dígitos, sin guiones',
     },
     requestorStep: {
-        headerTitle: 'Información del solicitante',
+        headerTitle: 'Información personal',
+        subtitle: 'Dé más información sobre tí.',
         financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
         learnMore: 'Más información',
         isMyDataSafe: '¿Están seguros mis datos?',
