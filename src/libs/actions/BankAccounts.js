@@ -698,12 +698,11 @@ function setupWithdrawalAccount(data) {
 
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
-                    console.error('Cannot set up withdrawal account due to existing owners', response);
                     Onyx.merge(
                         ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                         {
                             existingOwners: response.existingOwners,
-                            error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS,
+                            isErrorModalVisible: true,
                         },
                     );
                     return;
@@ -820,7 +819,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: [], errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: null, errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
