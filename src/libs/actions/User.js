@@ -243,7 +243,7 @@ function getDomainInfo() {
     }
 
     // Check the API for the remaining uncommon domains
-    API.User_IsFromPublicDomain({email: sessionEmail}) // change to emailList
+    API.User_IsFromPublicDomain({emailList})
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
