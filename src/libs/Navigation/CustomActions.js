@@ -24,7 +24,19 @@ function pushDrawerRoute(screenName, params, navigationRef) {
 
         if (activeReportID === params.reportID) {
             if (state.type !== 'drawer') {
-                navigationRef.current.dispatch(StackActions.pop());
+                navigationRef.current.dispatch(() => {
+                    // If there are multiple routes then we can pop back to the first route
+                    if (state.routes.length > 1) {
+                        return StackActions.popToTop();
+                    }
+
+                    // Otherwise, we are already on the last page of a modal so just do nothing here as goBack() will navigate us
+                    // back to the screen we were on before we opened the modal.
+                    return StackActions.pop(0);
+                });
+                if (navigationRef.current.canGoBack()) {
+                    navigationRef.current.goBack();
+                }
             }
             return DrawerActions.closeDrawer();
         }
