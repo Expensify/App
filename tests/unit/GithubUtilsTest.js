@@ -286,30 +286,46 @@ describe('GithubUtils', () => {
         ];
 
         // eslint-disable-next-line max-len
-        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
         const openCheckbox = '  - [ ]';
         const closedCheckbox = '  - [x]';
         const listStart = '- '
         const QA = ' QA'
         const accessibility = ' Accessibility'
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
-        const deployBlockerHeader = '\r\n**Deploy Blockers:**\r\n';
+        const deployBlockerHeader = '\r\n**Deploy Blockers:**';
+        const lineBreak = '\r\n'
+        const lineBreakDouble = '\r\n\r\n'
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}` +
-                `\r\n${listStart}${basePRList[3]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
-                `\r\n\r\n${listStart}${basePRList[0]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
-                `\r\n\r\n${listStart}${basePRList[1]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}`;
+                `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+        
+
+        test('Test no verified PRs', () => (
+            githubUtils.generateStagingDeployCashBody(tag, basePRList)
+                .then((issueBody) => {
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}` +
+                        `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${ccApplauseLeads}`
+                    );
+                })
+        ));
 
         test('Test some verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]])
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}` +
-                        `\r\n${listStart}${basePRList[3]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
-                        `\r\n\r\n${listStart}${basePRList[0]}\r\n${closedCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
-                        `\r\n\r\n${listStart}${basePRList[1]}\r\n${openCheckbox}${QA}\r\n${openCheckbox}${accessibility}` +
-                        `\r\n\r\n${ccApplauseLeads}`
+                        `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${ccApplauseLeads}`
                     );
                 })
         ));
@@ -318,35 +334,47 @@ describe('GithubUtils', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
-                        `${allVerifiedExpectedOutput}\r\n\r\n${ccApplauseLeads}`
+                        `${allVerifiedExpectedOutput}${lineBreakDouble}${ccApplauseLeads}`
                     );
                 })
         ));
 
-        const deployBlockerHeader = '\r\n**Deploy Blockers:**\r\n';
         test('Test no resolved deploy blockers', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList)
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${deployBlockerHeader}${openCheckbox} ${baseDeployBlockerList[0]}\r\n${openCheckbox} ${baseDeployBlockerList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${allVerifiedExpectedOutput}` +
+                        `${lineBreakDouble}${deployBlockerHeader}` +
+                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${ccApplauseLeads}`
+                    );
                 })
         ));
 
         test('Test some resolved deploy blockers', () => (
-            // eslint-disable-next-line max-len
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]])
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${deployBlockerHeader}${closedCheckbox} ${baseDeployBlockerList[0]}\r\n${openCheckbox} ${baseDeployBlockerList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${allVerifiedExpectedOutput}` +
+                        `${lineBreakDouble}${deployBlockerHeader}` +
+                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${ccApplauseLeads}`
+                    );
                 })
         ));
 
         test('Test all resolved deploy blockers', () => (
-            // eslint-disable-next-line max-len
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList)
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${deployBlockerHeader}${closedCheckbox} ${baseDeployBlockerList[0]}\r\n${closedCheckbox} ${baseDeployBlockerList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${allVerifiedExpectedOutput}` +
+                        `${lineBreakDouble}${deployBlockerHeader}` +
+                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
+                        `${lineBreakDouble}${ccApplauseLeads}`
+                    );
                 })
         ));
     });
