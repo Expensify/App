@@ -119,7 +119,7 @@ class RequestorStep extends React.Component {
                     />
                 ) : (
                     <>
-                        <ScrollView style={[styles.flex1, styles.w100]}>
+                        <ScrollView bounces style={[styles.flex1, styles.w100]}>
                             <View style={[styles.p4]}>
                                 <IdentityForm
                                     onFieldChange={(field, value) => this.onFieldChange(field, value)}

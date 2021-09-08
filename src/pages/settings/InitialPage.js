@@ -167,7 +167,7 @@ const InitialSettingsPage = ({
                 title={translate('common.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
+            <ScrollView style={[styles.settingsPageBackground]} bounces>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>

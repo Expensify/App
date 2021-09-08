@@ -204,7 +204,7 @@ class ProfilePage extends Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <ScrollView bounces style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
                             avatarURL={this.props.myPersonalDetails.avatar}
                             onImageSelected={setAvatar}

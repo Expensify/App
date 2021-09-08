@@ -159,7 +159,7 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={[styles.flex1, styles.w100]}>
+                <ScrollView bounces style={[styles.flex1, styles.w100]}>
                     <View style={[styles.p4]}>
                         <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         <ExpensiTextInput

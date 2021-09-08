@@ -319,7 +319,7 @@ class IOUConfirmationList extends Component {
         const selectedParticipants = this.getSelectedParticipants();
         return (
             <>
-                <ScrollView style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
+                <ScrollView bounces style={[styles.flexGrow0, styles.flexShrink1, styles.flexBasisAuto, styles.w100]}>
                     <OptionsList
                         sections={this.getSections()}
                         disableArrowKeysActions

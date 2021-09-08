@@ -79,7 +79,7 @@ const AboutPage = ({translate, session}) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView
-                bounces={false}
+                bounces
                 contentContainerStyle={[
                     styles.flexGrow1,
                     styles.flexColumn,

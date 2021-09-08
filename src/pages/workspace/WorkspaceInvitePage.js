@@ -117,7 +117,7 @@ class WorkspaceInvitePage extends React.Component {
                         title={this.props.translate('workspace.invite.invitePeople')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <ScrollView bounces style={styles.flex1} contentContainerStyle={styles.p5}>
                         <Text style={[styles.mb6]}>
                             {this.props.translate('workspace.invite.invitePeoplePrompt')}
                         </Text>

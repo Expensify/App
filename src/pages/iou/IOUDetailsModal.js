@@ -228,7 +228,7 @@ class IOUDetailsModal extends Component {
                 />
                 {reportIsLoading ? <ActivityIndicator color={themeColors.text} /> : (
                     <View style={[styles.flex1, styles.justifyContentBetween]}>
-                        <ScrollView contentContainerStyle={styles.iouDetailsContainer}>
+                        <ScrollView bounces contentContainerStyle={styles.iouDetailsContainer}>
                             <IOUPreview
                                 iou={this.props.iouReport}
                                 chatReportID={Number(this.props.route.params.chatReportID)}

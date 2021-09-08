@@ -126,7 +126,7 @@ class AdditionalDetailsStep extends React.Component {
                                 {this.props.translate('additionalDetailsStep.helpLink')}
                             </TextLink>
                         </View>
-                        <ScrollView contentContainerStyle={styles.p5}>
+                        <ScrollView bounces contentContainerStyle={styles.p5}>
                             {_.map(this.fields, field => (
                                 <>
                                     <ExpensiTextInput

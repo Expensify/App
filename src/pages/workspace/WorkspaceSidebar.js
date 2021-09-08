@@ -89,7 +89,7 @@ const WorkspaceSidebar = ({
     return (
         <ScreenWrapper>
             <ScrollView
-                bounces={false}
+                bounces
                 contentContainerStyle={[
                     styles.flexGrow1,
                     styles.flexColumn,

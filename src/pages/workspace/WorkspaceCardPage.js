@@ -126,7 +126,7 @@ const WorkspaceCardPage = ({
                 shouldShowInboxCallButton
                 inboxCallTaskID="WorkspaceCompanyCards"
             />
-            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
+            <ScrollView style={[styles.settingsPageBackground]} bounces>
                 <View style={styles.pageWrapper}>
                     <View style={[
                         styles.mb3,
