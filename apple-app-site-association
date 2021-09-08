@@ -10,9 +10,9 @@
                     "/setpassword/*",
                     "/details/*",
                     "/v/*",
-                    "/add-bank-account/*",
+                    "/bank-account/*",
                     "/iou/*",
-                    "/enable-payments/*",
+                    "/enable-payments/*"
                 ]
             }
         ]
