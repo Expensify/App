@@ -6,17 +6,11 @@ import getEmojiUnicode from '../../src/libs/Emoji/getEmojiUnicode';
 
 describe('EmojiRegexTest', () => {
     it('matches all the emojis in the list', () => {
-        const emojiMatched = true;
-        _.each(Emoji, (emoji) => {
+        const emojiMatched = _.every(Emoji, (emoji) => {
             if (emoji.header === true || emoji.code === CONST.EMOJI_SPACER) {
                 return true;
             }
-            const isEmojiMatched = isSingleEmoji(emoji.code);
-            if (!isEmojiMatched) {
-                console.log(' Emoji', emoji.code, getEmojiUnicode(emoji.code).trim());
-            }
-
-            return isEmojiMatched;
+            return isSingleEmoji(emoji.code);
         });
 
         expect(emojiMatched).toBe(true);
