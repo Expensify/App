@@ -318,13 +318,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
             }
 
-            // If the user doesn't have a report with Concierge yet, we need to create it
-            const hasConciergeChat = _.some(reportSummaryList, report => isConciergeChatReport(report));
-            if (!hasConciergeChat) {
-                // eslint-disable-next-line no-use-before-define
-                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
-            }
-
             return Promise.all(_.map(fetchedReports, (chatReport) => {
                 // If there aren't any IOU actions, we don't need to fetch any additional data
                 if (!chatReport.hasIOUAction) {
@@ -956,6 +949,14 @@ function fetchAllReports(
         })
         .then((returnedReportIDs) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+
+            // If at this point the user still doesn't have a Concierge report, create it for them.
+            // This means they were a participant in reports before their account was created (e.g. default rooms)
+            const hasConciergeChat = _.some(allReports, report => isConciergeChatReport(report));
+            if (!hasConciergeChat) {
+                // eslint-disable-next-line no-use-before-define
+                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+            }
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
