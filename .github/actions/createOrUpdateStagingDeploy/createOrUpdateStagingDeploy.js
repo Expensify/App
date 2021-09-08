@@ -101,8 +101,9 @@ const run = function () {
                         // Since this is the second argument to _.union,
                         // it will appear later in the array than any duplicate.
                         // Since it is later in the array, it will be truncated by _.unique,
-                        // and the original value of isVerified will be preserved.
+                        // and the original value of isVerified and isAccessible will be preserved.
                         isVerified: false,
+                        isAccessible: false,
                     }))),
                     false,
                     item => item.number,
@@ -123,7 +124,8 @@ const run = function () {
             return GithubUtils.generateStagingDeployCashBody(
                 tag,
                 _.pluck(PRList, 'url'),
-                _.pluck(_.where(PRList, {isVerified: true}), 'url'),
+                _.pluck(_.where(PRList, {isVerified: true,}), 'url'),
+                _.pluck(_.where(PRList, {isAccessible: true,}), 'url'),
                 _.pluck(deployBlockers, 'url'),
                 _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
             );
