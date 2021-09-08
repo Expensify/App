@@ -10,7 +10,12 @@ describe('EmojiRegexTest', () => {
             if (emoji.header === true || emoji.code === CONST.EMOJI_SPACER) {
                 return true;
             }
-            return isSingleEmoji(emoji.code);
+            const isEmojiMatched = isSingleEmoji(emoji.code);
+            let skinToneMatched = true;
+            if (emoji.types) {
+                skinToneMatched = _.every(emoji.types, emojiWithSkinTone => isSingleEmoji(emojiWithSkinTone));
+            }
+            return skinToneMatched && isEmojiMatched;
         });
 
         expect(emojiMatched).toBe(true);
