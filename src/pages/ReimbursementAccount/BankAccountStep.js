@@ -33,6 +33,7 @@ import {
 import ConfirmModal from '../../components/ConfirmModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
+import getDefaultStateForField from '../../libs/getDefaultStateForField';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -58,9 +59,9 @@ class BankAccountStep extends React.Component {
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
-            hasAcceptedTerms: lodashGet(props, ['reimbursementAccountDraft', 'hasAcceptedTerms']) || lodashGet(props, ['achData', 'acceptTerms'], true),
-            routingNumber: lodashGet(props, ['reimbursementAccountDraft', 'routingNumber']) || lodashGet(props, ['achData', 'routingNumber'], ''),
-            accountNumber: lodashGet(props, ['reimbursementAccountDraft', 'accountNumber']) || lodashGet(props, ['achData', 'accountNumber'], ''),
+            hasAcceptedTerms: getDefaultStateForField(props, 'acceptTerms', true),
+            routingNumber: getDefaultStateForField(props, 'routingNumber'),
+            accountNumber: getDefaultStateForField(props, 'accountNumber'),
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
@@ -88,9 +89,8 @@ class BankAccountStep extends React.Component {
 
     toggleTerms() {
         this.setState((prevState) => {
-            const newState = {hasAcceptedTerms: !prevState.hasAcceptedTerms};
-            this.debouncedUpdateReimbursementAccountDraft(newState);
-            return newState;
+            this.debouncedUpdateReimbursementAccountDraft({acceptTerms: !prevState.hasAcceptedTerms});
+            return {hasAcceptedTerms: !prevState.hasAcceptedTerms};
         });
     }
 

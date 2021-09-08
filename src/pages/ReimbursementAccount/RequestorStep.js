@@ -25,6 +25,7 @@ import {isValidIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import getDefaultStateForField from '../../libs/getDefaultStateForField';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -44,15 +45,15 @@ class RequestorStep extends React.Component {
         this.debouncedUpdateReimbursementAccountDraft = _.debounce(this.debouncedUpdateReimbursementAccountDraft.bind(this), 100, false);
 
         this.state = {
-            firstName: lodashGet(props, ['reimbursementAccountDraft', 'firstName']) || lodashGet(props, ['achData', 'firstName'], ''),
-            lastName: lodashGet(props, ['reimbursementAccountDraft', 'lastName']) || lodashGet(props, ['achData', 'lastName'], ''),
-            requestorAddressStreet: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressStreet']) || lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
-            requestorAddressCity: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressCity']) || lodashGet(props, ['achData', 'requestorAddressCity'], ''),
-            requestorAddressState: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressState']) || lodashGet(props, ['achData', 'requestorAddressState'], ''),
-            requestorAddressZipCode: lodashGet(props, ['reimbursementAccountDraft', 'requestorAddressZipCode']) || lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
-            dob: lodashGet(props, ['reimbursementAccountDraft', 'dob']) || lodashGet(props, ['achData', 'dob'], ''),
-            ssnLast4: lodashGet(props, ['reimbursementAccountDraft', 'ssnLast4']) || lodashGet(props, ['achData', 'ssnLast4'], ''),
-            isControllingOfficer: lodashGet(props, ['reimbursementAccountDraft', 'isControllingOfficer']) || lodashGet(props, ['achData', 'isControllingOfficer'], false),
+            firstName: getDefaultStateForField(props, 'firstName'),
+            lastName: getDefaultStateForField(props, 'lastName'),
+            requestorAddressStreet: getDefaultStateForField(props, 'requestorAddressStreet'),
+            requestorAddressCity: getDefaultStateForField(props, 'requestorAddressCity'),
+            requestorAddressState: getDefaultStateForField(props, 'requestorAddressState'),
+            requestorAddressZipCode: getDefaultStateForField(props, 'requestorAddressZipCode'),
+            dob: getDefaultStateForField(props, 'dob'),
+            ssnLast4: getDefaultStateForField(props, 'ssnLast4'),
+            isControllingOfficer: getDefaultStateForField(props, 'isControllingOfficer', false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
