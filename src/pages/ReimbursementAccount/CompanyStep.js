@@ -85,7 +85,6 @@ class CompanyStep extends React.Component {
     }
 
     /**
-    *
     * @param {String} value
     */
     setValue(value) {
