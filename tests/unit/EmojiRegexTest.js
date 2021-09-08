@@ -20,4 +20,24 @@ describe('EmojiRegexTest', () => {
 
         expect(emojiMatched).toBe(true);
     });
+
+    it('matches single emojis variants for size', () => {
+        expect(isSingleEmoji('👨‍👩‍👦️')).toBe(true);
+        expect(isSingleEmoji('👉')).toBe(true);
+        expect(isSingleEmoji('👊🏾')).toBe(true);
+        expect(isSingleEmoji('😪️')).toBe(true);
+        expect(isSingleEmoji('❤️')).toBe(true);
+        expect(isSingleEmoji('👨‍👩‍👦️')).toBe(true);
+        expect(isSingleEmoji('😎️')).toBe(true);
+        expect(isSingleEmoji('🔫️')).toBe(true);
+        expect(isSingleEmoji('🛍')).toBe(true);
+        expect(isSingleEmoji('⁉️')).toBe(true);
+        expect(isSingleEmoji('*️⃣')).toBe(true);
+        expect(isSingleEmoji('✳️')).toBe(true);
+        expect(isSingleEmoji('👶🏽')).toBe(true);
+        expect(isSingleEmoji('🕍')).toBe(true);
+        expect(isSingleEmoji('🇺🇲')).toBe(true);
+        expect(isSingleEmoji('🇮🇳')).toBe(true);
+        expect(isSingleEmoji('🇺🇦️')).toBe(true);
+    });
 });
