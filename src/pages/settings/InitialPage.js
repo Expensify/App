@@ -28,6 +28,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import DateUtils from '../../libs/DateUtils';
+import Permissions from '../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
@@ -74,6 +75,9 @@ const propTypes = {
         currentBalance: PropTypes.number,
     }),
 
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -85,6 +89,7 @@ const defaultProps = {
     userWallet: {
         currentBalance: 0,
     },
+    betas: [],
 };
 
 const defaultMenuItems = [
@@ -131,6 +136,7 @@ const InitialSettingsPage = ({
     policies,
     translate,
     userWallet,
+    betas,
 }) => {
     const walletBalance = numberFormat(
         userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
@@ -207,7 +213,7 @@ const InitialSettingsPage = ({
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
-                                badgeText={isPaymentItem ? walletBalance : undefined}
+                                badgeText={(isPaymentItem && Permissions.canUseWallet(betas)) ? walletBalance : undefined}
                             />
                         );
                     })}
@@ -238,6 +244,9 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(InitialSettingsPage);
