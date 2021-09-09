@@ -36,6 +36,7 @@ class ExpensiPicker extends PureComponent {
     render() {
         const {
             errorText,
+            hasError,
             label,
             isDisabled,
             ...pickerProps
@@ -47,7 +48,7 @@ class ExpensiPicker extends PureComponent {
                         styles.expensiPickerContainer,
                         this.state.isOpen && styles.borderColorFocus,
                         isDisabled && styles.inputDisabled,
-                        errorText && styles.borderColorDanger,
+                        (errorText || hasError) && styles.borderColorDanger,
                     ]}
                 >
                     {label && (

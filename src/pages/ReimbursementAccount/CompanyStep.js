@@ -9,7 +9,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import {
-    goToWithdrawalAccountSetupStep, hideBankAccountErrors,
+    goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
@@ -235,8 +235,9 @@ class CompanyStep extends React.Component {
                             </View>
                             <View style={[styles.flex1]}>
                                 <StatePicker
-                                    onChange={addressState => this.setState({addressState})}
+                                    onChange={value => this.clearErrorAndSetValue('addressState', value)}
                                     value={this.state.addressState}
+                                    hasError={this.getErrors().addressState}
                                 />
                             </View>
                         </View>
@@ -295,8 +296,9 @@ class CompanyStep extends React.Component {
                             </View>
                             <View style={[styles.flex1]}>
                                 <StatePicker
-                                    onChange={incorporationState => this.setState({incorporationState})}
+                                    onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                                     value={this.state.incorporationState}
+                                    hasError={this.getErrors().incorporationState}
                                 />
                             </View>
                         </View>
