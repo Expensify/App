@@ -135,16 +135,13 @@ class BeneficialOwnersStep extends React.Component {
         return (
             <>
                 <HeaderWithCloseButton
-                    title={this.props.translate('beneficialOwnersStep.beneficialOwners')}
+                    title={this.props.translate('beneficialOwnersStep.additionalInformation')}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
                 />
                 <ScrollView style={[styles.flex1, styles.w100, styles.ph5]}>
                     <Text style={[styles.mb5]}>
-                        <Text style={[styles.textStrong]}>
-                            {`${this.props.translate('beneficialOwnersStep.additionalInformation')}: `}
-                        </Text>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
                     <CheckboxWithLabel

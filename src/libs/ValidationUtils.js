@@ -69,6 +69,15 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ *
+ * @param {String} date
+ * @returns {Boolean}
+ */
+function isValidAge(date) {
+    return moment().diff(moment(date), 'years') >= 18;
+}
+
+/**
  * @param {Object} identity
  * @returns {Boolean}
  */
@@ -93,6 +102,12 @@ function isValidIdentity(identity) {
 
     if (!isValidDate(identity.dob)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
+    if (!isValidAge(identity.dob)) {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
         showBankAccountErrorModal();
         return false;
     }

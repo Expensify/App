@@ -139,6 +139,24 @@ class RequestorStep extends React.Component {
                     <>
                         <ScrollView style={[styles.flex1, styles.w100]}>
                             <View style={[styles.p4]}>
+                                <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                                <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+                                    <TextLink
+                                        style={[styles.textMicro]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                                    >
+                                        {`${this.props.translate('requestorStep.learnMore')}`}
+                                    </TextLink>
+                                    <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+                                    <TextLink
+                                        style={[styles.textMicro, styles.textLink]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                                    >
+                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
+                                    </TextLink>
+                                </View>
                                 <IdentityForm
                                     onFieldChange={(field, value) => this.onFieldChange(field, value)}
                                     values={{
@@ -171,21 +189,6 @@ class RequestorStep extends React.Component {
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                     {this.props.translate('requestorStep.financialRegulations')}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                                    >
-                                        {`${this.props.translate('requestorStep.learnMore')}`}
-                                    </TextLink>
-                                    {' | '}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                                    >
-                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
-                                    </TextLink>
                                 </Text>
                                 <Text style={[styles.mt3, styles.textMicroSupporting]}>
                                     {this.props.translate('requestorStep.onFidoConditions')}

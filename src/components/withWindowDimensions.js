@@ -72,7 +72,6 @@ export default function (WrappedComponent) {
             const {window} = newDimensions;
             const isSmallScreenWidth = window.width <= variables.mobileResponsiveWidthBreakpoint;
             const isMediumScreenWidth = !isSmallScreenWidth && window.width <= variables.mediumScreenResponsiveWidthBreakpoint;
-
             this.setState({
                 windowHeight: window.height,
                 windowWidth: window.width,
