@@ -552,7 +552,6 @@ export default {
         forNextSteps: ' for next steps to finish setting up your bank account.',
     },
     beneficialOwnersStep: {
-        beneficialOwners: 'Beneficial owners',
         additionalInformation: 'Additional information',
         checkAllThatApply: '(check all that apply, otherwise leave blank)',
         iOwnMoreThan25Percent: 'I own more than 25% of ',
