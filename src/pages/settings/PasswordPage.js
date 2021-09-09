@@ -80,8 +80,8 @@ class PasswordPage extends Component {
         }
     }
 
-    isInvalidPassword() {
-        return this.state.newPassword && !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    isValidPassword() {
+        return this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
 
@@ -140,7 +140,11 @@ class PasswordPage extends Component {
                                 onBlur={() => this.onBlurNewPassword()}
                             />
 
-                            <Text style={[styles.textLabelSupporting, styles.mt1, this.isInvalidPassword() && styles.formError]}>
+                            <Text style={[
+                                styles.textLabelSupporting, styles.mt1,
+                                this.state.newPassword && !this.isValidPassword() && styles.formError,
+                            ]}
+                            >
                                 {this.props.translate('passwordPage.newPasswordPrompt')}
                             </Text>
 
