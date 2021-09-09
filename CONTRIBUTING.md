@@ -37,7 +37,7 @@ New contributors are limited to working on one job at a time, however experience
 There are two ways you can find a job that you can contribute to:
 
 #### Finding a job that Expensify posted
-This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view [open issues in GitHub with the `Help Wanted` label.](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22) 
+This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view open jobs by searching for issues in GitHub with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22).
 
 #### Proposing a job that Expensify hasn’t posted
 
