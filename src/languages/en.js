@@ -397,6 +397,7 @@ export default {
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',
             dob: 'Please enter a valid date of birth',
+            age: 'Requestors must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             existingOwners: {
