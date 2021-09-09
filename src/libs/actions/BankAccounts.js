@@ -337,11 +337,6 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
-    const oldACHData = {
-        accountNumber: reimbursementAccountInSetup.accountNumber || '',
-        routingNumber: reimbursementAccountInSetup.routingNumber || '',
-    };
-
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
@@ -503,18 +498,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })
                 .finally(() => {
-                    const dataToMerge = {
-                        loading: false,
-                    };
-
-                    // If we didn't get a routingNumber and accountNumber from the response and we have previously saved
-                    // values, autofill them
-                    if (!reimbursementAccountInSetup.routingNumber && !reimbursementAccountInSetup.accountNumber
-                        && oldACHData.routingNumber && oldACHData.accountNumber) {
-                        dataToMerge.achData = oldACHData;
-                    }
-
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, dataToMerge);
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 });
         });
 }
@@ -587,6 +571,7 @@ function validateBankAccount(bankAccountID, validateCode) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
+                Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {
@@ -841,6 +826,13 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
 }
 
+/**
+ * @param {Object} bankAccountData
+ */
+function updateReimbursementAccountDraft(bankAccountData) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -859,4 +851,5 @@ export {
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    updateReimbursementAccountDraft,
 };
