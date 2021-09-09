@@ -10,6 +10,8 @@ import * as API from '../API';
 import NameValuePair from './NameValuePair';
 import {isDefaultRoom} from '../reportUtils';
 import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
+import Growl from '../Growl';
+import {translateLocal} from '../translate';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -210,13 +212,17 @@ function mergeLocalPersonalDetails(details) {
  * Sets the personal details object for the current user
  *
  * @param {Object} details
+ * @param {boolean} shouldGrowl
  */
-function setPersonalDetails(details) {
+function setPersonalDetails(details, shouldGrowl) {
     API.PersonalDetails_Update({details: JSON.stringify(details)});
     if (details.timezone) {
         NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
     }
     mergeLocalPersonalDetails(details);
+    if (shouldGrowl) {
+        Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+    }
 }
 
 /**
@@ -265,10 +271,11 @@ function fetchLocalCurrency() {
  * @param {File|Object} file
  */
 function setAvatar(file) {
+    setPersonalDetails({avatarUploading: true});
     API.User_UploadAvatar({file}).then((response) => {
         // Once we get the s3url back, update the personal details for the user with the new avatar URL
         if (response.jsonCode === 200) {
-            setPersonalDetails({avatar: response.s3url});
+            setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
         }
     });
 }
@@ -283,6 +290,7 @@ function deleteAvatar(login) {
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
+    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
 }
 
 // When the app reconnects from being offline, fetch all of the personal details

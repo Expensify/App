@@ -49,7 +49,7 @@ function setLocale(locale) {
  */
 function openSignedInLink(url = '') {
     API.GetAccountValidateCode().then((response) => {
-        const exitToURL = url ? `exitTo=${url}` : '';
+        const exitToURL = url ? `?exitTo=${url}` : '';
         const validateCodeUrl = `v/${currentUserAccountID}/${response.validateCode}${exitToURL}`;
         Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + validateCodeUrl);
     });

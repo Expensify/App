@@ -43,7 +43,7 @@ jobs:
   skipDeploy:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false' && needs.chooseDeployActions.outputs.shouldCherryPick == 'false' }}
+    if: ${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && !fromJSON(needs.chooseDeployActions.outputs.isAutomatedPullRequest) && !fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}
 
     steps:
       - name: Comment on deferred PR
@@ -57,7 +57,7 @@ jobs:
   version:
     runs-on: ubuntu-latest
     needs: chooseDeployActions
-    if: ${{ needs.chooseDeployActions.outputs.shouldCherryPick == 'true' || (needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' && needs.chooseDeployActions.outputs.isAutomatedPullRequest == 'false') }}
+    if: ${{ fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) || (!fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && !fromJSON(needs.chooseDeployActions.outputs.isAutomatedPullRequest)) }}
 
     steps:
       # Version: 2.3.4
@@ -86,7 +86,7 @@ jobs:
           echo "New version is ${{ env.NEW_VERSION }}"
 
       - name: Update staging branch from main
-        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'false' }}
+        if: ${{ !fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) }}
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -94,7 +94,7 @@ jobs:
           INPUTS: '{ "TARGET_BRANCH": "staging" }'
 
       - name: Cherry pick to staging
-        if: ${{ needs.chooseDeployActions.outputs.isStagingDeployLocked == 'true' && needs.chooseDeployActions.outputs.shouldCherryPick == 'true' }}
+        if: ${{ fromJSON(needs.chooseDeployActions.outputs.isStagingDeployLocked) && fromJSON(needs.chooseDeployActions.outputs.shouldCherryPick) }}
         uses: Expensify/App/.github/actions/triggerWorkflowAndWait@main
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
