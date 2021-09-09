@@ -48,7 +48,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 3. If there is no existing GitHub issue or Upwork job, report the issues in the #expensify-open-source Slack channel, prefix the post with `BUG:` or `Feature Request:`. Include all relevant data, screenshots and examples in the post or thread.
 4. After review in #expensify-open-source, if we choose to implement your proposal, a GitHub issue will be created and your Slack handle will be included in the original post after `Issue reported by:`
 5. If an external contributor is hired in Upwork to work on the issue, you will also be hired for the same job. No additional work is needed. If the issue is fixed internally, a dedicated job will be created to hire and pay after the issue is fixed. 
-6. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression occurs, payment will be issued 7 days after all regressions are fixed. 
+6. Payment will be made 7 days after code is deployed to production if there are no regressions. If a regression is discovered, payment will be issued 7 days after all regressions are fixed. 
 
 >**Note:** Our problem solving approach at Expensify is to focus on high value problems and avoid small optimizations with results that are difficult to measure. We also prefer to identify and solve problems at their root. Given that, please ensure all proposed jobs fix a specific problem in a measurable way with evidence so they are easy to evaluate. Here's an example of a good problem/solution:
 >
