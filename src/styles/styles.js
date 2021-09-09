@@ -1203,6 +1203,16 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    emojiSkinToneTitle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv1,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
     // Emoji Picker Styles
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,

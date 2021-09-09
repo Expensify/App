@@ -71,7 +71,7 @@ class EmojiSkinToneList extends Component {
                             <Text style={[styles.emojiText, styles.ph1]}>
                                 {selectedEmoji.code}
                             </Text>
-                            <Text style={[styles.emojiHeaderStyle]}>
+                            <Text style={[styles.emojiSkinToneTitle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
                             </Text>
                         </Pressable>
