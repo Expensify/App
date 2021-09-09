@@ -10,7 +10,13 @@ const PlaidLink = (props) => {
     const {open, ready, error} = usePlaidLink({
         token: props.token,
         onSuccess,
-        onExit: props.onExit,
+        onExit: (exitError, metadata) => {
+            console.debug('[PlaidLink] Exit: ', {exitError, metadata});
+            props.onExit();
+        },
+        onEvent: (event, metadata) => {
+            console.debug('[PlaidLink] Event: ', {event, metadata});
+        },
     });
 
     useEffect(() => {

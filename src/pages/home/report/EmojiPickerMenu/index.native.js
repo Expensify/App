@@ -8,7 +8,6 @@ import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
-import dynamicEmojiSize from './dynamicEmojiSize';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 
@@ -47,11 +46,19 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
-
-        this.emojiSize = {
-            fontSize: dynamicEmojiSize(this.props.windowWidth),
-        };
+        this.isMobileLandscape = this.isMobileLandscape.bind(this);
     }
+
+
+    /**
+     * Check if its a landscape mode of mobile device
+     *
+     * @returns {Boolean}
+     */
+    isMobileLandscape() {
+        return this.props.windowWidth >= this.props.windowHeight;
+    }
+
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -70,7 +77,7 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
-                    {`${item.code}\uFE0F`}
+                    {item.code}
                 </Text>
             );
         }
@@ -83,11 +90,11 @@ class EmojiPickerMenu extends Component {
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={`${emojiCode}\uFE0F`}
-                emojiSize={this.emojiSize}
+                emoji={emojiCode}
             />
         );
     }
+
 
     render() {
         return (
@@ -97,12 +104,14 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={this.numColumns}
-                    style={styles.emojiPickerList}
+                    style={[
+                        styles.emojiPickerList,
+                        this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                    ]}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
                 <EmojiSkinToneList
-                    setPreferredSkinTone={this.props.updatePreferredSkinTone}
-                    emojiSize={this.emojiSize}
+                    updatePreferredSkinTone={this.props.updatePreferredSkinTone}
                     preferredSkinTone={this.props.preferredSkinTone}
                 />
             </View>

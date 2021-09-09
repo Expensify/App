@@ -3,7 +3,8 @@ import SCREENS from '../../SCREENS';
 
 export default {
     prefixes: [
-        'expensify-cash://',
+        'new-expensify://',
+        'expensify-cash://', // DEPRECATED
         'https://new.expensify.com',
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
@@ -27,8 +28,10 @@ export default {
             // Public Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
-            [SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE]: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
-            [SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE]: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD,
 
             // Modal Screens
             Settings: {

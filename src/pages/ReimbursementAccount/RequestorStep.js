@@ -14,12 +14,12 @@ import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
-import Growl from '../../libs/Growl';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -53,6 +53,17 @@ class RequestorStep extends React.Component {
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
+
+        this.requiredFields = [
+            'firstName',
+            'lastName',
+            'requestorAddressStreet',
+            'requestorAddressCity',
+            'requestorAddressZipCode',
+            'dob',
+            'ssnLast4',
+            'requestorAddressState',
+        ];
     }
 
     onFieldChange(field, value) {
@@ -71,7 +82,7 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            Growl.error(this.props.translate('requestorStep.isControllingOfficerError'));
+            showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
 
@@ -96,6 +107,9 @@ class RequestorStep extends React.Component {
     }
 
     render() {
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || !this.state.isControllingOfficer;
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -121,6 +135,24 @@ class RequestorStep extends React.Component {
                     <>
                         <ScrollView style={[styles.flex1, styles.w100]}>
                             <View style={[styles.p4]}>
+                                <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                                <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+                                    <TextLink
+                                        style={[styles.textMicro]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                                    >
+                                        {`${this.props.translate('requestorStep.learnMore')}`}
+                                    </TextLink>
+                                    <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+                                    <TextLink
+                                        style={[styles.textMicro, styles.textLink]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                                    >
+                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
+                                    </TextLink>
+                                </View>
                                 <IdentityForm
                                     onFieldChange={(field, value) => this.onFieldChange(field, value)}
                                     values={{
@@ -151,21 +183,6 @@ class RequestorStep extends React.Component {
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                     {this.props.translate('requestorStep.financialRegulations')}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                                    >
-                                        {`${this.props.translate('requestorStep.learnMore')}`}
-                                    </TextLink>
-                                    {' | '}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                                    >
-                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
-                                    </TextLink>
                                 </Text>
                                 <Text style={[styles.mt3, styles.textMicroSupporting]}>
                                     {this.props.translate('requestorStep.onFidoConditions')}
@@ -192,12 +209,13 @@ class RequestorStep extends React.Component {
                                 </Text>
                             </View>
                         </ScrollView>
-                        <FixedFooter style={[styles.mt5]}>
+                        <FixedFooter>
                             <Button
                                 success
                                 onPress={this.submit}
                                 style={[styles.w100]}
                                 text={this.props.translate('common.saveAndContinue')}
+                                isDisabled={shouldDisableSubmitButton}
                             />
                         </FixedFooter>
                     </>

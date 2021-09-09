@@ -98,6 +98,7 @@ class SetPasswordPage extends Component {
                             text={this.props.translate('setPasswordPage.setPassword')}
                             isLoading={this.props.account.loading}
                             onPress={this.validateAndSubmitForm}
+                            isDisabled={!this.state.isFormValid}
                         />
                     </View>
 

@@ -73,7 +73,7 @@ function getUserDetails() {
         returnValueList: 'account, loginList, nameValuePairs',
         nvpNames: [
             CONST.NVP.PAYPAL_ME_ADDRESS,
-            CONST.NVP.PREFERRED_SKIN_TONE,
+            CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
         ].join(','),
     })
         .then((response) => {
@@ -90,8 +90,8 @@ function getUserDetails() {
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
-            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_SKIN_TONE}`, {});
-            Onyx.merge(ONYXKEYS.NVP_PREFERRED_SKIN_TONE,
+            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
+            Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
         });
 }
@@ -271,7 +271,7 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[User] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
             );
         });
@@ -279,10 +279,18 @@ function subscribeToUserEvents() {
 
 /**
  * Sync preferredSkinTone with Onyx and Server
+ * @param {String} skinTone
  */
 
 function setPreferredSkinTone(skinTone) {
-    return NameValuePair.set(CONST.NVP.PREFERRED_SKIN_TONE, skinTone, ONYXKEYS.NVP_PREFERRED_SKIN_TONE);
+    return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+}
+
+/**
+ * @param {Boolean} shouldUseSecureStaging
+ */
+function setShouldUseSecureStaging(shouldUseSecureStaging) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
 }
 
 export {
@@ -297,4 +305,5 @@ export {
     getDomainInfo,
     subscribeToUserEvents,
     setPreferredSkinTone,
+    setShouldUseSecureStaging,
 };

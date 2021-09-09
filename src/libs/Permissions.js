@@ -55,8 +55,8 @@ function canUseDefaultRooms(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
-function canUseInternationalization(betas) {
-    return _.contains(betas, CONST.BETAS.INTERNATIONALIZATION) || canUseAllBetas(betas);
+function canUseWallet(betas) {
+    return _.contains(betas, CONST.BETAS.BETA_EXPENSIFY_WALLET || canUseAllBetas(betas));
 }
 
 export default {
@@ -65,5 +65,5 @@ export default {
     canUsePayWithExpensify,
     canUseFreePlan,
     canUseDefaultRooms,
-    canUseInternationalization,
+    canUseWallet,
 };

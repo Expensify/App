@@ -1,5 +1,7 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -21,16 +23,21 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import NameValuePair from '../../../libs/actions/NameValuePair';
 import CONST from '../../../CONST';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
+import ONYXKEYS from '../../../ONYXKEYS';
+import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
-    payPalMeUsername: '',
+    betas: [],
 };
 
 class PaymentsPage extends React.Component {
@@ -173,7 +180,9 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View>
-                        <CurrentWalletBalance />
+                        {
+                            Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
+                        }
                         <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
@@ -293,4 +302,9 @@ PaymentsPage.displayName = 'PaymentsPage';
 export default compose(
     withWindowDimensions,
     withLocalize,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
 )(PaymentsPage);

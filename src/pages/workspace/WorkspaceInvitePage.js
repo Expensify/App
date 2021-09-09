@@ -20,6 +20,8 @@ import Growl from '../../libs/Growl';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import {isSystemUser} from '../../libs/userUtils';
+import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -52,10 +54,12 @@ class WorkspaceInvitePage extends React.Component {
 
         this.state = {
             userLogins: '',
-            welcomeNote: '',
+            welcomeNote: this.getWelcomeNotePlaceholder(),
         };
 
+        this.focusEmailOrPhoneInput = this.focusEmailOrPhoneInput.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
+        this.emailOrPhoneInputRef = null;
     }
 
     /**
@@ -69,6 +73,13 @@ class WorkspaceInvitePage extends React.Component {
         });
     }
 
+    focusEmailOrPhoneInput() {
+        if (!this.emailOrPhoneInputRef) {
+            return;
+        }
+        this.emailOrPhoneInputRef.focus();
+    }
+
     /**
      * Handle the invite button click
      */
@@ -79,9 +90,16 @@ class WorkspaceInvitePage extends React.Component {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
             return;
         }
+
+        const foundSystemLogin = _.find(logins, login => isSystemUser(login));
+        if (foundSystemLogin) {
+            Growl.error(this.props.translate('workspace.invite.systemUserError', {email: foundSystemLogin}), 5000);
+            return;
+        }
+
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const AreLoginsDuplicate = _.every(logins, login => _.contains(policyEmployeeList, login));
-        if (AreLoginsDuplicate) {
+        const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, addSMSDomainIfPhoneNumber(login)));
+        if (areLoginsDuplicate) {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterUniqueLogin'), 5000);
             return;
         }
@@ -93,7 +111,7 @@ class WorkspaceInvitePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={this.focusEmailOrPhoneInput}>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.invite.invitePeople')}
@@ -105,10 +123,14 @@ class WorkspaceInvitePage extends React.Component {
                         </Text>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
+                                ref={el => this.emailOrPhoneInputRef = el}
                                 label={this.props.translate('workspace.invite.enterEmailOrPhone')}
+                                placeholder={this.props.translate('workspace.invite.EmailOrPhonePlaceholder')}
                                 autoCompleteType="email"
                                 autoCorrect={false}
                                 autoCapitalize="none"
+                                multiline
+                                numberOfLines={2}
                                 value={this.state.userLogins}
                                 onChangeText={text => this.setState({userLogins: text})}
                             />
@@ -118,7 +140,7 @@ class WorkspaceInvitePage extends React.Component {
                                 label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                numberOfLines={10}
+                                numberOfLines={5}
                                 textAlignVertical="top"
                                 multiline
                                 value={this.state.welcomeNote}

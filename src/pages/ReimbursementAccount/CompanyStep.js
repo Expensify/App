@@ -12,6 +12,7 @@ import {
     goToWithdrawalAccountSetupStep, hideBankAccountErrors,
     setupWithdrawalAccount,
     showBankAccountFormValidationError,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -28,7 +29,6 @@ import {
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import ConfirmModal from '../../components/ConfirmModal';
 import ExpensiPicker from '../../components/ExpensiPicker';
 
 const propTypes = {
@@ -62,7 +62,6 @@ class CompanyStep extends React.Component {
             industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
             hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
             password: '',
-            isConfirmModalOpen: false,
         };
 
         // These fields need to be filled out in order to submit the form
@@ -76,8 +75,10 @@ class CompanyStep extends React.Component {
             'companyTaxID',
             'incorporationDate',
             'incorporationState',
+            'incorporationType',
             'industryCode',
             'password',
+            'companyPhone',
         ];
     }
 
@@ -135,7 +136,7 @@ class CompanyStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            this.setState({isConfirmModalOpen: true});
+            showBankAccountErrorModal();
             return;
         }
 
@@ -169,7 +170,7 @@ class CompanyStep extends React.Component {
                             disabled={shouldDisableCompanyName}
                         />
                         <ExpensiTextInput
-                            label={this.props.translate('common.companyAddressNoPO')}
+                            label={this.props.translate('common.companyAddress')}
                             containerStyles={[styles.mt4]}
                             onChangeText={(addressStreet) => {
                                 if (error === this.props.translate('bankAccount.error.addressStreet')) {
@@ -182,6 +183,7 @@ class CompanyStep extends React.Component {
                                 ? this.props.translate('bankAccount.error.addressStreet')
                                 : ''}
                         />
+                        <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex2, styles.mr2]}>
                                 <ExpensiTextInput
@@ -191,7 +193,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.formLabel]}>{this.props.translate('common.state')}</Text>
                                 <StatePicker
                                     onChange={addressState => this.setState({addressState})}
                                     value={this.state.addressState}
@@ -256,7 +257,7 @@ class CompanyStep extends React.Component {
                                 items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
                                 onChange={incorporationType => this.setState({incorporationType})}
                                 value={this.state.incorporationType}
-                                placeholder={{value: '', label: 'Type'}}
+                                placeholder={{value: '', label: '-'}}
                             />
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
@@ -278,7 +279,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                             <View style={[styles.flex1]}>
-                                <Text style={[styles.formLabel]}>{this.props.translate('common.state')}</Text>
                                 <StatePicker
                                     onChange={incorporationState => this.setState({incorporationState})}
                                     value={this.state.incorporationState}
@@ -303,7 +303,6 @@ class CompanyStep extends React.Component {
                                 : ''}
                         />
                         <ExpensiTextInput
-                            autoCompleteType="new-password"
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
                             secureTextEntry
@@ -315,10 +314,14 @@ class CompanyStep extends React.Component {
                                 this.setState({password});
                             }}
                             value={this.state.password}
-                            onSubmitEditing={this.submit}
+                            onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
                             errorText={error === this.props.translate('common.passwordCannotBeBlank')
                                 ? this.props.translate('common.passwordCannotBeBlank')
                                 : ''}
+
+                            // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
+                            // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                            autoCompleteType="new-password"
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
@@ -340,16 +343,7 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                 </ScrollView>
-                <ConfirmModal
-                    title="Are you sure?"
-                    onConfirm={() => this.setState({isConfirmModalOpen: false})}
-                    prompt="Please double check any highlighted fields and try again."
-                    isVisible={this.state.isConfirmModalOpen}
-                    confirmText="Got it"
-                    shouldShowCancelButton={false}
-                />
-
-                <FixedFooter style={[styles.mt5]}>
+                <FixedFooter>
                     <Button
                         success
                         onPress={this.submit}

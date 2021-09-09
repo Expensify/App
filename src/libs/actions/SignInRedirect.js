@@ -5,12 +5,6 @@ import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
 import Timers from '../Timers';
 
-let currentURL;
-Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
-});
-
 let currentActiveClients;
 Onyx.connect({
     key: ONYXKEYS.ACTIVE_CLIENTS,
@@ -38,28 +32,21 @@ function redirectToSignIn(errorMessage) {
     Pusher.disconnect();
     Timers.clearAll();
 
-    if (!currentURL) {
-        return;
-    }
-
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
-    // We must set the authToken to null so we can navigate to "signin" it's not possible to navigate to the route as
-    // it only exists when the authToken is null.
-    Onyx.set(ONYXKEYS.SESSION, {authToken: null})
+    // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
+    Onyx.clear()
         .then(() => {
-            Onyx.clear().then(() => {
-                if (preferredLocale) {
-                    Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-                }
-                if (errorMessage) {
-                    Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
-                }
-                if (activeClients && activeClients.length > 0) {
-                    Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
-                }
-            });
+            if (preferredLocale) {
+                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+            }
+            if (errorMessage) {
+                Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
+            }
+            if (activeClients && activeClients.length > 0) {
+                Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+            }
         });
 }
 

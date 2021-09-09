@@ -7,6 +7,7 @@ import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
+import {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -55,9 +56,9 @@ class IOUParticipantsRequest extends Component {
         } = getNewChatOptions(
             props.reports,
             props.personalDetails,
-            '',
-            true,
             props.betas,
+            '',
+            EXCLUDED_IOU_EMAILS,
         );
 
         this.state = {
@@ -127,9 +128,9 @@ class IOUParticipantsRequest extends Component {
                     } = getNewChatOptions(
                         this.props.reports,
                         this.props.personalDetails,
-                        searchValue,
-                        true,
                         this.props.betas,
+                        searchValue,
+                        EXCLUDED_IOU_EMAILS,
                     );
                     this.setState({
                         searchValue,

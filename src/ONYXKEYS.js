@@ -120,5 +120,9 @@ export default {
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
 
-    NVP_PREFERRED_SKIN_TONE: 'preferredSkinTone',
+    // Store preferred skintone for emoji
+    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
+
+    // Stores Workspace ID that will be tied to reimbursement account during setup
+    REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 };

@@ -16,12 +16,7 @@ const propTypes = {
     preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
-    setPreferredSkinTone: PropTypes.func.isRequired,
-
-    /** Size of the emoji item */
-    emojiSize: PropTypes.shape({
-        fontSize: PropTypes.number,
-    }).isRequired,
+    updatePreferredSkinTone: PropTypes.func.isRequired,
 
     /** Props related to translation */
     ...withLocalizePropTypes,
@@ -51,13 +46,13 @@ class EmojiSkinToneList extends Component {
      */
     updateSelectedSkinTone(skinToneEmoji) {
         this.setState(prev => ({isSkinToneListVisible: !prev.isSkinToneListVisible}));
-        this.props.setPreferredSkinTone(skinToneEmoji.skinTone);
+        this.props.updatePreferredSkinTone(skinToneEmoji.skinTone);
     }
 
     render() {
         const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
         return (
-            <View style={[styles.flexRow, styles.p1]}>
+            <View style={[styles.flexRow, styles.p1, styles.ph3]}>
                 {
                     !this.state.isSkinToneListVisible && (
                         <Pressable
@@ -70,12 +65,13 @@ class EmojiSkinToneList extends Component {
                                 styles.flexRow,
                                 styles.alignSelfCenter,
                                 styles.justifyContentStart,
+                                styles.alignItemsCenter,
                             ]}
                         >
-                            <Text style={[styles.emojiText, this.props.emojiSize]}>
-                                {`${selectedEmoji.code}\uFE0F`}
+                            <Text style={[styles.emojiText, styles.ph1]}>
+                                {selectedEmoji.code}
                             </Text>
-                            <Text style={[styles.emojiHeaderStyle]}>
+                            <Text style={[styles.emojiSkinToneTitle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
                             </Text>
                         </Pressable>
@@ -91,10 +87,9 @@ class EmojiSkinToneList extends Component {
                                             onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
                                             onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
                                             key={skinToneEmoji.code}
-                                            emojiItemStyle={[styles.emojiSkinToneItem, styles.emojiSkinToneItem]}
-                                            emoji={`${skinToneEmoji.code}\uFE0F`}
+                                            emojiItemStyle={styles.emojiSkinToneItem}
+                                            emoji={skinToneEmoji.code}
                                             isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
-                                            emojiSize={this.props.emojiSize}
                                         />
                                     ))
                                 }

@@ -1,5 +1,42 @@
 # [New Expensify](https://new.expensify.com) GitHub Workflows
 
+## Important tip for creating GitHub Workflows
+All inputs and outputs to GitHub Actions and any data passed between jobs or workflows is JSON-encoded (AKA, strings). Keep this in mind whenever writing GitHub workflows – you may need to JSON-decode variables to access them accurately. Here's an example of a common way to misuse GitHub Actions data:
+
+```yaml
+name: CI
+on: pull_request
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - id: myTrueAction
+        uses: Expensify/my-action-outputs-true@main
+
+      - id: myFalseAction
+        uses: Expensify/my-action-outputs-false@main
+
+      # This correctly outputs `true`, but it's a string
+      - run: echo ${{ steps.myTrueAction.outputs.isTrue }}
+
+      # This correctly outputs `false`, but it's a string
+      - run: echo ${{ steps.myFalseAction.outputs.isFalse }}
+
+      # This correctly outputs `true`, and it's a boolean
+      - run: echo ${{ true == true }}
+
+      # This correctly outputs `false`, and it's a boolean.
+      - run: echo ${{ true == false }}
+
+      # Watch out! This seems like it should be true, but it's false!
+      # What we have here is `'false' || true`, and since the first half is a string the expression resolves to 'false'
+      - run: echo ${{ steps.myFalseAction.outputs.isFalse || github.actor == 'roryabraham' }}
+```
+
+We've found that the best way to avoid this pitfall is to always wrap any reference to the output of an action in a call to `fromJSON`. This should force it to resolve to the expected type.
+
+**Note:** Action inputs and outputs aren't the only thing that's JSON-encoded! Any data passed between jobs via a `needs` parameter is also JSON-encoded!
+
 ## Security Rules 🔐
 1. Do **not** use `pull_request_target` trigger unless an external fork needs access to secrets, or a _write_ `GITHUB_TOKEN`.
 1. Do **not ever** write a `pull_request_target` trigger with an explicit PR checkout, e.g. using `actions/checkout@v2`. This is [discussed further here](https://securitylab.github.com/research/github-actions-preventing-pwn-requests)
