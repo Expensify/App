@@ -72,7 +72,7 @@ function AnchorRenderer({tnode, key, style}) {
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
-    const internalExpensifyPath = lodashGet(htmlAttribs.href.split(CONST.NEW_EXPENSIFY_URL), 1, '');
+    const internalExpensifyPath = htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, '');
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
