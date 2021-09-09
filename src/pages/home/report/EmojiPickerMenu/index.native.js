@@ -46,7 +46,19 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
+        this.isMobileLandscape = this.isMobileLandscape.bind(this);
     }
+
+
+    /**
+     * Check if its a landscape mode of mobile device
+     *
+     * @returns {Boolean}
+     */
+    isMobileLandscape() {
+        return this.props.windowWidth >= this.props.windowHeight;
+    }
+
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -83,6 +95,7 @@ class EmojiPickerMenu extends Component {
         );
     }
 
+
     render() {
         return (
             <View style={styles.emojiPickerContainer}>
@@ -91,7 +104,10 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={this.numColumns}
-                    style={styles.emojiPickerList}
+                    style={[
+                        styles.emojiPickerList,
+                        this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                    ]}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
                 />
                 <EmojiSkinToneList
