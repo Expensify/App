@@ -82,7 +82,7 @@ class BankAccountStep extends React.Component {
 
     toggleTerms() {
         this.setState((prevState) => {
-            const hasAcceptedTerms = !prevState.hasAcceptedTerms
+            const hasAcceptedTerms = !prevState.hasAcceptedTerms;
             updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
             return {hasAcceptedTerms};
         });
