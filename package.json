@@ -7,10 +7,10 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "android": "npm run check-port -- 8081 && react-native run-android",
-    "ios": "npm run check-port -- 8081 && react-native run-ios",
-    "ipad": "npm run check-port -- 8081 && react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
-    "ipad-sm": "npm run check-port -- 8081 && react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
+    "android": "npm run check-metro-bundler-port && react-native run-android",
+    "ios": "npm run check-metro-bundler-port && react-native run-ios",
+    "ipad": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
+    "ipad-sm": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (9.7-inch)\"",
     "desktop": "node desktop/start.js",
     "start": "react-native start",
     "web": "node web/proxy.js & webpack-dev-server --open --config config/webpack/webpack.dev.js",
@@ -30,7 +30,7 @@
     "gh-actions-build": "./.github/scripts/buildActions.sh",
     "gh-actions-validate": "./.github/scripts/validateActionsAndWorkflows.sh",
     "analyze-packages": "ANALYZE_BUNDLE=true webpack --config config/webpack/webpack.prod.js",
-    "check-port": "node config/checkPort.js"
+    "check-metro-bundler-port": "node config/checkMetroBundlerPort.js"
   },
   "dependencies": {
     "@formatjs/intl-getcanonicallocales": "^1.5.8",
