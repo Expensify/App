@@ -23,6 +23,7 @@ import themeColors from '../../styles/themes/default';
 import Text from '../Text';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -71,14 +72,15 @@ function AnchorRenderer({tnode, key, style}) {
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
+    const hrefURL = new URL(htmlAttribs.href);
 
     // If we are handling a relative link then we will assume this should be opened by the app internally
-    if (htmlAttribs.href.startsWith('/')) {
+    if (hrefURL.origin === CONST.NEW_EXPENSIFY_URL || hrefURL.origin === CONST.NEW_EXPENSIFY_STAGING_URL) {
         return (
             <Text
                 style={styles.link}
                 onPress={() => {
-                    Navigation.navigate(htmlAttribs.href);
+                    Navigation.navigate(hrefURL.pathname);
                 }}
             >
                 <TNodeChildrenRenderer tnode={tnode} />

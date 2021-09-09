@@ -1,4 +1,6 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
+const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
+const NEW_EXPENSIFY_STAGING_URL = 'https://staging.new.expensify.com';
 
 const CONST = {
     // 50 megabytes in bytes
@@ -6,7 +8,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: 'https://new.expensify.com/NewExpensify.dmg',
+        DESKTOP: `${NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -134,6 +136,8 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
+    NEW_EXPENSIFY_URL,
+    NEW_EXPENSIFY_STAGING_URL,
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',

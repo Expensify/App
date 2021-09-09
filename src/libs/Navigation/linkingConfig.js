@@ -1,16 +1,16 @@
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 export default {
     prefixes: [
         'new-expensify://',
         'expensify-cash://', // DEPRECATED
-        'https://new.expensify.com',
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
-        'https://new.expensify.com',
-        'https://staging.new.expensify.com',
+        CONST.NEW_EXPENSIFY_URL,
+        CONST.NEW_EXPENSIFY_STAGING_URL,
     ],
     config: {
         initialRouteName: SCREENS.HOME,
