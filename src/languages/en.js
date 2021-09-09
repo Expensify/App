@@ -629,6 +629,7 @@ export default {
         requestACall: 'Request a call',
         description: 'Need help with your account configuration? Our team of guides are on hand to help you each step of the way.',
         instructions: 'Type in your name and phone number, and we’ll give you a call back.',
+        enterValidPhone: 'Please enter a valid phone number.',
         availabilityText: '*Our guides are available from Sunday at 5pm CT to Friday at 5pm CT. Any requests outside this window will be returned 9am - 5pm, Monday - Friday in your local time. Call time is based on the order the call was received.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',

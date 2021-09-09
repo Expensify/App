@@ -70,6 +70,7 @@ class RequestCallPage extends Component {
             firstName,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
+            hasPhoneNumberError: false,
             isLoading: false,
         };
 
@@ -79,10 +80,8 @@ class RequestCallPage extends Component {
     }
 
     onSubmit() {
-        this.setState({isLoading: true});
         if (!this.state.firstName.length || !this.state.lastName.length) {
             Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
-            this.setState({isLoading: false});
             return;
         }
 
@@ -91,6 +90,7 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
+        this.setState({isLoading: true});
         requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
@@ -151,8 +151,9 @@ class RequestCallPage extends Component {
 
     render() {
         const isButtonDisabled = _.isEmpty(this.state.firstName.trim())
-            || _.isEmpty(this.state.firstName.trim())
-            || _.isEmpty(this.state.phoneNumber.trim());
+            || _.isEmpty(this.state.lastName.trim())
+            || _.isEmpty(this.state.phoneNumber.trim())
+            || !Str.isValidPhone(this.state.phoneNumber);
 
         return (
             <ScreenWrapper>
@@ -187,7 +188,13 @@ class RequestCallPage extends Component {
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
                                 placeholder="+14158675309"
-                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                                errorText={this.state.hasPhoneNumberError && this.props.translate('requestCallPage.enterValidPhone')}
+                                onBlur={() => {
+                                    if (!Str.isValidPhone(this.state.phoneNumber) && !this.state.hasPhoneNumberError) {
+                                        this.setState({hasPhoneNumberError: true});
+                                    }
+                                }}
+                                onChangeText={phoneNumber => this.setState({phoneNumber, hasPhoneNumberError: false})}
                             />
                         </View>
                         <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
