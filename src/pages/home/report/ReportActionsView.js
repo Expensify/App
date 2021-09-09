@@ -62,8 +62,8 @@ const propTypes = {
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
-    /** The reportActionID to focus and center on */
-    currentReportActionID: PropTypes.string,
+    /** The sequenceNumber of the reportAction to focus and center on */
+    currentSequenceNumber: PropTypes.string,
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -83,7 +83,7 @@ const defaultProps = {
         hasOutstandingIOU: false,
     },
     reportActions: {},
-    currentReportActionID: null,
+    currentSequenceNumber: null,
     session: {},
 };
 
@@ -139,20 +139,20 @@ class ReportActionsView extends React.Component {
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
 
         // Load initial chats.
-        // If we have an currentReportActionID, then load one page before and after that reportAction
-        // FIXME: currentReportActionID is a string, not a number
+        // If we have an currentSequenceNumber, then load one page before and after that reportAction
+        // FIXME: currentSequenceNumber is a string, not a number
         fetchActions(
             this.props.reportID,
-            this.props.currentReportActionID ? this.props.currentReportActionID - CONST.REPORT.ACTIONS.LIMIT : null,
-            this.props.currentReportActionID ? 2 : 1,
+            this.props.currentSequenceNumber ? this.props.currentSequenceNumber - CONST.REPORT.ACTIONS.LIMIT : null,
+            this.props.currentSequenceNumber ? 2 : 1,
         );
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.currentReportActionID && this.props.currentReportActionID !== nextProps.currentReportActionID) {
-            if (!_.any(this.props.reportActions, reportAction => reportAction.reportActionID === nextProps.currentReportActionID)) {
+        if (nextProps.currentSequenceNumber && this.props.currentSequenceNumber !== nextProps.currentSequenceNumber) {
+            if (!_.any(this.props.reportActions, reportAction => reportAction.sequenceNumber === nextProps.currentSequenceNumber)) {
                 // We do not yet have the reportAction that was linked – load it now (one page before and one after) then jump to that reportAction
-                this.loadMoreChats(Math.max(nextProps.currentReportActionID - CONST.REPORT.ACTIONS.LIMIT, 0), 2)
+                this.loadMoreChats(Math.max(nextProps.currentSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0), 2)
                     .then(() => {
                         // TODO: scrollToIndex
                     });

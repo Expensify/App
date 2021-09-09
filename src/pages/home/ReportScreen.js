@@ -82,6 +82,7 @@ const defaultProps = {
  * @returns {Number}
  */
 function getReportID(route) {
+    // TODO: move this to its own util
     return Number.parseInt(route.params.reportID, 10);
 }
 
@@ -119,6 +120,16 @@ class ReportScreen extends React.Component {
      */
     onSubmitComment(text) {
         addAction(getReportID(this.props.route), text);
+    }
+
+    /**
+     * Find the sequence number of the reportAction with the reportActionID matching the one from the route param.
+     *
+     * @returns {Number}
+     */
+    getReportActionSequenceNumber() {
+        // TODO: will this work if the linked-to reportAction is not loaded?
+        return Number.parseInt(_.find(this.props.reportActions, reportAction => reportAction.reportActionID === this.props.route.params.reportActionID).sequenceNumber, 10);
     }
 
     /**
@@ -173,7 +184,7 @@ class ReportScreen extends React.Component {
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
-                            currentReportActionID={this.props.route.params.reportActionID}
+                            currentSequenceNumber={this.getReportActionSequenceNumber()}
                             report={this.props.report}
                             session={this.props.session}
                         />
