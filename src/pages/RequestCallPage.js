@@ -188,7 +188,7 @@ class RequestCallPage extends Component {
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
                                 placeholder="+14158675309"
-                                errorText={this.state.hasPhoneNumberError && this.props.translate('requestCallPage.enterValidPhone')}
+                                errorText={this.state.hasPhoneNumberError && this.props.translate('requestCallPage.errorMessageInvalidPhone')}
                                 onBlur={() => {
                                     if (!Str.isValidPhone(this.state.phoneNumber) && !this.state.hasPhoneNumberError) {
                                         this.setState({hasPhoneNumberError: true});
