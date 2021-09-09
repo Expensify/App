@@ -363,7 +363,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
 
             // Now that we have the bank account. Lets grab the rest of the bank info we need
             API.Get({
-                returnValueList: 'nameValuePairs,bankAccountList',
+                returnValueList: 'nameValuePairs, bankAccountList',
                 nvpNames: [
                     failedValidationAttemptsName,
                     CONST.NVP.KYC_MIGRATION,
