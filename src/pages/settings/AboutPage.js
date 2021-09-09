@@ -7,6 +7,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
+import TextLink from '../../components/TextLink';
 import CONST from '../../CONST';
 import {
     Link,
@@ -127,27 +128,27 @@ const AboutPage = ({translate, session}) => {
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
                         {' '}
-                        <Text
+                        <TextLink
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => Linking.openURL(CONST.TERMS_URL)}
+                            href={CONST.TERMS_URL}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
-                        </Text>
+                        </TextLink>
                         {' '}
                         {translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
                         {' '}
-                        <Text
+                        <TextLink
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => Linking.openURL(CONST.PRIVACY_URL)}
+                            href={CONST.PRIVACY_URL}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
-                        </Text>
+                        </TextLink>
                         .
                     </Text>
                 </View>
