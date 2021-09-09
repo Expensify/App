@@ -136,7 +136,7 @@ class RequestorStep extends React.Component {
                         <ScrollView style={[styles.flex1, styles.w100]}>
                             <View style={[styles.p4]}>
                                 <Text>{this.props.translate('requestorStep.subtitle')}</Text>
-                                <View style={[styles.mb5, styles.dFlex, styles.flexRow]}>
+                                <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
                                     <TextLink
                                         style={[styles.textMicro]}
                                         // eslint-disable-next-line max-len
