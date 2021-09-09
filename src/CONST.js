@@ -132,6 +132,7 @@ const CONST = {
     MANAGE_CARDS_URL: '/domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
+    STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
@@ -227,6 +228,7 @@ const CONST = {
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
         PREFERRED_LOCALE: 'preferredLocale',
+        PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -269,6 +271,7 @@ const CONST = {
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         BILLS: 'bills@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
     },
 
@@ -367,6 +370,7 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
+    DEFAULT_SKIN_TONE: 'default',
 
     POLICY: {
         TYPE: {
@@ -387,6 +391,10 @@ const CONST = {
 
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
+    AVATAR_SIZE: {
+        LARGE: 'large',
+        DEFAULT: 'default',
+    },
 
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
@@ -415,10 +423,39 @@ const EXPENSIFY_EMAILS = [
     CONST.EMAIL.BILLS,
     CONST.EMAIL.STUDENT_AMBASSADOR,
     CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.SVFG,
+];
+
+const EXCLUDED_GROUP_EMAILS = [
+    CONST.EMAIL.CONTRIBUTORS,
+    CONST.EMAIL.FIRST_RESPONDER,
+    CONST.EMAIL.HELP,
+    CONST.EMAIL.QA,
+    CONST.EMAIL.CHRONOS,
+    CONST.EMAIL.BILLS,
+    CONST.EMAIL.STUDENT_AMBASSADOR,
+    CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.SVFG,
+];
+
+const EXCLUDED_IOU_EMAILS = [
+    CONST.EMAIL.CONCIERGE,
+    CONST.EMAIL.CONTRIBUTORS,
+    CONST.EMAIL.FIRST_RESPONDER,
+    CONST.EMAIL.HELP,
+    CONST.EMAIL.QA,
+    CONST.EMAIL.CHRONOS,
+    CONST.EMAIL.RECEIPTS,
+    CONST.EMAIL.BILLS,
+    CONST.EMAIL.STUDENT_AMBASSADOR,
+    CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.SVFG,
     CONST.EMAIL.INTEGRATION_TESTING_CREDS,
 ];
 
 export {
     EXPENSIFY_EMAILS,
+    EXCLUDED_GROUP_EMAILS,
+    EXCLUDED_IOU_EMAILS,
 };
 export default CONST;
