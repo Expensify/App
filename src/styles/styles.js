@@ -1136,6 +1136,9 @@ const styles = {
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListLandscape: {
+        height: 240,
+    },
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,

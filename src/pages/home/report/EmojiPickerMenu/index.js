@@ -74,6 +74,7 @@ class EmojiPickerMenu extends Component {
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
+        this.isMobileLandscape = this.isMobileLandscape.bind(this);
 
         this.currentScrollOffset = 0;
 
@@ -301,6 +302,15 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * Check if its a landscape mode of mobile device
+     *
+     * @returns {Boolean}
+     */
+    isMobileLandscape() {
+        return this.props.isSmallScreenWidth && this.props.windowWidth >= this.props.windowHeight;
+    }
+
+    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
      * so that the sticky headers function properly.
@@ -368,6 +378,7 @@ class EmojiPickerMenu extends Component {
                                 styles.dFlex,
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
+                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                         >
                             {this.props.translate('common.noResultsFound')}
@@ -380,7 +391,10 @@ class EmojiPickerMenu extends Component {
                             renderItem={this.renderItem}
                             keyExtractor={item => `emoji_picker_${item.code}`}
                             numColumns={this.numColumns}
-                            style={styles.emojiPickerList}
+                            style={[
+                                styles.emojiPickerList,
+                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                            ]}
                             extraData={
                               [this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]
                             }
