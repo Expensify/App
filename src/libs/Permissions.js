@@ -51,10 +51,19 @@ function canUseDefaultRooms(betas) {
     return _.contains(betas, CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseWallet(betas) {
+    return _.contains(betas, CONST.BETAS.BETA_EXPENSIFY_WALLET || canUseAllBetas(betas));
+}
+
 export default {
     canUseChronos,
     canUseIOU,
     canUsePayWithExpensify,
     canUseFreePlan,
     canUseDefaultRooms,
+    canUseWallet,
 };

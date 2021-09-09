@@ -243,13 +243,6 @@ function resetPassword() {
 }
 
 /**
- * Restart the sign in process by clearing everything from Onyx
- */
-function restartSignin() {
-    Onyx.clear();
-}
-
-/**
  * Set the password for the current account.
  * Then it will create a temporary login for them which is used when re-authenticating
  * after an authToken expires.
@@ -314,5 +307,4 @@ export {
     reopenAccount,
     resendValidationLink,
     resetPassword,
-    restartSignin,
 };

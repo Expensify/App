@@ -279,10 +279,18 @@ function subscribeToUserEvents() {
 
 /**
  * Sync preferredSkinTone with Onyx and Server
+ * @param {String} skinTone
  */
 
 function setPreferredSkinTone(skinTone) {
     return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+}
+
+/**
+ * @param {Boolean} shouldUseSecureStaging
+ */
+function setShouldUseSecureStaging(shouldUseSecureStaging) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
 }
 
 export {
@@ -297,4 +305,5 @@ export {
     getDomainInfo,
     subscribeToUserEvents,
     setPreferredSkinTone,
+    setShouldUseSecureStaging,
 };
