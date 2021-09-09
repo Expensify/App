@@ -7,7 +7,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
-import CONST from '../../../../CONST';
+import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
@@ -80,14 +80,10 @@ class IOUParticipantsSplit extends Component {
         } = getNewGroupOptions(
             props.reports,
             props.personalDetails,
+            props.betas,
             '',
             props.participants,
-            {
-                excludeConcierge: true,
-                excludeChronos: true,
-                excludeReceipts: true,
-            },
-            props.betas,
+            EXCLUDED_IOU_EMAILS,
         );
 
         this.state = {
@@ -185,14 +181,10 @@ class IOUParticipantsSplit extends Component {
             } = getNewGroupOptions(
                 this.props.reports,
                 this.props.personalDetails,
+                this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                {
-                    excludeConcierge: true,
-                    excludeChronos: true,
-                    excludeReceipts: true,
-                },
-                this.props.betas,
+                EXCLUDED_IOU_EMAILS,
             );
             return {
                 recentReports,
@@ -226,14 +218,10 @@ class IOUParticipantsSplit extends Component {
                             } = getNewGroupOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
+                                this.props.betas,
                                 searchValue,
                                 [],
-                                {
-                                    excludeConcierge: true,
-                                    excludeChronos: true,
-                                    excludeReceipts: true,
-                                },
-                                this.props.betas,
+                                EXCLUDED_IOU_EMAILS,
                             );
                             this.setState({
                                 searchValue,
