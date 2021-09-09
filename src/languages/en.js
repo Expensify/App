@@ -532,7 +532,8 @@ export default {
         companyPhonePlaceholder: '10 digits, no hyphens',
     },
     requestorStep: {
-        headerTitle: 'Requestor information',
+        headerTitle: 'Personal information',
+        subtitle: 'Please provide your personal information.',
         financialRegulations: 'Financial regulation and bank rules require us to validate the identity of any individual setting up bank accounts on behalf of a company. ',
         learnMore: 'Learn more',
         isMyDataSafe: 'Is my data safe?',

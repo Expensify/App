@@ -144,7 +144,7 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 return 'company';
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return 'requestor';
+                return 'personal-information';
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
