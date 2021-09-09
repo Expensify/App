@@ -115,7 +115,7 @@ class WorkspaceEditorPage extends React.Component {
                                     src={Workspace}
                                     height={80}
                                     width={80}
-                                    fill={defaultTheme.icon}
+                                    fill={defaultTheme.iconSuccessFill}
                                 />
                             )}
                             style={[styles.mb3]}
