@@ -79,9 +79,7 @@ function AnchorRenderer({tnode, key, style}) {
         return (
             <Text
                 style={styles.link}
-                onPress={() => {
-                    Navigation.navigate(hrefURL.pathname);
-                }}
+                onPress={() => Navigation.navigate(hrefURL.pathname)}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
