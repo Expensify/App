@@ -114,7 +114,7 @@ class BeneficialOwnersStep extends React.Component {
         return (
             <>
                 <HeaderWithCloseButton
-                    title={this.props.translate('beneficialOwnersStep.beneficialOwners')}
+                    title={this.props.translate('beneficialOwnersStep.additionalInformation')}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
