@@ -11,23 +11,21 @@ class SpinningIndicatorAnimation {
     }
 
     /**
-     * We need to manually loop the animations as `useNativeDriver` does not work well with Animated.loop.
+     * Rotation animation for indicator in a loop
      *
-     * @memberof AvatarWithIndicator
+     * @memberof AvatarWithImagePicker
      */
     startRotation() {
         this.rotate.setValue(0);
-        Animated.timing(this.rotate, {
-            toValue: 1,
-            duration: 2000,
-            easing: Easing.linear,
-            isInteraction: false,
-            useNativeDriver: true,
-        }).start(({finished}) => {
-            if (finished) {
-                this.startRotation();
-            }
-        });
+        Animated.loop(
+            Animated.timing(this.rotate, {
+                toValue: 1,
+                duration: 2000,
+                easing: Easing.linear,
+                isInteraction: false,
+                useNativeDriver: true,
+            }),
+        ).start();
     }
 
 
@@ -35,7 +33,6 @@ class SpinningIndicatorAnimation {
      * Start Animation for Indicator
      *
      * @memberof AvatarWithImagePicker
-     * @memberof
      */
     start() {
         this.startRotation();
