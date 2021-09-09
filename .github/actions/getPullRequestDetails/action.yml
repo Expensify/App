@@ -1,5 +1,5 @@
-name: 'Get merge commit for a pull request'
-description: 'Get the merge_commit_sha for a pull request'
+name: 'Get the details of a pull request'
+description: 'Get the details of a pull request'
 inputs:
   GITHUB_TOKEN:
     description: Auth token for New Expensify Github
@@ -12,10 +12,12 @@ inputs:
     required: false
   USER:
     description: The creator of the pull request
-    required: false
+    required: true
 outputs:
   MERGE_COMMIT_SHA:
     description: 'The merge_commit_sha of the given pull request'
+  MERGE_ACTOR:
+    description: 'The actor who merged the pull request'
 runs:
   using: 'node12'
   main: './index.js'

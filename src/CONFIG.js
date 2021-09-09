@@ -59,6 +59,6 @@ export default {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
     },
-    CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', false),
-    ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', false),
+    CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
+    ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
 };

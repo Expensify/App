@@ -612,16 +612,39 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Set the current error message. Show Growl for errors which are not yet handled by the error Modal.
+ * Show error modal and optionally a specific error message
+ *
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ */
+function showBankAccountErrorModal(errorModalMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+}
+
+/**
+ * Hide error modal
+ */
+function hideBankAccountErrorModal() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: false});
+}
+
+/**
+ * Set the current fields with errors.
+ *
+ * @param {String} errors
+ */
+function setBankAccountFormValidationErrors(errors) {
+    // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
+}
+
+/**
+ * Set the current error message.
  *
  * @param {String} error
- * @param {Boolean} shouldGrowl
  */
-function showBankAccountFormValidationError(error, shouldGrowl) {
+function showBankAccountFormValidationError(error) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
-    if (shouldGrowl) {
-        Growl.error(error);
-    }
 }
 
 /**
@@ -652,9 +675,6 @@ function setupWithdrawalAccount(data) {
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
-    // Convert the errorAttemptsCount to an object to prevent it from being wiped out by JSON.stringify
-    newACHData.errorAttemptsCount = {...newACHData.errorAttemptsCount};
-
     nextStep = newACHData.currentStep;
 
     // If we are setting up a Plaid account replace the accountNumber with the unmasked number
@@ -681,6 +701,7 @@ function setupWithdrawalAccount(data) {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            const errors = {};
 
             if (response.jsonCode === 200 && !error) {
                 // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
@@ -692,12 +713,11 @@ function setupWithdrawalAccount(data) {
 
                 // Show warning if another account already set up this bank account and promote share
                 if (response.existingOwners) {
-                    console.error('Cannot set up withdrawal account due to existing owners', response);
                     Onyx.merge(
                         ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                         {
                             existingOwners: response.existingOwners,
-                            error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS,
+                            isErrorModalVisible: true,
                         },
                     );
                     return;
@@ -778,7 +798,7 @@ function setupWithdrawalAccount(data) {
                     if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
                         || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
                     ) {
-                        error = translateLocal('bankAccount.error.routingNumber');
+                        errors.routingNumber = true;
                         achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
                         error = translateLocal('bankAccount.error.incorporationState');
@@ -797,19 +817,24 @@ function setupWithdrawalAccount(data) {
             // Go to next step
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
+            if (_.size(errors)) {
+                setBankAccountFormValidationErrors(errors);
+                showBankAccountErrorModal();
+            }
             if (error) {
-                showBankAccountFormValidationError(error, true);
+                showBankAccountFormValidationError(error);
+                showBankAccountErrorModal(error);
             }
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             console.error(response.stack);
-            Growl.error(translateLocal('common.genericErrorMessage'), 5000);
+            showBankAccountErrorModal(translateLocal('common.genericErrorMessage'));
         });
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwnersList: ''});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: null, errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
@@ -829,6 +854,9 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
+    hideBankAccountErrorModal,
+    showBankAccountErrorModal,
     showBankAccountFormValidationError,
+    setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
 };

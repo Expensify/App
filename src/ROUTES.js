@@ -86,10 +86,6 @@ export default {
     REQUEST_CALL: 'request-call/:taskID',
     getWorkspaceEditorRoute: policyID => `workspace/${policyID}/edit`,
     WORKSPACE_EDITOR: 'workspace/:policyID/edit',
-    VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
-        const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
-        return `v/${accountID}/${validateCode}${exitToURL}`;
-    },
 
     /**
      * @param {String} route
