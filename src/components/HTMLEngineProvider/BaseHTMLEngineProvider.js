@@ -76,7 +76,7 @@ function AnchorRenderer({tnode, key, style}) {
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
-    if (hrefURL.origin === CONST.NEW_EXPENSIFY_URL || hrefURL.origin === CONST.NEW_EXPENSIFY_STAGING_URL) {
+    if (hrefURL.origin === CONST.NEW_EXPENSIFY_URL) {
         return (
             <Text
                 style={styles.link}

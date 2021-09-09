@@ -1,6 +1,5 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
-const NEW_EXPENSIFY_STAGING_URL = 'https://staging.new.expensify.com';
 
 const CONST = {
     // 50 megabytes in bytes
@@ -137,7 +136,6 @@ const CONST = {
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
     NEW_EXPENSIFY_URL,
-    NEW_EXPENSIFY_STAGING_URL,
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
