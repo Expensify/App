@@ -555,7 +555,7 @@ export default {
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
-        checkAllThatApply: '(marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco)',
+        checkAllThatApply: 'Marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco.',
         iOwnMoreThan25Percent: 'Soy dueño de mas de 25% de ',
         someoneOwnsMoreThan25Percent: 'Otra persona es dueña de mas de 25% de ',
         additionalOwner: 'Beneficiario efectivo adicional',
