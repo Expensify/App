@@ -26,7 +26,6 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
-            EXISTING_OWNERS: '402 Existing Owners',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -87,6 +86,7 @@ const CONST = {
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
+        BETA_EXPENSIFY_WALLET: 'expensifyWallet',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -269,6 +269,7 @@ const CONST = {
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         BILLS: 'bills@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
     },
 
     ENVIRONMENT: {
@@ -404,9 +405,17 @@ const CONST = {
 };
 
 const EXPENSIFY_EMAILS = [
-    CONST.EMAIL.CONCIERGE, CONST.EMAIL.CONTRIBUTORS, CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.HELP, CONST.EMAIL.QA, CONST.EMAIL.CHRONOS, CONST.EMAIL.RECEIPTS,
-    CONST.EMAIL.BILLS, CONST.EMAIL.STUDENT_AMBASSADOR, CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.CONCIERGE,
+    CONST.EMAIL.CONTRIBUTORS,
+    CONST.EMAIL.FIRST_RESPONDER,
+    CONST.EMAIL.HELP,
+    CONST.EMAIL.QA,
+    CONST.EMAIL.CHRONOS,
+    CONST.EMAIL.RECEIPTS,
+    CONST.EMAIL.BILLS,
+    CONST.EMAIL.STUDENT_AMBASSADOR,
+    CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.INTEGRATION_TESTING_CREDS,
 ];
 
 export {
