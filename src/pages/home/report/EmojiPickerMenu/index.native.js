@@ -8,13 +8,24 @@ import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
+import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
+import EmojiSkinToneList from '../EmojiSkinToneList';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
     onEmojiSelected: PropTypes.func.isRequired,
 
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+
+    /** Function to sync the selected skin tone with parent, onyx and nvp */
+    updatePreferredSkinTone: PropTypes.func,
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
+
+    /** Props related to translation */
+    ...withLocalizePropTypes,
 };
 
 class EmojiPickerMenu extends Component {
@@ -35,7 +46,19 @@ class EmojiPickerMenu extends Component {
         this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
 
         this.renderItem = this.renderItem.bind(this);
+        this.isMobileLandscape = this.isMobileLandscape.bind(this);
     }
+
+
+    /**
+     * Check if its a landscape mode of mobile device
+     *
+     * @returns {Boolean}
+     */
+    isMobileLandscape() {
+        return this.props.windowWidth >= this.props.windowHeight;
+    }
+
 
     /**
      * Given an emoji item object, render a component based on its type.
@@ -46,6 +69,7 @@ class EmojiPickerMenu extends Component {
      * @returns {*}
      */
     renderItem({item}) {
+        const {code, types} = item;
         if (item.code === CONST.EMOJI_SPACER) {
             return null;
         }
@@ -53,18 +77,24 @@ class EmojiPickerMenu extends Component {
         if (item.header) {
             return (
                 <Text style={styles.emojiHeaderStyle}>
-                    {`${item.code}\uFE0F`}
+                    {item.code}
                 </Text>
             );
         }
 
+        const emojiCode = types && types[this.props.preferredSkinTone]
+            ? types[this.props.preferredSkinTone]
+            : code;
+
+
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
-                emoji={`${item.code}\uFE0F`}
+                emoji={emojiCode}
             />
         );
     }
+
 
     render() {
         return (
@@ -74,8 +104,15 @@ class EmojiPickerMenu extends Component {
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={this.numColumns}
-                    style={styles.emojiPickerList}
+                    style={[
+                        styles.emojiPickerList,
+                        this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                    ]}
                     stickyHeaderIndices={this.unfilteredHeaderIndices}
+                />
+                <EmojiSkinToneList
+                    updatePreferredSkinTone={this.props.updatePreferredSkinTone}
+                    preferredSkinTone={this.props.preferredSkinTone}
                 />
             </View>
         );
@@ -83,9 +120,14 @@ class EmojiPickerMenu extends Component {
 }
 
 EmojiPickerMenu.propTypes = propTypes;
+EmojiPickerMenu.defaultProps = {
+    preferredSkinTone: undefined,
+    updatePreferredSkinTone: undefined,
+};
 
 export default compose(
     withWindowDimensions,
+    withLocalize,
 )(React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <EmojiPickerMenu {...props} forwardedRef={ref} />

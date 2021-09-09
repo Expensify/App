@@ -639,4 +639,7 @@ export default {
         needHelp: 'Help',
         needHelpTooltip: 'Get live help from our team',
     },
+    emojiPicker: {
+        skinTonePickerLabel: 'Change default skin tone',
+    },
 };

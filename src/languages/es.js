@@ -641,4 +641,7 @@ export default {
         needHelp: 'Ayuda',
         needHelpTooltip: 'Recibe ayuda telefónica de nuestro equipo',
     },
+    emojiPicker: {
+        skinTonePickerLabel: 'Elige el tono de piel por defecto',
+    },
 };

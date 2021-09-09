@@ -154,6 +154,7 @@ class ReportActionCompose extends React.Component {
         this.emojiSearchInput = null;
         this.setTextInputRef = this.setTextInputRef.bind(this);
         this.getInputPlaceholder = this.getInputPlaceholder.bind(this);
+        this.setPreferredSkinTone = this.setPreferredSkinTone.bind(this);
 
         this.state = {
             isFocused: this.shouldFocusInputOnScreenFocus,
@@ -208,6 +209,16 @@ class ReportActionCompose extends React.Component {
 
     onSelectionChange(e) {
         this.setState({selection: e.nativeEvent.selection});
+    }
+
+    /**
+     * Update preferredSkinTone and sync with Onyx, NVP.
+     * @param {Number|String} skinTone
+     */
+    setPreferredSkinTone(skinTone) {
+        if (skinTone !== this.props.preferredSkinTone) {
+            User.setPreferredSkinTone(skinTone);
+        }
     }
 
     /**
@@ -631,6 +642,8 @@ class ReportActionCompose extends React.Component {
                         <EmojiPickerMenu
                             onEmojiSelected={this.addEmojiToTextBox}
                             ref={el => this.emojiSearchInput = el}
+                            preferredSkinTone={this.props.preferredSkinTone}
+                            updatePreferredSkinTone={this.setPreferredSkinTone}
                         />
                     </Popover>
                     <Pressable
@@ -715,6 +728,9 @@ export default compose(
         },
         blockedFromConcierge: {
             key: ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE,
+        },
+        preferredSkinTone: {
+            key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
         },
     }),
 )(ReportActionCompose);
