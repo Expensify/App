@@ -19,6 +19,7 @@ import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -53,9 +54,9 @@ class ValidationStep extends React.Component {
         this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
 
         this.state = {
-            amount1: lodashGet(props, ['reimbursementAccountDraft', 'amount1'], ''),
-            amount2: lodashGet(props, ['reimbursementAccountDraft', 'amount2'], ''),
-            amount3: lodashGet(props, ['reimbursementAccountDraft', 'amount3'], ''),
+            amount1: getDefaultStateForField(props, 'amount1', ''),
+            amount2: getDefaultStateForField(props, 'amount2', ''),
+            amount3: getDefaultStateForField(props, 'amount3', ''),
             error: '',
         };
 

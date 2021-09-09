@@ -24,6 +24,7 @@ import CONST from '../../CONST';
 import {isValidIdentity} from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Name of the company */
@@ -46,11 +47,11 @@ class BeneficialOwnersStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            ownsMoreThan25Percent: lodashGet(props, ['reimbursementAccountDraft', 'ownsMoreThan25Percent'], false),
-            hasOtherBeneficialOwners: lodashGet(props, ['reimbursementAccountDraft', 'hasOtherBeneficialOwners'], false),
-            acceptTermsAndConditions: lodashGet(props, ['reimbursementAccountDraft', 'acceptTermsAndConditions'], false),
-            certifyTrueInformation: lodashGet(props, ['reimbursementAccountDraft', 'certifyTrueInformation'], false),
-            beneficialOwners: lodashGet(props, ['reimbursementAccountDraft', 'beneficialOwners'], []),
+            ownsMoreThan25Percent: getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
+            hasOtherBeneficialOwners: getDefaultStateForField(props, 'hasOtherBeneficialOwners', false),
+            acceptTermsAndConditions: getDefaultStateForField(props, 'acceptTermsAndConditions', false),
+            certifyTrueInformation: getDefaultStateForField(props, 'certifyTrueInformation', false),
+            beneficialOwners: getDefaultStateForField(props, 'beneficialOwners', []),
         };
     }
 
