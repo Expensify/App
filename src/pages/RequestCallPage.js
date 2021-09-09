@@ -86,7 +86,7 @@ class RequestCallPage extends Component {
             return;
         }
 
-        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
         if (!personalPolicy) {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
@@ -150,7 +150,10 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        const isButtonDisabled = false;
+        const isButtonDisabled = _.isEmpty(this.state.firstName.trim())
+            || _.isEmpty(this.state.firstName.trim())
+            || _.isEmpty(this.state.phoneNumber.trim());
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
