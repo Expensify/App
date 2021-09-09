@@ -12,12 +12,13 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {setExpensifyNewsStatus} from '../../libs/actions/User';
+import {setExpensifyNewsStatus, setShouldUseSecureStaging} from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
-import Picker from '../../components/Picker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import ExpensiPicker from '../../components/ExpensiPicker';
+import withEnvironment, {environmentPropTypes} from '../../components/withEnvironment';
 
 const propTypes = {
     /** The chat priority mode */
@@ -27,9 +28,11 @@ const propTypes = {
     user: PropTypes.shape({
         /** Whether or not the user is subscribed to news updates */
         expensifyNewsStatus: PropTypes.bool,
+        shouldUseSecureStaging: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
+    ...environmentPropTypes,
 };
 
 const defaultProps = {
@@ -38,7 +41,7 @@ const defaultProps = {
 };
 
 const PreferencesPage = ({
-    priorityMode, user, translate,
+    priorityMode, user, translate, environment,
 }) => {
     const priorityModes = {
         default: {
@@ -79,11 +82,9 @@ const PreferencesPage = ({
                             />
                         </View>
                     </View>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
-                        {translate('preferencesPage.priorityMode')}
-                    </Text>
-                    <View style={[styles.mb2]}>
-                        <Picker
+                    <View style={[styles.mb2, styles.w100]}>
+                        <ExpensiPicker
+                            label={translate('preferencesPage.priorityMode')}
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                             }
@@ -97,6 +98,29 @@ const PreferencesPage = ({
                     <View style={[styles.mb2]}>
                         <LocalePicker />
                     </View>
+
+                    {/* If we are in the staging environment then we have the option to switch from using the staging secure endpoint or the production secure endpoint. This enables QA */}
+                    {/* and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido */}
+                    {environment === CONST.ENVIRONMENT.STAGING && (
+                        <>
+                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                                Test Preferences
+                            </Text>
+                            <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
+                                <View style={styles.flex4}>
+                                    <Text>
+                                        Use Secure Staging Server
+                                    </Text>
+                                </View>
+                                <View style={[styles.flex1, styles.alignItemsEnd]}>
+                                    <Switch
+                                        isOn={user.shouldUseSecureStaging || false}
+                                        onToggle={setShouldUseSecureStaging}
+                                    />
+                                </View>
+                            </View>
+                        </>
+                    )}
                 </View>
             </View>
         </ScreenWrapper>
@@ -108,6 +132,7 @@ PreferencesPage.defaultProps = defaultProps;
 PreferencesPage.displayName = 'PreferencesPage';
 
 export default compose(
+    withEnvironment,
     withLocalize,
     withOnyx({
         priorityMode: {

@@ -1,6 +1,6 @@
 import moment from 'moment';
 import CONST from '../CONST';
-import Growl from './Growl';
+import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
 
 /**
@@ -74,27 +74,32 @@ function isValidSSNLastFour(ssnLast4) {
  */
 function isValidIdentity(identity) {
     if (!isValidAddress(identity.street)) {
-        Growl.error(translateLocal('bankAccount.error.address'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (identity.state === '') {
-        Growl.error(translateLocal('bankAccount.error.addressState'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        Growl.error(translateLocal('bankAccount.error.zipCode'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (!isValidDate(identity.dob)) {
-        Growl.error(translateLocal('bankAccount.error.dob'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        Growl.error(translateLocal('bankAccount.error.ssnLast4'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
+        showBankAccountErrorModal();
         return false;
     }
 

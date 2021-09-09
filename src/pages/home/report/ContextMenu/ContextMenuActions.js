@@ -22,15 +22,30 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
+export const CONTEXT_MENU_TYPES = {
+    LINK: 'LINK',
+    REPORT_ACTION: 'REPORT_ACTION',
+};
+
 // A list of all the context actions in this menu.
 export default [
-    // Copy to clipboard
     {
-        textTranslateKey: 'contextMenuItem.copyToClipboard',
+        textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
         icon: ClipboardIcon,
-        successTextTranslateKey: 'contextMenuItem.copied',
+        successTextTranslateKey: 'reportActionContextMenu.copied',
         successIcon: Checkmark,
-        shouldShow: () => true,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.LINK,
+        onPress: (closePopover, {selection}) => {
+            Clipboard.setString(selection);
+            hideContextMenu(true, ReportActionComposeFocusManager.focus);
+        },
+    },
+    {
+        textTranslateKey: 'reportActionContextMenu.copyToClipboard',
+        icon: ClipboardIcon,
+        successTextTranslateKey: 'reportActionContextMenu.copied',
+        successIcon: Checkmark,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
 
         // If return value is true, we switch the `text` and `icon` on
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
@@ -64,7 +79,7 @@ export default [
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: Mail,
         successIcon: Checkmark,
-        shouldShow: () => true,
+        shouldShow: type => type === CONTEXT_MENU_TYPES.REPORT_ACTION,
         onPress: (closePopover, {reportAction, reportID}) => {
             updateLastReadActionID(reportID, reportAction.sequenceNumber);
             setNewMarkerPosition(reportID, reportAction.sequenceNumber);
@@ -77,7 +92,9 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.editComment',
         icon: Pencil,
-        shouldShow: reportAction => canEditReportAction(reportAction),
+        shouldShow: (type, reportAction) => (
+            type === CONTEXT_MENU_TYPES.REPORT_ACTION && canEditReportAction(reportAction)
+        ),
         onPress: (closePopover, {reportID, reportAction, draftMessage}) => {
             const editAction = () => saveReportActionDraft(
                 reportID,
@@ -98,7 +115,8 @@ export default [
     {
         textTranslateKey: 'reportActionContextMenu.deleteComment',
         icon: Trashcan,
-        shouldShow: reportAction => canDeleteReportAction(reportAction),
+        shouldShow: (type, reportAction) => type === CONTEXT_MENU_TYPES.REPORT_ACTION
+            && canDeleteReportAction(reportAction),
         onPress: (closePopover, {reportID, reportAction}) => {
             if (closePopover) {
                 // Hide popover, then call showDeleteConfirmModal

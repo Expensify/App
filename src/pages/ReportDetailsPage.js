@@ -9,6 +9,7 @@ import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -17,12 +18,12 @@ import DisplayNames from '../components/DisplayNames';
 import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
 import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
-import Picker from '../components/Picker';
 import {updateNotificationPreference} from '../libs/actions/Report';
 import {Users} from '../components/Icon/Expensicons';
 import ROUTES from '../ROUTES';
 import MenuItem from '../components/MenuItem';
 import Text from '../components/Text';
+import ExpensiPicker from '../components/ExpensiPicker';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -74,16 +75,16 @@ class ReportDetailsPage extends Component {
 
         this.notificationPreferencesOptions = {
             default: {
-                value: 'always',
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 label: props.translate('reportDetailsPage.always'),
 
             },
             daily: {
-                value: 'daily',
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
                 label: props.translate('reportDetailsPage.daily'),
             },
             mute: {
-                value: 'mute',
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
                 label: props.translate('reportDetailsPage.mute'),
             },
         };
@@ -144,7 +145,12 @@ class ReportDetailsPage extends Component {
                                     shouldUseFullTitle={isDefaultRoom(this.props.report)}
                                 />
                                 <Text
-                                    style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mb6]}
+                                    style={[
+                                        styles.sidebarLinkText,
+                                        styles.optionAlternateText,
+                                        styles.textLabelSupporting,
+                                        styles.mb6,
+                                    ]}
                                     numberOfLines={1}
                                 >
                                     {defaultRoomSubtitle}
@@ -159,11 +165,10 @@ class ReportDetailsPage extends Component {
                                     </Text>
                                 </View>
                                 <View>
-                                    <Text style={[styles.mb3]}>
-                                        {this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
-                                    </Text>
                                     <View style={[styles.mb5]}>
-                                        <Picker
+                                        <ExpensiPicker
+                                            // eslint-disable-next-line max-len
+                                            label={this.props.translate('reportDetailsPage.notificationPreferencesDescription')}
                                             onChange={(notificationPreference) => {
                                                 updateNotificationPreference(
                                                     this.props.report.reportID,

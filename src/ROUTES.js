@@ -55,12 +55,14 @@ export default {
     SEARCH: 'search',
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
-    DETAILS_WITH_LOGIN: 'details/:login',
-    getDetailsRoute: login => `details/${login}`,
+    getDetailsRoute: login => `details?login=${encodeURIComponent(login)}`,
     REPORT_PARTICIPANTS: 'r/:reportID/participants',
     getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
-    REPORT_PARTICIPANT: 'r/:reportID/participants/:login',
-    getReportParticipantRoute: (reportID, login) => `r/${reportID}/participants/${login}`,
+    REPORT_PARTICIPANT: 'r/:reportID/participants/details',
+    getReportParticipantRoute: (
+        reportID,
+        login,
+    ) => `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
@@ -68,10 +70,11 @@ export default {
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
-    VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE: 'v/:accountID/:validateCode/new-workspace',
-    VALIDATE_LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE: 'v/:accountID/:validateCode/2fa/new-workspace',
+    LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE: 'v/:accountID/:validateCode/new-workspace',
+    LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE: 'v/:accountID/:validateCode/2fa/new-workspace',
+    LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD: 'v/:accountID/:validateCode/workspace/:policyID/card',
+    LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD: 'v/:accountID/:validateCode/2fa/workspace/:policyID/card',
     ENABLE_PAYMENTS: 'enable-payments',
-    WORKSPACE_NEW: 'workspace/new',
     WORKSPACE: 'workspace',
     WORKSPACE_CARD: ':policyID/card',
     WORKSPACE_PEOPLE: ':policyID/people',
@@ -79,11 +82,10 @@ export default {
     getWorkspacePeopleRoute: policyID => `workspace/${policyID}/people`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
-    REQUEST_CALL: 'request-call',
-    VALIDATE_CODE_URL: (accountID, validateCode, exitTo = '') => {
-        const exitToURL = exitTo ? `?exitTo=${exitTo}` : '';
-        return `v/${accountID}/${validateCode}${exitToURL}`;
-    },
+    getRequestCallRoute: taskID => `request-call/${taskID}`,
+    REQUEST_CALL: 'request-call/:taskID',
+    getWorkspaceEditorRoute: policyID => `workspace/${policyID}/edit`,
+    WORKSPACE_EDITOR: 'workspace/:policyID/edit',
 
     /**
      * @param {String} route

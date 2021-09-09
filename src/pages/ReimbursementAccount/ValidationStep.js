@@ -10,7 +10,7 @@ import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
 import CONST from '../../CONST';
@@ -54,6 +54,12 @@ class ValidationStep extends React.Component {
             amount3: '',
             error: '',
         };
+
+        this.requiredFields = [
+            'amount1',
+            'amount2',
+            'amount3',
+        ];
     }
 
     submit() {
@@ -104,6 +110,9 @@ class ValidationStep extends React.Component {
         }
 
         const state = this.props.achData.state;
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.maxAttemptsReached;
+
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -121,28 +130,28 @@ class ValidationStep extends React.Component {
                             </Text>
                         </View>
                         <View style={[styles.m5, styles.flex1]}>
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="number-pad"
                                 value={this.state.amount1}
                                 onChangeText={amount1 => this.setState({amount1})}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="number-pad"
                                 value={this.state.amount2}
                                 onChangeText={amount2 => this.setState({amount2})}
                             />
-                            <TextInputWithLabel
+                            <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="number-pad"
                                 value={this.state.amount3}
                                 onChangeText={amount3 => this.setState({amount3})}
                             />
-                            {errorMessage && (
+                            {!_.isEmpty(errorMessage) && (
                                 <Text style={[styles.mb5, styles.textDanger]}>
                                     {errorMessage}
                                 </Text>
@@ -151,9 +160,9 @@ class ValidationStep extends React.Component {
                         <Button
                             success
                             text={this.props.translate('validationStep.buttonText')}
-                            style={[styles.m5]}
+                            style={[styles.mh5, styles.mb5]}
                             onPress={this.submit}
-                            isDisabled={this.props.maxAttemptsReached}
+                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 )}

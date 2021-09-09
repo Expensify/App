@@ -25,6 +25,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import CONST from '../../CONST';
 import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../../libs/reportUtils';
 import Text from '../../components/Text';
+import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
     /** Toggles the navigationMenu open and closed */
@@ -54,17 +55,23 @@ const propTypes = {
     }).isRequired,
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(participantPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
+    personalDetails: {},
     report: null,
 };
 
 const HeaderView = (props) => {
+    // Waiting until ONYX variables are loaded before displaying the component
+    if (_.isEmpty(props.personalDetails)) {
+        return null;
+    }
+
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
@@ -90,12 +97,14 @@ const HeaderView = (props) => {
         <View style={[styles.appContentHeader]} nativeID="drag-area">
             <View style={[styles.appContentHeaderTitle, !props.isSmallScreenWidth && styles.pl5]}>
                 {props.isSmallScreenWidth && (
-                    <Pressable
-                        onPress={props.onNavigationMenuButtonClicked}
-                        style={[styles.LHNToggle]}
-                    >
-                        <Icon src={BackArrow} />
-                    </Pressable>
+                    <Tooltip text={props.translate('common.back')}>
+                        <Pressable
+                            onPress={props.onNavigationMenuButtonClicked}
+                            style={[styles.LHNToggle]}
+                        >
+                            <Icon src={BackArrow} />
+                        </Pressable>
+                    </Tooltip>
                 )}
                 {props.report && props.report.reportName && (
                     <View
@@ -135,7 +144,12 @@ const HeaderView = (props) => {
                                 />
                                 {isDefaultChatRoom && (
                                     <Text
-                                        style={[styles.sidebarLinkText, styles.optionAlternateText, styles.mt1]}
+                                        style={[
+                                            styles.sidebarLinkText,
+                                            styles.optionAlternateText,
+                                            styles.textLabelSupporting,
+                                            styles.mt1,
+                                        ]}
                                         numberOfLines={1}
                                     >
                                         {subtitle}
@@ -147,13 +161,16 @@ const HeaderView = (props) => {
                             {props.report.hasOutstandingIOU && (
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
+
                             <VideoChatButtonAndMenu isConcierge={isConcierge} />
-                            <Pressable
-                                onPress={() => togglePinnedState(props.report)}
-                                style={[styles.touchableButtonImage, styles.mr0]}
-                            >
-                                <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
-                            </Pressable>
+                            <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
+                                <Pressable
+                                    onPress={() => togglePinnedState(props.report)}
+                                    style={[styles.touchableButtonImage, styles.mr0]}
+                                >
+                                    <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                </Pressable>
+                            </Tooltip>
                         </View>
                     </View>
                 )}

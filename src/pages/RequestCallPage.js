@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {ScrollView, TextInput} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -16,9 +16,10 @@ import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestConciergeDMCall} from '../libs/actions/Inbox';
+import {requestInboxCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 
@@ -51,6 +52,14 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     }).isRequired,
+
+    /** Route object from navigation */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** The task ID to request the call for */
+            taskID: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 class RequestCallPage extends Component {
@@ -82,7 +91,7 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-        requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
@@ -121,7 +130,7 @@ class RequestCallPage extends Component {
         let firstName;
         let lastName;
 
-        if (login === displayName) {
+        if (Str.removeSMSDomain(login) === displayName) {
             firstName = '';
             lastName = '';
         } else {
@@ -168,17 +177,16 @@ class RequestCallPage extends Component {
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}
                         />
-                        <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
-                            {this.props.translate('common.phoneNumber')}
-                        </Text>
-                        <TextInput
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            style={[styles.textInput]}
-                            value={this.state.phoneNumber}
-                            placeholder="+14158675309"
-                            onChangeText={phoneNumber => this.setState({phoneNumber})}
-                        />
+                        <View style={styles.mt4}>
+                            <ExpensiTextInput
+                                label={this.props.translate('common.phoneNumber')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                value={this.state.phoneNumber}
+                                placeholder="+14158675309"
+                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                            />
+                        </View>
                         <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
                             {this.props.translate('requestCallPage.availabilityText')}
                         </Text>

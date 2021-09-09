@@ -1,6 +1,8 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -9,13 +11,28 @@ import TextLink from '../../components/TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
-import {goToWithdrawalAccountSetupStep, setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import {
+    goToWithdrawalAccountSetupStep,
+    setupWithdrawalAccount,
+    showBankAccountErrorModal,
+} from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
-import Growl from '../../libs/Growl';
 import Onfido from '../../components/Onfido';
+import compose from '../../libs/compose';
+import ONYXKEYS from '../../ONYXKEYS';
+
+const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: PropTypes.shape({
+        /** Error set when handling the API response */
+        error: PropTypes.string,
+    }).isRequired,
+
+    ...withLocalizePropTypes,
+};
 
 class RequestorStep extends React.Component {
     constructor(props) {
@@ -36,6 +53,17 @@ class RequestorStep extends React.Component {
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
+
+        this.requiredFields = [
+            'firstName',
+            'lastName',
+            'requestorAddressStreet',
+            'requestorAddressCity',
+            'requestorAddressZipCode',
+            'dob',
+            'ssnLast4',
+            'requestorAddressState',
+        ];
     }
 
     onFieldChange(field, value) {
@@ -54,7 +82,7 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            Growl.error(this.props.translate('requestorStep.isControllingOfficerError'));
+            showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
 
@@ -79,6 +107,9 @@ class RequestorStep extends React.Component {
     }
 
     render() {
+        const shouldDisableSubmitButton = this.requiredFields
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || !this.state.isControllingOfficer;
+
         return (
             <>
                 <HeaderWithCloseButton
@@ -104,6 +135,24 @@ class RequestorStep extends React.Component {
                     <>
                         <ScrollView style={[styles.flex1, styles.w100]}>
                             <View style={[styles.p4]}>
+                                <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                                <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+                                    <TextLink
+                                        style={[styles.textMicro]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                                    >
+                                        {`${this.props.translate('requestorStep.learnMore')}`}
+                                    </TextLink>
+                                    <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+                                    <TextLink
+                                        style={[styles.textMicro, styles.textLink]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                                    >
+                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
+                                    </TextLink>
+                                </View>
                                 <IdentityForm
                                     onFieldChange={(field, value) => this.onFieldChange(field, value)}
                                     values={{
@@ -116,6 +165,7 @@ class RequestorStep extends React.Component {
                                         dob: this.state.dob,
                                         ssnLast4: this.state.ssnLast4,
                                     }}
+                                    error={this.props.reimbursementAccount.error}
                                 />
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
@@ -133,21 +183,6 @@ class RequestorStep extends React.Component {
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                     {this.props.translate('requestorStep.financialRegulations')}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                                    >
-                                        {`${this.props.translate('requestorStep.learnMore')}`}
-                                    </TextLink>
-                                    {' | '}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                                    >
-                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
-                                    </TextLink>
                                 </Text>
                                 <Text style={[styles.mt3, styles.textMicroSupporting]}>
                                     {this.props.translate('requestorStep.onFidoConditions')}
@@ -174,12 +209,13 @@ class RequestorStep extends React.Component {
                                 </Text>
                             </View>
                         </ScrollView>
-                        <FixedFooter style={[styles.mt5]}>
+                        <FixedFooter>
                             <Button
                                 success
                                 onPress={this.submit}
                                 style={[styles.w100]}
                                 text={this.props.translate('common.saveAndContinue')}
+                                isDisabled={shouldDisableSubmitButton}
                             />
                         </FixedFooter>
                     </>
@@ -189,7 +225,13 @@ class RequestorStep extends React.Component {
     }
 }
 
-RequestorStep.propTypes = withLocalizePropTypes;
+RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
-
-export default withLocalize(RequestorStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+    }),
+)(RequestorStep);

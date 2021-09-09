@@ -262,10 +262,17 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[User] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
             );
         });
+}
+
+/**
+ * @param {Boolean} shouldUseSecureStaging
+ */
+function setShouldUseSecureStaging(shouldUseSecureStaging) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
 }
 
 export {
@@ -279,4 +286,5 @@ export {
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
+    setShouldUseSecureStaging,
 };
