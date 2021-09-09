@@ -369,7 +369,6 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     CONST.NVP.KYC_MIGRATION,
                     CONST.NVP.ACH_DATA_THROTTLED,
                     CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
-                    CONST.NVP.PRIORITY_MODE,
                 ].join(),
             })
                 .then(({bankAccountList, nameValuePairs}) => {
