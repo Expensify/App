@@ -14,4 +14,7 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
         || lodashGet(props, ['achData', fieldName], defaultValue);
 }
 
-export default getDefaultStateForField;
+export {
+    // eslint-disable-next-line import/prefer-default-export
+    getDefaultStateForField,
+};
