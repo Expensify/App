@@ -15,6 +15,7 @@ import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
@@ -23,6 +24,7 @@ import {isValidIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -41,15 +43,15 @@ class RequestorStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            firstName: lodashGet(props, ['achData', 'firstName'], ''),
-            lastName: lodashGet(props, ['achData', 'lastName'], ''),
-            requestorAddressStreet: lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
-            requestorAddressCity: lodashGet(props, ['achData', 'requestorAddressCity'], ''),
-            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || '',
-            requestorAddressZipCode: lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
-            dob: lodashGet(props, ['achData', 'dob'], ''),
-            ssnLast4: lodashGet(props, ['achData', 'ssnLast4'], ''),
-            isControllingOfficer: lodashGet(props, ['achData', 'isControllingOfficer'], false),
+            firstName: getDefaultStateForField(props, 'firstName'),
+            lastName: getDefaultStateForField(props, 'lastName'),
+            requestorAddressStreet: getDefaultStateForField(props, 'requestorAddressStreet'),
+            requestorAddressCity: getDefaultStateForField(props, 'requestorAddressCity'),
+            requestorAddressState: getDefaultStateForField(props, 'requestorAddressState'),
+            requestorAddressZipCode: getDefaultStateForField(props, 'requestorAddressZipCode'),
+            dob: getDefaultStateForField(props, 'dob'),
+            ssnLast4: getDefaultStateForField(props, 'ssnLast4'),
+            isControllingOfficer: getDefaultStateForField(props, 'isControllingOfficer', false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
@@ -74,7 +76,9 @@ class RequestorStep extends React.Component {
             zipCode: 'requestorAddressZipCode',
         };
         const fieldName = lodashGet(renamedFields, field, field);
-        this.setState({[fieldName]: value});
+        const newState = {[fieldName]: value};
+        this.setState(newState);
+        updateReimbursementAccountDraft(newState);
     }
 
     /**
@@ -135,6 +139,24 @@ class RequestorStep extends React.Component {
                     <>
                         <ScrollView style={[styles.flex1, styles.w100]}>
                             <View style={[styles.p4]}>
+                                <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                                <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
+                                    <TextLink
+                                        style={[styles.textMicro]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
+                                    >
+                                        {`${this.props.translate('requestorStep.learnMore')}`}
+                                    </TextLink>
+                                    <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+                                    <TextLink
+                                        style={[styles.textMicro, styles.textLink]}
+                                        // eslint-disable-next-line max-len
+                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
+                                    >
+                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
+                                    </TextLink>
+                                </View>
                                 <IdentityForm
                                     onFieldChange={(field, value) => this.onFieldChange(field, value)}
                                     values={{
@@ -151,9 +173,11 @@ class RequestorStep extends React.Component {
                                 />
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
-                                    onPress={() => this.setState(prevState => ({
-                                        isControllingOfficer: !prevState.isControllingOfficer,
-                                    }))}
+                                    onPress={() => this.setState((prevState) => {
+                                        const newState = {isControllingOfficer: !prevState.isControllingOfficer};
+                                        updateReimbursementAccountDraft(newState);
+                                        return newState;
+                                    })}
                                     LabelComponent={() => (
                                         <View style={[styles.flex1, styles.pr1]}>
                                             <Text>
@@ -165,21 +189,6 @@ class RequestorStep extends React.Component {
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                     {this.props.translate('requestorStep.financialRegulations')}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/6983/faq-why-do-i-need-to-provide-personal-documentation-when-setting-up-updating-my-bank-account"
-                                    >
-                                        {`${this.props.translate('requestorStep.learnMore')}`}
-                                    </TextLink>
-                                    {' | '}
-                                    <TextLink
-                                        style={styles.textMicro}
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-security-how-expensify-protects-your-information"
-                                    >
-                                        {`${this.props.translate('requestorStep.isMyDataSafe')}`}
-                                    </TextLink>
                                 </Text>
                                 <Text style={[styles.mt3, styles.textMicroSupporting]}>
                                     {this.props.translate('requestorStep.onFidoConditions')}
@@ -224,11 +233,15 @@ class RequestorStep extends React.Component {
 
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
+
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(RequestorStep);

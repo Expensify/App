@@ -12,7 +12,12 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+<<<<<<< HEAD
 import getDomainFromEmail from '../getDomainFromEmail';
+=======
+import NameValuePair from './NameValuePair';
+import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+>>>>>>> main
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -120,7 +125,10 @@ function getDomainInfo(loginList) {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: CONST.NVP.PAYPAL_ME_ADDRESS,
+        nvpNames: [
+            CONST.NVP.PAYPAL_ME_ADDRESS,
+            CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
+        ].join(','),
     })
         .then((response) => {
             // Update the User onyx key
@@ -139,6 +147,10 @@ function getUserDetails() {
             // Get domainInfo for user
             const emailList = _.map(loginList, userLogin => userLogin.partnerUserID);
             getDomainInfo(emailList);
+
+            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
+            Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+                getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
         });
 }
 
@@ -280,6 +292,22 @@ function subscribeToUserEvents() {
         });
 }
 
+/**
+ * Sync preferredSkinTone with Onyx and Server
+ * @param {String} skinTone
+ */
+
+function setPreferredSkinTone(skinTone) {
+    return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+}
+
+/**
+ * @param {Boolean} shouldUseSecureStaging
+ */
+function setShouldUseSecureStaging(shouldUseSecureStaging) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
+}
+
 export {
     changePassword,
     getBetas,
@@ -291,4 +319,6 @@ export {
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
+    setPreferredSkinTone,
+    setShouldUseSecureStaging,
 };
