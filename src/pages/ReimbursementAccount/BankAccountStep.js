@@ -298,14 +298,14 @@ class BankAccountStep extends React.Component {
                                     </View>
                                 )}
                             />
+                            <Button
+                                success
+                                text={this.props.translate('common.saveAndContinue')}
+                                style={[styles.mb4]}
+                                isDisabled={!this.canSubmitManually()}
+                                onPress={this.addManualAccount}
+                            />
                         </View>
-                        <Button
-                            success
-                            text={this.props.translate('common.saveAndContinue')}
-                            style={[styles.m5]}
-                            isDisabled={!this.canSubmitManually()}
-                            onPress={this.addManualAccount}
-                        />
                     </>
                 )}
             </View>

@@ -141,7 +141,7 @@ class ValidationStep extends React.Component {
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.m5, styles.flex1]}>
+                        <View style={[styles.m5]}>
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"

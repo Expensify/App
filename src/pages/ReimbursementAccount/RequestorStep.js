@@ -18,7 +18,6 @@ import {
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
@@ -213,17 +212,15 @@ class RequestorStep extends React.Component {
                                         {`${this.props.translate('common.termsOfService')}`}
                                     </TextLink>
                                 </Text>
+                                <Button
+                                    success
+                                    onPress={this.submit}
+                                    style={[styles.w100, styles.mt4]}
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    isDisabled={shouldDisableSubmitButton}
+                                />
                             </View>
                         </ScrollView>
-                        <FixedFooter>
-                            <Button
-                                success
-                                onPress={this.submit}
-                                style={[styles.w100]}
-                                text={this.props.translate('common.saveAndContinue')}
-                                isDisabled={shouldDisableSubmitButton}
-                            />
-                        </FixedFooter>
                     </>
                 )}
             </>

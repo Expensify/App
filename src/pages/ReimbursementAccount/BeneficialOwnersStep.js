@@ -10,7 +10,6 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import Button from '../../components/Button';
 import IdentityForm from './IdentityForm';
-import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
@@ -244,15 +243,14 @@ class BeneficialOwnersStep extends React.Component {
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
                     />
-                </ScrollView>
-                <FixedFooter>
                     <Button
                         success
+                        style={[styles.w100, styles.mt4, styles.mb1]}
                         text={this.props.translate('common.saveAndContinue')}
                         onPress={this.submit}
                         isDisabled={!this.state.acceptTermsAndConditions || !this.state.certifyTrueInformation}
                     />
-                </FixedFooter>
+                </ScrollView>
             </>
         );
     }
