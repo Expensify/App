@@ -256,6 +256,11 @@ const CONST = {
         PHONE_PAD: 'phone-pad',
     },
 
+    ATTACHMENT_PICKER_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
+    },
+
     EMOJI_PICKER_SIZE: 320,
     NON_NATIVE_EMOJI_PICKER_LIST_HEIGHT: 300,
     EMOJI_PICKER_ITEM_HEIGHT: 40,
