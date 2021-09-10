@@ -13,6 +13,7 @@ import {
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     setBankAccountFormValidationErrors,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
@@ -30,6 +31,7 @@ import {
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import ExpensiPicker from '../../components/ExpensiPicker';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -48,19 +50,19 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            companyName: lodashGet(props, ['achData', 'companyName'], ''),
-            addressStreet: lodashGet(props, ['achData', 'addressStreet'], ''),
-            addressCity: lodashGet(props, ['achData', 'addressCity'], ''),
-            addressState: lodashGet(props, ['achData', 'addressState']) || '',
-            addressZipCode: lodashGet(props, ['achData', 'addressZipCode'], ''),
-            companyPhone: lodashGet(props, ['achData', 'companyPhone'], ''),
-            website: lodashGet(props, ['achData', 'website'], 'https://'),
-            companyTaxID: lodashGet(props, ['achData', 'companyTaxID'], ''),
-            incorporationType: lodashGet(props, ['achData', 'incorporationType'], ''),
-            incorporationDate: lodashGet(props, ['achData', 'incorporationDate'], ''),
-            incorporationState: lodashGet(props, ['achData', 'incorporationState']) || '',
-            industryCode: lodashGet(props, ['achData', 'industryCode'], ''),
-            hasNoConnectionToCannabis: lodashGet(props, ['achData', 'hasNoConnectionToCannabis'], false),
+            companyName: getDefaultStateForField(props, 'companyName'),
+            addressStreet: getDefaultStateForField(props, 'addressStreet'),
+            addressCity: getDefaultStateForField(props, 'addressCity'),
+            addressState: getDefaultStateForField(props, 'addressState'),
+            addressZipCode: getDefaultStateForField(props, 'addressZipCode'),
+            companyPhone: getDefaultStateForField(props, 'companyPhone'),
+            website: getDefaultStateForField(props, 'website', 'https://'),
+            companyTaxID: getDefaultStateForField(props, 'companyTaxID'),
+            incorporationType: getDefaultStateForField(props, 'incorporationType'),
+            incorporationDate: getDefaultStateForField(props, 'incorporationDate'),
+            incorporationState: getDefaultStateForField(props, 'incorporationState'),
+            industryCode: getDefaultStateForField(props, 'industryCode'),
+            hasNoConnectionToCannabis: getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
             password: '',
         };
 
@@ -114,13 +116,21 @@ class CompanyStep extends React.Component {
     }
 
     /**
+    * @param {String} value
+    */
+    setValue(value) {
+        this.setState(value);
+        updateReimbursementAccountDraft(value);
+    }
+
+    /**
      * Clear the error associated to inputKey if found and store the inputKey new value in the state.
      *
      * @param {String} inputKey
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setState({[inputKey]: value});
+        this.setValue({[inputKey]: value});
         const errors = this.getErrors();
         if (!errors[inputKey]) {
             // No error found for this inputKey
@@ -328,9 +338,11 @@ class CompanyStep extends React.Component {
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
-                            onPress={() => this.setState(prevState => ({
-                                hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis,
-                            }))}
+                            onPress={() => this.setState((prevState) => {
+                                const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
+                                updateReimbursementAccountDraft(newState);
+                                return newState;
+                            })}
                             LabelComponent={() => (
                                 <>
                                     <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
@@ -366,6 +378,9 @@ export default compose(
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(CompanyStep);
