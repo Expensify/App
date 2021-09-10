@@ -75,6 +75,8 @@ class IOUAmountPage extends React.Component {
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
+        this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
+
         this.state = {
             amount: props.selectedAmount,
         };
@@ -98,8 +100,18 @@ class IOUAmountPage extends React.Component {
      * @returns {Boolean}
      */
     validateAmount(amount) {
-        const decimalNumberRegex = new RegExp(/^\d+(\.\d{0,3})?$/, 'i');
+        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,3})?$/, 'i');
         return amount === '' || decimalNumberRegex.test(amount);
+    }
+
+    /**
+     * Strip comma from the amount
+     *
+     * @param {String} amount
+     * @returns {String}
+     */
+    stripCommaFromAmount(amount) {
+        return amount.replace(/,/g, '');
     }
 
     /**
@@ -122,7 +134,7 @@ class IOUAmountPage extends React.Component {
         if (this.state.amount.length < CONST.IOU.AMOUNT_MAX_LENGTH) {
             this.setState((prevState) => {
                 const amount = `${prevState.amount}${key}`;
-                return this.validateAmount(amount) ? {amount} : prevState;
+                return this.validateAmount(amount) ? {amount: this.stripCommaFromAmount(amount)} : prevState;
             });
         }
     }
@@ -135,7 +147,7 @@ class IOUAmountPage extends React.Component {
      */
     updateAmount(amount) {
         if (this.validateAmount(amount)) {
-            this.setState({amount});
+            this.setState({amount: this.stripCommaFromAmount(amount)});
         }
     }
 
