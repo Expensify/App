@@ -397,6 +397,7 @@ export default {
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',
             dob: 'Please enter a valid date of birth',
+            age: 'Requestors must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             existingOwners: {
@@ -532,7 +533,8 @@ export default {
         companyPhonePlaceholder: '10 digits, no hyphens',
     },
     requestorStep: {
-        headerTitle: 'Requestor information',
+        headerTitle: 'Personal information',
+        subtitle: 'Please provide your personal information.',
         financialRegulations: 'Financial regulation and bank rules require us to validate the identity of any individual setting up bank accounts on behalf of a company. ',
         learnMore: 'Learn more',
         isMyDataSafe: 'Is my data safe?',
@@ -551,9 +553,8 @@ export default {
         forNextSteps: ' for next steps to finish setting up your bank account.',
     },
     beneficialOwnersStep: {
-        beneficialOwners: 'Beneficial owners',
         additionalInformation: 'Additional information',
-        checkAllThatApply: '(check all that apply, otherwise leave blank)',
+        checkAllThatApply: 'Check all that apply, otherwise leave blank.',
         iOwnMoreThan25Percent: 'I own more than 25% of ',
         someoneOwnsMoreThan25Percent: 'Somebody else owns more than 25% of ',
         additionalOwner: 'Additional beneficial owner',
@@ -637,5 +638,8 @@ export default {
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         needHelp: 'Help',
         needHelpTooltip: 'Get live help from our team',
+    },
+    emojiPicker: {
+        skinTonePickerLabel: 'Change default skin tone',
     },
 };

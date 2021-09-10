@@ -16,12 +16,14 @@ import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import {
-    uploadAvatar, update,
+    uploadAvatar, update, updateLocalPolicyValues,
 } from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
 import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
+import Growl from '../../libs/Growl';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** List of betas */
@@ -50,12 +52,15 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     onImageSelected(image) {
+        updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
         this.setState({previewAvatarURL: image.uri});
 
         // Store the upload avatar promise so we can wait for it to finish before updating the policy
         this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
             this.setState({avatarURL: url}, resolve);
-        }));
+        })).catch(() => {
+            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
+        }).finally(() => updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
     }
 
     onImageRemoved() {
@@ -63,6 +68,8 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     submit() {
+        updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
+
         // Wait for the upload avatar promise to finish before updating the policy
         this.uploadAvatarPromise.then(() => {
             const name = this.state.name.trim();
@@ -70,6 +77,8 @@ class WorkspaceEditorPage extends React.Component {
             const policyID = this.props.policy.id;
 
             update(policyID, {name, avatarURL});
+        }).catch(() => {
+            updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
         });
     }
 
@@ -85,6 +94,9 @@ class WorkspaceEditorPage extends React.Component {
             return null;
         }
 
+        const isButtonDisabled = policy.isAvatarUploading
+                                  || (this.state.avatarURL === this.props.policy.avatarURL
+                                    && this.state.name === this.props.policy.name);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -95,7 +107,9 @@ class WorkspaceEditorPage extends React.Component {
                 <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
                     <View style={[styles.w100, styles.flex1]}>
                         <AvatarWithImagePicker
+                            isUploading={policy.isAvatarUploading}
                             avatarURL={this.state.previewAvatarURL}
+                            size={CONST.AVATAR_SIZE.LARGE}
                             DefaultAvatar={() => (
                                 <Icon
                                     src={Workspace}
@@ -124,6 +138,8 @@ class WorkspaceEditorPage extends React.Component {
 
                     <Button
                         success
+                        isLoading={policy.isPolicyUpdating}
+                        isDisabled={isButtonDisabled}
                         style={[styles.w100]}
                         text={this.props.translate('workspace.editor.save')}
                         onPress={this.submit}
