@@ -64,8 +64,6 @@ class TransferBalancePage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedPaymentType: CONST.WALLET.PAYMENT_TYPE.INSTANT,
-
             // Show loader while transfer is in-transit
             loading: false,
         };
@@ -91,7 +89,8 @@ class TransferBalancePage extends React.Component {
         ];
 
         Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
-            transferAmount: this.props.userWallet.availableBalance - Fee,
+            transferAmount: this.props.userWallet.currentBalance - Fee,
+            filterPaymentMethods: null,
         });
         this.transferBalance = this.transferBalance.bind(this);
     }
@@ -109,6 +108,7 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
+        console.debug(this.props.userWallet);
         const paymentMethods = getPaymentMethodsList(
             this.props.bankAccountList,
             this.props.cardList,
@@ -116,7 +116,7 @@ class TransferBalancePage extends React.Component {
         );
         const defaultAccount = _.find(
             paymentMethods,
-            method => method.id === this.props.userWallet.linkedBankAccount,
+            method => method.id === this.props.userWallet.bankAccountID,
         );
         const selectAccount = this.props.walletTransfer.selectedAccountID
             ? _.find(
@@ -125,14 +125,17 @@ class TransferBalancePage extends React.Component {
             )
             : defaultAccount || {};
 
-        const transferAmount = (this.props.userWallet.availableBalance - Fee).toFixed(2);
+        const selectedPaymentType = selectAccount.type === 'bank' ? CONST.WALLET.PAYMENT_TYPE.ACH : CONST.WALLET.PAYMENT_TYPE.INSTANT;
+        const transferAmount = (this.props.userWallet.currentBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('common.transferBalance')}
-                        onCloseButtonPress={() => Navigation.goBack()}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View style={[styles.flex1, styles.flexBasisAuto, styles.justifyContentCenter]}>
                         <CurrentWalletBalance balanceStyles={[styles.text7XLarge]} />
@@ -146,16 +149,22 @@ class TransferBalancePage extends React.Component {
                                 iconWidth={variables.iconSizeXLarge}
                                 iconHeight={variables.iconSizeXLarge}
                                 icon={type.icon}
-                                success={this.state.selectedPaymentType === type.key}
+                                success={selectedPaymentType === type.key}
                                 wrapperStyle={{
                                     ...styles.mt3,
                                     ...styles.pv4,
                                     ...styles.transferBalancePayment,
-                                    ...(this.state.selectedPaymentType === type.key
+                                    ...(selectedPaymentType === type.key
                                         && styles.transferBalanceSelectedPayment),
                                 }}
                                 // eslint-disable-next-line react/no-unused-state
-                                onPress={() => this.setState({selectedPaymentType: type.key})}
+                                onPress={() => {
+                                    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
+                                        filterPaymentMethods: type.type,
+                                    }).then(() => {
+                                        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
+                                    });
+                                }}
                             />
                         ))}
                         <Text

@@ -283,9 +283,9 @@ export default {
     },
     transferAmountPage: {
         transfer: ({amount}) => `Transfer${amount ? ` ${amount}` : ''}`,
-        instant: 'Instant',
+        instant: 'Instant (Debit Card)',
         instantSummary: ({amount}) => `1.5% fee (${amount} minimum)`,
-        ach: '1-3 Business Days',
+        ach: '1-3 Business Days (Bank Account)',
         achSummary: 'No fee',
         whichAccount: 'Which Account?',
         fee: 'Fee',
