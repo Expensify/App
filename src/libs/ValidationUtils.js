@@ -2,8 +2,6 @@ import moment from 'moment';
 import CONST from '../CONST';
 import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
-import getEmojiUnicode from './Emoji/getEmojiUnicode';
-import trimEmojiUnicode from './Emoji/trimEmojiUnicode';
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -19,24 +17,6 @@ function isValidAddress(value) {
     return !CONST.REGEX.PO_BOX.test(value);
 }
 
-/**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    const matchedUnicode = getEmojiUnicode(matchedEmoji);
-    const currentMessageUnicode = trimEmojiUnicode(getEmojiUnicode(message));
-    return matchedUnicode === currentMessageUnicode;
-}
 
 /**
  * Validate date fields
@@ -116,5 +96,4 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
-    isSingleEmoji,
 };

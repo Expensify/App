@@ -1,15 +1,12 @@
 /* eslint radix: ["error", "as-needed"] */
+import CONST from '../CONST';
 
 /**
- * getEmojiUnicode
  * Get the unicode code of an emoji in base 16.
- *
- * @name emojiUnicode
- * @function
- * @param {String} input The emoji character.
- * @returns {String} The base 16 unicode code.
+ * @param {String} input
+ * @returns {String}
  */
-export default function getEmojiUnicode(input) {
+function getEmojiUnicode(input) {
     if (input.length === 0) {
         return '';
     }
@@ -36,3 +33,38 @@ export default function getEmojiUnicode(input) {
     }
     return pairs.map(val => parseInt(val).toString(16)).join(' ');
 }
+
+/**
+ * Function to remove Skin Tone and utf16 surrogates from Emoji
+ * @param {String} emojiCode
+ * @returns {String}
+ */
+function trimEmojiUnicode(emojiCode) {
+    return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
+}
+
+/**
+ * Validates that this string is composed of a single emoji
+ *
+ * @param {String} message
+ * @returns {Boolean}
+ */
+function isSingleEmoji(message) {
+    const match = message.match(CONST.REGEX.EMOJIS);
+
+    if (!match) {
+        return false;
+    }
+
+    const matchedEmoji = match[0];
+    const matchedUnicode = getEmojiUnicode(matchedEmoji);
+    const currentMessageUnicode = trimEmojiUnicode(getEmojiUnicode(message));
+    return matchedUnicode === currentMessageUnicode;
+}
+
+
+export {
+    getEmojiUnicode,
+    trimEmojiUnicode,
+    isSingleEmoji,
+};

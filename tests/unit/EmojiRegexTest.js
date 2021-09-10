@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import Emoji from '../../assets/emojis';
 import CONST from '../../src/CONST';
-import {isSingleEmoji} from '../../src/libs/ValidationUtils';
+import {isSingleEmoji} from '../../src/libs/EmojiUtils';
 
 describe('EmojiRegexTest', () => {
     it('matches all the emojis in the list', () => {
