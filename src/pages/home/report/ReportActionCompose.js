@@ -270,16 +270,6 @@ class ReportActionCompose extends React.Component {
     }
 
     /**
-     * Get timezone's UTC offset in minutes
-     *
-     * @param {String} [timezone]
-     * @return {Number}
-     */
-    getTimezoneOffset(timezone) {
-        return moment().tz(timezone).utcOffset();
-    }
-
-    /**
      * Focus the composer text input
      * @param {Boolean} [shouldelay=false] Impose delay before focusing the composer
      * @memberof ReportActionCompose
@@ -467,7 +457,7 @@ class ReportActionCompose extends React.Component {
             && !hasMultipleParticipants
             && reportRecipient
             && reportRecipientTimezone
-            && this.getTimezoneOffset(currentUserTimezone.selected) !== this.getTimezoneOffset(reportRecipientTimezone.selected);
+            && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
