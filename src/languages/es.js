@@ -397,6 +397,7 @@ export default {
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelva a intentarlo más tarde o introduzca los detalles manualmente.',
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
+            age: 'Los solicitantes deben ser mayores de 18 años',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
             existingOwners: {
@@ -534,7 +535,8 @@ export default {
         companyPhonePlaceholder: '10 dígitos, sin guiones',
     },
     requestorStep: {
-        headerTitle: 'Información del solicitante',
+        headerTitle: 'Información personal',
+        subtitle: 'Dé más información sobre tí.',
         financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
         learnMore: 'Más información',
         isMyDataSafe: '¿Están seguros mis datos?',
@@ -553,9 +555,8 @@ export default {
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
     },
     beneficialOwnersStep: {
-        beneficialOwners: 'Beneficiario efectivo',
         additionalInformation: 'Información adicional',
-        checkAllThatApply: '(marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco)',
+        checkAllThatApply: 'Marca todos los que apliquen, en caso de que ninguno aplique dejar en blanco.',
         iOwnMoreThan25Percent: 'Soy dueño de mas de 25% de ',
         someoneOwnsMoreThan25Percent: 'Otra persona es dueña de mas de 25% de ',
         additionalOwner: 'Beneficiario efectivo adicional',
@@ -639,5 +640,8 @@ export default {
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         needHelp: 'Ayuda',
         needHelpTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+    },
+    emojiPicker: {
+        skinTonePickerLabel: 'Elige el tono de piel por defecto',
     },
 };
