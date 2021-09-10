@@ -355,6 +355,7 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
+        AMOUNT_MAX_LENGTH: 14,
     },
 
     GROWL: {
