@@ -12,6 +12,7 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+import getDomainFromEmail from '../getDomainFromEmail';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -61,19 +62,6 @@ function getBetas() {
             Onyx.set(ONYXKEYS.BETAS, response.betas);
         }
     });
-}
-
-/**
- * Checks if the expiresAt date of a user's ban is before right now
- *
- * @param {String} email
- * @returns {String}
- */
-function getDomainFromEmail(email) {
-    if (_.indexOf(email, '@') > -1) {
-        return email.split('@')[1];
-    }
-    return '';
 }
 
 /**
