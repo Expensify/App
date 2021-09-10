@@ -230,6 +230,7 @@ const CONST = {
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
         PREFERRED_LOCALE: 'preferredLocale',
+        KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
@@ -253,6 +254,11 @@ const CONST = {
     KEYBOARD_TYPE: {
         NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
+    },
+
+    ATTACHMENT_PICKER_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
     },
 
     EMOJI_PICKER_SIZE: 320,
