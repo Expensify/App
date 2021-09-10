@@ -20,7 +20,6 @@ import compose from '../../../libs/compose';
 import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
-import Growl from '../../../libs/Growl';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
 import ExpensiPicker from '../../../components/ExpensiPicker';
 import FullNameInputRow from '../../../components/FullNameInputRow';
@@ -177,9 +176,7 @@ class ProfilePage extends Component {
                 automatic: isAutomaticTimezone,
                 selected: selectedTimezone,
             },
-        });
-
-        Growl.show(this.props.translate('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        }, true);
     }
 
     render() {

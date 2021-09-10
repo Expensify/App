@@ -183,6 +183,7 @@ export default {
         send: ({amount}) => `Enviar ${amount}`,
         choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
+        maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
             invalidAmount: 'Monto no válido',
             invalidSplit: 'La suma de las partes no equivale al monto total',
@@ -319,6 +320,8 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Por favor completa todos los campos',
+        pleaseFillPassword: 'Por favor, introduce tu contraseña',
+        pleaseFillTwoFactorAuth: 'Por favor, introduce tu código 2 factores',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Ingrese su código de autenticación de dos factores para continuar',
         forgot: '¿Te has olvidado?',
         twoFactorCode: 'Autenticación de 2 factores',
@@ -389,6 +392,7 @@ export default {
             industryCode: 'Ingrese un código de clasificación de industria válido',
             restrictedBusiness: 'Confirme que la empresa no está en la lista de negocios restringidos',
             routingNumber: 'Ingrese un número de ruta válido',
+            accountNumber: 'Ingrese un número de cuenta válido',
             companyType: 'Ingrese un tipo de compañía válido',
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelva a intentarlo más tarde o introduzca los detalles manualmente.',
             address: 'Ingrese una dirección válida',
@@ -396,7 +400,6 @@ export default {
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
             existingOwners: {
-                unableToAddBankAccount: 'No ha sido posible añadir la cuenta bancaria',
                 alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
                 pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
                 alternatively: 'En su defecto, puedes ',
@@ -531,7 +534,8 @@ export default {
         companyPhonePlaceholder: '10 dígitos, sin guiones',
     },
     requestorStep: {
-        headerTitle: 'Información del solicitante',
+        headerTitle: 'Información personal',
+        subtitle: 'Dé más información sobre tí.',
         financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
         learnMore: 'Más información',
         isMyDataSafe: '¿Están seguros mis datos?',
