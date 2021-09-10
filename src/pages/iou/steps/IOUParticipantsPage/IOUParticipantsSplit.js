@@ -249,6 +249,11 @@ class IOUParticipantsSplit extends Component {
                 </View>
                 {this.props.participants?.length > 0 && (
                     <FixedFooter>
+                        {maxParticipantsReached && (
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
+                                {this.props.translate('iou.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS})}
+                            </Text>
+                        )}
                         <Button
                             success
                             style={[styles.w100]}

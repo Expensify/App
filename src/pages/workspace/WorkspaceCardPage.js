@@ -24,6 +24,7 @@ import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
 import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
 import BankAccount from '../../libs/models/BankAccount';
 import {openSignedInLink} from '../../libs/actions/App';
+import {setWorkspaceIDForReimbursementAccount} from '../../libs/actions/BankAccounts';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +40,15 @@ const propTypes = {
         /** Whether the user is using Expensify Card */
         isUsingExpensifyCard: PropTypes.bool,
     }),
+
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** policyID passed via route: /workspace/:policyID/people */
+            policyID: PropTypes.string,
+        }),
+    }).isRequired,
 
     /** Bank account currently in setup */
     reimbursementAccount: PropTypes.shape({
@@ -70,6 +80,7 @@ const WorkspaceCardPage = ({
     betas,
     user,
     translate,
+    route,
     isSmallScreenWidth,
     isMediumScreenWidth,
     reimbursementAccount,
@@ -95,6 +106,7 @@ const WorkspaceCardPage = ({
         } else if (user.isUsingExpensifyCard) {
             openSignedInLink(CONST.MANAGE_CARDS_URL);
         } else {
+            setWorkspaceIDForReimbursementAccount(route.params.policyID);
             Navigation.navigate(ROUTES.getBankAccountRoute());
         }
     };

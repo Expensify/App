@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import {fetchAccountDetails} from '../../libs/actions/Session';
@@ -57,7 +56,7 @@ class LoginForm extends React.Component {
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: this.props.translate('loginForm.pleaseEnterEmailOrPhoneNumber')});
+            this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
             return;
         }
 
@@ -83,19 +82,17 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        placeholder={this.props.translate('loginForm.enterYourPhoneOrEmail')}
-                        placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                         translateX={-18}
                     />
                 </View>
                 {this.state.formError && (
                     <Text style={[styles.formError]}>
-                        {this.state.formError}
+                        {this.props.translate(this.state.formError)}
                     </Text>
                 )}
 
-                {!_.isEmpty(this.props.account.error) && (
+                {!this.state.formError && !_.isEmpty(this.props.account.error) && (
                     <Text style={[styles.formError]}>
                         {this.props.account.error}
                     </Text>

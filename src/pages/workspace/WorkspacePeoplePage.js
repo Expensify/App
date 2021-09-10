@@ -198,7 +198,7 @@ class WorkspacePeoplePage extends React.Component {
                     <View style={styles.peopleRowCell}>
                         <View style={[styles.badge, styles.peopleBadge]}>
                             <Text style={[styles.peopleBadgeText]}>
-                                Admin
+                                {this.props.translate('common.admin')}
                             </Text>
                         </View>
                     </View>

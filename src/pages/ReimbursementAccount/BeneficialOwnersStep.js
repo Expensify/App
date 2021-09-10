@@ -15,11 +15,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
+    showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import {isValidIdentity} from '../../libs/ValidationUtils';
-import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 
@@ -67,12 +67,12 @@ class BeneficialOwnersStep extends React.Component {
         }
 
         if (!this.state.acceptTermsAndConditions) {
-            Growl.error(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
+            showBankAccountErrorModal(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
             return false;
         }
 
         if (!this.state.certifyTrueInformation) {
-            Growl.error(this.props.translate('beneficialOwnersStep.error.certify'));
+            showBankAccountErrorModal(this.props.translate('beneficialOwnersStep.error.certify'));
             return false;
         }
 
@@ -230,11 +230,12 @@ class BeneficialOwnersStep extends React.Component {
                         )}
                     />
                 </ScrollView>
-                <FixedFooter style={[styles.mt5]}>
+                <FixedFooter>
                     <Button
                         success
                         text={this.props.translate('common.saveAndContinue')}
                         onPress={this.submit}
+                        isDisabled={!this.state.acceptTermsAndConditions || !this.state.certifyTrueInformation}
                     />
                 </FixedFooter>
             </>

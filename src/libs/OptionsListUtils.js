@@ -106,7 +106,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login: addSMSDomainIfPhoneNumber(login),
+                login,
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };
@@ -239,8 +239,7 @@ function createOption(personalDetailList, report, draftComments, {
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
-        // If single login is a mobile number, appending SMS domain
-        login: !hasMultipleParticipants ? addSMSDomainIfPhoneNumber(personalDetail.login) : null,
+        login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
@@ -289,7 +288,7 @@ function isCurrentUser(userDetails) {
         return false;
     }
 
-    // If user login is mobile number, append sms domain if not appended already just a fail safe.
+    // If user login is mobile number, append sms domain if not appended already.
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
     // Initial check with currentUserLogin

@@ -37,7 +37,7 @@ This is the most common scenario for contributors. The Expensify team posts new 
 
 #### Proposing a job that Expensify hasn’t posted
 
-In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) or [Github repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal, we will compensate you for the solution and give an additional bonus of $250 for proactively proposing the job. In this case, please take the following steps:
+In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Upwork job list](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) or [Github repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement. Note: If your solution is also merged, this $250 is *in addition to* the price you will be paid for completing the job. 
 
     1. Check to ensure an issue does not already exist in the New Expensify Issue list or Upwork job list. Please use your best judgement to search for similar titles and issue descriptions.
     2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it’ll help solve a problem.

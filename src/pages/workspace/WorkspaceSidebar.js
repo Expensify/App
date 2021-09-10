@@ -142,6 +142,7 @@ const WorkspaceSidebar = ({
                                         numberOfLines={1}
                                         style={[
                                             styles.displayName,
+                                            styles.alignSelfCenter,
                                         ]}
                                     >
                                         {policy.name}

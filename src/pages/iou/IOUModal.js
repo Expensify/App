@@ -3,6 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -17,7 +18,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import {addSMSDomainIfPhoneNumber, getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Tooltip from '../../components/Tooltip';
@@ -109,7 +110,7 @@ class IOUModal extends Component {
             .map(personalDetails => ({
                 login: personalDetails.login,
                 text: personalDetails.displayName,
-                alternateText: personalDetails.login,
+                alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
                 icons: [personalDetails.avatar],
                 keyForList: personalDetails.login,
             }));
@@ -270,7 +271,7 @@ class IOUModal extends Component {
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: this.state.participants[0].login,
+            debtorEmail: addSMSDomainIfPhoneNumber(this.state.participants[0].login),
         });
     }
 
