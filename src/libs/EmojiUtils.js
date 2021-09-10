@@ -1,4 +1,5 @@
 /* eslint radix: ["error", "as-needed"] */
+import _ from 'underscore';
 import CONST from '../CONST';
 
 /**
@@ -12,15 +13,20 @@ function getEmojiUnicode(input) {
     }
 
     if (input.length === 1) {
-        return input.charCodeAt(0).toString().split(' ').map(val => parseInt(val).toString(16))
-            .join(' ');
+        return _.map(input.charCodeAt(0).toString().split(' '), val => parseInt(val).toString(16)).join(' ');
     }
 
     const pairs = [];
+
+    // Some Emojis in UTF-16 are stored as pair of 2 Unicode characters (eg Flags)
+    // The first char is generally between the range U+D800 to U+DBFF called High surrogate
+    // & the second char between the range U+DC00 to U+DFFF called low surrogate
+    // More info in the following links:
+    // 1. https://docs.microsoft.com/en-us/windows/win32/intl/surrogates-and-supplementary-characters
+    // 2. https://thekevinscott.com/emojis-in-javascript/
     for (let i = 0; i < input.length; i++) {
         if (input.charCodeAt(i) >= 0xd800 && input.charCodeAt(i) <= 0xdbff) { // high surrogate
-            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) {
-                // low surrogate
+            if (input.charCodeAt(i + 1) >= 0xdc00 && input.charCodeAt(i + 1) <= 0xdfff) { // low surrogate
                 pairs.push(
                     ((input.charCodeAt(i) - 0xd800) * 0x400)
                       + (input.charCodeAt(i + 1) - 0xdc00) + 0x10000,
@@ -31,7 +37,7 @@ function getEmojiUnicode(input) {
             pairs.push(input.charCodeAt(i));
         }
     }
-    return pairs.map(val => parseInt(val).toString(16)).join(' ');
+    return _.map(pairs, val => parseInt(val).toString(16)).join(' ');
 }
 
 /**
