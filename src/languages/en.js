@@ -183,6 +183,7 @@ export default {
         send: ({amount}) => `Send ${amount}`,
         choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
+        maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
             invalidAmount: 'Invalid amount',
             invalidSplit: 'Split amounts do not equal total amount',
@@ -319,6 +320,8 @@ export default {
     },
     passwordForm: {
         pleaseFillOutAllFields: 'Please fill out all fields',
+        pleaseFillPassword: 'Please enter your password',
+        pleaseFillTwoFactorAuth: 'Please enter your two factor code',
         enterYourTwoFactorAuthenticationCodeToContinue: 'Enter your two factor authentication code to continue',
         forgot: 'Forgot?',
         twoFactorCode: 'Two factor code',
@@ -389,6 +392,7 @@ export default {
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
             routingNumber: 'Please enter a valid Routing Number',
+            accountNumber: 'Please enter a valid Account Number',
             companyType: 'Please enter a valid Company Type',
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',
@@ -396,7 +400,6 @@ export default {
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             existingOwners: {
-                unableToAddBankAccount: 'Unable to add bank account',
                 alreadyInUse: 'This bank account is already in use by ',
                 pleaseAskThemToShare: 'Please ask them to share it with you.',
                 alternatively: 'Alternatively, you can ',
@@ -529,7 +532,8 @@ export default {
         companyPhonePlaceholder: '10 digits, no hyphens',
     },
     requestorStep: {
-        headerTitle: 'Requestor information',
+        headerTitle: 'Personal information',
+        subtitle: 'Please provide your personal information.',
         financialRegulations: 'Financial regulation and bank rules require us to validate the identity of any individual setting up bank accounts on behalf of a company. ',
         learnMore: 'Learn more',
         isMyDataSafe: 'Is my data safe?',

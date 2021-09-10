@@ -32,6 +32,7 @@ import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ConfirmModal from '../../components/ConfirmModal';
+import ExistingOwners from './ExistingOwners';
 
 const propTypes = {
     /** List of betas */
@@ -143,7 +144,7 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 return 'company';
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return 'requestor';
+                return 'personal-information';
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -152,6 +153,17 @@ class ReimbursementAccountPage extends React.Component {
             default:
                 return 'new';
         }
+    }
+
+    /**
+     * @returns {React.Component|string}
+     */
+    getErrorModalPrompt() {
+        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
+            return <ExistingOwners />;
+        }
+
+        return this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt');
     }
 
     render() {
@@ -247,7 +259,7 @@ class ReimbursementAccountPage extends React.Component {
                     <ConfirmModal
                         title={this.props.translate('bankAccount.confirmModalTitle')}
                         onConfirm={hideBankAccountErrorModal}
-                        prompt={this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt')}
+                        prompt={this.getErrorModalPrompt()}
                         isVisible={lodashGet(this.props, 'reimbursementAccount.isErrorModalVisible', false)}
                         confirmText={this.props.translate('bankAccount.confirmModalConfirmText')}
                         shouldShowCancelButton={false}
