@@ -70,7 +70,7 @@ class RequestCallPage extends Component {
             firstName,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
-            hasPhoneNumberError: false,
+            phoneNumberError: '',
             isLoading: false,
         };
 
@@ -80,11 +80,23 @@ class RequestCallPage extends Component {
     }
 
     onSubmit() {
-        if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
+        const shouldNotSubmit = _.isEmpty(this.state.firstName.trim())
+            || _.isEmpty(this.state.lastName.trim())
+            || _.isEmpty(this.state.phoneNumber.trim())
+            || !Str.isValidPhone(this.state.phoneNumber);
+
+        if (_.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim())) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
             return;
         }
-
+        if (_.isEmpty(this.state.phoneNumber.trim())) {
+            this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
+        } else if (!Str.isValidPhone(this.state.phoneNumber)) {
+            this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
+        }
+        if (shouldNotSubmit) {
+            return;
+        }
         const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
         if (!personalPolicy) {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
@@ -150,11 +162,6 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        const isButtonDisabled = _.isEmpty(this.state.firstName.trim())
-            || _.isEmpty(this.state.lastName.trim())
-            || _.isEmpty(this.state.phoneNumber.trim())
-            || !Str.isValidPhone(this.state.phoneNumber);
-
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -188,13 +195,15 @@ class RequestCallPage extends Component {
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
                                 placeholder="+14158675309"
-                                errorText={this.state.hasPhoneNumberError && this.props.translate('requestCallPage.errorMessageInvalidPhone')}
+                                errorText={this.state.phoneNumberError}
                                 onBlur={() => {
-                                    if (!Str.isValidPhone(this.state.phoneNumber) && !this.state.hasPhoneNumberError) {
-                                        this.setState({hasPhoneNumberError: true});
+                                    if (_.isEmpty(this.state.phoneNumber.trim())) {
+                                        this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
+                                    } else if (!Str.isValidPhone(this.state.phoneNumber)) {
+                                        this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
                                     }
                                 }}
-                                onChangeText={phoneNumber => this.setState({phoneNumber, hasPhoneNumberError: false})}
+                                onChangeText={phoneNumber => this.setState({phoneNumber, phoneNumberError: ''})}
                             />
                         </View>
                         <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
@@ -204,7 +213,6 @@ class RequestCallPage extends Component {
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={isButtonDisabled}
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
