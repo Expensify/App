@@ -107,7 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Videollamada',
+        tooltip: 'Iniciar una llamada',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
