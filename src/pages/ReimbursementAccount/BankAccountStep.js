@@ -206,7 +206,7 @@ class BankAccountStep extends React.Component {
                                 source={exampleCheckImage}
                             />
                             <ExpensiTextInput
-                                placeholder={this.props.translate('bankAccount.routingNumber')}
+                                label={this.props.translate('bankAccount.routingNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
                                 onChangeText={(routingNumber) => {
@@ -221,7 +221,7 @@ class BankAccountStep extends React.Component {
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mt4]}
-                                placeholder={this.props.translate('bankAccount.accountNumber')}
+                                label={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}
                                 onChangeText={accountNumber => this.setState({accountNumber})}
