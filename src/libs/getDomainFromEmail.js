@@ -6,7 +6,7 @@ import _ from 'underscore';
  * @param {String} email
  * @returns {String}
  */
- function getDomainFromEmail(email) {
+function getDomainFromEmail(email) {
     if (_.indexOf(email, '@') > -1) {
         return email.split('@')[1];
     }
