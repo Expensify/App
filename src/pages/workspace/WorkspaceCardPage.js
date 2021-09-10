@@ -90,12 +90,19 @@ const WorkspaceCardPage = ({
     const isNotAutoProvisioned = !user.isUsingExpensifyCard
         && lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.OPEN;
     let buttonText;
+
+    const openBankSetupModal = () => {
+        setWorkspaceIDForReimbursementAccount(route.params.policyID);
+        Navigation.navigate(ROUTES.getBankAccountRoute());
+    };
+
     if (user.isFromPublicDomain) {
         buttonText = translate('workspace.card.addEmail');
     } else if (user.isUsingExpensifyCard) {
         buttonText = translate('workspace.card.manageCards');
     } else if (isVerifying || isPending || isNotAutoProvisioned) {
         buttonText = translate('workspace.card.finishSetup');
+        openBankSetupModal();
     } else {
         buttonText = translate('workspace.card.getStarted');
     }
@@ -106,8 +113,7 @@ const WorkspaceCardPage = ({
         } else if (user.isUsingExpensifyCard) {
             openSignedInLink(CONST.MANAGE_CARDS_URL);
         } else {
-            setWorkspaceIDForReimbursementAccount(route.params.policyID);
-            Navigation.navigate(ROUTES.getBankAccountRoute());
+            openBankSetupModal();
         }
     };
 
