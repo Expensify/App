@@ -150,12 +150,10 @@ class PaymentsPage extends React.Component {
     }
 
     makeDefaultPaymentMethod() {
-        if (this.state.selectedPaymentMethodType === 'PayPal.me') {
-
-        } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
-
+        if (this.state.selectedPaymentMethodType === 'bankAccount') {
+            setWalletLinkedAccount(this.state.password, this.state.selectedPaymentMethod.bankAccountID, null);
         } else if (this.state.selectedPaymentMethodType === 'card') {
-
+            setWalletLinkedAccount(this.state.password, null, this.state.selectedPaymentMethod.managedBy);
         }
     }
 
@@ -225,7 +223,13 @@ class PaymentsPage extends React.Component {
                             />
                         )}
                         <TouchableOpacity
-                            onPress={this.makeDefaultPaymentMethod}
+                            onPress={() => {
+                                this.setState({
+                                    shouldShowPasswordPrompt: true,
+                                    shouldShowDefaultDeleteMenu: false,
+                                    passwordFormCallback: this.makeDefaultPaymentMethod,
+                                });
+                            }}
                             style={[styles.button, styles.mh2, styles.mt2, styles.defaultOrDeleteButton]}
                         >
                             <Text style={[styles.buttonText]}>
@@ -275,7 +279,10 @@ class PaymentsPage extends React.Component {
                                 onChangeText={password => this.setState({password})}
                             />
                             <TouchableOpacity
-                                onPress={() => deleteBankAccount(this.state.selectedPaymentMethod, this.state.password)}
+                                onPress={() => {
+                                    this.hidePasswordPrompt();
+                                    this.state.passwordFormCallback();
+                                }}
                                 style={[
                                     styles.button,
                                     styles.buttonDanger,
