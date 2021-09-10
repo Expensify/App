@@ -47,6 +47,10 @@ function redirectToSignIn(errorMessage) {
             if (activeClients && activeClients.length > 0) {
                 Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
             }
+
+            // We must set the authToken to null so that signOut action is triggered across other clients
+            // https://github.com/Expensify/App/issues/4971#issuecomment-916101493
+            Onyx.set(ONYXKEYS.SESSION, {authToken: null});
         });
 }
 
