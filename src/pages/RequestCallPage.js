@@ -89,11 +89,15 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
             return;
         }
+
         if (_.isEmpty(this.state.phoneNumber.trim())) {
             this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
         } else if (!Str.isValidPhone(this.state.phoneNumber)) {
             this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
+        } else {
+            this.setState({phoneNumberError: ''});
         }
+
         if (shouldNotSubmit) {
             return;
         }
@@ -201,9 +205,11 @@ class RequestCallPage extends Component {
                                         this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
                                     } else if (!Str.isValidPhone(this.state.phoneNumber)) {
                                         this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
+                                    } else {
+                                        this.setState({phoneNumberError: ''});
                                     }
                                 }}
-                                onChangeText={phoneNumber => this.setState({phoneNumber, phoneNumberError: ''})}
+                                onChangeText={phoneNumber => this.setState({phoneNumber})}
                             />
                         </View>
                         <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
