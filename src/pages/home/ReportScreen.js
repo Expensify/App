@@ -3,7 +3,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -30,7 +29,7 @@ const propTypes = {
 
             /** The ID of the report action to load.
              *  If present, we'll fetch one page before and after the report action, and render it in the center of the screen. */
-            reportActionID: PropTypes.string,
+            sequenceNumber: PropTypes.string,
         }).isRequired,
     }).isRequired,
 
@@ -124,16 +123,6 @@ class ReportScreen extends React.Component {
     }
 
     /**
-     * Find the sequence number of the reportAction with the reportActionID matching the one from the route param.
-     *
-     * @returns {Number}
-     */
-    getReportActionSequenceNumber() {
-        // TODO: will this work if the linked-to reportAction is not loaded?
-        return Number.parseInt(lodashGet(_.find(this.props.reportActions, reportAction => reportAction.reportActionID === this.props.route.params.reportActionID), 'sequenceNumber'), 10);
-    }
-
-    /**
      * When reports change there's a brief time content is not ready to be displayed
      *
      * @returns {Boolean}
@@ -185,7 +174,7 @@ class ReportScreen extends React.Component {
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
-                            currentSequenceNumber={Number.parseInt(this.props.route.params.reportActionID, 10)}
+                            currentSequenceNumber={Number.parseInt(this.props.route.params.sequenceNumber, 10)}
                             report={this.props.report}
                             session={this.props.session}
                         />
