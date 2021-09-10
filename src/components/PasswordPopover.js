@@ -5,6 +5,7 @@ import styles from '../styles/styles';
 import Text from './Text';
 import TextInputFocusable from './TextInputFocusable';
 import Popover from './Popover';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Is the popover currently showing? */
@@ -27,6 +28,8 @@ const propTypes = {
 
     /** Is the reason for the password dangerous. This will change the button style to red */
     isDangerousAction: PropTypes.bool,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -60,7 +63,7 @@ class PasswordPopover extends Component {
                             styles.mv2,
                         ]}
                     >
-                        Please enter your password
+                        {this.props.translate('passwordForm.pleaseFillPassword')}
                     </Text>
                     <TextInputFocusable
                         style={[
@@ -93,4 +96,4 @@ class PasswordPopover extends Component {
 
 PasswordPopover.propTypes = propTypes;
 PasswordPopover.defaultProps = defaultProps;
-export default PasswordPopover;
+export default withLocalize(PasswordPopover);
