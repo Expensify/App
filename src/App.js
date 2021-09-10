@@ -30,7 +30,7 @@ const App = () => (
         ]}
     >
         <CustomStatusBar />
-        <ErrorBoundary errorMessage="E.cash crash caught by error boundary">
+        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
             <Expensify />
         </ErrorBoundary>
     </ComposeProviders>
