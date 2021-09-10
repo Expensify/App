@@ -26,9 +26,11 @@ import {
     setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -49,9 +51,9 @@ class BankAccountStep extends React.Component {
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
-            hasAcceptedTerms: props.achData.acceptTerms || true,
-            routingNumber: props.achData.routingNumber || '',
-            accountNumber: props.achData.accountNumber || '',
+            hasAcceptedTerms: getDefaultStateForField(props, 'acceptTerms', true),
+            routingNumber: getDefaultStateForField(props, 'routingNumber'),
+            accountNumber: getDefaultStateForField(props, 'accountNumber'),
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
@@ -88,9 +90,11 @@ class BankAccountStep extends React.Component {
     }
 
     toggleTerms() {
-        this.setState(prevState => ({
-            hasAcceptedTerms: !prevState.hasAcceptedTerms,
-        }));
+        this.setState((prevState) => {
+            const hasAcceptedTerms = !prevState.hasAcceptedTerms;
+            updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
+            return {hasAcceptedTerms};
+        });
     }
 
     /**
@@ -126,7 +130,9 @@ class BankAccountStep extends React.Component {
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setState({[inputKey]: value});
+        const newState = {[inputKey]: value};
+        this.setState(newState);
+        updateReimbursementAccountDraft(newState);
         const errors = this.getErrors();
         if (!errors[inputKey]) {
             // No error found for this inputKey
@@ -313,12 +319,14 @@ class BankAccountStep extends React.Component {
 }
 
 BankAccountStep.propTypes = propTypes;
-
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(BankAccountStep);
