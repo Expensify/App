@@ -139,15 +139,14 @@ class PasswordPage extends Component {
                                 onChangeText={newPassword => this.setState({newPassword})}
                                 onBlur={() => this.onBlurNewPassword()}
                             />
-
                             <Text style={[
-                                styles.textLabelSupporting, styles.mt1,
+                                styles.textLabelSupporting,
+                                styles.mt1,
                                 this.state.newPassword && !this.isValidPassword() && styles.formError,
                             ]}
                             >
                                 {this.props.translate('passwordPage.newPasswordPrompt')}
                             </Text>
-
                         </View>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
