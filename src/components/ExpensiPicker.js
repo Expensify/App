@@ -52,16 +52,15 @@ class ExpensiPicker extends PureComponent {
                     ]}
                 >
                     {label && (
-                    <Text style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{label}</Text>
+                        <Text style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{label}</Text>
                     )}
                     <Picker
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
                         disabled={isDisabled}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
                     />
-
                 </View>
                 {Boolean(errorText) && (
                     <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
