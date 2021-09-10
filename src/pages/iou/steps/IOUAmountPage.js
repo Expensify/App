@@ -131,12 +131,14 @@ class IOUAmountPage extends React.Component {
             return;
         }
 
-        if (this.state.amount.length < CONST.IOU.AMOUNT_MAX_LENGTH) {
-            this.setState((prevState) => {
-                const amount = `${prevState.amount}${key}`;
-                return this.validateAmount(amount) ? {amount: this.stripCommaFromAmount(amount)} : prevState;
-            });
+        if (this.state.amount.length === CONST.IOU.AMOUNT_MAX_LENGTH) {
+            return;
         }
+
+        this.setState((prevState) => {
+            const amount = `${prevState.amount}${key}`;
+            return this.validateAmount(amount) ? {amount: this.stripCommaFromAmount(amount)} : prevState;
+        });
     }
 
     /**
