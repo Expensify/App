@@ -1,13 +1,4 @@
-import {flatListRef, scrollToBottom} from './BaseReportScrollManager';
-
-/**
- * Scroll to the provided index.
- *
- * @param {Object} index
- */
-function scrollToIndex(index) {
-    flatListRef.current.scrollToIndex(index);
-}
+import {flatListRef, scrollToBottom, baseScrollToIndex as scrollToIndex} from './BaseReportScrollManager';
 
 export {
     flatListRef,

@@ -1,3 +1,5 @@
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 
 // This ref is created using React.createRef here because this function is used by a component that doesn't have access
@@ -5,7 +7,7 @@ import React from 'react';
 const flatListRef = React.createRef();
 
 /**
- * Scroll to the bottom of the flatlist.
+ * Scroll to the bottom of the FlatList.
  *
  */
 function scrollToBottom() {
@@ -14,7 +16,22 @@ function scrollToBottom() {
     }
 }
 
+/**
+ * Scroll to a given index in the FlatList.
+ *
+ * @param {Object} params – Mirrors the params taken by RN's FlatList.scrollToIndex
+ */
+function baseScrollToIndex(params) {
+    if (!_.isFinite(lodashGet(params, 'index')) || lodashGet(params, 'index') < 0) {
+        console.debug('[ReportScrollManager] Attempting to scroll to invalid index in FlatList', params.index);
+        return;
+    }
+
+    flatListRef.current.scrollToIndex(params);
+}
+
 export {
     flatListRef,
     scrollToBottom,
+    baseScrollToIndex,
 };

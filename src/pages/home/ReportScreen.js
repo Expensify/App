@@ -130,7 +130,7 @@ class ReportScreen extends React.Component {
      */
     getReportActionSequenceNumber() {
         // TODO: will this work if the linked-to reportAction is not loaded?
-        return Number.parseInt(lodashGet(_.find(this.props.reportActions, reportAction => reportAction.reportActionID === this.props.route.params.reportActionID), 'sequenceNumber', 0), 10);
+        return Number.parseInt(lodashGet(_.find(this.props.reportActions, reportAction => reportAction.reportActionID === this.props.route.params.reportActionID), 'sequenceNumber'), 10);
     }
 
     /**
@@ -185,7 +185,7 @@ class ReportScreen extends React.Component {
                         <ReportActionsView
                             reportID={reportID}
                             reportActions={this.props.reportActions}
-                            currentSequenceNumber={this.getReportActionSequenceNumber()}
+                            currentSequenceNumber={Number.parseInt(this.props.route.params.reportActionID, 10)}
                             report={this.props.report}
                             session={this.props.session}
                         />

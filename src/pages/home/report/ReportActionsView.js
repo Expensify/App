@@ -29,7 +29,7 @@ import themeColors from '../../../styles/themes/default';
 import compose from '../../../libs/compose';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState, {withDrawerPropTypes} from '../../../components/withDrawerState';
-import {flatListRef, scrollToBottom} from '../../../libs/ReportScrollManager';
+import {flatListRef, scrollToBottom, scrollToIndex} from '../../../libs/ReportScrollManager';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import {contextMenuRef} from './ContextMenu/ReportActionContextMenu';
@@ -140,21 +140,28 @@ class ReportActionsView extends React.Component {
 
         // Load initial chats.
         // If we have an currentSequenceNumber, then load one page before and after that reportAction
-        // FIXME: currentSequenceNumber is a string, not a number
         fetchActions(
             this.props.reportID,
             this.props.currentSequenceNumber ? this.props.currentSequenceNumber - CONST.REPORT.ACTIONS.LIMIT : null,
             this.props.currentSequenceNumber ? 2 : 1,
-        );
+        )
+            .then(() => {
+                console.log(`Finished fetching actions in componentDidMount, scrolling to ${this.props.currentSequenceNumber}`);
+                if (_.isNumber(this.props.currentSequenceNumber)) {
+                    scrollToIndex({index: this.props.currentSequenceNumber, viewPosition: 0.5}, false);
+                }
+            });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.currentSequenceNumber && this.props.currentSequenceNumber !== nextProps.currentSequenceNumber) {
+            console.log(`shouldComponentUpdate with currentSequenceNumber: ${this.props.currentSequenceNumber} and nextSequenceNumber ${nextProps.currentSequenceNumber}`);
             if (!_.any(this.props.reportActions, reportAction => reportAction.sequenceNumber === nextProps.currentSequenceNumber)) {
                 // We do not yet have the reportAction that was linked – load it now (one page before and one after) then jump to that reportAction
                 this.loadMoreChats(Math.max(nextProps.currentSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0), 2)
                     .then(() => {
-                        // TODO: scrollToIndex
+                        console.log('Finished loading chats, scrolling to next sequence number');
+                        scrollToIndex({index: nextProps.currentSequenceNumber, viewPosition: 0.5}, false);
                     });
             }
             return true;
@@ -191,6 +198,10 @@ class ReportActionsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        if (prevProps.currentSequenceNumber !== this.props.currentSequenceNumber) {
+            console.log(`currentSequenceNumber updated from ${prevProps.currentSequenceNumber} to ${this.props.currentSequenceNumber}`);
+        }
+
         // The last sequenceNumber of the same report has changed.
         const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
         const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');

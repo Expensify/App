@@ -1,18 +1,17 @@
-import {flatListRef, scrollToBottom} from './BaseReportScrollManager';
+import {flatListRef, scrollToBottom, baseScrollToIndex} from './BaseReportScrollManager';
 
 /**
- * Scroll to the provided index. On non-native implementations we do not want to scroll when we are scrolling because
- * we are editing a comment.
+ * Scroll to the provided index. On non-native implementations we do not want to scroll when we are editing a comment.
  *
- * @param {Object} index
+ * @param {Object} params
  * @param {Boolean} isEditing
  */
-function scrollToIndex(index, isEditing) {
+function scrollToIndex(params, isEditing) {
     if (isEditing) {
         return;
     }
 
-    flatListRef.current.scrollToIndex(index);
+    baseScrollToIndex(params);
 }
 
 export {
