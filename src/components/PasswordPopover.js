@@ -72,7 +72,7 @@ class PasswordPopover extends Component {
                             styles.w100,
                         ]}
                         onChangeText={password => this.setState({password})}
-                        onSubmitEditing={this.props.onSubmit(this.state.password)}
+                        onSubmitEditing={() => this.props.onSubmit(this.state.password)}
                         autoFocus
                         secureTextEntry
                     />
