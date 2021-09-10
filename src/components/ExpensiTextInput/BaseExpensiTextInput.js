@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {
     Animated, TextInput, View, TouchableWithoutFeedback,
 } from 'react-native';
+import _ from 'lodash';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import Text from '../Text';
@@ -29,14 +30,17 @@ class BaseExpensiTextInput extends Component {
             labelTranslateX: new Animated.Value(hasValue
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            localValue: hasValue ? props.value : '',
         };
 
         this.input = null;
-        this.value = hasValue ? props.value : '';
         this.isLabelActive = false;
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
+        this.debouncedOnTextChange = _.debounce((value) => {
+            Str.result(this.props.onChangeText, value);
+        }, 500);
     }
 
     componentDidMount() {
@@ -64,14 +68,16 @@ class BaseExpensiTextInput extends Component {
      * @param {String} value
      * @memberof BaseExpensiTextInput
      */
+
     setValue(value) {
-        this.value = value;
-        Str.result(this.props.onChangeText, value);
-        this.activateLabel();
+        this.setState({localValue: value}, () => {
+            this.activateLabel();
+        });
+        this.debouncedOnTextChange(value);
     }
 
     activateLabel() {
-        if (this.value.length >= 0 && !this.isLabelActive) {
+        if (this.state.localValue.length >= 0 && !this.isLabelActive) {
             this.animateLabel(
                 ACTIVE_LABEL_TRANSLATE_Y,
                 ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
@@ -82,7 +88,7 @@ class BaseExpensiTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.value.length === 0) {
+        if (this.state.localValue.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
             this.isLabelActive = false;
         }
@@ -111,7 +117,6 @@ class BaseExpensiTextInput extends Component {
     render() {
         const {
             label,
-            value,
             placeholder,
             errorText,
             hasError,
@@ -161,7 +166,7 @@ class BaseExpensiTextInput extends Component {
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                value={value}
+                                value={this.state.localValue}
                                 placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
