@@ -5,11 +5,11 @@ import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import PasswordPopover from '../../../components/PasswordPopover';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import TextInputFocusable from '../../../components/TextInputFocusable';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
@@ -257,53 +257,17 @@ class PaymentsPage extends React.Component {
                             </Text>
                         </TouchableOpacity>
                     </Popover>
-                    <Popover
+                    <PasswordPopover
                         isVisible={this.state.shouldShowPasswordPrompt}
                         onClose={this.hidePasswordPrompt}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
                             left: this.state.anchorPositionLeft,
                         }}
-                    >
-                        <View
-                            style={styles.m2}
-                        >
-                            <Text
-                                style={[
-                                    styles.h1,
-                                    styles.mv2,
-                                ]}
-                            >
-                                Please enter your password
-                            </Text>
-                            <TextInputFocusable
-                                style={[
-                                    styles.textInputCompose,
-                                    styles.border,
-                                    styles.w100,
-                                ]}
-                                onChangeText={password => this.setState({password})}
-                                autoFocus
-                                secureTextEntry
-                            />
-                            <TouchableOpacity
-                                onPress={() => {
-                                    this.hidePasswordPrompt();
-                                    this.state.passwordFormCallback();
-                                }}
-                                style={[
-                                    styles.button,
-                                    styles.buttonDanger,
-                                    styles.mv2,
-                                    styles.defaultOrDeleteButton,
-                                ]}
-                            >
-                                <Text style={[styles.buttonText]}>
-                                    {this.props.translate('common.delete')}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </Popover>
+                        onSubmit={this.callPasswordCallbackAndHidePopover}
+                        submitButtonText={this.state.passwordButtonText}
+                        isDangerousAction={this.state.isDangerousAction}
+                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );
