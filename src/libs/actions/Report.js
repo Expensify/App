@@ -887,7 +887,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
  */
 function fetchActions(reportID, offset = -1, pages = 1) {
     const reportActionsOffset = offset ?? -1;
-    if (!_.isNumber(reportActionsOffset)) {
+    if (!_.isFinite(reportActionsOffset)) {
         Log.alert('[Report] Offset provided is not a number', {
             offset,
             reportActionsOffset,
@@ -896,7 +896,7 @@ function fetchActions(reportID, offset = -1, pages = 1) {
     }
 
     const numPages = pages ?? 1;
-    if (!_.isNumber(numPages)) {
+    if (!_.isFinite(numPages)) {
         Log.alert('[Report] Pages provides is not a number', {
             pages,
             numPages,
