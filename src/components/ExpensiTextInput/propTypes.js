@@ -10,6 +10,9 @@ const propTypes = {
     /** Input value placeholder */
     placeholder: PropTypes.string,
 
+    /** Error text to display */
+    errorText: PropTypes.string,
+
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
 
@@ -28,6 +31,7 @@ const propTypes = {
 
 const defaultProps = {
     label: '',
+    errorText: '',
     placeholder: '',
     error: false,
     containerStyles: [],

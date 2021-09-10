@@ -6,6 +6,7 @@ import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import {setCurrentURL} from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import Log from '../Log';
 
 const propTypes = {
     /** Whether the current user is logged in with an authToken */
@@ -29,6 +30,7 @@ class NavigationRoot extends Component {
         }
 
         const path = getPathFromState(state, linkingConfig.config);
+        Log.info('Navigating to route', false, {path});
         setCurrentURL(path);
     }
 

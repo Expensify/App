@@ -122,4 +122,13 @@ export default {
 
     // Used while transferring wallet balance
     WALLET_TRANSFER: 'walletTransfer',
+
+    // Stores draft information about the active reimbursement account being set up
+    REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft',
+
+    // Store preferred skintone for emoji
+    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
+
+    // Stores Workspace ID that will be tied to reimbursement account during setup
+    REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',
 };

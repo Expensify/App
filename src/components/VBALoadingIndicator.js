@@ -4,13 +4,20 @@ import styles from '../styles/styles';
 import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Text from './Text';
+import HeaderWithCloseButton from './HeaderWithCloseButton';
+import Navigation from '../libs/Navigation/Navigation';
+import ScreenWrapper from './ScreenWrapper';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
 const VBALoadingIndicator = ({translate}) => (
-    <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading]}>
+    <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.vbaFullScreenLoading]}>
+        <HeaderWithCloseButton
+            title={translate('vbaLoadingAnimation.oneMoment')}
+            onCloseButtonPress={Navigation.dismissModal}
+        />
         <View style={[styles.pageWrapper]}>
             <Image
                 source={{uri: `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}}
@@ -19,15 +26,12 @@ const VBALoadingIndicator = ({translate}) => (
                 ]}
             />
             <View style={[styles.ph6]}>
-                <Text style={[styles.textStrong, styles.h3, styles.mb4, styles.mt4, styles.textAlignCenter]}>
-                    {translate('vbaLoadingAnimation.oneMoment')}
-                </Text>
                 <Text style={[styles.textAlignCenter]}>
                     {translate('vbaLoadingAnimation.explanationLine')}
                 </Text>
             </View>
         </View>
-    </View>
+    </ScreenWrapper>
 );
 
 VBALoadingIndicator.propTypes = propTypes;

@@ -11,7 +11,9 @@ import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
 import {isSingleEmoji} from '../../../libs/ValidationUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
@@ -30,6 +32,9 @@ const propTypes = {
     isSingleLine: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
+
+    /** localization props */
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -76,7 +81,7 @@ class ReportActionItemFragment extends React.PureComponent {
                             >
                                 {/* Native devices do not support margin between nested text */}
                                 <Text style={styles.w1}>{' '}</Text>
-                                (edited)
+                                {this.props.translate('reportActionCompose.edited')}
                             </Text>
                             )}
                         </Text>
@@ -117,4 +122,7 @@ ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
 ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
-export default withWindowDimensions(ReportActionItemFragment);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(ReportActionItemFragment);

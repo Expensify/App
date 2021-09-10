@@ -35,6 +35,7 @@ class PlaidLink extends React.Component {
      * @param {*} event
      */
     onEvent(event) {
+        console.debug('[PlaidLink] Handled Plaid Event: ', event);
         if (event.eventName === CONST.PLAID.EVENT.ERROR) {
             this.props.onError(event.metadata);
         } else if (event.eventName === CONST.PLAID.EVENT.EXIT) {

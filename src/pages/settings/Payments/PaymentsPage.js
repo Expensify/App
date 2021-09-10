@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -20,11 +21,15 @@ import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {walletTransferPropTypes} from './paymentPropTypes';
+import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
 
 const propTypes = {
     walletTransfer: walletTransferPropTypes,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     ...withLocalizePropTypes,
 };
@@ -33,6 +38,7 @@ const defaultProps = {
     walletTransfer: {
         completed: false,
     },
+    betas: [],
 };
 
 class PaymentsPage extends React.Component {
@@ -118,15 +124,19 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View style={[styles.mv5]}>
-                        <CurrentWalletBalance />
-                    </View>
-                    <MenuItem
-                        title={this.props.translate('common.transferBalance')}
-                        icon={Transfer}
-                        onPress={this.transferBalance}
-                        shouldShowRightIcon
-                    />
+                    {Permissions.canUseWallet(this.props.betas) && (
+                        <>
+                            <View style={[styles.mv5]}>
+                                <CurrentWalletBalance />
+                            </View>
+                            <MenuItem
+                                title={this.props.translate('common.transferBalance')}
+                                icon={Transfer}
+                                onPress={this.transferBalance}
+                                shouldShowRightIcon
+                            />
+                        </>
+                    )}
                     <View style={[styles.flex1, styles.pt4]}>
                         <Text
                             style={[styles.ph5, styles.formLabel]}
@@ -181,6 +191,9 @@ export default compose(
     withOnyx({
         walletTransfer: {
             key: ONYXKEYS.WALLET_TRANSFER,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(PaymentsPage);

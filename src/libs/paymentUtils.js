@@ -14,6 +14,7 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
                 : null;
             combinedPaymentMethods.push({
                 title: bankAccount.addressName,
+                bankName: bankAccount.additionalData.bankName,
                 number: bankAccount.accountNumber,
                 id: bankAccount.bankAccountID,
                 description: formattedBankAccountNumber,
@@ -31,6 +32,7 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
                 : null;
             combinedPaymentMethods.push({
                 title: card.cardName,
+                bank: card.bank,
                 number: card.cardNumber,
                 id: card.cardID,
                 description: formattedCardNumber,

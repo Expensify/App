@@ -72,7 +72,7 @@ class SignInPage extends Component {
 
         // Show the password form if
         // - A login has been entered
-        // - AND a GitHub username has been entered OR they already have access to expensify cash
+        // - AND a GitHub username has been entered OR they already have access to New Expensify
         // - AND an account exists and is validated for this login
         // - AND a password hasn't been entered yet
         const showPasswordForm = this.props.credentials.login

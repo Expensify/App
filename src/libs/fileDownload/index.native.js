@@ -52,14 +52,15 @@ function showAlert(content) {
 /**
  * Handling the download
  * @param {String} url
+ * @param {String} fileName
  */
-function handleDownload(url) {
+function handleDownload(url, fileName) {
     const dirs = RNFetchBlob.fs.dirs;
 
     // android files will download to Download directory
     // ios files will download to documents directory
     const path = getPlatform() === 'android' ? dirs.DownloadDir : dirs.DocumentDir;
-    const attachmentName = getAttachmentName(url);
+    const attachmentName = fileName ?? getAttachmentName(url);
 
     // fetching the attachment
     const fetchedAttachment = RNFetchBlob.config({
@@ -104,8 +105,9 @@ function handleDownload(url) {
 /**
  * Platform specifically check download
  * @param {String} url
+ * @param {String} fileName
  */
-export default function fileDownload(url) {
+export default function fileDownload(url, fileName) {
     const permissionError = {
         title: 'Access Needed',
         // eslint-disable-next-line max-len
@@ -126,7 +128,7 @@ export default function fileDownload(url) {
     if (getPlatform() === 'android') {
         hasAndroidPermission().then((hasPermission) => {
             if (hasPermission) {
-                handleDownload(url);
+                handleDownload(url, fileName);
                 return;
             }
 
@@ -135,6 +137,6 @@ export default function fileDownload(url) {
             showAlert(permissionError);
         });
     } else {
-        handleDownload(url);
+        handleDownload(url, fileName);
     }
 }

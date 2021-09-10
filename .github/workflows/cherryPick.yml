@@ -15,19 +15,19 @@ jobs:
   validateActor:
     runs-on: ubuntu-latest
     outputs:
-      IS_DEPLOYER: ${{ steps.isUserDeployer.outputs.isTeamMember }}
+      IS_DEPLOYER: ${{ fromJSON(steps.isUserDeployer.outputs.isTeamMember) || github.actor == 'OSBotify' }}
     steps:
       - id: isUserDeployer
         uses: tspascoal/get-user-teams-membership@baf2e6adf4c3b897bd65a7e3184305c165aec872
         with:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           username: ${{ github.actor }}
-          team: expensify-cash-deployers
+          team: mobile-deployers
 
   createNewVersion:
     needs: validateActor
     runs-on: ubuntu-latest
-    if: ${{ needs.validateActor.outputs.IS_DEPLOYER && github.event.inputs.NEW_VERSION == '' }}
+    if: ${{ fromJSON(needs.validateActor.outputs.IS_DEPLOYER) && github.event.inputs.NEW_VERSION == '' }}
     outputs:
       NEW_VERSION: ${{ steps.getNewVersion.outputs.NEW_VERSION }}
     steps:
@@ -59,7 +59,7 @@ jobs:
 
   cherryPick:
     needs: [validateActor, createNewVersion]
-    if: ${{ always() && needs.validateActor.outputs.IS_DEPLOYER }}
+    if: ${{ always() && fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
     runs-on: ubuntu-latest
     steps:
       # Version: 2.3.4
@@ -77,9 +77,10 @@ jobs:
 
       - name: Get merge commit for CP pull request
         id: getCPMergeCommit
-        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USER: ${{ github.actor }}
           PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
       - name: Save correct NEW_VERSION to env
@@ -94,7 +95,7 @@ jobs:
 
       - name: Get merge commit for version-bump pull request
         id: getVersionBumpMergeCommit
-        uses: Expensify/App/.github/actions/getMergeCommitForPullRequest@main
+        uses: Expensify/App/.github/actions/getPullRequestDetails@main
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: OSBotify
@@ -143,7 +144,7 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ steps.createPullRequest.outputs.pr_number }}
 
       - name: Auto-assign PR if there are merge conflicts
-        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
         uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
@@ -151,8 +152,16 @@ jobs:
             Engineering
             Hourly
 
+      - name: Assign the PR to the deployer
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+        uses: actions-ecosystem/action-add-assignees@a73fcabd82d847c5e7433fcfdd58ef9f7e8a3993
+        with:
+          number: ${{ steps.createPullRequest.outputs.pr_number }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          assignees: ${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}
+
       - name: If PR has merge conflicts, comment with instructions for assignee
-        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'false' || steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'false' }}
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
         uses: actions-ecosystem/action-create-comment@cd098164398331c50e7dfdd0dfa1b564a1873fac
         with:
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -164,7 +173,7 @@ jobs:
 
       - name: Check for an auto approve
         # Important: only auto-approve if there was no merge conflict!
-        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'true' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
+        if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) && fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
         # Version: 2.0.0
         uses: hmarr/auto-approve-action@6a9ec7556f0a7fa5b49527a1eea4878b8a22d2e0
         with:
@@ -173,9 +182,27 @@ jobs:
 
       - name: Check for an auto merge
         # Important: only auto-merge if there was no merge conflict!
-        if: ${{ steps.cherryPick.outputs.SHOULD_AUTOMERGE == 'true' && steps.isPullRequestMergeable.outputs.IS_MERGEABLE == 'true' }}
+        if: ${{ fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) && fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
         # Version: 0.12.0
         uses: pascalgn/automerge-action@39d831e1bb389bd242626bc25d4060064a97181c
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
           PULL_REQUEST: ${{ steps.createPullRequest.outputs.pr_number }}
+
+      - name: 'Announces a CP failure in the #announce Slack room'
+        uses: 8398a7/action-slack@v3
+        if: ${{ failure() }}
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#announce',
+              attachments: [{
+                color: "#DB4545",
+                pretext: `<!subteam^S4TJJ3PSL>`,
+                text: `💥 Failed to CP https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 💥`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

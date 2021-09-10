@@ -101,6 +101,7 @@ describe('checkDeployBlockers', () => {
                 expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
             });
         });
+
         test('Test an issue with all boxes checked but no comments', () => {
             mockGetIssue.mockResolvedValue(baseIssue);
             mockListComments.mockResolvedValue({data: []});

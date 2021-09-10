@@ -10,6 +10,7 @@ import {
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import Config from '../../CONFIG';
 import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
@@ -20,6 +21,9 @@ import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import Text from '../Text';
+import withLocalize from '../withLocalize';
+import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -67,6 +71,22 @@ function AnchorRenderer({tnode, key, style}) {
 
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+    const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
+    const internalExpensifyPath = htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, '');
+
+    // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
+    // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
+    if (internalExpensifyPath) {
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => Navigation.navigate(internalExpensifyPath)}
+            >
+                <TNodeChildrenRenderer tnode={tnode} />
+            </Text>
+        );
+    }
+
     return (
         <AnchorForCommentsOnly
             href={htmlAttribs.href}
@@ -81,6 +101,7 @@ function AnchorRenderer({tnode, key, style}) {
             rel={htmlAttribs.rel || 'noopener noreferrer'}
             style={style}
             key={key}
+            fileName={fileName}
         >
             <TNodeChildrenRenderer tnode={tnode} />
         </AnchorForCommentsOnly>
@@ -132,7 +153,7 @@ function EditedRenderer(props) {
         >
             {/* Native devices do not support margin between nested text */}
             <Text style={styles.w1}>{' '}</Text>
-            (edited)
+            {props.translate('reportActionCompose.edited')}
         </Text>
     );
 }
@@ -207,7 +228,7 @@ const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
-    edited: EditedRenderer,
+    edited: withLocalize(EditedRenderer),
 };
 
 const renderersProps = {
@@ -229,6 +250,7 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 const BaseHTMLEngineProvider = ({children, textSelectable}) => {
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: textSelectable}), [textSelectable]);
+
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}

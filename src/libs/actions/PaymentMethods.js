@@ -17,6 +17,7 @@ function getPaymentMethods() {
         name: 'paypalMeAddress',
         includeDeleted: false,
         includeNotIssued: false,
+        excludeNotActivated: true,
     })
         .then((response) => {
             Onyx.multiSet({

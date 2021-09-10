@@ -15,13 +15,12 @@ import {
 } from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
-import canFocusInputOnScreenFocus from '../libs/canFocusInputOnScreenFocus';
+import themeColors from '../styles/themes/default';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
-import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -93,7 +92,6 @@ class AddPlaidBankAccount extends React.Component {
 
         this.state = {
             selectedIndex: undefined,
-            password: '',
             isCreatingAccount: false,
             institution: {},
         };
@@ -116,7 +114,7 @@ class AddPlaidBankAccount extends React.Component {
     selectAccount() {
         const account = this.getAccounts()[this.state.selectedIndex];
         this.props.onSubmit({
-            account, password: this.state.password, plaidLinkToken: this.props.plaidLinkToken,
+            account, plaidLinkToken: this.props.plaidLinkToken,
         });
         this.setState({isCreatingAccount: true});
     }
@@ -126,19 +124,19 @@ class AddPlaidBankAccount extends React.Component {
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
-
         return (
             <>
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
                     && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <ActivityIndicator size="large" />
+                            <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
                 {!_.isEmpty(this.props.plaidLinkToken) && (
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
+                            console.debug('[PlaidLink] Success: ', {publicToken, metadata});
                             getPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}
@@ -174,20 +172,6 @@ class AddPlaidBankAccount extends React.Component {
                                     value={this.state.selectedIndex}
                                 />
                             </View>
-                            {!_.isUndefined(this.state.selectedIndex) && (
-                                <View style={[styles.mb5]}>
-                                    <ExpensiTextInput
-                                        label={this.props.translate('addPersonalBankAccountPage.enterPassword')}
-                                        secureTextEntry
-                                        value={this.state.password}
-                                        autoCompleteType="password"
-                                        textContentType="password"
-                                        autoCapitalize="none"
-                                        autoFocus={canFocusInputOnScreenFocus()}
-                                        onChangeText={text => this.setState({password: text})}
-                                    />
-                                </View>
-                            )}
                         </View>
                         <View style={[styles.m5]}>
                             <Button
@@ -195,7 +179,7 @@ class AddPlaidBankAccount extends React.Component {
                                 text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.state.isCreatingAccount}
                                 onPress={this.selectAccount}
-                                isDisabled={_.isUndefined(this.state.selectedIndex) || !this.state.password}
+                                isDisabled={_.isUndefined(this.state.selectedIndex)}
                             />
                         </View>
                     </>
@@ -213,6 +197,11 @@ export default compose(
     withOnyx({
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
+
+            // We always fetch a new token to call Plaid. If we don't then it's possible to open multiple Plaid Link instances. In particular, this can cause issues for Android e.g.
+            // inability to hand off to React Native once the bank connection is made. This is because an old stashed token will mount the PlaidLink component then it gets set again
+            // which will mount another PlaidLink component.
+            initWithStoredValues: false,
         },
         plaidBankAccounts: {
             key: ONYXKEYS.PLAID_BANK_ACCOUNTS,

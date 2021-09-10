@@ -32,6 +32,7 @@ import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import Permissions from '../../Permissions';
 import getOperatingSystem from '../../getOperatingSystem';
+import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -61,12 +62,14 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
-import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
+import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
+import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
+import * as API from '../../API';
+import {setLocale} from '../../actions/App';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -85,6 +88,12 @@ Onyx.connect({
             PersonalDetails.setPersonalDetails({timezone});
         }
     },
+});
+
+let currentPreferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 const RootStack = createCustomModalStackNavigator();
@@ -158,7 +167,19 @@ class AuthScreens extends React.Component {
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        }).then((response) => {
+            const preferredLocale = response.nameValuePairs.preferredLocale || CONST.DEFAULT_LOCALE;
+            if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
+                setLocale(currentPreferredLocale);
+            } else {
+                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+            }
+        });
+
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
@@ -167,6 +188,7 @@ class AuthScreens extends React.Component {
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
+        fetchFreePlanVerifiedBankAccount();
 
         loadPoliciesBehindBeta(this.props.betas);
 
@@ -298,14 +320,24 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
                     options={defaultScreenOptions}
-                    component={ValidateLoginNewWorkspacePage}
+                    component={LoginWithValidateCodePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
                     options={defaultScreenOptions}
-                    component={ValidateLogin2FANewWorkspacePage}
+                    component={LoginWithValidateCode2FAPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
+                    options={defaultScreenOptions}
+                    component={LoginWithValidateCodePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
+                    options={defaultScreenOptions}
+                    component={LoginWithValidateCode2FAPage}
                 />
 
                 {/* These are the various modal routes */}

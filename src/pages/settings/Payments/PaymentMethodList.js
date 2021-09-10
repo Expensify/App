@@ -9,12 +9,11 @@ import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {
-    Bank,
-    CreditCard,
     PayPal,
     Plus,
 } from '../../../components/Icon/Expensicons';
 import {getPaymentMethodsList} from '../../../libs/paymentUtils';
+import getBankIcon from '../../../components/Icon/BankIcons';
 
 const MENU_ITEM = 'menuItem';
 
@@ -95,18 +94,19 @@ class PaymentMethodList extends Component {
             this.props.payPalMeUsername,
         );
         const combinedPaymentMethods = _.map(paymentMethods, (method) => {
-            let icon;
+            let iconProperties;
 
             switch (method.type) {
-                case 'bank': icon = Bank; break;
-                case 'card': icon = CreditCard; break;
-                case 'payPalMe': icon = PayPal; break;
+                case 'bank': iconProperties = getBankIcon(method.bankName); break;
+                case 'card': iconProperties = getBankIcon(method.bank, true); break;
+                case 'payPalMe': iconProperties = {icon: PayPal}; break;
                 default: break;
             }
 
             return {
                 ...method,
-                icon,
+                icon: iconProperties.icon,
+                iconSize: iconProperties.iconSize,
                 type: MENU_ITEM,
                 onPress: e => this.props.onPress(e, method.id),
             };
@@ -163,6 +163,8 @@ class PaymentMethodList extends Component {
                     disabled={item.disabled}
                     showSelectedState={this.props.enableSelection}
                     selected={this.state.selectedAccountID === item.id}
+                    iconHeight={item.iconSize}
+                    iconWidth={item.iconSize}
                 />
             );
         }
