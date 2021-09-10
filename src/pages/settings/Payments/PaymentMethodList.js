@@ -14,6 +14,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {getPaymentMethodsList} from '../../../libs/paymentUtils';
 import getBankIcon from '../../../components/Icon/BankIcons';
+import CONST from '../../../CONST';
 
 const MENU_ITEM = 'menuItem';
 
@@ -29,6 +30,9 @@ const propTypes = {
 
     /** Whether to show selection checkboxes */
     enableSelection: PropTypes.bool,
+
+    /** Whether to filter the payment Method list */
+    filterList: PropTypes.oneOf([CONST.WALLET.PAYMENT_METHOD_TYPE.CARD, CONST.WALLET.PAYMENT_METHOD_TYPE.BANK]),
 
     /** Selected Account ID if selection is active */
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -70,6 +74,7 @@ const defaultProps = {
     isLoadingPayments: false,
     enableSelection: false,
     selectedAccountID: '',
+    filterList: '',
 };
 
 class PaymentMethodList extends Component {
@@ -80,18 +85,19 @@ class PaymentMethodList extends Component {
         };
         this.renderItem = this.renderItem.bind(this);
         this.selectPaymentMethod = this.selectPaymentMethod.bind(this);
+        this.createPaymentMethodList = this.createPaymentMethodList.bind(this);
     }
 
     /**
      * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     *
-     * @returns {Array}
+     * @param {String} filter
+     * @return {Array}
      */
-    createPaymentMethodList() {
+    createPaymentMethodList(filter) {
         const paymentMethods = getPaymentMethodsList(
-            this.props.bankAccountList,
-            this.props.cardList,
-            this.props.payPalMeUsername,
+            !filter && filter === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK && this.props.bankAccountList,
+            !filter && filter === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD && this.props.cardList,
+            !filter && this.props.payPalMeUsername,
         );
         const combinedPaymentMethods = _.map(paymentMethods, (method) => {
             let iconProperties;
@@ -119,9 +125,16 @@ class PaymentMethodList extends Component {
             });
         }
 
+        let addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addPaymentMethod');
+        switch (filter) {
+            case CONST.WALLET.PAYMENT_METHOD_TYPE.BANK: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addBankAccount'); break;
+            case CONST.WALLET.PAYMENT_METHOD_TYPE.CARD: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addDebitCard'); break;
+            default: break;
+        }
+
         combinedPaymentMethods.push({
             type: MENU_ITEM,
-            title: this.props.translate('paymentMethodList.addPaymentMethod'),
+            title: addPaymentMethodButtonTitle,
             icon: Plus,
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
@@ -181,7 +194,7 @@ class PaymentMethodList extends Component {
     render() {
         return (
             <FlatList
-                data={this.createPaymentMethodList()}
+                data={this.createPaymentMethodList(this.props.filterList)}
                 renderItem={this.renderItem}
                 bounces
             />

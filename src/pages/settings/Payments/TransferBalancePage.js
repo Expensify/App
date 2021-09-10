@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {ScrollView} from 'react-native-gesture-handler';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -33,9 +32,6 @@ import {transferWalletBalance} from '../../../libs/actions/PaymentMethods';
 import {getPaymentMethodsList} from '../../../libs/paymentUtils';
 
 const propTypes = {
-    /** User's paypal.me username if they have one */
-    payPalMeUsername: PropTypes.string,
-
     /** User's wallet information */
     userWallet: userWalletPropTypes,
 
@@ -53,7 +49,6 @@ const propTypes = {
 
 const defaultProps = {
     userWallet: {},
-    payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
     walletTransfer: {},
@@ -108,15 +103,13 @@ class TransferBalancePage extends React.Component {
     }
 
     render() {
-        console.debug(this.props.userWallet);
         const paymentMethods = getPaymentMethodsList(
             this.props.bankAccountList,
             this.props.cardList,
-            this.props.payPalMeUsername,
         );
         const defaultAccount = _.find(
             paymentMethods,
-            method => method.id === this.props.userWallet.bankAccountID,
+            method => method.id === this.props.userWallet.walletLinkedAccount.bankAccountID || method.id === this.props.userWallet.walletLinkedAccount.fundID,
         );
         const selectAccount = this.props.walletTransfer.selectedAccountID
             ? _.find(
@@ -248,9 +241,6 @@ export default compose(
         },
         cardList: {
             key: ONYXKEYS.CARD_LIST,
-        },
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(TransferBalancePage);

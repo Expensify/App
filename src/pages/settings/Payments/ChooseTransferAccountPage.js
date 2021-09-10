@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView} from 'react-native-gesture-handler';
+import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -53,13 +53,14 @@ class ChooseTransferAccountPage extends React.Component {
                         onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.goBack()}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.pv5}>
+                    <View style={[styles.flex1, styles.pv5]}>
                         <PaymentMethodList
                             onPress={this.paymentMethodSelected}
                             enableSelection
+                            filterList={this.props.walletTransfer.filterPaymentMethods}
                             selectedAccountID={this.props.walletTransfer.selectedAccountID}
                         />
-                    </ScrollView>
+                    </View>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

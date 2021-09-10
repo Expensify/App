@@ -298,6 +298,10 @@ const CONST = {
     },
 
     WALLET: {
+        PAYMENT_METHOD_TYPE: {
+            BANK: 'bank',
+            CARD: 'card',
+        },
         PAYMENT_TYPE: {
             INSTANT: 'instant',
             ACH: 'ach',
