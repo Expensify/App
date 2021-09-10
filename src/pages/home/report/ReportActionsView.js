@@ -63,7 +63,7 @@ const propTypes = {
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
 
     /** The sequenceNumber of the reportAction to focus and center on */
-    currentSequenceNumber: PropTypes.string,
+    currentSequenceNumber: PropTypes.number,
 
     /** The session of the logged in person */
     session: PropTypes.shape({

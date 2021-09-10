@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -129,7 +130,7 @@ class ReportScreen extends React.Component {
      */
     getReportActionSequenceNumber() {
         // TODO: will this work if the linked-to reportAction is not loaded?
-        return Number.parseInt(_.find(this.props.reportActions, reportAction => reportAction.reportActionID === this.props.route.params.reportActionID).sequenceNumber, 10);
+        return Number.parseInt(lodashGet(_.find(this.props.reportActions, reportAction => reportAction.reportActionID === this.props.route.params.reportActionID), 'sequenceNumber', 0), 10);
     }
 
     /**
