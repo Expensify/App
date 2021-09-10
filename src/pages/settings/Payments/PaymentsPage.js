@@ -283,6 +283,8 @@ class PaymentsPage extends React.Component {
                                     styles.w100,
                                 ]}
                                 onChangeText={password => this.setState({password})}
+                                autoFocus
+                                secureTextEntry
                             />
                             <TouchableOpacity
                                 onPress={() => {
