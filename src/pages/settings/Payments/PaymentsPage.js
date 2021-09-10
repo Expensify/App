@@ -62,6 +62,7 @@ class PaymentsPage extends React.Component {
         this.makeDefaultPaymentMethod = this.makeDefaultPaymentMethod.bind(this);
         this.deletePaymentMethod = this.deletePaymentMethod.bind(this);
         this.hidePasswordPrompt = this.hidePasswordPrompt.bind(this);
+        this.callPasswordCallbackAndHidePopover = this.callPasswordCallbackAndHidePopover.bind(this);
     }
 
     componentDidMount() {
@@ -149,19 +150,24 @@ class PaymentsPage extends React.Component {
         this.setState({shouldShowPasswordPrompt: false});
     }
 
-    makeDefaultPaymentMethod() {
+    callPasswordCallbackAndHidePopover(password) {
+        this.hidePasswordPrompt();
+        this.state.passwordFormCallback(password);
+    }
+
+    makeDefaultPaymentMethod(password) {
         if (this.state.selectedPaymentMethodType === 'bankAccount') {
-            setWalletLinkedAccount(this.state.password, this.state.selectedPaymentMethod.bankAccountID, null);
+            setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
         } else if (this.state.selectedPaymentMethodType === 'card') {
-            setWalletLinkedAccount(this.state.password, null, this.state.selectedPaymentMethod.managedBy);
+            setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.managedBy);
         }
     }
 
-    deletePaymentMethod() {
+    deletePaymentMethod(password) {
         if (this.state.selectedPaymentMethodType === 'PayPal.me') {
             NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, null);
         } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
-            deleteBankAccount(this.state.password, this.state.selectedPaymentMethod.bankAccountID);
+            deleteBankAccount(password, this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === 'card') {
             deleteCard(this.state.selectedPaymentMethod.cardID);
         }
@@ -227,6 +233,8 @@ class PaymentsPage extends React.Component {
                                 this.setState({
                                     shouldShowPasswordPrompt: true,
                                     shouldShowDefaultDeleteMenu: false,
+                                    passwordButtonText: 'Make Default Payment Method',
+                                    isDangerousAction: false,
                                     passwordFormCallback: this.makeDefaultPaymentMethod,
                                 });
                             }}
@@ -241,6 +249,8 @@ class PaymentsPage extends React.Component {
                                 this.setState({
                                     shouldShowPasswordPrompt: true,
                                     shouldShowDefaultDeleteMenu: false,
+                                    passwordButtonText: this.props.translate('common.delete'),
+                                    isDangerousAction: true,
                                     passwordFormCallback: this.deletePaymentMethod,
                                 });
                             }}
