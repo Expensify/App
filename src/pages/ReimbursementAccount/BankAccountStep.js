@@ -201,7 +201,7 @@ class BankAccountStep extends React.Component {
                     title={this.props.translate('bankAccount.addBankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => this.setSubStep(undefined)}
-                    shouldShowBackButton={!_.isUndefined(subStep)}
+                    shouldShowBackButton={Boolean(subStep)}
                 />
                 {!subStep && (
                     <>

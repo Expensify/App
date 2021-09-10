@@ -345,9 +345,9 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        loading: true,
+        loading: true, // shows loading indicator
         error: '',
-
+        fetching: true, // only used when fetching
         // We temporarily keep the achData state to prevent UI changes while fetching.
         achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
     });
@@ -505,6 +505,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                 .finally(() => {
                     const dataToMerge = {
                         loading: false,
+                        fetching: false,
                     };
 
                     // If we didn't get a routingNumber and accountNumber from the response and we have previously saved
@@ -581,6 +582,7 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {String} validateCode
  */
 function validateBankAccount(bankAccountID, validateCode) {
+    console.log('validateBankAccount');
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
     API.BankAccount_Validate({bankAccountID, validateCode})
@@ -653,6 +655,7 @@ function showBankAccountFormValidationError(error) {
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
+    console.log('setupWithdrawalAccount', data);
     let nextStep;
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
 
