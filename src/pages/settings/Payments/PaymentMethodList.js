@@ -96,7 +96,7 @@ class PaymentMethodList extends Component {
                     description: formattedBankAccountNumber,
                     icon,
                     iconSize,
-                    onPress: e => this.props.onPress(e, 'bankAccount', bankAccount.bankAccountID),
+                    onPress: e => this.props.onPress(e, 'bankAccount', bankAccount),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
                 });
             }
@@ -116,7 +116,7 @@ class PaymentMethodList extends Component {
                     description: formattedCardNumber,
                     icon,
                     iconSize,
-                    onPress: e => this.props.onPress(e, 'card', card.cardID),
+                    onPress: e => this.props.onPress(e, 'card', card),
                     key: `card-${card.cardID}`,
                 });
             }
