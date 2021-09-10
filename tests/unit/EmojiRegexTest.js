@@ -44,6 +44,8 @@ describe('EmojiRegexTest', () => {
         expect(isSingleEmoji('❤️')).toBe(true);
         expect(isSingleEmoji('⁉️')).toBe(true);
         expect(isSingleEmoji('✳️')).toBe(true);
+        expect(isSingleEmoji('☠️')).toBe(true);
+
 
         // GIVEN an emoji that has skin tone attached WHEN we check if it's a single emoji THEN it should return true
         expect(isSingleEmoji('👶🏽')).toBe(true);
