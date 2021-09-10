@@ -28,4 +28,15 @@ function getPaymentMethods() {
         });
 }
 
-export default getPaymentMethods;
+function setWalletLinkedAccount(password, bankAccountID, fundID) {
+    return API.SetWalletLinkedAccount({
+        password,
+        bankAccountID,
+        fundID,
+    });
+}
+
+export {
+    getPaymentMethods,
+    setWalletLinkedAccount,
+};
