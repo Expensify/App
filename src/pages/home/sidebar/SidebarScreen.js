@@ -60,7 +60,7 @@ class SidebarScreen extends Component {
      *
      * We create a policy and open the Workspace card modal.
      * We also make a call to refresh the cached policies in Onyx,
-     * followed by update to the state of this menu.
+     * followed by an update to the state of this menu.
      */
     onNewWorkspaceSelected() {
         create();
