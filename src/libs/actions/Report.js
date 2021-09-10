@@ -661,6 +661,15 @@ function updateReportPinnedState(reportID, isPinned) {
 }
 
 /**
+ * Updates isFromPublicDomain in Onyx.
+ *
+ * @param {Boolean} isFromPublicDomain
+ */
+function updateIsFromPublicDomain(isFromPublicDomain) {
+    Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+}
+
+/**
  * Get the private pusher channel name for a Report.
  *
  * @param {Number} reportID
@@ -739,6 +748,26 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
+            );
+        });
+
+    // Live-update if a user has private domains listed as primary or secondary logins.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
+        Log.info(
+            `[Report] Handled ${Pusher.TYPE.ACCOUNT_VALIDATED} event sent by Pusher`,
+            false,
+            {isFromPublicDomain: pushJSON.isFromPublicDomain},
+        );
+        updateIsFromPublicDomain(pushJSON.isFromPublicDomain);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
             );
         });
 }
