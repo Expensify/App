@@ -1,4 +1,5 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
+const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 
 const CONST = {
     // 50 megabytes in bytes
@@ -6,7 +7,7 @@ const CONST = {
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
-        DESKTOP: 'https://new.expensify.com/NewExpensify.dmg',
+        DESKTOP: `${NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
     },
     DATE: {
         MOMENT_FORMAT_STRING: 'YYYY-MM-DD',
@@ -134,6 +135,7 @@ const CONST = {
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
+    NEW_EXPENSIFY_URL,
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -228,6 +230,8 @@ const CONST = {
         FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX: 'private_failedBankValidations_',
         BANK_ACCOUNT_GET_THROTTLED: 'private_throttledHistory_BankAccount_Get',
         PREFERRED_LOCALE: 'preferredLocale',
+        KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
+        PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -250,6 +254,11 @@ const CONST = {
     KEYBOARD_TYPE: {
         NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
+    },
+
+    ATTACHMENT_PICKER_TYPE: {
+        FILE: 'file',
+        IMAGE: 'image',
     },
 
     EMOJI_PICKER_SIZE: 320,
@@ -369,6 +378,7 @@ const CONST = {
     },
 
     DEFAULT_LOCALE: 'en',
+    DEFAULT_SKIN_TONE: 'default',
 
     POLICY: {
         TYPE: {
@@ -389,6 +399,10 @@ const CONST = {
 
     ICON_TYPE_ICON: 'icon',
     ICON_TYPE_AVATAR: 'avatar',
+    AVATAR_SIZE: {
+        LARGE: 'large',
+        DEFAULT: 'default',
+    },
 
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,

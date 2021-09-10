@@ -203,12 +203,14 @@ class ProfilePage extends Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <AvatarWithImagePicker
+                            isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.props.myPersonalDetails.avatar}
                             onImageSelected={setAvatar}
                             onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
                             // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}
+                            size={CONST.AVATAR_SIZE.LARGE}
                         />
                         <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
