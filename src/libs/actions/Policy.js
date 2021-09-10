@@ -113,6 +113,16 @@ function getPolicyList() {
 }
 
 /**
+ * Get the number of Workspaces administered by the user
+ *
+ * @returns {Number}
+ */
+function getWorkspaceCount() {
+    return _.size(_.chain(allPolicies)
+        .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN).value());
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} members
@@ -284,6 +294,7 @@ function updateLocalPolicyValues(policyID, values) {
 export {
     getPolicySummaries,
     getPolicyList,
+    getWorkspaceCount,
     removeMembers,
     invite,
     create,

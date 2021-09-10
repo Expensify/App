@@ -23,7 +23,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {create} from '../../../libs/actions/Policy';
+import {create, getPolicyList, getWorkspaceCount} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
 
 const propTypes = {
@@ -46,12 +46,28 @@ class SidebarScreen extends Component {
 
         this.state = {
             isCreateMenuActive: false,
+            hasWorkspacesAlready: getWorkspaceCount(),
         };
     }
 
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+    }
+
+    /**
+     * Method called when the New Workspace menu item is selected
+     *
+     * We create a policy and open the Workspace card modal.
+     * We also make a call to refresh the cached policies in Onyx,
+     * followed by update to the state of this menu.
+     */
+    onNewWorkspaceSelected() {
+        create();
+        getPolicyList();
+        this.setState({
+            hasWorkspacesAlready: getWorkspaceCount(),
+        });
     }
 
     /**
@@ -78,6 +94,7 @@ class SidebarScreen extends Component {
     toggleCreateMenu() {
         this.setState(state => ({
             isCreateMenuActive: !state.isCreateMenuActive,
+            hasWorkspacesAlready: getWorkspaceCount(),
         }));
     }
 
@@ -143,14 +160,14 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) ? [
+                                ...(Permissions.canUseFreePlan(this.props.betas) && !this.state.hasWorkspacesAlready ? [
                                     {
                                         icon: NewWorkspace,
                                         iconWidth: 46,
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => create(),
+                                        onSelected: () => this.onNewWorkspaceSelected(),
                                     },
                                 ] : []),
                             ]}
