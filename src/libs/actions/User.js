@@ -12,12 +12,9 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
-<<<<<<< HEAD
 import getDomainFromEmail from '../getDomainFromEmail';
-=======
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
->>>>>>> main
 
 let sessionAuthToken = '';
 let sessionEmail = '';
