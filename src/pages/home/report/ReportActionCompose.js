@@ -42,7 +42,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST, {EXCLUDED_IOU_EMAILS, EXPENSIFY_EMAILS} from '../../../CONST';
+import CONST, {EXCLUDED_IOU_EMAILS} from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -51,7 +51,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import {canEditReportAction, isArchivedRoom} from '../../../libs/reportUtils';
+import {canEditReportAction, hasExpensifyEmails, isArchivedRoom} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
@@ -458,12 +458,11 @@ class ReportActionCompose extends React.Component {
         // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasExpensifyEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXCLUDED_IOU_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const shouldShowReportRecipientLocalTime = !hasExpensifyEmails
+        const shouldShowReportRecipientLocalTime = !hasExpensifyEmails(reportParticipants)
             && !hasMultipleParticipants
             && reportRecipient
             && reportRecipientTimezone

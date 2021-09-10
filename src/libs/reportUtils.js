@@ -3,7 +3,7 @@ import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../CONST';
 
 let sessionEmail;
 Onyx.connect({
@@ -152,6 +152,15 @@ function isConciergeChatReport(report) {
         && report.participants[0] === CONST.EMAIL.CONCIERGE;
 }
 
+/**
+ * Returns true if there is any automated expensify account in emails
+ * @param {Array.<String>} emails
+ * @returns {Boolean}
+ */
+function hasExpensifyEmails(emails) {
+    return _.intersection(emails, EXPENSIFY_EMAILS).length > 0;
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -163,4 +172,5 @@ export {
     getDefaultRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,
+    hasExpensifyEmails,
 };

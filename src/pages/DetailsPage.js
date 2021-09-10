@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import styles from '../styles/styles';
@@ -16,7 +15,8 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
-import CONST, {EXPENSIFY_EMAILS} from '../CONST';
+import CONST from '../CONST';
+import {hasExpensifyEmails} from '../libs/reportUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -70,7 +70,7 @@ const DetailsPage = ({
     const timezone = moment().tz(details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
-    const shouldShowLocalTime = !_.contains(EXPENSIFY_EMAILS, details.login);
+    const shouldShowLocalTime = !hasExpensifyEmails([details.login]);
 
     return (
         <ScreenWrapper>
