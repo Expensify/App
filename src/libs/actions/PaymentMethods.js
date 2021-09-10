@@ -4,6 +4,10 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 
+function deleteCard(cardID) {
+    return API.DeleteCard(cardID);
+}
+
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
  *
@@ -37,6 +41,7 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
 }
 
 export {
+    deleteCard,
     getPaymentMethods,
     setWalletLinkedAccount,
 };

@@ -396,6 +396,18 @@ function CreateLogin(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.cardID
+ * @returns {Promise}
+ * @constructor
+ */
+function DeleteCard(parameters) {
+    const commandName = 'DeleteCard';
+    requireParameters(['cardID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
@@ -1104,6 +1116,7 @@ export {
     ChangePassword,
     CreateChatReport,
     CreateLogin,
+    DeleteCard,
     DeleteLogin,
     Get,
     GetAccountStatus,
