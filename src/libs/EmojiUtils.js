@@ -1,4 +1,3 @@
-/* eslint radix: ["error", "as-needed"] */
 import _ from 'underscore';
 import CONST from '../CONST';
 
@@ -13,7 +12,7 @@ function getEmojiUnicode(input) {
     }
 
     if (input.length === 1) {
-        return _.map(input.charCodeAt(0).toString().split(' '), val => parseInt(val).toString(16)).join(' ');
+        return _.map(input.charCodeAt(0).toString().split(' '), val => parseInt(val, 10).toString(16)).join(' ');
     }
 
     const pairs = [];
@@ -37,7 +36,7 @@ function getEmojiUnicode(input) {
             pairs.push(input.charCodeAt(i));
         }
     }
-    return _.map(pairs, val => parseInt(val).toString(16)).join(' ');
+    return _.map(pairs, val => parseInt(val, 10).toString(16)).join(' ');
 }
 
 /**
