@@ -64,12 +64,6 @@ class NewChatPage extends Component {
         } = getNewChatOptions(
             props.reports,
             props.personalDetails,
-            '',
-            {
-                excludeConcierge: false,
-                excludeChronos: false,
-                excludeReceipts: true,
-            },
             props.betas,
         );
 
@@ -157,9 +151,8 @@ class NewChatPage extends Component {
                                     } = getNewChatOptions(
                                         this.props.reports,
                                         this.props.personalDetails,
-                                        searchValue,
-                                        false,
                                         this.props.betas,
+                                        searchValue,
                                     );
                                     this.setState({
                                         searchValue,
