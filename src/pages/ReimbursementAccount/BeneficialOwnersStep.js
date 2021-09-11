@@ -24,6 +24,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Name of the company */
@@ -32,10 +33,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Error set when handling the API response */
-        error: PropTypes.string,
-    }).isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 };
 
 class BeneficialOwnersStep extends React.Component {

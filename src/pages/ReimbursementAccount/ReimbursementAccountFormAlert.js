@@ -28,12 +28,12 @@ class ReimbursementAccountFormAlert extends React.Component {
     /**
      * @returns {React.Component|string}
      */
-    getErrorPrompt() {
+    getAlertPrompt() {
         if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
             return <ExistingOwners />;
         }
 
-        return this.props.reimbursementAccount.errorMessage || this.props.translate('bankAccount.defaultFormAlertPrompt');
+        return this.props.reimbursementAccount.alertMessage || this.props.translate('bankAccount.defaultFormAlertPrompt');
     }
 
     render() {
@@ -44,7 +44,7 @@ class ReimbursementAccountFormAlert extends React.Component {
 
         return (
             <View>
-                <Text>{this.getErrorPrompt()}</Text>
+                <Text>{this.getAlertPrompt()}</Text>
             </View>
         );
     }

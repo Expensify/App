@@ -31,13 +31,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Error set when handling the API response */
-        error: PropTypes.string,
-    }).isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };

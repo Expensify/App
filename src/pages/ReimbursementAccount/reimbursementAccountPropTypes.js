@@ -12,6 +12,9 @@ export default PropTypes.shape({
 
         /** Step of the setup flow that we are on. Determines which view is presented. */
         currentStep: PropTypes.string,
+
+        /** Bank account state */
+        state: PropTypes.string,
     }),
 
     /** Disable validation button if max attempts exceeded */
@@ -22,4 +25,7 @@ export default PropTypes.shape({
 
     /** Alert message to display above submit button */
     alertMessage: PropTypes.string,
+
+    /** Error set when handling the API response */
+    error: PropTypes.string,
 });

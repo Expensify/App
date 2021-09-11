@@ -1,7 +1,6 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
-import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -18,7 +17,6 @@ import {
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
@@ -26,13 +24,11 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Error set when handling the API response */
-        error: PropTypes.string,
-    }).isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
