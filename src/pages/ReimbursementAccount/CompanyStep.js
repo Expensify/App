@@ -166,7 +166,10 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={[styles.flex1, styles.w100]}>
+                <ScrollView
+                    style={[styles.flex1, styles.w100]}
+                    ref={el => this.form = el}
+                >
                     <View style={[styles.p4]}>
                         <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         <ExpensiTextInput
@@ -351,7 +354,9 @@ class CompanyStep extends React.Component {
                             style={[styles.mt4]}
                         />
                     </View>
-                    <ReimbursementAccountFormAlert />
+                    <ReimbursementAccountFormAlert
+                        onFixTheErrorsLinkPressed={() => this.form.scrollTo({y: 0, animated: true})}
+                    />
                     <Button
                         success
                         onPress={this.submit}

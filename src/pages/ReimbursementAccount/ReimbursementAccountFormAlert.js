@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -13,6 +14,8 @@ const propTypes = {
     reimbursementAccount: reimbursementAccountPropTypes,
 
     ...withLocalizePropTypes,
+
+    onFixTheErrorsPressed: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -23,6 +26,10 @@ class ReimbursementAccountFormAlert extends React.Component {
     constructor(props) {
         super(props);
         this.state = {};
+    }
+
+    onFixTheErrorsPressed() {
+        this.props.onFixTheErrorsPressed();
     }
 
     /**

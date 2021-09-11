@@ -134,7 +134,10 @@ class RequestorStep extends React.Component {
                     />
                 ) : (
                     <>
-                        <ScrollView style={[styles.flex1, styles.w100]}>
+                        <ScrollView
+                            ref={el => this.form = el}
+                            style={[styles.flex1, styles.w100]}
+                        >
                             <View style={[styles.p4]}>
                                 <Text>{this.props.translate('requestorStep.subtitle')}</Text>
                                 <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
@@ -211,7 +214,9 @@ class RequestorStep extends React.Component {
                                     </TextLink>
                                 </Text>
                             </View>
-                            <ReimbursementAccountFormAlert />
+                            <ReimbursementAccountFormAlert
+                                onFixTheErrorsLinkPressed={() => this.form.scrollTo({y: 0, animated: true})}
+                            />
                             <Button
                                 success
                                 onPress={this.submit}

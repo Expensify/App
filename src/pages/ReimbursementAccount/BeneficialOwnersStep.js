@@ -138,7 +138,10 @@ class BeneficialOwnersStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
                 />
-                <ScrollView style={[styles.flex1, styles.w100, styles.ph5]}>
+                <ScrollView
+                    ref={el => this.form = el}
+                    style={[styles.flex1, styles.w100, styles.ph5]}
+                >
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
@@ -242,7 +245,9 @@ class BeneficialOwnersStep extends React.Component {
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
                     />
-                    <ReimbursementAccountFormAlert />
+                    <ReimbursementAccountFormAlert
+                        onFixTheErrorsLinkPressed={() => this.form.scrollTo({y: 0, animated: true})}
+                    />
                     <Button
                         success
                         text={this.props.translate('common.saveAndContinue')}
