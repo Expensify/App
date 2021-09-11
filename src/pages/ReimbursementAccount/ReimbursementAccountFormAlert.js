@@ -8,6 +8,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import ExistingOwners from './ExistingOwners';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
+import Text from '../../components/Text';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -28,10 +30,6 @@ class ReimbursementAccountFormAlert extends React.Component {
         this.state = {};
     }
 
-    onFixTheErrorsPressed() {
-        this.props.onFixTheErrorsPressed();
-    }
-
     /**
      * @returns {React.Component|string}
      */
@@ -40,7 +38,14 @@ class ReimbursementAccountFormAlert extends React.Component {
             return <ExistingOwners />;
         }
 
-        return this.props.reimbursementAccount.alertMessage || this.props.translate('bankAccount.defaultFormAlertPrompt');
+        return this.props.reimbursementAccount.alertMessage || (
+            <>
+                {/* @TODO translate {this.props.translate('bankAccount.defaultFormAlertPrompt')} */}
+                <Text>Please </Text>
+                <Text style={styles.link} onPress={this.props.onFixTheErrorsPressed}>fix the errors </Text>
+                <Text>in the form before continuing.</Text>
+            </>
+        );
     }
 
     render() {
