@@ -101,7 +101,7 @@ class IOUAmountPage extends React.Component {
      */
     validateAmount(amount) {
         const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,3})?$/, 'i');
-        return amount === '' || decimalNumberRegex.test(amount);
+        return amount === '' || (decimalNumberRegex.test(amount) && amount.length <= CONST.IOU.AMOUNT_MAX_LENGTH);
     }
 
     /**
@@ -128,10 +128,6 @@ class IOUAmountPage extends React.Component {
                     amount: prevState.amount.slice(0, -1),
                 }));
             }
-            return;
-        }
-
-        if (this.state.amount.length === CONST.IOU.AMOUNT_MAX_LENGTH) {
             return;
         }
 
@@ -187,7 +183,6 @@ class IOUAmountPage extends React.Component {
                                 ref={el => this.textInput = el}
                                 value={this.state.amount}
                                 placeholder="0"
-                                maxLength={CONST.IOU.AMOUNT_MAX_LENGTH}
                             />
                         )}
                 </View>
