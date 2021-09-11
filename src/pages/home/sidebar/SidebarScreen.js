@@ -25,6 +25,7 @@ import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {create} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
+import NameValuePair from '../../../libs/actions/NameValuePair'
 
 const propTypes = {
     /** Beta features list */
@@ -45,8 +46,9 @@ class SidebarScreen extends Component {
         this.navigateToSettings = this.navigateToSettings.bind(this);
 
         this.state = {
-            isCreateMenuActive: false,
+            isCreateMenuActive: props.isNewUser
         };
+        NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.IS_NEW_USER);
     }
 
     componentDidMount() {
@@ -170,5 +172,8 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
+        isNewUser: {
+            key: ONYXKEYS.IS_NEW_USER
+        }
     }),
 )(SidebarScreen);

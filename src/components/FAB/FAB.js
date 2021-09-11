@@ -17,7 +17,7 @@ AnimatedPressable.displayName = 'AnimatedPressable';
 class FAB extends PureComponent {
     constructor(props) {
         super(props);
-        this.animatedValue = new Animated.Value(0);
+        this.animatedValue = new Animated.Value( props.isActive ? 1 : 0);
     }
 
     componentDidUpdate(prevProps) {

@@ -221,6 +221,7 @@ const CONST = {
         },
     },
     NVP: {
+        IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
         BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
