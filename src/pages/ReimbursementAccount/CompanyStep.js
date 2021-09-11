@@ -11,7 +11,7 @@ import {
     goToWithdrawalAccountSetupStep, hideBankAccountErrors,
     setupWithdrawalAccount,
     showBankAccountFormValidationError,
-    showBankAccountErrorModal,
+    showBankAccountFormAlert,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -19,7 +19,6 @@ import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
@@ -31,6 +30,7 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -145,7 +145,7 @@ class CompanyStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
-            showBankAccountErrorModal();
+            showBankAccountFormAlert();
             return;
         }
 
@@ -353,8 +353,7 @@ class CompanyStep extends React.Component {
                             style={[styles.mt4]}
                         />
                     </View>
-                </ScrollView>
-                <FixedFooter>
+                    <ReimbursementAccountFormAlert />
                     <Button
                         success
                         onPress={this.submit}
@@ -362,7 +361,7 @@ class CompanyStep extends React.Component {
                         text={this.props.translate('common.saveAndContinue')}
                         isDisabled={shouldDisableSubmitButton}
                     />
-                </FixedFooter>
+                </ScrollView>
             </>
         );
     }

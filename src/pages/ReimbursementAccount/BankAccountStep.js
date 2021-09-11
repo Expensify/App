@@ -25,12 +25,13 @@ import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
     setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
-    showBankAccountErrorModal,
+    showBankAccountFormAlert,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -138,7 +139,7 @@ class BankAccountStep extends React.Component {
 
     addManualAccount() {
         if (!this.validate()) {
-            showBankAccountErrorModal();
+            showBankAccountFormAlert();
             return;
         }
         setupWithdrawalAccount({
@@ -298,14 +299,15 @@ class BankAccountStep extends React.Component {
                                     </View>
                                 )}
                             />
+                            <ReimbursementAccountFormAlert />
+                            <Button
+                                success
+                                text={this.props.translate('common.saveAndContinue')}
+                                style={[styles.m5]}
+                                isDisabled={!this.canSubmitManually()}
+                                onPress={this.addManualAccount}
+                            />
                         </View>
-                        <Button
-                            success
-                            text={this.props.translate('common.saveAndContinue')}
-                            style={[styles.m5]}
-                            isDisabled={!this.canSubmitManually()}
-                            onPress={this.addManualAccount}
-                        />
                     </>
                 )}
             </View>

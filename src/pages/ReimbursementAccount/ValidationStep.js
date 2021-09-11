@@ -19,6 +19,7 @@ import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -169,6 +170,7 @@ class ValidationStep extends React.Component {
                                 </Text>
                             )}
                         </View>
+                        <ReimbursementAccountFormAlert />
                         <Button
                             success
                             text={this.props.translate('validationStep.buttonText')}

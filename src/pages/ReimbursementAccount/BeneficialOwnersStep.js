@@ -10,12 +10,11 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import Button from '../../components/Button';
 import IdentityForm from './IdentityForm';
-import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
-    showBankAccountErrorModal,
+    showBankAccountFormAlert,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -24,6 +23,7 @@ import {isValidIdentity} from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
 
 const propTypes = {
     /** Name of the company */
@@ -69,12 +69,12 @@ class BeneficialOwnersStep extends React.Component {
         }
 
         if (!this.state.acceptTermsAndConditions) {
-            showBankAccountErrorModal(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
+            showBankAccountFormAlert(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
             return false;
         }
 
         if (!this.state.certifyTrueInformation) {
-            showBankAccountErrorModal(this.props.translate('beneficialOwnersStep.error.certify'));
+            showBankAccountFormAlert(this.props.translate('beneficialOwnersStep.error.certify'));
             return false;
         }
 
@@ -244,15 +244,14 @@ class BeneficialOwnersStep extends React.Component {
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
                     />
-                </ScrollView>
-                <FixedFooter>
+                    <ReimbursementAccountFormAlert />
                     <Button
                         success
                         text={this.props.translate('common.saveAndContinue')}
                         onPress={this.submit}
                         isDisabled={!this.state.acceptTermsAndConditions || !this.state.certifyTrueInformation}
                     />
-                </FixedFooter>
+                </ScrollView>
             </>
         );
     }

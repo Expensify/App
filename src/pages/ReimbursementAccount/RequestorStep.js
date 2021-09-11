@@ -14,7 +14,7 @@ import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
-    showBankAccountErrorModal,
+    showBankAccountFormAlert,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
@@ -25,6 +25,7 @@ import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -86,7 +87,7 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
+            showBankAccountFormAlert(this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
 
@@ -214,8 +215,7 @@ class RequestorStep extends React.Component {
                                     </TextLink>
                                 </Text>
                             </View>
-                        </ScrollView>
-                        <FixedFooter>
+                            <ReimbursementAccountFormAlert />
                             <Button
                                 success
                                 onPress={this.submit}
@@ -223,7 +223,7 @@ class RequestorStep extends React.Component {
                                 text={this.props.translate('common.saveAndContinue')}
                                 isDisabled={shouldDisableSubmitButton}
                             />
-                        </FixedFooter>
+                        </ScrollView>
                     </>
                 )}
             </>

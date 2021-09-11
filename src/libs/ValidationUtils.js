@@ -1,6 +1,6 @@
 import moment from 'moment';
 import CONST from '../CONST';
-import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
+import {showBankAccountFormValidationError, showBankAccountFormAlert} from './actions/BankAccounts';
 import {translateLocal} from './translate';
 
 /**
@@ -84,37 +84,37 @@ function isValidAge(date) {
 function isValidIdentity(identity) {
     if (!isValidAddress(identity.street)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
-        showBankAccountErrorModal();
+        showBankAccountFormAlert();
         return false;
     }
 
     if (identity.state === '') {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
-        showBankAccountErrorModal();
+        showBankAccountFormAlert();
         return false;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
-        showBankAccountErrorModal();
+        showBankAccountFormAlert();
         return false;
     }
 
     if (!isValidDate(identity.dob)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
+        showBankAccountFormAlert();
         return false;
     }
 
     if (!isValidAge(identity.dob)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
-        showBankAccountErrorModal();
+        showBankAccountFormAlert();
         return false;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
-        showBankAccountErrorModal();
+        showBankAccountFormAlert();
         return false;
     }
 
