@@ -86,9 +86,9 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        console.log('Test', showResendValidationLinkForm, this.props.credentials, this.props.account);
-
-        const welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
+        const welcomeText = showResendValidationLinkForm && this.props.account.validationCodeFailedMessage
+            ? ''
+            : this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
         const resendLinkTitleMessage = this.props.account.validationCodeFailedMessage ?? 'resendValidationForm.weSentYouMagicSignInLink';
 

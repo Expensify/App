@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
 import * as API from '../API';
@@ -126,6 +127,7 @@ function fetchAccountDetails(login) {
                     validated: response.validated,
                     closed: response.isClosed,
                     forgotPassword: false,
+                    validationCodeFailedMessage: null,
                 });
 
                 if (!response.accountExists) {
@@ -238,7 +240,7 @@ function resetPassword() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validationCodeFailedMessage: null});
         });
 }
 
@@ -267,9 +269,13 @@ function setPassword(password, validateCode, accountID) {
 
             // This request can fail if the password is not complex enough
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
-        }).catch(() => {
-            console.log('Date time', new Date());
+        }).catch((errResponse) => {
+            const login = lodashGet(errResponse, 'data.email', null);
             Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, validationCodeFailedMessage: 'resendValidationForm.validationCodeFailedMessage'});
+            if (login) {
+                Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
+            }
+            Navigation.navigate(ROUTES.HOME);
         }).finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
