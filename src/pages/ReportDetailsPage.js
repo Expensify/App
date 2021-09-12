@@ -9,6 +9,7 @@ import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -74,16 +75,16 @@ class ReportDetailsPage extends Component {
 
         this.notificationPreferencesOptions = {
             default: {
-                value: 'always',
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
                 label: props.translate('reportDetailsPage.always'),
 
             },
             daily: {
-                value: 'daily',
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
                 label: props.translate('reportDetailsPage.daily'),
             },
             mute: {
-                value: 'mute',
+                value: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
                 label: props.translate('reportDetailsPage.mute'),
             },
         };

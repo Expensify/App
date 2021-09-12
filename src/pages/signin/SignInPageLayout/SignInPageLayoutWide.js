@@ -20,7 +20,7 @@ const propTypes = {
     welcomeText: PropTypes.string.isRequired,
 
     /* Flag to check medium screen with device */
-    isMediumScreenWidth: PropTypes.string.isRequired,
+    isMediumScreenWidth: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
 };

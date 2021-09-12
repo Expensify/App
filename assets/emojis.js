@@ -28,6 +28,26 @@ import CONST from '../src/CONST';
 
 
 // BEFORE YOU EDIT THIS, PLEASE SEE WARNINGS IN EmojiPickerMenu.js
+const skinTones = [{
+    code: '🖐',
+    skinTone: CONST.DEFAULT_SKIN_TONE,
+}, {
+    code: '🖐🏻',
+    skinTone: 4,
+}, {
+    code: '🖐🏼',
+    skinTone: 3,
+}, {
+    code: '🖐🏽',
+    skinTone: 2,
+}, {
+    code: '🖐🏾',
+    skinTone: 1,
+}, {
+    code: '🖐🏿',
+    skinTone: 0,
+}];
+
 const emojis = [
     {
         code: 'Smileys & People',
@@ -736,7 +756,7 @@ const emojis = [
         ],
     },
     {
-        code: '☠',
+        code: '☠️',
         keywords: [
             'body',
             'crossbones',
@@ -2318,7 +2338,7 @@ const emojis = [
         ],
     },
     {
-        code: '❤',
+        code: '❤️',
         keywords: [
             'heart',
         ],
@@ -2424,7 +2444,7 @@ const emojis = [
         ],
     },
     {
-        code: '❣',
+        code: '❣️',
         keywords: [
             'exclamation',
             'heart',
@@ -3552,7 +3572,7 @@ const emojis = [
         ],
     },
     {
-        code: '☘',
+        code: '☘️',
         keywords: [
             'plant',
             'shamrock',
@@ -4803,7 +4823,7 @@ const emojis = [
         ],
     },
     {
-        code: '♨',
+        code: '♨️',
         keywords: [
             'hot',
             'hotsprings',
@@ -5322,7 +5342,7 @@ const emojis = [
         ],
     },
     {
-        code: '✈',
+        code: '✈️',
         keywords: [
             'airplane',
             'vehicle',
@@ -5921,7 +5941,7 @@ const emojis = [
         ],
     },
     {
-        code: '☀',
+        code: '☀️',
         keywords: [
             'bright',
             'rays',
@@ -5979,7 +5999,7 @@ const emojis = [
         ],
     },
     {
-        code: '☁',
+        code: '☁️',
         keywords: [
             'cloud',
             'weather',
@@ -6107,7 +6127,7 @@ const emojis = [
         ],
     },
     {
-        code: '☂',
+        code: '☂️',
         keywords: [
             'clothing',
             'rain',
@@ -6146,7 +6166,7 @@ const emojis = [
         ],
     },
     {
-        code: '❄',
+        code: '❄️',
         keywords: [
             'cold',
             'snow',
@@ -6155,7 +6175,7 @@ const emojis = [
         ],
     },
     {
-        code: '☃',
+        code: '☃️',
         keywords: [
             'cold',
             'snow',
@@ -6173,7 +6193,7 @@ const emojis = [
         ],
     },
     {
-        code: '☄',
+        code: '☄️',
         keywords: [
             'comet',
             'space',
@@ -6922,7 +6942,7 @@ const emojis = [
         ],
     },
     {
-        code: '♠',
+        code: '♠️',
         keywords: [
             'card',
             'game',
@@ -6931,7 +6951,7 @@ const emojis = [
         ],
     },
     {
-        code: '♥',
+        code: '♥️',
         keywords: [
             'card',
             'game',
@@ -6941,7 +6961,7 @@ const emojis = [
         ],
     },
     {
-        code: '♦',
+        code: '♦️',
         keywords: [
             'card',
             'diamond',
@@ -6951,7 +6971,7 @@ const emojis = [
         ],
     },
     {
-        code: '♣',
+        code: '♣️',
         keywords: [
             'card',
             'club',
@@ -7341,7 +7361,7 @@ const emojis = [
         ],
     },
     {
-        code: '⌨',
+        code: '⌨️',
         keywords: [
             'computer',
             'keyboard',
@@ -7805,7 +7825,7 @@ const emojis = [
         ],
     },
     {
-        code: '✉',
+        code: '✉️',
         keywords: [
             'e-mail',
             'email',
@@ -7952,7 +7972,7 @@ const emojis = [
         ],
     },
     {
-        code: '✒',
+        code: '✒️',
         keywords: [
             'nib',
             'pen',
@@ -8140,7 +8160,7 @@ const emojis = [
         ],
     },
     {
-        code: '✂',
+        code: '✂️',
         keywords: [
             'scissors',
             'tool',
@@ -8234,7 +8254,7 @@ const emojis = [
         ],
     },
     {
-        code: '⚒',
+        code: '⚒️',
         keywords: [
             'hammer',
             'pick',
@@ -8258,7 +8278,7 @@ const emojis = [
         ],
     },
     {
-        code: '⚔',
+        code: '⚔️',
         keywords: [
             'crossed',
             'swords',
@@ -8311,7 +8331,7 @@ const emojis = [
         ],
     },
     {
-        code: '⚙',
+        code: '⚙️',
         keywords: [
             'gear',
             'tool',
@@ -8326,7 +8346,7 @@ const emojis = [
         ],
     },
     {
-        code: '⚗',
+        code: '⚗️',
         keywords: [
             'alembic',
             'chemistry',
@@ -8334,7 +8354,7 @@ const emojis = [
         ],
     },
     {
-        code: '⚖',
+        code: '⚖️',
         keywords: [
             'balance',
             'justice',
@@ -8698,13 +8718,13 @@ const emojis = [
         ],
     },
     {
-        code: '☢',
+        code: '☢️',
         keywords: [
             'radioactive',
         ],
     },
     {
-        code: '☣',
+        code: '☣️',
         keywords: [
             'biohazard',
         ],
@@ -8719,7 +8739,7 @@ const emojis = [
         ],
     },
     {
-        code: '↗',
+        code: '↗️',
         keywords: [
             'arrow',
             'direction',
@@ -8737,7 +8757,7 @@ const emojis = [
         ],
     },
     {
-        code: '↘',
+        code: '↘️',
         keywords: [
             'arrow',
             'direction',
@@ -8756,7 +8776,7 @@ const emojis = [
         ],
     },
     {
-        code: '↙',
+        code: '↙️',
         keywords: [
             'arrow',
             'direction',
@@ -8774,7 +8794,7 @@ const emojis = [
         ],
     },
     {
-        code: '↖',
+        code: '↖️',
         keywords: [
             'arrow',
             'direction',
@@ -8783,13 +8803,13 @@ const emojis = [
         ],
     },
     {
-        code: '↕',
+        code: '↕️',
         keywords: [
             'arrow',
         ],
     },
     {
-        code: '↔',
+        code: '↔️',
         keywords: [
             'arrow',
         ],
@@ -8807,13 +8827,14 @@ const emojis = [
         ],
     },
     {
-        code: '⤴',
+        code: '⤴️',
         keywords: [
             'arrow',
+            'up',
         ],
     },
     {
-        code: '⤵',
+        code: '⤵️',
         keywords: [
             'arrow',
             'down',
@@ -8896,7 +8917,7 @@ const emojis = [
         ],
     },
     {
-        code: '✡',
+        code: '✡️',
         keywords: [
             'david',
             'jew',
@@ -8906,7 +8927,7 @@ const emojis = [
         ],
     },
     {
-        code: '☸',
+        code: '☸️',
         keywords: [
             'buddhist',
             'dharma',
@@ -8925,7 +8946,7 @@ const emojis = [
         ],
     },
     {
-        code: '✝',
+        code: '☦️',
         keywords: [
             'christian',
             'cross',
@@ -9026,7 +9047,7 @@ const emojis = [
         ],
     },
     {
-        code: '☑',
+        code: '☑️',
         keywords: [
             'ballot',
             'box',
@@ -9034,14 +9055,14 @@ const emojis = [
         ],
     },
     {
-        code: '✔',
+        code: '✔️',
         keywords: [
             'check',
             'mark',
         ],
     },
     {
-        code: '✖',
+        code: '✖️',
         keywords: [
             'cancel',
             'multiplication',
@@ -9110,19 +9131,19 @@ const emojis = [
         ],
     },
     {
-        code: '✳',
+        code: '✳️',
         keywords: [
             'asterisk',
         ],
     },
     {
-        code: '✴',
+        code: '✴️',
         keywords: [
             'star',
         ],
     },
     {
-        code: '❇',
+        code: '❇️',
         keywords: [
             'sparkle',
         ],
@@ -9137,7 +9158,7 @@ const emojis = [
         ],
     },
     {
-        code: '⁉',
+        code: '⁉️',
         keywords: [
             'exclamation',
             'interrobang',
@@ -9181,7 +9202,7 @@ const emojis = [
         ],
     },
     {
-        code: '〰',
+        code: '〰️',
         keywords: [
             'dash',
             'punctuation',
@@ -9201,7 +9222,7 @@ const emojis = [
         ],
     },
     {
-        code: '™',
+        code: '™️',
         keywords: [
             'mark',
             'tm',
@@ -9725,7 +9746,7 @@ const emojis = [
         ],
     },
     {
-        code: 'ℹ',
+        code: 'ℹ️',
         keywords: [
             'i',
             'information',
@@ -9876,7 +9897,7 @@ const emojis = [
         ],
     },
     {
-        code: '㊗',
+        code: '㊗️',
         keywords: [
             'chinese',
             'congratulation',
@@ -9885,7 +9906,7 @@ const emojis = [
         ],
     },
     {
-        code: '㊙',
+        code: '㊙️',
         keywords: [
             'chinese',
             'ideograph',
@@ -12093,4 +12114,5 @@ const emojis = [
     },
 ];
 
+export {skinTones};
 export default emojis;
