@@ -4,7 +4,7 @@ import variables from './variables';
 import themeColors from './themes/default';
 
 export default (type, windowDimensions, popoverAnchorPosition = {}) => {
-    const {isSmallScreenWidth, windowWidth, windowHeight} = windowDimensions;
+    const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
         margin: 0,
@@ -131,7 +131,6 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
                 paddingTop: 12,
                 justifyContent: 'center',
                 overflow: 'hidden',
-                ...windowWidth >= windowHeight ? {top: 40} : {},
             };
 
             shouldAddBottomSafeAreaPadding = true;
