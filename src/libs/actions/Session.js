@@ -254,7 +254,7 @@ function resetPassword() {
  * @param {String} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validationCodeFailedMessage: ''});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validationCodeFailedMessage: null});
 
     API.SetPassword({
         password,
