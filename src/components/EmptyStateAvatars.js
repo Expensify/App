@@ -25,7 +25,7 @@ const defaultProps = {
     CustomChatRoomIcon: ActiveRoomAvatar,
 };
 
-const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) => {
+const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) => {
     if (!avatarImageURLs.length) {
         return null;
     }
@@ -48,12 +48,12 @@ const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) =>
                     if (index <= 3) {
                         return (
                             <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
-                                <Image source={{uri: val}} style={[styles.chatAvatar]} />
+                                <Image source={{uri: val}} style={[styles.emptyStateAvatar]} />
 
                                 {index === 3 && (
                                     <View
                                         style={[
-                                            styles.chatAvatar,
+                                            styles.emptyStateAvatar,
                                             styles.justifyContentCenter,
                                             styles.alignItemsCenter,
                                             styles.chatOverLay,
@@ -74,6 +74,6 @@ const ChatAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) =>
     );
 };
 
-ChatAvatars.defaultProps = defaultProps;
-ChatAvatars.propTypes = propTypes;
-export default memo(ChatAvatars);
+EmptyStateAvatars.defaultProps = defaultProps;
+EmptyStateAvatars.propTypes = propTypes;
+export default memo(EmptyStateAvatars);

@@ -2,7 +2,6 @@ import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import Text from './Text';
-import colors from '../styles/colors';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 
@@ -21,12 +20,12 @@ const defaultProps = {
 
 const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
     <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
-        <Text style={[{color: colors.dark}]}>
+        <Text>
             {isDefaultChatRoom ? `${translate('reportActionsView.beginingOfChatHistroyPrivate')} ` : `${translate('reportActionsView.beginingOfChatHistroy')} `}
         </Text>
         {isDefaultChatRoom
             && (
-                <Text style={[{color: colors.dark}]}>
+                <Text>
                     {`${chatUsers?.[0]?.displayName} ${translate('reportActionsView.beginingOfChatHistroyPrivateSectionPart')}`}
                 </Text>
             )}
@@ -35,7 +34,7 @@ const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
                 <Text>
                     {chatUsers.map(({displayName, pronouns}, index) => (
                         <Text key={displayName}>
-                            <Text style={[{color: colors.dark, fontWeight: '700'}]}>
+                            <Text style={[styles.chatTextStyle]}>
                                 {displayName}
                             </Text>
                             {(pronouns !== undefined && pronouns !== '')

@@ -1580,13 +1580,13 @@ const styles = {
         height: 80,
     },
 
-    chatAvatar: {
-        height: 52,
-        width: 52,
+    emptyStateAvatar: {
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
         borderRadius: 100,
-        borderColor: colors.white,
-        borderWidth: 3,
-        marginLeft: -15,
+        borderColor: themeColors.componentBG,
+        borderWidth: 4,
+        marginLeft: -16,
     },
 
     chatOverLay: {
@@ -1596,7 +1596,11 @@ const styles = {
         bottom: 0,
         left: 0,
         backgroundColor: colors.dark,
-        opacity: 0.5,
+        opacity: 0.7,
+    },
+
+    chatTextStyle: {
+        fontWeight: fontWeightBold,
     },
 
     avatarInnerTextChat: {

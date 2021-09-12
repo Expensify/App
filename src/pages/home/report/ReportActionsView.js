@@ -10,7 +10,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import Text from '../../../components/Text';
 import {
     fetchActions,
     fetchChatReportsByIDs,
@@ -19,7 +18,6 @@ import {
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
 } from '../../../libs/actions/Report';
-import {currentTimeStampFromProvidedZone} from '../../../libs/DateUtils';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import ReportActionPropTypes from './ReportActionPropTypes';
@@ -40,12 +38,11 @@ import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionCon
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
-import ChatAvatars from '../../../components/ChatAvatars';
+import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
 import {isDefaultRoom} from '../../../libs/reportUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {getPersonalDetailsForLogins} from '../../../libs/OptionsListUtils';
 import ChatBeginingText from '../../../components/ChatBeginingText';
-import colors from '../../../styles/colors';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -524,17 +521,8 @@ class ReportActionsView extends React.Component {
             },
         );
 
-        const displayTimeWithTimeZone = _.map(
-            getPersonalDetailsForLogins(participants, this.props.personalDetails),
-            ({timezone}) => ({
-                timezone: timezone?.selected ?? null,
-            }),
-        );
-        const chatUserTimeZone = isMultipleParticipant ? false : displayTimeWithTimeZone.map(({timezone}) => timezone).join('');
-
         const chatUsers = isDefaultChatRoom ? [{displayName: this.props.report.reportName}] : displayNamesWithTooltips;
 
-        const userTime = currentTimeStampFromProvidedZone(chatUserTimeZone, 'hh:mm a');
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
@@ -545,20 +533,13 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, {flex: 0.95}]}>
-                        <ChatAvatars
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, {flex: 1}]}>
+                        <EmptyStateAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
                             isCustomChatRoom={isDefaultChatRoom}
                         />
                         <ChatBeginingText chatUsers={chatUsers} isDefaultChatRoom={isDefaultChatRoom} />
-                    </View>
-                    <View style={[styles.justifyContentEnd, {flex: 0.05}]}>
-                        {chatUserTimeZone !== false && (
-                        <Text style={{fontSize: variables.fontSizeSmall, color: colors.gray4}}>
-                            {`It's ${userTime} for ${chatUsers?.[0]?.displayName}.`}
-                        </Text>
-                        )}
                     </View>
                 </View>
             );
