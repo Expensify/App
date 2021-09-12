@@ -129,7 +129,7 @@ const AboutPage = ({translate, session}) => {
                         )}
                         {' '}
                         <TextLink
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            style={[styles.textMicroSupporting, styles.link]}
                             href={CONST.TERMS_URL}
                         >
                             {translate(
@@ -142,7 +142,7 @@ const AboutPage = ({translate, session}) => {
                         )}
                         {' '}
                         <TextLink
-                            style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
+                            style={[styles.textMicroSupporting, styles.link]}
                             href={CONST.PRIVACY_URL}
                         >
                             {translate(
