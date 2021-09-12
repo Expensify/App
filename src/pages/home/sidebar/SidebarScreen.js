@@ -46,14 +46,22 @@ class SidebarScreen extends Component {
         this.navigateToSettings = this.navigateToSettings.bind(this);
 
         this.state = {
-            isCreateMenuActive: props.isNewUser
+            isCreateMenuActive: false
         };
-        NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.IS_NEW_USER);
     }
 
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+
+        if (this.props.isNewUser) {
+            // For some reason, the menu doesn't open without the timeout
+            setTimeout(() => {
+                this.toggleCreateMenu()
+                // Set the NVP back to false (this may need to be moved if this NVP is used for anything else later)
+                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.IS_NEW_USER)
+            }, 200);
+        }
     }
 
     /**
