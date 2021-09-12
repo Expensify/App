@@ -123,8 +123,8 @@ export default function getBankIcon(bankName, isCard) {
         bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
     }
 
-    // For default icon & expensify (for now) the icon size should not be set.
-    if (![Expensify, CreditCard, Bank].includes(bankIcon.icon)) {
+    // For default icons the icon size should not be set.
+    if (![CreditCard, Bank].includes(bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 
