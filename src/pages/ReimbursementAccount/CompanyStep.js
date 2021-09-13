@@ -247,7 +247,6 @@ class CompanyStep extends React.Component {
                                 <StatePicker
                                     onChange={value => this.clearErrorAndSetValue('addressState', value)}
                                     value={this.state.addressState}
-                                    hasError={this.getErrors().addressState}
                                 />
                             </View>
                         </View>
@@ -290,7 +289,6 @@ class CompanyStep extends React.Component {
                                 onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                                 value={this.state.incorporationType}
                                 placeholder={{value: '', label: '-'}}
-                                errorText={this.getErrorText('incorporationType')}
                             />
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
@@ -308,7 +306,6 @@ class CompanyStep extends React.Component {
                                 <StatePicker
                                     onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                                     value={this.state.incorporationState}
-                                    hasError={this.getErrors().incorporationState}
                                 />
                             </View>
                         </View>

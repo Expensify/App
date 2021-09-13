@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -11,19 +10,11 @@ const propTypes = {
 
     /** Should the picker appear disabled? */
     isDisabled: PropTypes.bool,
-
-    /** Error text to display */
-    errorText: PropTypes.string,
-
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
 };
 
 const defaultProps = {
     label: '',
     isDisabled: false,
-    errorText: '',
-    hasError: false,
 };
 
 class ExpensiPicker extends PureComponent {
@@ -36,35 +27,27 @@ class ExpensiPicker extends PureComponent {
 
     render() {
         const {
-            errorText,
-            hasError,
-            label,
-            isDisabled,
-            ...pickerProps
+            label, isDisabled, ...pickerProps
         } = this.props;
         return (
-            <>
-                <View
-                    style={[
-                        styles.expensiPickerContainer,
-                        this.state.isOpen && styles.borderColorFocus,
-                        isDisabled && styles.inputDisabled,
-                        (errorText || hasError) && styles.borderColorDanger,
-                    ]}
-                >
-                    {label && (
-                        <Text style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{label}</Text>
-                    )}
-                    <Picker
-                        onOpen={() => this.setState({isOpen: true})}
-                        onClose={() => this.setState({isOpen: false})}
-                        disabled={isDisabled}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...pickerProps}
-                    />
-                </View>
-                {!_.isEmpty(errorText) ? <Text style={[styles.formError, styles.mt1]}>{errorText}</Text> : null}
-            </>
+            <View
+                style={[
+                    styles.expensiPickerContainer,
+                    this.state.isOpen && styles.borderColorFocus,
+                    isDisabled && styles.inputDisabled,
+                ]}
+            >
+                {label && (
+                    <Text style={[styles.expensiPickerLabel, styles.textLabelSupporting]}>{label}</Text>
+                )}
+                <Picker
+                    onOpen={() => this.setState({isOpen: true})}
+                    onClose={() => this.setState({isOpen: false})}
+                    disabled={isDisabled}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...pickerProps}
+                />
+            </View>
         );
     }
 }

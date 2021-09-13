@@ -17,15 +17,11 @@ const propTypes = {
     /** The value that needs to be selected */
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
-    /** Should the input be styled for errors  */
-    hasError: PropTypes.bool,
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     value: '',
-    hasError: false,
 };
 
 const StatePicker = props => (
@@ -35,7 +31,6 @@ const StatePicker = props => (
         onChange={props.onChange}
         value={props.value}
         label={props.translate('common.state')}
-        hasError={props.hasError}
     />
 );
 
