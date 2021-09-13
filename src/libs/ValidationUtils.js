@@ -79,6 +79,17 @@ function isValidExpirationDate(string) {
 }
 
 /**
+ * Validates that this is a valid security code
+ * in the XXX or XXXX format.
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+ function isValidSecurityCode(string) {
+    return CONST.REGEX.CARD_SECURITY_CODE.test(string);
+}
+
+/**
  * Validates a debit card number (15 or 16 digits).
  *
  * @param {String} string
@@ -152,6 +163,7 @@ function isValidIdentity(identity) {
 export {
     isValidAddress,
     isValidDate,
+    isValidSecurityCode,
     isValidExpirationDate,
     isValidDebitCard,
     isValidIndustryCode,

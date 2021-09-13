@@ -20,7 +20,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import {
-    isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard,
+    isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard, isValidSecurityCode,
 } from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 
@@ -72,7 +72,7 @@ class DebitCardPage extends Component {
             return false;
         }
 
-        if (!/^[0-9]{3,4}$/.test(this.state.securityCode)) {
+        if (!isValidSecurityCode(this.state.securityCode)) {
             Growl.error(this.props.translate('addDebitCardPage.error.securityCode'));
             return false;
         }
