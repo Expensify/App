@@ -8,7 +8,7 @@ import {getNewGroupOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
-import CONST from '../CONST';
+import CONST, {EXCLUDED_GROUP_EMAILS} from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -68,12 +68,11 @@ class NewGroupPage extends Component {
         } = getNewGroupOptions(
             props.reports,
             props.personalDetails,
+            props.betas,
             '',
             [],
-            false,
-            props.betas,
+            EXCLUDED_GROUP_EMAILS,
         );
-
         this.state = {
             searchValue: '',
             recentReports,
@@ -167,10 +166,10 @@ class NewGroupPage extends Component {
             } = getNewGroupOptions(
                 this.props.reports,
                 this.props.personalDetails,
+                this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                false,
-                this.props.betas,
+                EXCLUDED_GROUP_EMAILS,
             );
 
             return {
@@ -219,10 +218,10 @@ class NewGroupPage extends Component {
                                                 } = getNewGroupOptions(
                                                     this.props.reports,
                                                     this.props.personalDetails,
+                                                    this.props.betas,
                                                     searchValue,
                                                     [],
-                                                    false,
-                                                    this.props.betas,
+                                                    EXCLUDED_GROUP_EMAILS,
                                                 );
                                                 this.setState({
                                                     searchValue,

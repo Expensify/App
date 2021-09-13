@@ -1,6 +1,11 @@
 import _ from 'underscore';
 import React from 'react';
-import {StackActions, DrawerActions, useLinkBuilder} from '@react-navigation/native';
+import {
+    StackActions,
+    DrawerActions,
+    useLinkBuilder,
+    createNavigationContainerRef,
+} from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
 import linkTo from './linkTo';
@@ -15,7 +20,18 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
-export const navigationRef = React.createRef();
+export const navigationRef = createNavigationContainerRef();
+
+// This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
+// If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens)
+// so it doesn't cover the report we're trying to link to.
+let didTapNotificationBeforeReady = false;
+
+function setDidTapNotification() {
+    if (!navigationRef.isReady()) {
+        didTapNotificationBeforeReady = true;
+    }
+}
 
 /**
  * Opens the LHN drawer.
@@ -31,6 +47,17 @@ function openDrawer() {
  */
 function closeDrawer() {
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
+}
+
+/**
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {String}
+ */
+function getDefaultDrawerState(isSmallScreenWidth) {
+    if (didTapNotificationBeforeReady) {
+        return 'closed';
+    }
+    return isSmallScreenWidth ? 'open' : 'closed';
 }
 
 /**
@@ -179,4 +206,6 @@ export default {
     goBack,
     DismissModal,
     closeDrawer,
+    getDefaultDrawerState,
+    setDidTapNotification,
 };

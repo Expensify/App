@@ -123,7 +123,7 @@ const WorkspaceSidebar = ({
                                             src={Workspace}
                                             height={80}
                                             width={80}
-                                            fill={themedefault.icon}
+                                            fill={themedefault.iconSuccessFill}
                                         />
                                     )}
                             </Pressable>

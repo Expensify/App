@@ -238,7 +238,7 @@ class IOUDetailsModal extends Component {
                             <IOUTransactions
                                 chatReportID={Number(this.props.route.params.chatReportID)}
                                 iouReportID={Number(this.props.route.params.iouReportID)}
-                                hasOutstandingIOU={this.props.iouReport.hasOutstandingIOU}
+                                isIOUSettled={this.props.iouReport.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED}
                                 userEmail={sessionEmail}
                             />
                         </ScrollView>

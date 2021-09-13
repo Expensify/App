@@ -1,3 +1,4 @@
+import lodashClamp from 'lodash/clamp';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -36,7 +37,8 @@ class ThumbnailImage extends PureComponent {
     updateImageSize({width, height}) {
         // Width of the thumbnail works better as a constant than it does
         // a percentage of the screen width since it is relative to each screen
-        const thumbnailScreenWidth = 250;
+        // Note: Clamp minimum width 40px to support touch device
+        const thumbnailScreenWidth = lodashClamp(width, 40, 250);
         const scaleFactor = width / thumbnailScreenWidth;
         const imageHeight = height / scaleFactor;
         this.setState({thumbnailWidth: thumbnailScreenWidth, thumbnailHeight: imageHeight});
