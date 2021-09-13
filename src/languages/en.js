@@ -263,7 +263,7 @@ export default {
         currentPassword: 'Current password',
         newPassword: 'New password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
-        confirmNewPassword: 'Confirm New Password',
+        confirmNewPassword: 'Confirm new password',
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
