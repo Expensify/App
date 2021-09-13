@@ -665,7 +665,7 @@ function updateReportPinnedState(reportID, isPinned) {
  *
  * @param {Boolean} isFromPublicDomain
  */
-function updateIsFromPublicDomain(isFromPublicDomain) {
+function setIsFromPublicDomain(isFromPublicDomain) {
     Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 }
 
@@ -758,7 +758,7 @@ function subscribeToUserEvents() {
             false,
             {isFromPublicDomain: pushJSON.isFromPublicDomain},
         );
-        updateIsFromPublicDomain(pushJSON.isFromPublicDomain);
+        setIsFromPublicDomain(pushJSON.isFromPublicDomain);
     }, false,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');

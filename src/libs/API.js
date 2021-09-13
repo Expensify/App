@@ -741,7 +741,7 @@ function User_GetBetas() {
 
 /**
  * @param {Object} parameters
- * @param {Array} parameters.emailList
+ * @param {String} parameters.emailList
  * @param {Boolean} [parameters.requireCertainty]
  * @returns {Promise}
  */

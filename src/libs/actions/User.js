@@ -12,7 +12,6 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
-import getDomainFromEmail from '../getDomainFromEmail';
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 
@@ -82,7 +81,7 @@ function getDomainInfo(loginList) {
 
     // First we filter out any domains that are in the list of common public domains
     const emailList = _.filter(loginList, email => (
-        !_.contains(COMMON_PUBLIC_DOMAINS, getDomainFromEmail(email))
+        !_.contains(COMMON_PUBLIC_DOMAINS, Str.extractEmailDomain(email))
     ));
 
     // If there are no emails left, we have a public domain
@@ -92,7 +91,7 @@ function getDomainInfo(loginList) {
     }
 
     // Check the API for the remaining uncommon domains
-    API.User_IsFromPublicDomain({emailList})
+    API.User_IsFromPublicDomain({emailList: emailList.join(',')})
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
