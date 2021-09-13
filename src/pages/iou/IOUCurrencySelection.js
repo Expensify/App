@@ -184,7 +184,7 @@ class IOUCurrencySelection extends Component {
                             </View>
                             <View style={[styles.flex1]}>
                                 <SectionList
-                                    bounces={false}
+                                    bounces
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={false}

@@ -144,12 +144,12 @@ class BaseInvertedFlatList extends Component {
                 {...this.props}
                 ref={this.props.innerRef}
                 inverted
+                bounces
                 renderItem={this.renderItem}
 
                 // Native platforms do not need to measure items and work fine without this.
                 // Web requires that items be measured or else crazy things happen when scrolling.
                 getItemLayout={this.props.shouldMeasureItems ? this.getItemLayout : undefined}
-                bounces={false}
 
                 // We keep this property very low so that chat switching remains fast
                 maxToRenderPerBatch={1}
