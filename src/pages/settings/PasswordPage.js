@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import {isEmpty} from 'underscore';
+import _ from 'underscore';
 
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -50,6 +50,11 @@ class PasswordPage extends Component {
             newPassword: '',
             confirmNewPassword: '',
             shouldShowPasswordConfirmError: false,
+            fieldErrors: {
+                currentPassword: null,
+                newPassword: null,
+                confirmNewPassword: null,
+            },
         };
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
@@ -60,8 +65,37 @@ class PasswordPage extends Component {
         Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
     }
 
-    onBlurNewPassword() {
+
+    isValidPassword() {
+        return this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    }
+
+    getFieldError(field) {
+        if (this.state.fieldErrors && this.state.fieldErrors[field]) {
+            return this.state.fieldErrors[field];
+        }
+        return null;
+    }
+
+    formatRequiredErrorMessage(label, error) {
+        return `${label} ${error}`;
+    }
+
+    validateAndSubmitForm() {
         const stateToUpdate = {};
+        const fieldErrors = {};
+
+        if (!this.state.currentPassword) {
+            fieldErrors.currentPassword = 'common.isRequired';
+        }
+
+        if (!this.state.newPassword) {
+            fieldErrors.newPassword = 'common.isRequired';
+        }
+
+        if (!this.state.confirmNewPassword) {
+            fieldErrors.confirmNewPassword = 'common.isRequired';
+        }
 
         if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
             stateToUpdate.shouldShowPasswordConfirmError = true;
@@ -69,19 +103,11 @@ class PasswordPage extends Component {
             stateToUpdate.shouldShowPasswordConfirmError = false;
         }
 
+        stateToUpdate.errors = fieldErrors;
         this.setState(stateToUpdate);
-    }
-
-    onBlurConfirmPassword() {
-        if ((this.state.newPassword && !this.state.confirmNewPassword) || !this.doPasswordsMatch()) {
-            this.setState({shouldShowPasswordConfirmError: true});
-        } else {
-            this.setState({shouldShowPasswordConfirmError: false});
+        if (_.isEmpty(fieldErrors)) {
+            this.handleChangePassword();
         }
-    }
-
-    isValidPassword() {
-        return this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
 
@@ -127,6 +153,8 @@ class PasswordPage extends Component {
                                 value={this.state.currentPassword}
                                 onChangeText={currentPassword => this.setState({currentPassword})}
                                 returnKeyType="done"
+                                hasError={this.getFieldError('currentPassword')}
+                                errorText={this.formatRequiredErrorMessage('currentPassword', this.getFieldError('currentPassword'))}
                             />
                         </View>
                         <View style={styles.mb6}>
@@ -136,14 +164,15 @@ class PasswordPage extends Component {
                                 autoCompleteType="password"
                                 textContentType="password"
                                 value={this.state.newPassword}
+                                hasError={this.getFieldError('newPassword')}
+                                errorText=""
                                 onChangeText={newPassword => this.setState({newPassword})}
-                                onBlur={() => this.onBlurNewPassword()}
                             />
                             <Text
                                 style={[
                                     styles.textLabelSupporting,
                                     styles.mt1,
-                                    this.state.newPassword && !this.isValidPassword() && styles.formError,
+                                    this.getFieldError('newPassword') && styles.formError,
                                 ]}
                             >
                                 {this.props.translate('passwordPage.newPasswordPrompt')}
@@ -157,8 +186,9 @@ class PasswordPage extends Component {
                                 textContentType="password"
                                 value={this.state.confirmNewPassword}
                                 onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
-                                onSubmitEditing={this.handleChangePassword}
-                                onBlur={() => this.onBlurConfirmPassword()}
+                                hasError={this.getFieldError('confirmNewPassword')}
+                                errorText={this.formatRequiredErrorMessage('confirmNewPassword', this.getFieldError('confirmNewPassword'))}
+                                onSubmitEditing={this.validateAndSubmitForm}
                             />
                         </View>
                         {!this.state.shouldShowPasswordConfirmError && !isEmpty(this.props.account.error) && (
@@ -176,14 +206,9 @@ class PasswordPage extends Component {
                         <Button
                             success
                             style={[styles.mb2]}
-                            isDisabled={!this.state.currentPassword || !this.state.newPassword
-                                || !this.state.confirmNewPassword
-                                || (this.state.newPassword !== this.state.confirmNewPassword)
-                                || (this.state.currentPassword === this.state.newPassword)
-                                || !this.state.newPassword.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING)}
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}
-                            onPress={this.handleChangePassword}
+                            onPress={this.validateAndSubmitForm}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
