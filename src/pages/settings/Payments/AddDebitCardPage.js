@@ -49,6 +49,7 @@ class DebitCardPage extends Component {
         };
 
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
+        this.handleExpirationInput = this.handleExpirationInput.bind(this);
         this.submit = this.submit.bind(this);
     }
 
@@ -115,6 +116,15 @@ class DebitCardPage extends Component {
         this.setState(prevState => ({acceptedTerms: !prevState.acceptedTerms}));
     }
 
+    handleExpirationInput(expirationDate) {
+        let newExpirationDate = expirationDate;
+        const isErasing = expirationDate.length < this.state.expirationDate.length;
+        if (expirationDate.length === 2 && !isErasing) {
+            newExpirationDate = `${expirationDate}/`;
+        }
+        this.setState({newExpirationDate});
+    }
+
     render() {
         return (
             <ScreenWrapper>
@@ -145,7 +155,7 @@ class DebitCardPage extends Component {
                                 placeholder={this.props.translate('addDebitCardPage.expirationDate')}
                                 keyboardType="number-pad"
                                 containerStyles={[styles.flex2, styles.mr4]}
-                                onChangeText={expirationDate => this.setState({expirationDate})}
+                                onChangeText={expirationDate => this.handleExpirationInput(expirationDate)}
                                 value={this.state.expirationDate}
                             />
                             <TextInputWithLabel

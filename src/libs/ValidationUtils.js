@@ -69,7 +69,7 @@ function isValidDate(date) {
 
 /**
  * Validates that this is a valid expiration date
- * in the MM/YY format
+ * in the MM/YY or MM/YYYY format
  *
  * @param {String} string
  * @returns {Boolean}

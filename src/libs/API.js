@@ -333,7 +333,7 @@ function AuthenticateWithAccountID(parameters) {
  */
 function AddBillingCard(parameters) {
     const commandName = 'User_AddBillingCard';
-    return Network.post(commandName, parameters);
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 

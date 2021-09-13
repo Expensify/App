@@ -39,11 +39,13 @@ function getPaymentMethods() {
 function addBillingCard(params) {
     API.AddBillingCard({
         cardNumber: params.cardNumber,
-        cardYear: params.expirationDate.substr(3),
+        // eslint-disable-next-line no-use-before-define
+        cardYear: normalizeCardYear(params.expirationDate),
         cardMonth: params.expirationDate.substr(0, 2),
-        cardCvv: params.securityCode,
+        cardCVV: params.securityCode,
         addressName: params.nameOnCard,
         addressZip: params.zipCode,
+        currency: CONST.CURRENCY.USD,
     }).then(((response) => {
         if (response.jsonCode === 200) {
             Onyx.set(ONYXKEYS.CARD_LIST, response);
@@ -53,6 +55,21 @@ function addBillingCard(params) {
             Growl.error(translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
         }
     }));
+}
+
+/**
+ * Returns the year of the expiration date in YYYY format.
+ *
+ * @param {String} expirationDate
+ *
+ * @returns {String}
+ */
+function normalizeCardYear(expirationDate) {
+    let cardYear = expirationDate.substr(3);
+    if (cardYear.length === 2) {
+        cardYear = `20${cardYear}`;
+    }
+    return cardYear;
 }
 
 export {
