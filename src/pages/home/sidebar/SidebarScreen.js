@@ -181,7 +181,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         isNewUser: {
-            key: ONYXKEYS.IS_NEW_USER
+            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER
         }
     }),
 )(SidebarScreen);
