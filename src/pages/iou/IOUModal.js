@@ -364,6 +364,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
                                         <AnimatedStep
+                                            style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
                                             <IOUParticipantsPage
