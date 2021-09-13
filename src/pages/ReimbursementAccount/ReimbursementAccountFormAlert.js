@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
@@ -9,6 +10,10 @@ import ExistingOwners from './ExistingOwners';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ONYXKEYS from '../../ONYXKEYS';
 import Text from '../../components/Text';
+import {Exclamation} from '../../components/Icon/Expensicons';
+import Icon from '../../components/Icon';
+import colors from '../../styles/colors';
+import TextLink from '../../components/TextLink';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -17,7 +22,7 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 
-    onFixTheErrorsPressed: PropTypes.func.isRequired,
+    onFixTheErrorsLinkPressed: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -39,24 +44,30 @@ class ReimbursementAccountFormAlert extends React.Component {
         }
 
         return this.props.reimbursementAccount.alertMessage || (
-            <>
+            <View style={[styles.flexRow, styles.ml2]}>
                 {/* @TODO translate {this.props.translate('bankAccount.defaultFormAlertPrompt')} */}
-                <Text>Please </Text>
-                <Text style={styles.link} onPress={this.props.onFixTheErrorsPressed}>fix the errors </Text>
-                <Text>in the form before continuing.</Text>
-            </>
+                <Text style={styles.mutedTextLabel}>Please </Text>
+                <TextLink
+                    style={styles.label}
+                    onPress={this.props.onFixTheErrorsLinkPressed}
+                >
+                    {'fix the errors '}
+                </TextLink>
+                <Text style={styles.mutedTextLabel}>in the form before continuing.</Text>
+            </View>
         );
     }
 
     render() {
-        const isVisible = lodashGet(this.props, 'reimbursementAccount.isFormAlertVisible', false);
+        const isVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0;
         if (!isVisible) {
             return null;
         }
 
         return (
-            <View>
-                <Text>{this.getAlertPrompt()}</Text>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb4]}>
+                <Icon src={Exclamation} fill={colors.red} />
+                {this.getAlertPrompt()}
             </View>
         );
     }
