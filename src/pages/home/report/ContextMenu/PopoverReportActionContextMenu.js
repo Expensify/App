@@ -118,7 +118,10 @@ class PopoverReportActionContextMenu extends React.Component {
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
-        this.onPopoverHide = onHide;
+        const onShowCallback = () => {
+            onShow();
+            this.onPopoverHide = onHide;
+        };
         this.getContextMenuMeasuredLocation().then(({x, y}) => {
             this.setState({
                 cursorRelativePosition: {
@@ -135,7 +138,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
-            }, onShow);
+            }, onShowCallback);
         });
     }
 
