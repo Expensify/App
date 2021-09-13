@@ -107,7 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Name, email, or phone number',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Video chat',
+        tooltip: 'Start a Call',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -636,7 +636,7 @@ export default {
         availabilityText: '*Our guides are available from Sunday at 5pm CT to Friday at 5pm CT. Any requests outside this window will be returned 9am - 5pm, Monday - Friday in your local time. Call time is based on the order the call was received.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        growlMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code.\ne.g. +15005550006',
+        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         needHelp: 'Help',
