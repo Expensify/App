@@ -25,11 +25,14 @@ import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {create} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
-import NameValuePair from '../../../libs/actions/NameValuePair'
+import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
-    /** Beta features list */
+    /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /* Flag for new users used to open the Global Create menu on first load */
+    isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -54,7 +57,7 @@ class SidebarScreen extends Component {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
-        if (this.props.isNewUser) {
+        if (this.props.isFirstTimeNewExpensifyUser) {
             // For some reason, the menu doesn't open without the timeout
             setTimeout(() => {
                 this.toggleCreateMenu();
@@ -180,7 +183,7 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        isNewUser: {
+        isFirstTimeNewExpensifyUser: {
             key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
     }),
