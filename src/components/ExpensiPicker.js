@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -62,9 +63,7 @@ class ExpensiPicker extends PureComponent {
                         {...pickerProps}
                     />
                 </View>
-                {Boolean(errorText) && (
-                    <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
-                )}
+                {!_.isEmpty(errorText) ? <Text style={[styles.formError, styles.mt1]}>{errorText}</Text> : null}
             </>
         );
     }

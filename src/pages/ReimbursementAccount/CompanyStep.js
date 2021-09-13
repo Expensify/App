@@ -26,7 +26,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode,
+    isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode, isValuePresent,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -81,9 +81,10 @@ class CompanyStep extends React.Component {
             'industryCode',
             'password',
             'companyPhone',
+            'hasNoConnectionToCannabis',
         ];
 
-        // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
+        // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
             addressStreet: 'bankAccount.error.addressStreet',
             addressCity: 'bankAccount.error.addressCity',
@@ -108,7 +109,7 @@ class CompanyStep extends React.Component {
 
     /**
      * @param {String} inputKey
-     * @returns {string}
+     * @returns {String}
      */
     getErrorText(inputKey) {
         const errors = this.getErrors();
@@ -180,11 +181,8 @@ class CompanyStep extends React.Component {
             errors.industryCode = true;
         }
 
-        if (!this.state.hasNoConnectionToCannabis) {
-            errors.hasNoConnectionToCannabis = true;
-        }
-        this.requiredFields.forEach((inputKey) => {
-            if (!this.state[inputKey].trim()) {
+        _.each(this.requiredFields, (inputKey) => {
+            if (!isValuePresent(this.state[inputKey])) {
                 errors[inputKey] = true;
             }
         });
@@ -206,7 +204,9 @@ class CompanyStep extends React.Component {
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
-        const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis;
+
+        // Disable save button if any of the required fields is empty
+        const shouldDisableSubmitButton = this.requiredFields.reduce((acc, curr) => acc || !isValuePresent(this.state[curr]), false);
         return (
             <>
                 <HeaderWithCloseButton
