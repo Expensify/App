@@ -9,7 +9,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import {setPassword} from '../libs/actions/Session';
+import {signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
+import * as API from '../libs/API';
 
 const propTypes = {
     /* Onyx Props */
@@ -69,14 +70,20 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
         if (!this.state.isFormValid) {
             return;
         }
-        setPassword(
-            this.state.password,
-            lodashGet(this.props.route, 'params.validateCode', ''),
-            lodashGet(this.props.route, 'params.accountID', ''),
-        );
+        API.ValidateEmailAndSetPassword({
+            accountID,
+            validateCode,
+            password: this.state.password,
+        }).then((response) => {
+            if (response.jsonCode === 200) {
+                signIn(this.state.password);
+            }
+        });
     }
 
     render() {

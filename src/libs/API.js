@@ -38,6 +38,7 @@ function isAuthTokenRequired(command) {
         'ResetPassword',
         'User_ReopenAccount',
         'ValidateEmail',
+        'ValidateEmailAndSetPassword',
     ], command);
 }
 
@@ -343,6 +344,18 @@ function AuthenticateWithAccountID(parameters) {
 function ChangePassword(parameters) {
     const commandName = 'ChangePassword';
     requireParameters(['oldPassword', 'password'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.validateCode
+ * @param {String} parameters.password
+ * @returns {Promise}
+ */
+function ValidateEmailAndSetPassword(parameters) {
+    const commandName = 'ValidateEmailAndSetPassword';
+    requireParameters(['validateCode', 'password'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -1126,6 +1139,7 @@ export {
     CreateIOUTransaction,
     CreateIOUSplit,
     ValidateEmail,
+    ValidateEmailAndSetPassword,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
     GetLocalCurrency,
