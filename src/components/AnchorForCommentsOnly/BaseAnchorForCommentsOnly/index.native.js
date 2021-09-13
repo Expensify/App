@@ -25,7 +25,7 @@ const BaseAnchorForCommentsOnly = ({
         isAttachment
             ? (
                 <Pressable onPress={() => {
-                    fileDownload(href);
+                    fileDownload(href, fileName);
                 }}
                 >
                     <AttachmentView

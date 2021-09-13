@@ -20,6 +20,8 @@ import Growl from '../../libs/Growl';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import {isSystemUser} from '../../libs/userUtils';
+import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -88,9 +90,16 @@ class WorkspaceInvitePage extends React.Component {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
             return;
         }
+
+        const foundSystemLogin = _.find(logins, login => isSystemUser(login));
+        if (foundSystemLogin) {
+            Growl.error(this.props.translate('workspace.invite.systemUserError', {email: foundSystemLogin}), 5000);
+            return;
+        }
+
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const AreLoginsDuplicate = _.every(logins, login => _.contains(policyEmployeeList, login));
-        if (AreLoginsDuplicate) {
+        const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, addSMSDomainIfPhoneNumber(login)));
+        if (areLoginsDuplicate) {
             Growl.error(this.props.translate('workspace.invite.pleaseEnterUniqueLogin'), 5000);
             return;
         }
@@ -116,9 +125,12 @@ class WorkspaceInvitePage extends React.Component {
                             <ExpensiTextInput
                                 ref={el => this.emailOrPhoneInputRef = el}
                                 label={this.props.translate('workspace.invite.enterEmailOrPhone')}
+                                placeholder={this.props.translate('workspace.invite.EmailOrPhonePlaceholder')}
                                 autoCompleteType="email"
                                 autoCorrect={false}
                                 autoCapitalize="none"
+                                multiline
+                                numberOfLines={2}
                                 value={this.state.userLogins}
                                 onChangeText={text => this.setState({userLogins: text})}
                             />

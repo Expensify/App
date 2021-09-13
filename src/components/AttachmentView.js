@@ -10,6 +10,7 @@ import {Paperclip, Download} from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     /** URL to full-sized attachment */
@@ -63,9 +64,11 @@ const AttachmentView = (props) => {
             </View>
             <Text style={[styles.textStrong]}>{props.file && props.file.name}</Text>
             {props.shouldShowDownloadIcon && (
-                <View style={styles.ml2}>
-                    <Icon src={Download} />
-                </View>
+                <Tooltip text={props.translate('common.download')}>
+                    <View style={styles.ml2}>
+                        <Icon src={Download} />
+                    </View>
+                </Tooltip>
             )}
         </View>
     );
