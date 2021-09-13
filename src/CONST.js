@@ -96,10 +96,6 @@ const CONST = {
         COMPLETE: 'complete',
         DISABLED: 'disabled',
     },
-    CARD_TYPES: {
-        /** This is a default card type that all users have. It is just a placeholder, not an actual card */
-        DEFAULT_CASH: '__CASH__',
-    },
     BANK_ACCOUNT_TYPES: {
         WALLET: 'WALLET',
     },
@@ -221,6 +217,7 @@ const CONST = {
         },
     },
     NVP: {
+        IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
         BLOCKED_FROM_CONCIERGE: 'private_blockedFromConcierge',
         PAYPAL_ME_ADDRESS: 'expensify_payPalMeAddress',
         PRIORITY_MODE: 'priorityMode',
@@ -367,6 +364,7 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
+        AMOUNT_MAX_LENGTH: 14,
     },
 
     GROWL: {

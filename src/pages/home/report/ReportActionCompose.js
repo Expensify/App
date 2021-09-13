@@ -12,6 +12,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
+import moment from 'moment';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -467,7 +468,7 @@ class ReportActionCompose extends React.Component {
             && !hasMultipleParticipants
             && reportRecipient
             && reportRecipientTimezone
-            && currentUserTimezone.selected !== reportRecipientTimezone.selected;
+            && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
