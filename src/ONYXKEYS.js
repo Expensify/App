@@ -6,7 +6,7 @@ export default {
     ACCOUNT: 'account',
 
     // Boolean flag only true when first set
-    IS_NEW_USER: 'isNewUser',
+    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
 
     // Holds an array of client IDs which is used for multi-tabs on web in order to know
     // which tab is the leader, and which ones are the followers

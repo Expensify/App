@@ -59,7 +59,7 @@ class SidebarScreen extends Component {
             setTimeout(() => {
                 this.toggleCreateMenu()
                 // Set the NVP back to false (this may need to be moved if this NVP is used for anything else later)
-                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.IS_NEW_USER)
+                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER)
             }, 200);
         }
     }
