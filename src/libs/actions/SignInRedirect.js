@@ -53,6 +53,8 @@ function redirectToSignIn(errorMessage) {
             if (errorMessage) {
                 session.error = errorMessage;
             }
+
+            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
             Onyx.merge(ONYXKEYS.SESSION, session);
         });
 }
