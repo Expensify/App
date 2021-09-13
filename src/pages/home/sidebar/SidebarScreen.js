@@ -25,10 +25,14 @@ import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {create, getPolicyList, getWorkspaceCount} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
+import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
-    /** Beta features list */
+    /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /* Flag for new users used to open the Global Create menu on first load */
+    isFirstTimeNewExpensifyUser: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -53,6 +57,16 @@ class SidebarScreen extends Component {
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+
+        if (this.props.isFirstTimeNewExpensifyUser) {
+            // For some reason, the menu doesn't open without the timeout
+            setTimeout(() => {
+                this.toggleCreateMenu();
+
+                // Set the NVP back to false (this may need to be moved if this NVP is used for anything else later)
+                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
+            }, 200);
+        }
     }
 
     /**
@@ -186,6 +200,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isFirstTimeNewExpensifyUser: {
+            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
     }),
 )(SidebarScreen);
