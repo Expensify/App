@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Growl from '../../libs/Growl';
 import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 
@@ -87,16 +86,6 @@ const defaultProps = {
     },
 };
 
-const IMAGE_EXTENSIONS = {
-    'image/bmp': 'bmp',
-    'image/gif': 'gif',
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-    'image/svg+xml': 'svg',
-    'image/tiff': 'tiff',
-    'image/webp': 'webp',
-};
-
 /**
  * On web we like to have the Text Input field always focused so the user can easily type a new chat
  */
@@ -118,6 +107,7 @@ class TextInputFocusable extends React.Component {
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
+        this.stripImageTags = this.stripImageTags.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
     }
 
@@ -247,6 +237,17 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
+     * Strip image tags from the HTML
+     *
+     * @param {String} html
+     * @returns {String}
+     */
+    stripImageTags(html) {
+        return html.replace(/<img[^>]*>/g, '');
+    }
+
+
+    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
@@ -267,43 +268,8 @@ class TextInputFocusable extends React.Component {
         // If paste contains HTML
         if (types.includes(TEXT_HTML)) {
             const pastedHTML = event.clipboardData.getData(TEXT_HTML);
-
             event.preventDefault();
-            const domparser = new DOMParser();
-            const embeddedImages = domparser.parseFromString(pastedHTML, TEXT_HTML).images;
-
-            // If HTML has img tag, then fetch images from it.
-            if (embeddedImages.length > 0) {
-                fetch(embeddedImages[0].src)
-                    .then((response) => {
-                        if (!response.ok) { throw Error(response.statusText); }
-                        return response.blob();
-                    })
-                    .then((x) => {
-                        const extension = IMAGE_EXTENSIONS[x.type];
-                        if (!extension) {
-                            throw new Error(this.props.translate('textInputFocusable.noExtentionFoundForMimeType'));
-                        }
-
-                        return new File([x], `pasted_image.${extension}`, {});
-                    })
-                    .then(this.props.onPasteFile)
-                    .catch(() => {
-                        const errorDesc = this.props.translate('textInputFocusable.problemGettingImageYouPasted');
-                        Growl.error(errorDesc);
-
-                        /*
-                        * Since we intercepted the user-triggered paste event to check for attachments,
-                        * we need to manually set the value and call the `onChangeText` handler.
-                        * Synthetically-triggered paste events do not affect the document's contents.
-                        * See https://developer.mozilla.org/en-US/docs/Web/API/Element/paste_event for more details.
-                        */
-                        this.handlePastedHTML(pastedHTML);
-                    });
-                return;
-            }
-
-            this.handlePastedHTML(pastedHTML);
+            this.handlePastedHTML(this.stripImageTags(pastedHTML));
         }
     }
 
