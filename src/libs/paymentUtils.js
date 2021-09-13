@@ -26,20 +26,18 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
 
     _.each(cardList, (card) => {
         // Add all cards besides the "cash" card
-        if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
-            const formattedCardNumber = card.cardNumber
-                ? `${translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
-                : null;
-            combinedPaymentMethods.push({
-                title: card.cardName,
-                bank: card.bank,
-                number: card.cardNumber,
-                id: card.cardID,
-                description: formattedCardNumber,
-                key: `card-${card.cardID}`,
-                type: 'card',
-            });
-        }
+        const formattedCardNumber = card.cardNumber
+            ? `${translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
+            : null;
+        combinedPaymentMethods.push({
+            title: card.addressName,
+            bank: card.bank,
+            number: card.cardNumber,
+            id: card.cardID,
+            description: formattedCardNumber,
+            key: `card-${card.cardID}`,
+            type: 'card',
+        });
     });
 
     if (payPalMeUsername) {
