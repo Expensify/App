@@ -171,9 +171,7 @@ class IOUModal extends Component {
         if (this.state.previousStepIndex > this.state.currentStepIndex) {
             return 'out';
         }
-        else {
-            return null;
-        }
+        return null;
     }
 
     /**
