@@ -248,6 +248,15 @@ function uploadAvatar(file) {
 }
 
 /**
+ * Sets local values for the policy
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function updateLocalPolicyValues(policyID, values) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+}
+
+/**
  * Sets the name of the policy
  *
  * @param {String} policyID
@@ -257,28 +266,18 @@ function update(policyID, values) {
     API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
+                throw new Error();
             }
 
-            const updatedValues = {...values, ...{isPolicyUpdating: false}};
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
+            updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
             Navigation.dismissModal();
         }).catch(() => {
+            updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
+
+            // Show the user feedback
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });
-}
-
-/**
- * Sets local values for the policy
- * @param {String} policyID
- * @param {Object} values
- */
-function updateLocalPolicyValues(policyID, values) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
 export {

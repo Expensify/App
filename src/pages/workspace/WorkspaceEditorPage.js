@@ -95,8 +95,10 @@ class WorkspaceEditorPage extends React.Component {
         }
 
         const isButtonDisabled = policy.isAvatarUploading
-                                  || (this.state.avatarURL === this.props.policy.avatarURL
-                                    && this.state.name === this.props.policy.name);
+            || (this.state.avatarURL === this.props.policy.avatarURL
+            && this.state.name === this.props.policy.name)
+            || _.isEmpty(this.state.name.trim());
+
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
