@@ -38,6 +38,7 @@ class PopoverReportActionContextMenu extends React.Component {
             },
         };
         this.onPopoverHide = () => {};
+        this.onPopoverHideActionCallback = () => {};
         this.contextMenuAnchor = undefined;
         this.showContextMenu = this.showContextMenu.bind(this);
         this.hideContextMenu = this.hideContextMenu.bind(this);
@@ -163,18 +164,20 @@ class PopoverReportActionContextMenu extends React.Component {
      */
     runAndResetOnPopoverHide() {
         this.onPopoverHide();
+        this.onPopoverHideActionCallback();
 
         // After we have called the action, reset it.
         this.onPopoverHide = () => {};
+        this.onPopoverHideActionCallback = () => {};
     }
 
     /**
      * Hide the ReportActionContextMenu modal popover.
-     * @param {Function} onHideCallback Callback to be called after popover is completely hidden
+     * @param {Function} onHideActionCallback Callback to be called after popover is completely hidden
      */
-    hideContextMenu(onHideCallback) {
-        if (_.isFunction(onHideCallback)) {
-            this.onPopoverHide = onHideCallback;
+    hideContextMenu(onHideActionCallback) {
+        if (_.isFunction(onHideActionCallback)) {
+            this.onPopoverHideActionCallback = onHideActionCallback;
         }
         this.setState({
             reportID: 0,
