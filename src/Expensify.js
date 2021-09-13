@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
@@ -16,6 +15,8 @@ import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
+import initializeBackgroundFetch from './libs/backgroundTasks/initializeBackgroundFetch';
+
 
 const propTypes = {
     /* Onyx Props */
@@ -84,6 +85,8 @@ class Expensify extends PureComponent {
             });
 
         AppState.addEventListener('change', this.initializeClient);
+
+        initializeBackgroundFetch();
     }
 
     componentDidUpdate(prevProps) {

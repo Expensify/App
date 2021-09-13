@@ -31,6 +31,8 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8821A238A081483FA947BC4E /* GTAmericaExp-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 918D7FEFF96242E6B5F5E14D /* GTAmericaExp-RgIt.otf */; };
 		DB77016704074197AB6633BB /* GTAmericaExpMono-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */; };
+		E8B0732B26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E8B0732A26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m */; };
+		E8B0732C26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = E8B0732A26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED814D34526B415CAFA0451E /* GTAmericaExpMono-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */; };
 		F2C9290F276DB05EEF04D160 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 820334EEB8DDED5217A15684 /* libPods-NewExpensify-NewExpensifyTests.a */; };
@@ -82,6 +84,7 @@
 		D314A6D536D2ADA797DCDAC9 /* Pods-NewExpensify-NewExpensifyTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify-NewExpensifyTests/Pods-NewExpensify-NewExpensifyTests.debug.xcconfig"; sourceTree = "<group>"; };
 		D3D8FA6E27ED5DD98F515230 /* Pods-NewExpensify.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.debug.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.debug.xcconfig"; sourceTree = "<group>"; };
 		DB5A1365442D4419AF6F08E5 /* GTAmericaExp-MdIt.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GTAmericaExp-MdIt.otf"; path = "../assets/fonts/GTAmericaExp-MdIt.otf"; sourceTree = "<group>"; };
+		E8B0732A26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "RNBackgroundFetch+AppDelegate.m"; path = "../node_modules/react-native-background-fetch/ios/RNBackgroundFetch/RNBackgroundFetch+AppDelegate.m"; sourceTree = "<group>"; };
 		E9DF872C2525201700607FDC /* AirshipConfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = AirshipConfig.plist; sourceTree = "<group>"; };
 		EB3C4841B1DB1490EA09A324 /* Pods-NewExpensify.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -128,6 +131,7 @@
 		13B07FAE1A68108700A75B9A /* NewExpensify */ = {
 			isa = PBXGroup;
 			children = (
+				E8B0732A26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m */,
 				0F5BE0CD252686320097D869 /* GoogleService-Info.plist */,
 				E9DF872C2525201700607FDC /* AirshipConfig.plist */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
@@ -282,9 +286,9 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 368M544MTT;
+						DevelopmentTeam = 72TRNPHV7D;
 						LastSwiftMigration = 1230;
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -760,6 +764,7 @@
 				00E356F31AD99517003FC87E /* ExpensifyCashTests.m in Sources */,
 				0F5E5351263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
 				7041848626A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
+				E8B0732C26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -770,6 +775,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.m in Sources */,
 				18D050E0262400AF000D658B /* BridgingFile.swift in Sources */,
 				0F5E5350263B73FD004CA14F /* EnvironmentChecker.m in Sources */,
+				E8B0732B26EA56E8009FC59C /* RNBackgroundFetch+AppDelegate.m in Sources */,
 				7041848526A8E47D00E09F4D /* RCTStartupTimer.m in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 			);
@@ -841,10 +847,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = 368M544MTT;
+				DEVELOPMENT_TEAM = 72TRNPHV7D;
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				INFOPLIST_FILE = "$(SRCROOT)/NewExpensify/Info.plist";
@@ -858,7 +864,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = "New Expensify";
-				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "ExpensifyCash-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -874,10 +880,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = NewExpensify/Chat.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 3;
-				DEVELOPMENT_TEAM = 368M544MTT;
+				DEVELOPMENT_TEAM = 72TRNPHV7D;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
 				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -890,7 +896,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chat.expensify.chat;
 				PRODUCT_NAME = "New Expensify";
-				PROVISIONING_PROFILE_SPECIFIER = chat_expensify_appstore;
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "ExpensifyCash-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
