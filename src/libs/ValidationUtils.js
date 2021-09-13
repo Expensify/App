@@ -17,22 +17,6 @@ function isValidAddress(value) {
     return !CONST.REGEX.PO_BOX.test(value);
 }
 
-/**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    return message.length === matchedEmoji.length;
-}
 
 /**
  * Validate date fields
@@ -127,5 +111,4 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
-    isSingleEmoji,
 };
