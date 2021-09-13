@@ -46,7 +46,7 @@ class SidebarScreen extends Component {
         this.navigateToSettings = this.navigateToSettings.bind(this);
 
         this.state = {
-            isCreateMenuActive: false
+            isCreateMenuActive: false,
         };
     }
 
@@ -57,9 +57,9 @@ class SidebarScreen extends Component {
         if (this.props.isNewUser) {
             // For some reason, the menu doesn't open without the timeout
             setTimeout(() => {
-                this.toggleCreateMenu()
+                this.toggleCreateMenu();
                 // Set the NVP back to false (this may need to be moved if this NVP is used for anything else later)
-                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER)
+                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
             }, 200);
         }
     }
@@ -181,7 +181,7 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
         isNewUser: {
-            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER
-        }
+            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+        },
     }),
 )(SidebarScreen);
