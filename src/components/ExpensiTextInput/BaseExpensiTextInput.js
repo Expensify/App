@@ -9,7 +9,6 @@ import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
 import styles, {getIconFillColor} from '../../styles/styles';
 import Icon from '../Icon';
-import './disableEdgeIcon.css';
 import {
     Eye,
     EyeDisabled,
@@ -170,7 +169,7 @@ class BaseExpensiTextInput extends Component {
                             <View style={styles.flexRow}>
                                 <TextInput
                                     ref={(ref) => {
-                                        if (typeof innerRef === 'function') {innerRef(ref);}
+                                        if (typeof innerRef === 'function') { innerRef(ref); }
                                         this.input = ref;
                                     }}
                                     // eslint-disable-next-line
