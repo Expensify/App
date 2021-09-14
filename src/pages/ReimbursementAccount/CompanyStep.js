@@ -81,7 +81,6 @@ class CompanyStep extends React.Component {
             'industryCode',
             'password',
             'companyPhone',
-            'hasNoConnectionToCannabis',
         ];
 
         // Map a field to the key of the error's translation
@@ -191,7 +190,9 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
 
         // Disable save button if any of the required fields is empty
-        const shouldDisableSubmitButton = this.requiredFields.reduce((acc, curr) => acc || !isValuePresent(this.state[curr]), false);
+        const missingRequiredFields = this.requiredFields.reduce((acc, curr) => acc || !isValuePresent(this.state[curr]), false);
+        const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis || missingRequiredFields;
+
         return (
             <>
                 <HeaderWithCloseButton

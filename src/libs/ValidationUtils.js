@@ -31,6 +31,9 @@ function isValuePresent(value) {
     if (_.isArray(value) || _.isObject(value)) {
         return !_.isEmpty(value);
     }
+    if (_.isBoolean(value)) {
+        return true;
+    }
     return Boolean(value);
 }
 
