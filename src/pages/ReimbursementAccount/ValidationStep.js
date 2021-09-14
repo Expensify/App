@@ -132,7 +132,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {state === BankAccount.STATE.PENDING && (
-                    <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.mt2}>
+                    <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.mt2, styles.flexGrow1]}>
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
@@ -169,13 +169,15 @@ class ValidationStep extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        <Button
-                            success
-                            text={this.props.translate('validationStep.buttonText')}
-                            style={[styles.mh5, styles.mb5]}
-                            onPress={this.submit}
-                            isDisabled={shouldDisableSubmitButton}
-                        />
+                        <View style={[styles.flex1, styles.justifyContentEnd]}>
+                            <Button
+                                success
+                                text={this.props.translate('validationStep.buttonText')}
+                                style={[styles.mh5, styles.mb5]}
+                                onPress={this.submit}
+                                isDisabled={shouldDisableSubmitButton}
+                            />
+                        </View>
                     </ScrollView>
                 )}
                 {state === BankAccount.STATE.VERIFYING && (

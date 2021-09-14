@@ -257,7 +257,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <>
-                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.p5}>
+                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.p5, styles.flexGrow1]}>
                             <Text style={[styles.mb5]}>
                                 {this.props.translate('bankAccount.checkHelpLine')}
                             </Text>
@@ -298,12 +298,14 @@ class BankAccountStep extends React.Component {
                                     </View>
                                 )}
                             />
-                            <Button
-                                success
-                                text={this.props.translate('common.saveAndContinue')}
-                                isDisabled={!this.canSubmitManually()}
-                                onPress={this.addManualAccount}
-                            />
+                            <View style={[styles.flex1, styles.justifyContentEnd]}>
+                                <Button
+                                    success
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    isDisabled={!this.canSubmitManually()}
+                                    onPress={this.addManualAccount}
+                                />
+                            </View>
                         </ScrollView>
                     </>
                 )}

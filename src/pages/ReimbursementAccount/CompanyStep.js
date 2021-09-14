@@ -167,7 +167,7 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={[styles.flex1, styles.w100]}>
+                <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.flexGrow1}>
                     <View style={[styles.p4]}>
                         <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         <ExpensiTextInput
@@ -351,6 +351,8 @@ class CompanyStep extends React.Component {
                             )}
                             style={[styles.mt4]}
                         />
+                    </View>
+                    <View style={[styles.flex1, styles.justifyContentEnd, styles.p4]}>
                         <Button
                             success
                             onPress={this.submit}

@@ -136,7 +136,7 @@ class RequestorStep extends React.Component {
                     />
                 ) : (
                     <>
-                        <ScrollView style={[styles.flex1, styles.w100]}>
+                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.flexGrow1}>
                             <View style={[styles.p4]}>
                                 <Text>{this.props.translate('requestorStep.subtitle')}</Text>
                                 <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
@@ -212,6 +212,8 @@ class RequestorStep extends React.Component {
                                         {`${this.props.translate('common.termsOfService')}`}
                                     </TextLink>
                                 </Text>
+                            </View>
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.ph4, styles.pb4]}>
                                 <Button
                                     success
                                     onPress={this.submit}
