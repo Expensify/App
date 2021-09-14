@@ -5,6 +5,7 @@ export default forwardRef((props, ref) => (
     <BaseInvertedFlatList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
+        shouldMeasureItems
         ref={ref}
     />
 ));
