@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import {ScrollView} from 'react-native-gesture-handler';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -48,7 +49,9 @@ const propTypes = {
 };
 
 const defaultProps = {
-    userWallet: {},
+    userWallet: {
+        walletLinkedAccount: {},
+    },
     bankAccountList: [],
     cardList: [],
     walletTransfer: {},
@@ -109,7 +112,8 @@ class TransferBalancePage extends React.Component {
         );
         const defaultAccount = _.find(
             paymentMethods,
-            method => method.id === this.props.userWallet.walletLinkedAccount.bankAccountID || method.id === this.props.userWallet.walletLinkedAccount.fundID,
+            method => method.id === lodashGet(this.props, 'userWallet.walletLinkedAccount.bankAccountID', '')
+                || method.id === lodashGet(this.props, 'userWallet.walletLinkedAccount.fundID', ''),
         );
         const selectAccount = this.props.walletTransfer.selectedAccountID
             ? _.find(
