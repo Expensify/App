@@ -154,7 +154,7 @@ function isConciergeChatReport(report) {
 
 /**
  * Returns true if there is any automated expensify account in emails
- * @param {Array.<String>} emails
+ * @param {Array} emails
  * @returns {Boolean}
  */
 function hasExpensifyEmails(emails) {

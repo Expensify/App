@@ -128,7 +128,7 @@ const DetailsPage = ({
                                     </Text>
                                 </View>
                             ) : null}
-                            { shouldShowLocalTime && details.timezone ? (
+                            {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('detailsPage.localTime')}

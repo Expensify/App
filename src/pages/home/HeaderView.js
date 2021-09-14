@@ -94,9 +94,11 @@ const HeaderView = (props) => {
 
     const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
+    const isAutomatedExpensifyAccount = (participants.length === 1 && hasExpensifyEmails(participants));
 
-    // Except Concierge, call options for automated expensify accounts in 1:1 chat is not useful, so hide the button
-    const shouldShowCallButton = isConcierge || !(participants.length === 1 && hasExpensifyEmails(participants));
+    // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
+    // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
+    const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
