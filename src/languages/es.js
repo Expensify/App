@@ -107,7 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Videollamada',
+        tooltip: 'Iniciar una llamada',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -635,7 +635,7 @@ export default {
         availabilityText: '*Nuestros guías están disponibles de domingo desde las 17.00 CT a viernes hasta las 17.00 CT. Si solicitas una llamada fuera de este horario, te llamaremos de lunes a viernes de 9.00 a 17.00 en tu hora local. El orden de llamada corresponde con el orden de solicitud.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
+        errorMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         needHelp: 'Ayuda',
