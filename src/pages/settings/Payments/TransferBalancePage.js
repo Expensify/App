@@ -86,7 +86,7 @@ class TransferBalancePage extends React.Component {
             },
         ];
 
-        Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
+        Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
             transferAmount: this.props.userWallet.currentBalance - Fee,
             filterPaymentMethods: null,
         });
@@ -95,13 +95,17 @@ class TransferBalancePage extends React.Component {
 
     /**
      * Transfer Wallet balance
-     *
+     * @param {Object} selectedAccount
      */
-    transferBalance() {
+    transferBalance(selectedAccount) {
+        if (!selectedAccount) {
+            return;
+        }
         this.setState({loading: true});
-        transferWalletBalance().then(() => {
-            this.setState({loading: false});
+        transferWalletBalance(selectedAccount).then(() => {
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
+        }).finally(() => {
+            this.setState({loading: false});
         });
     }
 
@@ -120,11 +124,13 @@ class TransferBalancePage extends React.Component {
                 paymentMethods,
                 method => method.id === this.props.walletTransfer.selectedAccountID,
             )
-            : defaultAccount || {};
+            : defaultAccount;
 
         const selectedPaymentType = selectAccount.type === 'bank' ? CONST.WALLET.PAYMENT_TYPE.ACH : CONST.WALLET.PAYMENT_TYPE.INSTANT;
         const transferAmount = (this.props.userWallet.currentBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
+        const isButtonDisabled = !canTransfer && !selectAccount;
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -207,7 +213,7 @@ class TransferBalancePage extends React.Component {
                             success
                             pressOnEnter
                             isLoading={this.state.loading}
-                            isDisabled={!canTransfer}
+                            isDisabled={isButtonDisabled}
                             onPress={this.transferBalance}
                             text={this.props.translate(
                                 'transferAmountPage.transfer',

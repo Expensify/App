@@ -43,7 +43,6 @@ class ChooseTransferAccountPage extends React.Component {
     }
 
     render() {
-        console.debug(this.props.walletTransfer);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>

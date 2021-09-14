@@ -31,24 +31,26 @@ function getPaymentMethods() {
 }
 
 /**
- * Calls the API to transfer wallet balance
- *
+ * Call the API to transfer wallet balance.
+ * @param {Object} paymentMethod
+ * @param {String} paymentMethod.id
+ * @param {'bank'|'card'} paymentMethod.type
  * @returns {Promise}
  */
-function transferWalletBalance() {
-    return API.TransferWalletBalance()
+function transferWalletBalance(paymentMethod) {
+    const parameters = {};
+    parameters[paymentMethod.type === 'bank' ? 'bankAccountID' : 'fundID'] = paymentMethod.id;
+
+    return API.TransferWalletBalance(parameters)
         .then((response) => {
-            if (!response) {
-                return;
-            }
             if (response.jsonCode !== 200) {
-                Growl.error(translateLocal('transferAmountPage.failedTransfer'));
-                return;
+                throw new Error();
             }
             Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
             Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true});
         }).catch((error) => {
             console.debug(`[Payments] Failed to transfer wallet balance: ${error.message}`);
+            Growl.error(translateLocal('transferAmountPage.failedTransfer'));
         });
 }
 

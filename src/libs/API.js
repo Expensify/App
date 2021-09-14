@@ -1074,11 +1074,15 @@ function UpdatePolicy(parameters) {
 }
 
 /**
+ * Transfer Wallet balance and takes either the bankAccoundID or fundID
+ * @param {Object} parameters
+ * @param {String} [parameters.bankAccountID]
+ * @param {String} [parameters.fundID]
  * @returns {Promise}
  */
-function TransferWalletBalance() {
+function TransferWalletBalance(parameters) {
     const commandName = 'TransferWalletBalance';
-    return Network.post(commandName);
+    return Network.post(commandName, parameters);
 }
 
 export {
