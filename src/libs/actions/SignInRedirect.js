@@ -41,12 +41,21 @@ function redirectToSignIn(errorMessage) {
             if (preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
-            if (errorMessage) {
-                Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
-            }
             if (activeClients && activeClients.length > 0) {
                 Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
             }
+
+            const session = {
+                // We must set the authToken to null so that signOut action is triggered across other clients
+                authToken: null,
+            };
+
+            if (errorMessage) {
+                session.error = errorMessage;
+            }
+
+            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
+            Onyx.merge(ONYXKEYS.SESSION, session);
         });
 }
 
