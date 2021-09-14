@@ -175,6 +175,45 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
     }
     ```
 
+## Object / Array Methods
+
+We have settled on using underscore methods for objects and collections instead of the native Array methods. This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us.
+
+    ```javascript
+    // Bad
+    myArray.forEach(item => doSomething(item));
+
+    // Good
+    _.each(myArray, item => doSomething(item));
+
+    // Bad
+    const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
+
+    // Good
+    const myArray = _.map(someObject, (value, key) => doSomething(value));
+    ```
+
+## Accessing Object Properties and Default Values
+
+Use `lodashGet()` to safely access object properties and `||` to short circuit null values that are not guaranteed to exist in a consistent way throughout the codebase.
+
+   ```javascript
+   // Bad
+   const value = somePossiblyNullThing ?? 'default';
+
+   // Good
+   const value = somePossiblyNullThing || 'default';
+
+   // Bad
+   const value = someObject.possiblyUndefinedProperty?.nestedProperty || 'default';
+
+   // Bad
+   const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
+
+   // Good
+   const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
+   ```
+
 ## JSDocs
 - Avoid docs that don't add any additional information.
 - Always document parameters and return values.
