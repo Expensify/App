@@ -5,6 +5,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -62,6 +63,10 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
+    /** Draft of bank account currently in setup */
+    // eslint-disable-next-line react/forbid-prop-types
+    reimbursementAccountDraft: PropTypes.object,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -74,6 +79,7 @@ const defaultProps = {
     reimbursementAccount: {
         loading: false,
     },
+    reimbursementAccountDraft: {},
 };
 
 const WorkspaceCardPage = ({
@@ -84,11 +90,14 @@ const WorkspaceCardPage = ({
     isSmallScreenWidth,
     isMediumScreenWidth,
     reimbursementAccount,
+    reimbursementAccountDraft,
 }) => {
-    const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.VERIFYING;
-    const isPending = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.PENDING;
-    const isNotAutoProvisioned = !user.isUsingExpensifyCard
-        && lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.OPEN;
+    const achState = lodashGet(reimbursementAccount, 'achData.state', '');
+    const shouldFinishSetup = !_.isEmpty(reimbursementAccountDraft)
+        || achState === BankAccount.STATE.SETUP
+        || achState === BankAccount.STATE.VERIFYING
+        || achState === BankAccount.STATE.PENDING
+        || achState === BankAccount.STATE.OPEN;
     let buttonText;
 
     const openBankSetupModal = () => {
@@ -100,7 +109,7 @@ const WorkspaceCardPage = ({
         buttonText = translate('workspace.card.addEmail');
     } else if (user.isUsingExpensifyCard) {
         buttonText = translate('workspace.card.manageCards');
-    } else if (isVerifying || isPending || isNotAutoProvisioned) {
+    } else if (shouldFinishSetup) {
         buttonText = translate('workspace.card.finishSetup');
         openBankSetupModal();
     } else {
@@ -230,6 +239,9 @@ export default compose(
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
         betas: {
             key: ONYXKEYS.BETAS,
