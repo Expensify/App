@@ -14,7 +14,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
-import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -50,7 +49,6 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
 
         this.state = {
             amount1: getDefaultStateForField(props, 'amount1', ''),
