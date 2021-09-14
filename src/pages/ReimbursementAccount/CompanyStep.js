@@ -149,44 +149,29 @@ class CompanyStep extends React.Component {
      */
     validate() {
         const errors = {};
-        if (!this.state.password.trim()) {
-            errors.password = true;
-        }
-
         if (!isValidAddress(this.state.addressStreet)) {
             errors.addressStreet = true;
         }
-
-        if (this.state.addressState === '') {
-            errors.addressState = true;
-        }
-
         if (!isValidZipCode(this.state.addressZipCode)) {
             errors.addressZipCode = true;
         }
-
         if (!Str.isValidURL(this.state.website)) {
             errors.website = true;
         }
-
         if (!/[0-9]{9}/.test(this.state.companyTaxID)) {
             errors.companyTaxID = true;
         }
-
         if (!isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
         }
-
         if (!isValidIndustryCode(this.state.industryCode)) {
             errors.industryCode = true;
         }
-
         _.each(this.requiredFields, (inputKey) => {
             if (!isValuePresent(this.state[inputKey])) {
                 errors[inputKey] = true;
             }
         });
-
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
