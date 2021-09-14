@@ -79,7 +79,7 @@ const HeaderWithCloseButton = props => (
             )}
             <View style={[styles.flex1, styles.flexColumn]}>
                 <Header title={props.title} />
-                {props.stepCounter && <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('stepCounter', props.stepCounter)}</Text> }
+                {props.stepCounter && <Text style={[styles.mutedTextLabel]}>{props.translate('stepCounter', props.stepCounter)}</Text> }
             </View>
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
