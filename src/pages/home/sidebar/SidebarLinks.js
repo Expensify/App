@@ -95,6 +95,61 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
+    shouldComponentUpdate(nextProps) {
+        // don't need to limit draft comment flashing for small screen widths
+        if (nextProps.isSmallScreenWidth) {
+            return true;
+        }
+
+        const didActiveReportChange = this.props.currentlyViewedReportID !== nextProps.currentlyViewedReportID;
+        if (didActiveReportChange) {
+            return true;
+        }
+
+        const previousDraftComments = this.props.draftComments;
+        const nextDraftComments = nextProps.draftComments;
+
+        const previousDraftReports = Object.keys(previousDraftComments);
+        const nextDraftReports = Object.keys(nextDraftComments);
+
+        const reportsWithNewDraftComments = nextDraftReports.filter((report) => {
+            const isNewDraftComment = !previousDraftReports.includes(report);
+            const wasNonEmptyDraftComment = previousDraftComments[report] === '';
+            const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
+
+            return isNewDraftComment || (hasDraftCommentChanged && wasNonEmptyDraftComment);
+        });
+        const reportsWithRemovedDraftComments = previousDraftReports.filter((report) => {
+            const isRemovedDraftComment = !nextDraftReports.includes(report);
+            const isEmptyDraftComment = nextDraftComments[report] === '';
+            const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
+
+            return isRemovedDraftComment || (hasDraftCommentChanged && isEmptyDraftComment);
+        });
+        const reportsWithEditedDraftComments = nextDraftReports.filter((report) => {
+            const didDraftCommentExistPreviously = previousDraftReports.includes(report);
+            const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
+            const isNotANewDraftComment = !reportsWithNewDraftComments.includes(report);
+            const isNotARemovedDraftComment = !reportsWithRemovedDraftComments.includes(report);
+
+            return didDraftCommentExistPreviously && hasDraftCommentChanged && isNotANewDraftComment && isNotARemovedDraftComment;
+        });
+
+        const allReportsWithDraftCommentChanges = [
+            ...reportsWithNewDraftComments,
+            ...reportsWithRemovedDraftComments,
+            ...reportsWithEditedDraftComments,
+        ];
+
+        const activeReportID = this.props.currentlyViewedReportID;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${activeReportID}`;
+
+        if (allReportsWithDraftCommentChanges.length === 1 && allReportsWithDraftCommentChanges.includes(reportKey)) {
+            return false;
+        }
+        return true;
+    }
+
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
     }
