@@ -160,6 +160,13 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
+    if (response.jsonCode === 405 || response.jsonCode === 404) {
+        // IOU Split & Request money transactions failed due to invalid amount(405) or unable to split(404)
+        // It's a failure, so reject the queued request
+        queuedRequest.reject(response);
+        return;
+    }
+
     queuedRequest.resolve(response);
 });
 
@@ -221,6 +228,11 @@ function Authenticate(parameters) {
                     case 401:
                         throw new Error('passwordForm.error.incorrectLoginOrPassword');
                     case 402:
+                        // If too few characters are passed as the password, the WAF will pass it to the API as an empty
+                        // string, which results in a 402 error from Auth.
+                        if (response.message === '402 Missing partnerUserSecret') {
+                            throw new Error('passwordForm.error.incorrectLoginOrPassword');
+                        }
                         throw new Error('passwordForm.error.twoFactorAuthenticationEnabled');
                     case 403:
                         throw new Error('passwordForm.error.invalidLoginOrPassword');
@@ -421,6 +433,15 @@ function GetAccountStatus(parameters) {
 }
 
 /**
+ * Returns a validate code for this account
+ * @returns {Promise}
+ */
+function GetAccountValidateCode() {
+    const commandName = 'GetAccountValidateCode';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
@@ -463,15 +484,13 @@ function GetRequestCountryCode() {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.message
- * @param {Object} parameters.parameters
  * @param {String} parameters.expensifyCashAppVersion
- * @param {String} [parameters.email]
+ * @param {Object[]} parameters.logPacket
  * @returns {Promise}
  */
 function Log(parameters) {
     const commandName = 'Log';
-    requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
+    requireParameters(['logPacket', 'expensifyCashAppVersion'],
         parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
@@ -534,6 +553,19 @@ function PersonalDetails_GetForEmails(parameters) {
 function PersonalDetails_Update(parameters) {
     const commandName = 'PersonalDetails_Update';
     requireParameters(['details'],
+        parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
+ * @param {Object} parameters.name
+ * @param {Object} parameters.value
+ * @returns {Promise}
+ */
+function PreferredLocale_Update(parameters) {
+    const commandName = 'PreferredLocale_Update';
+    requireParameters(['name', 'value'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -709,13 +741,13 @@ function User_GetBetas() {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.email
+ * @param {String} parameters.emailList
  * @param {Boolean} [parameters.requireCertainty]
  * @returns {Promise}
  */
 function User_IsFromPublicDomain(parameters) {
     const commandName = 'User_IsFromPublicDomain';
-    requireParameters(['email'], parameters, commandName);
+    requireParameters(['emailList'], parameters, commandName);
     return Network.post(commandName, {
         ...{requireCertainty: true},
         ...parameters,
@@ -961,8 +993,8 @@ function Mobile_GetConstants(parameters) {
  * @param {Number} [parameters.longitude]
  * @returns {Promise}
  */
-function GetPreferredCurrency(parameters) {
-    const commandName = 'GetPreferredCurrency';
+function GetLocalCurrency(parameters) {
+    const commandName = 'GetLocalCurrency';
     return Network.post(commandName, parameters);
 }
 
@@ -1054,6 +1086,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetAccountValidateCode,
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,
@@ -1095,8 +1128,9 @@ export {
     ValidateEmail,
     Wallet_Activate,
     Wallet_GetOnfidoSDKToken,
-    GetPreferredCurrency,
+    GetLocalCurrency,
     GetCurrencyList,
     Policy_Create,
     Policy_Employees_Remove,
+    PreferredLocale_Update,
 };

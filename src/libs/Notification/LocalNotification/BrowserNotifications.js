@@ -126,7 +126,7 @@ export default {
     pushUpdateAvailableNotification() {
         push({
             title: 'Update available',
-            body: 'A new version of Expensify.cash is available!',
+            body: 'A new version of this app is available!',
             delay: 0,
             onClick: () => {
                 Onyx.merge(ONYXKEYS.UPDATE_AVAILABLE, true);

@@ -1,4 +1,5 @@
 import React from 'react';
+import {Text} from 'react-native';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = ({
@@ -8,10 +9,15 @@ const InlineCodeBlock = ({
     textStyle,
 }) => (
     <TDefaultRenderer
-        style={{...boxModelStyle, ...textStyle}}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...defaultRendererProps}
-    />
+    >
+        <Text
+            style={{...boxModelStyle, ...textStyle}}
+        >
+            {defaultRendererProps.tnode.data}
+        </Text>
+    </TDefaultRenderer>
 );
 
 InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;

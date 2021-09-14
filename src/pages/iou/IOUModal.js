@@ -3,24 +3,28 @@ import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import {createIOUSplit, createIOUTransaction} from '../../libs/actions/IOU';
+import {
+    createIOUSplit, createIOUTransaction, createIOUSplitGroup, setIOUSelectedCurrency,
+} from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import {addSMSDomainIfPhoneNumber, getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -41,11 +45,8 @@ const propTypes = {
     // The personal details of the person who is logged in
     myPersonalDetails: PropTypes.shape({
 
-        // Preferred Currency Code of the current user
-        preferredCurrencyCode: PropTypes.string,
-
-        // Currency Symbol of the Preferred Currency
-        preferredCurrencySymbol: PropTypes.string,
+        // Local Currency Code of the current user
+        localCurrencyCode: PropTypes.string,
     }),
 
     // Holds data related to IOU view state, rather than the underlying IOU data.
@@ -58,6 +59,9 @@ const propTypes = {
 
         /** Flag to show a loading indicator and avoid showing a previously selected currency */
         isRetrievingCurrency: PropTypes.bool,
+
+        // Selected Currency Code of the current IOU
+        selectedCurrencyCode: PropTypes.string,
     }).isRequired,
 
     /** Personal details of all the users */
@@ -81,8 +85,7 @@ const defaultProps = {
         participants: [],
     },
     myPersonalDetails: {
-        preferredCurrencyCode: CONST.CURRENCY.USD,
-        preferredCurrencySymbol: '$',
+        localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: '',
 };
@@ -99,17 +102,15 @@ class IOUModal extends Component {
         super(props);
         this.navigateToPreviousStep = this.navigateToPreviousStep.bind(this);
         this.navigateToNextStep = this.navigateToNextStep.bind(this);
-        this.currencySelected = this.currencySelected.bind(this);
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
-        this.getReady = this.getReady.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
                 login: personalDetails.login,
                 text: personalDetails.displayName,
-                alternateText: personalDetails.login,
+                alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
                 icons: [personalDetails.avatar],
                 keyForList: personalDetails.login,
             }));
@@ -120,10 +121,6 @@ class IOUModal extends Component {
 
             // amount is currency in decimal format
             amount: '',
-            selectedCurrency: {
-                currencyCode: props.myPersonalDetails.preferredCurrencyCode,
-                currencySymbol: props.myPersonalDetails.preferredCurrencySymbol,
-            },
             comment: '',
         };
 
@@ -136,23 +133,28 @@ class IOUModal extends Component {
         }
     }
 
+    componentDidMount() {
+        PersonalDetails.fetchLocalCurrency();
+        setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
+    }
+
     componentDidUpdate(prevProps) {
         // Successfully close the modal if transaction creation has ended and there is no error
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
             Navigation.dismissModal();
         }
 
-        if (prevProps.myPersonalDetails.preferredCurrencyCode
-            !== this.props.myPersonalDetails.preferredCurrencyCode) {
-            this.updateSelectedCurrency({
-                currencyCode: this.props.myPersonalDetails.preferredCurrencyCode,
-                currencySymbol: this.props.myPersonalDetails.preferredCurrencySymbol,
-            });
+        // If transaction fails, handling it here
+        if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {
+            // Navigating to Enter Amount Page
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({currentStepIndex: 0});
         }
-    }
 
-    getReady() {
-        PersonalDetails.fetchCurrencyPreferences();
+        if (prevProps.iou.selectedCurrencyCode
+            !== this.props.iou.selectedCurrencyCode) {
+            setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
+        }
     }
 
     /**
@@ -166,7 +168,7 @@ class IOUModal extends Component {
             const formattedAmount = this.props.numberFormat(
                 this.state.amount, {
                     style: 'currency',
-                    currency: this.state.selectedCurrency.currencyCode,
+                    currency: this.props.iou.selectedCurrencyCode,
                 },
             );
             if (this.props.iouType === 'send') {
@@ -193,16 +195,6 @@ class IOUModal extends Component {
     addParticipants(participants) {
         this.setState({
             participants,
-        });
-    }
-
-    /**
-     * Update the selected currency
-     * @param {Object} selectedCurrency
-     */
-    updateSelectedCurrency(selectedCurrency) {
-        this.setState({
-            selectedCurrency,
         });
     }
 
@@ -242,25 +234,32 @@ class IOUModal extends Component {
     }
 
     /**
-     * Update the currency state
-     *
-     * @param {String} selectedCurrency
-     */
-    currencySelected(selectedCurrency) {
-        this.setState({selectedCurrency});
-    }
-
-    /**
      * @param {Array} [splits]
      */
     createTransaction(splits) {
+        const reportID = lodashGet(this.props, 'route.params.reportID', '');
+
+        // Only splits from a group DM has a reportID
+        // Check if reportID is a number
+        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
+            createIOUSplitGroup({
+                comment: this.state.comment,
+
+                // should send in cents to API
+                amount: Math.round(this.state.amount * 100),
+                currency: this.props.iou.selectedCurrencyCode,
+                splits,
+                reportID,
+            });
+            return;
+        }
         if (splits) {
             createIOUSplit({
                 comment: this.state.comment,
 
                 // should send in cents to API
                 amount: Math.round(this.state.amount * 100),
-                currency: this.state.selectedCurrency.currencyCode,
+                currency: this.props.iou.selectedCurrencyCode,
                 splits,
             });
             return;
@@ -271,8 +270,8 @@ class IOUModal extends Component {
 
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
-            currency: this.state.selectedCurrency.currencyCode,
-            debtorEmail: this.state.participants[0].login,
+            currency: this.props.iou.selectedCurrencyCode,
+            debtorEmail: addSMSDomainIfPhoneNumber(this.state.participants[0].login),
         });
     }
 
@@ -280,7 +279,7 @@ class IOUModal extends Component {
         const currentStep = this.steps[this.state.currentStepIndex];
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
         return (
-            <ScreenWrapper onTransitionEnd={this.getReady}>
+            <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
                     <KeyboardAvoidingView>
                         <View style={[styles.headerBar]}>
@@ -295,31 +294,35 @@ class IOUModal extends Component {
                             >
                                 {this.state.currentStepIndex > 0
                                     && (
-                                        <TouchableOpacity
-                                            onPress={this.navigateToPreviousStep}
-                                            style={[styles.touchableButtonImage]}
-                                        >
-                                            <Icon src={BackArrow} />
-                                        </TouchableOpacity>
+                                        <Tooltip text={this.props.translate('common.back')}>
+                                            <TouchableOpacity
+                                                onPress={this.navigateToPreviousStep}
+                                                style={[styles.touchableButtonImage]}
+                                            >
+                                                <Icon src={BackArrow} />
+                                            </TouchableOpacity>
+                                        </Tooltip>
                                     )}
                                 <Header title={this.getTitleForStep()} />
-                                <View style={[styles.reportOptions, styles.flexRow]}>
-                                    <TouchableOpacity
-                                        onPress={() => Navigation.dismissModal()}
-                                        style={[styles.touchableButtonImage]}
-                                        accessibilityRole="button"
-                                        accessibilityLabel={this.props.translate('common.close')}
-                                    >
-                                        <Icon src={Close} />
-                                    </TouchableOpacity>
+                                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                                    <Tooltip text={this.props.translate('common.close')}>
+                                        <TouchableOpacity
+                                            onPress={() => Navigation.dismissModal()}
+                                            style={[styles.touchableButtonImage, styles.mr0]}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={this.props.translate('common.close')}
+                                        >
+                                            <Icon src={Close} />
+                                        </TouchableOpacity>
+                                    </Tooltip>
                                 </View>
                             </View>
                         </View>
                         <View style={[styles.pRelative, styles.flex1]}>
                             <FullScreenLoadingIndicator
-                                visible={!didScreenTransitionEnd || this.props.iou.isRetrievingCurrency}
+                                visible={!didScreenTransitionEnd}
                             />
-                            {didScreenTransitionEnd && !this.props.iou.isRetrievingCurrency && (
+                            {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
                                         <IOUAmountPage
@@ -327,9 +330,7 @@ class IOUModal extends Component {
                                                 this.setState({amount});
                                                 this.navigateToNextStep();
                                             }}
-                                            currencySelected={this.currencySelected}
                                             reportID={reportID}
-                                            selectedCurrency={this.state.selectedCurrency}
                                             hasMultipleParticipants={this.props.hasMultipleParticipants}
                                             selectedAmount={this.state.amount}
                                             navigation={this.props.navigation}
@@ -350,7 +351,6 @@ class IOUModal extends Component {
                                             participants={this.state.participants}
                                             iouAmount={this.state.amount}
                                             comment={this.state.comment}
-                                            selectedCurrency={this.state.selectedCurrency}
                                             onUpdateComment={this.updateComment}
                                         />
                                     )}

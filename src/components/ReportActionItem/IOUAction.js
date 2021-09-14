@@ -47,13 +47,14 @@ const IOUAction = ({
                 shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID) && (
-                <IOUPreview
-                    iouReportID={action.originalMessage.IOUReportID}
-                    chatReportID={chatReportID}
-                    onPayButtonPressed={launchDetailsModal}
-                    onPreviewPressed={launchDetailsModal}
-                />
+            {((isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID))
+                || (action.originalMessage.type === 'pay')) && (
+                    <IOUPreview
+                        iouReportID={action.originalMessage.IOUReportID}
+                        chatReportID={chatReportID}
+                        onPayButtonPressed={launchDetailsModal}
+                        onPreviewPressed={launchDetailsModal}
+                    />
             )}
         </>
     );

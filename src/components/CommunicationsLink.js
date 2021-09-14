@@ -44,21 +44,20 @@ const CommunicationsLink = props => (
                 >
                     {props.children}
                 </Pressable>
-            )
-            : props.children}
-        {!props.isSmallScreenWidth
-            && (
+            ) : (
                 <View style={[
-                    styles.pAbsolute,
+                    styles.flexRow,
                     styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                    styles.communicationsLinkIcon]}
+                    styles.w100,
+                    styles.communicationsLinkHeight,
+                ]}
                 >
+                    {props.children}
                     <ContextMenuItem
                         icon={ClipboardIcon}
-                        text={props.translate('contextMenuItem.copyToClipboard')}
+                        text={props.translate('reportActionContextMenu.copyToClipboard')}
                         successIcon={Checkmark}
-                        successText={props.translate('contextMenuItem.copied')}
+                        successText={props.translate('reportActionContextMenu.copied')}
                         isMini
                         autoReset
                         onPress={() => Clipboard.setString(props.value)}

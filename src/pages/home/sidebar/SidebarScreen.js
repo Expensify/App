@@ -23,10 +23,16 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
+import {create} from '../../../libs/actions/Policy';
+import Performance from '../../../libs/Performance';
+import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
-    /** Beta features list */
+    /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /* Flag for new users used to open the Global Create menu on first load */
+    isFirstTimeNewExpensifyUser: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -45,6 +51,21 @@ class SidebarScreen extends Component {
         this.state = {
             isCreateMenuActive: false,
         };
+    }
+
+    componentDidMount() {
+        Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
+        Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+
+        if (this.props.isFirstTimeNewExpensifyUser) {
+            // For some reason, the menu doesn't open without the timeout
+            setTimeout(() => {
+                this.toggleCreateMenu();
+
+                // Set the NVP back to false (this may need to be moved if this NVP is used for anything else later)
+                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
+            }, 200);
+        }
     }
 
     /**
@@ -79,6 +100,7 @@ class SidebarScreen extends Component {
      */
     startTimer() {
         Timing.start(CONST.TIMING.SWITCH_REPORT);
+        Performance.markStart(CONST.TIMING.SWITCH_REPORT);
     }
 
     render() {
@@ -142,7 +164,7 @@ class SidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW),
+                                        onSelected: () => create(),
                                     },
                                 ] : []),
                             ]}
@@ -161,6 +183,9 @@ export default compose(
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isFirstTimeNewExpensifyUser: {
+            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
     }),
 )(SidebarScreen);

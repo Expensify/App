@@ -8,6 +8,7 @@ import styles, {getSafeAreaPadding} from '../styles/styles';
 import HeaderGap from './HeaderGap';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
+import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -32,9 +33,6 @@ const propTypes = {
     navigation: PropTypes.shape({
         // Method to attach listener to Navigation state.
         addListener: PropTypes.func.isRequired,
-
-        // Returns to the previous navigation state e.g. if this is inside a Modal we will dismiss it
-        goBack: PropTypes.func,
     }),
 };
 
@@ -45,7 +43,6 @@ const defaultProps = {
     onTransitionEnd: () => {},
     navigation: {
         addListener: () => {},
-        goBack: () => {},
     },
 };
 
@@ -59,7 +56,7 @@ class ScreenWrapper extends React.Component {
 
     componentDidMount() {
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
-            this.props.navigation.goBack();
+            Navigation.dismissModal();
         }, [], true);
 
         this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {

@@ -7,4 +7,5 @@ export default {
     onReceived: () => {},
     onSelected: () => {},
     TYPE: NotificationType,
+    clearNotifications: () => {},
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {PureComponent} from 'react';
 import {
     View,
 } from 'react-native';
@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import ExpensiText from '../../../components/Text';
 import Timers from '../../../libs/Timers';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Personal details of the participant */
@@ -18,7 +19,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class ParticipantLocalTime extends React.Component {
+class ParticipantLocalTime extends PureComponent {
     constructor(props) {
         super(props);
         this.getParticipantLocalTime = this.getParticipantLocalTime.bind(this);
@@ -37,48 +38,44 @@ class ParticipantLocalTime extends React.Component {
 
     componentWillUnmount() {
         clearInterval(this.timer);
-        clearInterval(this.readyTimer);
     }
 
     getParticipantLocalTime() {
-        const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', {});
-        return moment().tz(reportRecipientTimezone.selected).format('LT');
+        const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        moment.locale(this.props.preferredLocale);
+        const reportRecipientDay = moment().tz(reportRecipientTimezone.selected).format('dddd');
+        const currentUserDay = moment().tz(this.props.currentUserTimezone.selected).format('dddd');
+
+        if (reportRecipientDay !== currentUserDay) {
+            return `${moment().tz(reportRecipientTimezone.selected).format('LT')} ${reportRecipientDay}`;
+        }
+        return `${moment().tz(reportRecipientTimezone.selected).format('LT')}`;
     }
 
-
     render() {
-        // Moment.format does not return AM or PM values immediately.
-        // So we have to wait until we are ready before showing the time to the user
-        const isReportRecipientLocalTimeReady = this.state.localTime.toString().match(/(A|P)M/ig);
         const reportRecipientDisplayName = this.props.participant.firstName
             || (Str.isSMSLogin(this.props.participant.login)
                 ? this.props.toLocalPhone(this.props.participant.displayName)
                 : this.props.participant.displayName);
 
         return (
-            isReportRecipientLocalTimeReady ? (
-                <View style={[styles.chatItemComposeSecondaryRow]}>
-                    <View style={[
+            <View style={[styles.chatItemComposeSecondaryRow]}>
+                <ExpensiText
+                    style={[
+                        styles.chatItemComposeSecondaryRowSubText,
                         styles.chatItemComposeSecondaryRowOffset,
-                        styles.flexRow,
-                        styles.alignItemsCenter]}
-                    >
-                        <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
-                            {this.props.translate('common.timePrefix')}
-                        </ExpensiText>
-                        <ExpensiText style={[styles.textMicroSupportingBold, styles.mr1]}>
-                            {this.state.localTime}
-                        </ExpensiText>
-                        <ExpensiText style={[styles.chatItemComposeSecondaryRowSubText, styles.mr1]}>
-                            {this.props.translate('common.conjunctionFor')}
-                        </ExpensiText>
-                        <ExpensiText style={[styles.textMicroSupportingBold]}>
-                            {reportRecipientDisplayName}
-                        </ExpensiText>
-                    </View>
-                </View>
-            )
-                : <View style={[styles.chatItemComposeSecondaryRow]} />
+                    ]}
+                    numberOfLines={1}
+                >
+                    {this.props.translate(
+                        'reportActionCompose.localTime',
+                        {
+                            user: reportRecipientDisplayName,
+                            time: this.state.localTime,
+                        },
+                    )}
+                </ExpensiText>
+            </View>
         );
     }
 }

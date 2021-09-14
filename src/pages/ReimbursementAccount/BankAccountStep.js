@@ -1,9 +1,14 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Image} from 'react-native';
+import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
-import {Paycheck, Bank, Lock} from '../../components/Icon/Expensicons';
+import {
+    Paycheck, Bank, Lock,
+} from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Button from '../../components/Button';
@@ -11,15 +16,29 @@ import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
-import {setupWithdrawalAccount} from '../../libs/actions/BankAccounts';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
+import {
+    setBankAccountFormValidationErrors,
+    setupWithdrawalAccount,
+    showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
+} from '../../libs/actions/BankAccounts';
+import ONYXKEYS from '../../ONYXKEYS';
+import compose from '../../libs/compose';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
+    /** Bank account currently in setup */
+    reimbursementAccount: PropTypes.shape({
+        /** Error set when handling the API response */
+        error: PropTypes.string,
+    }).isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -33,16 +52,40 @@ class BankAccountStep extends React.Component {
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
-            hasAcceptedTerms: props.achData.acceptTerms || true,
-            routingNumber: props.achData.routingNumber || '',
-            accountNumber: props.achData.accountNumber || '',
+            hasAcceptedTerms: getDefaultStateForField(props, 'acceptTerms', true),
+            routingNumber: getDefaultStateForField(props, 'routingNumber'),
+            accountNumber: getDefaultStateForField(props, 'accountNumber'),
+        };
+
+        // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
+        this.errorTranslationKeys = {
+            routingNumber: 'bankAccount.error.routingNumber',
+            accountNumber: 'bankAccount.error.accountNumber',
         };
     }
 
+    /**
+     * @returns {Object}
+     */
+    getErrors() {
+        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+    }
+
+    /**
+     * @param {String} inputKey
+     * @returns {string}
+     */
+    getErrorText(inputKey) {
+        const errors = this.getErrors();
+        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
+    }
+
     toggleTerms() {
-        this.setState(prevState => ({
-            hasAcceptedTerms: !prevState.hasAcceptedTerms,
-        }));
+        this.setState((prevState) => {
+            const hasAcceptedTerms = !prevState.hasAcceptedTerms;
+            updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
+            return {hasAcceptedTerms};
+        });
     }
 
     /**
@@ -50,13 +93,54 @@ class BankAccountStep extends React.Component {
      */
     canSubmitManually() {
         return this.state.hasAcceptedTerms
+            && this.state.accountNumber.trim()
+            && this.state.routingNumber.trim();
+    }
 
-            // These are taken from BankCountry.js in Web-Secure
-            && CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())
-            && CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim());
+    /**
+     * @returns {Boolean}
+     */
+    validate() {
+        const errors = {};
+
+        // These are taken from BankCountry.js in Web-Secure
+        if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
+            errors.accountNumber = true;
+        }
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
+            errors.routingNumber = true;
+        }
+        setBankAccountFormValidationErrors(errors);
+        return _.size(errors) === 0;
+    }
+
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        const newState = {[inputKey]: value};
+        this.setState(newState);
+        updateReimbursementAccountDraft(newState);
+        const errors = this.getErrors();
+        if (!errors[inputKey]) {
+            // No error found for this inputKey
+            return;
+        }
+
+        // Clear the existing error for this inputKey
+        const newErrors = {...errors};
+        delete newErrors[inputKey];
+        setBankAccountFormValidationErrors(newErrors);
     }
 
     addManualAccount() {
+        if (!this.validate()) {
+            showBankAccountErrorModal();
+            return;
+        }
         setupWithdrawalAccount({
             acceptTerms: this.state.hasAcceptedTerms,
             accountNumber: this.state.accountNumber,
@@ -72,7 +156,6 @@ class BankAccountStep extends React.Component {
 
     /**
      * @param {Object} params
-     * @param {String} params.password
      * @param {Object} params.account
      * @param {String} params.account.bankName
      * @param {Boolean} params.account.isSavings
@@ -88,7 +171,6 @@ class BankAccountStep extends React.Component {
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
             // Params passed via the Plaid callback when an account is selected
-            password: params.password,
             plaidAccessToken: params.plaidLinkToken,
             accountNumber: params.account.accountNumber,
             routingNumber: params.account.routingNumber,
@@ -184,19 +266,22 @@ class BankAccountStep extends React.Component {
                                 style={[styles.exampleCheckImage, styles.mb5]}
                                 source={exampleCheckImage}
                             />
-                            <TextInputWithLabel
-                                placeholder={this.props.translate('bankAccount.routingNumber')}
+                            <ExpensiTextInput
+                                label={this.props.translate('bankAccount.routingNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
-                                onChangeText={routingNumber => this.setState({routingNumber})}
+                                onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
                                 disabled={shouldDisableInputs}
+                                errorText={this.getErrorText('routingNumber')}
                             />
-                            <TextInputWithLabel
-                                placeholder={this.props.translate('bankAccount.accountNumber')}
+                            <ExpensiTextInput
+                                containerStyles={[styles.mt4]}
+                                label={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}
-                                onChangeText={accountNumber => this.setState({accountNumber})}
+                                onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                                 disabled={shouldDisableInputs}
+                                errorText={this.getErrorText('accountNumber')}
                             />
                             <CheckboxWithLabel
                                 style={[styles.mb4, styles.mt5]}
@@ -229,5 +314,14 @@ class BankAccountStep extends React.Component {
 }
 
 BankAccountStep.propTypes = propTypes;
-
-export default withLocalize(BankAccountStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+    }),
+)(BankAccountStep);

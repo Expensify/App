@@ -13,7 +13,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../compo
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
-import dynamicEmojiSize from './dynamicEmojiSize';
+import EmojiSkinToneList from '../EmojiSkinToneList';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -21,6 +21,12 @@ const propTypes = {
 
     /** The ref to the search input (may be null on small screen widths) */
     forwardedRef: PropTypes.func,
+
+    /** Stores user's preferred skin tone */
+    preferredSkinTone: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+
+    /** Function to sync the selected skin tone with parent, onyx and nvp */
+    updatePreferredSkinTone: PropTypes.func,
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -30,6 +36,7 @@ const propTypes = {
 
 const defaultProps = {
     forwardedRef: () => {},
+    updatePreferredSkinTone: undefined,
 };
 
 class EmojiPickerMenu extends Component {
@@ -67,10 +74,9 @@ class EmojiPickerMenu extends Component {
         this.setupEventHandlers = this.setupEventHandlers.bind(this);
         this.cleanupEventHandlers = this.cleanupEventHandlers.bind(this);
         this.renderItem = this.renderItem.bind(this);
+        this.isMobileLandscape = this.isMobileLandscape.bind(this);
+
         this.currentScrollOffset = 0;
-        this.emojiSize = {
-            fontSize: dynamicEmojiSize(this.props.windowWidth),
-        };
 
         this.state = {
             filteredEmojis: this.emojis,
@@ -274,7 +280,7 @@ class EmojiPickerMenu extends Component {
      * @param {String} searchTerm
      */
     filterEmojis(searchTerm) {
-        const normalizedSearchTerm = searchTerm.toLowerCase();
+        const normalizedSearchTerm = searchTerm.toLowerCase().trim();
         if (normalizedSearchTerm === '') {
             // There are no headers when searching, so we need to re-make them sticky when there is no search term
             this.setState({
@@ -296,16 +302,25 @@ class EmojiPickerMenu extends Component {
     }
 
     /**
+     * Check if its a landscape mode of mobile device
+     *
+     * @returns {Boolean}
+     */
+    isMobileLandscape() {
+        return this.props.isSmallScreenWidth && this.props.windowWidth >= this.props.windowHeight;
+    }
+
+    /**
      * Given an emoji item object, render a component based on its type.
      * Items with the code "SPACER" return nothing and are used to fill rows up to 8
-     * so that the sticky headers function properly
+     * so that the sticky headers function properly.
      *
      * @param {Object} item
      * @param {Number} index
      * @returns {*}
      */
     renderItem({item, index}) {
-        const {code, header} = item;
+        const {code, header, types} = item;
         if (code === CONST.EMOJI_SPACER) {
             return null;
         }
@@ -318,13 +333,17 @@ class EmojiPickerMenu extends Component {
             );
         }
 
+        const emojiCode = types && types[this.props.preferredSkinTone]
+            ? types[this.props.preferredSkinTone]
+            : code;
+
+
         return (
             <EmojiPickerMenuItem
                 onPress={this.props.onEmojiSelected}
                 onHover={() => this.setState({highlightedIndex: index})}
-                emoji={code}
+                emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
-                emojiSize={this.emojiSize}
             />
         );
     }
@@ -359,6 +378,7 @@ class EmojiPickerMenu extends Component {
                                 styles.dFlex,
                                 styles.alignItemsCenter,
                                 styles.justifyContentCenter,
+                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
                             ]}
                         >
                             {this.props.translate('common.noResultsFound')}
@@ -371,12 +391,21 @@ class EmojiPickerMenu extends Component {
                             renderItem={this.renderItem}
                             keyExtractor={item => `emoji_picker_${item.code}`}
                             numColumns={this.numColumns}
-                            style={styles.emojiPickerList}
-                            extraData={[this.state.filteredEmojis, this.state.highlightedIndex]}
+                            style={[
+                                styles.emojiPickerList,
+                                this.isMobileLandscape() && styles.emojiPickerListLandscape,
+                            ]}
+                            extraData={
+                              [this.state.filteredEmojis, this.state.highlightedIndex, this.props.preferredSkinTone]
+                            }
                             stickyHeaderIndices={this.state.headerIndices}
                             onScroll={e => this.currentScrollOffset = e.nativeEvent.contentOffset.y}
                         />
                     )}
+                <EmojiSkinToneList
+                    updatePreferredSkinTone={this.props.updatePreferredSkinTone}
+                    preferredSkinTone={this.props.preferredSkinTone}
+                />
             </View>
         );
     }

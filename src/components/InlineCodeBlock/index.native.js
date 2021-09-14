@@ -4,21 +4,25 @@ import WrappedText from './WrappedText';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = ({
+    TDefaultRenderer,
     defaultRendererProps,
     boxModelStyle,
     textStyle,
 }) => (
-    <WrappedText
-        textStyles={[textStyle]}
-        wordStyles={[
-            boxModelStyle,
-            styles.codeWordStyle,
-        ]}
-        // eslint-disable-next-line react/jsx-props-no-spreading
+    <TDefaultRenderer
+    // eslint-disable-next-line react/jsx-props-no-spreading
         {...defaultRendererProps}
     >
-        {defaultRendererProps.tnode.data}
-    </WrappedText>
+        <WrappedText
+            textStyles={[textStyle]}
+            wordStyles={[
+                boxModelStyle,
+                styles.codeWordStyle,
+            ]}
+        >
+            {defaultRendererProps.tnode.data}
+        </WrappedText>
+    </TDefaultRenderer>
 );
 
 InlineCodeBlock.propTypes = inlineCodeBlockPropTypes;

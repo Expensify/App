@@ -6,9 +6,13 @@ import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import {
+    fetchFreePlanVerifiedBankAccount,
+    hideBankAccountErrorModal,
+    hideBankAccountErrors,
+} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import VBALoadingIndicator from '../../components/VBALoadingIndicator';
 import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -24,8 +28,11 @@ import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
 import BeneficialOwnersStep from './BeneficialOwnersStep';
+import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import ConfirmModal from '../../components/ConfirmModal';
+import ExistingOwners from './ExistingOwners';
 
 const propTypes = {
     /** List of betas */
@@ -104,6 +111,7 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
+        hideBankAccountErrors();
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
     }
 
@@ -136,7 +144,7 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 return 'company';
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return 'requestor';
+                return 'personal-information';
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -147,6 +155,17 @@ class ReimbursementAccountPage extends React.Component {
         }
     }
 
+    /**
+     * @returns {React.Component|string}
+     */
+    getErrorModalPrompt() {
+        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
+            return <ExistingOwners />;
+        }
+
+        return this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt');
+    }
+
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing new bank account page because user is not on free plan beta');
@@ -155,7 +174,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (this.props.reimbursementAccount.loading) {
-            return <FullScreenLoadingIndicator visible />;
+            return <VBALoadingIndicator />;
         }
 
         let errorComponent;
@@ -232,6 +251,19 @@ class ReimbursementAccountPage extends React.Component {
                             error={error}
                         />
                     )}
+                    {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
+                        <EnableStep
+                            achData={this.props.reimbursementAccount.achData}
+                        />
+                    )}
+                    <ConfirmModal
+                        title={this.props.translate('bankAccount.confirmModalTitle')}
+                        onConfirm={hideBankAccountErrorModal}
+                        prompt={this.getErrorModalPrompt()}
+                        isVisible={lodashGet(this.props, 'reimbursementAccount.isErrorModalVisible', false)}
+                        confirmText={this.props.translate('bankAccount.confirmModalConfirmText')}
+                        shouldShowCancelButton={false}
+                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

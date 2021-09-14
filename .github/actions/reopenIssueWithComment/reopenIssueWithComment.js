@@ -15,7 +15,7 @@ function reopenIssueWithComment() {
         .then(() => {
             console.log(`Commenting on issue #${issueNumber}`);
             return GithubUtils.octokit.issues.createComment({
-                owner: GithubUtils.GithubUtilsGITHUB_OWNER,
+                owner: GithubUtils.GITHUB_OWNER,
                 repo: GithubUtils.EXPENSIFY_CASH_REPO,
                 issue_number: issueNumber,
                 body: comment,

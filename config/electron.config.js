@@ -1,6 +1,6 @@
 module.exports = {
     appId: 'com.expensifyreactnative.chat',
-    productName: 'Expensify.cash',
+    productName: 'New Expensify',
     extraMetadata: {
         main: './desktop/main.js',
     },
@@ -13,8 +13,8 @@ module.exports = {
         type: 'distribution',
     },
     dmg: {
-        title: 'Expensify.cash',
-        artifactName: 'Expensify.cash.dmg',
+        title: 'New Expensify',
+        artifactName: 'NewExpensify.dmg',
         internetEnabled: true,
     },
     publish: [{

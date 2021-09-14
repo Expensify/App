@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
@@ -27,6 +27,8 @@ import ROUTES from '../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import CONST from '../../CONST';
+import DateUtils from '../../libs/DateUtils';
+import Permissions from '../../libs/Permissions';
 
 const propTypes = {
     /* Onyx Props */
@@ -67,6 +69,15 @@ const propTypes = {
         role: PropTypes.string,
     })),
 
+    /** The user's wallet account */
+    userWallet: PropTypes.shape({
+        /** The user's current wallet balance */
+        currentBalance: PropTypes.number,
+    }),
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
+
     ...withLocalizePropTypes,
 };
 
@@ -75,13 +86,20 @@ const defaultProps = {
     network: {},
     session: {},
     policies: {},
+    userWallet: {
+        currentBalance: 0,
+    },
+    betas: [],
 };
 
 const defaultMenuItems = [
     {
         translationKey: 'common.profile',
         icon: Profile,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PROFILE); },
+        action: () => {
+            DateUtils.updateTimezone();
+            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+        },
     },
     {
         translationKey: 'common.preferences',
@@ -113,10 +131,18 @@ const defaultMenuItems = [
 const InitialSettingsPage = ({
     myPersonalDetails,
     network,
+    numberFormat,
     session,
     policies,
     translate,
+    userWallet,
+    betas,
 }) => {
+    const walletBalance = numberFormat(
+        userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+        {style: 'currency', currency: 'USD'},
+    );
+
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
@@ -129,13 +155,17 @@ const InitialSettingsPage = ({
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map(policy => ({
             title: policy.name,
-            icon: Building,
+            icon: policy.avatarURL ? policy.avatarURL : Building,
+            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
         .value();
     menuItems.push(...defaultMenuItems);
+
+
+    const openProfileSettings = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE);
 
     return (
         <ScreenWrapper>
@@ -146,21 +176,24 @@ const InitialSettingsPage = ({
             <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
-                        <View style={[styles.mb3]}>
+                        <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
                                 size="large"
                                 source={myPersonalDetails.avatar}
                                 isActive={network.isOffline === false}
                             />
-                        </View>
-                        <Text style={[styles.displayName, styles.mt1]} numberOfLines={1}>
-                            {myPersonalDetails.displayName
-                                ? myPersonalDetails.displayName
-                                : Str.removeSMSDomain(session.email)}
-                        </Text>
+                        </Pressable>
+
+                        <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
+                            <Text style={[styles.displayName]} numberOfLines={1}>
+                                {myPersonalDetails.displayName
+                                    ? myPersonalDetails.displayName
+                                    : Str.removeSMSDomain(session.email)}
+                            </Text>
+                        </Pressable>
                         {myPersonalDetails.displayName && (
                             <Text
-                                style={[styles.settingsLoginName, styles.mt1]}
+                                style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
                                 {Str.removeSMSDomain(session.email)}
@@ -169,15 +202,18 @@ const InitialSettingsPage = ({
                     </View>
                     {_.map(menuItems, (item, index) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        const isPaymentItem = item.translationKey === 'common.payments';
                         return (
                             <MenuItem
                                 key={`${keyTitle}_${index}`}
                                 title={keyTitle}
                                 icon={item.icon}
+                                iconType={item.iconType}
                                 onPress={item.action}
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
+                                badgeText={(isPaymentItem && Permissions.canUseWallet(betas)) ? walletBalance : undefined}
                             />
                         );
                     })}
@@ -205,6 +241,12 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(InitialSettingsPage);

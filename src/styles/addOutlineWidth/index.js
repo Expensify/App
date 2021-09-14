@@ -3,6 +3,8 @@
  * can be added to the object
  */
 
+import themeDefault from '../themes/default';
+
 /**
  * Adds the addOutlineWidth property to an object to be used when styling
  *
@@ -14,6 +16,7 @@ function withOutlineWidth(obj, val) {
     return {
         ...obj,
         outlineWidth: val,
+        boxShadow: `0px 0px 0px ${val}px ${themeDefault.borderFocus}`,
     };
 }
 

@@ -1,7 +1,10 @@
+const _ = require('underscore');
+const {error: AnnotationError} = require('@actions/core');
 const translate = require('../../src/libs/translate');
-const translations = require('../../src/languages/translations');
 const CONFIG = require('../../src/CONFIG');
+const translations = require('../../src/languages/translations');
 
+const originalTranslations = _.clone(translations);
 translations.default = {
     en: {
         testKey1: 'English',
@@ -50,5 +53,46 @@ describe('translate', () => {
         const testVariable = 'Test Variable';
         expect(translate.translate('en', 'testKeyGroup.testFunction', {testVariable})).toBe(expectedValue);
         expect(translate.translate('en', ['testKeyGroup', 'testFunction'], {testVariable})).toBe(expectedValue);
+    });
+});
+
+describe('Translation Keys', () => {
+    function traverseKeyPath(source, path, keyPaths) {
+        const pathArray = keyPaths || [];
+        const keyPath = path ? `${path}.` : '';
+        _.each(_.keys(source), (key) => {
+            if (_.isObject(source[key]) && !_.isFunction(source[key])) {
+                traverseKeyPath(source[key], keyPath + key, pathArray);
+            } else {
+                pathArray.push(keyPath + key);
+            }
+        });
+        return pathArray;
+    }
+    const excludeLanguages = ['en', 'es-ES'];
+    const languages = _.without(_.keys(originalTranslations.default), ...excludeLanguages);
+    const mainLanguage = originalTranslations.default.en;
+    const mainLanguageKeys = traverseKeyPath(mainLanguage);
+
+    _.each(languages, (ln) => {
+        const languageKeys = traverseKeyPath(originalTranslations.default[ln]);
+
+        it(`Does ${ln} locale has all the keys`, () => {
+            const hasAllKeys = _.difference(mainLanguageKeys, languageKeys);
+            if (hasAllKeys.length) {
+                console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
+                AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are missing from ${ln}.js`);
+            }
+            expect(hasAllKeys).toEqual([]);
+        });
+
+        it(`Does ${ln} locale has unused keys`, () => {
+            const hasAllKeys = _.difference(languageKeys, mainLanguageKeys);
+            if (hasAllKeys.length) {
+                console.debug(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
+                AnnotationError(`🏹 [ ${hasAllKeys.join(', ')} ] are unused keys in ${ln}.js`);
+            }
+            expect(hasAllKeys).toEqual([]);
+        });
     });
 });

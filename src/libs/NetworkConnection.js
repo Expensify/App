@@ -2,14 +2,12 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import NetInfo from './NetInfo';
 import ONYXKEYS from '../ONYXKEYS';
-import SleepTimer from './SleepTimer';
 import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
 let unsubscribeFromNetInfo;
-let unsubscribeFromSleepTimer;
 let unsubscribeFromAppState;
 let isOffline = false;
 let logInfo = () => {};
@@ -21,7 +19,7 @@ const reconnectionCallbacks = [];
  * Loop over all reconnection callbacks and fire each one
  */
 const triggerReconnectionCallbacks = _.throttle((reason) => {
-    logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`, true);
+    logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
     Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, true);
     promiseAllSettled(_.map(reconnectionCallbacks, callback => callback()))
         .then(() => Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, false));
@@ -51,7 +49,7 @@ function setOfflineStatus(isCurrentlyOffline) {
  * `disconnected` event which takes about 10-15 seconds to emit.
  */
 function listenForReconnect() {
-    logInfo('[NetworkConnection] listenForReconnect called', true);
+    logInfo('[NetworkConnection] listenForReconnect called');
 
     unsubscribeFromAppState = AppStateMonitor.addBecameActiveListener(() => {
         triggerReconnectionCallbacks('app became active');
@@ -63,28 +61,16 @@ function listenForReconnect() {
         logInfo(`[NetworkConnection] NetInfo isConnected: ${state && state.isConnected}`);
         setOfflineStatus(!state.isConnected);
     });
-
-    // When a device is put to sleep, NetInfo is not always able to detect
-    // when connectivity has been lost. As a failsafe we will capture the time
-    // every two seconds and if the last time recorded goes past a threshold
-    // we know that the computer has been asleep.
-    unsubscribeFromSleepTimer = SleepTimer.addClockSkewListener(() => (
-        triggerReconnectionCallbacks('timer clock skewed')
-    ));
 }
 
 /**
  * Tear down the event listeners when we are finished with them.
  */
 function stopListeningForReconnect() {
-    logInfo('[NetworkConnection] stopListeningForReconnect called', true);
+    logInfo('[NetworkConnection] stopListeningForReconnect called');
     if (unsubscribeFromNetInfo) {
         unsubscribeFromNetInfo();
         unsubscribeFromNetInfo = undefined;
-    }
-    if (unsubscribeFromSleepTimer) {
-        unsubscribeFromSleepTimer();
-        unsubscribeFromSleepTimer = undefined;
     }
     if (unsubscribeFromAppState) {
         unsubscribeFromAppState();

@@ -138,7 +138,7 @@ const run = function () {
             if (shouldCreateNewStagingDeployCash) {
                 return GithubUtils.octokit.issues.create({
                     ...defaultPayload,
-                    title: `Deploy Checklist: Expensify.cash ${moment().format('YYYY-MM-DD')}`,
+                    title: `Deploy Checklist: New Expensify ${moment().format('YYYY-MM-DD')}`,
                     labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
                     assignees: [GithubUtils.APPLAUSE_BOT],
                 });

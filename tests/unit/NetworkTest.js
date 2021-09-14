@@ -15,6 +15,13 @@ jest.mock('../../src/libs/Notification/PushNotification', () => ({
 
 jest.useFakeTimers();
 
+Onyx.init({
+    keys: ONYXKEYS,
+    registerStorageEventListener: () => {},
+});
+
+beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
+
 test('failing to reauthenticate while offline should not log out user', () => {
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';

@@ -16,11 +16,12 @@ import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-
+import * as App from '../../../libs/actions/App';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -99,8 +100,8 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        // Wait until the reports are actually loaded before displaying the LHN
-        if (!this.props.initialReportDataLoaded) {
+        // Wait until the reports and personalDetails are actually loaded before displaying the LHN
+        if (!this.props.initialReportDataLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
@@ -141,14 +142,16 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
                     />
-                    <TouchableOpacity
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                        accessibilityRole="button"
-                        style={[styles.flexRow, styles.ph5]}
-                        onPress={this.showSearchPage}
-                    >
-                        <Icon src={MagnifyingGlass} />
-                    </TouchableOpacity>
+                    <Tooltip text={this.props.translate('common.search')}>
+                        <TouchableOpacity
+                            accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                            accessibilityRole="button"
+                            style={[styles.flexRow, styles.ph5]}
+                            onPress={this.showSearchPage}
+                        >
+                            <Icon src={MagnifyingGlass} />
+                        </TouchableOpacity>
+                    </Tooltip>
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
@@ -179,6 +182,7 @@ class SidebarLinks extends React.Component {
                     showTitleTooltip
                     disableFocusOptions={this.props.isSmallScreenWidth}
                     optionMode={this.props.priorityMode === CONST.PRIORITY_MODE.GSD ? 'compact' : 'default'}
+                    onLayout={App.setSidebarLoaded}
                 />
                 <KeyboardSpacer />
             </View>

@@ -2,7 +2,7 @@ name: 'Reopen issue with comment'
 description: 'Reopens a GitHub issue and leaves a comment.'
 inputs:
   GITHUB_TOKEN:
-    description: Auth token for Expensify.cash Github; necessary for accessing Octokit.
+    description: Auth token for New Expensify Github; necessary for accessing Octokit.
     required: true
   ISSUE_NUMBER:
     description: The ID number of the issue on which we want to comment and reopen.

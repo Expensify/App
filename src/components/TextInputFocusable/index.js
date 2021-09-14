@@ -115,14 +115,10 @@ class TextInputFocusable extends React.Component {
                 end: initialValue.length,
             },
         };
-        this.selection = {
-            start: initialValue.length,
-            end: initialValue.length,
-        };
-        this.saveSelection = this.saveSelection.bind(this);
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
+        this.handleWheel = this.handleWheel.bind(this);
     }
 
     componentDidMount() {
@@ -146,6 +142,7 @@ class TextInputFocusable extends React.Component {
             document.addEventListener('dragleave', this.dragNDropListener);
             document.addEventListener('drop', this.dragNDropListener);
             this.textInput.addEventListener('paste', this.handlePaste);
+            this.textInput.addEventListener('wheel', this.handleWheel);
         }
     }
 
@@ -173,6 +170,7 @@ class TextInputFocusable extends React.Component {
             document.removeEventListener('dragleave', this.dragNDropListener);
             document.removeEventListener('drop', this.dragNDropListener);
             this.textInput.removeEventListener('paste', this.handlePaste);
+            this.textInput.removeEventListener('wheel', this.handleWheel);
         }
     }
 
@@ -233,17 +231,6 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
-     * Keeps track of user cursor position on the Composer
-     *
-     * @param {{nativeEvent: {selection: any}}} event
-     * @memberof TextInputFocusable
-     */
-    saveSelection(event) {
-        this.selection = event.nativeEvent.selection;
-        this.props.onSelectionChange(event);
-    }
-
-    /**
      * Manually place the pasted HTML into Composer
      *
      * @param {String} html - pasted HTML
@@ -252,13 +239,11 @@ class TextInputFocusable extends React.Component {
     handlePastedHTML(html) {
         const parser = new ExpensiMark();
         const markdownText = parser.htmlToMarkdown(html);
-        const beforeCursorText = this.textInput.value.substring(0, this.selection.start);
-        const afterCursorText = this.textInput.value.substring(this.selection.end);
-        this.textInput.value = beforeCursorText + markdownText + afterCursorText;
-        const newCursorPosition = beforeCursorText.length + markdownText.length;
-        this.setState({selection: {start: newCursorPosition, end: newCursorPosition}});
-        this.updateNumberOfLines();
-        this.props.onChangeText(this.textInput.value);
+        try {
+            document.execCommand('insertText', false, markdownText);
+            this.updateNumberOfLines();
+        // eslint-disable-next-line no-empty
+        } catch (e) {}
     }
 
     /**
@@ -323,6 +308,18 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
+     * Manually scrolls the text input, then prevents the event from being passed up to the parent.
+     * @param {Object} event native Event
+     */
+    handleWheel(event) {
+        if (event.target === document.activeElement) {
+            this.textInput.scrollTop += event.deltaY;
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }
+
+    /**
      * Check the current scrollHeight of the textarea (minus any padding) and
      * divide by line height to get the total number of rows for the textarea.
      */
@@ -353,7 +350,7 @@ class TextInputFocusable extends React.Component {
                 onChange={() => {
                     this.updateNumberOfLines();
                 }}
-                onSelectionChange={this.saveSelection}
+                onSelectionChange={this.onSelectionChange}
                 numberOfLines={this.state.numberOfLines}
                 style={propStyles}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */

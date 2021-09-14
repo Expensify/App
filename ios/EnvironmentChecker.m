@@ -1,6 +1,6 @@
 //
 //  EnvironmentChecker.m
-//  ExpensifyCash
+//  NewExpensify
 //
 // Source:
 // https://github.com/react-native-device-info/react-native-device-info/issues/228#issuecomment-420703355
