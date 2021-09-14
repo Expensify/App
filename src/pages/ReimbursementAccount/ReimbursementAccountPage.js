@@ -226,6 +226,7 @@ class ReimbursementAccountPage extends React.Component {
         // next step.
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+        const totalAvailableSteps = 5;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -233,22 +234,34 @@ class ReimbursementAccountPage extends React.Component {
                         <BankAccountStep
                             achData={achData}
                             isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
+                            stepCounter={{step: 1, total: totalAvailableSteps}}
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
-                        <CompanyStep achData={achData} />
+                        <CompanyStep
+                            achData={achData}
+                            stepCounter={{step: 2, total: totalAvailableSteps}}
+                        />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && (
-                        <RequestorStep achData={achData} />
+                        <RequestorStep
+                            achData={achData}
+                            stepCounter={{step: 3, total: totalAvailableSteps}}
+                        />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <BeneficialOwnersStep companyName={achData.companyName} />
+                        <BeneficialOwnersStep
+                            companyName={achData.companyName}
+                            stepCounter={{step: 4, total: totalAvailableSteps}}
+                        />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                         <ValidationStep
                             achData={this.props.reimbursementAccount.achData}
                             maxAttemptsReached={maxAttemptsReached}
                             error={error}
+                            stepCounter={{step: 5, total: totalAvailableSteps}}
+
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (

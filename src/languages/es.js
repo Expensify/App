@@ -364,6 +364,7 @@ export default {
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
     },
+    stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',

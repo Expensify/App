@@ -118,6 +118,7 @@ class RequestorStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestorStep.headerTitle')}
+                    stepCounter={this.props.stepCounter}
                     shouldShowBackButton
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
