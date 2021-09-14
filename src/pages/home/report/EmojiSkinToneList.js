@@ -45,7 +45,7 @@ class EmojiSkinToneList extends Component {
      * @param {object} skinToneEmoji
      */
     updateSelectedSkinTone(skinToneEmoji) {
-        this.setState(prev => ({isSkinToneListVisible: !prev.isSkinToneListVisible}));
+        this.setState(prev => ({isSkinToneListVisible: !prev.isSkinToneListVisible, highlightedIndex: skinToneEmoji.skinTone}));
         this.props.updatePreferredSkinTone(skinToneEmoji.skinTone);
     }
 
