@@ -24,15 +24,12 @@ function isValidAddress(value) {
  * @param {*} value
  * @returns {Boolean}
  */
-function isValuePresent(value) {
+function isRequiredFulfilled(value) {
     if (_.isString(value)) {
         return !_.isEmpty(value.trim());
     }
     if (_.isArray(value) || _.isObject(value)) {
         return !_.isEmpty(value);
-    }
-    if (_.isBoolean(value)) {
-        return true;
     }
     return Boolean(value);
 }
@@ -130,5 +127,5 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
-    isValuePresent,
+    isRequiredFulfilled,
 };

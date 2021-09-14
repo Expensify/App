@@ -26,7 +26,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode, isValuePresent,
+    isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode, isRequiredFulfilled,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -81,6 +81,7 @@ class CompanyStep extends React.Component {
             'industryCode',
             'password',
             'companyPhone',
+            'hasNoConnectionToCannabis',
         ];
 
         // Map a field to the key of the error's translation
@@ -173,7 +174,7 @@ class CompanyStep extends React.Component {
         }
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isValuePresent(this.state[inputKey])) {
+            if (!isRequiredFulfilled(this.state[inputKey])) {
                 errors[inputKey] = true;
             }
         });
@@ -196,8 +197,7 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
 
         // Disable save button if any of the required fields is empty
-        const missingRequiredFields = this.requiredFields.reduce((acc, curr) => acc || !isValuePresent(this.state[curr]), false);
-        const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis || missingRequiredFields;
+        const shouldDisableSubmitButton = this.requiredFields.reduce((acc, curr) => acc || !isRequiredFulfilled(this.state[curr]), false);
 
         return (
             <>
