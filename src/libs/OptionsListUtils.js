@@ -719,7 +719,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return translate(preferredLocale, 'messages.noPhoneNumber');
     }
 
-    if (!hasSelectableOptions && !hasUserToInvite) {
+    if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
             return translate(preferredLocale, 'messages.noPhoneNumber');
         }

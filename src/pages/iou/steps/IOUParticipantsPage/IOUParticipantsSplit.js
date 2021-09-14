@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
-import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
+import {getHeaderMessage, getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
 import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
@@ -198,6 +198,11 @@ class IOUParticipantsSplit extends Component {
     render() {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
+        const headerMessage = getHeaderMessage(
+            this.state.personalDetails.length !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        );
         return (
             <>
                 <View style={[styles.flex1, styles.w100]}>
@@ -230,6 +235,7 @@ class IOUParticipantsSplit extends Component {
                                 personalDetails,
                             });
                         }}
+                        headerMessage={headerMessage}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
