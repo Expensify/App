@@ -156,8 +156,6 @@ class CompanyStep extends React.Component {
     render() {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
-        const missingRequiredFields = this.requiredFields.reduce((acc, curr) => acc || !this.state[curr].trim(), false);
-        const shouldDisableSubmitButton = !this.state.hasNoConnectionToCannabis || missingRequiredFields;
         const error = this.props.reimbursementAccount.error;
 
         return (
@@ -323,7 +321,7 @@ class CompanyStep extends React.Component {
                                 this.setState({password});
                             }}
                             value={this.state.password}
-                            onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
+                            onSubmitEditing={this.submit}
                             errorText={error === this.props.translate('common.passwordCannotBeBlank')
                                 ? this.props.translate('common.passwordCannotBeBlank')
                                 : ''}
@@ -360,7 +358,6 @@ class CompanyStep extends React.Component {
                         onPress={this.submit}
                         style={[styles.w100]}
                         text={this.props.translate('common.saveAndContinue')}
-                        isDisabled={shouldDisableSubmitButton}
                     />
                 </FixedFooter>
             </>

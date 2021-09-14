@@ -399,7 +399,7 @@ export default {
             dob: 'Ingresa una fecha de nacimiento válida',
             age: 'Los solicitantes deben ser mayores de 18 años',
             ssnLast4: 'Ingresa los últimos 4 dígitos del número de seguro social',
-            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregua una cuenta bancaria para depósitos o una tarjeta de débito',
+            noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
             existingOwners: {
                 alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
                 pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
