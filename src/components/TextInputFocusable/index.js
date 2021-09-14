@@ -237,17 +237,6 @@ class TextInputFocusable extends React.Component {
     }
 
     /**
-     * Strip image tags from the HTML
-     *
-     * @param {String} html
-     * @returns {String}
-     */
-    stripImageTags(html) {
-        return html.replace(/<img[^>]*>/g, '');
-    }
-
-
-    /**
      * Check the paste event for an attachment, parse the data and call onPasteFile from props with the selected file,
      * Otherwise, convert pasted HTML to Markdown and set it on the composer.
      *
@@ -269,7 +258,7 @@ class TextInputFocusable extends React.Component {
         if (types.includes(TEXT_HTML)) {
             const pastedHTML = event.clipboardData.getData(TEXT_HTML);
             event.preventDefault();
-            this.handlePastedHTML(this.stripImageTags(pastedHTML));
+            this.handlePastedHTML(pastedHTML);
         }
     }
 
