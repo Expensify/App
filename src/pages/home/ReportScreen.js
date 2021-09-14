@@ -82,7 +82,6 @@ const defaultProps = {
  * @returns {Number}
  */
 function getReportID(route) {
-    // TODO: move this to its own util
     return Number.parseInt(route.params.reportID, 10);
 }
 

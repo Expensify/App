@@ -6,6 +6,7 @@ import {addTrailingForwardSlash} from './libs/Url';
  */
 
 const REPORT = 'r';
+const PARTICIPANTS = 'participants';
 const IOU_REQUEST = 'iou/request';
 const IOU_BILL = 'iou/split';
 const IOU_SEND = 'iou/send';
@@ -32,8 +33,8 @@ export default {
     NEW_GROUP: 'new/group',
     NEW_CHAT: 'new/chat',
     REPORT,
-    REPORT_WITH_ID: 'r/:reportID/:sequenceNumber?',
-    getReportRoute: (reportID, sequenceNumber = null) => (sequenceNumber ? `r/${reportID}/${sequenceNumber}` : `r/${reportID}`),
+    REPORT_WITH_ID: `${REPORT}/:reportID/:sequenceNumber?`,
+    getReportRoute: (reportID, sequenceNumber = null) => (sequenceNumber ? `${REPORT}/${reportID}/${sequenceNumber}` : `${REPORT}/${reportID}`),
     IOU_REQUEST,
     IOU_BILL,
     IOU_SEND,
@@ -56,15 +57,15 @@ export default {
     SET_PASSWORD_WITH_VALIDATE_CODE: 'setpassword/:accountID/:validateCode',
     DETAILS: 'details',
     getDetailsRoute: login => `details?login=${encodeURIComponent(login)}`,
-    REPORT_PARTICIPANTS: 'r/:reportID/participants',
-    getReportParticipantsRoute: reportID => `r/${reportID}/participants`,
-    REPORT_PARTICIPANT: 'r/:reportID/participants/details',
+    REPORT_PARTICIPANTS: `${REPORT}/:reportID/${PARTICIPANTS}`,
+    getReportParticipantsRoute: reportID => `${REPORT}/${reportID}/${PARTICIPANTS}`,
+    REPORT_PARTICIPANT: `${REPORT}/:reportID/${PARTICIPANTS}/details`,
     getReportParticipantRoute: (
         reportID,
         login,
-    ) => `r/${reportID}/participants/details?login=${encodeURIComponent(login)}`,
-    REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
-    getReportDetailsRoute: reportID => `r/${reportID}/details`,
+    ) => `${REPORT}/${reportID}/${PARTICIPANTS}/details?login=${encodeURIComponent(login)}`,
+    REPORT_WITH_ID_DETAILS: `${REPORT}/:reportID/details`,
+    getReportDetailsRoute: reportID => `${REPORT}/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
 
@@ -99,7 +100,7 @@ export default {
         const pathSegments = route.split('/');
         return {
             reportID: lodashGet(pathSegments, 1),
-            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
+            isParticipantsRoute: lodashGet(pathSegments, 2, '') === PARTICIPANTS,
         };
     },
 };
