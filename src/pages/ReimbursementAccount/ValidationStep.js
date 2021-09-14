@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {Image, View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -132,7 +132,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {state === BankAccount.STATE.PENDING && (
-                    <View style={[styles.flex1, styles.mt2]}>
+                    <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.mt2}>
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
@@ -176,7 +176,7 @@ class ValidationStep extends React.Component {
                             onPress={this.submit}
                             isDisabled={shouldDisableSubmitButton}
                         />
-                    </View>
+                    </ScrollView>
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
