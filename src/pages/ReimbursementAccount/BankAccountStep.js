@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Image} from 'react-native';
 import PropTypes from 'prop-types';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import {
@@ -24,6 +24,7 @@ import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
     setBankAccountFormValidationErrors,
+    setBankAccountSubStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
@@ -77,16 +78,6 @@ class BankAccountStep extends React.Component {
     getErrorText(inputKey) {
         const errors = this.getErrors();
         return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
-    }
-
-    setSubStep(subStep) {
-        console.debug('setSubStep', subStep);
-        if (!subStep) {
-            // undefined seems to be ignored by Onyx
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep: null}});
-        } else {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
-        }
     }
 
     toggleTerms() {
@@ -206,7 +197,7 @@ class BankAccountStep extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => this.setSubStep(undefined)}
+                    onBackButtonPress={() => setBankAccountSubStep(null)}
                     shouldShowBackButton={Boolean(subStep)}
                 />
                 {!subStep && (
@@ -218,7 +209,7 @@ class BankAccountStep extends React.Component {
                             <MenuItem
                                 icon={Bank}
                                 title={this.props.translate('bankAccount.logIntoYourBank')}
-                                onPress={() => this.setSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
+                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                                 disabled={this.props.isPlaidDisabled}
                                 shouldShowRightIcon
                             />
@@ -230,7 +221,7 @@ class BankAccountStep extends React.Component {
                             <MenuItem
                                 icon={Paycheck}
                                 title={this.props.translate('bankAccount.connectManually')}
-                                onPress={() => this.setSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                                 shouldShowRightIcon
                             />
                             <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
@@ -256,7 +247,7 @@ class BankAccountStep extends React.Component {
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSubmit={this.addPlaidAccount}
-                        onExitPlaid={() => this.setSubStep(undefined)}
+                        onExitPlaid={() => setBankAccountSubStep(null)}
 
                     />
                 )}

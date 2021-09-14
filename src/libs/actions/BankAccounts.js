@@ -72,7 +72,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
     if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        newACHData.subStep = 'manual';
+        newACHData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
@@ -606,6 +606,15 @@ function showBankAccountFormValidationError(error) {
 }
 
 /**
+ * Set the current sub step in first step of adding withdrawal bank account
+ *
+ * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ */
+function setBankAccountSubStep(subStep) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+}
+
+/**
  * Create or update the bank account in db with the updated data.
  *
  * @param {Object} [data]
@@ -815,5 +824,6 @@ export {
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    setBankAccountSubStep,
     updateReimbursementAccountDraft,
 };
