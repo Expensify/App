@@ -7,7 +7,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
-    goToWithdrawalAccountSetupStep,
+    fetchFreePlanVerifiedBankAccount,
     hideBankAccountErrorModal,
     hideBankAccountErrors,
 } from '../../libs/actions/BankAccounts';
@@ -87,6 +87,11 @@ const defaultProps = {
 };
 
 class ReimbursementAccountPage extends React.Component {
+    componentDidMount() {
+        // We can specify a step to navigate to by using route params when the component mounts.
+        fetchFreePlanVerifiedBankAccount(this.getStepToOpenFromRouteParams());
+    }
+
     componentDidUpdate(prevProps) {
         const currentStep = lodashGet(
             this.props,
@@ -98,15 +103,6 @@ class ReimbursementAccountPage extends React.Component {
             'reimbursementAccount.achData.currentStep',
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
         );
-
-        if (prevProps.reimbursementAccount.fetching && !this.props.reimbursementAccount.fetching) {
-            // We can specify a step to navigate to by using route params when finish fetching the bank account data.
-            const routeStep = this.getStepToOpenFromRouteParams();
-            if (this.props.reimbursementAccount.achData.currentStep !== routeStep) {
-                goToWithdrawalAccountSetupStep(routeStep);
-                return;
-            }
-        }
 
         if (currentStep === previousStep) {
             return;

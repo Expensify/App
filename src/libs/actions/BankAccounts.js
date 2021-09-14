@@ -339,9 +339,9 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        loading: true, // shows loading indicator
+        loading: true,
         error: '',
-        fetching: true, // only used when fetching
+
         // We temporarily keep the achData state to prevent UI changes while fetching.
         achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
     });
@@ -471,7 +471,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })
                 .finally(() => {
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, fetching: false});
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 });
         });
 }
@@ -644,18 +644,9 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
-        /* eslint-disable arrow-body-style */
         .then((response) => {
-            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
-            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
-            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
-            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                loading: false,
-                achData: {...newACHData},
-            })
-                .then(() => Promise.resolve(response));
-        })
-        .then((response) => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
+
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
