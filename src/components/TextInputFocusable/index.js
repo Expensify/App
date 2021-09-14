@@ -107,7 +107,6 @@ class TextInputFocusable extends React.Component {
         this.dragNDropListener = this.dragNDropListener.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handlePastedHTML = this.handlePastedHTML.bind(this);
-        this.stripImageTags = this.stripImageTags.bind(this);
         this.handleWheel = this.handleWheel.bind(this);
     }
 
