@@ -46,7 +46,7 @@ const AppDownloadLinksPage = ({translate}) => {
                 onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView bounces style={[styles.mt5]}>
+            <ScrollView style={[styles.mt5]}>
                 {menuItems.map(item => (
                     <MenuItem
                         key={item.translationKey}

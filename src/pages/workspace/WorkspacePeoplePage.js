@@ -265,7 +265,6 @@ class WorkspacePeoplePage extends React.Component {
                             </View>
                         </View>
                         <FlatList
-                            bounces
                             renderItem={this.renderItem}
                             data={data}
                             keyExtractor={item => item.login}

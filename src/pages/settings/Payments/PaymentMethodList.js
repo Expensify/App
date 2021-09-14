@@ -190,7 +190,6 @@ class PaymentMethodList extends Component {
             <FlatList
                 data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
-                bounces
             />
         );
     }

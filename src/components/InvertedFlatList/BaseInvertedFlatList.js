@@ -144,7 +144,6 @@ class BaseInvertedFlatList extends Component {
                 {...this.props}
                 ref={this.props.innerRef}
                 inverted
-                bounces
                 renderItem={this.renderItem}
 
                 // Native platforms do not need to measure items and work fine without this.

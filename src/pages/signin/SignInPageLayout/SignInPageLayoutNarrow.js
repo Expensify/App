@@ -21,7 +21,6 @@ const propTypes = {
 
 const SignInPageLayoutNarrow = props => (
     <ScrollView
-        bounces
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={[

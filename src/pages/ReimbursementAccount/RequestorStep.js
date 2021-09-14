@@ -137,7 +137,7 @@ class RequestorStep extends React.Component {
                     />
                 ) : (
                     <>
-                        <ScrollView bounces style={[styles.flex1, styles.w100]}>
+                        <ScrollView style={[styles.flex1, styles.w100]}>
                             <View style={[styles.p4]}>
                                 <Text>{this.props.translate('requestorStep.subtitle')}</Text>
                                 <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>

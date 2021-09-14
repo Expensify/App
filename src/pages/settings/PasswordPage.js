@@ -119,7 +119,7 @@ class PasswordPage extends Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView bounces style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <Text style={[styles.mb6]}>
                             {this.props.translate('passwordPage.changingYourPasswordPrompt')}
                         </Text>

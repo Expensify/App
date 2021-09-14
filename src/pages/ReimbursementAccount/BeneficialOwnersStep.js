@@ -140,7 +140,7 @@ class BeneficialOwnersStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
                 />
-                <ScrollView bounces style={[styles.flex1, styles.w100, styles.ph5]}>
+                <ScrollView style={[styles.flex1, styles.w100, styles.ph5]}>
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>

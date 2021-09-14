@@ -100,7 +100,6 @@ class EmojiPickerMenu extends Component {
         return (
             <View style={styles.emojiPickerContainer}>
                 <FlatList
-                    bounces
                     data={emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}

@@ -178,7 +178,7 @@ class RequestCallPage extends Component {
                         ], true)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView bounces style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <Text style={[styles.mb4]}>
                             {this.props.translate('requestCallPage.description')}
                         </Text>
