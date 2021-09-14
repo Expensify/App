@@ -382,7 +382,6 @@ export default {
         confirmModalConfirmText: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
-            legalBusinessName: 'Legal business name cannot be blank',
             taxID: 'Please enter a valid Tax ID Number',
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',

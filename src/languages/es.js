@@ -382,7 +382,6 @@ export default {
         confirmModalConfirmText: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
-            legalBusinessName: 'El nombre comercial legal no puede estar vacío',
             taxID: 'Ingresa un número de identificación fiscal válido',
             website: 'Ingresa un sitio web válido',
             zipCode: 'Ingresa un código postal válido',
