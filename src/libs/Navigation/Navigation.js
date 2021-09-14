@@ -114,39 +114,10 @@ function dismissModal(shouldOpenDrawer = false) {
         ? shouldOpenDrawer
         : false;
 
-    let isLeavingDrawerNavigator;
-
-    // This should take us to the first view of the modal's stack navigator
-    navigationRef.current.dispatch((state) => {
-        // If this is a nested drawer navigator then we pop the screen and
-        // prevent calling goBack() as it's default behavior is to toggle open the active drawer
-        if (state.type === 'drawer') {
-            isLeavingDrawerNavigator = true;
-            return StackActions.pop();
-        }
-
-        // If there are multiple routes then we can pop back to the first route
-        if (state.routes.length > 1) {
-            return StackActions.popToTop();
-        }
-
-        // Otherwise, we are already on the last page of a modal so just do nothing here as goBack() will navigate us
-        // back to the screen we were on before we opened the modal.
-        return StackActions.pop(0);
-    });
-
-    if (isLeavingDrawerNavigator) {
-        return;
+    CustomActions.navigateBackToDrawer(navigationRef);
+    if (normalizedShouldOpenDrawer) {
+        openDrawer();
     }
-
-    // Navigate back to where we were before we launched the modal
-    goBack(shouldOpenDrawer);
-
-    if (!normalizedShouldOpenDrawer) {
-        return;
-    }
-
-    openDrawer();
 }
 
 /**
