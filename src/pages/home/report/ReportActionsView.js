@@ -146,8 +146,9 @@ class ReportActionsView extends React.Component {
             this.props.currentSequenceNumber ? 2 : 1,
         )
             .then(() => {
-                console.log(`Finished fetching actions in componentDidMount, scrolling to ${this.props.currentSequenceNumber}`);
-                if (_.isNumber(this.props.currentSequenceNumber)) {
+                console.log('RORY_DEBUG Finished fetching actions in componentDidMount');
+                if (_.isFinite(this.props.currentSequenceNumber)) {
+                    console.log(`RORY_DEBUG scrolling to ${this.props.currentSequenceNumber}`);
                     scrollToIndex({index: this.props.currentSequenceNumber, viewPosition: 0.5}, false);
                 }
             });
@@ -155,12 +156,12 @@ class ReportActionsView extends React.Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         if (nextProps.currentSequenceNumber && this.props.currentSequenceNumber !== nextProps.currentSequenceNumber) {
-            console.log(`shouldComponentUpdate with currentSequenceNumber: ${this.props.currentSequenceNumber} and nextSequenceNumber ${nextProps.currentSequenceNumber}`);
+            console.log(`RORY_DEBUG shouldComponentUpdate with currentSequenceNumber: ${this.props.currentSequenceNumber} and nextSequenceNumber ${nextProps.currentSequenceNumber}`);
             if (!_.any(this.props.reportActions, reportAction => reportAction.sequenceNumber === nextProps.currentSequenceNumber)) {
                 // We do not yet have the reportAction that was linked – load it now (one page before and one after) then jump to that reportAction
                 this.loadMoreChats(Math.max(nextProps.currentSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0), 2)
                     .then(() => {
-                        console.log('Finished loading chats, scrolling to next sequence number');
+                        console.log('RORY_DEBUG Finished loading chats, scrolling to next sequence number');
                         scrollToIndex({index: nextProps.currentSequenceNumber, viewPosition: 0.5}, false);
                     });
             }
@@ -199,7 +200,7 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.currentSequenceNumber !== this.props.currentSequenceNumber) {
-            console.log(`currentSequenceNumber updated from ${prevProps.currentSequenceNumber} to ${this.props.currentSequenceNumber}`);
+            console.log(`RORY_DEBUG currentSequenceNumber updated from ${prevProps.currentSequenceNumber} to ${this.props.currentSequenceNumber}`);
         }
 
         // The last sequenceNumber of the same report has changed.

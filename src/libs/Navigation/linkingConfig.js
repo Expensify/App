@@ -6,8 +6,8 @@ export default {
     prefixes: [
         'new-expensify://',
         'expensify-cash://', // DEPRECATED
-        'https://www.expensify.cash',
-        'https://staging.expensify.cash',
+        'https://www.expensify.cash', // DEPRECATED
+        'https://staging.expensify.cash', // DEPRECATED
         'http://localhost',
         CONST.NEW_EXPENSIFY_URL,
         'https://staging.new.expensify.com',
