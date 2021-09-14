@@ -137,13 +137,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-  newContributorReminder:
+
+  newContributorWelcomeMessage:
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'OSBotify' }}
     steps:
       # Version: 2.3.4
       - uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
-          fetch-depth: 0
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Get merged pull request
