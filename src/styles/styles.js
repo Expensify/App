@@ -1177,6 +1177,9 @@ const styles = {
 
     emojiSkinToneItem: {
         width: 'auto',
+        minWidth: 36,
+        textAlign: 'center',
+        borderRadius: 8,
         ...spacing.ph1,
     },
 
