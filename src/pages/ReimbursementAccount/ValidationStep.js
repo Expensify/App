@@ -178,7 +178,7 @@ class ValidationStep extends React.Component {
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
-                        <Text style={[styles.mh5, styles.mb5]}>
+                        <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
                             {this.props.translate('validationStep.reviewingInfo')}
                             <TextLink
                                 onPress={() => {
@@ -193,6 +193,12 @@ class ValidationStep extends React.Component {
                             </TextLink>
                             {this.props.translate('validationStep.forNextSteps')}
                         </Text>
+                        <Button
+                            success
+                            text={this.props.translate('bankAccount.confirmModalConfirmText')}
+                            style={[styles.mh5, styles.mb5]}
+                            onPress={() => Navigation.dismissModal()}
+                        />
                     </View>
                 )}
             </View>
