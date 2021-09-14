@@ -21,16 +21,20 @@ const propTypes = {
 
     /** Component to display for label */
     LabelComponent: PropTypes.func,
+
+    /** Text to show if there is an error */
+    errorText: PropTypes.string,
 };
 
 const defaultProps = {
     style: [],
     label: undefined,
     LabelComponent: undefined,
+    errorText: '',
 };
 
 const CheckboxWithLabel = ({
-    LabelComponent, isChecked, onPress, style, label,
+    LabelComponent, isChecked, onPress, style, label, errorText,
 }) => {
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(style) ? [...defaultStyles, ...style] : [...defaultStyles, style];
@@ -41,29 +45,36 @@ const CheckboxWithLabel = ({
 
     return (
         <View style={wrapperStyles}>
-            <Checkbox
-                isChecked={isChecked}
-                onPress={() => onPress(!isChecked)}
-                label={label}
-            />
-            <TouchableOpacity
-                onPress={() => onPress(!isChecked)}
-                style={[
-                    styles.ml2,
-                    styles.pr2,
-                    styles.w100,
-                    styles.flexRow,
-                    styles.flexWrap,
-                    styles.alignItemsCenter,
-                ]}
-            >
-                {label && (
-                    <Text style={[styles.ml2]}>
-                        {label}
-                    </Text>
+            <View style={styles.flexRow}>
+                <Checkbox
+                    isChecked={isChecked}
+                    onPress={() => onPress(!isChecked)}
+                    label={label}
+                />
+                <TouchableOpacity
+                    onPress={() => onPress(!isChecked)}
+                    style={[
+                        styles.ml2,
+                        styles.pr2,
+                        styles.w100,
+                        styles.flexRow,
+                        styles.flexWrap,
+                        styles.alignItemsCenter,
+                    ]}
+                >
+                    {label && (
+                        <Text style={[styles.ml2]}>
+                            {label}
+                        </Text>
+                    )}
+                    {LabelComponent && (<LabelComponent />)}
+                </TouchableOpacity>
+            </View>
+            <View style={styles.flexRow}>
+                {errorText !== '' && (
+                    <Text style={[styles.formError]}>{errorText}</Text>
                 )}
-                {LabelComponent && (<LabelComponent />)}
-            </TouchableOpacity>
+            </View>
         </View>
     );
 };
