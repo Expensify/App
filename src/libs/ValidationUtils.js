@@ -17,22 +17,6 @@ function isValidAddress(value) {
     return !CONST.REGEX.PO_BOX.test(value);
 }
 
-/**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    return message.length === matchedEmoji.length;
-}
 
 /**
  * Validate date fields
@@ -69,6 +53,15 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ *
+ * @param {String} date
+ * @returns {Boolean}
+ */
+function isValidAge(date) {
+    return moment().diff(moment(date), 'years') >= 18;
+}
+
+/**
  * @param {Object} identity
  * @returns {Boolean}
  */
@@ -97,6 +90,12 @@ function isValidIdentity(identity) {
         return false;
     }
 
+    if (!isValidAge(identity.dob)) {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
     if (!isValidSSNLastFour(identity.ssnLast4)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
         showBankAccountErrorModal();
@@ -112,5 +111,4 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
-    isSingleEmoji,
 };
