@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -180,11 +180,6 @@ class ValidationStep extends React.Component {
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
-                        <Image
-                            source={{uri: this.verifyingUrl}}
-                            style={[styles.workspaceInviteWelcome]}
-                            resizeMode="center"
-                        />
                         <Text style={[styles.mh5, styles.mb5]}>
                             {this.props.translate('validationStep.reviewingInfo')}
                             <TextLink
