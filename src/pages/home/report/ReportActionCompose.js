@@ -52,7 +52,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import ReportActionPropTypes from './ReportActionPropTypes';
-import {canEditReportAction, isArchivedRoom} from '../../../libs/reportUtils';
+import {canEditReportAction, isArchivedRoom, isDefaultRoom} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
@@ -534,6 +534,7 @@ class ReportActionCompose extends React.Component {
                                                 animationOut="fadeOutDown"
                                                 menuItems={[
                                                     ...(!hasExcludedIOUEmails
+                                                        && !isDefaultRoom(this.props.report)
                                                         && Permissions.canUseIOU(this.props.betas) ? [
                                                             hasMultipleParticipants
                                                                 ? {
