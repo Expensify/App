@@ -29,10 +29,12 @@ import Performance from '../../../libs/Performance';
 import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
-    /* Beta features list */
+    /* Onyx Props */
+
+    /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
-    /* Flag for new users used to open the Global Create menu on first load */
+    /** Flag for new users used to open the Global Create menu on first load */
     isFirstTimeNewExpensifyUser: PropTypes.bool.isRequired,
 
     /** The list of this user's policies */
