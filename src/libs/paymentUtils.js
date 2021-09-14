@@ -2,6 +2,25 @@ import _ from 'underscore';
 import CONST from '../CONST';
 import {translateLocal} from './translate';
 
+/**
+ * PaymentMethod Type
+ * @typedef {Object} PaymentMethod
+ * @property {String} title
+ * @property {String} description
+ * @property {String} key
+ * @property {String} id
+ * @property {String} type
+ * @property {Number} [number] Bank or Card number
+ * @property {String} [bankname] Bank Name
+*/
+
+/**
+ * Get the PaymentMethods list
+ * @param {Array} bankAccountList
+ * @param {Array} cardList
+ * @param {String} [payPalMeUsername]
+ * @returns {PaymentMethod}
+ */
 function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
     const combinedPaymentMethods = [];
 
@@ -31,7 +50,7 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
             : null;
         combinedPaymentMethods.push({
             title: card.addressName,
-            bank: card.bank,
+            bankName: card.bank,
             number: card.cardNumber,
             id: card.cardID,
             description: formattedCardNumber,

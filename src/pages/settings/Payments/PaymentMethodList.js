@@ -95,8 +95,8 @@ class PaymentMethodList extends Component {
      */
     createPaymentMethodList(filter) {
         const paymentMethods = getPaymentMethodsList(
-            !filter && filter === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK && this.props.bankAccountList,
-            !filter && filter === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD && this.props.cardList,
+            !filter || filter === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK ? this.props.bankAccountList : [],
+            !filter || filter === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD ? this.props.cardList : [],
             !filter && this.props.payPalMeUsername,
         );
         const combinedPaymentMethods = _.map(paymentMethods, (method) => {
@@ -104,7 +104,7 @@ class PaymentMethodList extends Component {
 
             switch (method.type) {
                 case 'bank': iconProperties = getBankIcon(method.bankName); break;
-                case 'card': iconProperties = getBankIcon(method.bank, true); break;
+                case 'card': iconProperties = getBankIcon(method.bankName, true); break;
                 case 'payPalMe': iconProperties = {icon: PayPal}; break;
                 default: break;
             }
