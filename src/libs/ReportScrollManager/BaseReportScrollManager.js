@@ -27,7 +27,9 @@ function baseScrollToIndex(params) {
         return;
     }
 
-    flatListRef.current.scrollToIndex(params);
+    if (flatListRef.current) {
+        flatListRef.current.scrollToIndex(params);
+    }
 }
 
 export {
