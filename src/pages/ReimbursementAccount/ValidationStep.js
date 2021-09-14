@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, ScrollView, View} from 'react-native';
+import {Image, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -8,7 +8,6 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {validateBankAccount, updateReimbursementAccountDraft} from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
-import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
@@ -19,7 +18,7 @@ import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
-import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -123,9 +122,6 @@ class ValidationStep extends React.Component {
         }
 
         const state = this.props.achData.state;
-        const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.maxAttemptsReached;
-
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -133,19 +129,18 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {state === BankAccount.STATE.PENDING && (
-                    <ScrollView
-                        ref={el => this.form = el}
-                        style={[styles.flex1, styles.mt2]}
+                    <ReimbursementAccountForm
+                        onSubmit={this.submit}
                     >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mh5, styles.mb5]}>
+                            <Text style={[styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
                             </Text>
-                            <Text style={[styles.mh5, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.m5, styles.flex1]}>
+                        <View style={[styles.mv5, styles.flex1]}>
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
@@ -173,19 +168,7 @@ class ValidationStep extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        <View style={[styles.mh5]}>
-                            <ReimbursementAccountFormAlert
-                                onFixTheErrorsLinkPressed={() => this.form.scrollTo({y: 0, animated: true})}
-                            />
-                            <Button
-                                success
-                                text={this.props.translate('validationStep.buttonText')}
-                                style={[styles.mb5]}
-                                onPress={this.submit}
-                                isDisabled={shouldDisableSubmitButton}
-                            />
-                        </View>
-                    </ScrollView>
+                    </ReimbursementAccountForm>
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
