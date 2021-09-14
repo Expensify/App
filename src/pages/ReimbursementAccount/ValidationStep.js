@@ -173,16 +173,18 @@ class ValidationStep extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        <ReimbursementAccountFormAlert
-                            onFixTheErrorsLinkPressed={() => this.form.scrollTo({y: 0, animated: true})}
-                        />
-                        <Button
-                            success
-                            text={this.props.translate('validationStep.buttonText')}
-                            style={[styles.mh5, styles.mb5]}
-                            onPress={this.submit}
-                            isDisabled={shouldDisableSubmitButton}
-                        />
+                        <View style={[styles.mh5]}>
+                            <ReimbursementAccountFormAlert
+                                onFixTheErrorsLinkPressed={() => this.form.scrollTo({y: 0, animated: true})}
+                            />
+                            <Button
+                                success
+                                text={this.props.translate('validationStep.buttonText')}
+                                style={[styles.mb5]}
+                                onPress={this.submit}
+                                isDisabled={shouldDisableSubmitButton}
+                            />
+                        </View>
                     </ScrollView>
                 )}
                 {state === BankAccount.STATE.VERIFYING && (

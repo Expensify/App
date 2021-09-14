@@ -43,23 +43,35 @@ class ReimbursementAccountFormAlert extends React.Component {
             return <ExistingOwners />;
         }
 
-        return this.props.reimbursementAccount.alertMessage || (
+        return (
             <View style={[styles.flexRow, styles.ml2]}>
-                {/* @TODO translate {this.props.translate('bankAccount.defaultFormAlertPrompt')} */}
-                <Text style={styles.mutedTextLabel}>Please </Text>
-                <TextLink
-                    style={styles.label}
-                    onPress={this.props.onFixTheErrorsLinkPressed}
-                >
-                    {'fix the errors '}
-                </TextLink>
-                <Text style={styles.mutedTextLabel}>in the form before continuing.</Text>
+                {!_.isEmpty(this.props.reimbursementAccount.alertMessage)
+                    ? (
+                        <Text style={styles.mutedTextLabel}>{this.props.reimbursementAccount.alertMessage}</Text>
+                    )
+                    : (
+                        <>
+                            {/* @TODO translate {this.props.translate('bankAccount.defaultFormAlertPrompt')} */}
+                            <Text style={styles.mutedTextLabel}>Please </Text>
+                            <TextLink
+                                style={styles.label}
+                                onPress={this.props.onFixTheErrorsLinkPressed}
+                            >
+                                {'fix the errors '}
+                            </TextLink>
+                            <Text style={styles.mutedTextLabel}>in the form before continuing.</Text>
+                        </>
+                    )}
             </View>
         );
     }
 
     render() {
-        const isVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0;
+        const isVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
+
+            // @TODO once all validation errors show in multiples we can remove this
+            || lodashGet(this.props, 'reimbursementAccount.error', '');
+
         if (!isVisible) {
             return null;
         }

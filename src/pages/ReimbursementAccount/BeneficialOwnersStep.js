@@ -1,14 +1,13 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import Button from '../../components/Button';
 import IdentityForm from './IdentityForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
@@ -23,8 +22,8 @@ import {isValidIdentity} from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
-import ReimbursementAccountFormAlert from './ReimbursementAccountFormAlert';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
 
 const propTypes = {
     /** Name of the company */
@@ -138,10 +137,7 @@ class BeneficialOwnersStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
                 />
-                <ScrollView
-                    ref={el => this.form = el}
-                    style={[styles.flex1, styles.w100, styles.ph5]}
-                >
+                <ReimbursementAccountForm onSubmit={this.submit}>
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
@@ -245,16 +241,7 @@ class BeneficialOwnersStep extends React.Component {
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
                     />
-                    <ReimbursementAccountFormAlert
-                        onFixTheErrorsLinkPressed={() => this.form.scrollTo({y: 0, animated: true})}
-                    />
-                    <Button
-                        success
-                        text={this.props.translate('common.saveAndContinue')}
-                        onPress={this.submit}
-                        isDisabled={!this.state.acceptTermsAndConditions || !this.state.certifyTrueInformation}
-                    />
-                </ScrollView>
+                </ReimbursementAccountForm>
             </>
         );
     }
