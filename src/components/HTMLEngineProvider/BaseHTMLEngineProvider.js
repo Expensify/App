@@ -72,6 +72,7 @@ function AnchorRenderer({tnode, key, style}) {
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
+    const parentStyle = lodashGet(tnode, 'parent.styles.nativeTextRet', {});
     const internalExpensifyPath = htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, '');
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
@@ -99,7 +100,7 @@ function AnchorRenderer({tnode, key, style}) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={style}
+            style={{...style, ...parentStyle}}
             key={key}
             fileName={fileName}
         >
