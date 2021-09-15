@@ -7,7 +7,9 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal} from '../../libs/actions/BankAccounts';
+import {
+    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
+} from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -228,7 +230,7 @@ class ValidationStep extends React.Component {
                             />
                             {!_.isEmpty(maxAttemptsReached) && (
                                 <Text style={[styles.mb5, styles.textDanger]}>
-                                    {this.props.translate('validationStep.maxAttemptError')}
+                                    {this.props.translate('validationStep.maxAttemptsReached')}
                                 </Text>
                             )}
                         </View>
