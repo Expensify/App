@@ -75,13 +75,19 @@ class SetPasswordPage extends Component {
         if (!this.state.isFormValid) {
             return;
         }
-        API.ValidateEmailAndSetPassword({
+        API.ValidateEmail({
             accountID,
             validateCode,
-            password: this.state.password,
-        }).then((response) => {
-            if (response.jsonCode === 200) {
-                signIn(this.state.password);
+        }).then((responseValidate) => {
+            if (responseValidate.jsonCode === 200) {
+                API.ChangePassword({
+                    authToken: responseValidate.authToken,
+                    password: this.state.password,
+                }).then((responsePassword) => {
+                    if (responsePassword.jsonCode === 200) {
+                        signIn(this.state.password);
+                    }
+                });
             }
         });
     }
