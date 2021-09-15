@@ -77,14 +77,26 @@ const IdentityForm = ({
                     <ExpensiTextInput
                         label={`${translate('common.firstName')}`}
                         value={firstName}
-                        onChangeText={val => onFieldChange('firstName', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.firstName')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('firstName', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.firstName') ? error : ''}
                     />
                 </View>
                 <View style={[styles.flex2]}>
                     <ExpensiTextInput
                         label={`${translate('common.lastName')}`}
                         value={lastName}
-                        onChangeText={val => onFieldChange('lastName', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.lastName')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('lastName', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.lastName') ? error : ''}
                     />
                 </View>
             </View>

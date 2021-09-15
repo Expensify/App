@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
@@ -15,11 +16,12 @@ import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    showBankAccountFormValidationError,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
 import IdentityForm from './IdentityForm';
-import {isValidIdentity} from '../../libs/ValidationUtils';
+import {isRequiredFulfilled, isValidIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -99,6 +101,18 @@ class RequestorStep extends React.Component {
             return false;
         }
 
+        if (!isRequiredFulfilled(this.state.firstName)) {
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.firstName'));
+            showBankAccountErrorModal();
+            return false;
+        }
+
+        if (!isRequiredFulfilled(this.state.lastName)) {
+            showBankAccountFormValidationError(this.props.translate('bankAccount.error.lastName'));
+            showBankAccountErrorModal();
+            return false;
+        }
+
         return true;
     }
 
@@ -110,9 +124,6 @@ class RequestorStep extends React.Component {
     }
 
     render() {
-        const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || !this.state.isControllingOfficer;
-
         return (
             <>
                 <HeaderWithCloseButton
@@ -185,6 +196,7 @@ class RequestorStep extends React.Component {
                                         </View>
                                     )}
                                     style={[styles.mt4]}
+                                    hasError={!this.state.isControllingOfficer}
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                     {this.props.translate('requestorStep.financialRegulations')}
@@ -219,7 +231,6 @@ class RequestorStep extends React.Component {
                                     onPress={this.submit}
                                     style={[styles.w100, styles.mt4]}
                                     text={this.props.translate('common.saveAndContinue')}
-                                    isDisabled={shouldDisableSubmitButton}
                                 />
                             </View>
                         </ScrollView>
