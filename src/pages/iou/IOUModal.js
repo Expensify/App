@@ -171,7 +171,11 @@ class IOUModal extends Component {
         if (this.state.previousStepIndex > this.state.currentStepIndex) {
             return 'out';
         }
-        return null;
+
+        // Doesn't animate the step when first opening the modal
+        if (this.state.previousStepIndex === this.state.currentStepIndex) {
+            return null;
+        }
     }
 
     /**
