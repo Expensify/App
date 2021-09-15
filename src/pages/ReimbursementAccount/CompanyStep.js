@@ -341,7 +341,8 @@ class CompanyStep extends React.Component {
                                 </>
                             )}
                             style={[styles.mt4]}
-                            hasError={this.getErrorText('restrictedBusiness') === this.props.translate('bankAccount.error.restrictedBusiness')}
+                            errorText={this.getErrorText('hasNoConnectionToCannabis')}
+                            hasError={this.getErrors().hasNoConnectionToCannabis}
                         />
                     </View>
                     <View style={[styles.flex1, styles.justifyContentEnd, styles.p4]}>

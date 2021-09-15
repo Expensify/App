@@ -59,7 +59,7 @@ const CheckboxWithLabel = ({
                 <TouchableOpacity
                     onPress={() => onPress(!isChecked)}
                     style={[
-                        styles.ml2,
+                        styles.ml3,
                         styles.pr2,
                         styles.w100,
                         styles.flexRow,
@@ -75,7 +75,11 @@ const CheckboxWithLabel = ({
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>
             </View>
-            <InlineErrorText text={errorText} />
+            {!_.isEmpty(errorText) && (
+                <InlineErrorText>
+                    {errorText}
+                </InlineErrorText>
+            )}
         </>
     );
 };
