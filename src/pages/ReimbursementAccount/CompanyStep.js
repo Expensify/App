@@ -164,7 +164,7 @@ class CompanyStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('companyStep.headerTitle')}
-                    stepCounter={this.props.stepCounter}
+                    stepCounter={{step: 2, total: 5}}
                     shouldShowBackButton
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}

@@ -129,7 +129,7 @@ class ValidationStep extends React.Component {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('validationStep.headerTitle')}
-                    stepCounter={this.props.stepCounter}
+                    stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {state === BankAccount.STATE.PENDING && (

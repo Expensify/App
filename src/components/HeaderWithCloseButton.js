@@ -11,7 +11,6 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
-import Text from './Text';
 
 const propTypes = {
     /** Title of the Header */
@@ -41,6 +40,12 @@ const propTypes = {
     /** The task ID to associate with the call button, if we show it */
     inboxCallTaskID: PropTypes.string,
 
+    /** Data to display a step counter in the header */
+    stepCounter: PropTypes.shape({
+        step: PropTypes.number,
+        total: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -54,6 +59,7 @@ const defaultProps = {
     shouldShowDownloadButton: false,
     shouldShowInboxCallButton: false,
     inboxCallTaskID: '',
+    stepCounter: null,
 };
 
 const HeaderWithCloseButton = props => (
@@ -77,10 +83,10 @@ const HeaderWithCloseButton = props => (
                     </TouchableOpacity>
                 </Tooltip>
             )}
-            <View style={[styles.flex1, styles.flexColumn]}>
-                <Header title={props.title} />
-                {props.stepCounter && <Text style={[styles.mutedTextLabel]}>{props.translate('stepCounter', props.stepCounter)}</Text> }
-            </View>
+            <Header
+                title={props.title}
+                subtitle={props.stepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
+            />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
                     props.shouldShowDownloadButton && (
