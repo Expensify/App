@@ -1,5 +1,4 @@
 import React from 'react';
-import {View} from 'react-native';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
