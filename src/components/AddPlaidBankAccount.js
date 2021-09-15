@@ -100,6 +100,7 @@ class AddPlaidBankAccount extends React.Component {
         };
 
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
     }
 
     componentDidMount() {
@@ -185,14 +186,7 @@ class AddPlaidBankAccount extends React.Component {
                                     label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                                     onChange={(index) => {
                                         this.setState({selectedIndex: Number(index)});
-                                        const errors = this.getErrors();
-                                        if (!errors.selectedBank) {
-                                            return;
-                                        }
-
-                                        const newErrors = {...errors};
-                                        delete newErrors.selectedBank;
-                                        setBankAccountFormValidationErrors(newErrors);
+                                        this.clearError('selectedBank');
                                     }}
                                     items={options}
                                     placeholder={_.isUndefined(this.state.selectedIndex) ? {
