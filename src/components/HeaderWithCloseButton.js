@@ -6,7 +6,9 @@ import {
 import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
-import {Close, Download, BackArrow} from './Icon/Expensicons';
+import {
+    Close, Download, BackArrow, Paperclip,
+} from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
@@ -25,6 +27,9 @@ const propTypes = {
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: PropTypes.func,
 
+    /** Method to trigger when pressing more options button of the header */
+    onMoreOptionsMenuPress: PropTypes.func,
+
     /** Whether we should show a back icon */
     shouldShowBackButton: PropTypes.bool,
 
@@ -37,6 +42,12 @@ const propTypes = {
     /** Whether we should show a inbox call button */
     shouldShowInboxCallButton: PropTypes.bool,
 
+    /** Whether we should show a more options (threedots) button */
+    shouldShowMoreOptionsMenu: PropTypes.bool,
+
+    /** Whether we should show a close button */
+    shouldShowCloseButton: PropTypes.bool,
+
     /** The task ID to associate with the call button, if we show it */
     inboxCallTaskID: PropTypes.string,
 
@@ -48,10 +59,13 @@ const defaultProps = {
     onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
+    onMoreOptionsMenuPress: () => {},
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
     shouldShowInboxCallButton: false,
+    shouldShowMoreOptionsMenu: false,
+    shouldShowCloseButton: true,
     inboxCallTaskID: '',
 };
 
@@ -94,6 +108,20 @@ const HeaderWithCloseButton = props => (
 
                 {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
+                {props.shouldShowMoreOptionsMenu && (
+                    <Tooltip text={props.translate('common.more')}>
+
+                        <TouchableOpacity
+                            onPress={props.onMoreOptionsMenuPress}
+                            style={[styles.touchableButtonImage]}
+                        >
+                            <Icon src={Paperclip} />
+                        </TouchableOpacity>
+                    </Tooltip>
+                )}
+
+                {props.shouldShowCloseButton
+                && (
                 <Tooltip text={props.translate('common.close')}>
                     <TouchableOpacity
                         onPress={props.onCloseButtonPress}
@@ -104,6 +132,7 @@ const HeaderWithCloseButton = props => (
                         <Icon src={Close} />
                     </TouchableOpacity>
                 </Tooltip>
+                )}
             </View>
         </View>
     </View>

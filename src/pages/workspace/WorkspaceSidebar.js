@@ -97,13 +97,14 @@ const WorkspaceSidebar = ({
                 ]}
             >
                 <View style={[styles.flex1]}>
-                    {isSmallScreenWidth
-                        && (
-                            <HeaderWithCloseButton
-                                title={translate('workspace.common.workspace')}
-                                onCloseButtonPress={() => Navigation.dismissModal()}
-                            />
-                        )}
+
+                    <HeaderWithCloseButton
+                        title={translate('workspace.common.workspace')}
+                        onCloseButtonPress={() => Navigation.dismissModal()}
+                        shouldShowCloseButton={isSmallScreenWidth}
+                        shouldShowMoreOptionsMenu
+                    />
+
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                             <Pressable
