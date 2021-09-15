@@ -124,23 +124,9 @@ class ValidationStep extends React.Component {
         setBankAccountFormValidationErrors(newErrors);
     }
 
-    submit() {
-        if (!this.validate()) {
-            showBankAccountErrorModal();
-            return;
-        }
-
-        const amount1 = this.filterInput(this.state.amount1);
-        const amount2 = this.filterInput(this.state.amount2);
-        const amount3 = this.filterInput(this.state.amount3);
-
-        const validateCode = [amount1, amount2, amount3].join(',');
-
-        // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-        const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
-        validateBankAccount(bankaccountID, validateCode);
-    }
-
+    /**
+     * @returns {Boolean}
+     */
     validate() {
         const errors = {};
         const values = {
@@ -156,6 +142,23 @@ class ValidationStep extends React.Component {
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
+    }
+
+    submit() {
+        if (!this.validate()) {
+            showBankAccountErrorModal();
+            return;
+        }
+
+        const amount1 = this.filterInput(this.state.amount1);
+        const amount2 = this.filterInput(this.state.amount2);
+        const amount3 = this.filterInput(this.state.amount3);
+
+        const validateCode = [amount1, amount2, amount3].join(',');
+
+        // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
+        const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
+        validateBankAccount(bankaccountID, validateCode);
     }
 
     /**
@@ -183,9 +186,10 @@ class ValidationStep extends React.Component {
 
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+        // const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+        const maxAttemptsReached = true;
         const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.reimbursementAccount.maxAttemptsReached;
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || maxAttemptsReached;
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -228,8 +232,8 @@ class ValidationStep extends React.Component {
                                 onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
                                 errorText={this.getErrorText('amount3')}
                             />
-                            {!_.isEmpty(maxAttemptsReached) && (
-                                <Text style={[styles.mb5, styles.textDanger]}>
+                            {maxAttemptsReached && (
+                                <Text style={[styles.mb5, styles.mt2, styles.textDanger]}>
                                     {this.props.translate('validationStep.maxAttemptsReached')}
                                 </Text>
                             )}
