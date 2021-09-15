@@ -20,7 +20,6 @@ import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
@@ -207,7 +206,7 @@ class CompanyStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                <ScrollView style={[styles.flex1, styles.w100]}>
+                <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.flexGrow1}>
                     <View style={[styles.p4]}>
                         <Text>{this.props.translate('companyStep.subtitle')}</Text>
                         <ExpensiTextInput
@@ -346,16 +345,16 @@ class CompanyStep extends React.Component {
                             style={[styles.mt4]}
                         />
                     </View>
+                    <View style={[styles.flex1, styles.justifyContentEnd, styles.p4]}>
+                        <Button
+                            success
+                            onPress={this.submit}
+                            style={[styles.w100, styles.mt4, styles.mb1]}
+                            text={this.props.translate('common.saveAndContinue')}
+                            isDisabled={shouldDisableSubmitButton}
+                        />
+                    </View>
                 </ScrollView>
-                <FixedFooter>
-                    <Button
-                        success
-                        onPress={this.submit}
-                        style={[styles.w100]}
-                        text={this.props.translate('common.saveAndContinue')}
-                        isDisabled={shouldDisableSubmitButton}
-                    />
-                </FixedFooter>
             </>
         );
     }
