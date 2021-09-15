@@ -341,6 +341,7 @@ export default {
         phoneOrEmail: 'Phone or email',
     },
     resendValidationForm: {
+        title: 'Resend the link to login to your Expensify Account',
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({loginType}) => `We've sent a magic sign in link to your ${loginType}.`,
         resendLink: 'Resend link',
