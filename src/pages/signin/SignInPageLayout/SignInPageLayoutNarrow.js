@@ -7,6 +7,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import {setNativePropsWeb} from '../../../libs/TextInputUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -19,46 +20,66 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const SignInPageLayoutNarrow = props => (
-    <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        style={[
-            styles.flexGrow1,
-            styles.signInPageNarrowContentContainer,
-            styles.alignSelfCenter,
-        ]}
-        contentContainerStyle={styles.ph5}
-    >
-        <KeyboardAvoidingView behavior="position">
-            <View style={[styles.flexGrow1]}>
-                <View
-                    style={[
-                        styles.signInPageInnerNative,
-                        styles.flex1,
-                        styles.dFlex,
-                        styles.flexColumn,
-                        styles.mt40Percentage,
-                    ]}
-                >
-                    <View style={[styles.componentHeightLarge, styles.mb2]}>
-                        <ExpensifyCashLogo
-                            width={variables.componentSizeLarge}
-                            height={variables.componentSizeLarge}
-                        />
+class SignInPageLayoutNarrow extends React.Component {
+    constructor(props) {
+        super(props);
+        this.form = null;
+    }
+
+    componentDidMount() {
+        // These native props are needed for Password Managers like LastPass
+        if (this.form) {
+            setNativePropsWeb(this.form, 'method', 'post');
+            setNativePropsWeb(this.form, 'action', '/');
+        }
+    }
+
+    render() {
+        return (
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                style={[
+                    styles.flexGrow1,
+                    styles.signInPageNarrowContentContainer,
+                    styles.alignSelfCenter,
+                ]}
+                contentContainerStyle={styles.ph5}
+            >
+                <KeyboardAvoidingView behavior="position">
+                    <View style={[styles.flexGrow1]}>
+                        <View
+                            style={[
+                                styles.signInPageInnerNative,
+                                styles.flex1,
+                                styles.dFlex,
+                                styles.flexColumn,
+                                styles.mt40Percentage,
+                            ]}
+                            accessibilityRole="form"
+                            accessibilityAutoComplete="on"
+                            ref={el => this.form = el}
+                        >
+                            <View style={[styles.componentHeightLarge, styles.mb2]}>
+                                <ExpensifyCashLogo
+                                    width={variables.componentSizeLarge}
+                                    height={variables.componentSizeLarge}
+                                />
+                            </View>
+                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                {this.props.welcomeText}
+                            </Text>
+                            {this.props.children}
+                        </View>
                     </View>
-                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                        {props.welcomeText}
-                    </Text>
-                    {props.children}
+                </KeyboardAvoidingView>
+                <View style={[styles.mt3, styles.mb5, styles.alignSelfCenter]}>
+                    <TermsAndLicenses />
                 </View>
-            </View>
-        </KeyboardAvoidingView>
-        <View style={[styles.mt3, styles.mb5, styles.alignSelfCenter]}>
-            <TermsAndLicenses />
-        </View>
-    </ScrollView>
-);
+            </ScrollView>
+        );
+    }
+}
 
 SignInPageLayoutNarrow.propTypes = propTypes;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
