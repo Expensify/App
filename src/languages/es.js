@@ -73,6 +73,9 @@ export default {
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor inténtalo más tarde.',
+        error: {
+            invalidAmount: 'Monto no válido',
+        },
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -185,7 +188,6 @@ export default {
         noReimbursableExpenses: 'El monto de este informe es inválido',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
-            invalidAmount: 'Monto no válido',
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
         },

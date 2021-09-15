@@ -73,6 +73,9 @@ export default {
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
+        error: {
+            invalidAmount: 'Invalid amount',
+        },
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -185,7 +188,6 @@ export default {
         noReimbursableExpenses: 'This report has an invalid amount',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
-            invalidAmount: 'Invalid amount',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
         },

@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {Image, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -6,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {validateBankAccount, updateReimbursementAccountDraft} from '../../libs/actions/BankAccounts';
+import {validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors} from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -19,30 +20,36 @@ import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** Additional data for the account in setup */
-    achData: PropTypes.shape({
+    /** Bank account currently in setup */
+    reimbursementAccount: PropTypes.shape({
+        /** Object containing various errors */
+        errors: PropTypes.objectOf(PropTypes.bool),
 
-        /** Bank account ID of the VBA that we are validating is required */
-        bankAccountID: PropTypes.number.isRequired,
+        /** Whether we have reached the maximum attempts */
+        maxAttemptsReached: PropTypes.bool,
 
-        /** State of bank account */
-        state: PropTypes.string,
-    }).isRequired,
+        /** Additional data for the account in setup */
+        achData: PropTypes.shape({
 
-    /** Error message to display to user */
-    error: PropTypes.string,
+            /** Bank account ID of the VBA that we are validating is required */
+            bankAccountID: PropTypes.number.isRequired,
 
-    /** Disable validation button if max attempts exceeded */
-    maxAttemptsReached: PropTypes.bool,
+            /** State of bank account */
+            state: PropTypes.string,
+        }).isRequired,
+    }),
 };
 
 const defaultProps = {
-    error: '',
-    maxAttemptsReached: false,
+    reimbursementAccount: {
+        errors: {},
+        maxAttemptsReached: false,
+    },
 };
 
 class ValidationStep extends React.Component {
@@ -56,7 +63,6 @@ class ValidationStep extends React.Component {
             amount1: getDefaultStateForField(props, 'amount1', ''),
             amount2: getDefaultStateForField(props, 'amount2', ''),
             amount3: getDefaultStateForField(props, 'amount3', ''),
-            error: '',
         };
 
         this.requiredFields = [
@@ -64,6 +70,28 @@ class ValidationStep extends React.Component {
             'amount2',
             'amount3',
         ];
+
+        this.errorTranslationKeys = {
+            amount1: 'common.error.invalidAmount',
+            amount2: 'common.error.invalidAmount',
+            amount3: 'common.error.invalidAmount',
+        };
+    }
+
+    /**
+     * @returns {Object}
+     */
+    getErrors() {
+        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+    }
+
+    /**
+     * @param {String} inputKey
+     * @returns {String}
+     */
+    getErrorText(inputKey) {
+        const errors = this.getErrors();
+        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
     }
 
     /**
@@ -74,22 +102,57 @@ class ValidationStep extends React.Component {
         this.setState(value);
     }
 
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setValue({[inputKey]: value});
+        const errors = this.getErrors();
+        if (!errors[inputKey]) {
+            // No error found for this inputKey
+            return;
+        }
+
+        // Clear the existing error for this inputKey
+        const newErrors = {...errors};
+        delete newErrors[inputKey];
+        setBankAccountFormValidationErrors(newErrors);
+    }
+
     submit() {
+        if (!this.validate()) {
+            return;
+        }
+
         const amount1 = this.filterInput(this.state.amount1);
         const amount2 = this.filterInput(this.state.amount2);
         const amount3 = this.filterInput(this.state.amount3);
 
-        // If amounts are all non-zeros, submit amounts to API
-        if (amount1 && amount2 && amount3) {
-            const validateCode = [amount1, amount2, amount3].join(',');
+        const validateCode = [amount1, amount2, amount3].join(',');
 
-            // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-            validateBankAccount(this.props.achData.bankAccountID, validateCode);
-            return;
-        }
+        // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
+        const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
+        validateBankAccount(bankaccountID, validateCode);
+    }
 
-        // If any values are falsey, indicate to user that inputs are invalid
-        this.setState({error: 'Invalid amounts'});
+    validate() {
+        const errors = {};
+        const values = {
+            amount1: this.filterInput(this.state.amount1),
+            amount2: this.filterInput(this.state.amount2),
+            amount3: this.filterInput(this.state.amount3),
+        };
+
+        _.each(this.requiredFields, (inputKey) => {
+            if (!isRequiredFulfilled(values[inputKey])) {
+                errors[inputKey] = true;
+            }
+        });
+        setBankAccountFormValidationErrors(errors);
+        return _.size(errors) === 0;
     }
 
     /**
@@ -116,14 +179,9 @@ class ValidationStep extends React.Component {
     }
 
     render() {
-        let errorMessage = this.state.error ? this.state.error : this.props.error;
-        if (this.props.maxAttemptsReached) {
-            errorMessage = this.props.translate('validationStep.maxAttemptError');
-        }
-
-        const state = this.props.achData.state;
+        const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
         const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.maxAttemptsReached;
+            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.reimbursementAccount.maxAttemptsReached;
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -147,27 +205,25 @@ class ValidationStep extends React.Component {
                                 placeholder="1.52"
                                 keyboardType="number-pad"
                                 value={this.state.amount1}
-                                onChangeText={amount1 => this.setValue({amount1})}
+                                onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
+                                errorText={this.getErrorText('amount1')}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="number-pad"
                                 value={this.state.amount2}
-                                onChangeText={amount2 => this.setValue({amount2})}
+                                onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
+                                errorText={this.getErrorText('amount2')}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="number-pad"
                                 value={this.state.amount3}
-                                onChangeText={amount3 => this.setValue({amount3})}
+                                onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
+                                errorText={this.getErrorText('amount3')}
                             />
-                            {!_.isEmpty(errorMessage) && (
-                                <Text style={[styles.mb5, styles.textDanger]}>
-                                    {errorMessage}
-                                </Text>
-                            )}
                         </View>
                         <Button
                             success
@@ -215,6 +271,9 @@ export default compose(
     withOnyx({
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(ValidationStep);
