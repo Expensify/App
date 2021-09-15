@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View, Image, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -257,7 +257,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <>
-                        <View style={[styles.m5, styles.flex1]}>
+                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.p5, styles.flexGrow1]}>
                             <Text style={[styles.mb5]}>
                                 {this.props.translate('bankAccount.checkHelpLine')}
                             </Text>
@@ -298,14 +298,15 @@ class BankAccountStep extends React.Component {
                                     </View>
                                 )}
                             />
-                        </View>
-                        <Button
-                            success
-                            text={this.props.translate('common.saveAndContinue')}
-                            style={[styles.m5]}
-                            isDisabled={!this.canSubmitManually()}
-                            onPress={this.addManualAccount}
-                        />
+                            <View style={[styles.flex1, styles.justifyContentEnd]}>
+                                <Button
+                                    success
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    isDisabled={!this.canSubmitManually()}
+                                    onPress={this.addManualAccount}
+                                />
+                            </View>
+                        </ScrollView>
                     </>
                 )}
             </View>
