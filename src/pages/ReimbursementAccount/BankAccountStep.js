@@ -91,15 +91,6 @@ class BankAccountStep extends React.Component {
     /**
      * @returns {Boolean}
      */
-    canSubmitManually() {
-        return this.state.hasAcceptedTerms
-            && this.state.accountNumber.trim()
-            && this.state.routingNumber.trim();
-    }
-
-    /**
-     * @returns {Boolean}
-     */
     validate() {
         const errors = {};
 
@@ -110,6 +101,10 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
+        if (!this.state.hasAcceptedTerms) {
+            errors.hasAcceptedTerms = true;
+        }
+
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
@@ -297,12 +292,12 @@ class BankAccountStep extends React.Component {
                                         </TextLink>
                                     </View>
                                 )}
+                                hasError={this.getErrors().hasAcceptedTerms}
                             />
                             <View style={[styles.flex1, styles.justifyContentEnd]}>
                                 <Button
                                     success
                                     text={this.props.translate('common.saveAndContinue')}
-                                    isDisabled={!this.canSubmitManually()}
                                     onPress={this.addManualAccount}
                                 />
                             </View>
