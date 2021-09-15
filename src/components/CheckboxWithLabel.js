@@ -5,6 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
+import InlineErrorText from './InlineErrorText';
 
 const propTypes = {
     /** Whether the checkbox is checked */
@@ -74,9 +75,7 @@ const CheckboxWithLabel = ({
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>
             </View>
-            {Boolean(errorText) && (
-                <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
-            )}
+            <InlineErrorText text={errorText} />
         </>
     );
 };
