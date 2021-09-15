@@ -5,6 +5,9 @@ export default {
     // Holds information about the users account that is logging in
     ACCOUNT: 'account',
 
+    // Boolean flag only true when first set
+    NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',
+
     // Holds an array of client IDs which is used for multi-tabs on web in order to know
     // which tab is the leader, and which ones are the followers
     ACTIVE_CLIENTS: 'activeClients',
@@ -119,6 +122,12 @@ export default {
 
     // Stores information about the active reimbursement account being set up
     REIMBURSEMENT_ACCOUNT: 'reimbursementAccount',
+
+    // Stores draft information about the active reimbursement account being set up
+    REIMBURSEMENT_ACCOUNT_DRAFT: 'reimbursementAccountDraft',
+
+    // Store preferred skintone for emoji
+    PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
 
     // Stores Workspace ID that will be tied to reimbursement account during setup
     REIMBURSEMENT_ACCOUNT_WORKSPACE_ID: 'reimbursementAccountWorkspaceID',

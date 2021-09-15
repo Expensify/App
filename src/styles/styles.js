@@ -1143,11 +1143,24 @@ const styles = {
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListLandscape: {
+        height: 240,
+    },
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    emojiSkinToneTitle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv1,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1167,6 +1180,11 @@ const styles = {
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
+    },
+
+    emojiSkinToneItem: {
+        width: 'auto',
+        ...spacing.ph1,
     },
 
     emojiItemHighlighted: {

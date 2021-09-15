@@ -37,7 +37,7 @@ const defaultProps = {
     name: '',
     errorText: '',
     placeholder: '',
-    error: false,
+    hasError: false,
     containerStyles: [],
     translateX: -22,
     inputStyle: [],

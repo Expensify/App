@@ -58,6 +58,26 @@ function getSimplifiedEmployeeList(employeeList) {
 }
 
 /**
+ * Used to update ALL of the policies at once. If a policy is present locally, but not in the policies object passed here it will be removed.
+ * @param {Object} policyCollection - object of policy key and partial policy object
+ */
+function updateAllPolicies(policyCollection) {
+    // Clear out locally cached policies that have been deleted (i.e. they exist locally but not in our new policy collection object)
+    _.each(allPolicies, (policy, key) => {
+        if (policyCollection[key]) {
+            return;
+        }
+
+        Onyx.set(key, null);
+    });
+
+    // Set all the policies
+    _.each(policyCollection, (policyData, key) => {
+        Onyx.merge(key, policyData);
+    });
+}
+
+/**
  * Fetches the policySummaryList from the API and saves a simplified version in Onyx
  */
 function getPolicySummaries() {
@@ -68,7 +88,7 @@ function getPolicySummaries() {
                     ...memo,
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
                 }), {});
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, policyDataToStore);
+                updateAllPolicies(policyDataToStore);
             }
         });
 }
@@ -87,14 +107,7 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
-
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, {
-                    // Erase all policies in Onyx
-                    ...(_.reduce(_.keys(allPolicies), (memo, key) => ({...memo, [key]: null}), {})),
-
-                    // And overwrite them with only the ones returned by the API call
-                    ...policyDataToStore,
-                });
+                updateAllPolicies(policyDataToStore);
             }
         });
 }

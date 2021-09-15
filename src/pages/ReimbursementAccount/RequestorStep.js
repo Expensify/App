@@ -15,14 +15,15 @@ import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -41,15 +42,15 @@ class RequestorStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            firstName: lodashGet(props, ['achData', 'firstName'], ''),
-            lastName: lodashGet(props, ['achData', 'lastName'], ''),
-            requestorAddressStreet: lodashGet(props, ['achData', 'requestorAddressStreet'], ''),
-            requestorAddressCity: lodashGet(props, ['achData', 'requestorAddressCity'], ''),
-            requestorAddressState: lodashGet(props, ['achData', 'requestorAddressState']) || '',
-            requestorAddressZipCode: lodashGet(props, ['achData', 'requestorAddressZipCode'], ''),
-            dob: lodashGet(props, ['achData', 'dob'], ''),
-            ssnLast4: lodashGet(props, ['achData', 'ssnLast4'], ''),
-            isControllingOfficer: lodashGet(props, ['achData', 'isControllingOfficer'], false),
+            firstName: getDefaultStateForField(props, 'firstName'),
+            lastName: getDefaultStateForField(props, 'lastName'),
+            requestorAddressStreet: getDefaultStateForField(props, 'requestorAddressStreet'),
+            requestorAddressCity: getDefaultStateForField(props, 'requestorAddressCity'),
+            requestorAddressState: getDefaultStateForField(props, 'requestorAddressState'),
+            requestorAddressZipCode: getDefaultStateForField(props, 'requestorAddressZipCode'),
+            dob: getDefaultStateForField(props, 'dob'),
+            ssnLast4: getDefaultStateForField(props, 'ssnLast4'),
+            isControllingOfficer: getDefaultStateForField(props, 'isControllingOfficer', false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
@@ -74,7 +75,9 @@ class RequestorStep extends React.Component {
             zipCode: 'requestorAddressZipCode',
         };
         const fieldName = lodashGet(renamedFields, field, field);
-        this.setState({[fieldName]: value});
+        const newState = {[fieldName]: value};
+        this.setState(newState);
+        updateReimbursementAccountDraft(newState);
     }
 
     /**
@@ -133,7 +136,7 @@ class RequestorStep extends React.Component {
                     />
                 ) : (
                     <>
-                        <ScrollView style={[styles.flex1, styles.w100]}>
+                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.flexGrow1}>
                             <View style={[styles.p4]}>
                                 <Text>{this.props.translate('requestorStep.subtitle')}</Text>
                                 <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
@@ -169,9 +172,11 @@ class RequestorStep extends React.Component {
                                 />
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
-                                    onPress={() => this.setState(prevState => ({
-                                        isControllingOfficer: !prevState.isControllingOfficer,
-                                    }))}
+                                    onPress={() => this.setState((prevState) => {
+                                        const newState = {isControllingOfficer: !prevState.isControllingOfficer};
+                                        updateReimbursementAccountDraft(newState);
+                                        return newState;
+                                    })}
                                     LabelComponent={() => (
                                         <View style={[styles.flex1, styles.pr1]}>
                                             <Text>
@@ -208,16 +213,16 @@ class RequestorStep extends React.Component {
                                     </TextLink>
                                 </Text>
                             </View>
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.ph4, styles.pb4]}>
+                                <Button
+                                    success
+                                    onPress={this.submit}
+                                    style={[styles.w100, styles.mt4]}
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    isDisabled={shouldDisableSubmitButton}
+                                />
+                            </View>
                         </ScrollView>
-                        <FixedFooter>
-                            <Button
-                                success
-                                onPress={this.submit}
-                                style={[styles.w100]}
-                                text={this.props.translate('common.saveAndContinue')}
-                                isDisabled={shouldDisableSubmitButton}
-                            />
-                        </FixedFooter>
                     </>
                 )}
             </>
@@ -227,11 +232,15 @@ class RequestorStep extends React.Component {
 
 RequestorStep.propTypes = propTypes;
 RequestorStep.displayName = 'RequestorStep';
+
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(RequestorStep);

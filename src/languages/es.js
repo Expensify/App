@@ -107,7 +107,7 @@ export default {
         nameEmailOrPhoneNumber: 'Nombre, email o número de teléfono',
     },
     videoChatButtonAndMenu: {
-        tooltip: 'Videollamada',
+        tooltip: 'Iniciar una llamada',
         zoom: 'Zoom',
         googleMeet: 'Google Meet',
     },
@@ -385,6 +385,9 @@ export default {
             taxID: 'Ingrese un número de identificación fiscal válido',
             website: 'Ingrese un sitio web válido',
             zipCode: 'Ingrese un código postal válido',
+            phoneNumber: 'Ingrese un teléfono válido',
+            companyName: 'Ingrese un nombre comercial legal válido',
+            addressCity: 'Ingrese una ciudad válida',
             addressStreet: 'Ingrese una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingrese una fecha de incorporación válida',
@@ -397,6 +400,7 @@ export default {
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelva a intentarlo más tarde o introduzca los detalles manualmente.',
             address: 'Ingrese una dirección válida',
             dob: 'Ingrese una fecha de nacimiento válida',
+            age: 'Los solicitantes deben ser mayores de 18 años',
             ssnLast4: 'Ingrese los últimos 4 dígitos del número de seguro social',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agregue una cuenta bancaria para depósitos o una tarjeta de débito',
             existingOwners: {
@@ -634,10 +638,13 @@ export default {
         availabilityText: '*Nuestros guías están disponibles de domingo desde las 17.00 CT a viernes hasta las 17.00 CT. Si solicitas una llamada fuera de este horario, te llamaremos de lunes a viernes de 9.00 a 17.00 en tu hora local. El orden de llamada corresponde con el orden de solicitud.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        growlMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
+        errorMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         needHelp: 'Ayuda',
         needHelpTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+    },
+    emojiPicker: {
+        skinTonePickerLabel: 'Elige el tono de piel por defecto',
     },
 };

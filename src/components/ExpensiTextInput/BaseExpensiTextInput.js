@@ -5,7 +5,7 @@ import {
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import Text from '../Text';
-import {propTypes, defaultProps} from './propTypes';
+import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import {setNativePropsWeb} from '../../libs/TextInputUtils';
