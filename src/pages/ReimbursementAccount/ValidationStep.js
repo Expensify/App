@@ -186,8 +186,7 @@ class ValidationStep extends React.Component {
 
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
-        // const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
-        const maxAttemptsReached = true;
+        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         const shouldDisableSubmitButton = this.requiredFields
             .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || maxAttemptsReached;
 
