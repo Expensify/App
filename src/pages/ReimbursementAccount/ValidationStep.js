@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors} from '../../libs/actions/BankAccounts';
+import {validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal} from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -124,6 +124,7 @@ class ValidationStep extends React.Component {
 
     submit() {
         if (!this.validate()) {
+            showBankAccountErrorModal();
             return;
         }
 
@@ -180,6 +181,7 @@ class ValidationStep extends React.Component {
 
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
+        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         const shouldDisableSubmitButton = this.requiredFields
             .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.reimbursementAccount.maxAttemptsReached;
 
@@ -224,6 +226,11 @@ class ValidationStep extends React.Component {
                                 onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
                                 errorText={this.getErrorText('amount3')}
                             />
+                            {!_.isEmpty(maxAttemptsReached) && (
+                                <Text style={[styles.mb5, styles.textDanger]}>
+                                    {this.props.translate('validationStep.maxAttemptError')}
+                                </Text>
+                            )}
                         </View>
                         <Button
                             success
