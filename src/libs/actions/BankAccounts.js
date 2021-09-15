@@ -766,10 +766,6 @@ function setupWithdrawalAccount(data) {
                         console.error(response.message);
                     }
                 }
-
-                if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
-                    achData.disableFields = true;
-                }
             }
 
             // Go to next step
