@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -13,6 +14,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
+    setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
@@ -20,7 +22,7 @@ import {
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
-import {isValidIdentity} from '../../libs/ValidationUtils';
+import {validateIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -41,6 +43,7 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
 
         this.state = {
             firstName: getDefaultStateForField(props, 'firstName'),
@@ -79,6 +82,48 @@ class RequestorStep extends React.Component {
         const newState = {[fieldName]: value};
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
+
+        const errors = this.getErrors();
+        if (errors[field]) {
+            const newErrors = {...errors};
+            delete newErrors[field];
+            setBankAccountFormValidationErrors(newErrors);
+        }
+    }
+
+    getErrors() {
+        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+    }
+
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        const renamedFields = {
+            street: 'requestorAddressStreet',
+            city: 'requestorAddressCity',
+            state: 'requestorAddressState',
+            zipCode: 'requestorAddressZipCode',
+        };
+        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+        const newState = {[renamedInputKey]: value};
+        this.setState(newState);
+        updateReimbursementAccountDraft(newState);
+
+        // Errors are stored using IdentityForm field names (no renaming)
+        const errors = this.getErrors();
+        if (!errors[inputKey]) {
+            // No error found for this inputKey
+            return;
+        }
+
+        // Clear the existing error for this inputKey
+        const newErrors = {...errors};
+        delete newErrors[inputKey];
+        setBankAccountFormValidationErrors(newErrors);
     }
 
     /**
@@ -89,17 +134,18 @@ class RequestorStep extends React.Component {
             showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
             return false;
         }
-
-        if (!isValidIdentity({
+        const errors = validateIdentity({
             street: this.state.requestorAddressStreet,
             state: this.state.requestorAddressState,
             zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
-        })) {
+        });
+        if (_.size(errors)) {
+            setBankAccountFormValidationErrors(errors);
+            showBankAccountErrorModal();
             return false;
         }
-
         return true;
     }
 
@@ -158,7 +204,7 @@ class RequestorStep extends React.Component {
                                     </TextLink>
                                 </View>
                                 <IdentityForm
-                                    onFieldChange={(field, value) => this.onFieldChange(field, value)}
+                                    onFieldChange={this.clearErrorAndSetValue}
                                     values={{
                                         firstName: this.state.firstName,
                                         lastName: this.state.lastName,
@@ -169,7 +215,7 @@ class RequestorStep extends React.Component {
                                         dob: this.state.dob,
                                         ssnLast4: this.state.ssnLast4,
                                     }}
-                                    error={this.props.reimbursementAccount.error}
+                                    errors={this.props.reimbursementAccount.errors}
                                 />
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}

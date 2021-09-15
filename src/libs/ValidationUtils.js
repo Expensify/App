@@ -1,8 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
-import {translateLocal} from './translate';
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -81,51 +79,41 @@ function isValidAge(date) {
  * @param {Object} identity
  * @returns {Boolean}
  */
-function isValidIdentity(identity) {
+function validateIdentity(identity) {
+    const errors = {};
     if (!isValidAddress(identity.street)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
-        showBankAccountErrorModal();
-        return false;
+        errors.street = true;
     }
 
-    if (identity.state === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
-        showBankAccountErrorModal();
-        return false;
+    if (isRequiredFulfilled(identity.state)) {
+        errors.state = true;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
-        showBankAccountErrorModal();
-        return false;
+        errors.zipCode = true;
     }
 
     if (!isValidDate(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
-        return false;
+        errors.dob = true;
     }
 
     if (!isValidAge(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
-        showBankAccountErrorModal();
-        return false;
+        errors.dob = true; // TODO: Handle different error messages for same field
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
-        showBankAccountErrorModal();
-        return false;
+        errors.ssnLast4 = true;
     }
 
-    return true;
+    return errors;
 }
 
 export {
+    isValidAge,
     isValidAddress,
     isValidDate,
     isValidIndustryCode,
-    isValidIdentity,
+    validateIdentity,
     isValidZipCode,
     isRequiredFulfilled,
 };

@@ -20,7 +20,7 @@ import {
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import {isValidIdentity} from '../../libs/ValidationUtils';
+import {validateIdentity} from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
@@ -59,9 +59,11 @@ class BeneficialOwnersStep extends React.Component {
      */
     validate() {
         if (this.state.hasOtherBeneficialOwners) {
-            const invalidBeneficifialOwner = _.find(this.state.beneficialOwners, owner => (
-                !isValidIdentity(owner)
-            ));
+            // TODO: Update this to display properly errors coming from validateIdentity
+            const invalidBeneficifialOwner = _.find(this.state.beneficialOwners, (owner) => {
+                const errors = validateIdentity(owner);
+                return !_.isEmpty(errors);
+            });
 
             if (invalidBeneficifialOwner) {
                 return false;
