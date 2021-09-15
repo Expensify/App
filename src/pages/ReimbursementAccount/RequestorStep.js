@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {View, ScrollView} from 'react-native';
