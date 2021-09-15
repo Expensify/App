@@ -11,7 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
@@ -41,6 +41,7 @@ class WorkspaceEditorPage extends React.Component {
 
         this.state = {
             name: props.policy.name,
+            nameError: '',
             avatarURL: props.policy.avatarURL,
             previewAvatarURL: props.policy.avatarURL,
         };
@@ -68,6 +69,15 @@ class WorkspaceEditorPage extends React.Component {
     }
 
     submit() {
+        if (this.props.policy.isAvatarUploading) {
+            return;
+        }
+        if (_.isEmpty(this.state.name.trim())) {
+            this.setState({
+                nameError: `${this.props.translate('workspace.editor.nameInputLabel')} ${this.props.translate('common.isRequiredField')}`,
+            });
+            return;
+        }
         updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
 
         // Wait for the upload avatar promise to finish before updating the policy
@@ -94,10 +104,7 @@ class WorkspaceEditorPage extends React.Component {
             return null;
         }
 
-        const isButtonDisabled = policy.isAvatarUploading
-            || (this.state.avatarURL === this.props.policy.avatarURL
-            && this.state.name === this.props.policy.name)
-            || _.isEmpty(this.state.name.trim());
+        const isButtonDisabled = this.state.avatarURL === this.props.policy.avatarURL && this.state.name === this.props.policy.name;
 
         return (
             <ScreenWrapper>
@@ -120,18 +127,24 @@ class WorkspaceEditorPage extends React.Component {
                                     fill={defaultTheme.iconSuccessFill}
                                 />
                             )}
-                            style={[styles.mb3]}
+                            style={[styles.mb5]}
                             anchorPosition={{top: 172, right: 18}}
                             isUsingDefaultAvatar={!this.state.previewAvatarURL}
                             onImageSelected={this.onImageSelected}
                             onImageRemoved={this.onImageRemoved}
                         />
 
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('workspace.editor.nameInputLabel')}
                             value={this.state.name}
                             onChangeText={name => this.setState({name})}
                             onSubmitEditting={this.submit}
+                            errorText={this.state.nameError}
+                            onBlur={() => {
+                                if (!_.isEmpty(this.state.name.trim())) {
+                                    this.setState({nameError: ''});
+                                }
+                            }}
                         />
                         <Text style={[styles.mt2, styles.formHint]}>
                             {this.props.translate('workspace.editor.nameInputHelpText')}
