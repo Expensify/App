@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import Str from 'expensify-common/lib/str';
