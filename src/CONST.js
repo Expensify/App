@@ -88,6 +88,7 @@ const CONST = {
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
+        INTERNATIONALIZATION: 'internationalization',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
