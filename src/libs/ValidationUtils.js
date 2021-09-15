@@ -1,6 +1,7 @@
 import moment from 'moment';
+import _ from 'underscore';
 import CONST from '../CONST';
-import Growl from './Growl';
+import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
 
 
@@ -41,20 +42,19 @@ function isValidAddress(value) {
 }
 
 /**
- * Validates that this string is composed of a single emoji
+ * Used to validate a value that is "required".
  *
- * @param {String} message
+ * @param {*} value
  * @returns {Boolean}
  */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
+function isRequiredFulfilled(value) {
+    if (_.isString(value)) {
+        return !_.isEmpty(value.trim());
     }
-
-    const matchedEmoji = match[0];
-    return message.length === matchedEmoji.length;
+    if (_.isArray(value) || _.isObject(value)) {
+        return !_.isEmpty(value);
+    }
+    return Boolean(value);
 }
 
 /**
@@ -128,32 +128,52 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ *
+ * @param {String} date
+ * @returns {Boolean}
+ */
+function isValidAge(date) {
+    return moment().diff(moment(date), 'years') >= 18;
+}
+
+/**
  * @param {Object} identity
  * @returns {Boolean}
  */
 function isValidIdentity(identity) {
     if (!isValidAddress(identity.street)) {
-        Growl.error(translateLocal('bankAccount.error.address'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (identity.state === '') {
-        Growl.error(translateLocal('bankAccount.error.addressState'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        Growl.error(translateLocal('bankAccount.error.zipCode'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (!isValidDate(identity.dob)) {
-        Growl.error(translateLocal('bankAccount.error.dob'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
+    if (!isValidAge(identity.dob)) {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
+        showBankAccountErrorModal();
         return false;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        Growl.error(translateLocal('bankAccount.error.ssnLast4'));
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
+        showBankAccountErrorModal();
         return false;
     }
 
@@ -169,5 +189,5 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
-    isSingleEmoji,
+    isRequiredFulfilled,
 };

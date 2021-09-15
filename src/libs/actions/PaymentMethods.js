@@ -15,16 +15,17 @@ import Navigation from '../Navigation/Navigation';
  */
 function getPaymentMethods() {
     return API.Get({
-        returnValueList: 'bankAccountList, cardList, userWallet, nameValuePairs',
+        returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
         name: 'paypalMeAddress',
         includeDeleted: false,
         includeNotIssued: false,
+        excludeNotActivated: true,
     })
         .then((response) => {
             Onyx.multiSet({
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
                 [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
-                [ONYXKEYS.CARD_LIST]: lodashGet(response, 'cardList', []),
+                [ONYXKEYS.CARD_LIST]: lodashGet(response, 'fundList', []),
                 [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
                     lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
             });
@@ -39,8 +40,7 @@ function getPaymentMethods() {
 function addBillingCard(params) {
     API.AddBillingCard({
         cardNumber: params.cardNumber,
-        // eslint-disable-next-line no-use-before-define
-        cardYear: normalizeCardYear(params.expirationDate),
+        cardYear: params.expirationDate.substr(3),
         cardMonth: params.expirationDate.substr(0, 2),
         cardCVV: params.securityCode,
         addressName: params.nameOnCard,
@@ -55,21 +55,6 @@ function addBillingCard(params) {
             Growl.error(translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
         }
     }));
-}
-
-/**
- * Returns the year of the expiration date in YYYY format.
- *
- * @param {String} expirationDate
- *
- * @returns {String}
- */
-function normalizeCardYear(expirationDate) {
-    let cardYear = expirationDate.substr(3);
-    if (cardYear.length === 2) {
-        cardYear = `20${cardYear}`;
-    }
-    return cardYear;
 }
 
 export {

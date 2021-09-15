@@ -10,8 +10,10 @@ import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Re
 import {scrollToIndex} from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
+import compose from '../../../libs/compose';
 
 const propTypes = {
     /** All the data of the action */
@@ -28,6 +30,9 @@ const propTypes = {
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
+
+    /** Localization props */
+    ...withLocalizePropTypes,
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -137,15 +142,17 @@ class ReportActionItemMessageEdit extends React.Component {
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Button
+                        small
                         style={[styles.mr2]}
                         onPress={this.deleteDraft}
-                        text="Cancel"
+                        text={this.props.translate('common.cancel')}
                     />
                     <Button
+                        small
                         success
                         style={[styles.mr2]}
                         onPress={this.publishDraft}
-                        text="Save Changes"
+                        text={this.props.translate('common.saveChanges')}
                     />
                 </View>
             </View>
@@ -154,4 +161,7 @@ class ReportActionItemMessageEdit extends React.Component {
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
-export default withWindowDimensions(ReportActionItemMessageEdit);
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(ReportActionItemMessageEdit);

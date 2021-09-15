@@ -6,7 +6,7 @@ At Expensify, we primarily use [Storybook](https://storybook.js.org/) to provide
 
 ### Building and Deploying Storybook
 
-The Storybook docs deploy automatically so there's nothing extra to do here. Storybook is built to the `/dist` folder and lives at [`https://expensify.cash/docs/index.html`](https://expensify.cash/docs/index.html).
+The Storybook docs deploy automatically so there's nothing extra to do here. Storybook is built to the `/dist` folder and lives at [`https://new.expensify.com/docs/index.html`](https://new.expensify.com/docs/index.html).
 
 To test a local build we can run
 

@@ -56,6 +56,22 @@ function getIOUReportsForNewTransaction(requestParams) {
 }
 
 /**
+ *  Returns IOU Transaction Error Messages
+ * @param {Object} error
+ */
+
+function getIOUErrorMessage(error) {
+    if (error && error.jsonCode) {
+        if (error.jsonCode === 405) {
+            return translateLocal('iou.error.invalidAmount');
+        } if (error.jsonCode === 404) {
+            return translateLocal('iou.error.invalidSplit');
+        }
+    }
+    return translateLocal('iou.error.other');
+}
+
+/**
  * Creates IOUSplit Transaction
  * @param {Object} params
  * @param {Number} params.amount
@@ -69,6 +85,13 @@ function createIOUTransaction(params) {
         .then((data) => {
             getIOUReportsForNewTransaction([data]);
             Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
+        })?.catch((error) => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                loading: false,
+                creatingIOUTransaction: false,
+                error: true,
+            });
+            Growl.error(getIOUErrorMessage(error));
         });
 }
 
@@ -111,6 +134,13 @@ function createIOUSplit(params) {
             }
             getIOUReportsForNewTransaction(reportParams);
             Navigation.navigate(ROUTES.getReportRoute(chatReportID));
+        })?.catch((error) => {
+            Onyx.merge(ONYXKEYS.IOU, {
+                loading: false,
+                creatingIOUTransaction: false,
+                error: true,
+            });
+            Growl.error(getIOUErrorMessage(error));
         });
 }
 
@@ -189,7 +219,7 @@ function setIOUSelectedCurrency(selectedCurrencyCode) {
  * @returns {String}
  */
 function buildVenmoPaymentURL(amount, submitterPhoneNumber) {
-    const note = 'For%20Expensify.cash%20request';
+    const note = encodeURIComponent('For New Expensify request');
     return `venmo://paycharge?txn=pay&recipients=${submitterPhoneNumber}&amount=${(amount / 100)}&note=${note}`;
 }
 

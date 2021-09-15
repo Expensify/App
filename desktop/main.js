@@ -34,12 +34,12 @@ app.commandLine.appendSwitch('enable-network-information-downlink-max');
 // See https://github.com/sindresorhus/electron-context-menu
 contextMenu();
 
-// Send all autoUpdater logs to a log file: ~/Library/Logs/expensify.cash/main.log
+// Send all autoUpdater logs to a log file: ~/Library/Logs/new.expensify/main.log
 // See https://www.npmjs.com/package/electron-log
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 
-// Send all Console logs to a log file: ~/Library/Logs/expensify.cash/main.log
+// Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
 // See https://www.npmjs.com/package/electron-log
 Object.assign(console, log.functions);
 
@@ -77,9 +77,6 @@ const quitAndInstallWithUpdate = () => {
     if (!downloadedVersion) {
         return;
     }
-    app.relaunch({
-        args: [`${EXPECTED_UPDATE_VERSION_FLAG}=${downloadedVersion}`],
-    });
     hasUpdate = true;
     autoUpdater.quitAndInstall();
 };

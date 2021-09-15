@@ -10,11 +10,10 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import {
-    Bank,
-    CreditCard,
     PayPal,
     Plus,
 } from '../../../components/Icon/Expensicons';
+import getBankIcon from '../../../components/Icon/BankIcons';
 
 const MENU_ITEM = 'menuItem';
 
@@ -88,13 +87,15 @@ class PaymentMethodList extends Component {
                         bankAccount.accountNumber.slice(-4)
                     }`
                     : null;
+                const {icon, iconSize} = getBankIcon(bankAccount.additionalData.bankName);
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: bankAccount.addressName,
 
                     // eslint-disable-next-line
                     description: formattedBankAccountNumber,
-                    icon: Bank,
+                    icon,
+                    iconSize,
                     onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
                 });
@@ -102,22 +103,20 @@ class PaymentMethodList extends Component {
         });
 
         _.each(this.props.cardList, (card) => {
-            // Add all cards besides the "cash" card
-            if (card.cardName !== CONST.CARD_TYPES.DEFAULT_CASH) {
-                const formattedCardNumber = card.cardNumber
-                    ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
-                    : null;
-                combinedPaymentMethods.push({
-                    type: MENU_ITEM,
-                    title: card.cardName,
-
-                    // eslint-disable-next-line
-                    description: formattedCardNumber,
-                    icon: CreditCard,
-                    onPress: e => this.props.onPress(e, card.cardID),
-                    key: `card-${card.cardID}`,
-                });
-            }
+            const formattedCardNumber = card.cardNumber
+                ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
+                : null;
+            const {icon, iconSize} = getBankIcon(card.bank, true);
+            combinedPaymentMethods.push({
+                type: MENU_ITEM,
+                title: card.addressName,
+                // eslint-disable-next-line
+                description: formattedCardNumber,
+                icon,
+                iconSize,
+                onPress: e => this.props.onPress(e, card.cardID),
+                key: `card-${card.cardID}`,
+            });
         });
 
         if (this.props.payPalMeUsername) {
@@ -168,6 +167,8 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
+                    iconHeight={item.iconSize}
+                    iconWidth={item.iconSize}
                 />
             );
         }
@@ -186,7 +187,6 @@ class PaymentMethodList extends Component {
             <FlatList
                 data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
-                bounces
             />
         );
     }

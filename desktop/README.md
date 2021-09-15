@@ -31,7 +31,7 @@ mc mb electron-builder/electron-builder
 6. Verify that the new bucket has been created by navigating to https://localhost:9000/minio/electron-builder in your browser and confriming you see an interface like this:
 ![electron-builder](https://user-images.githubusercontent.com/3981102/120376267-8842d700-c2d0-11eb-86cb-f595f27d535d.png)
 
-7. Set your testing bucket to be public, which will allow the e.cash dmg access the local latest-mac.yml file we'll be publishing
+7. Set your testing bucket to be public, which will allow the NewExpensify.dmg access the local latest-mac.yml file we'll be publishing
 ```
 mc policy set public electron-builder/electron-builder
 ```
@@ -40,13 +40,13 @@ mc policy set public electron-builder/electron-builder
 
 ## Local Changes to the App
 
-Once you have Min.IO setup and running, the next step is to temporarily revert some changes from https://github.com/Expensify/Expensify.cash/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
+Once you have Min.IO setup and running, the next step is to temporarily revert some changes from https://github.com/Expensify/App/commit/b640b3010fd7a40783d1c04faf4489836e98038d, specifically
 
 1. Update the `desktop-build` command in package.json to add `--publish always` at the end
 2. Update electron.config.js to re-add `afterSign: 'desktop/notarize.js',`
 3. Update electron.config.js to replace the `publish` value with the following:
-```    
- publish: [{ 
+```
+ publish: [{
    provider: 's3',
    bucket: 'electron-builder',
    endpoint: 'http://localhost:9000',
@@ -77,4 +77,4 @@ AWS_ACCESS_KEY_ID=RootUserKey AWS_SECRET_ACCESS_KEY=RootPassKey APPLE_ID=YOUR_AP
 
 This command will create a build, notarize it, and push your build to the server. Note that it can take around 10 minutes for the command to complete.
 
-Once the command finishes, revert the version update in `package.json`, remove `--publish always` from the `desktop-build` command, and again run the `npm run desktop-build` command above **including the args**. After the build is done, you'll find `Expensify.cash.dmg` in the `dist/` folder in the root of the project. Open the `.dmg` and install the app. Your app will attempt to auto-update in the background.
+Once the command finishes, revert the version update in `package.json`, remove `--publish always` from the `desktop-build` command, and again run the `npm run desktop-build` command above **including the args**. After the build is done, you'll find `NewExpensify.dmg` in the `dist/` folder in the root of the project. Open the `.dmg` and install the app. Your app will attempt to auto-update in the background.

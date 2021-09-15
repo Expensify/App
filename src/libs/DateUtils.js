@@ -8,19 +8,13 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {translate} from './translate';
+import * as PersonalDetails from './actions/PersonalDetails';
 
 let timezone;
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = val ? val.timezone : CONST.DEFAULT_TIME_ZONE.selected;
-
-        // Make sure that if we have a timezone in object format that we're getting the selected timezone name
-        // Older timezone formats only include the timezone name, but the newer format also included whether or
-        // not the timezone was selected automatically
-        if (_.isObject(timezone)) {
-            timezone = val.timezone.selected;
-        }
+        timezone = val ? val.timezone : CONST.DEFAULT_TIME_ZONE;
     },
 });
 
@@ -37,7 +31,7 @@ Onyx.connect({
  */
 function getLocalMomentFromTimestamp(locale, timestamp) {
     moment.locale(locale);
-    return moment.unix(timestamp).tz(timezone);
+    return moment.unix(timestamp).tz(timezone.selected);
 }
 
 /**
@@ -115,6 +109,22 @@ function startCurrentDateUpdater() {
     });
 }
 
+/*
+ * Updates user's timezone, if their timezone is set to automatic and
+ * is different from current timezone
+ */
+function updateTimezone() {
+    const currentTimezone = moment.tz.guess(true);
+    if (timezone.automatic && timezone.selected !== currentTimezone) {
+        PersonalDetails.setPersonalDetails({timezone: {...timezone, selected: currentTimezone}});
+    }
+}
+
+/*
+ * Returns a version of updateTimezone function throttled by 5 minutes
+ */
+const throttledUpdateTimezone = _.throttle(() => updateTimezone(), 1000 * 60 * 5);
+
 /**
  * @namespace DateUtils
  */
@@ -122,6 +132,8 @@ const DateUtils = {
     timestampToRelative,
     timestampToDateTime,
     startCurrentDateUpdater,
+    updateTimezone,
+    throttledUpdateTimezone,
 };
 
 export default DateUtils;

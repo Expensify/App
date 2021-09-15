@@ -13,7 +13,7 @@ const propTypes = {
     /** The user's wallet account */
     userWallet: PropTypes.shape({
         /** The user's current wallet balance */
-        availableBalance: PropTypes.number,
+        currentBalance: PropTypes.number,
     }),
 
     ...withLocalizePropTypes,
@@ -34,13 +34,15 @@ const CurrentWalletBalance = (props) => {
         );
     }
 
-    const formattedBalance = Number(props.userWallet.availableBalance).toFixed(2);
-
+    const formattedBalance = props.numberFormat(
+        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+        {style: 'currency', currency: 'USD'},
+    );
     return (
         <Text
             style={[styles.textXXXLarge, styles.pv5, styles.alignSelfCenter]}
         >
-            {`$${formattedBalance}`}
+            {`${formattedBalance}`}
         </Text>
     );
 };

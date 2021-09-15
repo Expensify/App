@@ -12,7 +12,7 @@ const propTypes = {
     imageStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Extra styles to pass to View wrapper */
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+    containerStyles: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 
     /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),

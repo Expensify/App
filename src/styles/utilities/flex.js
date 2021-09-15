@@ -99,4 +99,12 @@ export default {
     flexShrink1: {
         flexShrink: 1,
     },
+
+    flexShrink0: {
+        flexShrink: 0,
+    },
+
+    flexBasisAuto: {
+        flexBasis: 'auto',
+    },
 };

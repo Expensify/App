@@ -1,15 +1,16 @@
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 export default {
     prefixes: [
-        'expensify-cash://',
-        'https://expensify.cash',
+        'new-expensify://',
+        'expensify-cash://', // DEPRECATED
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
-        'https://new.expensify.com',
-        'https://staging.new.expensify.com',
+        CONST.NEW_EXPENSIFY_URL,
+        CONST.STAGING_NEW_EXPENSIFY_URL,
     ],
     config: {
         initialRouteName: SCREENS.HOME,
@@ -27,8 +28,10 @@ export default {
             // Public Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
-            [SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE]: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
-            [SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE]: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD,
+            [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD,
 
             // Modal Screens
             Settings: {
@@ -95,7 +98,7 @@ export default {
             },
             Details: {
                 screens: {
-                    Details_Root: ROUTES.DETAILS_WITH_LOGIN,
+                    Details_Root: ROUTES.DETAILS,
                 },
             },
             Participants: {
@@ -145,11 +148,6 @@ export default {
             WorkspaceInvite: {
                 screens: {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
-                },
-            },
-            NewWorkspace: {
-                screens: {
-                    NewWorkspace_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
 
