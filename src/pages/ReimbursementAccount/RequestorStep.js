@@ -18,7 +18,6 @@ import {
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
-import FixedFooter from '../../components/FixedFooter';
 import IdentityForm from './IdentityForm';
 import {isValidIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
@@ -137,7 +136,7 @@ class RequestorStep extends React.Component {
                     />
                 ) : (
                     <>
-                        <ScrollView style={[styles.flex1, styles.w100]}>
+                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={styles.flexGrow1}>
                             <View style={[styles.p4]}>
                                 <Text>{this.props.translate('requestorStep.subtitle')}</Text>
                                 <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
@@ -214,16 +213,16 @@ class RequestorStep extends React.Component {
                                     </TextLink>
                                 </Text>
                             </View>
+                            <View style={[styles.flex1, styles.justifyContentEnd, styles.ph4, styles.pb4]}>
+                                <Button
+                                    success
+                                    onPress={this.submit}
+                                    style={[styles.w100, styles.mt4]}
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    isDisabled={shouldDisableSubmitButton}
+                                />
+                            </View>
                         </ScrollView>
-                        <FixedFooter>
-                            <Button
-                                success
-                                onPress={this.submit}
-                                style={[styles.w100]}
-                                text={this.props.translate('common.saveAndContinue')}
-                                isDisabled={shouldDisableSubmitButton}
-                            />
-                        </FixedFooter>
                     </>
                 )}
             </>

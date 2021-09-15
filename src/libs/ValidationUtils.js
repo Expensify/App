@@ -1,4 +1,5 @@
 import moment from 'moment';
+import _ from 'underscore';
 import CONST from '../CONST';
 import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
@@ -18,20 +19,19 @@ function isValidAddress(value) {
 }
 
 /**
- * Validates that this string is composed of a single emoji
+ * Used to validate a value that is "required".
  *
- * @param {String} message
+ * @param {*} value
  * @returns {Boolean}
  */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
+function isRequiredFulfilled(value) {
+    if (_.isString(value)) {
+        return !_.isEmpty(value.trim());
     }
-
-    const matchedEmoji = match[0];
-    return message.length === matchedEmoji.length;
+    if (_.isArray(value) || _.isObject(value)) {
+        return !_.isEmpty(value);
+    }
+    return Boolean(value);
 }
 
 /**
@@ -127,5 +127,5 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
-    isSingleEmoji,
+    isRequiredFulfilled,
 };
