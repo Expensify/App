@@ -1,4 +1,5 @@
 import moment from 'moment';
+import _ from 'underscore';
 import CONST from '../CONST';
 import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
@@ -17,6 +18,21 @@ function isValidAddress(value) {
     return !CONST.REGEX.PO_BOX.test(value);
 }
 
+/**
+ * Used to validate a value that is "required".
+ *
+ * @param {*} value
+ * @returns {Boolean}
+ */
+function isRequiredFulfilled(value) {
+    if (_.isString(value)) {
+        return !_.isEmpty(value.trim());
+    }
+    if (_.isArray(value) || _.isObject(value)) {
+        return !_.isEmpty(value);
+    }
+    return Boolean(value);
+}
 
 /**
  * Validate date fields
@@ -111,4 +127,5 @@ export {
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
+    isRequiredFulfilled,
 };

@@ -1,4 +1,4 @@
-import {Bank, CreditCard, ExpensifyCard} from './Expensicons';
+import {Bank, CreditCard} from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -8,6 +8,7 @@ import Chase from '../../../assets/images/bankicons/chase.svg';
 import CitiBank from '../../../assets/images/bankicons/citibank.svg';
 import CitizensBank from '../../../assets/images/bankicons/citizens-bank.svg';
 import Discover from '../../../assets/images/bankicons/discover.svg';
+import Expensify from '../../../assets/images/bankicons/expensify.svg';
 import Fidelity from '../../../assets/images/bankicons/fidelity.svg';
 import HuntingtonBank from '../../../assets/images/bankicons/huntington-bank.svg';
 import NavyFederalCreditUnion from '../../../assets/images/bankicons/navy-federal-credit-union.svg';
@@ -28,7 +29,7 @@ import variables from '../../styles/variables';
 
 function getAssetIcon(bankName, isCard) {
     if (bankName === 'expensify card') {
-        return ExpensifyCard;
+        return Expensify;
     }
 
     if (bankName.includes('americanexpress')) {
@@ -122,8 +123,8 @@ export default function getBankIcon(bankName, isCard) {
         bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
     }
 
-    // For default icon & expensify (for now) the icon size should not be set.
-    if (![ExpensifyCard, CreditCard, Bank].includes(bankIcon.icon)) {
+    // For default icons the icon size should not be set.
+    if (![CreditCard, Bank].includes(bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 
