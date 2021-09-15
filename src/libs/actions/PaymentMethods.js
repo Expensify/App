@@ -11,7 +11,7 @@ import CONST from '../../CONST';
  */
 function getPaymentMethods() {
     return API.Get({
-        returnValueList: 'bankAccountList, cardList, userWallet, nameValuePairs',
+        returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
         name: 'paypalMeAddress',
         includeDeleted: false,
         includeNotIssued: false,
@@ -21,7 +21,7 @@ function getPaymentMethods() {
             Onyx.multiSet({
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
                 [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
-                [ONYXKEYS.CARD_LIST]: lodashGet(response, 'cardList', []),
+                [ONYXKEYS.CARD_LIST]: lodashGet(response, 'fundList', []),
                 [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
                     lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
             });
