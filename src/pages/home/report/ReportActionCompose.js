@@ -467,6 +467,8 @@ class ReportActionCompose extends React.Component {
             && !hasMultipleParticipants
             && reportRecipient
             && reportRecipientTimezone
+            && currentUserTimezone.selected
+            && reportRecipientTimezone.selected
             && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
