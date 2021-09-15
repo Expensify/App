@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View, ScrollView} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
@@ -14,7 +14,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
-import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -50,7 +49,6 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
 
         this.state = {
             amount1: getDefaultStateForField(props, 'amount1', ''),
@@ -182,12 +180,7 @@ class ValidationStep extends React.Component {
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
-                        <Image
-                            source={{uri: this.verifyingUrl}}
-                            style={[styles.workspaceInviteWelcome]}
-                            resizeMode="center"
-                        />
-                        <Text style={[styles.mh5, styles.mb5]}>
+                        <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
                             {this.props.translate('validationStep.reviewingInfo')}
                             <TextLink
                                 onPress={() => {
@@ -202,6 +195,12 @@ class ValidationStep extends React.Component {
                             </TextLink>
                             {this.props.translate('validationStep.forNextSteps')}
                         </Text>
+                        <Button
+                            success
+                            text={this.props.translate('bankAccount.confirmModalConfirmText')}
+                            style={[styles.mh5, styles.mb5]}
+                            onPress={() => Navigation.dismissModal()}
+                        />
                     </View>
                 )}
             </View>
