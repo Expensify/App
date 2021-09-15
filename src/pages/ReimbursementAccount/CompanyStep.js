@@ -30,7 +30,7 @@ import {
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import ExpensiPicker from '../../components/ExpensiPicker';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -49,19 +49,19 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            companyName: getDefaultStateForField(props, 'companyName'),
-            addressStreet: getDefaultStateForField(props, 'addressStreet'),
-            addressCity: getDefaultStateForField(props, 'addressCity'),
-            addressState: getDefaultStateForField(props, 'addressState'),
-            addressZipCode: getDefaultStateForField(props, 'addressZipCode'),
-            companyPhone: getDefaultStateForField(props, 'companyPhone'),
-            website: getDefaultStateForField(props, 'website', 'https://'),
-            companyTaxID: getDefaultStateForField(props, 'companyTaxID'),
-            incorporationType: getDefaultStateForField(props, 'incorporationType'),
-            incorporationDate: getDefaultStateForField(props, 'incorporationDate'),
-            incorporationState: getDefaultStateForField(props, 'incorporationState'),
-            industryCode: getDefaultStateForField(props, 'industryCode'),
-            hasNoConnectionToCannabis: getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
+            companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
+            addressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressStreet'),
+            addressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressCity'),
+            addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
+            addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
+            companyPhone: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyPhone'),
+            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', 'https://'),
+            companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyTaxID'),
+            incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
+            incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
+            incorporationState: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationState'),
+            industryCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'industryCode'),
+            hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
             password: '',
         };
 
@@ -98,22 +98,10 @@ class CompanyStep extends React.Component {
             password: 'common.passwordCannotBeBlank',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
-    }
 
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
-    /**
-     * @param {String} inputKey
-     * @returns {String}
-     */
-    getErrorText(inputKey) {
-        const errors = this.getErrors();
-        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     /**
@@ -122,22 +110,6 @@ class CompanyStep extends React.Component {
     setValue(value) {
         this.setState(value);
         updateReimbursementAccountDraft(value);
-    }
-
-    /**
-     * @param {String} inputKey
-     */
-    clearError(inputKey) {
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
     }
 
     /**

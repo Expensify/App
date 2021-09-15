@@ -26,7 +26,13 @@ const Checkbox = ({
     hasError,
 }) => (
     <Pressable onPress={() => onPress(!isChecked)}>
-        <View style={[styles.checkboxContainer, isChecked && styles.checkedContainer, hasError && styles.borderColorDanger]}>
+        <View
+            style={[
+                styles.checkboxContainer,
+                isChecked && styles.checkedContainer,
+                hasError && styles.borderColorDanger,
+            ]}
+        >
             <Icon src={Checkmark} fill="white" height={14} width={14} />
         </View>
     </Pressable>

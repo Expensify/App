@@ -25,4 +25,5 @@ const InlineErrorText = (props) => {
 
 InlineErrorText.propTypes = propTypes;
 InlineErrorText.defaultProps = defaultProps;
+InlineErrorText.displayName = 'InlineErrorText';
 export default InlineErrorText;

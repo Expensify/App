@@ -23,6 +23,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
+import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -97,6 +98,8 @@ class AddPlaidBankAccount extends React.Component {
             isCreatingAccount: false,
             institution: {},
         };
+
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     componentDidMount() {
@@ -114,12 +117,8 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     /**
-     * @returns {Object}
+     * @returns {Boolean}
      */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
     validate() {
         const errors = {};
         if (_.isUndefined(this.state.selectedIndex)) {

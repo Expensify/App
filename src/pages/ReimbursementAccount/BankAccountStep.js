@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, Image, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
@@ -30,7 +29,7 @@ import {
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -52,9 +51,9 @@ class BankAccountStep extends React.Component {
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
-            hasAcceptedTerms: getDefaultStateForField(props, 'acceptTerms', true),
-            routingNumber: getDefaultStateForField(props, 'routingNumber'),
-            accountNumber: getDefaultStateForField(props, 'accountNumber'),
+            hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
+            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
+            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
@@ -62,38 +61,10 @@ class BankAccountStep extends React.Component {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
         };
-    }
 
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
-    /**
-     * @param {String} inputKey
-     * @returns {string}
-     */
-    getErrorText(inputKey) {
-        const errors = this.getErrors();
-        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
-    }
-
-    /**
-     * @param {String} inputKey
-     */
-    clearError(inputKey) {
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     toggleTerms() {
