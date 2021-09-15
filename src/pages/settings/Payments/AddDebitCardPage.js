@@ -122,7 +122,7 @@ class DebitCardPage extends Component {
         if (expirationDate.length === 2 && !isErasing) {
             newExpirationDate = `${expirationDate}/`;
         }
-        this.setState({newExpirationDate});
+        this.setState({expirationDate: newExpirationDate});
     }
 
     render() {

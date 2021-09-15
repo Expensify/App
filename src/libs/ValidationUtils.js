@@ -85,7 +85,7 @@ function isValidExpirationDate(string) {
  * @param {String} string
  * @returns {Boolean}
  */
- function isValidSecurityCode(string) {
+function isValidSecurityCode(string) {
     return CONST.REGEX.CARD_SECURITY_CODE.test(string);
 }
 
