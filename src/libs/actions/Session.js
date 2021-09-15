@@ -298,6 +298,16 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
     });
 }
 
+/**
+ * Clear the creadentials and partial sign in session so the user can taken back to first Login step
+ */
+function clearSignInData() {
+    Onyx.multiSet({
+        [ONYXKEYS.ACCOUNT]: null,
+        [ONYXKEYS.CREDENTIALS]: null,
+    });
+}
+
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -307,4 +317,5 @@ export {
     reopenAccount,
     resendValidationLink,
     resetPassword,
+    clearSignInData,
 };
