@@ -32,6 +32,8 @@ These instructions should get you set up ready to work on New Expensify 🙌
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
+4. Create a `.env` file, use [.env.staging](.env.staging) as a source.
+   External contributors should set `USE_WEB_PROXY=true` (Otherwise they'll get CORS errors)
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
@@ -58,6 +60,16 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
 
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
+
+## Environment variables
+- `USE_WEB_PROXY` ⚠️used in web/desktop development, it starts a server along the local development server to proxy
+   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.  
+   If you don't want to start the proxy server set this explicitly to `false`
+- `CAPTURE_METRICS` (optional) set this to `true` to capture performance metrics and see them in Flipper
+   see [PERFORMANCE.md](PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
+- `ONYX_METRICS` (optional) set this to `true` to capture even more performance metrics and see them in Flipper
+   see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
+
 
 ----
 
