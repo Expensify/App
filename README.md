@@ -32,8 +32,6 @@ These instructions should get you set up ready to work on New Expensify 🙌
 1. Install `node` & `npm`: `brew install node`
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
-4. Create a `.env` file, use [.env.staging](.env.staging) as a source.
-   External contributors should set `USE_WEB_PROXY=true` (Otherwise they'll get CORS errors)
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
@@ -57,11 +55,18 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
-2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
+2. If you are running into CORS errors like (in the browser dev console)
+   ```sh
+   Access to fetch at 'https://www.expensify.com/api?command=GetAccountStatus' from origin 'http://localhost:8080' has been blocked by CORS policy
+   ```
+   You probably have a misconfigured `.env` file - remove it and try again `rm .env`
 
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
 
 ## Environment variables
+Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when 
+variables referenced here get updated since your local `.env` file is ignored.
+ 
 - `USE_WEB_PROXY` ⚠️used in web/desktop development, it starts a server along the local development server to proxy
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.  
    If you don't want to start the proxy server set this explicitly to `false`
