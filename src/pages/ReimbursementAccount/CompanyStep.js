@@ -96,6 +96,7 @@ class CompanyStep extends React.Component {
             incorporationType: 'bankAccount.error.companyType',
             industryCode: 'bankAccount.error.industryCode',
             password: 'common.passwordCannotBeBlank',
+            hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
     }
 
@@ -314,7 +315,7 @@ class CompanyStep extends React.Component {
                             textContentType="password"
                             onChangeText={value => this.clearErrorAndSetValue('password', value)}
                             value={this.state.password}
-                            onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
+                            onSubmitEditing={this.submit}
                             errorText={this.getErrorText('password')}
 
                             // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
@@ -340,7 +341,7 @@ class CompanyStep extends React.Component {
                                 </>
                             )}
                             style={[styles.mt4]}
-                            hasError={error === this.props.translate('bankAccount.error.restrictedBusiness')}
+                            hasError={this.getErrorText('restrictedBusiness') === this.props.translate('bankAccount.error.restrictedBusiness')}
                         />
                     </View>
                     <View style={[styles.flex1, styles.justifyContentEnd, styles.p4]}>
@@ -349,7 +350,6 @@ class CompanyStep extends React.Component {
                             onPress={this.submit}
                             style={[styles.w100, styles.mt4, styles.mb1]}
                             text={this.props.translate('common.saveAndContinue')}
-                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 </ScrollView>
