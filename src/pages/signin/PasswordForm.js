@@ -92,6 +92,7 @@ class PasswordForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                         translateX={-18}
+                        blurOnSubmit={false}
                     />
                     <TouchableOpacity
                         style={[styles.mt2]}
@@ -115,6 +116,7 @@ class PasswordForm extends React.Component {
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                             translateX={-18}
+                            blurOnSubmit={false}
                         />
                     </View>
                 )}
