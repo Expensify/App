@@ -22,19 +22,19 @@ const propTypes = {
     /** Component to display for label */
     LabelComponent: PropTypes.func,
 
-    /** Text to show if there is an error */
-    errorText: PropTypes.string,
+    /** Should the input be styled for errors  */
+    hasError: PropTypes.bool,
 };
 
 const defaultProps = {
     style: [],
     label: undefined,
     LabelComponent: undefined,
-    errorText: '',
+    hasError: '',
 };
 
 const CheckboxWithLabel = ({
-    LabelComponent, isChecked, onPress, style, label, errorText,
+    LabelComponent, isChecked, onPress, style, label, hasError,
 }) => {
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(style) ? [...defaultStyles, ...style] : [...defaultStyles, style];
@@ -45,7 +45,7 @@ const CheckboxWithLabel = ({
 
     return (
         <View style={wrapperStyles}>
-            <View style={styles.flexRow}>
+            <View style={[...defaultStyles, (hasError) && styles.borderColorDanger]}>
                 <Checkbox
                     isChecked={isChecked}
                     onPress={() => onPress(!isChecked)}
@@ -69,11 +69,6 @@ const CheckboxWithLabel = ({
                     )}
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>
-            </View>
-            <View style={styles.flexRow}>
-                {errorText !== '' && (
-                    <Text style={[styles.formError]}>{errorText}</Text>
-                )}
             </View>
         </View>
     );

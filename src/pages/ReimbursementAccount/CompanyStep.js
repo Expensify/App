@@ -349,9 +349,7 @@ class CompanyStep extends React.Component {
                                 </>
                             )}
                             style={[styles.mt4]}
-                            errorText={error === this.props.translate('bankAccount.error.restrictedBusiness')
-                                ? this.props.translate('bankAccount.error.restrictedBusiness')
-                                : ''}
+                            hasError={error === this.props.translate('bankAccount.error.restrictedBusiness')}
                         />
                     </View>
                 </ScrollView>
