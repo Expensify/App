@@ -13,6 +13,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import {
     goToWithdrawalAccountSetupStep,
+    hideBankAccountErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
@@ -86,13 +87,15 @@ class RequestorStep extends React.Component {
      */
     validate() {
         if (!this.state.isControllingOfficer) {
-            showBankAccountErrorModal(this.props.translate('requestorStep.isControllingOfficerError'));
+            showBankAccountFormValidationError(this.props.translate('requestorStep.isControllingOfficerError'));
+            showBankAccountErrorModal();
             return false;
         }
 
         if (!isValidIdentity({
             street: this.state.requestorAddressStreet,
             state: this.state.requestorAddressState,
+            city: this.state.requestorAddressCity,
             zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
@@ -182,11 +185,17 @@ class RequestorStep extends React.Component {
                                 />
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
-                                    onPress={() => this.setState((prevState) => {
-                                        const newState = {isControllingOfficer: !prevState.isControllingOfficer};
-                                        updateReimbursementAccountDraft(newState);
-                                        return newState;
-                                    })}
+                                    onPress={() => {
+                                        if (this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')) {
+                                            hideBankAccountErrors();
+                                        }
+
+                                        this.setState((prevState) => {
+                                            const newState = {isControllingOfficer: !prevState.isControllingOfficer};
+                                            updateReimbursementAccountDraft(newState);
+                                            return newState;
+                                        });
+                                    }}
                                     LabelComponent={() => (
                                         <View style={[styles.flex1, styles.pr1]}>
                                             <Text>
@@ -195,7 +204,9 @@ class RequestorStep extends React.Component {
                                         </View>
                                     )}
                                     style={[styles.mt4]}
-                                    hasError={!this.state.isControllingOfficer}
+                                    hasError={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')}
+                                    errorText={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')
+                                        ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                     {this.props.translate('requestorStep.financialRegulations')}

@@ -125,13 +125,9 @@ class CompanyStep extends React.Component {
     }
 
     /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
      * @param {String} inputKey
-     * @param {String} value
      */
-    clearErrorAndSetValue(inputKey, value) {
-        this.setValue({[inputKey]: value});
+    clearError(inputKey) {
         const errors = this.getErrors();
         if (!errors[inputKey]) {
             // No error found for this inputKey
@@ -142,6 +138,17 @@ class CompanyStep extends React.Component {
         const newErrors = {...errors};
         delete newErrors[inputKey];
         setBankAccountFormValidationErrors(newErrors);
+    }
+
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setValue({[inputKey]: value});
+        this.clearError(inputKey);
     }
 
     /**
@@ -327,11 +334,14 @@ class CompanyStep extends React.Component {
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
-                            onPress={() => this.setState((prevState) => {
-                                const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
-                                updateReimbursementAccountDraft(newState);
-                                return newState;
-                            })}
+                            onPress={() => {
+                                this.setState((prevState) => {
+                                    const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
+                                    updateReimbursementAccountDraft(newState);
+                                    return newState;
+                                });
+                                this.clearError('hasNoConnectionToCannabis');
+                            }}
                             LabelComponent={() => (
                                 <>
                                     <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>

@@ -13,6 +13,7 @@ import IdentityForm from './IdentityForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
+    hideBankAccountErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
@@ -131,6 +132,7 @@ class BeneficialOwnersStep extends React.Component {
             updateReimbursementAccountDraft(newState);
             return newState;
         });
+        hideBankAccountErrors();
     }
 
     render() {

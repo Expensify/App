@@ -80,12 +80,29 @@ class BankAccountStep extends React.Component {
         return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
     }
 
+    /**
+     * @param {String} inputKey
+     */
+    clearError(inputKey) {
+        const errors = this.getErrors();
+        if (!errors[inputKey]) {
+            // No error found for this inputKey
+            return;
+        }
+
+        // Clear the existing error for this inputKey
+        const newErrors = {...errors};
+        delete newErrors[inputKey];
+        setBankAccountFormValidationErrors(newErrors);
+    }
+
     toggleTerms() {
         this.setState((prevState) => {
             const hasAcceptedTerms = !prevState.hasAcceptedTerms;
             updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
             return {hasAcceptedTerms};
         });
+        this.clearError('hasAcceptedTerms');
     }
 
     /**
@@ -119,16 +136,7 @@ class BankAccountStep extends React.Component {
         const newState = {[inputKey]: value};
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
+        this.clearError(inputKey);
     }
 
     addManualAccount() {

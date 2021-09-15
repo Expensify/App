@@ -143,13 +143,26 @@ const IdentityForm = ({
                     <ExpensiTextInput
                         label={translate('common.city')}
                         value={city}
-                        onChangeText={val => onFieldChange('city', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.addressCity')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('city', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.addressCity') ? error : ''}
                     />
                 </View>
                 <View style={[styles.flex1]}>
                     <StatePicker
                         value={state}
-                        onChange={val => onFieldChange('state', val)}
+                        onChange={(val) => {
+                            if (error === translateLocal('bankAccount.error.addressState')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('state', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.addressState') ? error : ''}
+                        hasError={error === translateLocal('bankAccount.error.addressState')}
                     />
                 </View>
             </View>
