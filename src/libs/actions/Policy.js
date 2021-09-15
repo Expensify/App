@@ -265,7 +265,7 @@ function update(policyID, values) {
 
             const updatedValues = {...values, ...{isPolicyUpdating: false}};
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
-            Growl.show(translateLocal('workspace.editor.growlMessageOnSave'), CONST.GROWL.SUCCESS, 5000);
+            Growl.show(translateLocal('workspace.editor.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         }).catch(() => {
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
