@@ -8,6 +8,7 @@ import Text from '../Text';
 import {propTypes, defaultProps} from './propTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import {setNativePropsWeb} from '../../libs/TextInputUtils';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -12;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
@@ -43,6 +44,9 @@ class BaseExpensiTextInput extends Component {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (this.props.autoFocus && this.input) {
             this.input.focus();
+        }
+        if (this.input && this.props.name) {
+            setNativePropsWeb(this.input, 'name', this.props.name);
         }
     }
 
@@ -120,6 +124,9 @@ class BaseExpensiTextInput extends Component {
             ignoreLabelTranslateX,
             innerRef,
             autoFocus,
+
+            // Only present for Web
+            name,
             multiline,
             ...inputProps
         } = this.props;
@@ -152,6 +159,7 @@ class BaseExpensiTextInput extends Component {
                                     }
                                     labelTranslateY={this.state.labelTranslateY}
                                     labelScale={this.state.labelScale}
+                                    for={this.props.nativeID}
                                 />
                             ) : null}
                             <TextInput

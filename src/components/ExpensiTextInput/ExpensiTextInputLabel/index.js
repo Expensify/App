@@ -1,30 +1,44 @@
-import React, {memo} from 'react';
+import React, {Component} from 'react';
 import {Animated} from 'react-native';
+import {setNativePropsWeb} from '../../../libs/TextInputUtils';
 import styles from '../../../styles/styles';
-import propTypes from './propTypes';
+import {propTypes, defaultProps} from './propTypes';
 
-const ExpensiTextInputLabel = ({
-    label,
-    labelTranslateY,
-    labelTranslateX,
-    labelScale,
-}) => (
-    <Animated.Text
-        style={[
-            styles.expensiTextInputLabel,
-            styles.expensiTextInputLabelDesktop,
-            styles.expensiTextInputLabelTransformation(
-                labelTranslateY,
-                labelTranslateX,
-                labelScale,
-            ),
-        ]}
-    >
-        {label}
-    </Animated.Text>
-);
+class ExpensiTextInputLabel extends Component {
+    constructor(props) {
+        super(props);
+        this.label = null;
+    }
+
+    componentDidMount() {
+        if (this.label && this.props.for) {
+            setNativePropsWeb(this.label, 'for', this.props.for);
+        }
+    }
+
+    render() {
+        return (
+            <Animated.Text
+                accessibilityRole="label"
+                ref={el => this.label = el}
+                style={[
+                    styles.expensiTextInputLabel,
+                    styles.expensiTextInputLabelDesktop,
+                    styles.expensiTextInputLabelTransformation(
+                        this.props.labelTranslateY,
+                        this.props.labelTranslateX,
+                        this.props.labelScale,
+                    ),
+                ]}
+            >
+                {this.props.label}
+            </Animated.Text>
+        );
+    }
+}
 
 ExpensiTextInputLabel.propTypes = propTypes;
+ExpensiTextInputLabel.defaultProps = defaultProps;
 ExpensiTextInputLabel.displayName = 'ExpensiTextInputLabel';
 
-export default memo(ExpensiTextInputLabel);
+export default ExpensiTextInputLabel;

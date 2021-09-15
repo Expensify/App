@@ -4,6 +4,9 @@ const propTypes = {
     /** Input label */
     label: PropTypes.string,
 
+    /** Name attribute for the input (only Web) */
+    name: PropTypes.string,
+
     /** Input value */
     value: PropTypes.string.isRequired,
 
@@ -31,6 +34,7 @@ const propTypes = {
 
 const defaultProps = {
     label: '',
+    name: '',
     errorText: '',
     placeholder: '',
     error: false,
