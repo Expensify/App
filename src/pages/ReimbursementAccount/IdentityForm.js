@@ -81,7 +81,7 @@ class IdentityForm extends React.Component {
      * @returns {String}
      */
     getErrorText(inputKey) {
-        return this.props.errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
+        return this.props.errors[inputKey] || '';
     }
 
     render() {
