@@ -96,7 +96,7 @@ class SignInPage extends Component {
 
         const resendLinkTitleMessage = this.props.translate(`resendValidationForm.${validateCodeExpired ? 'validationCodeFailedMessage' : 'weSentYouMagicSignInLink'}`,
             {
-                loginType: (Str.isSMSLogin(this.props.credentials.login)
+                loginType: (!this.props.credentials.login || Str.isSMSLogin(this.props.credentials.login)
                     ? this.props.translate('common.phoneNumber').toLowerCase()
                     : this.props.translate('common.email')).toLowerCase(),
             });
