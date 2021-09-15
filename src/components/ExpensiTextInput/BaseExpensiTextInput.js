@@ -35,7 +35,7 @@ class BaseExpensiTextInput extends Component {
             labelTranslateX: new Animated.Value(hasValue
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
-            passwordHidden: props.defaultHidePassword && props.secureTextEntry,
+            passwordHidden: props.secureTextEntry,
         };
 
         this.input = null;
@@ -141,9 +141,6 @@ class BaseExpensiTextInput extends Component {
         const hasLabel = Boolean(label.length);
         return (
             <View>
-                {Boolean(errorText) && (
-                    <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
-                )}
                 <View style={[!multiline && styles.componentHeightLarge, ...containerStyles]}>
                     <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
                         <View

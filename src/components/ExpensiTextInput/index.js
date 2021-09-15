@@ -10,7 +10,6 @@ const ExpensiTextInput = forwardRef((props, ref) => (
         innerRef={ref}
         inputStyle={[styles.expensiTextInput, styles.expensiTextInputDesktop]}
         ignoreLabelTranslateX
-        defaultHidePassword
     />
 ));
 
