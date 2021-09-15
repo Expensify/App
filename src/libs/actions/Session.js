@@ -127,7 +127,7 @@ function fetchAccountDetails(login) {
                     validated: response.validated,
                     closed: response.isClosed,
                     forgotPassword: false,
-                    validationCodeFailedMessage: null,
+                    validateCodeExpired: false,
                 });
 
                 if (!response.accountExists) {
@@ -240,7 +240,7 @@ function resetPassword() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true, forgotPassword: true});
     API.ResetPassword({email: credentials.login})
         .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validationCodeFailedMessage: null});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false, validateCodeExpired: false});
         });
 }
 
@@ -254,7 +254,7 @@ function resetPassword() {
  * @param {String} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validationCodeFailedMessage: null});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true, validateCodeExpired: false});
 
     API.SetPassword({
         password,
@@ -271,7 +271,7 @@ function setPassword(password, validateCode, accountID) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         }).catch((errResponse) => {
             const login = lodashGet(errResponse, 'data.email', null);
-            Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, validationCodeFailedMessage: 'resendValidationForm.validationCodeFailedMessage'});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, validateCodeExpired: true});
             if (login) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
             }

@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -66,7 +65,7 @@ class ResendValidationForm extends React.Component {
      */
     validateAndSubmitForm() {
         this.setState({
-            formSuccess: this.props.translate(''),
+            formSuccess: this.props.translate('resendValidationForm.linkHasBeenResent'),
         });
 
         if (this.props.account.closed) {
@@ -87,11 +86,7 @@ class ResendValidationForm extends React.Component {
             <>
                 <View>
                     <Text>
-                        {this.props.translate(this.props.titleMessage, {
-                            loginType: (Str.isSMSLogin(this.props.credentials.login)
-                                ? this.props.translate('common.phoneNumber').toLowerCase()
-                                : this.props.translate('common.email')).toLowerCase(),
-                        })}
+                        {this.props.titleMessage}
                     </Text>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (

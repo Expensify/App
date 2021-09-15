@@ -344,7 +344,7 @@ export default {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({loginType}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${loginType}.`,
         resendLink: 'Reenviar enlace',
-        validationCodeFailedMessage: 'Parece que ha habido un error con tu enlace de validación. O bien el enlace de validación ha caducado, o su cuenta no existe.',
+        validationCodeFailedMessage: 'Parece que hubo un error con el enlace de validación. El enlace de validación ha caducado o tu cuenta no existe',
     },
     detailsPage: {
         localTime: 'Hora local',

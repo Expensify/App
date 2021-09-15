@@ -4,6 +4,8 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
 import updateUnread from '../../libs/UnreadIndicatorUpdater/updateUnread/index';
@@ -69,7 +71,7 @@ class SignInPage extends Component {
         const validAccount = this.props.account.accountExists
             && this.props.account.validated
             && !this.props.account.forgotPassword
-            && !this.props.account.validationCodeFailedMessage;
+            && !this.props.account.validateCodeExpired;
 
         // Show the password form if
         // - A login has been entered
@@ -86,11 +88,18 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        const welcomeText = showResendValidationLinkForm && this.props.account.validationCodeFailedMessage
+        const welcomeText = showResendValidationLinkForm && this.props.account.validateCodeExpired
             ? ''
             : this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
-        const resendLinkTitleMessage = this.props.account.validationCodeFailedMessage ?? 'resendValidationForm.weSentYouMagicSignInLink';
+        const validateCodeExpired = lodashGet(this.props.account, 'validateCodeExpired', false);
+
+        const resendLinkTitleMessage = this.props.translate(`resendValidationForm.${validateCodeExpired ? 'validationCodeFailedMessage' : 'weSentYouMagicSignInLink'}`,
+            {
+                loginType: (Str.isSMSLogin(this.props.credentials.login)
+                    ? this.props.translate('common.phoneNumber').toLowerCase()
+                    : this.props.translate('common.email')).toLowerCase(),
+            });
 
         return (
             <>
