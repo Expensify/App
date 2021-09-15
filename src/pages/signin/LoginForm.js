@@ -75,8 +75,10 @@ class LoginForm extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
-                        autoCompleteType="email"
+                        autoCompleteType="username"
                         textContentType="username"
+                        nativeID="username"
+                        name="username"
                         onChangeText={text => this.setState({login: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"

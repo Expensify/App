@@ -16,6 +16,7 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import {getPasswordAutocompleteType} from '../../libs/TextInputUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -82,11 +83,26 @@ class PasswordForm extends React.Component {
         return (
             <>
                 <View style={[styles.mv3]}>
+                    <View
+                        style={styles.visuallyHidden}
+                        accessibilityHidden
+                    >
+                        <ExpensiTextInput
+                            value={this.props.credentials.login}
+                            autoCompleteType="username"
+                            textContentType="username"
+                            nativeID="username"
+                            name="username"
+                            autoCorrect={false}
+                        />
+                    </View>
                     <ExpensiTextInput
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType="password"
+                        autoCompleteType={getPasswordAutocompleteType()}
                         textContentType="password"
+                        nativeID={getPasswordAutocompleteType()}
+                        name="password"
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
@@ -152,5 +168,6 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
+        credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
 )(PasswordForm);
