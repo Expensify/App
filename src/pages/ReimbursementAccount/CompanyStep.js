@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -30,7 +29,7 @@ import {
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import ExpensiPicker from '../../components/ExpensiPicker';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -49,19 +48,19 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            companyName: getDefaultStateForField(props, 'companyName'),
-            addressStreet: getDefaultStateForField(props, 'addressStreet'),
-            addressCity: getDefaultStateForField(props, 'addressCity'),
-            addressState: getDefaultStateForField(props, 'addressState'),
-            addressZipCode: getDefaultStateForField(props, 'addressZipCode'),
-            companyPhone: getDefaultStateForField(props, 'companyPhone'),
-            website: getDefaultStateForField(props, 'website', 'https://'),
-            companyTaxID: getDefaultStateForField(props, 'companyTaxID'),
-            incorporationType: getDefaultStateForField(props, 'incorporationType'),
-            incorporationDate: getDefaultStateForField(props, 'incorporationDate'),
-            incorporationState: getDefaultStateForField(props, 'incorporationState'),
-            industryCode: getDefaultStateForField(props, 'industryCode'),
-            hasNoConnectionToCannabis: getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
+            companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
+            addressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressStreet'),
+            addressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressCity'),
+            addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
+            addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
+            companyPhone: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyPhone'),
+            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', 'https://'),
+            companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyTaxID'),
+            incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
+            incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
+            incorporationState: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationState'),
+            industryCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'industryCode'),
+            hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
             password: '',
         };
 
@@ -96,28 +95,17 @@ class CompanyStep extends React.Component {
             incorporationType: 'bankAccount.error.companyType',
             industryCode: 'bankAccount.error.industryCode',
             password: 'common.passwordCannotBeBlank',
+            hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
+
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     /**
-     * @returns {Object}
+     * @param {String} value
      */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
-    /**
-     * @param {String} inputKey
-     * @returns {String}
-     */
-    getErrorText(inputKey) {
-        const errors = this.getErrors();
-        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
-    }
-
-    /**
-    * @param {String} value
-    */
     setValue(value) {
         this.setState(value);
         updateReimbursementAccountDraft(value);
@@ -131,16 +119,7 @@ class CompanyStep extends React.Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         this.setValue({[inputKey]: value});
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
+        this.clearError(inputKey);
     }
 
     /**
@@ -195,9 +174,6 @@ class CompanyStep extends React.Component {
         const shouldDisableCompanyName = Boolean(this.props.achData.bankAccountID && this.props.achData.companyName);
         const shouldDisableCompanyTaxID = Boolean(this.props.achData.bankAccountID && this.props.achData.companyTaxID);
 
-        // Disable save button if any of the required fields is empty
-        const shouldDisableSubmitButton = this.requiredFields.reduce((acc, curr) => acc || !isRequiredFulfilled(this.state[curr]), false);
-
         return (
             <>
                 <HeaderWithCloseButton
@@ -238,6 +214,7 @@ class CompanyStep extends React.Component {
                                 <StatePicker
                                     onChange={value => this.clearErrorAndSetValue('addressState', value)}
                                     value={this.state.addressState}
+                                    hasError={this.getErrors().addressState}
                                 />
                             </View>
                         </View>
@@ -280,6 +257,7 @@ class CompanyStep extends React.Component {
                                 onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                                 value={this.state.incorporationType}
                                 placeholder={{value: '', label: '-'}}
+                                hasError={this.getErrors().incorporationType}
                             />
                         </View>
                         <View style={[styles.flexRow, styles.mt4]}>
@@ -297,6 +275,7 @@ class CompanyStep extends React.Component {
                                 <StatePicker
                                     onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                                     value={this.state.incorporationState}
+                                    hasError={this.getErrors().incorporationState}
                                 />
                             </View>
                         </View>
@@ -317,7 +296,7 @@ class CompanyStep extends React.Component {
                             textContentType="password"
                             onChangeText={value => this.clearErrorAndSetValue('password', value)}
                             value={this.state.password}
-                            onSubmitEditing={shouldDisableSubmitButton ? undefined : this.submit}
+                            onSubmitEditing={this.submit}
                             errorText={this.getErrorText('password')}
 
                             // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
@@ -326,11 +305,14 @@ class CompanyStep extends React.Component {
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.hasNoConnectionToCannabis}
-                            onPress={() => this.setState((prevState) => {
-                                const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
-                                updateReimbursementAccountDraft(newState);
-                                return newState;
-                            })}
+                            onPress={() => {
+                                this.setState((prevState) => {
+                                    const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
+                                    updateReimbursementAccountDraft(newState);
+                                    return newState;
+                                });
+                                this.clearError('hasNoConnectionToCannabis');
+                            }}
                             LabelComponent={() => (
                                 <>
                                     <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
@@ -343,6 +325,8 @@ class CompanyStep extends React.Component {
                                 </>
                             )}
                             style={[styles.mt4]}
+                            errorText={this.getErrorText('hasNoConnectionToCannabis')}
+                            hasError={this.getErrors().hasNoConnectionToCannabis}
                         />
                     </View>
                     <View style={[styles.flex1, styles.justifyContentEnd, styles.p4]}>
@@ -351,7 +335,6 @@ class CompanyStep extends React.Component {
                             onPress={this.submit}
                             style={[styles.w100, styles.mt4, styles.mb1]}
                             text={this.props.translate('common.saveAndContinue')}
-                            isDisabled={shouldDisableSubmitButton}
                         />
                     </View>
                 </ScrollView>
