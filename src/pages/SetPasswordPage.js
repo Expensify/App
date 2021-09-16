@@ -63,6 +63,7 @@ class SetPasswordPage extends Component {
         this.state = {
             password: '',
             isFormValid: false,
+            error: '',
         };
     }
 
@@ -86,13 +87,22 @@ class SetPasswordPage extends Component {
                 }).then((responsePassword) => {
                     if (responsePassword.jsonCode === 200) {
                         signIn(this.state.password);
+                    } else {
+                        this.setState({
+                           error: this.props.translate('setPasswordPage.passwordNotSet'),
+                        });
                     }
+                });
+            } else {
+                this.setState({
+                    error: this.props.translate('setPasswordPage.accountNotValidated'),
                 });
             }
         });
     }
 
     render() {
+        const error = this.state.error || this.props.account.error;
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}>
@@ -115,9 +125,9 @@ class SetPasswordPage extends Component {
                         />
                     </View>
 
-                    {!_.isEmpty(this.props.account.error) && (
+                    {!_.isEmpty(error) && (
                         <Text style={[styles.formError]}>
-                            {this.props.account.error}
+                            {error}
                         </Text>
                     )}
                 </SignInPageLayout>
