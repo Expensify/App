@@ -33,7 +33,7 @@ const defaultProps = {
 
 class ReimbursementAccountForm extends React.Component {
     /**
-     * @returns {React.Component|string}
+     * @returns {React.Component|String}
      */
     getAlertPrompt() {
         let error = '';
@@ -45,17 +45,24 @@ class ReimbursementAccountForm extends React.Component {
         } else {
             error = (
                 <>
-                    {/* @TODO translate {this.props.translate('bankAccount.defaultFormAlertPrompt')} */}
-                    <Text style={styles.mutedTextLabel}>Please </Text>
+                    <Text style={styles.mutedTextLabel}>
+                        {this.props.translate('common.please')}
+                        {' '}
+                    </Text>
+                    Por favor corrige los errores [en el formulario] antes de continuar
                     <TextLink
                         style={styles.label}
                         onPress={() => {
                             this.form.scrollTo({y: 0, animated: true});
                         }}
                     >
-                        {'fix the errors '}
+                        {this.props.translate('bankAccount.error.fixTheErrors')}
                     </TextLink>
-                    <Text style={styles.mutedTextLabel}>in the form before continuing.</Text>
+                    <Text style={styles.mutedTextLabel}>
+                        {' '}
+                        {this.props.translate('bankAccount.error.inTheFormBeforeContinuing')}
+                        {'.'}
+                    </Text>
                 </>
             );
         }
