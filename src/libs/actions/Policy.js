@@ -118,7 +118,7 @@ function getPolicyList() {
  * @returns {Number}
  */
 function hasWorkspaces() {
-    return _.size(_.filter(allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)) > 0;
+    return _.some(allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
