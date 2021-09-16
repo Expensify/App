@@ -39,19 +39,6 @@ const ExistingOwners = ({reimbursementAccount, translate}) => (
         <Text style={styles.mutedTextLabel}>
             {translate('bankAccount.error.existingOwners.pleaseAskThemToShare')}
         </Text>
-        <Text>
-            <Text style={styles.mutedTextLabel}>
-                {translate('bankAccount.error.existingOwners.alternatively')}
-            </Text>
-            <Text style={styles.mutedTextLabel}>
-                {translate(
-                    'bankAccount.error.existingOwners.setUpThisAccountByYourself',
-                )}
-            </Text>
-            <Text style={styles.mutedTextLabel}>
-                {translate('bankAccount.error.existingOwners.validationProcessAgain')}
-            </Text>
-        </Text>
     </>
 );
 

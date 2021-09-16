@@ -410,9 +410,6 @@ export default {
             existingOwners: {
                 alreadyInUse: 'This bank account is already in use by ',
                 pleaseAskThemToShare: 'Please ask them to share it with you.',
-                alternatively: 'Alternatively, you can ',
-                setUpThisAccountByYourself: 'set up this account by yourself',
-                validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
             },
         },
     },

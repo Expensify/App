@@ -410,9 +410,6 @@ export default {
             existingOwners: {
                 alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
                 pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
-                alternatively: 'En su defecto, puedes ',
-                setUpThisAccountByYourself: 'añadir la cuenta tú mismo',
-                validationProcessAgain: ' y completar el proceso de validación de nuevo (lo cual puede tardar hasta una semana).',
             },
         },
     },
