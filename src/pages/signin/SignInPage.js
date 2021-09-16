@@ -68,10 +68,12 @@ class SignInPage extends Component {
         // - A login has not been entered yet
         const showLoginForm = !this.props.credentials.login;
 
+        const validateCodeExpired = lodashGet(this.props.account, 'validateCodeExpired', false);
+
         const validAccount = this.props.account.accountExists
             && this.props.account.validated
             && !this.props.account.forgotPassword
-            && !this.props.account.validateCodeExpired;
+            && !validateCodeExpired;
 
         // Show the password form if
         // - A login has been entered
@@ -88,18 +90,21 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        const welcomeText = showResendValidationLinkForm && this.props.account.validateCodeExpired
+        const welcomeText = showResendValidationLinkForm && validateCodeExpired
             ? ''
             : this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
-        const validateCodeExpired = lodashGet(this.props.account, 'validateCodeExpired', false);
 
-        const resendLinkTitleMessage = this.props.translate(`resendValidationForm.${validateCodeExpired ? 'validationCodeFailedMessage' : 'weSentYouMagicSignInLink'}`,
-            {
-                loginType: (!this.props.credentials.login || Str.isSMSLogin(this.props.credentials.login)
+        let resendLinkTitleMessage = '';
+        if (validateCodeExpired) {
+            resendLinkTitleMessage = this.props.translate('resendValidationForm.validationCodeFailedMessage');
+        } else if (showResendValidationLinkForm) {
+            resendLinkTitleMessage = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
+                loginType: (Str.isSMSLogin(this.props.credentials.login)
                     ? this.props.translate('common.phoneNumber').toLowerCase()
                     : this.props.translate('common.email')).toLowerCase(),
             });
+        }
 
         return (
             <>

@@ -345,7 +345,6 @@ export default {
         weSentYouMagicSignInLink: ({loginType}) => `We've sent a magic sign in link to your ${loginType}.`,
         resendLink: 'Resend link',
         validationCodeFailedMessage: 'It looks like there was an error with your validation link. Either the validation link has expired, or your account does not exist.',
-
     },
     detailsPage: {
         localTime: 'Local time',
