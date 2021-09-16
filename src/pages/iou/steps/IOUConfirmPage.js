@@ -10,7 +10,8 @@ const propTypes = {
     onUpdateComment: PropTypes.func,
 
     /** Callback to update payment type in IOUModal */
-    onUpdatePaymentType: PropTypes.func,
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    onUpdatePaymentType: PropTypes.func.isRequired,
 
     /** Comment value from IOUModal */
     comment: PropTypes.string,

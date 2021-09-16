@@ -261,7 +261,7 @@ function payIOUReport({
     requestorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-    let randomArray = new Uint32Array(10);
+    const randomArray = new Uint32Array(10);
     const newIOUReportDetails = {
         amount,
         currency,

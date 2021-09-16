@@ -11,7 +11,7 @@ import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
 import {
-    createIOUSplit, createIOUTransaction, createIOUSplitGroup, payIOUReport, setIOUSelectedCurrency,
+    createIOUSplit, createIOUTransaction, payIOUReport, setIOUSelectedCurrency,
 } from '../../libs/actions/IOU';
 import {Close, BackArrow} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
