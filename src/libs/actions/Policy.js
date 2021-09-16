@@ -113,7 +113,7 @@ function getPolicyList() {
 }
 
 /**
- * Get the number of Workspaces administered by the user
+ * Does the user have any (free policy) workspaces?
  *
  * @returns {Number}
  */
