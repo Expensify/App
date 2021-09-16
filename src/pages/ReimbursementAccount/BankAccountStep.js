@@ -1,7 +1,6 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View, Image, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -30,7 +29,7 @@ import {
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -52,9 +51,9 @@ class BankAccountStep extends React.Component {
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
-            hasAcceptedTerms: getDefaultStateForField(props, 'acceptTerms', true),
-            routingNumber: getDefaultStateForField(props, 'routingNumber'),
-            accountNumber: getDefaultStateForField(props, 'accountNumber'),
+            hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
+            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
+            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
@@ -62,22 +61,10 @@ class BankAccountStep extends React.Component {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
         };
-    }
 
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
-    /**
-     * @param {String} inputKey
-     * @returns {string}
-     */
-    getErrorText(inputKey) {
-        const errors = this.getErrors();
-        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     toggleTerms() {
@@ -86,15 +73,7 @@ class BankAccountStep extends React.Component {
             updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
             return {hasAcceptedTerms};
         });
-    }
-
-    /**
-     * @returns {Boolean}
-     */
-    canSubmitManually() {
-        return this.state.hasAcceptedTerms
-            && this.state.accountNumber.trim()
-            && this.state.routingNumber.trim();
+        this.clearError('hasAcceptedTerms');
     }
 
     /**
@@ -110,6 +89,10 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
+        if (!this.state.hasAcceptedTerms) {
+            errors.hasAcceptedTerms = true;
+        }
+
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
@@ -124,16 +107,7 @@ class BankAccountStep extends React.Component {
         const newState = {[inputKey]: value};
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
+        this.clearError(inputKey);
     }
 
     addManualAccount() {
@@ -257,7 +231,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <>
-                        <View style={[styles.m5, styles.flex1]}>
+                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.p5, styles.flexGrow1]}>
                             <Text style={[styles.mb5]}>
                                 {this.props.translate('bankAccount.checkHelpLine')}
                             </Text>
@@ -297,15 +271,16 @@ class BankAccountStep extends React.Component {
                                         </TextLink>
                                     </View>
                                 )}
+                                hasError={this.getErrors().hasAcceptedTerms}
                             />
-                        </View>
-                        <Button
-                            success
-                            text={this.props.translate('common.saveAndContinue')}
-                            style={[styles.m5]}
-                            isDisabled={!this.canSubmitManually()}
-                            onPress={this.addManualAccount}
-                        />
+                            <View style={[styles.flex1, styles.justifyContentEnd]}>
+                                <Button
+                                    success
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    onPress={this.addManualAccount}
+                                />
+                            </View>
+                        </ScrollView>
                     </>
                 )}
             </View>

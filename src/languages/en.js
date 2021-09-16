@@ -404,6 +404,8 @@ export default {
             dob: 'Please enter a valid date of birth',
             age: 'Requestors must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
+            firstName: 'Please enter valid first name',
+            lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             existingOwners: {
                 alreadyInUse: 'This bank account is already in use by ',
