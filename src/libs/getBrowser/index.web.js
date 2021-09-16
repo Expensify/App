@@ -18,13 +18,13 @@ function getBrowser() {
         temp = userAgent.match(/\b(OPR|Edge)\/(\d+)/);
 
         if (temp !== null) {
-            return temp.slice(1).replace('OPR', 'Opera');
+            return temp.slice(1).join(' ').replace('OPR', 'Opera');
         }
 
         temp = userAgent.match(/\b(Edg)\/(\d+)/);
 
         if (temp !== null) {
-            return temp.slice(1).replace('Edg', 'Edge');
+            return temp.slice(1).join(' ').replace('Edg', 'Edge');
         }
     }
 
