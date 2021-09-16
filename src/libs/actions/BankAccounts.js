@@ -575,7 +575,7 @@ function validateBankAccount(bankAccountID, validateCode) {
             }
 
             // User has input the validate code incorrectly many times so we will return early in this case and not let them enter the amounts again.
-            if (response.message === CONST.BANK_ACCOUNT.MAX_VALIDATION_ATTEMPTS_REACHED) {
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.MAX_VALIDATION_ATTEMPTS_REACHED) {
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, maxAttemptsReached: true});
                 return;
             }

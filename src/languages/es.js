@@ -555,7 +555,7 @@ export default {
     validationStep: {
         headerTitle: 'Validar',
         buttonText: 'Finalizar configuración',
-        maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos. Por favor contáctenos.',
+        maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos.',
         description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation"',
         descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',

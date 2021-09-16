@@ -76,6 +76,8 @@ export default {
         error: {
             invalidAmount: 'Invalid amount',
         },
+        please: 'Please',
+        contactUs: 'contact us',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -553,7 +555,7 @@ export default {
     validationStep: {
         headerTitle: 'Validate',
         buttonText: 'Finish setup',
-        maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+        maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',

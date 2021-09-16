@@ -22,6 +22,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '../../libs/ValidationUtils';
+import EnableStep from './EnableStep';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -58,6 +59,7 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.navigateToConcierge = this.navigateToConcierge.bind(this);
 
         this.state = {
             amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
@@ -161,8 +163,22 @@ class ValidationStep extends React.Component {
         return value;
     }
 
+    navigateToConcierge() {
+        // There are two modals that must be dismissed before we can reveal the Concierge
+        // chat underneath these screens
+        Navigation.dismissModal();
+        Navigation.dismissModal();
+        navigateToConciergeChat();
+    }
+
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
+
+        // If a user tries to navigate directly to the validate page we'll show them the EnableStep
+        if (state === BankAccount.STATE.OPEN) {
+            return <EnableStep achData={lodashGet(this.props, 'reimbursementAccount.achData')} />;
+        }
+
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
@@ -174,6 +190,13 @@ class ValidationStep extends React.Component {
                     <View style={[styles.m5, styles.flex1]}>
                         <Text>
                             {this.props.translate('validationStep.maxAttemptsReached')}
+                            {' '}
+                            {this.props.translate('common.please')}
+                            {' '}
+                            <TextLink onPress={this.navigateToConcierge}>
+                                {this.props.translate('common.contactUs')}
+                            </TextLink>
+                            .
                         </Text>
                     </View>
                 )}
@@ -228,15 +251,7 @@ class ValidationStep extends React.Component {
                     <View style={[styles.flex1]}>
                         <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
                             {this.props.translate('validationStep.reviewingInfo')}
-                            <TextLink
-                                onPress={() => {
-                                    // There are two modals that must be dismissed before we can reveal the Concierge
-                                    // chat underneath these screens
-                                    Navigation.dismissModal();
-                                    Navigation.dismissModal();
-                                    navigateToConciergeChat();
-                                }}
-                            >
+                            <TextLink onPress={this.navigateToConcierge}>
                                 {this.props.translate('common.here')}
                             </TextLink>
                             {this.props.translate('validationStep.forNextSteps')}
