@@ -1,4 +1,6 @@
 import moment from 'moment-timezone';
+import lodashGet from 'lodash/get';
+
 
 // IMPORTANT: load any locales (other than english) that might be passed to moment.locale()
 import 'moment/locale/es';
@@ -10,11 +12,11 @@ import CONST from '../CONST';
 import {translate} from './translate';
 import * as PersonalDetails from './actions/PersonalDetails';
 
-let timezone;
+let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
-        timezone = val ? val.timezone : CONST.DEFAULT_TIME_ZONE;
+        timezone = lodashGet(val, 'timezone', CONST.DEFAULT_TIME_ZONE);
     },
 });
 
