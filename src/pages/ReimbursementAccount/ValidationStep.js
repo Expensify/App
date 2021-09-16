@@ -242,7 +242,6 @@ class ValidationStep extends React.Component {
                                 text={this.props.translate('validationStep.buttonText')}
                                 style={[styles.mh5, styles.mb5]}
                                 onPress={this.submit}
-                                isDisabled={maxAttemptsReached}
                             />
                         </View>
                     </ScrollView>
