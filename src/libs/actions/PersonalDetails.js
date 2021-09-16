@@ -79,6 +79,8 @@ function formatPersonalDetails(personalDetailsList) {
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
         const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
         const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
+        const payPalMeAddress = lodashGet(personalDetailsResponse, 'expensify_payPalMeAddress', '');
+        const phoneNumber = lodashGet(personalDetailsResponse, 'phoneNumber', '');
 
         return {
             ...finalObject,
@@ -90,6 +92,8 @@ function formatPersonalDetails(personalDetailsList) {
                 lastName,
                 pronouns,
                 timezone,
+                payPalMeAddress,
+                phoneNumber,
             },
         };
     }, {});
@@ -146,6 +150,7 @@ function getFromReportParticipants(reports) {
 
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
+            console.log("data ", data);
             const existingDetails = _.pick(data, participantEmails);
 
             // Fallback to add logins that don't appear in the response
