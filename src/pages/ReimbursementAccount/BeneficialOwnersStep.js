@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
@@ -14,6 +15,7 @@ import FixedFooter from '../../components/FixedFooter';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
+    setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
@@ -55,17 +57,30 @@ class BeneficialOwnersStep extends React.Component {
     }
 
     /**
+     * @returns {Object}
+     */
+    getErrors() {
+        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+    }
+
+    /**
+     * @param {Integer} ownerIndex
+     * @returns {Object}
+     */
+    getBeneficialOwnerErrors(ownerIndex) {
+        return lodashGet(this.getErrors(), `beneficialOwnersErrors[${ownerIndex}]`, {});
+    }
+
+    /**
      * @returns {Boolean}
      */
     validate() {
         if (this.state.hasOtherBeneficialOwners) {
-            // TODO: Update this to display properly errors coming from validateIdentity
-            const invalidBeneficifialOwner = _.find(this.state.beneficialOwners, (owner) => {
-                const errors = validateIdentity(owner);
-                return !_.isEmpty(errors);
-            });
-
-            if (invalidBeneficifialOwner) {
+            const beneficialOwnersErrors = _.map(this.state.beneficialOwners, validateIdentity);
+            setBankAccountFormValidationErrors({beneficialOwnersErrors});
+            console.log('beneficialOwnersErrors', beneficialOwnersErrors);
+            if (_.find(beneficialOwnersErrors, errors => !_.isEmpty(errors))) {
+                // At least one beneficial owner has errors
                 return false;
             }
         }
@@ -91,6 +106,9 @@ class BeneficialOwnersStep extends React.Component {
             // We don't use the debounced function because we want to make both function calls.
             updateReimbursementAccountDraft({beneficialOwners: null});
             updateReimbursementAccountDraft({beneficialOwners});
+
+            // Clear errors
+            setBankAccountFormValidationErrors({});
             return {beneficialOwners};
         });
     }
@@ -105,6 +123,37 @@ class BeneficialOwnersStep extends React.Component {
     canAddMoreBeneficialOwners() {
         return _.size(this.state.beneficialOwners) < 3
             || (_.size(this.state.beneficialOwners) === 3 && !this.state.ownsMoreThan25Percent);
+    }
+
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {Integer} ownerIndex
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
+        this.setState((prevState) => {
+            const beneficialOwners = [...prevState.beneficialOwners];
+            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [inputKey]: value};
+            updateReimbursementAccountDraft({beneficialOwners});
+            return {beneficialOwners};
+        });
+        const beneficialOwnerErrors = this.getBeneficialOwnerErrors(ownerIndex);
+        if (!beneficialOwnerErrors[inputKey]) {
+            // No error found for this inputKey
+            return;
+        }
+
+        // Clear the existing error for this inputKey
+        const newBeneficialOwnerErrors = {...beneficialOwnerErrors};
+        delete newBeneficialOwnerErrors[inputKey];
+
+        // Modify avoiding mutation
+        const newErrors = {...this.props.reimbursementAccount.errors};
+        newErrors.beneficialOwnersErrors = [...newErrors.beneficialOwnersErrors];
+        newErrors.beneficialOwnersErrors[ownerIndex] = newBeneficialOwnerErrors;
+        setBankAccountFormValidationErrors(newErrors);
     }
 
     submit() {
@@ -189,12 +238,7 @@ class BeneficialOwnersStep extends React.Component {
                                     </Text>
                                     <IdentityForm
                                         style={[styles.mb2]}
-                                        onFieldChange={(fieldName, value) => this.setState((prevState) => {
-                                            const beneficialOwners = [...prevState.beneficialOwners];
-                                            beneficialOwners[index][fieldName] = value;
-                                            updateReimbursementAccountDraft({beneficialOwners});
-                                            return {beneficialOwners};
-                                        })}
+                                        onFieldChange={(inputKey, value) => this.clearErrorAndSetBeneficialOwnerValue(index, inputKey, value)}
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',
@@ -205,7 +249,7 @@ class BeneficialOwnersStep extends React.Component {
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
-                                        error={this.props.reimbursementAccount.error}
+                                        errors={this.getBeneficialOwnerErrors(index)}
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
                                         <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
