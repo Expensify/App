@@ -10,8 +10,8 @@ const getBuildVersion = require('semver/functions/prerelease');
 const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test'
     ? path.resolve(__dirname, '../../android/app/build.gradle')
     : './android/app/build.gradle';
-const PLIST_PATH = './ios/ExpensifyCash/Info.plist';
-const PLIST_PATH_TEST = './ios/ExpensifyCashTests/Info.plist';
+const PLIST_PATH = './ios/NewExpensify/Info.plist';
+const PLIST_PATH_TEST = './ios/NewExpensifyTests/Info.plist';
 
 exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
 exports.PLIST_PATH = PLIST_PATH;

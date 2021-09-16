@@ -24,6 +24,7 @@ import HeroCardWebImage from '../../../assets/images/cascading-cards-web.svg';
 import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.svg';
 import BankAccount from '../../libs/models/BankAccount';
 import {openSignedInLink} from '../../libs/actions/App';
+import {setWorkspaceIDForReimbursementAccount} from '../../libs/actions/BankAccounts';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +40,15 @@ const propTypes = {
         /** Whether the user is using Expensify Card */
         isUsingExpensifyCard: PropTypes.bool,
     }),
+
+    /** URL Route params */
+    route: PropTypes.shape({
+        /** Params from the URL path */
+        params: PropTypes.shape({
+            /** policyID passed via route: /workspace/:policyID/people */
+            policyID: PropTypes.string,
+        }),
+    }).isRequired,
 
     /** Bank account currently in setup */
     reimbursementAccount: PropTypes.shape({
@@ -70,7 +80,9 @@ const WorkspaceCardPage = ({
     betas,
     user,
     translate,
+    route,
     isSmallScreenWidth,
+    isMediumScreenWidth,
     reimbursementAccount,
 }) => {
     const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.VERIFYING;
@@ -78,12 +90,19 @@ const WorkspaceCardPage = ({
     const isNotAutoProvisioned = !user.isUsingExpensifyCard
         && lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.OPEN;
     let buttonText;
+
+    const openBankSetupModal = () => {
+        setWorkspaceIDForReimbursementAccount(route.params.policyID);
+        Navigation.navigate(ROUTES.getBankAccountRoute());
+    };
+
     if (user.isFromPublicDomain) {
         buttonText = translate('workspace.card.addEmail');
     } else if (user.isUsingExpensifyCard) {
         buttonText = translate('workspace.card.manageCards');
     } else if (isVerifying || isPending || isNotAutoProvisioned) {
         buttonText = translate('workspace.card.finishSetup');
+        openBankSetupModal();
     } else {
         buttonText = translate('workspace.card.getStarted');
     }
@@ -94,7 +113,7 @@ const WorkspaceCardPage = ({
         } else if (user.isUsingExpensifyCard) {
             openSignedInLink(CONST.MANAGE_CARDS_URL);
         } else {
-            Navigation.navigate(ROUTES.getBankAccountRoute());
+            openBankSetupModal();
         }
     };
 
@@ -110,20 +129,27 @@ const WorkspaceCardPage = ({
                 onCloseButtonPress={() => Navigation.dismissModal()}
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton={isSmallScreenWidth}
+                shouldShowInboxCallButton
+                inboxCallTaskID="WorkspaceCompanyCards"
             />
-            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
+            <ScrollView style={[styles.settingsPageBackground]}>
                 <View style={styles.pageWrapper}>
                     <View style={[
                         styles.mb3,
                         styles.flexRow,
                         styles.workspaceCard,
                         isSmallScreenWidth && styles.workspaceCardMobile,
+                        isMediumScreenWidth && styles.workspaceCardMediumScreen,
                     ]}
                     >
-                        {isSmallScreenWidth
+                        {isSmallScreenWidth || isMediumScreenWidth
                             ? (
                                 <HeroCardMobileImage
-                                    style={StyleSheet.flatten([styles.fullscreenCard, styles.fullscreenCardMobile])}
+                                    style={StyleSheet.flatten([
+                                        styles.fullscreenCard,
+                                        isSmallScreenWidth && styles.fullscreenCardMobile,
+                                        isMediumScreenWidth && styles.fullscreenCardMediumScreen,
+                                    ])}
                                 />
                             )
                             : (
@@ -136,6 +162,7 @@ const WorkspaceCardPage = ({
                             styles.fullscreenCard,
                             styles.workspaceCardContent,
                             isSmallScreenWidth && styles.p5,
+                            isMediumScreenWidth && styles.workspaceCardContentMediumScreen,
                         ]}
                         >
                             <View
@@ -144,6 +171,7 @@ const WorkspaceCardPage = ({
                                     styles.justifyContentEnd,
                                     styles.alignItemsStart,
                                     !isSmallScreenWidth && styles.w50,
+                                    isMediumScreenWidth && styles.w100,
                                 ]}
                             >
                                 <Text
@@ -172,14 +200,13 @@ const WorkspaceCardPage = ({
                                         styles.workspaceCardCTA,
                                         isSmallScreenWidth ? styles.wAuto : {},
                                     ]}
-                                    textStyles={[
-                                        !isSmallScreenWidth ? styles.p5 : {},
-                                    ]}
+                                    textStyles={
+                                        !isSmallScreenWidth ? [styles.pr5, styles.pl5] : []
+                                    }
                                     onPress={onPress}
                                     success
                                     large
                                     text={buttonText}
-                                    isLoading={reimbursementAccount.loading}
                                 />
                             </View>
                         </View>

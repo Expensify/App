@@ -32,6 +32,7 @@ import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import Permissions from '../../Permissions';
 import getOperatingSystem from '../../getOperatingSystem';
+import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -54,7 +55,6 @@ import {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    NewWorkspaceStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
@@ -62,14 +62,22 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import ValidateLoginNewWorkspacePage from '../../../pages/ValidateLoginNewWorkspacePage';
-import ValidateLogin2FANewWorkspacePage from '../../../pages/ValidateLogin2FANewWorkspacePage';
+import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
+import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
+import spacing from '../../../styles/utilities/spacing';
+import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
+import * as API from '../../API';
+import {setLocale} from '../../actions/App';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
     callback: (val) => {
+        if (!val) {
+            return;
+        }
+
         const timezone = lodashGet(val, 'timezone', {});
         const currentTimezone = moment.tz.guess(true);
 
@@ -80,6 +88,12 @@ Onyx.connect({
             PersonalDetails.setPersonalDetails({timezone});
         }
     },
+});
+
+let currentPreferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 const RootStack = createCustomModalStackNavigator();
@@ -153,15 +167,28 @@ class AuthScreens extends React.Component {
 
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
-        NameValuePair.get(CONST.NVP.PREFERRED_LOCALE, ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+        NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
+
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        }).then((response) => {
+            const preferredLocale = response.nameValuePairs.preferredLocale || CONST.DEFAULT_LOCALE;
+            if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
+                setLocale(currentPreferredLocale);
+            } else {
+                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+            }
+        });
+
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
-        User.getDomainInfo();
         PersonalDetails.fetchLocalCurrency();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
+        fetchFreePlanVerifiedBankAccount();
 
         loadPoliciesBehindBeta(this.props.betas);
 
@@ -224,6 +251,7 @@ class AuthScreens extends React.Component {
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;
+        hasLoadedPolicies = false;
     }
 
     render() {
@@ -248,10 +276,14 @@ class AuthScreens extends React.Component {
         };
         const fullscreenModalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: {...styles.fullscreenCard},
+            cardStyle: {
+                ...styles.fullscreenCard,
+                padding: this.props.isSmallScreenWidth ? spacing.p0.padding : spacing.p5.padding,
+            },
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: false,
+            cardOverlayEnabled: !this.props.isSmallScreenWidth,
             isFullScreenModal: true,
+            cardOverlay: CardOverlay,
         };
 
         return (
@@ -274,6 +306,7 @@ class AuthScreens extends React.Component {
                         // prevent unnecessary scrolling
                         cardStyle: {
                             overflow: 'hidden',
+                            height: '100%',
                         },
                     }}
                     component={MainDrawerNavigator}
@@ -287,14 +320,24 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
                     options={defaultScreenOptions}
-                    component={ValidateLoginNewWorkspacePage}
+                    component={LoginWithValidateCodePage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN_2FA_NEW_WORKSPACE}
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
                     options={defaultScreenOptions}
-                    component={ValidateLogin2FANewWorkspacePage}
+                    component={LoginWithValidateCode2FAPage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
+                    options={defaultScreenOptions}
+                    component={LoginWithValidateCodePage}
+                />
+                <RootStack.Screen
+                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
+                    options={defaultScreenOptions}
+                    component={LoginWithValidateCode2FAPage}
                 />
 
                 {/* These are the various modal routes */}
@@ -376,12 +419,6 @@ class AuthScreens extends React.Component {
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
                     component={AddPersonalBankAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="NewWorkspace"
-                    options={modalScreenOptions}
-                    component={NewWorkspaceStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

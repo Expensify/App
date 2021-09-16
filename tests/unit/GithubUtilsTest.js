@@ -25,26 +25,26 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/21\r\n- [x] https://github.com/Expensify/Expensify.cash/pull/22\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/23\r\n\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/21\r\n- [x] https://github.com/Expensify/App/pull/22\r\n- [ ] https://github.com/Expensify/App/pull/23\r\n\r\n',
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
-        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/Expensify.cash/issues/1\r\n- [x] https://github.com/Expensify/Expensify.cash/issues/2\r\n- [ ] https://github.com/Expensify/Expensify.cash/pull/1234\r\n';
+        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/issues/1\r\n- [x] https://github.com/Expensify/App/issues/2\r\n- [ ] https://github.com/Expensify/App/pull/1234\r\n';
 
         const baseExpectedResponse = {
             PRList: [
                 {
-                    url: 'https://github.com/Expensify/Expensify.cash/pull/21',
+                    url: 'https://github.com/Expensify/App/pull/21',
                     number: 21,
                     isVerified: false,
                 },
                 {
-                    url: 'https://github.com/Expensify/Expensify.cash/pull/22',
+                    url: 'https://github.com/Expensify/App/pull/22',
                     number: 22,
                     isVerified: true,
                 },
                 {
-                    url: 'https://github.com/Expensify/Expensify.cash/pull/23',
+                    url: 'https://github.com/Expensify/App/pull/23',
                     number: 23,
                     isVerified: false,
                 },
@@ -69,17 +69,17 @@ describe('GithubUtils', () => {
         const expectedResponseWithDeployBlockers = {...baseExpectedResponse};
         expectedResponseWithDeployBlockers.deployBlockers = [
             {
-                url: 'https://github.com/Expensify/Expensify.cash/issues/1',
+                url: 'https://github.com/Expensify/App/issues/1',
                 number: 1,
                 isResolved: false,
             },
             {
-                url: 'https://github.com/Expensify/Expensify.cash/issues/2',
+                url: 'https://github.com/Expensify/App/issues/2',
                 number: 2,
                 isResolved: true,
             },
             {
-                url: 'https://github.com/Expensify/Expensify.cash/pull/1234',
+                url: 'https://github.com/Expensify/App/pull/1234',
                 number: 1234,
                 isResolved: false,
             },
@@ -89,7 +89,7 @@ describe('GithubUtils', () => {
             const bareIssue = {
                 ...baseIssue,
                 // eslint-disable-next-line max-len
-                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
+                body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n',
             };
 
             const bareExpectedResponse = {
@@ -149,10 +149,10 @@ describe('GithubUtils', () => {
         describe('valid pull requests', () => {
             test.each([
                 ['https://github.com/Expensify/Expensify/pull/156369', 156369],
-                ['https://github.com/Expensify/Expensify.cash/pull/1644', 1644],
+                ['https://github.com/Expensify/App/pull/1644', 1644],
                 ['https://github.com/Expensify/expensify-common/pull/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/pull/156369', 156369],
-                ['https://api.github.com/repos/Expensify/Expensify.cash/pull/1644', 1644],
+                ['https://api.github.com/repos/Expensify/App/pull/1644', 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/pull/346', 346],
             ])('getPullRequestNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getPullRequestNumberFromURL(input)).toBe(expected);
@@ -175,10 +175,10 @@ describe('GithubUtils', () => {
         describe('valid issues', () => {
             test.each([
                 ['https://github.com/Expensify/Expensify/issues/156369', 156369],
-                ['https://github.com/Expensify/Expensify.cash/issues/1644', 1644],
+                ['https://github.com/Expensify/App/issues/1644', 1644],
                 ['https://github.com/Expensify/expensify-common/issues/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/issues/156369', 156369],
-                ['https://api.github.com/repos/Expensify/Expensify.cash/issues/1644', 1644],
+                ['https://api.github.com/repos/Expensify/App/issues/1644', 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/issues/346', 346],
             ])('getIssueNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getIssueNumberFromURL(input)).toBe(expected);
@@ -201,16 +201,16 @@ describe('GithubUtils', () => {
         describe('valid issues and pull requests', () => {
             test.each([
                 ['https://github.com/Expensify/Expensify/issues/156369', 156369],
-                ['https://github.com/Expensify/Expensify.cash/issues/1644', 1644],
+                ['https://github.com/Expensify/App/issues/1644', 1644],
                 ['https://github.com/Expensify/expensify-common/issues/346', 346],
                 ['https://github.com/Expensify/Expensify/pull/156369', 156369],
-                ['https://github.com/Expensify/Expensify.cash/pull/1644', 1644],
+                ['https://github.com/Expensify/App/pull/1644', 1644],
                 ['https://github.com/Expensify/expensify-common/pull/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/issues/156369', 156369],
-                ['https://api.github.com/repos/Expensify/Expensify.cash/issues/1644', 1644],
+                ['https://api.github.com/repos/Expensify/App/issues/1644', 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/issues/346', 346],
                 ['https://api.github.com/repos/Expensify/Expensify/pull/156369', 156369],
-                ['https://api.github.com/repos/Expensify/Expensify.cash/pull/1644', 1644],
+                ['https://api.github.com/repos/Expensify/App/pull/1644', 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/pull/346', 346],
             ])('getIssueOrPullRequestNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getIssueOrPullRequestNumberFromURL(input)).toBe(expected);
@@ -233,25 +233,25 @@ describe('GithubUtils', () => {
         const mockPRs = [
             {
                 number: 1,
-                html_url: 'https://github.com/Expensify/Expensify.cash/pull/1',
+                html_url: 'https://github.com/Expensify/App/pull/1',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 2,
-                html_url: 'https://github.com/Expensify/Expensify.cash/pull/2',
+                html_url: 'https://github.com/Expensify/App/pull/2',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 3,
-                html_url: 'https://github.com/Expensify/Expensify.cash/pull/3',
+                html_url: 'https://github.com/Expensify/App/pull/3',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 4,
-                html_url: 'https://github.com/Expensify/Expensify.cash/pull/4',
+                html_url: 'https://github.com/Expensify/App/pull/4',
                 user: {login: 'OSBotify'},
                 labels: [{name: 'automerge'}],
             },
@@ -273,20 +273,20 @@ describe('GithubUtils', () => {
         githubUtils.octokitInternal = octokit;
         const tag = '1.0.2-12';
         const basePRList = [
-            'https://github.com/Expensify/Expensify.cash/pull/2',
-            'https://github.com/Expensify/Expensify.cash/pull/3',
-            'https://github.com/Expensify/Expensify.cash/pull/3',
-            'https://github.com/Expensify/Expensify.cash/pull/1',
-            'https://github.com/Expensify/Expensify.cash/pull/4',
+            'https://github.com/Expensify/App/pull/2',
+            'https://github.com/Expensify/App/pull/3',
+            'https://github.com/Expensify/App/pull/3',
+            'https://github.com/Expensify/App/pull/1',
+            'https://github.com/Expensify/App/pull/4',
         ];
 
         const baseDeployBlockerList = [
-            'https://github.com/Expensify/Expensify.cash/pull/3',
-            'https://github.com/Expensify/Expensify.cash/issues/4',
+            'https://github.com/Expensify/App/pull/3',
+            'https://github.com/Expensify/App/issues/4',
         ];
 
         // eslint-disable-next-line max-len
-        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/Expensify.cash/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
+        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
         const openCheckbox = '- [ ]';
         const closedCheckbox = '- [x]';
 
@@ -347,8 +347,8 @@ describe('GithubUtils', () => {
 
     describe('getPullRequestURLFromNumber', () => {
         test.each([
-            [1234, 'https://github.com/Expensify/Expensify.cash/pull/1234'],
-            [54321, 'https://github.com/Expensify/Expensify.cash/pull/54321'],
+            [1234, 'https://github.com/Expensify/App/pull/1234'],
+            [54321, 'https://github.com/Expensify/App/pull/54321'],
         ])('getPullRequestNumberFromURL("%s")', (input, expectedOutput) => (
             expect(GithubUtils.getPullRequestURLFromNumber(input)).toBe(expectedOutput)
         ));
@@ -357,9 +357,9 @@ describe('GithubUtils', () => {
     describe('getReleaseBody', () => {
         test.each([
             // eslint-disable-next-line max-len
-            [[1, 2, 3], '- https://github.com/Expensify/Expensify.cash/pull/1\r\n- https://github.com/Expensify/Expensify.cash/pull/2\r\n- https://github.com/Expensify/Expensify.cash/pull/3'],
+            [[1, 2, 3], '- https://github.com/Expensify/App/pull/1\r\n- https://github.com/Expensify/App/pull/2\r\n- https://github.com/Expensify/App/pull/3'],
             [[], ''],
-            [[12345], '- https://github.com/Expensify/Expensify.cash/pull/12345'],
+            [[12345], '- https://github.com/Expensify/App/pull/12345'],
         ])('getReleaseBody("%s")', (input, expectedOutput) => (
             expect(GithubUtils.getReleaseBody(input)).toBe(expectedOutput)
         ));

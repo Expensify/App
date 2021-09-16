@@ -94,6 +94,7 @@ class PopoverReportActionContextMenu extends React.Component {
     /**
      * Show the ReportActionContextMenu modal popover.
      *
+     * @param {string} type - context menu type [LINK, REPORT_ACTION]
      * @param {Object} [event] - A press event.
      * @param {string} [selection] - A copy text.
      * @param {Element} contextMenuAnchor - popoverAnchor
@@ -104,6 +105,7 @@ class PopoverReportActionContextMenu extends React.Component {
      * @param {Function} [onHide] - Run a callback when Menu is hidden
      */
     showContextMenu(
+        type,
         event,
         selection,
         contextMenuAnchor,
@@ -126,6 +128,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     horizontal: nativeEvent.pageX,
                     vertical: nativeEvent.pageY,
                 },
+                type,
                 reportID,
                 reportAction,
                 selection,
@@ -190,6 +193,7 @@ class PopoverReportActionContextMenu extends React.Component {
     measureContent() {
         return (
             <BaseReportActionContextMenu
+                type={this.state.type}
                 isVisible
                 selection={this.state.selection}
                 reportID={this.state.reportID}
@@ -236,6 +240,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 >
                     <BaseReportActionContextMenu
                         isVisible
+                        type={this.state.type}
                         reportID={this.state.reportID}
                         reportAction={this.state.reportAction}
                         draftMessage={this.state.reportActionDraftMessage}

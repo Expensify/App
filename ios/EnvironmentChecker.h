@@ -1,6 +1,6 @@
 //
 //  EnvironmentChecker.h
-//  ExpensifyCash
+//  NewExpensify
 //
 
 #ifndef EnvironmentChecker_h

@@ -1,12 +1,13 @@
+import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
-import {Linking} from 'react-native';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
+import Log from '../Log';
 import CONFIG from '../../CONFIG';
-import Firebase from '../Firebase';
-import ROUTES from '../../ROUTES';
+import Performance from '../Performance';
+import Timing from './Timing';
 
 let currentUserAccountID;
 Onyx.connect({
@@ -34,7 +35,9 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    if (currentUserAccountID) {
+        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
@@ -44,10 +47,11 @@ function setLocale(locale) {
  * we want to visit
  * @param {string} url relative URL starting with `/` to open in expensify.com
  */
-function openSignedInLink(url) {
+function openSignedInLink(url = '') {
     API.GetAccountValidateCode().then((response) => {
-        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM
-            + ROUTES.VALIDATE_CODE_URL(currentUserAccountID, response.validateCode, url));
+        const exitToURL = url ? `?exitTo=${url}` : '';
+        const validateCodeUrl = `v/${currentUserAccountID}/${response.validateCode}${exitToURL}`;
+        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + validateCodeUrl);
     });
 }
 
@@ -57,8 +61,18 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
+    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
+    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
+    Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
+
+let appState;
+AppState.addEventListener('change', (nextAppState) => {
+    if (nextAppState.match(/inactive|background/) && appState === 'active') {
+        Log.info('Flushing logs as app is going inactive', true, {}, true);
+    }
+    appState = nextAppState;
+});
 
 export {
     setCurrentURL,

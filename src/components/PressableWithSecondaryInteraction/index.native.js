@@ -13,6 +13,7 @@ import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTy
 const PressableWithSecondaryInteraction = props => (
     <Pressable
         ref={props.forwardedRef}
+        onPress={props.onPress}
         onPressIn={props.onPressIn}
         delayLongPress={200}
         onLongPress={(e) => {

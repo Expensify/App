@@ -79,7 +79,6 @@ const AboutPage = ({translate, session}) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView
-                bounces={false}
                 contentContainerStyle={[
                     styles.flexGrow1,
                     styles.flexColumn,
@@ -102,7 +101,7 @@ const AboutPage = ({translate, session}) => {
                                 v
                                 {version}
                             </Text>
-                            <Text style={[styles.textLabel, styles.mv5]}>
+                            <Text style={[styles.baseFontStyle, styles.mv5]}>
                                 {translate('initialSettingsPage.aboutPage.description')}
                             </Text>
                         </View>
