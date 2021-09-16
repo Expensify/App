@@ -40,14 +40,16 @@ import Phone from '../../../assets/images/phone.svg';
 import Pin from '../../../assets/images/pin.svg';
 import PinCircle from '../../../assets/images/pin-circle.svg';
 import Plus from '../../../assets/images/plus.svg';
+import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
 import Sync from '../../../assets/images/sync.svg';
 import Trashcan from '../../../assets/images/trashcan.svg';
-import Users from '../../../assets/images/users.svg';
+import UpArrow from '../../../assets/images/arrow-up.svg';
 import Upload from '../../../assets/images/upload.svg';
+import Users from '../../../assets/images/users.svg';
 import Venmo from '../../../assets/images/venmo.svg';
 import Wallet from '../../../assets/images/wallet.svg';
 import Workspace from '../../../assets/images/workspace-default-avatar.svg';
@@ -95,12 +97,14 @@ export {
     Pin,
     PinCircle,
     Plus,
+    Printer,
     Profile,
     Receipt,
     Send,
     SignOut,
     Sync,
     Trashcan,
+    UpArrow,
     Upload,
     Users,
     Venmo,

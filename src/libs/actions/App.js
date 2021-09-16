@@ -1,11 +1,23 @@
+import {AppState, Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
-import Firebase from '../Firebase';
 import CONST from '../../CONST';
+import Log from '../Log';
+import CONFIG from '../../CONFIG';
+import Performance from '../Performance';
+import Timing from './Timing';
+
+let currentUserAccountID;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        currentUserAccountID = lodashGet(val, 'accountID', '');
+    },
+});
 
 let isSidebarLoaded;
-
 Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: val => isSidebarLoaded = val,
@@ -23,8 +35,24 @@ function setCurrentURL(url) {
 * @param {String} locale
 */
 function setLocale(locale) {
-    API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    if (currentUserAccountID) {
+        API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
+    }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+}
+
+/**
+ * This links to a page in e.com ensuring the user is logged in.
+ * It does so by getting a validate code and redirecting to the validate URL with exitTo set to the URL
+ * we want to visit
+ * @param {string} url relative URL starting with `/` to open in expensify.com
+ */
+function openSignedInLink(url = '') {
+    API.GetAccountValidateCode().then((response) => {
+        const exitToURL = url ? `?exitTo=${url}` : '';
+        const validateCodeUrl = `v/${currentUserAccountID}/${response.validateCode}${exitToURL}`;
+        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + validateCodeUrl);
+    });
 }
 
 function setSidebarLoaded() {
@@ -33,11 +61,22 @@ function setSidebarLoaded() {
     }
 
     Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
-    Firebase.stopTrace(CONST.TIMING.SIDEBAR_LOADED);
+    Timing.end(CONST.TIMING.SIDEBAR_LOADED);
+    Performance.markEnd(CONST.TIMING.SIDEBAR_LOADED);
+    Performance.markStart(CONST.TIMING.REPORT_INITIAL_RENDER);
 }
+
+let appState;
+AppState.addEventListener('change', (nextAppState) => {
+    if (nextAppState.match(/inactive|background/) && appState === 'active') {
+        Log.info('Flushing logs as app is going inactive', true, {}, true);
+    }
+    appState = nextAppState;
+});
 
 export {
     setCurrentURL,
     setLocale,
+    openSignedInLink,
     setSidebarLoaded,
 };

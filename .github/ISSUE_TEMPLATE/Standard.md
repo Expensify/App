@@ -32,8 +32,12 @@ Where is this issue occurring?
 - Mobile Web
 
 **Version Number:**
+**Reproducible in staging?:**
+**Reproducible in production?:**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
 **Expensify/Expensify Issue URL:**
+**Issue reported by:**
+**Slack conversation:** 
 
-[View all open jobs on Upwork](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2)
+[View all open jobs on GitHub](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22)

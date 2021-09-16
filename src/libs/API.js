@@ -160,6 +160,13 @@ Network.registerResponseHandler((queuedRequest, response) => {
         return;
     }
 
+    if (response.jsonCode === 405 || response.jsonCode === 404) {
+        // IOU Split & Request money transactions failed due to invalid amount(405) or unable to split(404)
+        // It's a failure, so reject the queued request
+        queuedRequest.reject(response);
+        return;
+    }
+
     queuedRequest.resolve(response);
 });
 
@@ -426,6 +433,15 @@ function GetAccountStatus(parameters) {
 }
 
 /**
+ * Returns a validate code for this account
+ * @returns {Promise}
+ */
+function GetAccountValidateCode() {
+    const commandName = 'GetAccountValidateCode';
+    return Network.post(commandName);
+}
+
+/**
  * @param {Object} parameters
  * @param {String} parameters.debtorEmail
  * @returns {Promise}
@@ -468,15 +484,13 @@ function GetRequestCountryCode() {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.message
- * @param {Object} parameters.parameters
  * @param {String} parameters.expensifyCashAppVersion
- * @param {String} [parameters.email]
+ * @param {Object[]} parameters.logPacket
  * @returns {Promise}
  */
 function Log(parameters) {
     const commandName = 'Log';
-    requireParameters(['message', 'parameters', 'expensifyCashAppVersion'],
+    requireParameters(['logPacket', 'expensifyCashAppVersion'],
         parameters, commandName);
 
     // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
@@ -1074,6 +1088,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
+    GetAccountValidateCode,
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,

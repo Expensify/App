@@ -4,11 +4,11 @@ require_relative '../node_modules/react-native-unimodules/cocoapods.rb'
 
 platform :ios, '11.0'
 
-target 'ExpensifyCash' do
+target 'NewExpensify' do
   use_unimodules!
   permissions_path = '../node_modules/react-native-permissions/ios'
 
-  pod 'Plaid', '~> 2.1.2'
+  pod 'Plaid', '~> 2.2.0'
   pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
   pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
   pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"
@@ -19,7 +19,7 @@ target 'ExpensifyCash' do
     :hermes_enabled => true
   )
 
-  target 'ExpensifyCashTests' do
+  target 'NewExpensifyTests' do
     inherit! :complete
     # Pods for testing
   end

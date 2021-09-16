@@ -75,7 +75,7 @@ class IOUCurrencySelection extends Component {
         this.state = {
             searchValue: '',
             currencyData: currencyOptions,
-            toggledCurrencyCode: '',
+            toggledCurrencyCode: this.props.myPersonalDetails.localCurrencyCode,
         };
         this.getCurrencyOptions = this.getCurrencyOptions.bind(this);
         this.toggleOption = this.toggleOption.bind(this);
@@ -158,7 +158,12 @@ class IOUCurrencySelection extends Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <ScreenWrapper onTransitionEnd={() => {
+                if (this.textInput) {
+                    this.textInput.focus();
+                }
+            }}
+            >
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('iOUCurrencySelection.selectCurrency')}
@@ -179,7 +184,6 @@ class IOUCurrencySelection extends Component {
                             </View>
                             <View style={[styles.flex1]}>
                                 <SectionList
-                                    bounces={false}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={false}
@@ -190,6 +194,7 @@ class IOUCurrencySelection extends Component {
                                         <OptionRow
                                             key={key}
                                             mode="compact"
+                                            hoverStyle={styles.hoveredComponentBG}
                                             option={item}
                                             onSelectRow={() => this.toggleOption(item.currencyCode)}
                                             isSelected={

@@ -59,6 +59,14 @@ function canUseInternationalization(betas) {
     return _.contains(betas, CONST.BETAS.INTERNATIONALIZATION) || canUseAllBetas(betas);
 }
 
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+function canUseWallet(betas) {
+    return _.contains(betas, CONST.BETAS.BETA_EXPENSIFY_WALLET || canUseAllBetas(betas));
+}
+
 export default {
     canUseChronos,
     canUseIOU,
@@ -66,4 +74,5 @@ export default {
     canUseFreePlan,
     canUseDefaultRooms,
     canUseInternationalization,
+    canUseWallet,
 };

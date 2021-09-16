@@ -75,8 +75,8 @@ platform :ios do
     ENV["ENVFILE"]=".env.production"
 
     build_app(
-        workspace: "./ios/ExpensifyCash.xcworkspace",
-        scheme: "ExpensifyCash"
+        workspace: "./ios/NewExpensify.xcworkspace",
+        scheme: "NewExpensify"
     )
   end
 
@@ -107,22 +107,15 @@ platform :ios do
     )
 
     build_app(
-        workspace: "./ios/ExpensifyCash.xcworkspace",
-        scheme: "ExpensifyCash"
+        workspace: "./ios/NewExpensify.xcworkspace",
+        scheme: "NewExpensify"
     )
 
     upload_to_testflight(
         api_key_path: "./ios/ios-fastlane-json-key.json",
-        # TODO: Remove skip_waiting_for_build_processing when https://github.com/fastlane/fastlane/issues/18408 is resolved
-        # See: https://github.com/Expensify/Expensify.cash/pull/1984 for more information
-        skip_waiting_for_build_processing: true,
-        # TODO: Set distribute_external back to true when https://github.com/fastlane/fastlane/issues/18408 is resolved
-        # See: https://github.com/Expensify/Expensify.cash/pull/1984 for more information
-        distribute_external: false,
-        # TODO: Set reject_build_waiting_for_review back to true when https://github.com/fastlane/fastlane/issues/18408 is resolved
-        # See: https://github.com/Expensify/Expensify.cash/pull/1984 for more information
-        reject_build_waiting_for_review: false,
-        changelog: "Thank you for beta testing Expensify.cash, this version includes bug fixes and improvements.",
+        distribute_external: true,
+        notify_external_testers: true,
+        changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
         groups: ["Beta"],
         demo_account_required: true,
         beta_app_review_info: {
@@ -147,16 +140,62 @@ platform :ios do
   lane :production do
     deliver(
       api_key_path: "./ios/ios-fastlane-json-key.json",
+
+      # Skip HTMl report verification
+      force: true, 
+
+      # VERSION will be set to the full build_number e.g. '1.0.92.0'
       build_number: ENV["VERSION"],
+
+      # app_version needs to be set to the short version, without the last digit e.g. '1.0.92'
+      app_version: ENV["VERSION"].rpartition(".")[0],
+
+      # We want to submit the version for Apple to review
       submit_for_review: true,
-      automatic_release: false,
-      skip_metadata: true,
+
+      # We want to release the app as soon as it's approved
+      automatic_release: true,
+
+      # We need to upload metadata to upload the release notes which is required for rach new version
+      skip_metadata: false,
+
+      # We do not want to upload any screenshots
       skip_screenshots: true,
+
+      # We do not have any binary to upload as it's already in TestFlight
       skip_binary_upload: true,
+
+      # Reject the current build if there is one in review
+      reject_if_possible: true,
+
+      # We do not want to reset the ratings
+      reset_ratings: false,
+
+      # Precheck cannot check for in app purchases with the API key we use
       precheck_include_in_app_purchases: false,
       submission_information: {
-        add_id_info_uses_idfa: false
+
+        # We currently do not use idfa: https://developer.apple.com/app-store/user-privacy-and-data-use/
+        add_id_info_uses_idfa: false,
+
+        # We do not need any additional compliance
+        export_compliance_compliance_required: false,
+
+        # We do not use any encrpytion
+        export_compliance_encryption_updated: false,
+        export_compliance_app_type: nil,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: false,
+        export_compliance_contains_third_party_cryptography: false,
+        export_compliance_contains_proprietary_cryptography: false,
+
+        # We do not show any third party content
+        content_rights_contains_third_party_content: false
+      },
+      release_notes: {
+        'en-US' => "Improvements and bug fixes"
       }
     )
+
   end
 end

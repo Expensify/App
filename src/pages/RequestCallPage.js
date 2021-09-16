@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {ScrollView, TextInput} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -16,9 +16,10 @@ import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestConciergeDMCall} from '../libs/actions/Inbox';
+import {requestInboxCall} from '../libs/actions/Inbox';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
+import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 
@@ -51,6 +52,14 @@ const propTypes = {
         /** The type of the policy */
         type: PropTypes.string,
     }).isRequired,
+
+    /** Route object from navigation */
+    route: PropTypes.shape({
+        params: PropTypes.shape({
+            /** The task ID to request the call for */
+            taskID: PropTypes.string,
+        }),
+    }).isRequired,
 };
 
 class RequestCallPage extends Component {
@@ -61,6 +70,7 @@ class RequestCallPage extends Component {
             firstName,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
+            phoneNumberError: '',
             isLoading: false,
         };
 
@@ -70,19 +80,34 @@ class RequestCallPage extends Component {
     }
 
     onSubmit() {
-        this.setState({isLoading: true});
-        if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
-            this.setState({isLoading: false});
+        const shouldNotSubmit = _.isEmpty(this.state.firstName.trim())
+            || _.isEmpty(this.state.lastName.trim())
+            || _.isEmpty(this.state.phoneNumber.trim())
+            || !Str.isValidPhone(this.state.phoneNumber);
+
+        if (_.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim())) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
             return;
         }
 
-        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        if (_.isEmpty(this.state.phoneNumber.trim())) {
+            this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
+        } else if (!Str.isValidPhone(this.state.phoneNumber)) {
+            this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
+        } else {
+            this.setState({phoneNumberError: ''});
+        }
+
+        if (shouldNotSubmit) {
+            return;
+        }
+        const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
         if (!personalPolicy) {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-        requestConciergeDMCall(personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        this.setState({isLoading: true});
+        requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
@@ -121,7 +146,7 @@ class RequestCallPage extends Component {
         let firstName;
         let lastName;
 
-        if (login === displayName) {
+        if (Str.removeSMSDomain(login) === displayName) {
             firstName = '';
             lastName = '';
         } else {
@@ -141,7 +166,6 @@ class RequestCallPage extends Component {
     }
 
     render() {
-        const isButtonDisabled = false;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -168,17 +192,26 @@ class RequestCallPage extends Component {
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}
                         />
-                        <Text style={[styles.mt4, styles.formLabel]} numberOfLines={1}>
-                            {this.props.translate('common.phoneNumber')}
-                        </Text>
-                        <TextInput
-                            autoCompleteType="off"
-                            autoCorrect={false}
-                            style={[styles.textInput]}
-                            value={this.state.phoneNumber}
-                            placeholder="+14158675309"
-                            onChangeText={phoneNumber => this.setState({phoneNumber})}
-                        />
+                        <View style={styles.mt4}>
+                            <ExpensiTextInput
+                                label={this.props.translate('common.phoneNumber')}
+                                autoCompleteType="off"
+                                autoCorrect={false}
+                                value={this.state.phoneNumber}
+                                placeholder="+14158675309"
+                                errorText={this.state.phoneNumberError}
+                                onBlur={() => {
+                                    if (_.isEmpty(this.state.phoneNumber.trim())) {
+                                        this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
+                                    } else if (!Str.isValidPhone(this.state.phoneNumber)) {
+                                        this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
+                                    } else {
+                                        this.setState({phoneNumberError: ''});
+                                    }
+                                }}
+                                onChangeText={phoneNumber => this.setState({phoneNumber})}
+                            />
+                        </View>
                         <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
                             {this.props.translate('requestCallPage.availabilityText')}
                         </Text>
@@ -186,7 +219,6 @@ class RequestCallPage extends Component {
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={isButtonDisabled}
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}

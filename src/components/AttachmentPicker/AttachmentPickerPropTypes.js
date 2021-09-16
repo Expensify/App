@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import CONST from '../../CONST';
 
 const propTypes = {
     /**
@@ -20,6 +21,16 @@ const propTypes = {
      * </AttachmentPicker>
      * */
     children: PropTypes.func.isRequired,
+
+    /** The types of files that can be selected with this picker. */
+    type: PropTypes.oneOf([CONST.ATTACHMENT_PICKER_TYPE.FILE, CONST.ATTACHMENT_PICKER_TYPE.IMAGE]),
 };
 
-export default propTypes;
+const defaultProps = {
+    type: CONST.ATTACHMENT_PICKER_TYPE.FILE,
+};
+
+export {
+    propTypes,
+    defaultProps,
+};

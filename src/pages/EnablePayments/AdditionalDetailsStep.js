@@ -12,12 +12,12 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import {activateWallet} from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import TextLink from '../../components/TextLink';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -62,7 +62,7 @@ class AdditionalDetailsStep extends React.Component {
                 fieldName: 'legalLastName',
             },
             {
-                label: props.translate('common.addressNoPO'),
+                label: props.translate('common.personalAddress'),
                 fieldName: 'addressStreet',
             },
             {
@@ -128,17 +128,20 @@ class AdditionalDetailsStep extends React.Component {
                         </View>
                         <ScrollView contentContainerStyle={styles.p5}>
                             {_.map(this.fields, field => (
-                                <TextInputWithLabel
-                                    key={field.label}
-                                    label={field.label}
-                                    onChangeText={val => this.setState({[field.fieldName]: val})}
-                                    value={this.state[field.fieldName]}
-                                    errorText={errorFields.includes(field.fieldName)
-                                        ? `${field.label} ${this.requiredText}`
-                                        : ''}
-                                    // eslint-disable-next-line react/jsx-props-no-spreading
-                                    {..._.omit(field, ['label', 'fieldName'])}
-                                />
+                                <>
+                                    <ExpensiTextInput
+                                        key={field.label}
+                                        label={field.label}
+                                        onChangeText={val => this.setState({[field.fieldName]: val})}
+                                        value={this.state[field.fieldName]}
+                                        errorText={errorFields.includes(field.fieldName)
+                                            ? `${field.label} ${this.requiredText}`
+                                            : ''}
+                                        // eslint-disable-next-line react/jsx-props-no-spreading
+                                        {..._.omit(field, ['label', 'fieldName'])}
+                                    />
+                                    {field.fieldName === 'addressStreet' && <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>}
+                                </>
                             ))}
                         </ScrollView>
                         <View style={[styles.m5]}>

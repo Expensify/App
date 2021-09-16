@@ -9,7 +9,7 @@ const propTypes = {
     onChange: PropTypes.func.isRequired,
 
     /** Whether or not to show the disabled styles */
-    useDisabledStyles: PropTypes.bool,
+    isDisabled: PropTypes.bool,
 
     /** Disables interaction with the component */
     disabled: PropTypes.bool,
@@ -42,7 +42,7 @@ const propTypes = {
     size: PropTypes.oneOf(['normal', 'small']),
 };
 const defaultProps = {
-    useDisabledStyles: false,
+    isDisabled: false,
     disabled: false,
     placeholder: {},
     value: null,
@@ -63,6 +63,7 @@ const defaultProps = {
                 )}
         </>
     ),
+    size: 'normal',
 };
 
 export {

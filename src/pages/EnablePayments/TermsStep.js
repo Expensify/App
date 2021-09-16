@@ -1,10 +1,7 @@
 import React from 'react';
-import {
-    View, ScrollView,
-} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -17,6 +14,9 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
+import ShortTermsForm from './TermsPage/ShortTermsForm';
+import LongTermsForm from './TermsPage/LongTermsForm';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -58,21 +58,16 @@ class TermsStep extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper>
+            <>
                 <HeaderWithCloseButton
                     title={this.props.translate('termsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={[styles.mh5, styles.flex1]}>
-                    <ScrollView>
-                        <Text>
-                            {/* @TODO build out the terms page */}
-                            {/* eslint-disable-next-line max-len */}
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                        </Text>
-                    </ScrollView>
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.ph5}>
+                    <ShortTermsForm />
+                    <LongTermsForm />
                     <CheckboxWithLabel
-                        style={styles.mb4}
+                        style={[styles.mb4, styles.mt4]}
                         isChecked={this.state.hasAcceptedDisclosure}
                         onPress={this.toggleDisclosure}
                         LabelComponent={() => (
@@ -107,33 +102,33 @@ class TermsStep extends React.Component {
                             </>
                         )}
                     />
-                    {this.state.error && (
-                        <Text style={[styles.formError, styles.mb2]}>
-                            {this.props.translate('termsStep.termsMustBeAccepted')}
-                        </Text>
-                    )}
-                    <View style={[styles.mv5]}>
-                        <Button
-                            success
-                            text={this.props.translate('termsStep.enablePayments')}
-                            isLoading={this.props.walletTerms.loading}
-                            onPress={() => {
-                                if (!this.state.hasAcceptedDisclosure
-                                    || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
-                                    this.setState({error: true});
-                                    return;
-                                }
+                </ScrollView>
+                {this.state.error && (
+                    <Text style={[styles.formError, styles.mb2]}>
+                        {this.props.translate('termsStep.termsMustBeAccepted')}
+                    </Text>
+                )}
+                <FixedFooter>
+                    <Button
+                        success
+                        text={this.props.translate('termsStep.enablePayments')}
+                        isLoading={this.props.walletTerms.loading}
+                        onPress={() => {
+                            if (!this.state.hasAcceptedDisclosure
+                                || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+                                this.setState({error: true});
+                                return;
+                            }
 
-                                this.setState({error: false});
-                                activateWallet(CONST.WALLET.STEP.TERMS, {
-                                    hasAcceptedTerms: this.state.hasAcceptedDisclosure
-                                        && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
-                                });
-                            }}
-                        />
-                    </View>
-                </View>
-            </ScreenWrapper>
+                            this.setState({error: false});
+                            activateWallet(CONST.WALLET.STEP.TERMS, {
+                                hasAcceptedTerms: this.state.hasAcceptedDisclosure
+                                    && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                            });
+                        }}
+                    />
+                </FixedFooter>
+            </>
         );
     }
 }
