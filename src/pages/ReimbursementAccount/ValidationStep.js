@@ -20,7 +20,7 @@ import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 
 const propTypes = {
@@ -60,9 +60,9 @@ class ValidationStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         this.state = {
-            amount1: getDefaultStateForField(props, 'amount1', ''),
-            amount2: getDefaultStateForField(props, 'amount2', ''),
-            amount3: getDefaultStateForField(props, 'amount3', ''),
+            amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
+            amount2: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount2', ''),
+            amount3: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount3', ''),
         };
 
         this.requiredFields = [
@@ -76,22 +76,10 @@ class ValidationStep extends React.Component {
             amount2: 'common.error.invalidAmount',
             amount3: 'common.error.invalidAmount',
         };
-    }
 
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
-    /**
-     * @param {String} inputKey
-     * @returns {String}
-     */
-    getErrorText(inputKey) {
-        const errors = this.getErrors();
-        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
     }
 
     /**
@@ -110,16 +98,7 @@ class ValidationStep extends React.Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         this.setValue({[inputKey]: value});
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
+        this.clearError(inputKey);
     }
 
     /**
