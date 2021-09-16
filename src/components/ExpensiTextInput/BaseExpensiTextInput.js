@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import {
     Animated, TextInput, View, TouchableWithoutFeedback,
 } from 'react-native';
-import _ from 'lodash';
+import lodashDebounce from 'lodash/debounce';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
@@ -39,7 +39,7 @@ class BaseExpensiTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
-        this.debouncedOnTextChange = _.debounce((value) => {
+        this.debouncedOnTextChange = lodashDebounce((value) => {
             Str.result(this.props.onChangeText, value);
         }, 500);
     }
