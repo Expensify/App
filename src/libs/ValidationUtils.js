@@ -40,7 +40,7 @@ function isRequiredFulfilled(value) {
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
-    return moment(date).isValid();
+    return moment(date, 'YYYY-MM-DD', true).isValid();
 }
 
 /**
@@ -68,12 +68,13 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ * Validate that "date" is 18 years old or older
  *
  * @param {String} date
  * @returns {Boolean}
  */
 function isValidAge(date) {
-    return moment().diff(moment(date), 'years') >= 18;
+    return moment().diff(moment(date, 'YYYY-MM-DD'), 'years') >= 18;
 }
 
 /**
@@ -86,7 +87,7 @@ function validateIdentity(identity) {
         errors.street = translateLocal('bankAccount.error.address');
     }
 
-    if (isRequiredFulfilled(identity.state)) {
+    if (!isRequiredFulfilled(identity.state)) {
         errors.state = translateLocal('bankAccount.error.addressState');
     }
 
