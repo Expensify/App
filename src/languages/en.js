@@ -73,6 +73,11 @@ export default {
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
+        error: {
+            invalidAmount: 'Invalid amount',
+        },
+        please: 'Please',
+        contactUs: 'contact us',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -185,7 +190,6 @@ export default {
         noReimbursableExpenses: 'This report has an invalid amount',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
-            invalidAmount: 'Invalid amount',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
         },
@@ -386,6 +390,9 @@ export default {
             taxID: 'Please enter a valid Tax ID Number',
             website: 'Please enter a valid website',
             zipCode: 'Please enter a valid zip code',
+            phoneNumber: 'Please enter a valid phone number',
+            companyName: 'Please enter a valid legal business name',
+            addressCity: 'Please enter a valid city',
             addressStreet: 'Please enter a valid address street that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid incorporation date',
@@ -400,6 +407,8 @@ export default {
             dob: 'Please enter a valid date of birth',
             age: 'Requestors must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
+            firstName: 'Please enter valid first name',
+            lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             existingOwners: {
                 alreadyInUse: 'This bank account is already in use by ',
@@ -547,7 +556,7 @@ export default {
     validationStep: {
         headerTitle: 'Validate',
         buttonText: 'Finish setup',
-        maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+        maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',

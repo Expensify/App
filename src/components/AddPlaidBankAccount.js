@@ -12,6 +12,8 @@ import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
     getPlaidBankAccounts,
+    setBankAccountFormValidationErrors,
+    showBankAccountErrorModal,
 } from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
@@ -21,6 +23,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Button from './Button';
 import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
+import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -95,6 +98,9 @@ class AddPlaidBankAccount extends React.Component {
             isCreatingAccount: false,
             institution: {},
         };
+
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
     }
 
     componentDidMount() {
@@ -111,7 +117,24 @@ class AddPlaidBankAccount extends React.Component {
         return lodashGet(this.props.plaidBankAccounts, 'accounts', []);
     }
 
+    /**
+     * @returns {Boolean}
+     */
+    validate() {
+        const errors = {};
+        if (_.isUndefined(this.state.selectedIndex)) {
+            errors.selectedBank = true;
+        }
+        setBankAccountFormValidationErrors(errors);
+        return _.size(errors) === 0;
+    }
+
     selectAccount() {
+        if (!this.validate()) {
+            showBankAccountErrorModal();
+            return;
+        }
+
         const account = this.getAccounts()[this.state.selectedIndex];
         this.props.onSubmit({
             account, plaidLinkToken: this.props.plaidLinkToken,
@@ -163,6 +186,7 @@ class AddPlaidBankAccount extends React.Component {
                                     label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
                                     onChange={(index) => {
                                         this.setState({selectedIndex: Number(index)});
+                                        this.clearError('selectedBank');
                                     }}
                                     items={options}
                                     placeholder={_.isUndefined(this.state.selectedIndex) ? {
@@ -170,6 +194,7 @@ class AddPlaidBankAccount extends React.Component {
                                         label: this.props.translate('bankAccount.chooseAnAccount'),
                                     } : {}}
                                     value={this.state.selectedIndex}
+                                    hasError={this.getErrors().selectedBank}
                                 />
                             </View>
                         </View>
@@ -179,7 +204,6 @@ class AddPlaidBankAccount extends React.Component {
                                 text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.state.isCreatingAccount}
                                 onPress={this.selectAccount}
-                                isDisabled={_.isUndefined(this.state.selectedIndex)}
                             />
                         </View>
                     </>
@@ -205,6 +229,9 @@ export default compose(
         },
         plaidBankAccounts: {
             key: ONYXKEYS.PLAID_BANK_ACCOUNTS,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(AddPlaidBankAccount);

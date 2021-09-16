@@ -77,14 +77,26 @@ const IdentityForm = ({
                     <ExpensiTextInput
                         label={`${translate('common.firstName')}`}
                         value={firstName}
-                        onChangeText={val => onFieldChange('firstName', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.firstName')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('firstName', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.firstName') ? error : ''}
                     />
                 </View>
                 <View style={[styles.flex2]}>
                     <ExpensiTextInput
                         label={`${translate('common.lastName')}`}
                         value={lastName}
-                        onChangeText={val => onFieldChange('lastName', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.lastName')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('lastName', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.lastName') ? error : ''}
                     />
                 </View>
             </View>
@@ -131,13 +143,26 @@ const IdentityForm = ({
                     <ExpensiTextInput
                         label={translate('common.city')}
                         value={city}
-                        onChangeText={val => onFieldChange('city', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.addressCity')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('city', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.addressCity') ? error : ''}
                     />
                 </View>
                 <View style={[styles.flex1]}>
                     <StatePicker
                         value={state}
-                        onChange={val => onFieldChange('state', val)}
+                        onChange={(val) => {
+                            if (error === translateLocal('bankAccount.error.addressState')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('state', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.addressState') ? error : ''}
+                        hasError={error === translateLocal('bankAccount.error.addressState')}
                     />
                 </View>
             </View>
