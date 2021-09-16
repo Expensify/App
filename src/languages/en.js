@@ -73,6 +73,11 @@ export default {
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
+        error: {
+            invalidAmount: 'Invalid amount',
+        },
+        please: 'Please',
+        contactUs: 'contact us',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -185,7 +190,6 @@ export default {
         noReimbursableExpenses: 'This report has an invalid amount',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
-            invalidAmount: 'Invalid amount',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
         },
@@ -551,7 +555,7 @@ export default {
     validationStep: {
         headerTitle: 'Validate',
         buttonText: 'Finish setup',
-        maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+        maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
