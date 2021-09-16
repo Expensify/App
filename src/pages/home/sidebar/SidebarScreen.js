@@ -23,7 +23,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {create, getPolicyList, getWorkspaceCount} from '../../../libs/actions/Policy';
+import {create, getWorkspaceCount} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
 import NameValuePair from '../../../libs/actions/NameValuePair';
 
@@ -67,21 +67,6 @@ class SidebarScreen extends Component {
                 NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
             }, 200);
         }
-    }
-
-    /**
-     * Method called when the New Workspace menu item is selected
-     *
-     * We create a policy and open the Workspace card modal.
-     * We also make a call to refresh the cached policies in Onyx,
-     * followed by an update to the state of this menu.
-     */
-    onNewWorkspaceSelected() {
-        create();
-        getPolicyList();
-        this.setState({
-            hasWorkspacesAlready: getWorkspaceCount(),
-        });
     }
 
     /**
@@ -181,7 +166,7 @@ class SidebarScreen extends Component {
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => this.onNewWorkspaceSelected(),
+                                        onSelected: () => create(),
                                     },
                                 ] : []),
                             ]}

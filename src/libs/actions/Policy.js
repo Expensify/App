@@ -118,8 +118,7 @@ function getPolicyList() {
  * @returns {Number}
  */
 function getWorkspaceCount() {
-    return _.size(_.chain(allPolicies)
-        .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN).value());
+    return _.size(_.filter(allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN));
 }
 
 /**
