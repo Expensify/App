@@ -76,6 +76,8 @@ export default {
         error: {
             invalidAmount: 'Monto no válido',
         },
+        please: 'Por favor',
+        contactUs: 'contáctenos',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
