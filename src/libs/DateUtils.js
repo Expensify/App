@@ -1,7 +1,6 @@
 import moment from 'moment-timezone';
 import lodashGet from 'lodash/get';
 
-
 // IMPORTANT: load any locales (other than english) that might be passed to moment.locale()
 import 'moment/locale/es';
 
