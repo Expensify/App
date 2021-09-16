@@ -279,7 +279,7 @@ export default {
         nameOnCard: 'Name on Card',
         debitCardNumber: 'Debit Card Number',
         expiration: 'Expiration',
-        expirationDate: 'MM/YY',
+        expirationDate: 'MM/YYYY',
         cvv: 'CVV',
         billingAddress: 'Billing Address',
         streetAddress: 'Street Address',

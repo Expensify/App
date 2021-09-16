@@ -46,6 +46,7 @@ class DebitCardPage extends Component {
             selectedState: '',
             zipCode: '',
             acceptedTerms: false,
+            isAddingCard: false,
         };
 
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
@@ -109,6 +110,7 @@ class DebitCardPage extends Component {
         if (!this.validate()) {
             return;
         }
+        this.setState({isAddingCard: true});
         addBillingCard(this.state);
     }
 
@@ -218,6 +220,7 @@ class DebitCardPage extends Component {
                             onPress={this.submit}
                             style={[styles.w100]}
                             text={this.props.translate('common.save')}
+                            isLoading={this.state.isAddingCard}
                             pressOnEnter
                         />
                     </FixedFooter>
