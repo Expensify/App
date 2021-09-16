@@ -115,7 +115,7 @@ function getPolicyList() {
 /**
  * Does the user have any (free policy) workspaces?
  *
- * @returns {Number}
+ * @returns {Boolean}
  */
 function hasWorkspaces() {
     return _.some(allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
