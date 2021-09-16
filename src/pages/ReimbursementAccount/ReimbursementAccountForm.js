@@ -46,10 +46,8 @@ class ReimbursementAccountForm extends React.Component {
             error = (
                 <>
                     <Text style={styles.mutedTextLabel}>
-                        {this.props.translate('common.please')}
-                        {' '}
+                        {`${this.props.translate('common.please')} `}
                     </Text>
-                    Por favor corrige los errores [en el formulario] antes de continuar
                     <TextLink
                         style={styles.label}
                         onPress={() => {
@@ -59,9 +57,7 @@ class ReimbursementAccountForm extends React.Component {
                         {this.props.translate('bankAccount.error.fixTheErrors')}
                     </TextLink>
                     <Text style={styles.mutedTextLabel}>
-                        {' '}
-                        {this.props.translate('bankAccount.error.inTheFormBeforeContinuing')}
-                        {'.'}
+                        {` ${this.props.translate('bankAccount.error.inTheFormBeforeContinuing')}.`}
                     </Text>
                 </>
             );
