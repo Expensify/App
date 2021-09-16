@@ -251,28 +251,16 @@ class IOUModal extends Component {
      *
      * @param {Array} [splits]
      */
-<<<<<<< HEAD
     confirm(splits) {
         if (this.state.iouType === CONST.IOU.IOU_TYPE.SEND) {
             payIOUReport({
                 chatReportID: this.props.route.params.reportID,
                 reportID: 0,
                 paymentMethodType: this.state.paymentType,
-=======
-    createTransaction(splits) {
-        const reportID = lodashGet(this.props, 'route.params.reportID', '');
-
-        // Only splits from a group DM has a reportID
-        // Check if reportID is a number
-        if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            createIOUSplitGroup({
-                comment: this.state.comment,
->>>>>>> main
 
                 // should send in cents to API
                 amount: Math.round(this.state.amount * 100),
                 currency: this.props.iou.selectedCurrencyCode,
-<<<<<<< HEAD
 
                 // submitterPayPalMeAddress: this.props.iouReport.submitterPayPalMeAddress,
                 // submitterPhoneNumber: this.submitterPhoneNumber,
@@ -282,13 +270,6 @@ class IOUModal extends Component {
             return;
         }
 
-=======
-                splits,
-                reportID,
-            });
-            return;
-        }
->>>>>>> main
         if (splits) {
             createIOUSplit({
                 comment: this.state.comment,
