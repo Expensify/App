@@ -117,8 +117,8 @@ function getPolicyList() {
  *
  * @returns {Number}
  */
-function getWorkspaceCount() {
-    return _.size(_.filter(allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN));
+function hasWorkspaces() {
+    return _.size(_.filter(allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)) > 0;
 }
 
 /**
@@ -293,7 +293,7 @@ function updateLocalPolicyValues(policyID, values) {
 export {
     getPolicySummaries,
     getPolicyList,
-    getWorkspaceCount,
+    hasWorkspaces,
     removeMembers,
     invite,
     create,

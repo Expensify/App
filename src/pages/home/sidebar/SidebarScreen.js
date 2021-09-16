@@ -23,7 +23,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {create, getWorkspaceCount} from '../../../libs/actions/Policy';
+import {create, hasWorkspaces} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
 import NameValuePair from '../../../libs/actions/NameValuePair';
 
@@ -50,7 +50,6 @@ class SidebarScreen extends Component {
 
         this.state = {
             isCreateMenuActive: false,
-            hasWorkspacesAlready: getWorkspaceCount(),
         };
     }
 
@@ -93,7 +92,6 @@ class SidebarScreen extends Component {
     toggleCreateMenu() {
         this.setState(state => ({
             isCreateMenuActive: !state.isCreateMenuActive,
-            hasWorkspacesAlready: getWorkspaceCount(),
         }));
     }
 
@@ -159,7 +157,7 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) && !this.state.hasWorkspacesAlready ? [
+                                ...(Permissions.canUseFreePlan(this.props.betas) && !hasWorkspaces() ? [
                                     {
                                         icon: NewWorkspace,
                                         iconWidth: 46,
