@@ -150,7 +150,6 @@ function getFromReportParticipants(reports) {
 
     API.PersonalDetails_GetForEmails({emailList: participantEmails.join(',')})
         .then((data) => {
-            console.log("data ", data);
             const existingDetails = _.pick(data, participantEmails);
 
             // Fallback to add logins that don't appear in the response
