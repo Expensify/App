@@ -13,12 +13,10 @@ import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import {
+    showBankAccountErrorModal,
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
-    hideBankAccountErrors,
     setupWithdrawalAccount,
-    showBankAccountErrorModal,
-    showBankAccountFormValidationError,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Button from '../../components/Button';
@@ -27,7 +25,7 @@ import {isRequiredFulfilled, validateIdentity} from '../../libs/ValidationUtils'
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -47,29 +45,35 @@ class RequestorStep extends React.Component {
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
 
         this.state = {
-            firstName: getDefaultStateForField(props, 'firstName'),
-            lastName: getDefaultStateForField(props, 'lastName'),
-            requestorAddressStreet: getDefaultStateForField(props, 'requestorAddressStreet'),
-            requestorAddressCity: getDefaultStateForField(props, 'requestorAddressCity'),
-            requestorAddressState: getDefaultStateForField(props, 'requestorAddressState'),
-            requestorAddressZipCode: getDefaultStateForField(props, 'requestorAddressZipCode'),
-            dob: getDefaultStateForField(props, 'dob'),
-            ssnLast4: getDefaultStateForField(props, 'ssnLast4'),
-            isControllingOfficer: getDefaultStateForField(props, 'isControllingOfficer', false),
+            firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
+            lastName: ReimbursementAccountUtils.getDefaultStateForField(props, 'lastName'),
+            requestorAddressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressStreet'),
+            requestorAddressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressCity'),
+            requestorAddressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressState'),
+            requestorAddressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressZipCode'),
+            dob: ReimbursementAccountUtils.getDefaultStateForField(props, 'dob'),
+            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(props, 'ssnLast4'),
+            isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(props, 'isControllingOfficer', false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
+        // Required fields not validated by `validateIdentity`
         this.requiredFields = [
             'firstName',
             'lastName',
-            'requestorAddressStreet',
-            'requestorAddressCity',
-            'requestorAddressZipCode',
-            'dob',
-            'ssnLast4',
-            'requestorAddressState',
+            'isControllingOfficer',
         ];
+
+        // Map a field to the key of the error's translation
+        this.errorTranslationKeys = {
+            firstName: 'bankAccount.error.firstName',
+            lastName: 'bankAccount.error.lastName',
+            isControllingOfficer: 'requestorStep.isControllingOfficerError',
+        };
+
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     onFieldChange(field, value) {
@@ -84,12 +88,7 @@ class RequestorStep extends React.Component {
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
 
-        const errors = this.getErrors();
-        if (errors[field]) {
-            const newErrors = {...errors};
-            delete newErrors[field];
-            setBankAccountFormValidationErrors(newErrors);
-        }
+        this.clearError(field);
     }
 
     getErrors() {
@@ -131,11 +130,6 @@ class RequestorStep extends React.Component {
      * @returns {Boolean}
      */
     validate() {
-        if (!this.state.isControllingOfficer) {
-            showBankAccountFormValidationError(this.props.translate('requestorStep.isControllingOfficerError'));
-            showBankAccountErrorModal();
-            return false;
-        }
         const errors = validateIdentity({
             street: this.state.requestorAddressStreet,
             state: this.state.requestorAddressState,
@@ -144,24 +138,17 @@ class RequestorStep extends React.Component {
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
         });
+
+        _.each(this.requiredFields, (inputKey) => {
+            if (!isRequiredFulfilled(this.state[inputKey])) {
+                errors[inputKey] = this.props.translate(this.errorTranslationKeys[inputKey]);
+            }
+        });
         if (_.size(errors)) {
             setBankAccountFormValidationErrors(errors);
             showBankAccountErrorModal();
             return false;
         }
-
-        if (!isRequiredFulfilled(this.state.firstName)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.firstName'));
-            showBankAccountErrorModal();
-            return false;
-        }
-
-        if (!isRequiredFulfilled(this.state.lastName)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.lastName'));
-            showBankAccountErrorModal();
-            return false;
-        }
-
         return true;
     }
 
@@ -233,15 +220,12 @@ class RequestorStep extends React.Component {
                                 <CheckboxWithLabel
                                     isChecked={this.state.isControllingOfficer}
                                     onPress={() => {
-                                        if (this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')) {
-                                            hideBankAccountErrors();
-                                        }
-
                                         this.setState((prevState) => {
                                             const newState = {isControllingOfficer: !prevState.isControllingOfficer};
                                             updateReimbursementAccountDraft(newState);
                                             return newState;
                                         });
+                                        this.clearError('isControllingOfficer');
                                     }}
                                     LabelComponent={() => (
                                         <View style={[styles.flex1, styles.pr1]}>
@@ -251,9 +235,8 @@ class RequestorStep extends React.Component {
                                         </View>
                                     )}
                                     style={[styles.mt4]}
-                                    hasError={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')}
-                                    errorText={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')
-                                        ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
+                                    hasError={Boolean(this.getErrors().isControllingOfficer)}
+                                    errorText={this.getErrors().isControllingOfficer || ''}
                                 />
                                 <Text style={[styles.textMicroSupporting, styles.mt5]}>
                                     {this.props.translate('requestorStep.financialRegulations')}

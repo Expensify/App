@@ -143,7 +143,7 @@ const IdentityForm = ({
                         label={translate('common.city')}
                         value={city}
                         onChangeText={value => onFieldChange('city', value)}
-                        errorText={firstName.addressCity || ''}
+                        errorText={errors.city || ''}
                     />
                 </View>
                 <View style={[styles.flex1]}>
