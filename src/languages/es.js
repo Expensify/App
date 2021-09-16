@@ -363,8 +363,8 @@ export default {
         passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
-        passwordNotSet:'No pudimos establecer to contaseña correctamente.',
-        accountNotValidated:'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
+        passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
+        accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
     },
     bankAccount: {
         accountNumber: 'Número de cuenta',

@@ -89,7 +89,7 @@ class SetPasswordPage extends Component {
                         signIn(this.state.password);
                     } else {
                         this.setState({
-                           error: this.props.translate('setPasswordPage.passwordNotSet'),
+                            error: this.props.translate('setPasswordPage.passwordNotSet'),
                         });
                     }
                 });
