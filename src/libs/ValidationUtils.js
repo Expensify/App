@@ -91,6 +91,12 @@ function validateIdentity(identity) {
         errors.state = translateLocal('bankAccount.error.addressState');
     }
 
+    if (identity.city === '') {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
     if (!isValidZipCode(identity.zipCode)) {
         errors.zipCode = translateLocal('bankAccount.error.zipCode');
     }

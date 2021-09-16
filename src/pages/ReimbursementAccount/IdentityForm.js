@@ -102,6 +102,7 @@ const IdentityForm = ({
                         label={`${translate('common.firstName')}`}
                         value={firstName}
                         onChangeText={value => onFieldChange('firstName', value)}
+                        errorText={errors.firstName || ''}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -109,6 +110,7 @@ const IdentityForm = ({
                         label={`${translate('common.lastName')}`}
                         value={lastName}
                         onChangeText={value => onFieldChange('lastName', value)}
+                        errorText={errors.lastName || ''}
                     />
                 </View>
             </View>
@@ -141,12 +143,15 @@ const IdentityForm = ({
                         label={translate('common.city')}
                         value={city}
                         onChangeText={value => onFieldChange('city', value)}
+                        errorText={firstName.addressCity || ''}
                     />
                 </View>
                 <View style={[styles.flex1]}>
                     <StatePicker
                         value={state}
                         onChange={value => onFieldChange('state', value)}
+                        errorText={errors.state || ''}
+                        hasError={Boolean(errors.state)}
                     />
                 </View>
             </View>
