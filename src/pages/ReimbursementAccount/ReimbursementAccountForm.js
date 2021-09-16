@@ -10,7 +10,6 @@ import Text from '../../components/Text';
 import Button from '../../components/Button';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import ExistingOwners from './ExistingOwners';
 import Icon from '../../components/Icon';
 import {Exclamation} from '../../components/Icon/Expensicons';
 import colors from '../../styles/colors';
@@ -39,11 +38,7 @@ class ReimbursementAccountForm extends React.Component {
     getAlertPrompt() {
         let error = '';
 
-        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
-            error = (
-                <ExistingOwners />
-            );
-        } else if (!_.isEmpty(this.props.reimbursementAccount.errorModalMessage)) {
+        if (!_.isEmpty(this.props.reimbursementAccount.errorModalMessage)) {
             error = (
                 <Text style={styles.mutedTextLabel}>{this.props.reimbursementAccount.errorModalMessage}</Text>
             );

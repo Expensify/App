@@ -24,9 +24,6 @@ export default PropTypes.shape({
     /** Disable validation button if max attempts exceeded */
     maxAttemptsReached: PropTypes.bool,
 
-    /** The existing owners for if the bank account is already owned */
-    existingOwners: PropTypes.arrayOf(PropTypes.string),
-
     /** Alert message to display above submit button */
     errorModalMessage: PropTypes.string,
 

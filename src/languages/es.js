@@ -407,10 +407,6 @@ export default {
             firstName: 'Ingresa un nombre válido',
             lastName: 'Ingresa un apellido válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
-            existingOwners: {
-                alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
-                pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
-            },
         },
     },
     addPersonalBankAccountPage: {

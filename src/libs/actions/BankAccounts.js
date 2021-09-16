@@ -677,18 +677,6 @@ function setupWithdrawalAccount(data) {
                     setFreePlanVerifiedBankAccountID(achData.bankAccountID);
                 }
 
-                // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    Onyx.merge(
-                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {
-                            existingOwners: response.existingOwners,
-                            isErrorModalVisible: true,
-                        },
-                    );
-                    return;
-                }
-
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
                     const requestorResponse = lodashGet(
                         achData,
@@ -796,7 +784,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: null, errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {

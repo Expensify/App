@@ -407,10 +407,6 @@ export default {
             firstName: 'Please enter valid first name',
             lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
-            existingOwners: {
-                alreadyInUse: 'This bank account is already in use by ',
-                pleaseAskThemToShare: 'Please ask them to share it with you.',
-            },
         },
     },
     addPersonalBankAccountPage: {
