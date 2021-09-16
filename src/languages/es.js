@@ -381,9 +381,7 @@ export default {
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso en la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
-        confirmModalTitle: 'Ups',
-        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
-        confirmModalConfirmText: 'OK',
+        defaultFormAlertPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             taxID: 'Ingresa un número de identificación fiscal válido',

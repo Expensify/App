@@ -620,7 +620,7 @@ function showBankAccountFormValidationError(error) {
  */
 function setupWithdrawalAccount(data) {
     let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
 
     const newACHData = {
         ...reimbursementAccountInSetup,

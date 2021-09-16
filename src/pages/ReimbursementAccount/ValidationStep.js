@@ -1,8 +1,7 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -23,28 +22,14 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Object containing various errors */
-        errors: PropTypes.objectOf(PropTypes.bool),
-
-        /** Whether we have reached the maximum attempts */
-        maxAttemptsReached: PropTypes.bool,
-
-        /** Additional data for the account in setup */
-        achData: PropTypes.shape({
-
-            /** Bank account ID of the VBA that we are validating is required */
-            bankAccountID: PropTypes.number.isRequired,
-
-            /** State of bank account */
-            state: PropTypes.string,
-        }).isRequired,
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 };
 
 const defaultProps = {
@@ -201,16 +186,18 @@ class ValidationStep extends React.Component {
                     </View>
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
-                    <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.mt2, styles.flexGrow1]}>
+                    <ReimbursementAccountForm
+                        onSubmit={this.submit}
+                    >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mh5, styles.mb5]}>
+                            <Text style={[styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
                             </Text>
-                            <Text style={[styles.mh5, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.m5]}>
+                        <View style={[styles.mv5, styles.flex1]}>
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
@@ -236,15 +223,7 @@ class ValidationStep extends React.Component {
                                 errorText={this.getErrorText('amount3')}
                             />
                         </View>
-                        <View style={[styles.flex1, styles.justifyContentEnd]}>
-                            <Button
-                                success
-                                text={this.props.translate('validationStep.buttonText')}
-                                style={[styles.mh5, styles.mb5]}
-                                onPress={this.submit}
-                            />
-                        </View>
-                    </ScrollView>
+                    </ReimbursementAccountForm>
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>

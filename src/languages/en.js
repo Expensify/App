@@ -381,9 +381,7 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
-        confirmModalTitle: 'Oops',
-        confirmModalPrompt: 'Please double check any highlighted fields and try again.',
-        confirmModalConfirmText: 'Got it',
+        defaultFormAlertPrompt: 'Please double check any highlighted fields and try again.',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             taxID: 'Please enter a valid Tax ID Number',
