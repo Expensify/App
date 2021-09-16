@@ -164,16 +164,20 @@ class ValidationStep extends React.Component {
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
-        const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || maxAttemptsReached;
-
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('validationStep.headerTitle')}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {state === BankAccount.STATE.PENDING && (
+                {maxAttemptsReached && (
+                    <View style={[styles.m5, styles.flex1]}>
+                        <Text>
+                            {this.props.translate('validationStep.maxAttemptsReached')}
+                        </Text>
+                    </View>
+                )}
+                {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
                     <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.mt2, styles.flexGrow1]}>
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mh5, styles.mb5]}>
@@ -208,11 +212,6 @@ class ValidationStep extends React.Component {
                                 onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
                                 errorText={this.getErrorText('amount3')}
                             />
-                            {maxAttemptsReached && (
-                                <Text style={[styles.mb5, styles.mt2, styles.textDanger]}>
-                                    {this.props.translate('validationStep.maxAttemptsReached')}
-                                </Text>
-                            )}
                         </View>
                         <View style={[styles.flex1, styles.justifyContentEnd]}>
                             <Button
@@ -220,12 +219,12 @@ class ValidationStep extends React.Component {
                                 text={this.props.translate('validationStep.buttonText')}
                                 style={[styles.mh5, styles.mb5]}
                                 onPress={this.submit}
-                                isDisabled={shouldDisableSubmitButton}
+                                isDisabled={maxAttemptsReached}
                             />
                         </View>
                     </ScrollView>
                 )}
-                {state === BankAccount.STATE.VERIFYING && (
+                {!maxAttemptsReached && state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
                         <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
                             {this.props.translate('validationStep.reviewingInfo')}
