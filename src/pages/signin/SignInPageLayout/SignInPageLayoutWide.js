@@ -1,10 +1,13 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {Image, StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
-import welcomeScreenshot from '../../../../assets/images/welcome-screenshot.png';
+import WelcomeScreenshot1 from '../../../../assets/images/freeplan_blue.svg';
+import WelcomeScreenshot2 from '../../../../assets/images/freeplan_green.svg';
+import WelcomeScreenshot3 from '../../../../assets/images/freeplan_orange.svg';
+import WelcomeScreenshot4 from '../../../../assets/images/freeplan_pink.svg';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import CONST from '../../../CONST';
@@ -61,46 +64,15 @@ const SignInPageLayoutWide = props => (
                 styles.flexGrow1,
                 styles.dFlex,
                 styles.flexRow,
-                styles.justifyContentAround,
                 styles.backgroundBlue,
+                styles.justifyContentAround,
                 styles.pb10Percentage,
-                !props.isMediumScreenWidth && styles.p20,
                 props.isMediumScreenWidth && styles.p10,
                 props.isMediumScreenWidth && styles.alignItemsCenter,
             ]}
             >
-                <View style={[styles.dFlex, styles.flexColumnReverse, styles.alignItemsCenter, styles.w50]}>
-                    <View style={[styles.signInPageWideHeroContent, styles.m4]}>
-                        <Text style={[styles.signInPageHeroHeading]}>{props.translate('signInPage.heroHeading')}</Text>
-                        <Text style={[styles.signInPageHeroDescription, styles.mt5]}>
-                            {props.translate('signInPage.heroDescription.phrase1')}
-                            {'\n\n'}
-                            {props.translate('signInPage.heroDescription.phrase2')}
-                            {' '}
-                            <TextLink href={CONST.GITHUB_URL}>
-                                <Text style={[styles.textUnderline, styles.textWhite]}>
-                                    {props.translate('signInPage.heroDescription.phrase3')}
-                                </Text>
-                            </TextLink>
-                            {'. '}
-                            {props.translate('signInPage.heroDescription.phrase4')}
-                            {' '}
-                            <TextLink href={CONST.UPWORK_URL}>
-                                <Text style={[styles.textUnderline, styles.textWhite]}>
-                                    {props.translate('signInPage.heroDescription.phrase5')}
-                                </Text>
-                            </TextLink>
-
-                            .
-                        </Text>
-                    </View>
-                </View>
-                <View style={[styles.w50, styles.dFlex, styles.flexColumnReverse, styles.alignItemsCenter]}>
-                    <Image
-                        resizeMode="contain"
-                        style={[styles.signInWelcomeScreenshotWide]}
-                        source={welcomeScreenshot}
-                    />
+                <View style={[styles.w100, styles.dFlex, styles.flexColumnReverse, styles.alignItemsCenter]}>
+                    <WelcomeScreenshotBlue/>
                 </View>
             </View>
         </View>

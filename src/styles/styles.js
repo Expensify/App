@@ -614,19 +614,6 @@ const styles = {
         marginBottom: 24,
     },
 
-    signinWelcomeScreenshot: {
-        height: 354,
-        width: 295,
-    },
-
-    signInWelcomeScreenshotWide: {
-        aspectRatio: 1,
-        width: '100%',
-        height: '100%',
-        maxHeight: 551,
-        minHeight: 300,
-    },
-
     genericView: {
         backgroundColor: themeColors.heading,
         height: '100%',
@@ -1850,6 +1837,11 @@ const styles = {
         left: '-15%',
         top: '-30%',
         width: '145%',
+    },
+
+    fullscreenWelcome: {
+        position: 'absolute',
+        margin: 'auto',
     },
 
     smallEditIcon: {
