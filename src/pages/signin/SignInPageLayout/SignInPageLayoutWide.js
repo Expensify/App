@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
@@ -27,8 +27,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-
-
 const SignInPageLayoutWide = (props) => {
     const screenShots = [WelcomeScreenshotBlue, WelcomeScreenshotGreen, WelcomeScreenshotOrange, WelcomeScreenshotPink];
     const backgroundStyles = [styles.backgroundBlue, styles.backgroundGreen, styles.backgroundOrange, styles.backgroundPink];
@@ -36,59 +34,59 @@ const SignInPageLayoutWide = (props) => {
     const WelcomeScreenshot = screenShots[randomWelcome];
     const backgroundStyle = backgroundStyles[randomWelcome];
     return (
-    <View style={[styles.flex1, styles.signInPageInner]}>
-        <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
-            <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
-                <View style={[
-                    styles.flex1,
-                    styles.dFlex,
-                    styles.flexColumn,
-                    styles.mt40Percentage,
-                    styles.signInPageFormContainer,
-                    styles.alignSelfCenter,
-                ]}
-                >
-                    <View style={[styles.flex1]}>
-                        <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
-                            <ExpensifyCashLogo
-                                width={variables.componentSizeLarge}
-                                height={variables.componentSizeLarge}
-                            />
+        <View style={[styles.flex1, styles.signInPageInner]}>
+            <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
+                <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
+                    <View style={[
+                        styles.flex1,
+                        styles.dFlex,
+                        styles.flexColumn,
+                        styles.mt40Percentage,
+                        styles.signInPageFormContainer,
+                        styles.alignSelfCenter,
+                    ]}
+                    >
+                        <View style={[styles.flex1]}>
+                            <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
+                                <ExpensifyCashLogo
+                                    width={variables.componentSizeLarge}
+                                    height={variables.componentSizeLarge}
+                                />
+                            </View>
+                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                {props.welcomeText}
+                            </Text>
+                            <View>
+                                {props.children}
+                            </View>
                         </View>
-                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                            {props.welcomeText}
-                        </Text>
-                        <View>
-                            {props.children}
+                        <View style={[styles.mv5]}>
+                            <TermsAndLicenses />
                         </View>
-                    </View>
-                    <View style={[styles.mv5]}>
-                        <TermsAndLicenses />
                     </View>
                 </View>
-            </View>
-            <View style={[
-                styles.flexGrow1,
-                styles.dFlex,
-                styles.flexRow,
-                backgroundStyle,
-                styles.justifyContentAround,
-                styles.pb10Percentage,
-                styles.alignItemsCenter,
-            ]}
-            >
                 <View style={[
-                    !props.isMediumScreenWidth && styles.w100,
-                    props.isMediumScreenWidth && styles.w75,
+                    styles.flexGrow1,
                     styles.dFlex,
-                    styles.alignItemsCenter
+                    styles.flexRow,
+                    backgroundStyle,
+                    styles.justifyContentAround,
+                    styles.pb10Percentage,
+                    styles.alignItemsCenter,
                 ]}
                 >
-                    <WelcomeScreenshot />
+                    <View style={[
+                        !props.isMediumScreenWidth && styles.w100,
+                        props.isMediumScreenWidth && styles.w75,
+                        styles.dFlex,
+                        styles.alignItemsCenter,
+                    ]}
+                    >
+                        <WelcomeScreenshot />
+                    </View>
                 </View>
             </View>
         </View>
-    </View>
     );
 };
 

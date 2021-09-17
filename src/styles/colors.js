@@ -10,7 +10,7 @@ export default {
     blueHover: '#0063bf',
     green: '#03d47c',
     greenHover: '#03c775',
-    orange:'#ff7101',
+    orange: '#ff7101',
     pink: '#f68dfe',
     red: '#fc3826',
     redHover: '#e13826',
