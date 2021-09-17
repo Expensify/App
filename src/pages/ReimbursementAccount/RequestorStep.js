@@ -121,7 +121,7 @@ class RequestorStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {this.props.achData.useOnfido && this.props.achData.sdkToken ? (
+                {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
                     <Onfido
                         sdkToken={this.props.achData.sdkToken}
                         onUserExit={() => {
