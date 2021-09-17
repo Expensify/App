@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -9,9 +9,13 @@ import Button from '../../components/Button';
 import Text from '../../components/Text';
 import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import redirectToSignIn from '../../libs/actions/SignInRedirect';
+import Avatar from '../../components/Avatar';
+import {getDefaultAvatar} from '../../libs/OptionsListUtils';
+import Icon from '../../components/Icon';
+import {BackArrow} from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /* Onyx Props */
@@ -82,8 +86,23 @@ class ResendValidationForm extends React.Component {
     render() {
         return (
             <>
+                <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <TouchableOpacity
+                        style={[styles.pAbsolute, styles.ln6]}
+                        onPress={() => redirectToSignIn()}
+                    >
+                        <Icon src={BackArrow} />
+                    </TouchableOpacity>
+                    <Avatar
+                        source={getDefaultAvatar(this.props.credentials.login)}
+                        imageStyles={[styles.mr2]}
+                    />
+                    <Text style={[styles.textStrong]}>
+                        {Str.isSMSLogin(this.props.credentials.login) ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login}
+                    </Text>
+                </View>
                 <View>
-                    <Text style={[styles.mt5, styles.mb1, styles.textLabel, styles.h3]}>
+                    <Text style={[styles.mv5]}>
                         {
                             this.props.account.validated
                                 ? this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
@@ -101,15 +120,18 @@ class ResendValidationForm extends React.Component {
                         {this.state.formSuccess}
                     </Text>
                 )}
-                <View style={[styles.mt4]}>
+                <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                    <TouchableOpacity onPress={() => redirectToSignIn()}>
+                        <Text>
+                            {this.props.translate('common.cancel')}
+                        </Text>
+                    </TouchableOpacity>
                     <Button
                         success
-                        style={[styles.mb2]}
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
                 </View>
             </>
         );

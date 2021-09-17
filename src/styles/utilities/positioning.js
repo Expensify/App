@@ -21,4 +21,7 @@ export default {
     b0: {
         bottom: 0,
     },
+    ln6: {
+        left: -24,
+    },
 };
