@@ -24,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidIndustryCode, isValidZipCode, isRequiredFulfilled,
+    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -59,7 +59,6 @@ class CompanyStep extends React.Component {
             incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
             incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
             incorporationState: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationState'),
-            industryCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'industryCode'),
             hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
             password: '',
         };
@@ -76,7 +75,6 @@ class CompanyStep extends React.Component {
             'incorporationDate',
             'incorporationState',
             'incorporationType',
-            'industryCode',
             'password',
             'companyPhone',
             'hasNoConnectionToCannabis',
@@ -145,10 +143,6 @@ class CompanyStep extends React.Component {
 
         if (!isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
-        }
-
-        if (!isValidIndustryCode(this.state.industryCode)) {
-            errors.industryCode = true;
         }
 
         _.each(this.requiredFields, (inputKey) => {
@@ -279,16 +273,6 @@ class CompanyStep extends React.Component {
                                 />
                             </View>
                         </View>
-                        {/* TODO: Replace with NAICS picker */}
-                        <ExpensiTextInput
-                            label={this.props.translate('companyStep.industryClassificationCode')}
-                            helpLinkText={this.props.translate('common.whatThis')}
-                            helpLinkURL="https://www.naics.com/search/"
-                            containerStyles={[styles.mt4]}
-                            onChangeText={value => this.clearErrorAndSetValue('industryCode', value)}
-                            value={this.state.industryCode}
-                            errorText={this.getErrorText('industryCode')}
-                        />
                         <ExpensiTextInput
                             label={`Expensify ${this.props.translate('common.password')}`}
                             containerStyles={[styles.mt4]}
