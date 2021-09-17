@@ -23,7 +23,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {create, hasWorkspaces} from '../../../libs/actions/Policy';
+import {create, isAdminOfFreePolicy} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
 import NameValuePair from '../../../libs/actions/NameValuePair';
 
@@ -157,7 +157,7 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) && !hasWorkspaces() ? [
+                                ...(Permissions.canUseFreePlan(this.props.betas) && !isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: NewWorkspace,
                                         iconWidth: 46,
@@ -181,6 +181,9 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
+        allPolicies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
         betas: {
             key: ONYXKEYS.BETAS,
         },

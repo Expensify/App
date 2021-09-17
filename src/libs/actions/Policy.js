@@ -113,12 +113,14 @@ function getPolicyList() {
 }
 
 /**
- * Does the user have any (free policy) workspaces?
+ * Is the user an admin of a free policy (aka workspace)?
  *
  * @returns {Boolean}
  */
-function hasWorkspaces() {
-    return _.some(allPolicies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN);
+ function isAdminOfFreePolicy(policies) {
+    return _.some(policies, policy => policy
+        && policy.type === CONST.POLICY.TYPE.FREE
+        && policy.role === CONST.POLICY.ROLE.ADMIN);
 }
 
 /**
@@ -293,9 +295,9 @@ function updateLocalPolicyValues(policyID, values) {
 export {
     getPolicySummaries,
     getPolicyList,
-    hasWorkspaces,
     removeMembers,
     invite,
+    isAdminOfFreePolicy,
     create,
     uploadAvatar,
     update,
