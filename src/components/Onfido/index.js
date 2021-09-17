@@ -52,7 +52,6 @@ class Onfido extends React.Component {
                     return;
                 }
 
-                // This is an unexpected error so we'll call the error handling callback if provided
                 this.props.onError(errorMessage);
             },
             onUserExit: this.props.onUserExit,
