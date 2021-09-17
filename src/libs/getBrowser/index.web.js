@@ -15,16 +15,14 @@ function getBrowser() {
     }
 
     if (match[1] && (match[1].toLowerCase() === 'chrome')) {
-        temp = userAgent.match(/\b(OPR|Edge)\/(\d+)/);
-
+        temp = userAgent.match(/\b(OPR)/);
         if (temp !== null) {
-            return temp.slice(1).join(' ').replace('OPR', 'Opera');
+            return 'Opera';
         }
 
-        temp = userAgent.match(/\b(Edg)\/(\d+)/);
-
+        temp = userAgent.match(/\b(Edg)/);
         if (temp !== null) {
-            return temp.slice(1).join(' ').replace('Edg', 'Edge');
+            return 'Edge';
         }
     }
 
