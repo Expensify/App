@@ -16,6 +16,9 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    /**
+     * Whether to show welcome text on a particular page
+     */
     shouldShowWelcomeText: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
