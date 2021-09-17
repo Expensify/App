@@ -1,10 +1,10 @@
 import './index.css';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
-import Growl from '../../libs/Growl';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -45,9 +45,15 @@ class Onfido extends React.Component {
             smsNumberCountryCode: CONST.ONFIDO.SMS_NUMBER_COUNTRY_CODE.US,
             showCountrySelection: false,
             onComplete: this.props.onSuccess,
-            onError: () => {
-                this.props.onUserExit();
-                Growl.error(this.props.translate('onfidoStep.genericError'));
+            onError: (error) => {
+                const errorMessage = lodashGet(error, 'message');
+                if (!errorMessage) {
+                    this.props.onError('Unknown error');
+                    return;
+                }
+
+                // This is an unexpected error so we'll call the error handling callback if provided
+                this.props.onError(errorMessage);
             },
             onUserExit: this.props.onUserExit,
             onModalRequestClose: () => {},

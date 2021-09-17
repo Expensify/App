@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {
     Onfido as OnfidoSDK,
@@ -8,7 +9,6 @@ import {
 import onfidoPropTypes from './onfidoPropTypes';
 import CONST from '../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import Growl from '../../libs/Growl';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -32,10 +32,20 @@ class Onfido extends React.Component {
         })
             .then(this.props.onSuccess)
             .catch((error) => {
-                if (error.message === CONST.ONFIDO.ERROR.USER_CANCELLED) {
-                    this.props.onUserExit();
-                    Growl.error(this.props.translate('onfidoStep.genericError'));
+                const errorMessage = lodashGet(error, 'message');
+                if (!errorMessage) {
+                    this.props.onError('Unknown error');
+                    return;
                 }
+
+                // If the user cancels the Onfido flow we won't log this error as it's normal
+                if (errorMessage === CONST.ONFIDO.ERROR.USER_CANCELLED) {
+                    this.props.onUserExit();
+                    return;
+                }
+
+                // This is an unexpected error so we'll call the error handling callback if provided
+                this.props.onError(errorMessage);
             });
     }
 

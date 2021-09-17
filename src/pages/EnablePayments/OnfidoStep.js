@@ -15,6 +15,8 @@ import TextLink from '../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import Text from '../../components/Text';
+import Log from '../../libs/Log';
+import Growl from '../../libs/Growl';
 
 const propTypes = {
     /** Stores various information used to build the UI and call any APIs */
@@ -68,6 +70,10 @@ class OnfidoStep extends React.Component {
                     this.canShowOnfido() ? (
                         <Onfido
                             sdkToken={this.props.walletOnfidoData.sdkToken}
+                            onError={(error) => {
+                                Log.hmmm('Onfido error', {error});
+                                Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
+                            }}
                             onUserExit={() => {
                                 Navigation.goBack();
                             }}
