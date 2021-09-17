@@ -37,6 +37,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 vertical: 0,
             },
         };
+        this.onPopoverShow = () => {};
         this.onPopoverHide = () => {};
         this.onPopoverHideActionCallback = () => {};
         this.contextMenuAnchor = undefined;
@@ -47,6 +48,7 @@ class PopoverReportActionContextMenu extends React.Component {
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
         this.hideDeleteModal = this.hideDeleteModal.bind(this);
         this.showDeleteModal = this.showDeleteModal.bind(this);
+        this.runAndResetOnPopoverShow = this.runAndResetOnPopoverShow.bind(this);
         this.runAndResetOnPopoverHide = this.runAndResetOnPopoverHide.bind(this);
         this.getContextMenuMeasuredLocation = this.getContextMenuMeasuredLocation.bind(this);
         this.isActiveReportAction = this.isActiveReportAction.bind(this);
@@ -118,7 +120,13 @@ class PopoverReportActionContextMenu extends React.Component {
     ) {
         const nativeEvent = event.nativeEvent || {};
         this.contextMenuAnchor = contextMenuAnchor;
-        const onShowCallback = () => {
+
+        // Singleton behaviour of ContextMenu creates race conditions when user requests multiple contextMenus.
+        // But it is possible that every new request registers new callbacks thus instanceID is used to corelate those callbacks
+        this.instanceID = Math.random().toString(36).substr(2, 5);
+
+        // Register the onHide callback only when Popover is shown to remove the race conditions when there are mutltiple popover open requests
+        this.onPopoverShow = () => {
             onShow();
             this.onPopoverHide = onHide;
         };
@@ -138,7 +146,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 selection,
                 isPopoverVisible: true,
                 reportActionDraftMessage: draftMessage,
-            }, onShowCallback);
+            });
         });
     }
 
@@ -163,7 +171,17 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     /**
-     * After Popover hides, call the registered onPopoverHide callback and reset it
+     * After Popover shows, call the registered onPopoverShow callback and reset it
+     */
+    runAndResetOnPopoverShow() {
+        this.onPopoverShow();
+
+        // After we have called the action, reset it.
+        this.onPopoverShow = () => {};
+    }
+
+    /**
+     * After Popover hides, call the registered onPopoverHide & onPopoverHideActionCallback callback and reset it
      */
     runAndResetOnPopoverHide() {
         this.onPopoverHide();
@@ -236,6 +254,7 @@ class PopoverReportActionContextMenu extends React.Component {
                 <PopoverWithMeasuredContent
                     isVisible={this.state.isPopoverVisible}
                     onClose={this.hideContextMenu}
+                    onModalShow={this.runAndResetOnPopoverShow}
                     onModalHide={this.runAndResetOnPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
