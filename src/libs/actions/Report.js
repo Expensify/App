@@ -299,13 +299,13 @@ function fetchIOUReportID(debtorEmail) {
 
 /**
  * Fetches chat reports when provided a list of chat report IDs.
- * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
+ * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
  * when we find an inaccessible chat
  * @param {Array} chatList
- * @param {Boolean} shouldRedirectIfInacessible
+ * @param {Boolean} shouldRedirectIfInaccessible
  * @returns {Promise<Object[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
@@ -314,7 +314,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             fetchedReports = reportSummaryList;
 
             // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
-            if (jsonCode === 404 && shouldRedirectIfInacessible) {
+            if (jsonCode === 404 && shouldRedirectIfInaccessible) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
             }
 
