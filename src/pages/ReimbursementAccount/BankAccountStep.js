@@ -169,7 +169,7 @@ class BankAccountStep extends React.Component {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
-                    stepCounter={{step: 1, total: 5}}
+                    stepCounter={this.state.bankAccountAddMethod && {step: 1, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => this.setState({bankAccountAddMethod: undefined})}
                     shouldShowBackButton={!_.isUndefined(this.state.bankAccountAddMethod)}
