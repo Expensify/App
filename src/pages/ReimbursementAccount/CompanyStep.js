@@ -145,11 +145,6 @@ class CompanyStep extends React.Component {
             errors.incorporationDate = true;
         }
 
-        if (!this.state.hasNoConnectionToCannabis) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.restrictedBusiness'));
-            return false;
-        }
-
         _.each(this.requiredFields, (inputKey) => {
             if (!isRequiredFulfilled(this.state[inputKey])) {
                 errors[inputKey] = true;
