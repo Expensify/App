@@ -82,6 +82,7 @@ class ReimbursementAccountForm extends React.Component {
                 style={[styles.w100, styles.flex1]}
                 ref={el => this.form = el}
                 contentContainerStyle={styles.flexGrow1}
+                keyboardShouldPersistTaps="handled"
             >
                 {/* Form elements */}
                 <View style={[styles.mh5, styles.mb5]}>
