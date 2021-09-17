@@ -236,7 +236,7 @@ class ValidationStep extends React.Component {
                         </Text>
                         <Button
                             success
-                            text={this.props.translate('bankAccount.confirmModalConfirmText')}
+                            text={this.props.translate('bankAccount.buttonConfirm')}
                             style={[styles.mh5, styles.mb5]}
                             onPress={() => Navigation.dismissModal()}
                         />
