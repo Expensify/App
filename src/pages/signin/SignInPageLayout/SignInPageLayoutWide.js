@@ -1,18 +1,17 @@
 import React from 'react';
-import {Image, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import PropTypes from 'prop-types';
+import _ from 'underscore';
 import styles from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
-import WelcomeScreenshot1 from '../../../../assets/images/freeplan_blue.svg';
-import WelcomeScreenshot2 from '../../../../assets/images/freeplan_green.svg';
-import WelcomeScreenshot3 from '../../../../assets/images/freeplan_orange.svg';
-import WelcomeScreenshot4 from '../../../../assets/images/freeplan_pink.svg';
+import WelcomeScreenshotBlue from '../../../../assets/images/freeplan_blue.svg';
+import WelcomeScreenshotGreen from '../../../../assets/images/freeplan_green.svg';
+import WelcomeScreenshotOrange from '../../../../assets/images/freeplan_orange.svg';
+import WelcomeScreenshotPink from '../../../../assets/images/freeplan_pink.svg';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
-import CONST from '../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import TextLink from '../../../components/TextLink';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -28,7 +27,15 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const SignInPageLayoutWide = props => (
+
+
+const SignInPageLayoutWide = (props) => {
+    const screenShots = [WelcomeScreenshotBlue, WelcomeScreenshotGreen, WelcomeScreenshotOrange, WelcomeScreenshotPink];
+    const backgroundStyles = [styles.backgroundBlue, styles.backgroundGreen, styles.backgroundOrange, styles.backgroundPink];
+    const randomWelcome = _.random(0, 3);
+    const WelcomeScreenshot = screenShots[randomWelcome];
+    const backgroundStyle = backgroundStyles[randomWelcome];
+    return (
     <View style={[styles.flex1, styles.signInPageInner]}>
         <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
             <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
@@ -64,20 +71,26 @@ const SignInPageLayoutWide = props => (
                 styles.flexGrow1,
                 styles.dFlex,
                 styles.flexRow,
-                styles.backgroundBlue,
+                backgroundStyle,
                 styles.justifyContentAround,
                 styles.pb10Percentage,
-                props.isMediumScreenWidth && styles.p10,
-                props.isMediumScreenWidth && styles.alignItemsCenter,
+                styles.alignItemsCenter,
             ]}
             >
-                <View style={[styles.w100, styles.dFlex, styles.flexColumnReverse, styles.alignItemsCenter]}>
-                    <WelcomeScreenshotBlue/>
+                <View style={[
+                    !props.isMediumScreenWidth && styles.w100,
+                    props.isMediumScreenWidth && styles.w75,
+                    styles.dFlex,
+                    styles.alignItemsCenter
+                ]}
+                >
+                    <WelcomeScreenshot />
                 </View>
             </View>
         </View>
     </View>
-);
+    );
+};
 
 SignInPageLayoutWide.propTypes = propTypes;
 SignInPageLayoutWide.displayName = 'SignInPageLayoutWide';

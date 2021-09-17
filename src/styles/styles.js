@@ -152,6 +152,18 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    backgroundGreen: {
+        backgroundColor: colors.green,
+    },
+
+    backgroundOrange: {
+        backgroundColor: colors.orange,
+    },
+
+    backgroundPink: {
+        backgroundColor: colors.pink,
+    },
+
     backgroundBlue: {
         backgroundColor: colors.blue,
     },
@@ -1837,11 +1849,6 @@ const styles = {
         left: '-15%',
         top: '-30%',
         width: '145%',
-    },
-
-    fullscreenWelcome: {
-        position: 'absolute',
-        margin: 'auto',
     },
 
     smallEditIcon: {
