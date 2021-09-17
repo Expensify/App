@@ -870,8 +870,8 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
 
-            // We are returning an array with the reportID here since fetchAllReports calls this method or
-            // fetchChatReportsByIDs which returns an array of reportIDs.
+            // We are returning an array with the a report object here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of report objects.
             return [data];
         });
 }
