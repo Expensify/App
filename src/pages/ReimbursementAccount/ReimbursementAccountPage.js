@@ -32,6 +32,7 @@ import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ConfirmModal from '../../components/ConfirmModal';
+import ExistingOwners from './ExistingOwners';
 
 const propTypes = {
     /** List of betas */
@@ -51,9 +52,6 @@ const propTypes = {
             /** Step of the setup flow that we are on. Determines which view is presented. */
             currentStep: PropTypes.string,
         }),
-
-        /** Disable validation button if max attempts exceeded */
-        maxAttemptsReached: PropTypes.bool,
     }),
 
     /** Current session for the user */
@@ -123,7 +121,7 @@ class ReimbursementAccountPage extends React.Component {
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
                 return CONST.BANK_ACCOUNT.STEP.COMPANY;
-            case 'requestor':
+            case 'personal-information':
                 return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
             case 'contract':
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
@@ -143,7 +141,7 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 return 'company';
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return 'requestor';
+                return 'personal-information';
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -152,6 +150,17 @@ class ReimbursementAccountPage extends React.Component {
             default:
                 return 'new';
         }
+    }
+
+    /**
+     * @returns {React.Component|string}
+     */
+    getErrorModalPrompt() {
+        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
+            return <ExistingOwners />;
+        }
+
+        return this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt');
     }
 
     render() {
@@ -204,9 +213,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const error = lodashGet(this.props, 'reimbursementAccount.error');
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
-
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
         // display. We can also specify a specific route to navigate to via route params when the component first
@@ -233,11 +239,7 @@ class ReimbursementAccountPage extends React.Component {
                         <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep
-                            achData={this.props.reimbursementAccount.achData}
-                            maxAttemptsReached={maxAttemptsReached}
-                            error={error}
-                        />
+                        <ValidationStep />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
                         <EnableStep
@@ -247,7 +249,7 @@ class ReimbursementAccountPage extends React.Component {
                     <ConfirmModal
                         title={this.props.translate('bankAccount.confirmModalTitle')}
                         onConfirm={hideBankAccountErrorModal}
-                        prompt={this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt')}
+                        prompt={this.getErrorModalPrompt()}
                         isVisible={lodashGet(this.props, 'reimbursementAccount.isErrorModalVisible', false)}
                         confirmText={this.props.translate('bankAccount.confirmModalConfirmText')}
                         shouldShowCancelButton={false}

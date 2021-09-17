@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
 import CONST from '../CONST';
+import {hasExpensifyEmails} from '../libs/reportUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -69,6 +70,7 @@ const DetailsPage = ({
     const timezone = moment().tz(details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
+    const shouldShowLocalTime = !hasExpensifyEmails([details.login]);
 
     return (
         <ScreenWrapper>
@@ -126,7 +128,7 @@ const DetailsPage = ({
                                     </Text>
                                 </View>
                             ) : null}
-                            {details.timezone ? (
+                            {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('detailsPage.localTime')}

@@ -1,7 +1,6 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View, Image, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -23,24 +22,20 @@ import exampleCheckImage from '../../../assets/images/example-check-image.png';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
-    goToWithdrawalAccountSetupStep,
-    hideBankAccountErrors,
     setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
+    updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
-import ConfirmModal from '../../components/ConfirmModal';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: PropTypes.shape({
         /** Error set when handling the API response */
         error: PropTypes.string,
-
-        /** The existing owners for if the bank account is already owned */
-        existingOwners: PropTypes.arrayOf(PropTypes.string),
     }).isRequired,
 
     ...withLocalizePropTypes,
@@ -56,9 +51,9 @@ class BankAccountStep extends React.Component {
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             bankAccountAddMethod: props.achData.subStep || undefined,
-            hasAcceptedTerms: props.achData.acceptTerms || true,
-            routingNumber: props.achData.routingNumber || '',
-            accountNumber: props.achData.accountNumber || '',
+            hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
+            routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
+            accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
@@ -66,37 +61,19 @@ class BankAccountStep extends React.Component {
             routingNumber: 'bankAccount.error.routingNumber',
             accountNumber: 'bankAccount.error.accountNumber',
         };
-    }
 
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
-    /**
-     * @param {String} inputKey
-     * @returns {string}
-     */
-    getErrorText(inputKey) {
-        const errors = this.getErrors();
-        return errors[inputKey] ? this.props.translate(this.errorTranslationKeys[inputKey]) : '';
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     toggleTerms() {
-        this.setState(prevState => ({
-            hasAcceptedTerms: !prevState.hasAcceptedTerms,
-        }));
-    }
-
-    /**
-     * @returns {Boolean}
-     */
-    canSubmitManually() {
-        return this.state.hasAcceptedTerms
-            && this.state.accountNumber.trim()
-            && this.state.routingNumber.trim();
+        this.setState((prevState) => {
+            const hasAcceptedTerms = !prevState.hasAcceptedTerms;
+            updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
+            return {hasAcceptedTerms};
+        });
+        this.clearError('hasAcceptedTerms');
     }
 
     /**
@@ -112,6 +89,10 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
+        if (!this.state.hasAcceptedTerms) {
+            errors.hasAcceptedTerms = true;
+        }
+
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
@@ -123,17 +104,10 @@ class BankAccountStep extends React.Component {
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setState({[inputKey]: value});
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
+        const newState = {[inputKey]: value};
+        this.setState(newState);
+        updateReimbursementAccountDraft(newState);
+        this.clearError(inputKey);
     }
 
     addManualAccount() {
@@ -191,9 +165,6 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const existingOwners = this.props.reimbursementAccount.existingOwners;
-        const error = this.getErrors();
-        const isExistingOwnersErrorVisible = Boolean(error && existingOwners);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -260,7 +231,7 @@ class BankAccountStep extends React.Component {
                 )}
                 {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <>
-                        <View style={[styles.m5, styles.flex1]}>
+                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.p5, styles.flexGrow1]}>
                             <Text style={[styles.mb5]}>
                                 {this.props.translate('bankAccount.checkHelpLine')}
                             </Text>
@@ -270,7 +241,7 @@ class BankAccountStep extends React.Component {
                                 source={exampleCheckImage}
                             />
                             <ExpensiTextInput
-                                placeholder={this.props.translate('bankAccount.routingNumber')}
+                                label={this.props.translate('bankAccount.routingNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.routingNumber}
                                 onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
@@ -279,7 +250,7 @@ class BankAccountStep extends React.Component {
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mt4]}
-                                placeholder={this.props.translate('bankAccount.accountNumber')}
+                                label={this.props.translate('bankAccount.accountNumber')}
                                 keyboardType="number-pad"
                                 value={this.state.accountNumber}
                                 onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
@@ -300,83 +271,32 @@ class BankAccountStep extends React.Component {
                                         </TextLink>
                                     </View>
                                 )}
+                                hasError={this.getErrors().hasAcceptedTerms}
                             />
-                        </View>
-                        <Button
-                            success
-                            text={this.props.translate('common.saveAndContinue')}
-                            style={[styles.m5]}
-                            isDisabled={!this.canSubmitManually()}
-                            onPress={this.addManualAccount}
-                        />
+                            <View style={[styles.flex1, styles.justifyContentEnd]}>
+                                <Button
+                                    success
+                                    text={this.props.translate('common.saveAndContinue')}
+                                    onPress={this.addManualAccount}
+                                />
+                            </View>
+                        </ScrollView>
                     </>
                 )}
-
-                <ConfirmModal
-                    title={this.props.translate('bankAccount.error.existingOwners.unableToAddBankAccount')}
-                    isVisible={isExistingOwnersErrorVisible}
-                    onConfirm={hideBankAccountErrors}
-                    shouldShowCancelButton={false}
-                    prompt={(
-                        <View>
-                            <Text style={[styles.mb4]}>
-                                <Text>
-                                    {this.props.translate('bankAccount.error.existingOwners.alreadyInUse')}
-                                </Text>
-                                {existingOwners && existingOwners.map((existingOwner, i) => {
-                                    let separator = ', ';
-                                    if (i === 0) {
-                                        separator = '';
-                                    } else if (i === existingOwners.length - 1) {
-                                        separator = ` ${this.props.translate('common.and')} `;
-                                    }
-                                    return (
-                                        <>
-                                            <Text>{separator}</Text>
-                                            <Text style={styles.textStrong}>{existingOwner}</Text>
-                                            {i === existingOwners.length - 1 && <Text>.</Text>}
-                                        </>
-                                    );
-                                })}
-                            </Text>
-                            <Text style={[styles.mb4]}>
-                                {this.props.translate('bankAccount.error.existingOwners.pleaseAskThemToShare')}
-                            </Text>
-                            <Text>
-                                <Text>
-                                    {this.props.translate('bankAccount.error.existingOwners.alternatively')}
-                                </Text>
-                                <Text
-                                    style={styles.link}
-                                    onPress={() => goToWithdrawalAccountSetupStep(
-                                        CONST.BANK_ACCOUNT.STEP.COMPANY,
-                                        this.props.achData,
-                                    )}
-                                >
-                                    {this.props.translate(
-                                        'bankAccount.error.existingOwners.setUpThisAccountByYourself',
-                                    )}
-                                </Text>
-                                <Text>
-                                    {this.props.translate('bankAccount.error.existingOwners.validationProcessAgain')}
-                                </Text>
-                            </Text>
-                        </View>
-                    )}
-                    confirmText={this.props.translate('common.ok')}
-                />
             </View>
         );
     }
 }
 
 BankAccountStep.propTypes = propTypes;
-
 export default compose(
     withLocalize,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
 )(BankAccountStep);
