@@ -344,6 +344,7 @@ export default {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({loginType}) => `We've sent a magic sign in link to your ${loginType}.`,
         resendLink: 'Resend link',
+        unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for the validation link.',
     },
     detailsPage: {
         localTime: 'Local time',

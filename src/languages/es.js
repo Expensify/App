@@ -344,6 +344,7 @@ export default {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({loginType}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${loginType}.`,
         resendLink: 'Reenviar enlace',
+        unvalidatedAccount: 'Esta cuenta ya existe pero no está validada, por favor busca en tu email el link de validación.',
     },
     detailsPage: {
         localTime: 'Hora local',
