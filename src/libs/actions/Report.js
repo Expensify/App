@@ -953,7 +953,6 @@ function fetchAllReports(
             // This means they were a participant in reports before their account was created (e.g. default rooms)
             const hasConciergeChat = _.some(returnedReports, report => isConciergeChatReport(report));
             if (!hasConciergeChat) {
-                // eslint-disable-next-line no-use-before-define
                 fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
             }
 
