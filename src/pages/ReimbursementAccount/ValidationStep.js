@@ -1,11 +1,12 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {View, ScrollView} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {validateBankAccount} from '../../libs/actions/BankAccounts';
+import {validateBankAccount, updateReimbursementAccountDraft} from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -13,8 +14,10 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import Text from '../../components/Text';
 import BankAccount from '../../libs/models/BankAccount';
-import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
+import ONYXKEYS from '../../ONYXKEYS';
+import compose from '../../libs/compose';
+import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -46,12 +49,11 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.verifyingUrl = `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`;
 
         this.state = {
-            amount1: '',
-            amount2: '',
-            amount3: '',
+            amount1: getDefaultStateForField(props, 'amount1', ''),
+            amount2: getDefaultStateForField(props, 'amount2', ''),
+            amount3: getDefaultStateForField(props, 'amount3', ''),
             error: '',
         };
 
@@ -60,6 +62,14 @@ class ValidationStep extends React.Component {
             'amount2',
             'amount3',
         ];
+    }
+
+    /**
+    * @param {Object} value
+    */
+    setValue(value) {
+        updateReimbursementAccountDraft(value);
+        this.setState(value);
     }
 
     submit() {
@@ -120,7 +130,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {state === BankAccount.STATE.PENDING && (
-                    <View style={[styles.flex1, styles.mt2]}>
+                    <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.mt2, styles.flexGrow1]}>
                         <View style={[styles.mb2]}>
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
@@ -129,27 +139,27 @@ class ValidationStep extends React.Component {
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.m5, styles.flex1]}>
+                        <View style={[styles.m5]}>
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="number-pad"
                                 value={this.state.amount1}
-                                onChangeText={amount1 => this.setState({amount1})}
+                                onChangeText={amount1 => this.setValue({amount1})}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="number-pad"
                                 value={this.state.amount2}
-                                onChangeText={amount2 => this.setState({amount2})}
+                                onChangeText={amount2 => this.setValue({amount2})}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="number-pad"
                                 value={this.state.amount3}
-                                onChangeText={amount3 => this.setState({amount3})}
+                                onChangeText={amount3 => this.setValue({amount3})}
                             />
                             {!_.isEmpty(errorMessage) && (
                                 <Text style={[styles.mb5, styles.textDanger]}>
@@ -157,23 +167,20 @@ class ValidationStep extends React.Component {
                                 </Text>
                             )}
                         </View>
-                        <Button
-                            success
-                            text={this.props.translate('validationStep.buttonText')}
-                            style={[styles.mh5, styles.mb5]}
-                            onPress={this.submit}
-                            isDisabled={shouldDisableSubmitButton}
-                        />
-                    </View>
+                        <View style={[styles.flex1, styles.justifyContentEnd]}>
+                            <Button
+                                success
+                                text={this.props.translate('validationStep.buttonText')}
+                                style={[styles.mh5, styles.mb5]}
+                                onPress={this.submit}
+                                isDisabled={shouldDisableSubmitButton}
+                            />
+                        </View>
+                    </ScrollView>
                 )}
                 {state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
-                        <Image
-                            source={{uri: this.verifyingUrl}}
-                            style={[styles.workspaceInviteWelcome]}
-                            resizeMode="center"
-                        />
-                        <Text style={[styles.mh5, styles.mb5]}>
+                        <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
                             {this.props.translate('validationStep.reviewingInfo')}
                             <TextLink
                                 onPress={() => {
@@ -188,6 +195,12 @@ class ValidationStep extends React.Component {
                             </TextLink>
                             {this.props.translate('validationStep.forNextSteps')}
                         </Text>
+                        <Button
+                            success
+                            text={this.props.translate('bankAccount.confirmModalConfirmText')}
+                            style={[styles.mh5, styles.mb5]}
+                            onPress={() => Navigation.dismissModal()}
+                        />
                     </View>
                 )}
             </View>
@@ -198,4 +211,11 @@ class ValidationStep extends React.Component {
 ValidationStep.propTypes = propTypes;
 ValidationStep.defaultProps = defaultProps;
 
-export default withLocalize(ValidationStep);
+export default compose(
+    withLocalize,
+    withOnyx({
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+    }),
+)(ValidationStep);

@@ -89,7 +89,6 @@ const WorkspaceSidebar = ({
     return (
         <ScreenWrapper>
             <ScrollView
-                bounces={false}
                 contentContainerStyle={[
                     styles.flexGrow1,
                     styles.flexColumn,
@@ -123,7 +122,7 @@ const WorkspaceSidebar = ({
                                             src={Workspace}
                                             height={80}
                                             width={80}
-                                            fill={themedefault.icon}
+                                            fill={themedefault.iconSuccessFill}
                                         />
                                     )}
                             </Pressable>
