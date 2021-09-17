@@ -299,7 +299,7 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
 }
 
 /**
- * Clear the creadentials and partial sign in session so the user can taken back to first Login step
+ * Clear the credentials and partial sign in session so the user can taken back to first Login step
  */
 function clearSignInData() {
     Onyx.multiSet({
