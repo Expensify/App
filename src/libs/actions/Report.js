@@ -968,9 +968,9 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsWithMissingActions = _.filter(returnedReports, report => (
-                    isReportMissingActions(report.reportID, reportMaxSequenceNumbers[report.reportID])
-                )).map(report => report.reportID);
+                const reportIDsWithMissingActions = _.chain(returnedReports)
+                    .map(report => report.reportID)
+                    .filter(reportID => (isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID])));
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
                 // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
