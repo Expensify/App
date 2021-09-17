@@ -303,7 +303,7 @@ function fetchIOUReportID(debtorEmail) {
  * when we find an inaccessible chat
  * @param {Array} chatList
  * @param {Boolean} shouldRedirectIfInacessible
- * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
+ * @returns {Promise<Object[]>} only used internally when fetchAllReports() is called
  */
 function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
     let fetchedReports;
@@ -379,8 +379,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
-
-            return _.map(fetchedReports, report => report.reportID);
+            return fetchedReports;
         })
         .catch((err) => {
             if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
@@ -846,7 +845,7 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise<Number[]>}
+ * @returns {Promise<Object[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
@@ -873,7 +872,7 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
 
             // We are returning an array with the reportID here since fetchAllReports calls this method or
             // fetchChatReportsByIDs which returns an array of reportIDs.
-            return [data.reportID];
+            return [data];
         });
 }
 
@@ -947,12 +946,12 @@ function fetchAllReports(
 
             return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
-        .then((returnedReportIDs) => {
+        .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
 
             // If at this point the user still doesn't have a Concierge report, create it for them.
             // This means they were a participant in reports before their account was created (e.g. default rooms)
-            const hasConciergeChat = _.some(allReports, report => isConciergeChatReport(report));
+            const hasConciergeChat = _.some(returnedReports, report => isConciergeChatReport(report));
             if (!hasConciergeChat) {
                 // eslint-disable-next-line no-use-before-define
                 fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
@@ -970,8 +969,8 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsWithMissingActions = _.filter(returnedReportIDs, id => (
-                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
+                const reportIDsWithMissingActions = _.filter(returnedReports, report => (
+                    isReportMissingActions(report.reportID, reportMaxSequenceNumbers[report.reportID])
                 ));
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
