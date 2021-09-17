@@ -970,7 +970,8 @@ function fetchAllReports(
                 // data processing by Onyx.
                 const reportIDsWithMissingActions = _.chain(returnedReports)
                     .map(report => report.reportID)
-                    .filter(reportID => isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]));
+                    .filter(reportID => isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .value();
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
                 // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
