@@ -607,7 +607,7 @@ export default {
             addEmail: 'Add email',
             tagline: 'The smartest corporate card in the room.',
             publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
-            privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
+            privateCopy: 'Just swipe your Expensify card and your expenses are done, it\'s that simple!',
             getStarted: 'Get started',
             finishSetup: 'Finish setup',
             manageCards: 'Manage cards',
