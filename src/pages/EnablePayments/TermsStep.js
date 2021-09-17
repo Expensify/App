@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    View, ScrollView,
-} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -18,6 +16,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import ShortTermsForm from './TermsPage/ShortTermsForm';
 import LongTermsForm from './TermsPage/LongTermsForm';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** Comes from Onyx. Information about the terms for the wallet */
@@ -64,73 +63,71 @@ class TermsStep extends React.Component {
                     title={this.props.translate('termsStep.headerTitle')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <View style={[styles.mh5, styles.flex1]}>
-                    <ScrollView>
-                        <ShortTermsForm />
-                        <LongTermsForm />
-                        <CheckboxWithLabel
-                            style={[styles.mb4, styles.mt4]}
-                            isChecked={this.state.hasAcceptedDisclosure}
-                            onPress={this.toggleDisclosure}
-                            LabelComponent={() => (
+                <ScrollView style={styles.flex1} contentContainerStyle={styles.ph5}>
+                    <ShortTermsForm />
+                    <LongTermsForm />
+                    <CheckboxWithLabel
+                        style={[styles.mb4, styles.mt4]}
+                        isChecked={this.state.hasAcceptedDisclosure}
+                        onPress={this.toggleDisclosure}
+                        LabelComponent={() => (
+                            <Text>
+                                {`${this.props.translate('termsStep.haveReadAndAgree')} `}
+
+                                <TextLink href="https://use.expensify.com/fees">
+                                    {`${this.props.translate('termsStep.electronicDisclosures')}.`}
+                                </TextLink>
+                            </Text>
+                        )}
+                    />
+                    <CheckboxWithLabel
+                        style={styles.mb4}
+                        isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
+                        onPress={this.togglePrivacyPolicy}
+                        LabelComponent={() => (
+                            <>
                                 <Text>
-                                    {`${this.props.translate('termsStep.haveReadAndAgree')} `}
-
-                                    <TextLink href="https://use.expensify.com/fees">
-                                        {`${this.props.translate('termsStep.electronicDisclosures')}.`}
-                                    </TextLink>
+                                    {`${this.props.translate('termsStep.agreeToThe')} `}
                                 </Text>
-                            )}
-                        />
-                        <CheckboxWithLabel
-                            style={styles.mb4}
-                            isChecked={this.state.hasAcceptedPrivacyPolicyAndWalletAgreement}
-                            onPress={this.togglePrivacyPolicy}
-                            LabelComponent={() => (
-                                <>
-                                    <Text>
-                                        {`${this.props.translate('termsStep.agreeToThe')} `}
-                                    </Text>
 
-                                    <TextLink href="https://use.expensify.com/privacy">
-                                        {`${this.props.translate('common.privacyPolicy')} `}
-                                    </TextLink>
+                                <TextLink href="https://use.expensify.com/privacy">
+                                    {`${this.props.translate('common.privacyPolicy')} `}
+                                </TextLink>
 
-                                    <Text>{`${this.props.translate('common.and')} `}</Text>
+                                <Text>{`${this.props.translate('common.and')} `}</Text>
 
-                                    <TextLink href="https://use.expensify.com/personalpaymentsterms">
-                                        {`${this.props.translate('termsStep.walletAgreement')}.`}
-                                    </TextLink>
-                                </>
-                            )}
-                        />
-                    </ScrollView>
-                    {this.state.error && (
-                        <Text style={[styles.formError, styles.mb2]}>
-                            {this.props.translate('termsStep.termsMustBeAccepted')}
-                        </Text>
-                    )}
-                    <View style={[styles.mb5]}>
-                        <Button
-                            success
-                            text={this.props.translate('termsStep.enablePayments')}
-                            isLoading={this.props.walletTerms.loading}
-                            onPress={() => {
-                                if (!this.state.hasAcceptedDisclosure
-                                    || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
-                                    this.setState({error: true});
-                                    return;
-                                }
+                                <TextLink href="https://use.expensify.com/personalpaymentsterms">
+                                    {`${this.props.translate('termsStep.walletAgreement')}.`}
+                                </TextLink>
+                            </>
+                        )}
+                    />
+                </ScrollView>
+                {this.state.error && (
+                    <Text style={[styles.formError, styles.mb2]}>
+                        {this.props.translate('termsStep.termsMustBeAccepted')}
+                    </Text>
+                )}
+                <FixedFooter>
+                    <Button
+                        success
+                        text={this.props.translate('termsStep.enablePayments')}
+                        isLoading={this.props.walletTerms.loading}
+                        onPress={() => {
+                            if (!this.state.hasAcceptedDisclosure
+                                || !this.state.hasAcceptedPrivacyPolicyAndWalletAgreement) {
+                                this.setState({error: true});
+                                return;
+                            }
 
-                                this.setState({error: false});
-                                activateWallet(CONST.WALLET.STEP.TERMS, {
-                                    hasAcceptedTerms: this.state.hasAcceptedDisclosure
-                                        && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
-                                });
-                            }}
-                        />
-                    </View>
-                </View>
+                            this.setState({error: false});
+                            activateWallet(CONST.WALLET.STEP.TERMS, {
+                                hasAcceptedTerms: this.state.hasAcceptedDisclosure
+                                    && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
+                            });
+                        }}
+                    />
+                </FixedFooter>
             </>
         );
     }

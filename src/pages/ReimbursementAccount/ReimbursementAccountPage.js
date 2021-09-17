@@ -52,9 +52,6 @@ const propTypes = {
             /** Step of the setup flow that we are on. Determines which view is presented. */
             currentStep: PropTypes.string,
         }),
-
-        /** Disable validation button if max attempts exceeded */
-        maxAttemptsReached: PropTypes.bool,
     }),
 
     /** Current session for the user */
@@ -124,7 +121,7 @@ class ReimbursementAccountPage extends React.Component {
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
                 return CONST.BANK_ACCOUNT.STEP.COMPANY;
-            case 'requestor':
+            case 'personal-information':
                 return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
             case 'contract':
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
@@ -216,9 +213,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const error = lodashGet(this.props, 'reimbursementAccount.error');
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
-
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
         // display. We can also specify a specific route to navigate to via route params when the component first
@@ -245,11 +239,7 @@ class ReimbursementAccountPage extends React.Component {
                         <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep
-                            achData={this.props.reimbursementAccount.achData}
-                            maxAttemptsReached={maxAttemptsReached}
-                            error={error}
-                        />
+                        <ValidationStep />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
                         <EnableStep

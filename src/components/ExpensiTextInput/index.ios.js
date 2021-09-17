@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react';
 import styles from '../../styles/styles';
 import BaseExpensiTextInput from './BaseExpensiTextInput';
-import {propTypes, defaultProps} from './propTypes';
+import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 
 const ExpensiTextInput = forwardRef((props, ref) => (
     <BaseExpensiTextInput

@@ -534,6 +534,15 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 }
 
 /**
+ * Show error modal and optionally a specific error message
+ *
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ */
+function showBankAccountErrorModal(errorModalMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+}
+
+/**
  * @param {Number} bankAccountID
  * @param {String} validateCode
  */
@@ -565,17 +574,16 @@ function validateBankAccount(bankAccountID, validateCode) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
-        });
-}
+            // User has input the validate code incorrectly many times so we will return early in this case and not let them enter the amounts again.
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.MAX_VALIDATION_ATTEMPTS_REACHED) {
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, maxAttemptsReached: true});
+                return;
+            }
 
-/**
- * Show error modal and optionally a specific error message
- *
- * @param {String} errorModalMessage The error message to be displayed in the modal's body.
- */
-function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+            // We are generically showing any backend errors that might pop up in the validate step
+            showBankAccountErrorModal(response.message);
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        });
 }
 
 /**
@@ -764,10 +772,6 @@ function setupWithdrawalAccount(data) {
                     } else {
                         console.error(response.message);
                     }
-                }
-
-                if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
-                    achData.disableFields = true;
                 }
             }
 
