@@ -9,7 +9,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import {setPassword} from '../libs/actions/Session';
+import {signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
+import * as API from '../libs/API';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,6 +63,7 @@ class SetPasswordPage extends Component {
         this.state = {
             password: '',
             isFormValid: false,
+            error: '',
         };
     }
 
@@ -69,17 +71,38 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
         if (!this.state.isFormValid) {
             return;
         }
-        setPassword(
-            this.state.password,
-            lodashGet(this.props.route, 'params.validateCode', ''),
-            lodashGet(this.props.route, 'params.accountID', ''),
-        );
+        API.ValidateEmail({
+            accountID,
+            validateCode,
+        }).then((responseValidate) => {
+            if (responseValidate.jsonCode === 200) {
+                API.ChangePassword({
+                    authToken: responseValidate.authToken,
+                    password: this.state.password,
+                }).then((responsePassword) => {
+                    if (responsePassword.jsonCode === 200) {
+                        signIn(this.state.password);
+                    } else {
+                        this.setState({
+                            error: this.props.translate('setPasswordPage.passwordNotSet'),
+                        });
+                    }
+                });
+            } else {
+                this.setState({
+                    error: this.props.translate('setPasswordPage.accountNotValidated'),
+                });
+            }
+        });
     }
 
     render() {
+        const error = this.state.error || this.props.account.error;
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}>
@@ -102,9 +125,9 @@ class SetPasswordPage extends Component {
                         />
                     </View>
 
-                    {!_.isEmpty(this.props.account.error) && (
+                    {!_.isEmpty(error) && (
                         <Text style={[styles.formError]}>
-                            {this.props.account.error}
+                            {error}
                         </Text>
                     )}
                 </SignInPageLayout>

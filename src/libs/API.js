@@ -342,7 +342,7 @@ function AuthenticateWithAccountID(parameters) {
  */
 function ChangePassword(parameters) {
     const commandName = 'ChangePassword';
-    requireParameters(['oldPassword', 'password'], parameters, commandName);
+    requireParameters(['password'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
