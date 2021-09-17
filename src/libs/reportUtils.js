@@ -82,10 +82,17 @@ function canDeleteReportAction(reportAction) {
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @param {Boolean} [ignoreDefaultRooms]
  * @returns {Object}
  */
-function findLastAccessedReport(reports) {
-    return _.last(sortReportsByLastVisited(reports));
+function findLastAccessedReport(reports, ignoreDefaultRooms) {
+    let sortedReports = sortReportsByLastVisited(reports);
+
+    if (ignoreDefaultRooms) {
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report))
+    }
+
+    return _.last(sortedReports);
 }
 
 /**

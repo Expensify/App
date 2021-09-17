@@ -154,6 +154,9 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
+        console.log('HEY LOOK AT THIS -------------------------');
+        console.log(reportID);
+        console.log(this.props.report);
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
