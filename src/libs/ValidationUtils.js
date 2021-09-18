@@ -153,6 +153,12 @@ function isValidIdentity(identity) {
         return false;
     }
 
+    if (identity.city === '') {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
     if (!isValidZipCode(identity.zipCode)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
         showBankAccountErrorModal();

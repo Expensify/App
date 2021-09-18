@@ -352,7 +352,7 @@ function AddBillingCard(parameters) {
  */
 function ChangePassword(parameters) {
     const commandName = 'ChangePassword';
-    requireParameters(['oldPassword', 'password'], parameters, commandName);
+    requireParameters(['password'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -751,13 +751,13 @@ function User_GetBetas() {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.emailList
+ * @param {String} parameters.email
  * @param {Boolean} [parameters.requireCertainty]
  * @returns {Promise}
  */
 function User_IsFromPublicDomain(parameters) {
     const commandName = 'User_IsFromPublicDomain';
-    requireParameters(['emailList'], parameters, commandName);
+    requireParameters(['email'], parameters, commandName);
     return Network.post(commandName, {
         ...{requireCertainty: true},
         ...parameters,

@@ -1,12 +1,14 @@
+import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {validateBankAccount, updateReimbursementAccountDraft} from '../../libs/actions/BankAccounts';
+import {
+    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
+} from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -17,31 +19,24 @@ import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import {isRequiredFulfilled} from '../../libs/ValidationUtils';
+import EnableStep from './EnableStep';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
-    /** Additional data for the account in setup */
-    achData: PropTypes.shape({
-
-        /** Bank account ID of the VBA that we are validating is required */
-        bankAccountID: PropTypes.number.isRequired,
-
-        /** State of bank account */
-        state: PropTypes.string,
-    }).isRequired,
-
-    /** Error message to display to user */
-    error: PropTypes.string,
-
-    /** Disable validation button if max attempts exceeded */
-    maxAttemptsReached: PropTypes.bool,
+    /** Bank account currently in setup */
+    reimbursementAccount: reimbursementAccountPropTypes,
 };
 
 const defaultProps = {
-    error: '',
-    maxAttemptsReached: false,
+    reimbursementAccount: {
+        errors: {},
+        maxAttemptsReached: false,
+    },
 };
 
 class ValidationStep extends React.Component {
@@ -49,12 +44,12 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.navigateToConcierge = this.navigateToConcierge.bind(this);
 
         this.state = {
-            amount1: getDefaultStateForField(props, 'amount1', ''),
-            amount2: getDefaultStateForField(props, 'amount2', ''),
-            amount3: getDefaultStateForField(props, 'amount3', ''),
-            error: '',
+            amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
+            amount2: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount2', ''),
+            amount3: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount3', ''),
         };
 
         this.requiredFields = [
@@ -62,6 +57,16 @@ class ValidationStep extends React.Component {
             'amount2',
             'amount3',
         ];
+
+        this.errorTranslationKeys = {
+            amount1: 'common.error.invalidAmount',
+            amount2: 'common.error.invalidAmount',
+            amount3: 'common.error.invalidAmount',
+        };
+
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
     }
 
     /**
@@ -72,22 +77,52 @@ class ValidationStep extends React.Component {
         this.setState(value);
     }
 
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setValue({[inputKey]: value});
+        this.clearError(inputKey);
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    validate() {
+        const errors = {};
+        const values = {
+            amount1: this.filterInput(this.state.amount1),
+            amount2: this.filterInput(this.state.amount2),
+            amount3: this.filterInput(this.state.amount3),
+        };
+
+        _.each(this.requiredFields, (inputKey) => {
+            if (!isRequiredFulfilled(values[inputKey])) {
+                errors[inputKey] = true;
+            }
+        });
+        setBankAccountFormValidationErrors(errors);
+        return _.size(errors) === 0;
+    }
+
     submit() {
+        if (!this.validate()) {
+            showBankAccountErrorModal();
+            return;
+        }
+
         const amount1 = this.filterInput(this.state.amount1);
         const amount2 = this.filterInput(this.state.amount2);
         const amount3 = this.filterInput(this.state.amount3);
 
-        // If amounts are all non-zeros, submit amounts to API
-        if (amount1 && amount2 && amount3) {
-            const validateCode = [amount1, amount2, amount3].join(',');
+        const validateCode = [amount1, amount2, amount3].join(',');
 
-            // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-            validateBankAccount(this.props.achData.bankAccountID, validateCode);
-            return;
-        }
-
-        // If any values are falsey, indicate to user that inputs are invalid
-        this.setState({error: 'Invalid amounts'});
+        // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
+        const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
+        validateBankAccount(bankaccountID, validateCode);
     }
 
     /**
@@ -113,91 +148,95 @@ class ValidationStep extends React.Component {
         return value;
     }
 
+    navigateToConcierge() {
+        // There are two modals that must be dismissed before we can reveal the Concierge
+        // chat underneath these screens
+        Navigation.dismissModal();
+        Navigation.dismissModal();
+        navigateToConciergeChat();
+    }
+
     render() {
-        let errorMessage = this.state.error ? this.state.error : this.props.error;
-        if (this.props.maxAttemptsReached) {
-            errorMessage = this.props.translate('validationStep.maxAttemptError');
+        const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
+
+        // If a user tries to navigate directly to the validate page we'll show them the EnableStep
+        if (state === BankAccount.STATE.OPEN) {
+            return <EnableStep achData={lodashGet(this.props, 'reimbursementAccount.achData')} />;
         }
 
-        const state = this.props.achData.state;
-        const shouldDisableSubmitButton = this.requiredFields
-            .reduce((acc, curr) => acc || !this.state[curr].trim(), false) || this.props.maxAttemptsReached;
-
+        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('validationStep.headerTitle')}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
-                {state === BankAccount.STATE.PENDING && (
-                    <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.mt2, styles.flexGrow1]}>
+                {maxAttemptsReached && (
+                    <View style={[styles.m5, styles.flex1]}>
+                        <Text>
+                            {this.props.translate('validationStep.maxAttemptsReached')}
+                            {' '}
+                            {this.props.translate('common.please')}
+                            {' '}
+                            <TextLink onPress={this.navigateToConcierge}>
+                                {this.props.translate('common.contactUs')}
+                            </TextLink>
+                            .
+                        </Text>
+                    </View>
+                )}
+                {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
+                    <ReimbursementAccountForm
+                        onSubmit={this.submit}
+                    >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mh5, styles.mb5]}>
+                            <Text style={[styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
                             </Text>
-                            <Text style={[styles.mh5, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.m5]}>
+                        <View style={[styles.mv5, styles.flex1]}>
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
                                 keyboardType="number-pad"
                                 value={this.state.amount1}
-                                onChangeText={amount1 => this.setValue({amount1})}
+                                onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
+                                errorText={this.getErrorText('amount1')}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
                                 keyboardType="number-pad"
                                 value={this.state.amount2}
-                                onChangeText={amount2 => this.setValue({amount2})}
+                                onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
+                                errorText={this.getErrorText('amount2')}
                             />
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
                                 keyboardType="number-pad"
                                 value={this.state.amount3}
-                                onChangeText={amount3 => this.setValue({amount3})}
-                            />
-                            {!_.isEmpty(errorMessage) && (
-                                <Text style={[styles.mb5, styles.textDanger]}>
-                                    {errorMessage}
-                                </Text>
-                            )}
-                        </View>
-                        <View style={[styles.flex1, styles.justifyContentEnd]}>
-                            <Button
-                                success
-                                text={this.props.translate('validationStep.buttonText')}
-                                style={[styles.mh5, styles.mb5]}
-                                onPress={this.submit}
-                                isDisabled={shouldDisableSubmitButton}
+                                onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
+                                errorText={this.getErrorText('amount3')}
                             />
                         </View>
-                    </ScrollView>
+                    </ReimbursementAccountForm>
                 )}
-                {state === BankAccount.STATE.VERIFYING && (
+                {!maxAttemptsReached && state === BankAccount.STATE.VERIFYING && (
                     <View style={[styles.flex1]}>
                         <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
                             {this.props.translate('validationStep.reviewingInfo')}
-                            <TextLink
-                                onPress={() => {
-                                    // There are two modals that must be dismissed before we can reveal the Concierge
-                                    // chat underneath these screens
-                                    Navigation.dismissModal();
-                                    Navigation.dismissModal();
-                                    navigateToConciergeChat();
-                                }}
-                            >
+                            <TextLink onPress={this.navigateToConcierge}>
                                 {this.props.translate('common.here')}
                             </TextLink>
                             {this.props.translate('validationStep.forNextSteps')}
                         </Text>
                         <Button
                             success
-                            text={this.props.translate('bankAccount.confirmModalConfirmText')}
+                            text={this.props.translate('bankAccount.buttonConfirm')}
                             style={[styles.mh5, styles.mb5]}
                             onPress={() => Navigation.dismissModal()}
                         />
@@ -216,6 +255,9 @@ export default compose(
     withOnyx({
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(ValidationStep);
