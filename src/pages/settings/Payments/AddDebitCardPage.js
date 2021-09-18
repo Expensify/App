@@ -51,6 +51,7 @@ class DebitCardPage extends Component {
 
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
         this.handleExpirationInput = this.handleExpirationInput.bind(this);
+        this.handleCardNumberInput = this.handleCardNumberInput.bind(this);
         this.submit = this.submit.bind(this);
     }
 
@@ -127,6 +128,12 @@ class DebitCardPage extends Component {
         this.setState({expirationDate: newExpirationDate});
     }
 
+    handleCardNumberInput(newCardNumber) {
+        if (/^[0-9]{0,16}$/.test(newCardNumber)) {
+            this.setState({cardNumber: newCardNumber});
+        }
+    }
+
     render() {
         return (
             <ScreenWrapper>
@@ -148,7 +155,7 @@ class DebitCardPage extends Component {
                             placeholder={this.props.translate('addDebitCardPage.debitCardNumber')}
                             keyboardType="number-pad"
                             containerStyles={[styles.flex1, styles.mb2]}
-                            onChangeText={cardNumber => this.setState({cardNumber})}
+                            onChangeText={cardNumber => this.handleCardNumberInput(cardNumber)}
                             value={this.state.cardNumber}
                         />
                         <View style={[styles.flexRow, styles.mb2]}>

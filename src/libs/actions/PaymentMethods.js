@@ -38,17 +38,35 @@ function getPaymentMethods() {
  * @param {Object} params
  */
 function addBillingCard(params) {
+    const cardYear = params.expirationDate.substr(3);
+    const cardMonth = params.expirationDate.substr(0, 2);
+
     API.AddBillingCard({
         cardNumber: params.cardNumber,
-        cardYear: params.expirationDate.substr(3),
-        cardMonth: params.expirationDate.substr(0, 2),
+        cardYear,
+        cardMonth,
         cardCVV: params.securityCode,
         addressName: params.nameOnCard,
         addressZip: params.zipCode,
         currency: CONST.CURRENCY.USD,
     }).then(((response) => {
         if (response.jsonCode === 200) {
-            Onyx.set(ONYXKEYS.CARD_LIST, response);
+            const cardObject = {
+                additionalData: {
+                    isBillingCard: true,
+                    isP2PDebitCard: false,
+                },
+                addressName: params.nameOnCard,
+                addressState: params.selectedState,
+                addressStreet: params.billingAddress,
+                addressZip: params.zipCode,
+                cardMonth,
+                cardNumber: params.cardNumber,
+                cardYear,
+                currency: 'USD',
+                fundID: lodashGet(response, 'fundID', ''),
+            };
+            Onyx.set(ONYXKEYS.CARD_LIST, cardObject);
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         } else {
