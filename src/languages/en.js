@@ -584,6 +584,7 @@ export default {
         common: {
             card: 'Expensify Card',
             workspace: 'Workspace',
+            edit: 'Edit workspace',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -619,7 +620,6 @@ export default {
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} workspace! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
-            title: 'Edit workspace',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             save: 'Save',

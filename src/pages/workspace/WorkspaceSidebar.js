@@ -127,14 +127,16 @@ const WorkspaceSidebar = ({
                                             fill={themedefault.iconSuccessFill}
                                         />
                                     )}
-                                <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                    <Icon
-                                        src={Pencil}
-                                        width={variables.iconSizeSmall}
-                                        height={variables.iconSizeSmall}
-                                        fill={themedefault.iconReversed}
-                                    />
-                                </View>
+                                <Tooltip absolute text={translate('workspace.common.edit')}>
+                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                        <Icon
+                                            src={Pencil}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                            fill={themedefault.iconReversed}
+                                        />
+                                    </View>
+                                </Tooltip>
                             </Pressable>
 
                             <Pressable
