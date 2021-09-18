@@ -586,6 +586,7 @@ export default {
         common: {
             card: 'Tarjeta Expensify',
             workspace: 'Espacio de trabajo',
+            edit: 'Editar espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -621,7 +622,6 @@ export default {
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         editor: {
-            title: 'Editar espacio de trabajo',
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             save: 'Guardar',
