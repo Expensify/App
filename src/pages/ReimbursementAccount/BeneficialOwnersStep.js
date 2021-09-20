@@ -149,7 +149,7 @@ class BeneficialOwnersStep extends React.Component {
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
                     <CheckboxWithLabel
-                        style={[styles.mb2, styles.mr2]}
+                        style={[styles.mb2]}
                         isChecked={this.state.ownsMoreThan25Percent}
                         onPress={() => this.toggleCheckbox('ownsMoreThan25Percent')}
                         LabelComponent={() => (
@@ -160,7 +160,7 @@ class BeneficialOwnersStep extends React.Component {
                         )}
                     />
                     <CheckboxWithLabel
-                        style={[styles.mb2, styles.mr2]}
+                        style={[styles.mb2]}
                         isChecked={this.state.hasOtherBeneficialOwners}
                         onPress={() => {
                             this.setState((prevState) => {
