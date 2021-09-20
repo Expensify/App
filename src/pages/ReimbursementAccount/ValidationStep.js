@@ -201,7 +201,7 @@ class ValidationStep extends React.Component {
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
-                                keyboardType="number-pad"
+                                keyboardType="decimal-pad"
                                 value={this.state.amount1}
                                 onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
                                 errorText={this.getErrorText('amount1')}
@@ -209,7 +209,7 @@ class ValidationStep extends React.Component {
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
-                                keyboardType="number-pad"
+                                keyboardType="decimal-pad"
                                 value={this.state.amount2}
                                 onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
                                 errorText={this.getErrorText('amount2')}
@@ -217,7 +217,7 @@ class ValidationStep extends React.Component {
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
-                                keyboardType="number-pad"
+                                keyboardType="decimal-pad"
                                 value={this.state.amount3}
                                 onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
                                 errorText={this.getErrorText('amount3')}
