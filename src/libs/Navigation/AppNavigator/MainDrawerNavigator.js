@@ -46,8 +46,7 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
 };
 
 const MainDrawerNavigator = (props) => {
-    const initialParams =  getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas));
-    debugger;
+    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas));
 
     // Wait until reports are fetched and there is a reportID in initialParams
     if (!initialParams.reportID) {

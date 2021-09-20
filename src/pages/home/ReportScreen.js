@@ -159,9 +159,11 @@ class ReportScreen extends React.Component {
             return null;
         }
 
-        if (!Permissions.canUseDefaultRooms() && isDefaultRoom(this.props.report)) {
+        if (!Permissions.canUseDefaultRooms(this.props.betas) && isDefaultRoom(this.props.report)) {
             return null;
         }
+
+        const reportID = getReportID(this.props.route);
 
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
