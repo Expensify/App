@@ -344,10 +344,7 @@ class IOUConfirmationList extends Component {
      */
     isValidUSPhone(phoneNumber) {
         // Remove alphanumeric characters and validate that this is in fact a phone number
-        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
-
-            // Next make sure it's a US phone number
-            && CONST.REGEX.US_PHONE.test(phoneNumber);
+        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
     }
 
     /**
@@ -463,9 +460,6 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        user: {
-            key: ONYXKEYS.USER,
         },
     }),
 )(IOUConfirmationList);
