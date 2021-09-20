@@ -224,7 +224,7 @@ class BeneficialOwnersStep extends React.Component {
                             )}
                         </View>
                     )}
-                    <Text style={[styles.textStrong, styles.mv5]}>
+                    <Text style={[styles.mv5]}>
                         {this.props.translate('beneficialOwnersStep.agreement')}
                     </Text>
                     <CheckboxWithLabel
