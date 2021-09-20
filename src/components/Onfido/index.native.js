@@ -45,6 +45,11 @@ class Onfido extends React.Component {
                     return;
                 }
 
+                if (errorMessage === CONST.ONFIDO.ERROR.USER_TAPPED_BACK) {
+                    this.props.onUserExit();
+                    return;
+                }
+
                 this.props.onError(errorMessage);
             });
     }

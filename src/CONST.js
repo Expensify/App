@@ -336,6 +336,7 @@ const CONST = {
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
             USER_CANCELLED: 'User canceled flow',
+            USER_TAPPED_BACK: 'User exited by clicking the back button.',
         },
     },
 
