@@ -84,7 +84,7 @@ export default {
         expensifyDoesntHaveAccessToCamera: 'Esta aplicación no tiene acceso a tu cámara, por favor activa el permiso y vuelve a intentarlo.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor intentalo con otro archivo',
+        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor inténtalo con otro archivo',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
@@ -343,6 +343,9 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
         phoneOrEmail: 'Número de teléfono o email',
+        error: {
+            invalidFormatLogin: 'El email o número de teléfono que has introducido no es válido. Corrígelo e inténtalo de nuevo.',
+        },
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
@@ -367,6 +370,8 @@ export default {
         passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
+        passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
+        accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
     },
     bankAccount: {
         accountNumber: 'Número de cuenta',
@@ -381,9 +386,7 @@ export default {
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso en la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
-        confirmModalTitle: 'Ups',
-        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
-        confirmModalConfirmText: 'OK',
+        buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             taxID: 'Ingresa un número de identificación fiscal válido',
@@ -409,13 +412,8 @@ export default {
             firstName: 'Ingresa un nombre válido',
             lastName: 'Ingresa un apellido válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
-            existingOwners: {
-                alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
-                pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
-                alternatively: 'En su defecto, puedes ',
-                setUpThisAccountByYourself: 'añadir la cuenta tú mismo',
-                validationProcessAgain: ' y completar el proceso de validación de nuevo (lo cual puede tardar hasta una semana).',
-            },
+            fixTheErrors: 'corrige los errores',
+            inTheFormBeforeContinuing: 'en el formulario antes de continuar',
         },
     },
     addPersonalBankAccountPage: {
@@ -591,6 +589,7 @@ export default {
         common: {
             card: 'Tarjeta Expensify',
             workspace: 'Espacio de trabajo',
+            edit: 'Editar espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -626,7 +625,6 @@ export default {
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         editor: {
-            title: 'Editar espacio de trabajo',
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             save: 'Guardar',
@@ -644,7 +642,7 @@ export default {
         availabilityText: '*Nuestros guías están disponibles de domingo desde las 17.00 CT a viernes hasta las 17.00 CT. Si solicitas una llamada fuera de este horario, te llamaremos de lunes a viernes de 9.00 a 17.00 en tu hora local. El orden de llamada corresponde con el orden de solicitud.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        errorMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
+        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         needHelp: 'Ayuda',
