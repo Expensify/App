@@ -343,6 +343,9 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
+        error: {
+            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+        },
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
@@ -584,6 +587,7 @@ export default {
         common: {
             card: 'Expensify Card',
             workspace: 'Workspace',
+            edit: 'Edit workspace',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -619,7 +623,6 @@ export default {
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} workspace! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
-            title: 'Edit workspace',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             save: 'Save',
