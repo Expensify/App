@@ -595,10 +595,10 @@ export default {
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
-            assignee: 'Assignee',
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
             removeMembersTitle: 'Remove members',
+            selectAll: 'Select all',
         },
         card: {
             addEmail: 'Add email',
