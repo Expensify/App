@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Image, ScrollView} from 'react-native';
-import PropTypes from 'prop-types';
+import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
@@ -10,7 +9,6 @@ import {
 } from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
-import Button from '../../components/Button';
 import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -31,13 +29,13 @@ import {
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Error set when handling the API response */
-        error: PropTypes.string,
-    }).isRequired,
+    // eslint-disable-next-line react/no-unused-prop-types
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -226,58 +224,51 @@ class BankAccountStep extends React.Component {
                     />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
-                    <>
-                        <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.p5, styles.flexGrow1]}>
-                            <Text style={[styles.mb5]}>
-                                {this.props.translate('bankAccount.checkHelpLine')}
-                            </Text>
-                            <Image
-                                resizeMode="contain"
-                                style={[styles.exampleCheckImage, styles.mb5]}
-                                source={exampleCheckImage}
-                            />
-                            <ExpensiTextInput
-                                label={this.props.translate('bankAccount.routingNumber')}
-                                keyboardType="number-pad"
-                                value={this.state.routingNumber}
-                                onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
-                                disabled={shouldDisableInputs}
-                                errorText={this.getErrorText('routingNumber')}
-                            />
-                            <ExpensiTextInput
-                                containerStyles={[styles.mt4]}
-                                label={this.props.translate('bankAccount.accountNumber')}
-                                keyboardType="number-pad"
-                                value={this.state.accountNumber}
-                                onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
-                                disabled={shouldDisableInputs}
-                                errorText={this.getErrorText('accountNumber')}
-                            />
-                            <CheckboxWithLabel
-                                style={[styles.mb4, styles.mt5]}
-                                isChecked={this.state.hasAcceptedTerms}
-                                onPress={this.toggleTerms}
-                                LabelComponent={() => (
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <Text>
-                                            {this.props.translate('common.iAcceptThe')}
-                                        </Text>
-                                        <TextLink href="https://use.expensify.com/terms">
-                                            {`Expensify ${this.props.translate('common.termsOfService')}`}
-                                        </TextLink>
-                                    </View>
-                                )}
-                                hasError={this.getErrors().hasAcceptedTerms}
-                            />
-                            <View style={[styles.flex1, styles.justifyContentEnd]}>
-                                <Button
-                                    success
-                                    text={this.props.translate('common.saveAndContinue')}
-                                    onPress={this.addManualAccount}
-                                />
-                            </View>
-                        </ScrollView>
-                    </>
+                    <ReimbursementAccountForm
+                        onSubmit={this.addManualAccount}
+                    >
+                        <Text style={[styles.mb5]}>
+                            {this.props.translate('bankAccount.checkHelpLine')}
+                        </Text>
+                        <Image
+                            resizeMode="contain"
+                            style={[styles.exampleCheckImage, styles.mb5]}
+                            source={exampleCheckImage}
+                        />
+                        <ExpensiTextInput
+                            label={this.props.translate('bankAccount.routingNumber')}
+                            keyboardType="number-pad"
+                            value={this.state.routingNumber}
+                            onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
+                            disabled={shouldDisableInputs}
+                            errorText={this.getErrorText('routingNumber')}
+                        />
+                        <ExpensiTextInput
+                            containerStyles={[styles.mt4]}
+                            label={this.props.translate('bankAccount.accountNumber')}
+                            keyboardType="number-pad"
+                            value={this.state.accountNumber}
+                            onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
+                            disabled={shouldDisableInputs}
+                            errorText={this.getErrorText('accountNumber')}
+                        />
+                        <CheckboxWithLabel
+                            style={[styles.mb4, styles.mt5]}
+                            isChecked={this.state.hasAcceptedTerms}
+                            onPress={this.toggleTerms}
+                            LabelComponent={() => (
+                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                    <Text>
+                                        {this.props.translate('common.iAcceptThe')}
+                                    </Text>
+                                    <TextLink href="https://use.expensify.com/terms">
+                                        {`Expensify ${this.props.translate('common.termsOfService')}`}
+                                    </TextLink>
+                                </View>
+                            )}
+                            hasError={this.getErrors().hasAcceptedTerms}
+                        />
+                    </ReimbursementAccountForm>
                 )}
             </View>
         );

@@ -343,6 +343,9 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
+        error: {
+            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+        },
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
@@ -383,9 +386,7 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
-        confirmModalTitle: 'Oops',
-        confirmModalPrompt: 'Please double check any highlighted fields and try again.',
-        confirmModalConfirmText: 'Got it',
+        buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             taxID: 'Please enter a valid Tax ID Number',
@@ -411,13 +412,8 @@ export default {
             firstName: 'Please enter valid first name',
             lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
-            existingOwners: {
-                alreadyInUse: 'This bank account is already in use by ',
-                pleaseAskThemToShare: 'Please ask them to share it with you.',
-                alternatively: 'Alternatively, you can ',
-                setUpThisAccountByYourself: 'set up this account by yourself',
-                validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
-            },
+            fixTheErrors: 'fix the errors',
+            inTheFormBeforeContinuing: 'in the form before continuing',
         },
     },
     addPersonalBankAccountPage: {
@@ -591,6 +587,7 @@ export default {
         common: {
             card: 'Expensify Card',
             workspace: 'Workspace',
+            edit: 'Edit workspace',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -607,7 +604,7 @@ export default {
             addEmail: 'Add email',
             tagline: 'The smartest corporate card in the room.',
             publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
-            privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
+            privateCopy: 'Just swipe your Expensify card and your expenses are done, it\'s that simple!',
             getStarted: 'Get started',
             finishSetup: 'Finish setup',
             manageCards: 'Manage cards',
@@ -626,7 +623,6 @@ export default {
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} workspace! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
-            title: 'Edit workspace',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             save: 'Save',

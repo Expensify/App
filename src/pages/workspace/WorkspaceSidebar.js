@@ -13,6 +13,7 @@ import {
     Users,
     ExpensifyCard,
     Workspace,
+    Pencil,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -26,6 +27,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import CONST from '../../CONST';
 import Tooltip from '../../components/Tooltip';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Policy for the current route */
@@ -125,6 +127,16 @@ const WorkspaceSidebar = ({
                                             fill={themedefault.iconSuccessFill}
                                         />
                                     )}
+                                <Tooltip absolute text={translate('workspace.common.edit')}>
+                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                        <Icon
+                                            src={Pencil}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                            fill={themedefault.iconReversed}
+                                        />
+                                    </View>
+                                </Tooltip>
                             </Pressable>
 
                             <Pressable
