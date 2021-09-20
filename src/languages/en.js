@@ -343,6 +343,9 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
+        error: {
+            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+        },
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
