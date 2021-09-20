@@ -433,11 +433,11 @@ function GetAccountStatus(parameters) {
 }
 
 /**
- * Returns a validate code for this account
+ * Returns a short lived authToken for this account
  * @returns {Promise}
  */
-function GetAccountValidateCode() {
-    const commandName = 'GetAccountValidateCode';
+function GetShortLivedAuthToken() {
+    const commandName = 'GetShortLivedAuthToken';
     return Network.post(commandName);
 }
 
@@ -1086,7 +1086,7 @@ export {
     DeleteLogin,
     Get,
     GetAccountStatus,
-    GetAccountValidateCode,
+    GetShortLivedAuthToken,
     GetIOUReport,
     GetPolicyList,
     GetPolicySummaryList,
