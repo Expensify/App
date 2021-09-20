@@ -97,18 +97,18 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
-
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-        })),
-    }),
-
-    /** User's paypal.me username if they have one */
-    payPalMeUsername: PropTypes.string,
+    // /** The details about the user that is signed in */
+    // user: PropTypes.shape({
+    //     /** Whether or not the user is subscribed to news updates */
+    //     loginList: PropTypes.arrayOf(PropTypes.shape({
+    //
+    //         /** Phone/Email associated with user */
+    //         partnerUserID: PropTypes.string,
+    //     })),
+    // }),
+    //
+    // /** User's paypal.me username if they have one */
+    // payPalMeUsername: PropTypes.string,
 
     /** Current user session */
     session: PropTypes.shape({
@@ -124,9 +124,9 @@ const defaultProps = {
     comment: '',
     network: {},
     myPersonalDetails: {},
-    user: {},
+    // user: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    payPalMeUsername: '',
+    // payPalMeUsername: '',
 };
 
 class IOUConfirmationList extends Component {
