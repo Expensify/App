@@ -205,9 +205,6 @@ class RequestorStep extends React.Component {
                             errorText={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')
                                 ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
                         />
-                        <Text style={[styles.textMicroSupporting, styles.mt5]}>
-                            {this.props.translate('requestorStep.financialRegulations')}
-                        </Text>
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
                             <TextLink
