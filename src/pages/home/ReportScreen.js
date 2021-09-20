@@ -164,7 +164,6 @@ class ReportScreen extends React.Component {
         }
 
         const reportID = getReportID(this.props.route);
-
         return (
             <ScreenWrapper style={[styles.appContent, styles.flex1]}>
                 <HeaderView
