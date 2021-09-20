@@ -224,7 +224,7 @@ class BeneficialOwnersStep extends React.Component {
                             )}
                         </View>
                     )}
-                    <Text style={[styles.textStrong, styles.mb5]}>
+                    <Text style={[styles.textStrong, styles.mv5]}>
                         {this.props.translate('beneficialOwnersStep.agreement')}
                     </Text>
                     <CheckboxWithLabel
@@ -235,7 +235,7 @@ class BeneficialOwnersStep extends React.Component {
                             <View style={[styles.flexRow]}>
                                 <Text>{this.props.translate('common.iAcceptThe')}</Text>
                                 <TextLink href="https://use.expensify.com/achterms">
-                                    {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}.`}
+                                    {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
                                 </TextLink>
                             </View>
                         )}
