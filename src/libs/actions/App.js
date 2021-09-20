@@ -49,7 +49,7 @@ function setLocale(locale) {
  */
 function openSignedInLink(url = '') {
     API.GetShortLivedAuthToken().then((response) => {
-        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${response.authToken}`);
+        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${response.authToken}&email=${response.email}`);
     });
 }
 
