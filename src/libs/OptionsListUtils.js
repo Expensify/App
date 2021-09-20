@@ -230,10 +230,11 @@ function createOption(personalDetailList, report, draftComments, {
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
     }
+    const icons = (report && report.icons && report.icons[0]) ? report.icons : [personalDetail.avatar];
     return {
         text,
         alternateText,
-        icons: report ? report.icons : [personalDetail.avatar],
+        icons,
         tooltipText,
         participantsList: personalDetailList,
 
