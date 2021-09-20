@@ -25,7 +25,7 @@ import {
     Cash, Wallet, Venmo, PayPal,
 } from './Icon/Expensicons';
 import Permissions from '../libs/Permissions';
-import isAppInstalled from '../libs/isAppInstalled/index.native';
+import isAppInstalled from '../libs/isAppInstalled';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
