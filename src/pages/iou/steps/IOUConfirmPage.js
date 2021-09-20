@@ -34,6 +34,8 @@ const propTypes = {
         isUnread: PropTypes.bool,
         reportID: PropTypes.number,
         participantsList: PropTypes.arrayOf(PropTypes.object),
+        payPalMeAddress: PropTypes.string,
+        phoneNumber: PropTypes.string,
     })).isRequired,
 
     /** IOU type */

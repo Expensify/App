@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import Str from 'expensify-common/lib/str';
 import styles from '../styles/styles';
 import Text from './Text';
 import themeColors from '../styles/themes/default';
@@ -124,6 +123,7 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
+        // Add options to payment menu
         const confirmationButtonOptions = [];
         let defaultButtonOption = {
             text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
@@ -133,7 +133,7 @@ class IOUConfirmationList extends Component {
                 ),
             }),
         };
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.props.participants.length === 1) {
             // Add the Expensify Wallet option if available and make it the first option
             if (this.props.localCurrencyCode === CONST.CURRENCY.USD
                 || Permissions.canUsePayWithExpensify(this.props.betas)) {
@@ -141,7 +141,7 @@ class IOUConfirmationList extends Component {
             }
 
             // Add PayPal option
-            if (this.props.participants.payPalMeAddress) {
+            if (this.props.participants[0].payPalMeAddress) {
                 confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), icon: PayPal});
             }
             defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), icon: Cash};
@@ -319,7 +319,7 @@ class IOUConfirmationList extends Component {
      */
     addVenmoPaymentOption() {
         // Add Venmo option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.isValidUSPhone(this.props.participants.phoneNumber)) {
+        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber.length > 0 && this.isValidUSPhone(this.state.participants[0].phoneNumber)) {
             isAppInstalled('venmo')
                 .then((isVenmoInstalled) => {
                     // We will return early if the component has unmounted before the async call resolves. This prevents
@@ -336,6 +336,18 @@ class IOUConfirmationList extends Component {
                     }));
                 });
         }
+    }
+
+    /**
+     * @param {String} phoneNumber
+     * @returns {Boolean}
+     */
+    isValidUSPhone(phoneNumber) {
+        // Remove alphanumeric characters and validate that this is in fact a phone number
+        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
+
+            // Next make sure it's a US phone number
+            && CONST.REGEX.US_PHONE.test(phoneNumber);
     }
 
     /**
