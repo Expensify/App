@@ -96,7 +96,7 @@ const defaultProps = {
 
 class SidebarLinks extends React.Component {
     shouldComponentUpdate(nextProps) {
-        // don't need to limit draft comment flashing for small screen widths
+        // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
         if (nextProps.isSmallScreenWidth) {
             return true;
         }
