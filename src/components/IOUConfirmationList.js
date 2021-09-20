@@ -123,7 +123,7 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
-        // Add options to payment menu
+        // Add the button options to payment menu
         const confirmationButtonOptions = [];
         let defaultButtonOption = {
             text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
@@ -135,8 +135,7 @@ class IOUConfirmationList extends Component {
         };
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.props.participants.length === 1) {
             // Add the Expensify Wallet option if available and make it the first option
-            if (this.props.localCurrencyCode === CONST.CURRENCY.USD
-                || Permissions.canUsePayWithExpensify(this.props.betas)) {
+            if (this.props.localCurrencyCode === CONST.CURRENCY.USD || Permissions.canUsePayWithExpensify(this.props.betas)) {
                 confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), icon: Wallet});
             }
 
