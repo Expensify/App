@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -62,14 +61,7 @@ class SidebarScreen extends Component {
         // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
         setTimeout(() => {
             if (this.props.isFirstTimeNewExpensifyUser) {
-                const hasFreePolicy = _.chain(this.props.policies)
-                    .some(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
-                    .value();
-
-                // If user doesn't have any free policies (workspaces) set up, automatically open create menu
-                if (!hasFreePolicy) {
-                    this.toggleCreateMenu();
-                }
+                this.toggleCreateMenu();
 
                 // Set the NVP back to false so we don't automatically open the menu again
                 // Note: this may need to be moved if this NVP is used for anything else later
