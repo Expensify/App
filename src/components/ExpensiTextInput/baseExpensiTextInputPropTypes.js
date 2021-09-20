@@ -33,7 +33,7 @@ const defaultProps = {
     label: '',
     errorText: '',
     placeholder: '',
-    error: false,
+    hasError: false,
     containerStyles: [],
     translateX: -22,
     inputStyle: [],
