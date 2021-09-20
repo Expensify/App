@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../../ONYXKEYS';
 import SCREENS from '../../../SCREENS';
+import Permissions from '../../Permissions';
 
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
@@ -18,15 +19,26 @@ const propTypes = {
     reports: PropTypes.objectOf(PropTypes.shape({
         reportID: PropTypes.number,
     })),
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
     reports: {},
+    betas: [],
 };
 
 
-const getInitialReportScreenParams = (reports) => {
-    const last = findLastAccessedReport(reports);
+/**
+ * Get the most recently accessed report for the user
+ *
+ * @param {Object} reports
+ * @param {Boolean} [ignoreDefaultRooms]
+ * @returns {Object}
+ */
+const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
+    const last = findLastAccessedReport(reports, ignoreDefaultRooms);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -34,7 +46,7 @@ const getInitialReportScreenParams = (reports) => {
 };
 
 const MainDrawerNavigator = (props) => {
-    const initialParams = getInitialReportScreenParams(props.reports);
+    const initialParams = getInitialReportScreenParams(props.reports, !Permissions.canUseDefaultRooms(props.betas));
 
     // Wait until reports are fetched and there is a reportID in initialParams
     if (!initialParams.reportID) {
@@ -66,6 +78,9 @@ MainDrawerNavigator.displayName = 'MainDrawerNavigator';
 export default withOnyx({
     reports: {
         key: ONYXKEYS.COLLECTION.REPORT,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 })(MainDrawerNavigator);
 export {getInitialReportScreenParams};
