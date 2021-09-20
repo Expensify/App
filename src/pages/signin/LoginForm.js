@@ -61,7 +61,7 @@ class LoginForm extends React.Component {
             return;
         }
 
-        if (Str.isValidEmail(this.state.login) || Str.isValidPhone(this.state.login)) {
+        if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
             this.setState({formError: 'loginForm.error.invalidFormatLogin'});
             return;
         }
