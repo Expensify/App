@@ -78,6 +78,21 @@ class Hoverable extends Component {
     }
 
     render() {
+        if (this.props.absolute && React.isValidElement(this.props.children)) {
+            return React.cloneElement(React.Children.only(this.props.children), {
+                ref: (el) => {
+                    this.wrapperView = el;
+
+                    // Call the original ref, if any
+                    const {ref} = this.props.children;
+                    if (_.isFunction(ref)) {
+                        ref(el);
+                    }
+                },
+                onMouseEnter: () => this.setIsHovered(true),
+                onMouseLeave: () => this.setIsHovered(false),
+            });
+        }
         return (
             <View
                 style={this.props.containerStyles}
