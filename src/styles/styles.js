@@ -1549,7 +1549,7 @@ const styles = {
         bottom: 0,
         left: 0,
         backgroundColor: colors.dark,
-        opacity: 0.7,
+        opacity: 0.5,
     },
 
     chatTextStyle: {
@@ -1559,9 +1559,10 @@ const styles = {
     avatarInnerTextChat: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeNormal,
-        marginLeft: -2,
+        marginLeft: -16,
         textAlign: 'center',
         fontWeight: 'normal',
+        position: 'absolute',
     },
 
     displayName: {

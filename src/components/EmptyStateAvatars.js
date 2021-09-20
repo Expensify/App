@@ -51,18 +51,17 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
                                 <Image source={{uri: val}} style={[styles.emptyStateAvatar]} />
 
                                 {index === 3 && (
-                                    <View
-                                        style={[
-                                            styles.emptyStateAvatar,
-                                            styles.justifyContentCenter,
-                                            styles.alignItemsCenter,
-                                            styles.chatOverLay,
-                                        ]}
-                                    >
+                                    <>
+                                        <View
+                                            style={[
+                                                styles.emptyStateAvatar,
+                                                styles.chatOverLay,
+                                            ]}
+                                        />
                                         <Text style={styles.avatarInnerTextChat}>
                                             {`+${avatarImageURLs.length - 4}`}
                                         </Text>
-                                    </View>
+                                    </>
                                 )}
                             </View>
                         );
