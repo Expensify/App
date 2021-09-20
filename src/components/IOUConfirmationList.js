@@ -60,6 +60,8 @@ const propTypes = {
         isUnread: PropTypes.bool,
         reportID: PropTypes.number,
         participantsList: PropTypes.arrayOf(PropTypes.object),
+        payPalMeAddress: PropTypes.string,
+        phoneNumber: PropTypes.string,
     })).isRequired,
 
     ...windowDimensionsPropTypes,
@@ -97,19 +99,6 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    // /** The details about the user that is signed in */
-    // user: PropTypes.shape({
-    //     /** Whether or not the user is subscribed to news updates */
-    //     loginList: PropTypes.arrayOf(PropTypes.shape({
-    //
-    //         /** Phone/Email associated with user */
-    //         partnerUserID: PropTypes.string,
-    //     })),
-    // }),
-    //
-    // /** User's paypal.me username if they have one */
-    // payPalMeUsername: PropTypes.string,
-
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
@@ -124,9 +113,7 @@ const defaultProps = {
     comment: '',
     network: {},
     myPersonalDetails: {},
-    // user: {},
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    // payPalMeUsername: '',
 };
 
 class IOUConfirmationList extends Component {
@@ -154,7 +141,7 @@ class IOUConfirmationList extends Component {
             }
 
             // Add PayPal option
-            if (this.props.payPalMeUsername) {
+            if (this.props.participants.payPalMeAddress) {
                 confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), icon: PayPal});
             }
             defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), icon: Cash};
@@ -162,7 +149,6 @@ class IOUConfirmationList extends Component {
         confirmationButtonOptions.push(defaultButtonOption);
 
         this.isComponentMounted = false;
-        this.userPhoneNumber = this.getPhoneNumber(props.user.loginList) ?? '';
 
         this.state = {
             confirmationButtonOptions,
@@ -329,23 +315,11 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * Gets the user's phone number from their secondary login.
-     * Returns null if it doesn't exist.
-     * @param {Array<Object>} loginList
-     *
-     * @returns {String|null}
-     */
-    getPhoneNumber(loginList) {
-        const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
-        return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
-    }
-
-    /**
      * Adds Venmo, if available, as the second option in the menu of payment options
      */
     addVenmoPaymentOption() {
         // Add Venmo option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.isValidUSPhone(this.userPhoneNumber)) {
+        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.isValidUSPhone(this.props.participants.phoneNumber)) {
             isAppInstalled('venmo')
                 .then((isVenmoInstalled) => {
                     // We will return early if the component has unmounted before the async call resolves. This prevents
@@ -362,18 +336,6 @@ class IOUConfirmationList extends Component {
                     }));
                 });
         }
-    }
-
-    /**
-     * @param {String} phoneNumber
-     * @returns {Boolean}
-     */
-    isValidUSPhone(phoneNumber) {
-        // Remove alphanumeric characters and validate that this is in fact a phone number
-        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
-
-            // Next make sure it's a US phone number
-            && CONST.REGEX.US_PHONE.test(phoneNumber);
     }
 
     /**
@@ -492,9 +454,6 @@ export default compose(
         },
         user: {
             key: ONYXKEYS.USER,
-        },
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(IOUConfirmationList);
