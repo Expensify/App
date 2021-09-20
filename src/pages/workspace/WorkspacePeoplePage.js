@@ -260,7 +260,7 @@ class WorkspacePeoplePage extends React.Component {
                             </View>
                             <View style={[styles.peopleRowCell, styles.flex1]}>
                                 <Text style={[styles.textStrong, styles.textUppercase, styles.ph5]}>
-                                    {this.props.translate('workspace.people.assignee')}
+                                    {this.props.translate('workspace.people.selectAll')}
                                 </Text>
                             </View>
                         </View>
