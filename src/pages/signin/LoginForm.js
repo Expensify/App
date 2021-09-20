@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -57,6 +58,11 @@ class LoginForm extends React.Component {
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
             this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
+            return;
+        }
+
+        if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
+            this.setState({formError: 'loginForm.error.invalidFormatLogin'});
             return;
         }
 

@@ -113,6 +113,18 @@ function getPolicyList() {
 }
 
 /**
+ * Is the user an admin of a free policy (aka workspace)?
+ *
+ * @param {Array} policies
+ * @returns {Boolean}
+ */
+function isAdminOfFreePolicy(policies) {
+    return _.some(policies, policy => policy
+        && policy.type === CONST.POLICY.TYPE.FREE
+        && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} members
@@ -286,6 +298,7 @@ export {
     getPolicyList,
     removeMembers,
     invite,
+    isAdminOfFreePolicy,
     create,
     uploadAvatar,
     update,

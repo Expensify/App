@@ -45,14 +45,6 @@ function isValidDate(date) {
 }
 
 /**
- * @param {String} code
- * @returns {Boolean}
- */
-function isValidIndustryCode(code) {
-    return CONST.REGEX.INDUSTRY_CODE.test(code);
-}
-
-/**
  * @param {String} zipCode
  * @returns {Boolean}
  */
@@ -94,6 +86,12 @@ function isValidIdentity(identity) {
         return false;
     }
 
+    if (identity.city === '') {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
     if (!isValidZipCode(identity.zipCode)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
         showBankAccountErrorModal();
@@ -124,7 +122,6 @@ function isValidIdentity(identity) {
 export {
     isValidAddress,
     isValidDate,
-    isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
     isRequiredFulfilled,
