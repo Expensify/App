@@ -149,7 +149,7 @@ class BeneficialOwnersStep extends React.Component {
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
                     <CheckboxWithLabel
-                        style={[styles.mb2, styles.mr2]}
+                        style={[styles.mb2]}
                         isChecked={this.state.ownsMoreThan25Percent}
                         onPress={() => this.toggleCheckbox('ownsMoreThan25Percent')}
                         LabelComponent={() => (
@@ -160,7 +160,7 @@ class BeneficialOwnersStep extends React.Component {
                         )}
                     />
                     <CheckboxWithLabel
-                        style={[styles.mb2, styles.mr2]}
+                        style={[styles.mb2]}
                         isChecked={this.state.hasOtherBeneficialOwners}
                         onPress={() => {
                             this.setState((prevState) => {
@@ -224,7 +224,7 @@ class BeneficialOwnersStep extends React.Component {
                             )}
                         </View>
                     )}
-                    <Text style={[styles.textStrong, styles.mb5]}>
+                    <Text style={[styles.mv5]}>
                         {this.props.translate('beneficialOwnersStep.agreement')}
                     </Text>
                     <CheckboxWithLabel
@@ -235,7 +235,7 @@ class BeneficialOwnersStep extends React.Component {
                             <View style={[styles.flexRow]}>
                                 <Text>{this.props.translate('common.iAcceptThe')}</Text>
                                 <TextLink href="https://use.expensify.com/achterms">
-                                    {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}.`}
+                                    {`${this.props.translate('beneficialOwnersStep.termsAndConditions')}`}
                                 </TextLink>
                             </View>
                         )}
