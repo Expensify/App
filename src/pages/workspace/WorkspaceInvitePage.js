@@ -26,7 +26,6 @@ import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
 import Icon from '../../components/Icon';
 import {NewWindow} from '../../components/Icon/Expensicons';
 import variables from '../../styles/variables';
-import themeColors from '../../styles/themes/default';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -164,7 +163,13 @@ class WorkspaceInvitePage extends React.Component {
                                 >
                                     {({hovered, pressed}) => (
                                         <View style={[styles.flexRow]}>
-                                            <Text style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted]}>
+                                            <Text
+                                                style={[
+                                                    styles.mr1,
+                                                    styles.label,
+                                                    (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted,
+                                                ]}
+                                            >
                                                 {this.props.translate('common.privacyPolicy')}
                                             </Text>
                                             <View style={styles.alignSelfCenter}>
@@ -172,7 +177,6 @@ class WorkspaceInvitePage extends React.Component {
                                                     src={NewWindow}
                                                     width={variables.iconSizeSmall}
                                                     height={variables.iconSizeSmall}
-                                                    fill={(hovered || pressed) ? themeColors.textMutedReversed : themeColors.icon}
                                                 />
                                             </View>
                                         </View>
