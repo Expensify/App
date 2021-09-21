@@ -213,14 +213,14 @@ class RequestorStep extends React.Component {
                             >
                                 {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
                             </TextLink>
-                            {', '}
+                                {', '}
                             <TextLink
                                 style={styles.textMicro}
                                 href="https://onfido.com/privacy/"
                             >
                                 {`${this.props.translate('common.privacyPolicy')}`}
                             </TextLink>
-                            {` ${this.props.translate('common.and')} `}
+                                {` ${this.props.translate('common.and')} `}
                             <TextLink
                                 style={styles.textMicro}
                                 href="https://onfido.com/terms-of-service/"
