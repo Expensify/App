@@ -63,9 +63,9 @@ const SignInPageLayoutWide = (props) => {
                     styles.dFlex,
                     styles.flexRow,
                     backgroundStyle,
+                    props.isMediumScreenWidth && styles.alignItemsCenter,
                 ]}
-                >
-                </View>
+                />
             </View>
         </View>
     );

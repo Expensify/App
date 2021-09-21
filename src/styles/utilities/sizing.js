@@ -12,10 +12,6 @@ export default {
         width: '100%',
     },
 
-    w75: {
-        width: '75%',
-    },
-
     w50: {
         width: '50%',
     },
