@@ -271,6 +271,11 @@ function setPassword(password, validateCode, accountID) {
             // This request can fail if the password is not complex enough
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
+        .catch((response) => {
+            if (response.message === CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
+            }
+        })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });

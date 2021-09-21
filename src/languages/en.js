@@ -594,10 +594,10 @@ export default {
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
-            assignee: 'Assignee',
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
             removeMembersTitle: 'Remove members',
+            selectAll: 'Select all',
         },
         card: {
             addEmail: 'Add email',
@@ -642,8 +642,8 @@ export default {
         errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
-        needHelp: 'Help',
-        needHelpTooltip: 'Get live help from our team',
+        callButton: 'Call',
+        callButtonTooltip: 'Get live help from our team',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',

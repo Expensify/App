@@ -57,15 +57,17 @@ class SidebarScreen extends Component {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
 
-        if (this.props.isFirstTimeNewExpensifyUser) {
-            // For some reason, the menu doesn't open without the timeout
-            setTimeout(() => {
+        // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
+        // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
+        setTimeout(() => {
+            if (this.props.isFirstTimeNewExpensifyUser) {
                 this.toggleCreateMenu();
 
-                // Set the NVP back to false (this may need to be moved if this NVP is used for anything else later)
+                // Set the NVP back to false so we don't automatically open the menu again
+                // Note: this may need to be moved if this NVP is used for anything else later
                 NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
-            }, 200);
-        }
+            }
+        }, 1500);
     }
 
     /**
