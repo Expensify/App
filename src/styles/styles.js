@@ -157,28 +157,28 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    background100: {
+        backgroundSize: '100% 100%',
+    },
+
     backgroundGreen: {
         backgroundColor: colors.green,
         backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
-        backgroundSize: '100% 100%',
     },
 
     backgroundOrange: {
         backgroundColor: colors.orange,
         backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
-        backgroundSize: '100% 100%',
     },
 
     backgroundPink: {
         backgroundColor: colors.pink,
         backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
-        backgroundSize: '100% 100%',
     },
 
     backgroundBlue: {
         backgroundColor: colors.blue,
         backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
-        backgroundSize: '100% 100%',
     },
 
     colorReversed: {
