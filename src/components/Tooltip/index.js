@@ -155,36 +155,55 @@ class Tooltip extends PureComponent {
     }
 
     render() {
+        let child = (
+            <View
+                ref={el => this.wrapperView = el}
+                style={this.props.containerStyles}
+            >
+                {this.props.children}
+            </View>
+        );
+
+        if (this.props.absolute && React.isValidElement(this.props.children)) {
+            child = React.cloneElement(React.Children.only(this.props.children), {
+                ref: (el) => {
+                    // Keep your own reference
+                    this.wrapperView = el;
+
+                    // Call the original ref, if any
+                    const {ref} = this.props.children;
+                    if (typeof ref === 'function') {
+                        ref(el);
+                    }
+                },
+            });
+        }
         return (
             <>
                 {this.state.isRendered && (
-                <TooltipRenderedOnPageBody
-                    animation={this.animation}
-                    windowWidth={this.props.windowWidth}
-                    xOffset={this.state.xOffset}
-                    yOffset={this.state.yOffset}
-                    wrapperWidth={this.state.wrapperWidth}
-                    wrapperHeight={this.state.wrapperHeight}
-                    tooltipWidth={this.state.tooltipWidth}
-                    tooltipHeight={this.state.tooltipHeight}
-                    setTooltipRef={el => this.tooltip = el}
-                    shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
-                    shiftVertical={_.result(this.props, 'shiftVertical')}
-                    measureTooltip={this.measureTooltip}
-                    text={this.props.text}
-                />
+                    <TooltipRenderedOnPageBody
+                        animation={this.animation}
+                        windowWidth={this.props.windowWidth}
+                        xOffset={this.state.xOffset}
+                        yOffset={this.state.yOffset}
+                        wrapperWidth={this.state.wrapperWidth}
+                        wrapperHeight={this.state.wrapperHeight}
+                        tooltipWidth={this.state.tooltipWidth}
+                        tooltipHeight={this.state.tooltipHeight}
+                        setTooltipRef={el => this.tooltip = el}
+                        shiftHorizontal={_.result(this.props, 'shiftHorizontal')}
+                        shiftVertical={_.result(this.props, 'shiftVertical')}
+                        measureTooltip={this.measureTooltip}
+                        text={this.props.text}
+                    />
                 )}
                 <Hoverable
+                    absolute={this.props.absolute}
                     containerStyles={this.props.containerStyles}
                     onHoverIn={this.showTooltip}
                     onHoverOut={this.hideTooltip}
                 >
-                    <View
-                        ref={el => this.wrapperView = el}
-                        style={this.props.containerStyles}
-                    >
-                        {this.props.children}
-                    </View>
+                    {child}
                 </Hoverable>
             </>
         );
