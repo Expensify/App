@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView, TouchableOpacity,
+    SafeAreaView,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -9,7 +9,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import {resetPassword, setPassword, signIn} from '../libs/actions/Session';
+import {setPassword, signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -18,7 +18,6 @@ import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
 import * as API from '../libs/API';
-import themeColors from '../styles/themes/default';
 import CONST from '../CONST';
 
 const propTypes = {
@@ -137,17 +136,6 @@ class SetPasswordPage extends Component {
                         <Text style={[styles.formError]}>
                             {error}
                         </Text>
-                    )}
-                    {(!_.isEmpty(this.props.account.error)) && (
-                        <TouchableOpacity
-                            style={[styles.mt2]}
-                            onPress={resetPassword}
-                            underlayColor={themeColors.componentBG}
-                        >
-                            <Text style={[styles.link]}>
-                                {this.props.translate('setPasswordPage.requestPasswordReset')}
-                            </Text>
-                        </TouchableOpacity>
                     )}
                 </SignInPageLayout>
             </SafeAreaView>

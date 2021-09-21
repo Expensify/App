@@ -372,7 +372,6 @@ export default {
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
-        requestPasswordReset: 'Request password reset link',
     },
     bankAccount: {
         accountNumber: 'Account number',
