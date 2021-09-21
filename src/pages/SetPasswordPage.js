@@ -19,6 +19,7 @@ import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
 import * as API from '../libs/API';
 import themeColors from '../styles/themes/default';
+import CONST from '../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -94,7 +95,7 @@ class SetPasswordPage extends Component {
                         });
                     }
                 });
-            } else if (responseValidate.jsonCode === 405) {
+            } else if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
                 // If the email is already validated, set the password using the validate code
                 setPassword(
                     this.state.password,
@@ -137,12 +138,7 @@ class SetPasswordPage extends Component {
                             {error}
                         </Text>
                     )}
-                    {!_.isEmpty(this.props.account.error) && _.isEmpty(error) && (
-                        <Text style={[styles.formError]}>
-                            {this.props.account.error}
-                        </Text>
-                    )}
-                    {(!_.isEmpty(this.props.account.error) || !_.isEmpty(error)) && (
+                    {(!_.isEmpty(this.props.account.error)) && (
                         <TouchableOpacity
                             style={[styles.mt2]}
                             onPress={resetPassword}
