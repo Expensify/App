@@ -272,7 +272,7 @@ function setPassword(password, validateCode, accountID) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch((response) => {
-            if (response.message === CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
+            if (response.title === CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
             }
         })
