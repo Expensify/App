@@ -79,6 +79,7 @@ export default {
     WORKSPACE: 'workspace',
     WORKSPACE_CARD: ':policyID/card',
     WORKSPACE_PEOPLE: ':policyID/people',
+    WORKSPACE_NEW: 'workspace/new',
     getWorkspaceCardRoute: policyID => `workspace/${policyID}/card`,
     getWorkspacePeopleRoute: policyID => `workspace/${policyID}/people`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
