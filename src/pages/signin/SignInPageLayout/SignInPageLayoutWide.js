@@ -5,10 +5,6 @@ import _ from 'underscore';
 import styles from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
-import WelcomeScreenshotBlue from '../../../../assets/images/freeplan_blue.svg';
-import WelcomeScreenshotGreen from '../../../../assets/images/freeplan_green.svg';
-import WelcomeScreenshotOrange from '../../../../assets/images/freeplan_orange.svg';
-import WelcomeScreenshotPink from '../../../../assets/images/freeplan_pink.svg';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -28,11 +24,8 @@ const propTypes = {
 };
 
 const SignInPageLayoutWide = (props) => {
-    const screenShots = [WelcomeScreenshotBlue, WelcomeScreenshotGreen, WelcomeScreenshotOrange, WelcomeScreenshotPink];
     const backgroundStyles = [styles.backgroundBlue, styles.backgroundGreen, styles.backgroundOrange, styles.backgroundPink];
-    const randomWelcome = _.random(0, 3);
-    const WelcomeScreenshot = screenShots[randomWelcome];
-    const backgroundStyle = backgroundStyles[randomWelcome];
+    const backgroundStyle = backgroundStyles[_.random(0, 3)];
     return (
         <View style={[styles.flex1, styles.signInPageInner]}>
             <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
@@ -70,20 +63,8 @@ const SignInPageLayoutWide = (props) => {
                     styles.dFlex,
                     styles.flexRow,
                     backgroundStyle,
-                    styles.justifyContentAround,
-                    styles.pb10Percentage,
-                    styles.alignItemsCenter,
                 ]}
                 >
-                    <View style={[
-                        !props.isMediumScreenWidth && styles.w100,
-                        props.isMediumScreenWidth && styles.w75,
-                        styles.dFlex,
-                        styles.alignItemsCenter,
-                    ]}
-                    >
-                        <WelcomeScreenshot />
-                    </View>
                 </View>
             </View>
         </View>
