@@ -63,7 +63,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 function getIOUErrorMessage(error) {
     if (error && error.jsonCode) {
         if (error.jsonCode === 405) {
-            return translateLocal('iou.error.invalidAmount');
+            return translateLocal('common.error.invalidAmount');
         } if (error.jsonCode === 404) {
             return translateLocal('iou.error.invalidSplit');
         }

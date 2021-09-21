@@ -81,6 +81,11 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    label: {
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
+
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,

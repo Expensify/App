@@ -77,17 +77,6 @@ function canDeleteReportAction(reportAction) {
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
 }
 
-
-/**
- * Given a collection of reports returns the most recently accessed one
- *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
- * @returns {Object}
- */
-function findLastAccessedReport(reports) {
-    return _.last(sortReportsByLastVisited(reports));
-}
-
 /**
  * Whether the provided report is a default room
  * @param {Object} report
@@ -100,6 +89,23 @@ function isDefaultRoom(report) {
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
     ], lodashGet(report, ['chatType'], ''));
+}
+
+/**
+ * Given a collection of reports returns the most recently accessed one
+ *
+ * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @param {Boolean} [ignoreDefaultRooms]
+ * @returns {Object}
+ */
+function findLastAccessedReport(reports, ignoreDefaultRooms) {
+    let sortedReports = sortReportsByLastVisited(reports);
+
+    if (ignoreDefaultRooms) {
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report));
+    }
+
+    return _.last(sortedReports);
 }
 
 /**

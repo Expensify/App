@@ -84,6 +84,7 @@ const IdentityForm = ({
                             onFieldChange('firstName', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.firstName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -97,6 +98,7 @@ const IdentityForm = ({
                             onFieldChange('lastName', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.lastName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
             </View>
@@ -150,6 +152,7 @@ const IdentityForm = ({
                             onFieldChange('city', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.addressCity') ? error : ''}
+                        translateX={-14}
                     />
                 </View>
                 <View style={[styles.flex1]}>

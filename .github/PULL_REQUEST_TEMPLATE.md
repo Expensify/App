@@ -11,9 +11,9 @@ It MUST be an entire link to the issue; otherwise, the linking will not work as 
 
 Make sure this section looks similar to this (you can link multiple issues using the same formatting, just add a new line):
 
-$ https://github.com/Expensify/App/issues/4723
+$ https://github.com/Expensify/App/issues/<number-of-the-issue>
 
-Do NOT only link the issue number like this: $ #1234
+Do NOT only link the issue number like this: $ #<number-of-the-issue>
 --->
 $ GH_LINK
 

@@ -1,14 +1,13 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ScrollView, View} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Text from '../../components/Text';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
-import Button from '../../components/Button';
 import IdentityForm from './IdentityForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
@@ -25,6 +24,8 @@ import {isValidIdentity} from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
 
 const propTypes = {
     /** Name of the company */
@@ -33,10 +34,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Error set when handling the API response */
-        error: PropTypes.string,
-    }).isRequired,
+    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 };
 
 class BeneficialOwnersStep extends React.Component {
@@ -144,7 +142,9 @@ class BeneficialOwnersStep extends React.Component {
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
                 />
-                <ScrollView style={[styles.flex1, styles.w100, styles.ph5]} contentContainerStyle={styles.flexGrow1}>
+                <ReimbursementAccountForm
+                    onSubmit={this.submit}
+                >
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>
                     </Text>
@@ -254,15 +254,7 @@ class BeneficialOwnersStep extends React.Component {
                         errorText={this.props.reimbursementAccount.error === this.props.translate('beneficialOwnersStep.error.certify')
                             ? this.props.translate('beneficialOwnersStep.error.certify') : ''}
                     />
-                    <View style={[styles.flex1, styles.justifyContentEnd, styles.pb4]}>
-                        <Button
-                            success
-                            style={[styles.w100, styles.mt4, styles.mb1]}
-                            text={this.props.translate('common.saveAndContinue')}
-                            onPress={this.submit}
-                        />
-                    </View>
-                </ScrollView>
+                </ReimbursementAccountForm>
             </>
         );
     }
