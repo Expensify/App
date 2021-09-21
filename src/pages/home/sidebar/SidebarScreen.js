@@ -61,7 +61,11 @@ class SidebarScreen extends Component {
         // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
         setTimeout(() => {
             if (this.props.isFirstTimeNewExpensifyUser) {
-                this.toggleCreateMenu();
+                // If we are getting redirected here and already have a workspace policy then do not show the create menu. We will also want to set the NVP in this case since the user does
+                // not need to create a workspace.
+                if (!isAdminOfFreePolicy(this.props.allPolicies)) {
+                    this.toggleCreateMenu();
+                }
 
                 // Set the NVP back to false so we don't automatically open the menu again
                 // Note: this may need to be moved if this NVP is used for anything else later
