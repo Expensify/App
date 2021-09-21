@@ -62,8 +62,7 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
-import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
+import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
@@ -321,24 +320,9 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
+                    name="LogInWithShortLivedToken"
                     options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
+                    component={LogInWithShortLivedTokenPage}
                 />
 
                 {/* These are the various modal routes */}

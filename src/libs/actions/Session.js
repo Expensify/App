@@ -237,15 +237,14 @@ function signIn(password, twoFactorAuthCode) {
         });
 }
 
-function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken, exitTo) {
+function signInWithShortLivedToken(accountID, email, shortLivedToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    createTemporaryLogin(shortLivedToken, encryptedAuthToken).then((response) => {
+    createTemporaryLogin(shortLivedToken).then((response) => {
         Onyx.merge(ONYXKEYS.SESSION, {
             authToken: shortLivedToken,
             accountID,
             email,
-            encryptedAuthToken,
         });
         if (response.jsonCode === 200) {
             getUserDetails();
@@ -256,7 +255,6 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedA
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        Navigation.navigate(exitTo);
     });
 }
 
