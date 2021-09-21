@@ -372,6 +372,7 @@ export default {
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
         accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
+        requestPasswordReset: 'Solicitar enlace de restablecimiento de contraseña',
     },
     bankAccount: {
         accountNumber: 'Número de cuenta',

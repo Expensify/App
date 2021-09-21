@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {
-    SafeAreaView,
+    SafeAreaView, TouchableOpacity,
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -9,7 +9,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import {setPassword, signIn} from '../libs/actions/Session';
+import {resetPassword, setPassword, signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -18,6 +18,7 @@ import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
 import * as API from '../libs/API';
+import themeColors from '../styles/themes/default';
 
 const propTypes = {
     /* Onyx Props */
@@ -94,6 +95,7 @@ class SetPasswordPage extends Component {
                     }
                 });
             } else if (responseValidate.jsonCode === 405) {
+                // If the email is already validated, set the password using the validate code
                 setPassword(
                     this.state.password,
                     lodashGet(this.props.route, 'params.validateCode', ''),
@@ -130,7 +132,6 @@ class SetPasswordPage extends Component {
                             isDisabled={!this.state.isFormValid}
                         />
                     </View>
-
                     {!_.isEmpty(error) && (
                         <Text style={[styles.formError]}>
                             {error}
@@ -140,6 +141,17 @@ class SetPasswordPage extends Component {
                         <Text style={[styles.formError]}>
                             {this.props.account.error}
                         </Text>
+                    )}
+                    {(!_.isEmpty(this.props.account.error) || !_.isEmpty(error)) && (
+                        <TouchableOpacity
+                            style={[styles.mt2]}
+                            onPress={resetPassword}
+                            underlayColor={themeColors.componentBG}
+                        >
+                            <Text style={[styles.link]}>
+                                {this.props.translate('setPasswordPage.requestPasswordReset')}
+                            </Text>
+                        </TouchableOpacity>
                     )}
                 </SignInPageLayout>
             </SafeAreaView>
