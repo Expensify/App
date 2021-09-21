@@ -643,8 +643,8 @@ export default {
         errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
-        needHelp: 'Help',
-        needHelpTooltip: 'Get live help from our team',
+        callButton: 'Call',
+        callButtonTooltip: 'Get live help from our team',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
