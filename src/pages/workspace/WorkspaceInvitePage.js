@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView, Pressable, Linking} from 'react-native';
+import {
+    View, ScrollView, Pressable, Linking,
+} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -151,32 +153,32 @@ class WorkspaceInvitePage extends React.Component {
                                 placeholder={this.getWelcomeNotePlaceholder()}
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
-                                <View style={[styles.mt5, styles.alignSelfStart]}>
-                                    <Pressable
-                                        onPress={(e) => {
-                                            e.preventDefault();
-                                            Linking.openURL(CONST.PRIVACY_URL);
-                                        }}
-                                        accessibilityRole="link"
-                                        href={CONST.PRIVACY_URL}
-                                    >
-                                        {({hovered, pressed}) => (
-                                            <View style={[styles.flexRow]}>
-                                                <Text style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted]}>
-                                                    {this.props.translate('common.privacyPolicy')}
-                                                </Text>
-                                                <View style={styles.alignSelfCenter}>
-                                                    <Icon
-                                                        src={NewWindow}
-                                                        width={variables.iconSizeSmall}
-                                                        height={variables.iconSizeSmall}
-                                                        fill={(hovered || pressed) ? themeColors.textMutedReversed : themeColors.icon}
-                                                    />
-                                                </View>
+                            <View style={[styles.mt5, styles.alignSelfStart]}>
+                                <Pressable
+                                    onPress={(e) => {
+                                        e.preventDefault();
+                                        Linking.openURL(CONST.PRIVACY_URL);
+                                    }}
+                                    accessibilityRole="link"
+                                    href={CONST.PRIVACY_URL}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <View style={[styles.flexRow]}>
+                                            <Text style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted]}>
+                                                {this.props.translate('common.privacyPolicy')}
+                                            </Text>
+                                            <View style={styles.alignSelfCenter}>
+                                                <Icon
+                                                    src={NewWindow}
+                                                    width={variables.iconSizeSmall}
+                                                    height={variables.iconSizeSmall}
+                                                    fill={(hovered || pressed) ? themeColors.textMutedReversed : themeColors.icon}
+                                                />
                                             </View>
-                                        )}
-                                    </Pressable>
-                                </View>
+                                        </View>
+                                    )}
+                                </Pressable>
+                            </View>
                         </View>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
