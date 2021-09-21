@@ -57,6 +57,13 @@ class LogInWithShortLivedTokenPage extends Component {
 
         // If the user is revisiting the component authenticated or they were already logged into the right account, we simply redirect them to the exitTo
         if (this.props.session.authToken && email === this.props.session.email) {
+            // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
+            // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
+            // of the workspace modal, then they will be routed back to
+            // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
+            // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
+            // if they cancel out of the new workspace modal.
+            Navigation.dismissModal();
             Navigation.navigate(exitTo);
         }
 
