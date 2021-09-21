@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
@@ -19,6 +20,24 @@ Onyx.connect({
     callback: val => currentPreferredLocale = val,
 });
 
+let previousAuthToken;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        const newAuthToken = lodashGet(val, 'authToken');
+        if (previousAuthToken && !newAuthToken) {
+            // We got signed out in this tab or another so clean up any subscriptions and timers
+            UnreadIndicatorUpdater.stopListeningForReportChanges();
+            PushNotification.deregister();
+            PushNotification.clearNotifications();
+            Pusher.disconnect();
+            Timers.clearAll();
+        }
+        previousAuthToken = newAuthToken;
+    },
+});
+
+
 /**
  * Clears the Onyx store and redirects to the sign in page.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
@@ -26,12 +45,6 @@ Onyx.connect({
  * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
-    Pusher.disconnect();
-    Timers.clearAll();
-
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
