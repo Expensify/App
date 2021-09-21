@@ -7,6 +7,7 @@ import ROUTES from '../../ROUTES';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
+import {maskCardNumber} from '../cardUtils';
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -53,20 +54,20 @@ function addBillingCard(params) {
         if (response.jsonCode === 200) {
             const cardObject = {
                 additionalData: {
-                    isBillingCard: true,
-                    isP2PDebitCard: false,
+                    isBillingCard: false,
+                    isP2PDebitCard: true,
                 },
                 addressName: params.nameOnCard,
                 addressState: params.selectedState,
                 addressStreet: params.billingAddress,
                 addressZip: params.zipCode,
                 cardMonth,
-                cardNumber: params.cardNumber,
+                cardNumber: maskCardNumber(params.cardNumber),
                 cardYear,
                 currency: 'USD',
                 fundID: lodashGet(response, 'fundID', ''),
             };
-            Onyx.set(ONYXKEYS.CARD_LIST, cardObject);
+            Onyx.merge(ONYXKEYS.CARD_LIST, cardObject);
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         } else {
