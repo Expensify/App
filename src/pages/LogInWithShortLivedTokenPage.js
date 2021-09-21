@@ -37,7 +37,9 @@ class LogInWithShortLivedTokenPage extends Component {
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
         const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
-        const exitTo = lodashGet(this.props.route.params, 'exitTo', '');
+
+        // exitTo is URI encoded because it could contain slashes (i.e. "workspace/new")
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
 
         signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken, exitTo);
     }
