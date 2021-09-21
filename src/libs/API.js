@@ -211,6 +211,7 @@ function Authenticate(parameters) {
         partnerUserID: parameters.partnerUserID,
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
+        authToken: parameters.authToken,
         doNotRetry: true,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
