@@ -8,6 +8,7 @@ import withLocalize, {
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import InlineErrorText from '../../components/InlineErrorText';
 
 const propTypes = {
     /** String to control the first password box in the form */
@@ -124,9 +125,9 @@ class NewPasswordForm extends React.Component {
                         onBlur={() => this.onBlurConfirmPassword()}
                     />
                     {this.showPasswordMatchError() && (
-                    <Text style={[styles.formError, styles.mt1]}>
-                        {this.props.translate('setPasswordPage.passwordsDontMatch')}
-                    </Text>
+                        <InlineErrorText>
+                            {this.props.translate('setPasswordPage.passwordsDontMatch')}
+                        </InlineErrorText>
                     )}
                 </View>
             </>
