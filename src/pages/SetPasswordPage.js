@@ -9,7 +9,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import {signIn} from '../libs/actions/Session';
+import {setPassword, signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -93,6 +93,12 @@ class SetPasswordPage extends Component {
                         });
                     }
                 });
+            } else if (responseValidate.jsonCode === 405) {
+                setPassword(
+                    this.state.password,
+                    lodashGet(this.props.route, 'params.validateCode', ''),
+                    lodashGet(this.props.route, 'params.accountID', ''),
+                );
             } else {
                 this.setState({
                     error: this.props.translate('setPasswordPage.accountNotValidated'),
@@ -128,6 +134,11 @@ class SetPasswordPage extends Component {
                     {!_.isEmpty(error) && (
                         <Text style={[styles.formError]}>
                             {error}
+                        </Text>
+                    )}
+                    {!_.isEmpty(this.props.account.error) && _.isEmpty(error) && (
+                        <Text style={[styles.formError]}>
+                            {this.props.account.error}
                         </Text>
                     )}
                 </SignInPageLayout>
