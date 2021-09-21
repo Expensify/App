@@ -150,7 +150,7 @@ export default {
             WorkspaceNew: {
                 screens: {
                     WorkspaceNew_Root: ROUTES.WORKSPACE_NEW,
-                }
+                },
             },
 
             WorkspaceSettings: {

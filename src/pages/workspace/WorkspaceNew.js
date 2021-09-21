@@ -14,4 +14,3 @@ class WorkspaceNew extends Component {
 }
 
 export default WorkspaceNew;
-
