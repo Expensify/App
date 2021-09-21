@@ -79,21 +79,19 @@ class EmojiSkinToneList extends Component {
                 }
                 {
                     this.state.isSkinToneListVisible && (
-                        <View>
-                            <View style={[styles.flexRow]}>
-                                {
-                                    skinTones.map(skinToneEmoji => (
-                                        <EmojiPickerMenuItem
-                                            onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
-                                            onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
-                                            key={skinToneEmoji.code}
-                                            emojiItemStyle={styles.emojiSkinToneItem}
-                                            emoji={skinToneEmoji.code}
-                                            isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
-                                        />
-                                    ))
+
+                        <View style={[styles.flexRow, styles.flex1]}>
+                            {
+                                skinTones.map(skinToneEmoji => (
+                                    <EmojiPickerMenuItem
+                                        onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
+                                        onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
+                                        key={skinToneEmoji.code}
+                                        emoji={skinToneEmoji.code}
+                                        isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
+                                    />
+                                ))
                                 }
-                            </View>
                         </View>
                     )
                 }
