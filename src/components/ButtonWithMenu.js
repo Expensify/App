@@ -12,7 +12,7 @@ const propTypes = {
     menuHeaderText: PropTypes.string,
 
     /** Callback to execute when the main button is pressed */
-    onPress: PropTypes.func,
+    onPress: PropTypes.func.isRequired,
 
     /** Callback to execute when a menu item is selected */
     onChange: PropTypes.func,
@@ -35,7 +35,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onPress: () => {},
     onChange: () => {},
     isLoading: false,
     isDisabled: false,
