@@ -58,10 +58,9 @@ class ButtonWithMenu extends PureComponent {
     render() {
         const selectedItemText = this.state.selectedItem.text;
         return (
-            <View style={styles.p5}>
+            <View>
                 {this.props.options.length > 1 ? (
                     <ButtonWithDropdown
-                        success
                         buttonText={selectedItemText}
                         isLoading={this.props.isLoading}
                         onButtonPress={this.props.onPress}
