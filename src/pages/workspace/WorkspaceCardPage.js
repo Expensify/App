@@ -85,7 +85,7 @@ class WorkspaceCardPage extends React.Component {
         this.onPress = this.onPress.bind(this);
         this.state = {
             buttonText: this.props.translate('workspace.card.getStarted'),
-        }
+        };
     }
 
     componentDidMount() {
@@ -98,13 +98,6 @@ class WorkspaceCardPage extends React.Component {
         if (buttonText === this.props.translate('workspace.card.finishSetup')) {
             this.openBankSetupModal();
         }
-    };
-
-    componentDidUpdate() {
-        const buttonText = this.getButtonText();
-        if (this.state.buttonText !== buttonText) {
-            this.setState({buttonText});
-        }
     }
 
     shouldComponentUpdate(nextProps) {
@@ -114,10 +107,13 @@ class WorkspaceCardPage extends React.Component {
         return false;
     }
 
-    openBankSetupModal() {
-        setWorkspaceIDForReimbursementAccount(this.props.route.params.policyID);
-        Navigation.navigate(ROUTES.getBankAccountRoute());
-    };
+    componentDidUpdate() {
+        const buttonText = this.getButtonText();
+        if (this.state.buttonText !== buttonText) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({buttonText});
+        }
+    }
 
     onPress() {
         if (this.props.user.isFromPublicDomain) {
@@ -127,12 +123,11 @@ class WorkspaceCardPage extends React.Component {
         } else {
             this.openBankSetupModal();
         }
-    };
+    }
 
     getButtonText() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const shouldFinishSetup =
-            !_.every(Object.values(this.props.reimbursementAccountDraft), value => value === '')
+        const shouldFinishSetup = !_.every(Object.values(this.props.reimbursementAccountDraft), value => value === '')
             || achState === BankAccount.STATE.SETUP
             || achState === BankAccount.STATE.VERIFYING
             || achState === BankAccount.STATE.PENDING
@@ -140,12 +135,19 @@ class WorkspaceCardPage extends React.Component {
 
         if (this.props.user.isFromPublicDomain) {
             return this.props.translate('workspace.card.addEmail');
-        } else if (this.props.user.isUsingExpensifyCard) {
+        }
+        if (this.props.user.isUsingExpensifyCard) {
             return this.props.translate('workspace.card.manageCards');
-        } else if (shouldFinishSetup) {
+        }
+        if (shouldFinishSetup) {
             return this.props.translate('workspace.card.finishSetup');
         }
         return this.props.translate('workspace.card.getStarted');
+    }
+
+    openBankSetupModal() {
+        setWorkspaceIDForReimbursementAccount(this.props.route.params.policyID);
+        Navigation.navigate(ROUTES.getBankAccountRoute());
     }
 
     render() {
@@ -184,7 +186,7 @@ class WorkspaceCardPage extends React.Component {
                                         style={StyleSheet.flatten([styles.fullscreenCard, styles.fullscreenCardWeb])}
                                     />
                                 )}
-    
+
                             <View style={[
                                 styles.fullscreenCard,
                                 styles.workspaceCardContent,
@@ -243,7 +245,7 @@ class WorkspaceCardPage extends React.Component {
             </ScreenWrapper>
         );
     }
-};
+}
 
 WorkspaceCardPage.propTypes = propTypes;
 WorkspaceCardPage.defaultProps = defaultProps;
