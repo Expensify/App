@@ -157,8 +157,8 @@ function fetchAccountDetails(login) {
  * re-authenticating after an authToken expires.
  *
  * @param {String} authToken
- * @param {String} encryptedAuthToken – Not required for the CreateLogin API call, but passed to setSuccessfulSignInData
- * @param {String} email
+ * @param {String} [encryptedAuthToken] – Not required for the CreateLogin API call, but passed to setSuccessfulSignInData
+ * @param {String} [email]
  * @return {Promise}
  */
 function createTemporaryLogin(authToken, encryptedAuthToken, email) {
@@ -237,6 +237,13 @@ function signIn(password, twoFactorAuthCode) {
         });
 }
 
+/**
+ * Uses a short lived authToken to continue a user's session from OldDot
+ *
+ * @param {String} accountID
+ * @param {String} email
+ * @param {String} shortLivedToken
+ */
 function signInWithShortLivedToken(accountID, email, shortLivedToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
