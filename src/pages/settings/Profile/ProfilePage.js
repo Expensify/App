@@ -74,28 +74,17 @@ class ProfilePage extends Component {
             pronouns,
             timezone = {},
         } = props.myPersonalDetails;
-        const pronounsList = Object.values(this.props.translate('pronouns'));
-
-        let currentUserPronouns = pronouns;
-        let initialSelfSelectedPronouns = '';
-
-        // This handles populating the self-selected pronouns in the form
-        if (pronouns && !pronounsList.includes(pronouns)) {
-            currentUserPronouns = this.props.translate('pronouns.selfSelect');
-            initialSelfSelectedPronouns = pronouns;
-        }
 
         this.state = {
             firstName,
             lastName,
-            pronouns: currentUserPronouns,
-            selfSelectedPronouns: initialSelfSelectedPronouns,
+            pronouns,
+            selfSelectedPronouns: pronouns && !pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
             logins: this.getLogins(props.user.loginList),
         };
 
-        this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.getLogins = this.getLogins.bind(this);
@@ -161,7 +150,6 @@ class ProfilePage extends Component {
             firstName,
             lastName,
             pronouns,
-            selfSelectedPronouns,
             selectedTimezone,
             isAutomaticTimezone,
         } = this.state;
@@ -169,9 +157,7 @@ class ProfilePage extends Component {
         setPersonalDetails({
             firstName: firstName.trim(),
             lastName: lastName.trim(),
-            pronouns: pronouns === this.props.translate('pronouns.selfSelect')
-                ? selfSelectedPronouns
-                : pronouns,
+            pronouns: pronouns.trim(),
             timezone: {
                 automatic: isAutomaticTimezone,
                 selected: selectedTimezone,
@@ -180,10 +166,14 @@ class ProfilePage extends Component {
     }
 
     render() {
+        const pronounsList = Object.entries(this.props.translate('pronouns'))
+            .map(([key, value]) => ({
+                label: value,
+                value: `${CONST.PRONOUNS.PREFIX}${key}`,
+            }));
+
         // Determines if the pronouns/selected pronouns have changed
-        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns
-            || (this.props.myPersonalDetails.pronouns
-                && this.props.myPersonalDetails.pronouns === this.state.selfSelectedPronouns);
+        const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns;
 
         // Disables button if none of the form values have changed
         const isButtonDisabled = (this.props.myPersonalDetails.firstName === this.state.firstName.trim())
@@ -191,6 +181,8 @@ class ProfilePage extends Component {
             && (this.props.myPersonalDetails.timezone.selected === this.state.selectedTimezone)
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
             && arePronounsUnchanged;
+
+        const pronounsPickerValue = this.state.selfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
         return (
             <ScreenWrapper>
@@ -226,19 +218,25 @@ class ProfilePage extends Component {
                             <View style={styles.mb1}>
                                 <ExpensiPicker
                                     label={this.props.translate('profilePage.preferredPronouns')}
-                                    onChange={pronouns => this.setState({pronouns, selfSelectedPronouns: ''})}
-                                    items={this.pronounDropdownValues}
+                                    onChange={(pronouns) => {
+                                        const selfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                        this.setState({
+                                            pronouns: selfSelectedPronouns ? '' : pronouns,
+                                            selfSelectedPronouns,
+                                        });
+                                    }}
+                                    items={pronounsList}
                                     placeholder={{
                                         value: '',
                                         label: this.props.translate('profilePage.selectYourPronouns'),
                                     }}
-                                    value={this.state.pronouns}
+                                    value={pronounsPickerValue}
                                 />
                             </View>
-                            {this.state.pronouns === this.props.translate('pronouns.selfSelect') && (
+                            {this.state.selfSelectedPronouns && (
                                 <ExpensiTextInput
-                                    value={this.state.selfSelectedPronouns}
-                                    onChangeText={selfSelectedPronouns => this.setState({selfSelectedPronouns})}
+                                    value={this.state.pronouns}
+                                    onChangeText={pronouns => this.setState({pronouns})}
                                     placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
                                 />
                             )}
