@@ -4,6 +4,7 @@ import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
+import {withNavigationFocus} from '@react-navigation/compat';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
@@ -13,6 +14,7 @@ import {
     Users,
     ExpensifyCard,
     Workspace,
+    Pencil,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -26,8 +28,12 @@ import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import CONST from '../../CONST';
 import Tooltip from '../../components/Tooltip';
+import variables from '../../styles/variables';
 
 const propTypes = {
+    /** Whether the current screen is focused. */
+    isFocused: PropTypes.bool.isRequired,
+
     /** Policy for the current route */
     policy: PropTypes.shape({
         /** ID of the policy */
@@ -53,7 +59,7 @@ const defaultProps = {
 };
 
 const WorkspaceSidebar = ({
-    translate, isSmallScreenWidth, policy, allPolicies,
+    translate, isSmallScreenWidth, policy, allPolicies, isFocused,
 }) => {
     const menuItems = [
         {
@@ -89,7 +95,6 @@ const WorkspaceSidebar = ({
     return (
         <ScreenWrapper>
             <ScrollView
-                bounces={false}
                 contentContainerStyle={[
                     styles.flexGrow1,
                     styles.flexColumn,
@@ -123,9 +128,19 @@ const WorkspaceSidebar = ({
                                             src={Workspace}
                                             height={80}
                                             width={80}
-                                            fill={themedefault.icon}
+                                            fill={themedefault.iconSuccessFill}
                                         />
                                     )}
+                                <Tooltip absolute text={translate('workspace.common.edit')}>
+                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                        <Icon
+                                            src={Pencil}
+                                            width={variables.iconSizeSmall}
+                                            height={variables.iconSizeSmall}
+                                            fill={themedefault.iconReversed}
+                                        />
+                                    </View>
+                                </Tooltip>
                             </Pressable>
 
                             <Pressable
@@ -151,18 +166,21 @@ const WorkspaceSidebar = ({
                             </Pressable>
                         </View>
                     </View>
-                    {menuItems.map(item => (
-                        <MenuItem
-                            key={item.translationKey}
-                            title={translate(item.translationKey)}
-                            icon={item.icon}
-                            iconRight={item.iconRight}
-                            onPress={() => item.action()}
-                            wrapperStyle={!isSmallScreenWidth && item.isActive ? styles.activeComponentBG : undefined}
-                            focused={item.isActive}
-                            shouldShowRightIcon
-                        />
-                    ))}
+                    {menuItems.map((item) => {
+                        const shouldFocus = isSmallScreenWidth ? !isFocused && item.isActive : item.isActive;
+                        return (
+                            <MenuItem
+                                key={item.translationKey}
+                                title={translate(item.translationKey)}
+                                icon={item.icon}
+                                iconRight={item.iconRight}
+                                onPress={() => item.action()}
+                                wrapperStyle={shouldFocus ? styles.activeComponentBG : undefined}
+                                focused={shouldFocus}
+                                shouldShowRightIcon
+                            />
+                        );
+                    })}
                 </View>
             </ScrollView>
         </ScreenWrapper>
@@ -176,6 +194,7 @@ WorkspaceSidebar.displayName = 'WorkspaceSidebar';
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNavigationFocus,
     withOnyx({
         policy: {
             key: (props) => {

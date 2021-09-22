@@ -23,12 +23,16 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {create} from '../../../libs/actions/Policy';
+import {create, isAdminOfFreePolicy} from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
+import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
-    /** Beta features list */
+    /* Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /* Flag for new users used to open the Global Create menu on first load */
+    isFirstTimeNewExpensifyUser: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
 
@@ -52,6 +56,18 @@ class SidebarScreen extends Component {
     componentDidMount() {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
         Timing.start(CONST.TIMING.SIDEBAR_LOADED, true);
+
+        // NOTE: This setTimeout is required due to a bug in react-navigation where modals do not display properly in a drawerContent
+        // This is a short-term workaround, see this issue for updates on a long-term solution: https://github.com/Expensify/App/issues/5296
+        setTimeout(() => {
+            if (this.props.isFirstTimeNewExpensifyUser) {
+                this.toggleCreateMenu();
+
+                // Set the NVP back to false so we don't automatically open the menu again
+                // Note: this may need to be moved if this NVP is used for anything else later
+                NameValuePair.set(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, false, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER);
+            }
+        }, 1500);
     }
 
     /**
@@ -143,7 +159,7 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) ? [
+                                ...(Permissions.canUseFreePlan(this.props.betas) && !isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: NewWorkspace,
                                         iconWidth: 46,
@@ -167,8 +183,14 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
+        allPolicies: {
+            key: ONYXKEYS.COLLECTION.POLICY,
+        },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isFirstTimeNewExpensifyUser: {
+            key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
         },
     }),
 )(SidebarScreen);

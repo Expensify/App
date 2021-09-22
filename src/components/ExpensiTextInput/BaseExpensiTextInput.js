@@ -1,11 +1,11 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {
     Animated, TextInput, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
-import Text from '../Text';
-import {propTypes, defaultProps} from './propTypes';
+import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles, {getIconFillColor} from '../../styles/styles';
 import Icon from '../Icon';
@@ -14,8 +14,10 @@ import {
     EyeDisabled,
 } from '../Icon/Expensicons';
 import getButtonState from '../../libs/getButtonState';
+import InlineErrorText from '../InlineErrorText';
 
-const ACTIVE_LABEL_TRANSLATE_Y = -10;
+
+const ACTIVE_LABEL_TRANSLATE_Y = -12;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
@@ -201,8 +203,10 @@ class BaseExpensiTextInput extends Component {
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {Boolean(errorText) && (
-                    <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
+                {!_.isEmpty(errorText) && (
+                    <InlineErrorText>
+                        {errorText}
+                    </InlineErrorText>
                 )}
             </View>
         );

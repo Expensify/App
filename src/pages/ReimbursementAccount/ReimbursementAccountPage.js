@@ -6,7 +6,10 @@ import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import {
+    fetchFreePlanVerifiedBankAccount,
+    hideBankAccountErrors,
+} from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import VBALoadingIndicator from '../../components/VBALoadingIndicator';
 import Permissions from '../../libs/Permissions';
@@ -27,29 +30,14 @@ import BeneficialOwnersStep from './BeneficialOwnersStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount: PropTypes.shape({
-        /** Whether we are loading the data via the API */
-        loading: PropTypes.bool,
-
-        /** A date that indicates the user has been throttled */
-        throttledDate: PropTypes.string,
-
-        /** Additional data for the account in setup */
-        achData: PropTypes.shape({
-
-            /** Step of the setup flow that we are on. Determines which view is presented. */
-            currentStep: PropTypes.string,
-        }),
-
-        /** Disable validation button if max attempts exceeded */
-        maxAttemptsReached: PropTypes.bool,
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -105,6 +93,7 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
+        hideBankAccountErrors();
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
     }
 
@@ -117,7 +106,7 @@ class ReimbursementAccountPage extends React.Component {
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
                 return CONST.BANK_ACCOUNT.STEP.COMPANY;
-            case 'requestor':
+            case 'personal-information':
                 return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
             case 'contract':
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
@@ -137,7 +126,7 @@ class ReimbursementAccountPage extends React.Component {
             case CONST.BANK_ACCOUNT.STEP.COMPANY:
                 return 'company';
             case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                return 'requestor';
+                return 'personal-information';
             case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
@@ -198,9 +187,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const error = lodashGet(this.props, 'reimbursementAccount.error');
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
-
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
         // display. We can also specify a specific route to navigate to via route params when the component first
@@ -227,11 +213,7 @@ class ReimbursementAccountPage extends React.Component {
                         <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep
-                            achData={this.props.reimbursementAccount.achData}
-                            maxAttemptsReached={maxAttemptsReached}
-                            error={error}
-                        />
+                        <ValidationStep />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
                         <EnableStep

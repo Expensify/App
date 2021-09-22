@@ -81,6 +81,11 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    label: {
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
+
     textLabel: {
         color: themeColors.text,
         fontSize: variables.fontSizeLabel,
@@ -111,6 +116,12 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeSmall,
         lineHeight: 14,
+    },
+
+    textExtraSmallSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeExtraSmall,
     },
 
     textLarge: {
@@ -311,56 +322,6 @@ const styles = {
         height: 160,
     },
 
-    picker: {
-        inputIOS: {
-            flex: 1,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusNormal,
-            borderColor: themeColors.border,
-            paddingTop: 25,
-            paddingHorizontal: 12,
-            paddingBottom: 8,
-            justifyContent: 'center',
-            height: '100%',
-            backgroundColor: themeColors.componentBG,
-        },
-        inputWeb: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
-            borderColor: themeColors.border,
-            color: themeColors.text,
-            appearance: 'none',
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
-            cursor: 'pointer',
-        },
-        inputAndroid: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
-            borderColor: themeColors.border,
-            color: themeColors.text,
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
-        },
-        iconContainer: {
-            top: 12,
-            right: 12,
-            pointerEvents: 'none',
-        },
-    },
-
     pickerSmall: {
         inputIOS: {
             fontFamily: fontFamily.GTA,
@@ -370,9 +331,7 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 1,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
+            borderWidth: 0,
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -385,10 +344,8 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
             color: themeColors.text,
             appearance: 'none',
             height: variables.componentSizeSmall,
@@ -403,10 +360,8 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 1,
+            borderWidth: 0,
             borderRadius: variables.componentBorderRadius,
-            borderColor: themeColors.border,
-            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -528,7 +483,7 @@ const styles = {
     expensiTextInputLabel: {
         position: 'absolute',
         left: 12,
-        top: 14,
+        top: 16,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
@@ -736,21 +691,6 @@ const styles = {
         flexDirection: 'row',
         flexWrap: 'wrap',
         ...wordBreak.breakWord,
-    },
-
-    loginTermsText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeExtraSmall,
-    },
-
-    termsLink: {
-        color: themeColors.link,
-    },
-
-    termsLinkNative: {
-        color: themeColors.link,
-        margin: 0,
     },
 
     // Sidebar Styles
@@ -1209,11 +1149,24 @@ const styles = {
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListLandscape: {
+        height: 240,
+    },
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    emojiSkinToneTitle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv1,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1233,6 +1186,11 @@ const styles = {
         width: '12.5%',
         textAlign: 'center',
         borderRadius: 8,
+    },
+
+    emojiSkinToneItem: {
+        width: 'auto',
+        ...spacing.ph1,
     },
 
     emojiItemHighlighted: {
