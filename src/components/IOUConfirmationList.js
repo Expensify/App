@@ -26,6 +26,7 @@ import {
 } from './Icon/Expensicons';
 import Permissions from '../libs/Permissions';
 import isAppInstalled from '../libs/isAppInstalled';
+import {isValidUSPhone} from '../libs/ValidationUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -318,7 +319,7 @@ class IOUConfirmationList extends Component {
      */
     addVenmoPaymentOption() {
         // Add Venmo option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber.length > 0 && this.isValidUSPhone(this.state.participants[0].phoneNumber)) {
+        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber.length > 0 && isValidUSPhone(this.state.participants[0].phoneNumber)) {
             isAppInstalled('venmo')
                 .then((isVenmoInstalled) => {
                     // We will return early if the component has unmounted before the async call resolves. This prevents
@@ -335,15 +336,6 @@ class IOUConfirmationList extends Component {
                     }));
                 });
         }
-    }
-
-    /**
-     * @param {String} phoneNumber
-     * @returns {Boolean}
-     */
-    isValidUSPhone(phoneNumber) {
-        // Remove alphanumeric characters and validate that this is in fact a phone number
-        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
     }
 
     /**

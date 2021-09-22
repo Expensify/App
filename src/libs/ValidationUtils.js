@@ -127,6 +127,15 @@ function isValidIdentity(identity) {
     return true;
 }
 
+/**
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidUSPhone(phoneNumber) {
+    // Remove alphanumeric characters and validate that this is in fact a phone number
+    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
+}
+
 export {
     isValidAddress,
     isValidDate,
@@ -134,4 +143,5 @@ export {
     isValidIdentity,
     isValidZipCode,
     isRequiredFulfilled,
+    isValidUSPhone,
 };
