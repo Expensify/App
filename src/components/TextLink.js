@@ -29,72 +29,29 @@ const defaultProps = {
     onPress: undefined,
 };
 
-class TextLink extends React.Component {
-    constructor(props) {
-        super(props);
+const TextLink = (props) => {
+    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
+    return (
+        <Pressable
+            onPress={(e) => {
+                e.preventDefault();
+                if (props.onPress) {
+                    props.onPress();
+                    return;
+                }
 
-        this.state = {
-            linkHovered: false,
-        };
-
-        this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
-    }
-
-    render() {
-        return (
-            typeof this.props.children === 'string' ?
-                <>
-                    {this.props.children.split(' ').map((word, i) => (
-                        <Pressable
-                            key={word}
-                            onHoverIn={() => this.setState({linkHovered: true})}
-                            onHoverOut={() => this.setState({linkHovered: false})}
-                            onPressIn={() => this.setState({linkHovered: true})}
-                            onPressOut={() => this.setState({linkHovered: false})}
-                            onPress={(e) => {
-                                e.preventDefault();
-                                if (this.props.onPress) {
-                                    this.props.onPress();
-                                    return;
-                                }
-    
-                                Linking.openURL(this.props.href);
-                            }}
-                            accessibilityRole="link"
-                            href={this.props.href}
-                        >
-                            {({hovered, pressed}) => {
-                                return (
-                                    <Text style={[styles.link, this.state.linkHovered ? styles.linkHovered : undefined, ...this.additionalStyles]}>
-                                        {`${word}${i === this.props.children.split(' ').length - 1 ? '' : ' '}`}
-                                    </Text>
-                                )
-                            }}
-                        </Pressable> 
-                    ))}
-                </>
-                : 
-                <Pressable
-                onPress={(e) => {
-                    e.preventDefault();
-                    if (this.props.onPress) {
-                        this.props.onPress();
-                        return;
-                    }
-    
-                    Linking.openURL(this.props.href);
-                }}
-                accessibilityRole="link"
-                href={this.props.href}
-            >
-                {({hovered, pressed}) => (
-                    <Text style={[styles.link, (hovered || pressed) ? styles.linkHovered : undefined, ...this.additionalStyles]}>
-                        {this.props.children}
-                    </Text>
-                )}
-            </Pressable>
-        );
-    }
+                Linking.openURL(props.href);
+            }}
+            accessibilityRole="link"
+            href={props.href}
+        >
+            {({hovered, pressed}) => (
+                <Text style={[styles.link, (hovered || pressed) ? styles.linkHovered : undefined, ...additionalStyles]}>
+                    {props.children}
+                </Text>
+            )}
+        </Pressable>
+    );
 };
 
 TextLink.defaultProps = defaultProps;
