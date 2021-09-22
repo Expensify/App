@@ -82,7 +82,10 @@ class SetPasswordPage extends Component {
     render() {
         return (
             <SafeAreaView style={[styles.signInPage]}>
-                <SignInPageLayout welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}>
+                <SignInPageLayout
+                    shouldShowWelcomeText
+                    welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
+                >
                     <View style={[styles.mb4]}>
                         <NewPasswordForm
                             password={this.state.password}
