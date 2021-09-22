@@ -189,6 +189,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
  * @param {String} parameters.partnerUserSecret
  * @param {String} [parameters.twoFactorAuthCode]
  * @param {String} [parameters.email]
+ * @param {String} [parameters.authToken]
  * @returns {Promise}
  */
 function Authenticate(parameters) {

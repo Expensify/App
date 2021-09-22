@@ -19,7 +19,7 @@ export default () => (
             component={SignInPage}
         />
         <RootStack.Screen
-            name="LogInWithShortLivedToken"
+            name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
             options={defaultScreenOptions}
             component={LogInWithShortLivedTokenPage}
         />
