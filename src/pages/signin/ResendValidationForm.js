@@ -14,8 +14,6 @@ import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
 import {getDefaultAvatar} from '../../libs/OptionsListUtils';
-import Icon from '../../components/Icon';
-import {BackArrow} from '../../components/Icon/Expensicons';
 
 const propTypes = {
     /* Onyx Props */
@@ -87,12 +85,6 @@ class ResendValidationForm extends React.Component {
         return (
             <>
                 <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
-                    <TouchableOpacity
-                        style={[styles.pAbsolute, styles.ln6]}
-                        onPress={() => redirectToSignIn()}
-                    >
-                        <Icon src={BackArrow} />
-                    </TouchableOpacity>
                     <Avatar
                         source={getDefaultAvatar(this.props.credentials.login)}
                         imageStyles={[styles.mr2]}
@@ -123,7 +115,7 @@ class ResendValidationForm extends React.Component {
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => redirectToSignIn()}>
                         <Text>
-                            {this.props.translate('common.cancel')}
+                            {this.props.translate('common.back')}
                         </Text>
                     </TouchableOpacity>
                     <Button
