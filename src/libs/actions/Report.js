@@ -1416,6 +1416,12 @@ function createPolicyRoom(policyID, reportName, visibility) {
                 return;
             }
             return fetchChatReportsByIDs([response.reportID]);
+        })
+        .then(([{reportID}]) => {
+            if (!reportID) {
+                console.error('Unable to grab policy room after creation');
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
         });
 }
 
