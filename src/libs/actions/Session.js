@@ -244,6 +244,7 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} accountID
  * @param {String} email
  * @param {String} shortLivedToken
+ * @param {string} encryptedAuthToken
  */
 function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
