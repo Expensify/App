@@ -51,6 +51,7 @@ class LogInWithShortLivedTokenPage extends Component {
         const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+        const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
@@ -67,7 +68,7 @@ class LogInWithShortLivedTokenPage extends Component {
             Navigation.navigate(exitTo);
         }
 
-        signInWithShortLivedToken(accountID, email, shortLivedToken);
+        signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
     }
 
     render() {
