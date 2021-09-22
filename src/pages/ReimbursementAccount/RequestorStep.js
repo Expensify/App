@@ -210,7 +210,7 @@ class RequestorStep extends React.Component {
                             <Text
                                 onPress={() => Linking.openURL('https://onfido.com/facial-scan-policy-and-release/')}
                                 style={[styles.textMicro, styles.link]}
-                                accessibilityRole='link'
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
                             </Text>
@@ -218,7 +218,7 @@ class RequestorStep extends React.Component {
                             <Text
                                 onPress={() => Linking.openURL('https://onfido.com/privacy/')}
                                 style={[styles.textMicro, styles.link]}
-                                accessibilityRole='link'
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.privacyPolicy')}`}
                             </Text>
@@ -226,7 +226,7 @@ class RequestorStep extends React.Component {
                             <Text
                                 onPress={() => Linking.openURL('https://onfido.com/terms-of-service/')}
                                 style={[styles.textMicro, styles.link]}
-                                accessibilityRole='link'
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.termsOfService')}`}
                             </Text>
