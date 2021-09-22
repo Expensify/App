@@ -135,8 +135,11 @@ function fetchAccountDetails(login) {
                 } else if (!response.validated) {
                     resendValidationLink(login);
                 }
+            } else if (response.jsonCode === 402) {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('loginForm.error.invalidFormatLogin')});
+            } else {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
             }
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessageRetry')});
@@ -267,6 +270,11 @@ function setPassword(password, validateCode, accountID) {
 
             // This request can fail if the password is not complex enough
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
+        })
+        .catch((response) => {
+            if (response.title === CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
+                Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
+            }
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});

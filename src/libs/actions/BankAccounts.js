@@ -534,6 +534,15 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 }
 
 /**
+ * Show error modal and optionally a specific error message
+ *
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ */
+function showBankAccountErrorModal(errorModalMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+}
+
+/**
  * @param {Number} bankAccountID
  * @param {String} validateCode
  */
@@ -565,17 +574,23 @@ function validateBankAccount(bankAccountID, validateCode) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
-        });
-}
+            // User has input the validate code incorrectly many times so we will return early in this case and not let them enter the amounts again.
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.MAX_VALIDATION_ATTEMPTS_REACHED) {
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, maxAttemptsReached: true});
+                return;
+            }
 
-/**
- * Show error modal and optionally a specific error message
- *
- * @param {String} errorModalMessage The error message to be displayed in the modal's body.
- */
-function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+            // If the validation amounts entered were incorrect, show specific error
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
+                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                return;
+            }
+
+            // We are generically showing any other backend errors that might pop up in the validate step
+            showBankAccountErrorModal(response.message);
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        });
 }
 
 /**
@@ -612,7 +627,7 @@ function showBankAccountFormValidationError(error) {
  */
 function setupWithdrawalAccount(data) {
     let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
 
     const newACHData = {
         ...reimbursementAccountInSetup,
@@ -667,18 +682,6 @@ function setupWithdrawalAccount(data) {
                 // set up for the free plan.
                 if (achData.bankAccountID) {
                     setFreePlanVerifiedBankAccountID(achData.bankAccountID);
-                }
-
-                // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    Onyx.merge(
-                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {
-                            existingOwners: response.existingOwners,
-                            isErrorModalVisible: true,
-                        },
-                    );
-                    return;
                 }
 
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -766,10 +769,6 @@ function setupWithdrawalAccount(data) {
                         console.error(response.message);
                     }
                 }
-
-                if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
-                    achData.disableFields = true;
-                }
             }
 
             // Go to next step
@@ -792,7 +791,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: null, errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {

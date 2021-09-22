@@ -27,6 +27,8 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+            MAX_VALIDATION_ATTEMPTS_REACHED: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+            INCORRECT_VALIDATION_AMOUNTS: 'The validate code you entered is incorrect, please try again.',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -88,6 +90,7 @@ const CONST = {
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
+        INTERNATIONALIZATION: 'internationalization',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -125,13 +128,14 @@ const CONST = {
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
-    ADD_SECONDARY_LOGIN_URL: '/settings?param={%22section%22:%22account%22}',
-    MANAGE_CARDS_URL: '/domain_companycards',
+    ADD_SECONDARY_LOGIN_URL: 'settings?param={%22section%22:%22account%22}',
+    MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
     NEW_EXPENSIFY_URL,
+    STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -240,6 +244,13 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+
+    PASSWORD_PAGE: {
+        ERROR: {
+            ALREADY_VALIDATED: 'Account already validated',
+            VALIDATE_CODE_FAILED: 'Validate code failed',
+        },
+    },
 
     EMOJI_SPACER: 'SPACER',
 
@@ -364,7 +375,7 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
-        AMOUNT_MAX_LENGTH: 14,
+        AMOUNT_MAX_LENGTH: 10,
     },
 
     GROWL: {

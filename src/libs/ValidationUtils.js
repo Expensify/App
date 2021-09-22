@@ -1,4 +1,5 @@
 import moment from 'moment';
+import _ from 'underscore';
 import CONST from '../CONST';
 import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
@@ -17,6 +18,21 @@ function isValidAddress(value) {
     return !CONST.REGEX.PO_BOX.test(value);
 }
 
+/**
+ * Used to validate a value that is "required".
+ *
+ * @param {*} value
+ * @returns {Boolean}
+ */
+function isRequiredFulfilled(value) {
+    if (_.isString(value)) {
+        return !_.isEmpty(value.trim());
+    }
+    if (_.isArray(value) || _.isObject(value)) {
+        return !_.isEmpty(value);
+    }
+    return Boolean(value);
+}
 
 /**
  * Validate date fields
@@ -26,14 +42,6 @@ function isValidAddress(value) {
  */
 function isValidDate(date) {
     return moment(date).isValid();
-}
-
-/**
- * @param {String} code
- * @returns {Boolean}
- */
-function isValidIndustryCode(code) {
-    return CONST.REGEX.INDUSTRY_CODE.test(code);
 }
 
 /**
@@ -78,6 +86,12 @@ function isValidIdentity(identity) {
         return false;
     }
 
+    if (identity.city === '') {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
     if (!isValidZipCode(identity.zipCode)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
         showBankAccountErrorModal();
@@ -108,7 +122,7 @@ function isValidIdentity(identity) {
 export {
     isValidAddress,
     isValidDate,
-    isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
+    isRequiredFulfilled,
 };

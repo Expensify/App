@@ -26,6 +26,7 @@ import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.s
 import BankAccount from '../../libs/models/BankAccount';
 import {openSignedInLink} from '../../libs/actions/App';
 import {setWorkspaceIDForReimbursementAccount} from '../../libs/actions/BankAccounts';
+import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -52,16 +53,7 @@ const propTypes = {
     }).isRequired,
 
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Additional data */
-        achData: PropTypes.shape({
-            /** Bank account state */
-            state: PropTypes.string,
-        }),
-
-        /** Whether we are loading this bank account */
-        loading: PropTypes.bool,
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Draft of bank account currently in setup */
     // eslint-disable-next-line react/forbid-prop-types
