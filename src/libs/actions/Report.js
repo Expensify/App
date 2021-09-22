@@ -1398,6 +1398,27 @@ function handleInaccessibleReport() {
     navigateToConciergeChat();
 }
 
+/**
+ * Creates a policy room and fetches it
+ * @param {String} policyID
+ * @param {String} reportName
+ * @param {String} visibility
+ * @return {Promise}
+ */
+function createPolicyRoom(policyID, reportName, visibility) {
+    return API.CreatePolicyRoom({policyID, reportName, visibility})
+        .then((response) => {
+            if (!response) {
+                return;
+            }
+            if (response.jsonCode !== 200) {
+                console.error(response.message);
+                return;
+            }
+            return fetchChatReportsByIDs([response.reportID]);
+        });
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1424,4 +1445,5 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
+    createPolicyRoom,
 };
