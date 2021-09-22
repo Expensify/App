@@ -414,6 +414,7 @@ export default {
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
             fixTheErrors: 'fix the errors',
             inTheFormBeforeContinuing: 'in the form before continuing',
+            validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
     },
     addPersonalBankAccountPage: {

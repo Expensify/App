@@ -28,6 +28,7 @@ const CONST = {
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
             MAX_VALIDATION_ATTEMPTS_REACHED: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+            INCORRECT_VALIDATION_AMOUNTS: 'The validate code you entered is incorrect, please try again.',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -243,6 +244,13 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+
+    PASSWORD_PAGE: {
+        ERROR: {
+            ALREADY_VALIDATED: 'Account already validated',
+            VALIDATE_CODE_FAILED: 'Validate code failed',
+        },
+    },
 
     EMOJI_SPACER: 'SPACER',
 
