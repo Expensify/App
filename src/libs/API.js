@@ -359,7 +359,7 @@ function CreateChatReport(parameters) {
 }
 
 /**
- * @param parameters
+ * @param {Object} parameters
  * @param {String} parameters.policyID
  * @param {String} parameters.reportName
  * @param {String} parameters.visibility
