@@ -128,10 +128,12 @@ class WorkspaceCardPage extends React.Component {
     getButtonText() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
         const shouldFinishSetup = !_.every(Object.values(this.props.reimbursementAccountDraft), value => value === '')
-            || achState === BankAccount.STATE.SETUP
-            || achState === BankAccount.STATE.VERIFYING
-            || achState === BankAccount.STATE.PENDING
-            || achState === BankAccount.STATE.OPEN;
+            || _.contains([
+                BankAccount.STATE.SETUP,
+                BankAccount.STATE.VERIFYING,
+                BankAccount.STATE.PENDING,
+                BankAccount.STATE.OPEN
+            ], achState);
 
         if (this.props.user.isFromPublicDomain) {
             return this.props.translate('workspace.card.addEmail');
