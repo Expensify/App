@@ -131,7 +131,8 @@ class WorkspaceCardPage extends React.Component {
 
     getButtonText() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const shouldFinishSetup = !_.isEmpty(this.props.reimbursementAccountDraft)
+        const shouldFinishSetup =
+            !_.every(Object.values(this.props.reimbursementAccountDraft), value => value === '')
             || achState === BankAccount.STATE.SETUP
             || achState === BankAccount.STATE.VERIFYING
             || achState === BankAccount.STATE.PENDING
