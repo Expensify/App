@@ -157,8 +157,8 @@ function fetchAccountDetails(login) {
  * re-authenticating after an authToken expires.
  *
  * @param {String} authToken
- * @param {String} [encryptedAuthToken] – Not required for the CreateLogin API call, but passed to setSuccessfulSignInData
- * @param {String} [email]
+ * @param {String} encryptedAuthToken – Not required for the CreateLogin API call, but passed to setSuccessfulSignInData
+ * @param {String} email
  * @return {Promise}
  */
 function createTemporaryLogin(authToken, encryptedAuthToken, email) {
@@ -244,10 +244,10 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} email
  * @param {String} shortLivedToken
  */
-function signInWithShortLivedToken(accountID, email, shortLivedToken) {
+function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
-    createTemporaryLogin(shortLivedToken).then((response) => {
+    createTemporaryLogin(shortLivedToken, encryptedAuthToken, email).then((response) => {
         Onyx.merge(ONYXKEYS.SESSION, {
             authToken: shortLivedToken,
             accountID,
