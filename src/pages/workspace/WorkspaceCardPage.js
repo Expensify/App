@@ -132,7 +132,7 @@ class WorkspaceCardPage extends React.Component {
                 BankAccount.STATE.SETUP,
                 BankAccount.STATE.VERIFYING,
                 BankAccount.STATE.PENDING,
-                BankAccount.STATE.OPEN
+                BankAccount.STATE.OPEN,
             ], achState);
 
         if (this.props.user.isFromPublicDomain) {
