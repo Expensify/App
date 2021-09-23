@@ -71,7 +71,7 @@ class OnfidoStep extends React.Component {
                         <Onfido
                             sdkToken={this.props.walletOnfidoData.sdkToken}
                             onError={(error) => {
-                                Log.hmmm('Onfido error', {error});
+                                Log.hmmm('Onfido error in OnfidoStep', {error});
                                 Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                             }}
                             onUserExit={() => {

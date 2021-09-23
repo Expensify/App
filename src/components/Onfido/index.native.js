@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {
@@ -34,18 +35,13 @@ class Onfido extends React.Component {
             .catch((error) => {
                 const errorMessage = lodashGet(error, 'message');
                 if (!errorMessage) {
-                    this.props.onError('Unknown error');
+                    this.props.onError(CONST.ERROR.UNKNOWN_ERROR);
                     return;
                 }
 
                 // If the user cancels the Onfido flow we won't log this error as it's normal. In the React Native SDK the user exiting the flow will trigger this error which we can use as
                 // our "user exited the flow" callback. On web, this event has it's own callback passed as a config so we don't need to bother with this there.
-                if (errorMessage === CONST.ONFIDO.ERROR.USER_CANCELLED) {
-                    this.props.onUserExit();
-                    return;
-                }
-
-                if (errorMessage === CONST.ONFIDO.ERROR.USER_TAPPED_BACK) {
+                if (_.contains([CONST.ONFIDO.ERROR.USER_CANCELLED, CONST.ONFIDO.ERROR.USER_TAPPED_BACK], errorMessage)) {
                     this.props.onUserExit();
                     return;
                 }

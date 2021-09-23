@@ -142,7 +142,7 @@ class RequestorStep extends React.Component {
                         }}
                         onError={(error) => {
                             // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
-                            Log.hmmm('Onfido error', {error});
+                            Log.hmmm('Onfido error in RequestorStep', {error});
                             Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }}
