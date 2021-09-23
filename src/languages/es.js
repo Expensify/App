@@ -41,7 +41,7 @@ export default {
         pin: 'Fijar',
         unPin: 'Desfijar',
         back: 'Volver',
-        saveAndContinue: 'Guardar y Continuar',
+        saveAndContinue: 'Guardar y continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
         people: 'Personas',
