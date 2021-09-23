@@ -111,9 +111,7 @@ function getDomainInfo(loginList) {
 
                 // eslint-disable-next-line max-len
                 console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                Timers.register(setTimeout(() => {
-                    getDomainInfo(loginList);
-                }, RETRY_TIMEOUT));
+                Timers.register(setTimeout(() => getDomainInfo(loginList), RETRY_TIMEOUT));
             }
         });
 }
