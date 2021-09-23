@@ -38,6 +38,9 @@ const propTypes = {
         /** The authToken for the current session */
         email: PropTypes.string,
     }),
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -45,30 +48,46 @@ const defaultProps = {
         params: {},
     },
     session: {},
+    betas: null,
 };
+
 class LogInWithShortLivedTokenPage extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {hasRun: false};
+    }
+
     componentDidMount() {
         const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
         const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
 
-        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
-
-        // If the user is revisiting the component authenticated or they were already logged into the right account, we simply redirect them to the exitTo
+        // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
         if (this.props.session.authToken && email === this.props.session.email) {
-            // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-            // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
-            // of the workspace modal, then they will be routed back to
-            // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
-            // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
-            // if they cancel out of the new workspace modal.
-            Navigation.dismissModal();
-            Navigation.navigate(exitTo);
+            return;
         }
 
         signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
+        this.setState({hasRun: true});
+    }
+
+    componentDidUpdate() {
+        if (this.state.hasRun || !this.props.betas) {
+            return;
+        }
+
+        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+
+        // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
+        // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
+        // of the workspace modal, then they will be routed back to
+        // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
+        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
+        // if they cancel out of the new workspace modal.
+        Navigation.dismissModal();
+        Navigation.navigate(exitTo);
     }
 
     render() {
@@ -83,6 +102,9 @@ export default compose(
     withOnyx({
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(LogInWithShortLivedTokenPage);
