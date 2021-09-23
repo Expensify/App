@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
 import styles from '../../../styles/styles';
-import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
 import SearchPage from '../../../pages/SearchPage';
 import DetailsPage from '../../../pages/DetailsPage';
@@ -119,12 +118,13 @@ const SearchModalStackNavigator = createModalStackNavigator([{
 }]);
 
 const NewGroupModalStackNavigator = createModalStackNavigator([{
-    Component: NewGroupPage,
+    // eslint-disable-next-line react/jsx-props-no-spreading
+    Component: props => <NewGroupPage {...props} groupChat />,
     name: 'NewGroup_Root',
 }]);
 
 const NewChatModalStackNavigator = createModalStackNavigator([{
-    Component: NewChatPage,
+    Component: NewGroupPage,
     name: 'NewChat_Root',
 }]);
 

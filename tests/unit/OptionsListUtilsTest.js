@@ -320,7 +320,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Concierge from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [CONST.EMAIL.CONCIERGE],
+            REPORTS_WITH_CONCIERGE, PERSONAL_DETAILS_WITH_CONCIERGE, [], '', [], [CONST.EMAIL.CONCIERGE],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -333,7 +333,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Chronos from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [CONST.EMAIL.CHRONOS],
+            REPORTS_WITH_CHRONOS, PERSONAL_DETAILS_WITH_CHRONOS, [], '', [], [CONST.EMAIL.CHRONOS],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge
@@ -346,7 +346,7 @@ describe('OptionsListUtils', () => {
 
         // Test by excluding Receipts from the results
         results = OptionsListUtils.getNewChatOptions(
-            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [CONST.EMAIL.RECEIPTS],
+            REPORTS_WITH_RECEIPTS, PERSONAL_DETAILS_WITH_RECEIPTS, [], '', [], [CONST.EMAIL.RECEIPTS],
         );
 
         // All the personalDetails should be returned minus the currently logged in user and Concierge

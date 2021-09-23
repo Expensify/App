@@ -565,35 +565,6 @@ function getSearchOptions(
 }
 
 /**
- * Build the options for the New Chat view
- *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {Array<String>} betas
- * @param {String} searchValue
- * @param {Array} excludeLogins
- * @returns {Object}
- */
-function getNewChatOptions(
-    reports,
-    personalDetails,
-    betas = [],
-    searchValue = '',
-    excludeLogins = [],
-
-) {
-    return getOptions(reports, personalDetails, {}, 0, {
-        betas,
-        searchValue,
-        excludeDefaultRooms: true,
-        includePersonalDetails: true,
-        includeRecentReports: true,
-        maxRecentReportsToShow: 5,
-        excludeLogins,
-    });
-}
-
-/**
  * Build the IOUConfirmation options for showing MyPersonalDetail
  *
  * @param {Object} myPersonalDetail
@@ -636,14 +607,13 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Array} excludeLogins
  * @returns {Object}
  */
-function getNewGroupOptions(
+function getNewChatOptions(
     reports,
     personalDetails,
     betas = [],
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
-
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
@@ -652,7 +622,6 @@ function getNewGroupOptions(
         excludeDefaultRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
-        includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
         excludeLogins,
     });
@@ -773,7 +742,6 @@ export {
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
-    getNewGroupOptions,
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,

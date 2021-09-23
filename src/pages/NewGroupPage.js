@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import OptionsSelector from '../components/OptionsSelector';
-import {getNewGroupOptions, getHeaderMessage} from '../libs/OptionsListUtils';
+import {getNewChatOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
@@ -19,6 +19,7 @@ import compose from '../libs/compose';
 import Button from '../components/Button';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import FixedFooter from '../components/FixedFooter';
+import KeyboardSpacer from '../components/KeyboardSpacer';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -33,6 +34,9 @@ const personalDetailsPropTypes = PropTypes.shape({
 });
 
 const propTypes = {
+    /** Whether screen is used to create group chat */
+    groupChat: PropTypes.bool,
+
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
@@ -55,23 +59,30 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    groupChat: false,
+};
+
 class NewGroupPage extends Component {
     constructor(props) {
         super(props);
 
         this.toggleOption = this.toggleOption.bind(this);
         this.createGroup = this.createGroup.bind(this);
+        this.whenOptionSelected = this.whenOptionSelected.bind(this);
+        this.createNewChat = this.createNewChat.bind(this);
+
         const {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getNewGroupOptions(
+        } = getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
             '',
             [],
-            EXCLUDED_GROUP_EMAILS,
+            this.props.groupChat ? EXCLUDED_GROUP_EMAILS : [],
         );
         this.state = {
             searchValue: '',
@@ -90,15 +101,17 @@ class NewGroupPage extends Component {
      */
     getSections(maxParticipantsReached) {
         const sections = [];
-        sections.push({
-            title: undefined,
-            data: this.state.selectedOptions,
-            shouldShow: true,
-            indexOffset: 0,
-        });
+        if (this.props.groupChat) {
+            sections.push({
+                title: undefined,
+                data: this.state.selectedOptions,
+                shouldShow: true,
+                indexOffset: 0,
+            });
 
-        if (maxParticipantsReached) {
-            return sections;
+            if (maxParticipantsReached) {
+                return sections;
+            }
         }
 
         sections.push({
@@ -163,7 +176,7 @@ class NewGroupPage extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-            } = getNewGroupOptions(
+            } = getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
@@ -182,11 +195,30 @@ class NewGroupPage extends Component {
         });
     }
 
+    /**
+     * Creates a new chat with the option
+     * @param {Object} option
+     */
+    createNewChat(option) {
+        fetchOrCreateChatReport([
+            this.props.session.email,
+            option.login,
+        ]);
+    }
+
+    whenOptionSelected(option) {
+        if (this.props.groupChat) {
+            return this.toggleOption(option);
+        }
+
+        this.createNewChat(option);
+    }
+
     render() {
         const maxParticipantsReached = this.state.selectedOptions.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
         const headerMessage = getHeaderMessage(
-            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            (this.state.personalDetails.length + this.state.recentReports.length) !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
             maxParticipantsReached,
@@ -196,48 +228,49 @@ class NewGroupPage extends Component {
                 {({didScreenTransitionEnd}) => (
                     <KeyboardAvoidingView>
                         <HeaderWithCloseButton
-                            title={this.props.translate('sidebarScreen.newGroup')}
+                            title={this.props.groupChat
+                                ? this.props.translate('sidebarScreen.newGroup')
+                                : this.props.translate('sidebarScreen.newChat')}
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
                                 <>
-                                    <View style={[styles.flex1, styles.w100]}>
-                                        <OptionsSelector
-                                            canSelectMultipleOptions
-                                            sections={sections}
-                                            selectedOptions={this.state.selectedOptions}
-                                            value={this.state.searchValue}
-                                            onSelectRow={this.toggleOption}
-                                            onChangeText={(searchValue = '') => {
-                                                const {
-                                                    recentReports,
-                                                    personalDetails,
-                                                    userToInvite,
-                                                } = getNewGroupOptions(
-                                                    this.props.reports,
-                                                    this.props.personalDetails,
-                                                    this.props.betas,
-                                                    searchValue,
-                                                    [],
-                                                    EXCLUDED_GROUP_EMAILS,
-                                                );
-                                                this.setState({
-                                                    searchValue,
-                                                    userToInvite,
-                                                    recentReports,
-                                                    personalDetails,
-                                                });
-                                            }}
-                                            headerMessage={headerMessage}
-                                            disableArrowKeysActions
-                                            hideAdditionalOptionStates
-                                            forceTextUnreadStyle
-                                            shouldFocusOnSelectRow
-                                        />
-                                    </View>
-                                    {this.state.selectedOptions?.length > 0 && (
+                                    <OptionsSelector
+                                        canSelectMultipleOptions={this.props.groupChat}
+                                        sections={sections}
+                                        selectedOptions={this.state.selectedOptions}
+                                        value={this.state.searchValue}
+                                        onSelectRow={this.whenOptionSelected}
+                                        onChangeText={(searchValue = '') => {
+                                            const {
+                                                recentReports,
+                                                personalDetails,
+                                                userToInvite,
+                                            } = getNewChatOptions(
+                                                this.props.reports,
+                                                this.props.personalDetails,
+                                                this.props.betas,
+                                                searchValue,
+                                                [],
+                                                this.props.groupChat ? EXCLUDED_GROUP_EMAILS : [],
+                                            );
+                                            this.setState({
+                                                searchValue,
+                                                userToInvite,
+                                                recentReports,
+                                                personalDetails,
+                                            });
+                                        }}
+                                        headerMessage={headerMessage}
+                                        disableArrowKeysActions
+                                        hideAdditionalOptionStates
+                                        forceTextUnreadStyle
+                                        shouldFocusOnSelectRow
+                                    />
+                                    {this.props.groupChat && <KeyboardSpacer />}
+                                    {this.props.groupChat && this.state.selectedOptions?.length > 0 && (
                                         <FixedFooter>
                                             <Button
                                                 success
@@ -258,6 +291,7 @@ class NewGroupPage extends Component {
 }
 
 NewGroupPage.propTypes = propTypes;
+NewGroupPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
