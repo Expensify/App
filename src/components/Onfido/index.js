@@ -24,6 +24,9 @@ class Onfido extends React.Component {
                         forceCrossDevice: true,
                         showCountrySelection: false,
                         documentTypes: {
+                            driving_licence: {
+                                country: null,
+                            },
                             national_identity_card: {
                                 country: null,
                             },
