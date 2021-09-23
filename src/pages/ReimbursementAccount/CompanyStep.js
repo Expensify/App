@@ -278,7 +278,10 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         secureTextEntry
                         textContentType="password"
-                        onChangeText={value => this.clearErrorAndSetValue('password', value)}
+                        onChangeText={(value) => {
+                            this.setState({password: value});
+                            this.clearError('password');
+                        }}
                         value={this.state.password}
                         onSubmitEditing={this.submit}
                         errorText={this.getErrorText('password')}
