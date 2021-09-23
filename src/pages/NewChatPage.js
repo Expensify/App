@@ -269,7 +269,7 @@ class NewChatPage extends Component {
                                         forceTextUnreadStyle
                                         shouldFocusOnSelectRow={this.props.groupChat}
                                     />
-                                    {this.props.groupChat && <KeyboardSpacer />}
+                                    {!this.props.groupChat && <KeyboardSpacer />}
                                     {this.props.groupChat && this.state.selectedOptions?.length > 0 && (
                                         <FixedFooter>
                                             <Button
