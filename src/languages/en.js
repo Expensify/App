@@ -41,7 +41,7 @@ export default {
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
-        saveAndContinue: 'Save & continue',
+        saveAndContinue: 'Save & Continue',
         settings: 'Settings',
         termsOfService: 'Terms of service',
         people: 'People',
