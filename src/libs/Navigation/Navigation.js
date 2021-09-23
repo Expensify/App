@@ -38,6 +38,10 @@ function setDidTapNotification() {
  * @private
  */
 function openDrawer() {
+    if (!navigationRef.isReady()) {
+        console.debug('[Navigation] openDrawer failed because navigation ref was not yet ready');
+        return;
+    }
     navigationRef.current.dispatch(DrawerActions.openDrawer());
 }
 
@@ -46,6 +50,10 @@ function openDrawer() {
  * @private
  */
 function closeDrawer() {
+    if (!navigationRef.isReady()) {
+        console.debug('[Navigation] closeDrawer failed because navigation ref was not yet ready');
+        return;
+    }
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
 }
 
@@ -65,6 +73,11 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  * @param {Boolean} shouldOpenDrawer
  */
 function goBack(shouldOpenDrawer = true) {
+    if (!navigationRef.isReady()) {
+        console.debug('[Navigation] goBack failed because navigation ref was not yet ready');
+        return;
+    }
+
     if (!navigationRef.current.canGoBack()) {
         console.debug('Unable to go back');
         if (shouldOpenDrawer) {
@@ -81,6 +94,11 @@ function goBack(shouldOpenDrawer = true) {
  * @param {String} route
  */
 function navigate(route = ROUTES.HOME) {
+    if (!navigationRef.isReady()) {
+        console.debug('[Navigation] navigate failed because navigation ref was not yet ready');
+        return;
+    }
+
     if (route === ROUTES.HOME) {
         if (isLoggedIn) {
             openDrawer();
@@ -110,6 +128,11 @@ function navigate(route = ROUTES.HOME) {
  * @param {Boolean} shouldOpenDrawer
  */
 function dismissModal(shouldOpenDrawer = false) {
+    if (!navigationRef.isReady()) {
+        console.debug('[Navigation] dismissModal failed because navigation ref was not yet ready');
+        return;
+    }
+
     const normalizedShouldOpenDrawer = _.isBoolean(shouldOpenDrawer)
         ? shouldOpenDrawer
         : false;
