@@ -7,7 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
-import * as User from "../libs/actions/User";
+import * as User from '../libs/actions/User';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
