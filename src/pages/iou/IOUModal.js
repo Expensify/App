@@ -150,6 +150,7 @@ class IOUModal extends Component {
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
             Navigation.dismissModal();
         }
+        console.log("participantsWithDetails: ", this.state.participants)
 
         // If transaction fails, handling it here
         if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {
