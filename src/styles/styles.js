@@ -50,6 +50,16 @@ const styles = {
         color: themeColors.linkHover,
     },
 
+    linkMuted: {
+        color: themeColors.textSupporting,
+        textDecorationColor: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+    },
+
+    linkMutedHovered: {
+        color: themeColors.textMutedReversed,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
