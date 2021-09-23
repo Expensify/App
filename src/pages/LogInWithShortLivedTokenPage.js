@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
+import * as User from "../libs/actions/User";
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -64,8 +65,10 @@ class LogInWithShortLivedTokenPage extends Component {
             // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
             // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
-            Navigation.dismissModal();
-            Navigation.navigate(exitTo);
+            User.getBetas().then(() => {
+                Navigation.dismissModal();
+                Navigation.navigate(exitTo);
+            });
         }
 
         signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);

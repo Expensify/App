@@ -57,8 +57,11 @@ function changePassword(oldPassword, password) {
         });
 }
 
+/**
+ * @return {Promise}
+ */
 function getBetas() {
-    API.User_GetBetas().then((response) => {
+    return API.User_GetBetas().then((response) => {
         if (response.jsonCode === 200) {
             Onyx.set(ONYXKEYS.BETAS, response.betas);
         }
