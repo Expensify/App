@@ -136,7 +136,7 @@ class IOUConfirmationList extends Component {
         };
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.props.participants.length === 1 && Permissions.canUseIOUSend(this.props.betas)) {
             // Add the Expensify Wallet option if available and make it the first option
-            if (this.props.localCurrencyCode === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas)) {
+            if (this.props.localCurrencyCode === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
                 confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), icon: Wallet});
             }
 
