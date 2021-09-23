@@ -48,10 +48,8 @@ function setLocale(locale) {
  * @param {string} url relative URL starting with `/` to open in expensify.com
  */
 function openSignedInLink(url = '') {
-    API.GetAccountValidateCode().then((response) => {
-        const exitToURL = url ? `exitTo=${url}` : '';
-        const validateCodeUrl = `v/${currentUserAccountID}/${response.validateCode}${exitToURL}`;
-        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + validateCodeUrl);
+    API.GetShortLivedAuthToken().then((response) => {
+        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${response.authToken}&email=${encodeURIComponent(response.email)}`);
     });
 }
 

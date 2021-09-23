@@ -77,14 +77,28 @@ const IdentityForm = ({
                     <ExpensiTextInput
                         label={`${translate('common.firstName')}`}
                         value={firstName}
-                        onChangeText={val => onFieldChange('firstName', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.firstName')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('firstName', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.firstName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
                     <ExpensiTextInput
                         label={`${translate('common.lastName')}`}
                         value={lastName}
-                        onChangeText={val => onFieldChange('lastName', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.lastName')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('lastName', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.lastName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
             </View>
@@ -94,12 +108,12 @@ const IdentityForm = ({
                 placeholder={translate('common.dateFormat')}
                 value={dob}
                 onChangeText={(val) => {
-                    if (error === translateLocal('bankAccount.error.dob')) {
+                    if (error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age')) {
                         hideBankAccountErrors();
                     }
                     onFieldChange('dob', val);
                 }}
-                errorText={error === translateLocal('bankAccount.error.dob') ? error : ''}
+                errorText={error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age') ? error : ''}
             />
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
@@ -131,13 +145,27 @@ const IdentityForm = ({
                     <ExpensiTextInput
                         label={translate('common.city')}
                         value={city}
-                        onChangeText={val => onFieldChange('city', val)}
+                        onChangeText={(val) => {
+                            if (error === translateLocal('bankAccount.error.addressCity')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('city', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.addressCity') ? error : ''}
+                        translateX={-14}
                     />
                 </View>
                 <View style={[styles.flex1]}>
                     <StatePicker
                         value={state}
-                        onChange={val => onFieldChange('state', val)}
+                        onChange={(val) => {
+                            if (error === translateLocal('bankAccount.error.addressState')) {
+                                hideBankAccountErrors();
+                            }
+                            onFieldChange('state', val);
+                        }}
+                        errorText={error === translateLocal('bankAccount.error.addressState') ? error : ''}
+                        hasError={error === translateLocal('bankAccount.error.addressState')}
                     />
                 </View>
             </View>

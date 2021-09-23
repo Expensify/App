@@ -1,16 +1,16 @@
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
+import CONST from '../../CONST';
 
 export default {
     prefixes: [
         'new-expensify://',
         'expensify-cash://', // DEPRECATED
-        'https://new.expensify.com',
         'https://www.expensify.cash',
         'https://staging.expensify.cash',
         'http://localhost',
-        'https://new.expensify.com',
-        'https://staging.new.expensify.com',
+        CONST.NEW_EXPENSIFY_URL,
+        CONST.STAGING_NEW_EXPENSIFY_URL,
     ],
     config: {
         initialRouteName: SCREENS.HOME,
@@ -32,6 +32,7 @@ export default {
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD,
+            [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
 
             // Modal Screens
             Settings: {
@@ -144,6 +145,11 @@ export default {
             WorkspaceInvite: {
                 screens: {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
+                },
+            },
+            WorkspaceNew: {
+                screens: {
+                    WorkspaceNew_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
 
