@@ -177,7 +177,6 @@ function createTemporaryLogin(authToken, encryptedAuthToken, email) {
         includeEncryptedAuthToken: true,
     })
         .then((createLoginResponse) => {
-            console.log({createLoginResponse});
             if (createLoginResponse.jsonCode !== 200) {
                 throw new Error(createLoginResponse.message);
             }
