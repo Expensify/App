@@ -263,8 +263,8 @@ class IOUModal extends Component {
                 // should send in cents to API
                 amount: Math.round(this.state.amount * 100),
                 currency: this.props.iou.selectedCurrencyCode,
-                submitterPayPalMeAddress: this.state.participants[0].participantsList[0].paypalMeAddress,
-                submitterPhoneNumber: this.state.participants[0].participantsList[0].phoneNumber,
+                submitterPayPalMeAddress: this.state.participants[0].payPalMeAddress,
+                submitterPhoneNumber: this.state.participants[0].phoneNumber,
                 comment: this.state.comment,
                 requestorEmail: this.state.participants[0].login,
             });
