@@ -276,7 +276,7 @@ class NewChatPage extends Component {
                                                 success
                                                 onPress={this.createGroup}
                                                 style={[styles.w100]}
-                                                text={this.props.translate('newGroupPage.createGroup')}
+                                                text={this.props.translate('newChatPage.createGroup')}
                                             />
                                         </FixedFooter>
                                     )}

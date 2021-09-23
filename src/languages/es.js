@@ -355,7 +355,7 @@ export default {
     detailsPage: {
         localTime: 'Hora local',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Crear grupo',
     },
     notFound: {
