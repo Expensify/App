@@ -414,6 +414,7 @@ export default {
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
             fixTheErrors: 'corrige los errores',
             inTheFormBeforeContinuing: 'en el formulario antes de continuar',
+            validationAmounts: 'Los montos de validación que ingresaste son incorrectos. Verifica tu cuenta de banco e intenta de nuevo.',
         },
     },
     addPersonalBankAccountPage: {
