@@ -14,6 +14,7 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import Timers from '../Timers';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -89,6 +90,10 @@ function getUserDetails() {
             // Update the blockedFromConcierge NVP
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
+
+            // Get domainInfo for user
+            const emailList = _.map(loginList, userLogin => userLogin.partnerUserID);
+            getDomainInfo(emailList);
 
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -208,25 +213,28 @@ function isBlockedFromConcierge(expiresAt) {
 }
 
 /**
- * Fetch the public domain info for the current user.
+ * Fetch the public domain info for the current user, including secondary logins.
  *
  * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
  * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
  * If that happens, this function will automatically retry itself in 10 minutes.
+ *
+ * @param {Array} loginList
  */
-function getDomainInfo() {
-    // If this command fails, we'll retry again in 10 minutes,
-    // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
-    const RETRY_TIMEOUT = 600000;
+function getDomainInfo(loginList) {
+    // First we filter out any domains that are in the list of common public domains
+    const emailList = _.filter(loginList, email => (
+        !_.contains(COMMON_PUBLIC_DOMAINS, Str.extractEmailDomain(email))
+    ));
 
-    // First check list of common public domains
-    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
+    // If there are no emails left, we have a public domain
+    if (!emailList.length) {
         Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
         return;
     }
 
-    // If it is not a common public domain, check the API
-    API.User_IsFromPublicDomain({email: sessionEmail})
+    // Check the API for the remaining uncommon domains
+    API.User_IsFromPublicDomain({emailList: emailList.join(',')})
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
@@ -243,9 +251,15 @@ function getDomainInfo() {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                     });
             } else {
+                // If the command failed, we'll retry again in 10 minutes,
+                // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
+                const RETRY_TIMEOUT = 600_000;
+
                 // eslint-disable-next-line max-len
                 console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(getDomainInfo, RETRY_TIMEOUT);
+                Timers.register(setTimeout(() => {
+                    getDomainInfo(loginList);
+                }, RETRY_TIMEOUT));
             }
         });
 }
