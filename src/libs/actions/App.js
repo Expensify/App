@@ -15,7 +15,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
-        currentUserEmail = encodeURIComponent(lodashGet(val, 'email', ''));
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -51,7 +51,7 @@ function setLocale(locale) {
  */
 function openSignedInLink(url = '') {
     API.GetShortLivedAuthToken().then(({shortLivedAuthToken}) => {
-        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${currentUserEmail}`);
+        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`);
     });
 }
 
