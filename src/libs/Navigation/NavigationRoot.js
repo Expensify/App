@@ -32,7 +32,7 @@ class NavigationRoot extends Component {
         const path = getPathFromState(state, linkingConfig.config);
 
         // Don't log the route transitions from OldDot because they contain authTokens
-        if (path.includes('/transition/')) {
+        if (path.includes('/transition')) {
             Log.info('Navigating from transition link from OldDot using short lived authToken');
         } else {
             Log.info('Navigating to route', false, {path});
