@@ -58,39 +58,64 @@ const defaultProps = {
     allPolicies: null,
 };
 
+/**
+ * @param {Object} navigationState
+ * @returns {String|undefined}
+ */
+function getPolicyIDFromNavigationState(navigationState) {
+    const routes = lodashGet(navigationState, 'routes', []);
+    const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
+    return lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
+}
+
 const WorkspaceSidebar = ({
-    translate, isSmallScreenWidth, policy, allPolicies, isFocused,
+    translate, isSmallScreenWidth, policy, allPolicies, isFocused, navigation,
 }) => {
+    const policyID = lodashGet(policy, 'id');
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
             icon: ExpensifyCard,
             action: () => {
-                Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id));
+                if (policyID) {
+                    Navigation.navigate(ROUTES.getWorkspaceCardRoute(policyID));
+                }
             },
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policyID)),
         },
         {
             translationKey: 'common.people',
             icon: Users,
             action: () => {
-                Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
+                if (policyID) {
+                    Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policyID));
+                }
             },
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policyID)),
         },
     ];
 
-    // After all the policies have loaded, we can know if the given policyID points to a nonexistant workspace
-    // When free plan is out of beta and Permissions.canUseFreePlan() gets removed,
-    // all code involving 'allPolicies' can be removed since policy loading will no longer be delayed on login.
-    if (allPolicies !== null && _.isEmpty(policy)) {
+    /* After all the policies have loaded, check if the given policyID points to a nonexistant workspace.
+     *
+     * Check the route parameter, because we can't tell the difference between a default value for policy not yet loaded
+     * and the scenario where the policy isn't found in Onyx.
+     *
+     * When free plan is out of beta and Permissions.canUseFreePlan() gets removed,
+     * all code involving 'allPolicies' can be removed since policy loading will no longer be delayed on login.
+     */
+    const policyIDFromRoute = getPolicyIDFromNavigationState(navigation.getState());
+    if (allPolicies && !_.any(allPolicies, loadedPolicy => loadedPolicy.id === policyIDFromRoute)) {
         Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
         Navigation.dismissModal();
         return null;
     }
 
 
-    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
+    const openEditor = () => {
+        if (policyID) {
+            Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policyID));
+        }
+    };
 
     return (
         <ScreenWrapper>
@@ -152,17 +177,19 @@ const WorkspaceSidebar = ({
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Tooltip text={policy.name}>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[
-                                            styles.displayName,
-                                            styles.alignSelfCenter,
-                                        ]}
-                                    >
-                                        {policy.name}
-                                    </Text>
-                                </Tooltip>
+                                {policy.name && (
+                                    <Tooltip text={policy.name}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                styles.displayName,
+                                                styles.alignSelfCenter,
+                                            ]}
+                                        >
+                                            {policy.name}
+                                        </Text>
+                                    </Tooltip>
+                                )}
                             </Pressable>
                         </View>
                     </View>
@@ -197,12 +224,7 @@ export default compose(
     withNavigationFocus,
     withOnyx({
         policy: {
-            key: (props) => {
-                const routes = lodashGet(props.navigation.getState(), 'routes', []);
-                const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
-                const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
-                return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-            },
+            key: props => `${ONYXKEYS.COLLECTION.POLICY}${getPolicyIDFromNavigationState(props.navigation.getState())}`,
         },
         allPolicies: {
             key: ONYXKEYS.COLLECTION.POLICY,

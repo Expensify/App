@@ -29,7 +29,7 @@ import NameValuePair from '../../../libs/actions/NameValuePair';
 
 const propTypes = {
     /* Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /* Flag for new users used to open the Global Create menu on first load */
     isFirstTimeNewExpensifyUser: PropTypes.bool.isRequired,
@@ -37,6 +37,10 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    betas: [],
 };
 
 class SidebarScreen extends Component {
@@ -179,6 +183,7 @@ class SidebarScreen extends Component {
 }
 
 SidebarScreen.propTypes = propTypes;
+SidebarScreen.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,

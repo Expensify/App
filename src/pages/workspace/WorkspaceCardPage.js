@@ -31,7 +31,7 @@ const propTypes = {
     /* Onyx Props */
 
     /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+    betas: PropTypes.arrayOf(PropTypes.string),
 
     /** The details about the user that is signed in */
     user: PropTypes.shape({
@@ -59,6 +59,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    betas: [],
     user: {
         isFromPublicDomain: false,
         isUsingExpensifyCard: false,
