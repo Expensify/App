@@ -107,7 +107,6 @@ class IOUModal extends Component {
         this.updateComment = this.updateComment.bind(this);
         this.updatePaymentType = this.updatePaymentType.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
-        console.log("props.personalDetails: ", props.personalDetails)
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
                 login: personalDetails.login,
@@ -118,8 +117,6 @@ class IOUModal extends Component {
                 phoneNumber: personalDetails.phoneNumber,
                 payPalMeAddress: personalDetails.payPalMeAddress,
             }));
-
-        console.log("participantsWithDetails: ", participantsWithDetails)
 
         this.state = {
             currentStepIndex: 0,
@@ -150,7 +147,6 @@ class IOUModal extends Component {
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
             Navigation.dismissModal();
         }
-        console.log("participantsWithDetails: ", this.state.participants)
 
         // If transaction fails, handling it here
         if (prevProps.iou.creatingIOUTransaction && this.props.iou.error === true) {

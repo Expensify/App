@@ -392,7 +392,6 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
-        console.log("reportPersonalDetails: ", reportPersonalDetails)
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later.
         if (logins.length <= 1) {
@@ -410,9 +409,6 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             forcePolicyNamePreview,
         })
     ));
-
-    console.log("allPersonalDetailsOptions: ", allPersonalDetailsOptions)
-    console.log("personalDetailsList: ", personalDetails)
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
