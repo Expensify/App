@@ -23,12 +23,11 @@ import themedefault from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
-import Growl from '../../libs/Growl';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
-import CONST from '../../CONST';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** Whether the current screen is focused. */
@@ -43,24 +42,21 @@ const propTypes = {
         name: PropTypes.string,
     }),
 
-    /** All the polices that we have loaded in Onyx */
-    allPolicies: PropTypes.shape({
-        /** ID of the policy */
-        id: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     policy: {},
-    allPolicies: null,
 };
 
 const WorkspaceSidebar = ({
-    translate, isSmallScreenWidth, policy, allPolicies, isFocused,
+    translate, isSmallScreenWidth, policy, isFocused,
 }) => {
+    if (_.isEmpty(policy)) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     const menuItems = [
         {
             translationKey: 'workspace.common.card',
@@ -79,16 +75,6 @@ const WorkspaceSidebar = ({
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
         },
     ];
-
-    // After all the policies have loaded, we can know if the given policyID points to a nonexistant workspace
-    // When free plan is out of beta and Permissions.canUseFreePlan() gets removed,
-    // all code involving 'allPolicies' can be removed since policy loading will no longer be delayed on login.
-    if (allPolicies !== null && _.isEmpty(policy)) {
-        Growl.error(translate('workspace.error.growlMessageInvalidPolicy'), CONST.GROWL.DURATION_LONG);
-        Navigation.dismissModal();
-        return null;
-    }
-
 
     const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
 
@@ -203,9 +189,6 @@ export default compose(
                 const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
-        },
-        allPolicies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(WorkspaceSidebar);
