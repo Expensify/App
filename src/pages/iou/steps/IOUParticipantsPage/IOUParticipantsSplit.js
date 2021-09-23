@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
-import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
+import {getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
 import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
@@ -77,7 +77,7 @@ class IOUParticipantsSplit extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getNewGroupOptions(
+        } = getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
@@ -178,7 +178,7 @@ class IOUParticipantsSplit extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-            } = getNewGroupOptions(
+            } = getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
@@ -215,7 +215,7 @@ class IOUParticipantsSplit extends Component {
                                 recentReports,
                                 personalDetails,
                                 userToInvite,
-                            } = getNewGroupOptions(
+                            } = getNewChatOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
                                 this.props.betas,
