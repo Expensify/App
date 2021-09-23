@@ -107,6 +107,7 @@ class IOUModal extends Component {
         this.updateComment = this.updateComment.bind(this);
         this.updatePaymentType = this.updatePaymentType.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
+        console.log("props.personalDetails: ", props.personalDetails)
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
                 login: personalDetails.login,
@@ -114,7 +115,11 @@ class IOUModal extends Component {
                 alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
                 icons: [personalDetails.avatar],
                 keyForList: personalDetails.login,
+                phoneNumber: personalDetails.phoneNumber,
+                payPalMeAddress: personalDetails.payPalMeAddress,
             }));
+
+        console.log("participantsWithDetails: ", participantsWithDetails)
 
         this.state = {
             currentStepIndex: 0,
