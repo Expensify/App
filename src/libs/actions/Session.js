@@ -174,13 +174,15 @@ function createTemporaryLogin(authToken, encryptedAuthToken, email) {
         doNotRetry: true,
         forceNetworkRequest: true,
         email,
+        includeEncryptedAuthToken: true,
     })
         .then((createLoginResponse) => {
+            console.log({createLoginResponse});
             if (createLoginResponse.jsonCode !== 200) {
                 throw new Error(createLoginResponse.message);
             }
 
-            setSuccessfulSignInData({...createLoginResponse, encryptedAuthToken});
+            setSuccessfulSignInData({...createLoginResponse});
 
             // If we have an old generated login for some reason
             // we should delete it before storing the new details
