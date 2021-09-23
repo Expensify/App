@@ -115,6 +115,7 @@ class IOUParticipantsRequest extends Component {
 
     render() {
         const sections = this.getSections();
+        console.log("sections: ", sections);
         return (
             <OptionsSelector
                 sections={sections}

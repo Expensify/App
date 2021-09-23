@@ -240,6 +240,8 @@ function createOption(personalDetailList, report, draftComments, {
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
         login: !hasMultipleParticipants ? personalDetail.login : null,
+        phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
+        payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         reportID: report ? report.reportID : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
@@ -390,6 +392,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
         const reportPersonalDetails = getPersonalDetailsForLogins(logins, personalDetails);
 
+        console.log("reportPersonalDetails: ", reportPersonalDetails)
         // Save the report in the map if this is a single participant so we can associate the reportID with the
         // personal detail option later.
         if (logins.length <= 1) {
@@ -407,6 +410,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             forcePolicyNamePreview,
         })
     ));
+
+    console.log("allPersonalDetailsOptions: ", allPersonalDetailsOptions)
+    console.log("personalDetailsList: ", personalDetails)
 
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
