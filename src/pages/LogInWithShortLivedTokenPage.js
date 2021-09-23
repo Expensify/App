@@ -7,7 +7,6 @@ import ONYXKEYS from '../ONYXKEYS';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
-import * as User from '../libs/actions/User';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -55,7 +54,7 @@ const defaultProps = {
 class LogInWithShortLivedTokenPage extends Component {
     constructor(props) {
         super(props);
-        this.state = {run: false};
+        this.state = {hasRun: false};
     }
 
     componentDidMount() {
@@ -64,19 +63,17 @@ class LogInWithShortLivedTokenPage extends Component {
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
         const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
 
-        // If the user is revisiting the component authenticated or they were already logged into
-        // the right account, we need to ensure they have the betas loaded, then in componentDidUpdate we will
+        // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
         if (this.props.session.authToken && email === this.props.session.email) {
-            User.getBetas();
             return;
         }
 
         signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
-        this.setState({run: true});
+        this.setState({hasRun: true});
     }
 
     componentDidUpdate() {
-        if (this.state.run || !this.props.betas) {
+        if (this.state.hasRun || !this.props.betas) {
             return;
         }
 
