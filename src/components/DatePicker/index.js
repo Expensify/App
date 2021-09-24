@@ -1,26 +1,8 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import moment from 'moment';
 import ExpensiTextInput from '../ExpensiTextInput';
 import CONST from '../../CONST';
-
-const propTypes = {
-    label: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
-    placeholder: PropTypes.string,
-    errorText: PropTypes.string,
-    translateX: PropTypes.number,
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-};
-
-const defaultProps = {
-    value: undefined,
-    placeholder: 'Select Date',
-    errorText: '',
-    translateX: undefined,
-    containerStyles: [],
-};
+import {propTypes, defaultProps} from './datepickerPropTypes';
 
 class WebDatepicker extends React.Component {
     constructor(props) {

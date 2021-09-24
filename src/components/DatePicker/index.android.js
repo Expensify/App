@@ -1,27 +1,10 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import DatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import ExpensiTextInput from '../ExpensiTextInput';
 import CONST from '../../CONST';
+import {propTypes, defaultProps} from './datepickerPropTypes';
 
-const propTypes = {
-    label: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
-    placeholder: PropTypes.string,
-    errorText: PropTypes.string,
-    translateX: PropTypes.number,
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
-};
-
-const defaultProps = {
-    value: undefined,
-    placeholder: 'Select Date',
-    errorText: '',
-    translateX: undefined,
-    containerStyles: [],
-};
 
 class DatepickerAndroid extends React.Component {
     constructor(props) {

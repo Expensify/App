@@ -1,6 +1,5 @@
 import React from 'react';
 import {Button, View} from 'react-native';
-import PropTypes from 'prop-types';
 import DatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import ExpensiTextInput from '../ExpensiTextInput';
@@ -9,24 +8,11 @@ import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import colors from '../../styles/colors';
+import {propTypes, defaultProps} from './datepickerPropTypes';
 
-const propTypes = {
-    label: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
-    placeholder: PropTypes.string,
-    errorText: PropTypes.string,
-    translateX: PropTypes.number,
-    containerStyles: PropTypes.arrayOf(PropTypes.object),
+const iosDatepickerPropTypes = {
+    ...propTypes,
     ...withLocalizePropTypes,
-};
-
-const defaultProps = {
-    value: undefined,
-    placeholder: 'Select Date',
-    errorText: '',
-    translateX: undefined,
-    containerStyles: [],
 };
 
 class DatepickerIOS extends React.Component {
@@ -130,7 +116,7 @@ class DatepickerIOS extends React.Component {
     }
 }
 
-DatepickerIOS.propTypes = propTypes;
+DatepickerIOS.propTypes = iosDatepickerPropTypes;
 DatepickerIOS.defaultProps = defaultProps;
 
 export default withLocalize(DatepickerIOS);
