@@ -22,7 +22,8 @@ class BaseExpensiTextInput extends Component {
     constructor(props) {
         super(props);
 
-        const hasValue = props.value && props.value.length > 0;
+        this.value = props.value || props.defaultValue || '';
+        const hasValue = this.value.length > 0;
 
         this.state = {
             isFocused: false,
@@ -33,7 +34,6 @@ class BaseExpensiTextInput extends Component {
         };
 
         this.input = null;
-        this.value = hasValue ? props.value : '';
         this.isLabelActive = false;
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);

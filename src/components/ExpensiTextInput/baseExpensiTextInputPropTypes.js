@@ -5,7 +5,10 @@ const propTypes = {
     label: PropTypes.string,
 
     /** Input value */
-    value: PropTypes.string.isRequired,
+    value: PropTypes.string,
+
+    /** Default value - used for non controlled inputs */
+    defaultValue: PropTypes.string,
 
     /** Input value placeholder */
     placeholder: PropTypes.string,
@@ -38,6 +41,7 @@ const defaultProps = {
     translateX: -22,
     inputStyle: [],
     ignoreLabelTranslateX: false,
+    defaultValue: undefined,
 };
 
 export {propTypes, defaultProps};
