@@ -11,7 +11,7 @@ The Storybook docs deploy automatically so there's nothing extra to do here. Sto
 To test a local build we can run
 
 ```
-npm run storybook-build
+npm run storybook-buildd
 ```
 
 This will create a `/docs` directory in `/dist` with the static site.
