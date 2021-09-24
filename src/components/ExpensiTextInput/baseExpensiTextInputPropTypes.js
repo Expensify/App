@@ -43,6 +43,10 @@ const defaultProps = {
     translateX: -22,
     inputStyle: [],
     ignoreLabelTranslateX: false,
+
+    /* To work as controlled and uncontrolled input only value or defaultValue should be used
+    * there should be no default value like empty string */
+    value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
 };
