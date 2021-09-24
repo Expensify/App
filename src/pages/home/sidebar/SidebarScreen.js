@@ -172,7 +172,7 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) && !isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                ...(Permissions.canUseFreePlanSoftLaunch(this.props.betas) && !isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: NewWorkspace,
                                         iconWidth: 46,
