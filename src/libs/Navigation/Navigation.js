@@ -200,7 +200,7 @@ function isActiveRoute(routePath) {
  *
  * Example:
  * ```jsx
- * if (!Permissions.canUseFreePlan(this.props.betas)) {
+ * if (!Permissions.canUseFreePlanSoftLaunch(this.props.betas)) {
  *     return <Navigation.DismissModal />;
  * }
  * ```
