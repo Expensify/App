@@ -34,37 +34,44 @@ class DatepickerNative extends React.Component {
         super(props);
 
         this.state = {
-            showPicker: false,
+            isPickerVisible: false,
+            selectedDate: props.value ? moment(props.value).toDate() : null,
         };
 
-        this.show = this.show.bind(this);
-        this.hide = this.hide.bind(this);
+        this.showPicker = this.showPicker.bind(this);
         this.discard = this.discard.bind(this);
-        this.raiseDateChange = this.raiseDateChange.bind(this);
+        this.selectDate = this.selectDate.bind(this);
+        this.updateLocalDate = this.updateLocalDate.bind(this);
     }
 
-    show() {
-        this.initialValue = this.props.value;
-        this.setState({showPicker: true});
+    showPicker() {
+        this.previousValue = this.state.selectedDate;
+        this.setState({isPickerVisible: true});
         this.input.blur();
     }
 
+    /**
+     * Discard the current date spinner changes and close the picker
+     */
     discard() {
-        this.hide();
-        this.props.onChange(this.initialValue);
+        this.setState({isPickerVisible: false, selectedDate: this.previousValue});
     }
 
-    hide() {
-        this.setState({showPicker: false});
+    /**
+     * Accept the current spinner changes, close the spinner and propagate the change
+     * to the parent component (props.onChange)
+     */
+    selectDate() {
+        this.setState({isPickerVisible: false});
+        this.props.onChange(this.state.selectedDate);
     }
 
-    raiseDateChange(event, date) {
-        this.props.onChange(date);
+    updateLocalDate(event, selectedDate) {
+        this.setState({selectedDate});
     }
 
     render() {
         const {
-            value,
             label,
             placeholder,
             errorText,
@@ -72,39 +79,50 @@ class DatepickerNative extends React.Component {
             containerStyles,
         } = this.props;
 
+        const dateAsText = this.state.selectedDate
+            ? moment(this.state.selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING)
+            : '';
+
         return (
             <>
                 <ExpensiTextInput
                     ref={input => this.input = input}
                     label={label}
-                    value={value ? moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING) : ''}
+                    value={dateAsText}
                     placeholder={placeholder}
                     errorText={errorText}
                     containerStyles={containerStyles}
                     translateX={translateX}
-                    onFocus={this.show}
+                    onFocus={this.showPicker}
                 />
                 <Popover
-                    isVisible={this.state.showPicker}
-                    onClose={this.hide}
+                    isVisible={this.state.isPickerVisible}
+                    onClose={this.selectDate}
                 >
                     <View style={[
                         styles.flexRow,
-                        styles.flexWrap,
                         styles.justifyContentBetween,
                         styles.borderBottom,
                         styles.pb1,
                         styles.ph4,
                     ]}
                     >
-                        <Button title={this.props.translate('common.cancel')} color={colors.red} onPress={this.discard} />
-                        <Button title={this.props.translate('common.save')} color={colors.blue} onPress={this.hide} />
+                        <Button
+                            title={this.props.translate('common.cancel')}
+                            color={colors.red}
+                            onPress={this.discard}
+                        />
+                        <Button
+                            title={this.props.translate('common.save')}
+                            color={colors.blue}
+                            onPress={this.selectDate}
+                        />
                     </View>
                     <DatePicker
-                        value={value ? new Date(value) : new Date()}
+                        value={this.state.selectedDate || new Date()}
                         mode="date"
                         display="spinner"
-                        onChange={this.raiseDateChange}
+                        onChange={this.updateLocalDate}
                     />
                 </Popover>
             </>
