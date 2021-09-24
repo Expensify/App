@@ -3,6 +3,12 @@ import moment from 'moment';
 import ExpensiTextInput from '../ExpensiTextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+
+const webDatePickerPropTypes = {
+    ...propTypes,
+    ...windowDimensionsPropTypes,
+};
 
 class WebDatepicker extends React.Component {
     constructor(props) {
@@ -50,11 +56,12 @@ class WebDatepicker extends React.Component {
             translateX,
             containerStyles,
             disabled,
+            isMediumScreenWidth,
         } = this.props;
 
         return (
             <ExpensiTextInput
-                forceActiveLabel
+                forceActiveLabel={isMediumScreenWidth}
                 ref={input => this.inputRef = input}
                 label={label}
                 onChangeText={this.raiseDateChange}
@@ -69,7 +76,7 @@ class WebDatepicker extends React.Component {
     }
 }
 
-WebDatepicker.propTypes = propTypes;
+WebDatepicker.propTypes = webDatePickerPropTypes;
 WebDatepicker.defaultProps = defaultProps;
 
-export default WebDatepicker;
+export default withWindowDimensions(WebDatepicker);
