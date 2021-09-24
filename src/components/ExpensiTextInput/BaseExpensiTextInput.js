@@ -47,6 +47,19 @@ class BaseExpensiTextInput extends Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        // activate or deactivate the label when value is changed programmatically from outside
+        if (prevProps.value !== this.props.value) {
+            this.value = this.props.value;
+
+            if (this.props.value) {
+                this.activateLabel();
+            } else {
+                this.deactivateLabel();
+            }
+        }
+    }
+
     onFocus() {
         if (this.props.onFocus) { this.props.onFocus(); }
         this.setState({isFocused: true});
