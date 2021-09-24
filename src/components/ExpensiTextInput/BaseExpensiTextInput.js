@@ -23,18 +23,18 @@ class BaseExpensiTextInput extends Component {
         super(props);
 
         this.value = props.value || props.defaultValue || '';
-        const hasValue = this.value.length > 0;
+        const activeLabel = props.forceActiveLabel || this.value.length > 0;
 
         this.state = {
             isFocused: false,
-            labelTranslateY: new Animated.Value(hasValue ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelTranslateX: new Animated.Value(hasValue
+            labelTranslateY: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
+            labelTranslateX: new Animated.Value(activeLabel
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
-            labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
         };
 
         this.input = null;
-        this.isLabelActive = false;
+        this.isLabelActive = activeLabel;
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
@@ -83,7 +83,7 @@ class BaseExpensiTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.value.length === 0) {
+        if (!this.props.forceActiveLabel && this.value.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
             this.isLabelActive = false;
         }

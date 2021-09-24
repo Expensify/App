@@ -30,6 +30,8 @@ const propTypes = {
 
     /** should ignore labels translate x? */
     ignoreLabelTranslateX: PropTypes.bool,
+
+    forceActiveLabel: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,6 +44,7 @@ const defaultProps = {
     inputStyle: [],
     ignoreLabelTranslateX: false,
     defaultValue: undefined,
+    forceActiveLabel: false,
 };
 
 export {propTypes, defaultProps};
