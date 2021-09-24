@@ -47,6 +47,14 @@ function canUseFreePlan(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
+function canUseFreePlanSoftLaunch(betas) {
+    return _.contains(betas, CONST.BETAS.FREE_PLAN_SOFT_LAUNCH) || canUseAllBetas(betas);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
 function canUseDefaultRooms(betas) {
     return _.contains(betas, CONST.BETAS.DEFAULT_ROOMS) || canUseAllBetas(betas);
 }
@@ -72,6 +80,7 @@ export default {
     canUseIOU,
     canUsePayWithExpensify,
     canUseFreePlan,
+    canUseFreePlanSoftLaunch,
     canUseDefaultRooms,
     canUseInternationalization,
     canUseWallet,
