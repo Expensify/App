@@ -208,7 +208,7 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseFreePlanSoftLaunch(this.props.betas)) {
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing workspace people page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
