@@ -62,6 +62,10 @@ class BaseExpensiTextInput extends Component {
     }
 
     onPress(event) {
+        if (this.props.disabled) {
+            return;
+        }
+
         if (this.props.onPress) {
             this.props.onPress(event);
         }

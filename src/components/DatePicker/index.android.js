@@ -36,6 +36,7 @@ class DatepickerAndroid extends React.Component {
             errorText,
             translateX,
             containerStyles,
+            disabled,
         } = this.props;
 
         const dateAsText = value ? moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
@@ -51,6 +52,7 @@ class DatepickerAndroid extends React.Component {
                     translateX={translateX}
                     onPress={this.showPicker}
                     editable={false}
+                    disabled={disabled}
                 />
                 {this.state.isPickerVisible && (
                     <DatePicker

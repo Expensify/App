@@ -49,6 +49,7 @@ class WebDatepicker extends React.Component {
             errorText,
             translateX,
             containerStyles,
+            disabled,
         } = this.props;
 
         return (
@@ -62,6 +63,7 @@ class WebDatepicker extends React.Component {
                 errorText={errorText}
                 containerStyles={containerStyles}
                 translateX={translateX}
+                disabled={disabled}
             />
         );
     }

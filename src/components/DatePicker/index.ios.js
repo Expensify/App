@@ -33,7 +33,6 @@ class DatepickerIOS extends React.Component {
     showPicker() {
         this.previousValue = this.state.selectedDate;
         this.setState({isPickerVisible: true});
-        this.input.blur();
     }
 
     /**
@@ -63,6 +62,7 @@ class DatepickerIOS extends React.Component {
             errorText,
             translateX,
             containerStyles,
+            disabled,
         } = this.props;
 
         const dateAsText = this.state.selectedDate
@@ -72,14 +72,15 @@ class DatepickerIOS extends React.Component {
         return (
             <>
                 <ExpensiTextInput
-                    ref={input => this.input = input}
                     label={label}
                     value={dateAsText}
                     placeholder={placeholder}
                     errorText={errorText}
                     containerStyles={containerStyles}
                     translateX={translateX}
-                    onFocus={this.showPicker}
+                    onPress={this.showPicker}
+                    editable={false}
+                    disabled={disabled}
                 />
                 <Popover
                     isVisible={this.state.isPickerVisible}
