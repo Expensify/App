@@ -224,6 +224,10 @@ export default {
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
         growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
+        error: {
+            messageOn400: 'El nombre no debe tener más de 50 caracteres',
+            messageOn401: 'El apellido no debe tener más de 50 caracteres',
+        },
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',

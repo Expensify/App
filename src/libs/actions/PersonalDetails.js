@@ -215,14 +215,25 @@ function mergeLocalPersonalDetails(details) {
  * @param {boolean} shouldGrowl
  */
 function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)});
-    if (details.timezone) {
-        NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-    }
-    mergeLocalPersonalDetails(details);
-    if (shouldGrowl) {
-        Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-    }
+    API.PersonalDetails_Update({details: JSON.stringify(details)})
+        .then((response) => {
+            if (details.timezone) {
+                NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
+            }
+            mergeLocalPersonalDetails(details);
+            if (!shouldGrowl) {
+                return;
+            }
+            if (response.jsonCode === 200) {
+                Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+            } else if (response.jsonCode === 400) {
+                Growl.error(translateLocal('profilePage.error.messageOn400'), 3000);
+            } else if (response.jsonCode === 401) {
+                Growl.error(translateLocal('profilePage.error.messageOn401'), 3000);
+            }
+        }).catch((error) => {
+            console.debug('Error while setting personal details', error);
+        });
 }
 
 /**

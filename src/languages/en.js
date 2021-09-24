@@ -224,6 +224,10 @@ export default {
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
         growlMessageOnSave: 'Your profile was successfully saved',
+        error: {
+            messageOn400: 'First name shouldn\'t be longer than 50 characters',
+            messageOn401: 'Last name shouldn\'t be longer than 50 characters',
+        },
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
