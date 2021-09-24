@@ -29,7 +29,7 @@ const defaultProps = {
     containerStyles: [],
 };
 
-class DatepickerNative extends React.Component {
+class DatepickerIOS extends React.Component {
     constructor(props) {
         super(props);
 
@@ -130,7 +130,7 @@ class DatepickerNative extends React.Component {
     }
 }
 
-DatepickerNative.propTypes = propTypes;
-DatepickerNative.defaultProps = defaultProps;
+DatepickerIOS.propTypes = propTypes;
+DatepickerIOS.defaultProps = defaultProps;
 
-export default withLocalize(DatepickerNative);
+export default withLocalize(DatepickerIOS);
