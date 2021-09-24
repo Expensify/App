@@ -90,10 +90,11 @@ class DatepickerNative extends React.Component {
                 >
                     <View style={[
                         styles.flexRow,
+                        styles.flexWrap,
                         styles.justifyContentBetween,
                         styles.borderBottom,
-                        styles.menuItemTextContainer,
-                        {paddingHorizontal: 8, paddingBottom: 5},
+                        styles.pb1,
+                        styles.ph4,
                     ]}
                     >
                         <Button title={this.props.translate('common.cancel')} color={colors.red} onPress={this.discard} />

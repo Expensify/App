@@ -8,6 +8,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {translateLocal} from '../../libs/translate';
 import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
+import DatePicker from '../../components/DatePicker';
+
 
 const propTypes = {
     /** Style for wrapping View */
@@ -102,12 +104,12 @@ const IdentityForm = ({
                     />
                 </View>
             </View>
-            <ExpensiTextInput
+            <DatePicker
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
                 value={dob}
-                onChangeText={(val) => {
+                onChange={(val) => {
                     if (error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age')) {
                         hideBankAccountErrors();
                     }

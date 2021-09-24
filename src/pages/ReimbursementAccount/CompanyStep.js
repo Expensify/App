@@ -15,6 +15,7 @@ import {
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
+import DatePicker from '../../components/DatePicker';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -255,10 +256,9 @@ class CompanyStep extends React.Component {
                     </View>
                     <View style={[styles.flexRow, styles.mt4]}>
                         <View style={[styles.flex2, styles.mr2]}>
-                            {/* TODO: Replace with date picker */}
-                            <ExpensiTextInput
+                            <DatePicker
                                 label={this.props.translate('companyStep.incorporationDate')}
-                                onChangeText={value => this.clearErrorAndSetValue('incorporationDate', value)}
+                                onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
                                 value={this.state.incorporationDate}
                                 placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                                 errorText={this.getErrorText('incorporationDate')}
