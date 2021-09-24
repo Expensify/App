@@ -216,7 +216,9 @@ class WorkspacePeoplePage extends React.Component {
         const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
             .filter()
+            .sortBy(person => person.displayName.toLowerCase())
             .value();
+
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
