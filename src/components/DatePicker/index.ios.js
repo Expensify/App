@@ -25,7 +25,7 @@ class DatepickerIOS extends React.Component {
         };
 
         this.showPicker = this.showPicker.bind(this);
-        this.discard = this.discard.bind(this);
+        this.reset = this.reset.bind(this);
         this.selectDate = this.selectDate.bind(this);
         this.updateLocalDate = this.updateLocalDate.bind(this);
     }
@@ -36,10 +36,10 @@ class DatepickerIOS extends React.Component {
     }
 
     /**
-     * Discard the current date spinner changes and close the picker
+     * Reset the current date spinner changes to the initial value
      */
-    discard() {
-        this.setState({isPickerVisible: false, selectedDate: this.previousValue});
+    reset() {
+        this.setState({selectedDate: this.previousValue});
     }
 
     /**
@@ -95,9 +95,9 @@ class DatepickerIOS extends React.Component {
                     ]}
                     >
                         <Button
-                            title={this.props.translate('common.cancel')}
+                            title={this.props.translate('common.reset')}
                             color={colors.red}
-                            onPress={this.discard}
+                            onPress={this.reset}
                         />
                         <Button
                             title={this.props.translate('common.confirm')}
