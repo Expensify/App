@@ -14,7 +14,7 @@ Talent, Ambition, & Humility. The environment we have developed uses these quali
 to adhere to our two golden rules of Expensify:
 
 
-- Get Shit Done
+- Get Shit _Done_
 - Don’t Ruin it for Everyone Else
 
 We view our partnerships with contributors as an extension of Expensify and
