@@ -109,7 +109,7 @@ const WorkspaceCardPage = ({
         }
     };
 
-    if (!Permissions.canUseFreePlan(betas)) {
+    if (!Permissions.canUseFreePlanSoftLaunch(betas)) {
         console.debug('Not showing workspace card page because user is not on free plan beta');
         return <Navigation.DismissModal />;
     }

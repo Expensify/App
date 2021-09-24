@@ -138,7 +138,7 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseFreePlan(this.props.betas)) {
+        if (!Permissions.canUseFreePlanSoftLaunch(this.props.betas)) {
             console.debug('Not showing new bank account page because user is not on free plan beta');
             Navigation.dismissModal();
             return null;

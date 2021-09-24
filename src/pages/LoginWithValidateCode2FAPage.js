@@ -70,7 +70,7 @@ class LoginWithValidateCode2FAPage extends Component {
             // and by calling dismissModal(), the /v/... route is removed from history so the user will get taken to `/`
             // if they cancel out of the new workspace modal.
             Navigation.dismissModal();
-            if (Permissions.canUseFreePlan(this.props.betas)) {
+            if (Permissions.canUseFreePlanSoftLaunch(this.props.betas)) {
                 this.rerouteToRelevantPage();
             }
         }
@@ -78,7 +78,7 @@ class LoginWithValidateCode2FAPage extends Component {
 
     componentDidUpdate() {
         // Betas can be loaded a little after a user is authenticated, so check again if the betas have been updated
-        if (this.props.session.authToken && Permissions.canUseFreePlan(this.props.betas)) {
+        if (this.props.session.authToken && Permissions.canUseFreePlanSoftLaunch(this.props.betas)) {
             this.rerouteToRelevantPage();
         }
     }
