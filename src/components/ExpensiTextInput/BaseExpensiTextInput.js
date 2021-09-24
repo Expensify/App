@@ -35,6 +35,7 @@ class BaseExpensiTextInput extends Component {
 
         this.input = null;
         this.isLabelActive = activeLabel;
+        this.onPress = this.onPress.bind(this);
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
@@ -57,6 +58,16 @@ class BaseExpensiTextInput extends Component {
             } else {
                 this.deactivateLabel();
             }
+        }
+    }
+
+    onPress(event) {
+        if (this.props.onPress) {
+            this.props.onPress(event);
+        }
+
+        if (!event.isDefaultPrevented()) {
+            this.input.focus();
         }
     }
 
@@ -147,7 +158,7 @@ class BaseExpensiTextInput extends Component {
                         ...containerStyles,
                     ]}
                 >
-                    <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
+                    <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                         <View
                             style={[
                                 styles.expensiTextInputContainer,
