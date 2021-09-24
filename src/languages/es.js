@@ -78,6 +78,7 @@ export default {
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
+        confirm: 'Confirmar',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',

@@ -113,7 +113,7 @@ class DatepickerNative extends React.Component {
                             onPress={this.discard}
                         />
                         <Button
-                            title={this.props.translate('common.save')}
+                            title={this.props.translate('common.confirm')}
                             color={colors.blue}
                             onPress={this.selectDate}
                         />
