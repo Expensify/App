@@ -29,43 +29,25 @@ class DatepickerAndroid extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: props.value ? moment(props.value).toDate() : null,
         };
 
         this.showPicker = this.showPicker.bind(this);
-        this.discard = this.discard.bind(this);
-        this.selectDate = this.selectDate.bind(this);
-        this.updateLocalDate = this.updateLocalDate.bind(this);
+        this.raiseDateChange = this.raiseDateChange.bind(this);
     }
 
-    showPicker() {
-        this.previousValue = this.state.selectedDate;
+    showPicker(event) {
         this.setState({isPickerVisible: true});
-        this.input.blur();
+        event.preventDefault();
     }
 
-    /**
-     * Discard the current date spinner changes and close the picker
-     */
-    discard() {
-        this.setState({isPickerVisible: false, selectedDate: this.previousValue});
-    }
-
-    /**
-     * Accept the current spinner changes, close the spinner and propagate the change
-     * to the parent component (props.onChange)
-     */
-    selectDate() {
+    raiseDateChange(event, selectedDate) {
         this.setState({isPickerVisible: false});
-        this.props.onChange(this.state.selectedDate);
-    }
-
-    updateLocalDate(event, selectedDate) {
-        this.setState({selectedDate});
+        this.props.onChange(selectedDate);
     }
 
     render() {
         const {
+            value,
             label,
             placeholder,
             errorText,
@@ -73,28 +55,25 @@ class DatepickerAndroid extends React.Component {
             containerStyles,
         } = this.props;
 
-        const dateAsText = this.state.selectedDate
-            ? moment(this.state.selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING)
-            : '';
+        const dateAsText = value ? moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
         return (
             <>
                 <ExpensiTextInput
-                    ref={input => this.input = input}
                     label={label}
                     value={dateAsText}
                     placeholder={placeholder}
                     errorText={errorText}
                     containerStyles={containerStyles}
                     translateX={translateX}
-                    onFocus={this.showPicker}
+                    onPress={this.showPicker}
+                    editable={false}
                 />
                 {this.state.isPickerVisible && (
                     <DatePicker
-                        value={this.state.selectedDate || new Date()}
+                        value={moment(value || new Date()).toDate()}
                         mode="date"
-                        display="spinner"
-                        onChange={this.updateLocalDate}
+                        onChange={this.raiseDateChange}
                     />
                 )}
             </>
