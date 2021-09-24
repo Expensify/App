@@ -120,7 +120,7 @@ let hasLoadedPolicies = false;
 function loadPoliciesBehindBeta(betas) {
     // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
     // Policy info loading should not be blocked behind the defaultRooms beta alone.
-    if (!hasLoadedPolicies && (Permissions.canUseFreePlanSoftLaunch(betas) || Permissions.canUseDefaultRooms(betas))) {
+    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
         getPolicyList();
         getPolicySummaries();
         hasLoadedPolicies = true;

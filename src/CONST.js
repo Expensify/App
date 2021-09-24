@@ -88,7 +88,6 @@ const CONST = {
         IOU: 'IOU',
         PAY_WITH_EXPENSIFY: 'payWithExpensify',
         FREE_PLAN: 'freePlan',
-        FREE_PLAN_SOFT_LAUNCH: 'freePlanSoftLaunch',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
