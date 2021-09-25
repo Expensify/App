@@ -175,6 +175,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                 value={zipCode}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.zipCode')) {
@@ -183,6 +184,7 @@ const IdentityForm = ({
                     onFieldChange('zipCode', val);
                 }}
                 errorText={error === translateLocal('bankAccount.error.zipCode') ? error : ''}
+                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
             />
         </View>
     );
