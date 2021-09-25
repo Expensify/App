@@ -199,7 +199,7 @@ class BankAccountStep extends React.Component {
                             />
                             {!this.props.user.validated && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                                    <Text style={styles.mutedTextLabel, styles.mr4}>
+                                    <Text style={[styles.mutedTextLabel, styles.mr4]}>
                                         <Icon src={Exclamation} fill={colors.red} />
                                     </Text>
                                     <Text style={styles.mutedTextLabel}>
