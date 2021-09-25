@@ -218,9 +218,11 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('common.zip')}
                         containerStyles={[styles.mt4]}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                         value={this.state.addressZipCode}
                         errorText={this.getErrorText('addressZipCode')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
@@ -230,6 +232,8 @@ class CompanyStep extends React.Component {
                         value={this.state.companyPhone}
                         placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.PHONE_NUMBER}
+
                     />
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.companyWebsite')}

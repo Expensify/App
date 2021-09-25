@@ -76,6 +76,8 @@ const CONST = {
         MAX_LENGTH: {
             TAX_ID_NUMBER: 9,
             SSN: 4,
+            ZIP_CODE: 5,
+            PHONE_NUMBER: 15,
         },
     },
     INCORPORATION_TYPES: {
