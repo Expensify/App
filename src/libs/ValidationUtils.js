@@ -70,6 +70,15 @@ function isValidAge(date) {
 }
 
 /**
+ *
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidPhoneWithSpecialChars(phoneNumber) {
+    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber);
+}
+
+/**
  * @param {Object} identity
  * @returns {Boolean}
  */
@@ -125,4 +134,5 @@ export {
     isValidIdentity,
     isValidZipCode,
     isRequiredFulfilled,
+    isValidPhoneWithSpecialChars,
 };

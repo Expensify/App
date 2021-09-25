@@ -22,7 +22,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled,
+    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled, isValidPhoneWithSpecialChars,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -142,6 +142,10 @@ class CompanyStep extends React.Component {
             errors.incorporationDate = true;
         }
 
+        if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+            errors.companyPhone = true;
+        }
+
         _.each(this.requiredFields, (inputKey) => {
             if (!isRequiredFulfilled(this.state[inputKey])) {
                 errors[inputKey] = true;
@@ -237,11 +241,12 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
                         errorText={this.getErrorText('companyTaxID')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
                         <ExpensiPicker

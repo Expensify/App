@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {translateLocal} from '../../libs/translate';
 import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Style for wrapping View */
@@ -118,6 +119,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                 value={ssnLast4}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.ssnLast4')) {
@@ -126,6 +128,7 @@ const IdentityForm = ({
                     onFieldChange('ssnLast4', val);
                 }}
                 errorText={error === translateLocal('bankAccount.error.ssnLast4') ? error : ''}
+                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <ExpensiTextInput
                 label={translate('common.personalAddress')}
