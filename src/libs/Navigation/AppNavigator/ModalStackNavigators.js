@@ -27,6 +27,7 @@ import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/Reimbu
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 import WorkspaceEditorPage from '../../../pages/workspace/WorkspaceEditorPage';
+import NewGroupPage from '../../../pages/NewGroupPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -118,8 +119,7 @@ const SearchModalStackNavigator = createModalStackNavigator([{
 }]);
 
 const NewGroupModalStackNavigator = createModalStackNavigator([{
-    // eslint-disable-next-line react/jsx-props-no-spreading
-    Component: props => <NewChatPage {...props} groupChat />,
+    Component: NewGroupPage,
     name: 'NewGroup_Root',
 }]);
 
