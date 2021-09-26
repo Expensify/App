@@ -75,4 +75,5 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
 
 EmptyStateAvatars.defaultProps = defaultProps;
 EmptyStateAvatars.propTypes = propTypes;
+
 export default memo(EmptyStateAvatars);

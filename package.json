@@ -21,7 +21,7 @@
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
-    "lint": "eslint . --max-warnings=0",
+    "lint": "eslint . --max-warnings=0 --fix",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",

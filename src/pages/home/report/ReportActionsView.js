@@ -533,7 +533,7 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, {flex: 1}]}>
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
                         <EmptyStateAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
@@ -593,9 +593,6 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policies: {
-            key: ONYXKEYS.COLLECTION.POLICY,
         },
     }),
 )(ReportActionsView);

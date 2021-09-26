@@ -1,5 +1,6 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -26,7 +27,7 @@ const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
         {isDefaultChatRoom
             && (
                 <Text>
-                    {`${chatUsers?.[0]?.displayName} ${translate('reportActionsView.beginingOfChatHistroyPrivateSectionPart')}`}
+                    {`${lodashGet(chatUsers, 'chatUsers[0].displayName', '')} ${translate('reportActionsView.beginingOfChatHistroyPrivateSectionPart')}`}
                 </Text>
             )}
         {!isDefaultChatRoom
@@ -37,12 +38,9 @@ const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
                             <Text style={[styles.chatTextStyle]}>
                                 {displayName}
                             </Text>
-                            {(pronouns !== undefined && pronouns !== '')
-                                && (
-                                <Text>
-                                    {`(${pronouns})`}
-                                </Text>
-                                )}
+                            <Text>
+                                {` (${pronouns})`}
+                            </Text>
                             {(chatUsers.length === 1 || chatUsers.length - 1 === index) && '.'}
                             {(chatUsers.length - 2 === index && chatUsers.length > 1) && ` ${translate('common.and')} `}
                             {(chatUsers.length - 2 !== index && chatUsers.length - 1 !== index) && chatUsers.length > 1 && ', '}
@@ -57,4 +55,5 @@ const ChatBeginingText = ({isDefaultChatRoom, chatUsers, translate}) => (
 
 ChatBeginingText.defaultProps = defaultProps;
 ChatBeginingText.propTypes = propTypes;
+
 export default compose(memo, withLocalize)(ChatBeginingText);
