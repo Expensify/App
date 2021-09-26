@@ -19,6 +19,7 @@ import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import InlineErrorText from '../../components/InlineErrorText';
 
 const propTypes = {
     /* Onyx Props */
@@ -197,9 +198,9 @@ class PasswordPage extends Component {
                             </Text>
                         )}
                         {this.state.shouldShowPasswordConfirmError && (
-                            <Text style={[styles.formError, styles.mt1]}>
+                            <InlineErrorText>
                                 {this.props.translate('setPasswordPage.passwordsDontMatch')}
-                            </Text>
+                            </InlineErrorText>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>

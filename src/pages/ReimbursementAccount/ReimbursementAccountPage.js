@@ -8,7 +8,6 @@ import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
     fetchFreePlanVerifiedBankAccount,
-    hideBankAccountErrorModal,
     hideBankAccountErrors,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -31,31 +30,14 @@ import BeneficialOwnersStep from './BeneficialOwnersStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ConfirmModal from '../../components/ConfirmModal';
-import ExistingOwners from './ExistingOwners';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount: PropTypes.shape({
-        /** Whether we are loading the data via the API */
-        loading: PropTypes.bool,
-
-        /** A date that indicates the user has been throttled */
-        throttledDate: PropTypes.string,
-
-        /** Additional data for the account in setup */
-        achData: PropTypes.shape({
-
-            /** Step of the setup flow that we are on. Determines which view is presented. */
-            currentStep: PropTypes.string,
-        }),
-
-        /** Disable validation button if max attempts exceeded */
-        maxAttemptsReached: PropTypes.bool,
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -124,7 +106,7 @@ class ReimbursementAccountPage extends React.Component {
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
                 return CONST.BANK_ACCOUNT.STEP.COMPANY;
-            case 'requestor':
+            case 'personal-information':
                 return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
             case 'contract':
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
@@ -153,17 +135,6 @@ class ReimbursementAccountPage extends React.Component {
             default:
                 return 'new';
         }
-    }
-
-    /**
-     * @returns {React.Component|string}
-     */
-    getErrorModalPrompt() {
-        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
-            return <ExistingOwners />;
-        }
-
-        return this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt');
     }
 
     render() {
@@ -216,9 +187,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const error = lodashGet(this.props, 'reimbursementAccount.error');
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
-
         // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
         // user left off. This view will refer to the achData as the single source of truth to determine which route to
         // display. We can also specify a specific route to navigate to via route params when the component first
@@ -245,25 +213,13 @@ class ReimbursementAccountPage extends React.Component {
                         <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep
-                            achData={this.props.reimbursementAccount.achData}
-                            maxAttemptsReached={maxAttemptsReached}
-                            error={error}
-                        />
+                        <ValidationStep />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
                         <EnableStep
                             achData={this.props.reimbursementAccount.achData}
                         />
                     )}
-                    <ConfirmModal
-                        title={this.props.translate('bankAccount.confirmModalTitle')}
-                        onConfirm={hideBankAccountErrorModal}
-                        prompt={this.getErrorModalPrompt()}
-                        isVisible={lodashGet(this.props, 'reimbursementAccount.isErrorModalVisible', false)}
-                        confirmText={this.props.translate('bankAccount.confirmModalConfirmText')}
-                        shouldShowCancelButton={false}
-                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

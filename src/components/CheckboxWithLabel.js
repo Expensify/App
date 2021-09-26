@@ -5,6 +5,7 @@ import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
 import Text from './Text';
+import InlineErrorText from './InlineErrorText';
 
 const propTypes = {
     /** Whether the checkbox is checked */
@@ -21,16 +22,24 @@ const propTypes = {
 
     /** Component to display for label */
     LabelComponent: PropTypes.func,
+
+    /** Should the input be styled for errors  */
+    hasError: PropTypes.bool,
+
+    /** Error text to display */
+    errorText: PropTypes.string,
 };
 
 const defaultProps = {
     style: [],
     label: undefined,
     LabelComponent: undefined,
+    hasError: false,
+    errorText: '',
 };
 
 const CheckboxWithLabel = ({
-    LabelComponent, isChecked, onPress, style, label,
+    LabelComponent, isChecked, onPress, style, label, hasError, errorText,
 }) => {
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(style) ? [...defaultStyles, ...style] : [...defaultStyles, style];
@@ -38,33 +47,41 @@ const CheckboxWithLabel = ({
     if (!label && !LabelComponent) {
         throw new Error('Must provide at least label or LabelComponent prop');
     }
-
     return (
-        <View style={wrapperStyles}>
-            <Checkbox
-                isChecked={isChecked}
-                onPress={() => onPress(!isChecked)}
-                label={label}
-            />
-            <TouchableOpacity
-                onPress={() => onPress(!isChecked)}
-                style={[
-                    styles.ml2,
-                    styles.pr2,
-                    styles.w100,
-                    styles.flexRow,
-                    styles.flexWrap,
-                    styles.alignItemsCenter,
-                ]}
-            >
-                {label && (
-                    <Text style={[styles.ml2]}>
-                        {label}
-                    </Text>
-                )}
-                {LabelComponent && (<LabelComponent />)}
-            </TouchableOpacity>
-        </View>
+        <>
+            <View style={wrapperStyles}>
+                <Checkbox
+                    isChecked={isChecked}
+                    onPress={() => onPress(!isChecked)}
+                    label={label}
+                    hasError={hasError}
+                />
+                <TouchableOpacity
+                    onPress={() => onPress(!isChecked)}
+                    style={[
+                        styles.ml3,
+                        styles.pr2,
+                        styles.w100,
+                        styles.flexRow,
+                        styles.flexWrap,
+                        styles.flexShrink1,
+                        styles.alignItemsCenter,
+                    ]}
+                >
+                    {label && (
+                        <Text style={[styles.ml2]}>
+                            {label}
+                        </Text>
+                    )}
+                    {LabelComponent && (<LabelComponent />)}
+                </TouchableOpacity>
+            </View>
+            {!_.isEmpty(errorText) && (
+                <InlineErrorText>
+                    {errorText}
+                </InlineErrorText>
+            )}
+        </>
     );
 };
 

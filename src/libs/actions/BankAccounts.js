@@ -72,7 +72,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
     if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        newACHData.subStep = 'manual';
+        newACHData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
@@ -534,6 +534,15 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 }
 
 /**
+ * Show error modal and optionally a specific error message
+ *
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ */
+function showBankAccountErrorModal(errorModalMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+}
+
+/**
  * @param {Number} bankAccountID
  * @param {String} validateCode
  */
@@ -565,17 +574,23 @@ function validateBankAccount(bankAccountID, validateCode) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
-        });
-}
+            // User has input the validate code incorrectly many times so we will return early in this case and not let them enter the amounts again.
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.MAX_VALIDATION_ATTEMPTS_REACHED) {
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, maxAttemptsReached: true});
+                return;
+            }
 
-/**
- * Show error modal and optionally a specific error message
- *
- * @param {String} errorModalMessage The error message to be displayed in the modal's body.
- */
-function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+            // If the validation amounts entered were incorrect, show specific error
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
+                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                return;
+            }
+
+            // We are generically showing any other backend errors that might pop up in the validate step
+            showBankAccountErrorModal(response.message);
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        });
 }
 
 /**
@@ -606,13 +621,22 @@ function showBankAccountFormValidationError(error) {
 }
 
 /**
+ * Set the current sub step in first step of adding withdrawal bank account
+ *
+ * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ */
+function setBankAccountSubStep(subStep) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+}
+
+/**
  * Create or update the bank account in db with the updated data.
  *
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
     let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
 
     const newACHData = {
         ...reimbursementAccountInSetup,
@@ -644,18 +668,8 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
-        /* eslint-disable arrow-body-style */
         .then((response) => {
-            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
-            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
-            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
-            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                loading: false,
-                achData: {...newACHData},
-            })
-                .then(() => Promise.resolve(response));
-        })
-        .then((response) => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
@@ -667,18 +681,6 @@ function setupWithdrawalAccount(data) {
                 // set up for the free plan.
                 if (achData.bankAccountID) {
                     setFreePlanVerifiedBankAccountID(achData.bankAccountID);
-                }
-
-                // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    Onyx.merge(
-                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {
-                            existingOwners: response.existingOwners,
-                            isErrorModalVisible: true,
-                        },
-                    );
-                    return;
                 }
 
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -766,10 +768,6 @@ function setupWithdrawalAccount(data) {
                         console.error(response.message);
                     }
                 }
-
-                if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
-                    achData.disableFields = true;
-                }
             }
 
             // Go to next step
@@ -792,7 +790,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: null, errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
@@ -824,5 +822,6 @@ export {
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    setBankAccountSubStep,
     updateReimbursementAccountDraft,
 };

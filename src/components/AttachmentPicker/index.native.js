@@ -5,7 +5,7 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import * as basePropTypes from './AttachmentPickerPropTypes';
+import {propTypes as basePropTypes, defaultProps} from './AttachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
@@ -86,12 +86,12 @@ class AttachmentPicker extends Component {
         this.menuItemData = [
             {
                 icon: Camera,
-                text: this.props.translate('attachmentPicker.takePhoto'),
+                textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
                 icon: Gallery,
-                text: this.props.translate('attachmentPicker.chooseFromGallery'),
+                textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
         ];
@@ -102,7 +102,7 @@ class AttachmentPicker extends Component {
             this.menuItemData.push(
                 {
                     icon: Paperclip,
-                    text: this.props.translate('attachmentPicker.chooseDocument'),
+                    textTranslationKey: 'attachmentPicker.chooseDocument',
                     pickAttachment: () => this.showDocumentPicker(),
                 },
             );
@@ -286,9 +286,9 @@ class AttachmentPicker extends Component {
                         {
                              this.menuItemData.map(item => (
                                  <MenuItem
-                                     key={item.text}
+                                     key={item.textTranslationKey}
                                      icon={item.icon}
-                                     title={item.text}
+                                     title={this.props.translate(item.textTranslationKey)}
                                      onPress={() => this.selectItem(item)}
                                  />
                              ))
@@ -302,6 +302,7 @@ class AttachmentPicker extends Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
+AttachmentPicker.defaultProps = defaultProps;
 AttachmentPicker.displayName = 'AttachmentPicker';
 export default compose(
     withWindowDimensions,

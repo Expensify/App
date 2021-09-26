@@ -100,7 +100,7 @@ class WorkspaceEditorPage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.editor.title')}
+                    title={this.props.translate('workspace.common.edit')}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
 
