@@ -342,9 +342,10 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: ({loginType}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${loginType}.`,
+        weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${login}. Verifique su bandeja de entrada y su carpeta de correo no deseado y espere de 5 a 10 minutos antes de intentarlo de nuevo.`,
         resendLink: 'Reenviar enlace',
-        unvalidatedAccount: 'Esta cuenta ya existe pero no está validada, por favor busca en tu email el link de validación.',
+        unvalidatedAccount: ({loginType}) => `Esta cuenta ya existe pero no está validada, por favor busca en tu ${loginType} el link de validación.`,
+        newAccount: ({login, loginType}) => `¡Bienvenido ${login}, es genial ver una cara nueva por aquí! En tu ${loginType} encontrarás un enlace para validar tu cuenta, por favor, revísalo`,
     },
     detailsPage: {
         localTime: 'Hora local',

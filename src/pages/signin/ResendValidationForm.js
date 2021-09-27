@@ -34,6 +34,9 @@ const propTypes = {
 
         /** Whether or not the account is closed */
         closed: PropTypes.bool,
+
+        /** Whether or not the account already exists */
+        accountExists: PropTypes.bool,
     }),
 
     ...withLocalizePropTypes,
@@ -82,6 +85,26 @@ class ResendValidationForm extends React.Component {
     }
 
     render() {
+        const isNewAccount = !this.props.account.accountExists && !this.props.account.validated;
+        const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated;
+        const loginType = (Str.isSMSLogin(this.props.credentials.login) ? this.props.translate('common.phoneNumber') : this.props.translate('common.email')).toLowerCase();
+        let message = '';
+
+        if (isNewAccount) {
+            message = this.props.translate('resendValidationForm.newAccount', {
+                login: this.props.credentials.login,
+                loginType,
+            });
+        } else if (isOldUnvalidatedAccount) {
+            message = this.props.translate('resendValidationForm.unvalidatedAccount', {
+                loginType,
+            });
+        } else {
+            message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
+                login: this.props.credentials.login,
+            });
+        }
+
         return (
             <>
                 <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
@@ -93,18 +116,9 @@ class ResendValidationForm extends React.Component {
                         {Str.isSMSLogin(this.props.credentials.login) ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login}
                     </Text>
                 </View>
-                <View>
-                    <Text style={[styles.mv5]}>
-                        {
-                            this.props.account.validated
-                                ? this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
-                                    loginType: (Str.isSMSLogin(this.props.credentials.login)
-                                        ? this.props.translate('common.phoneNumber')
-                                            .toLowerCase()
-                                        : this.props.translate('common.email')).toLowerCase(),
-                                })
-                                : this.props.translate('resendValidationForm.unvalidatedAccount')
-                        }
+                <View style={[styles.mv5]}>
+                    <Text>
+                        {message}
                     </Text>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (
