@@ -373,6 +373,7 @@ export default {
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
         accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
     },
+    stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',

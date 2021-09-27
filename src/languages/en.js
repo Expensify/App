@@ -373,6 +373,7 @@ export default {
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
     },
+    stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
