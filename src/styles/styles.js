@@ -511,9 +511,6 @@ const styles = {
         left,
     }),
     secureInputEyeButton: {
-        right: 0,
-        top: 0,
-        borderRadius: 6,
         height: 32,
         margin: 3,
         justifyContent: 'center',
