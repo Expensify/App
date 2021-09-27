@@ -249,7 +249,6 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
 
     createTemporaryLogin(shortLivedToken, email).then((response) => {
         Onyx.merge(ONYXKEYS.SESSION, {
-            authToken: shortLivedToken,
             accountID,
             email,
         });
