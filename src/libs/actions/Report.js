@@ -907,16 +907,6 @@ function fetchActions(reportID, offset) {
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-
-            const currentMaxSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
-            if (maxSequenceNumber > currentMaxSequenceNumber) {
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
-            }
         });
 }
 
