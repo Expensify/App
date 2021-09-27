@@ -193,6 +193,13 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('addressStreet')}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
+                    <ExpensiTextInput
+                        label={this.props.translate('common.zip')}
+                        containerStyles={[styles.mt4]}
+                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
+                        value={this.state.addressZipCode}
+                        errorText={this.getErrorText('addressZipCode')}
+                    />
                     <View style={[styles.flexRow, styles.mt4]}>
                         <View style={[styles.flex2, styles.mr2]}>
                             <ExpensiTextInput
@@ -211,13 +218,6 @@ class CompanyStep extends React.Component {
                             />
                         </View>
                     </View>
-                    <ExpensiTextInput
-                        label={this.props.translate('common.zip')}
-                        containerStyles={[styles.mt4]}
-                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
-                        value={this.state.addressZipCode}
-                        errorText={this.getErrorText('addressZipCode')}
-                    />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
