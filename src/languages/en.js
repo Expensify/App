@@ -532,6 +532,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
+        taxIDNumberPlaceholder: '9 digits, no hyphens',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         industryClassificationCode: 'Industry classification code',
