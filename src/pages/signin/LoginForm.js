@@ -57,7 +57,7 @@ class LoginForm extends React.Component {
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
+            this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
             return;
         }
 

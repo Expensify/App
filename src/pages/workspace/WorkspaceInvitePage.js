@@ -17,16 +17,16 @@ import Button from '../../components/Button';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {invite} from '../../libs/actions/Policy';
-import Growl from '../../libs/Growl';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import {isSystemUser} from '../../libs/userUtils';
 import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
 import Icon from '../../components/Icon';
-import {NewWindow} from '../../components/Icon/Expensicons';
+import {Exclamation, NewWindow} from '../../components/Icon/Expensicons';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
+import colors from '../../styles/colors';
+import FixTheErrorsText from '../../components/FixTheErrorsText';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -60,6 +60,8 @@ class WorkspaceInvitePage extends React.Component {
         this.state = {
             userLogins: '',
             welcomeNote: this.getWelcomeNotePlaceholder(),
+            foundSystemLogin: '',
+            errors: {},
         };
 
         this.focusEmailOrPhoneInput = this.focusEmailOrPhoneInput.bind(this);
@@ -78,6 +80,25 @@ class WorkspaceInvitePage extends React.Component {
         });
     }
 
+    /**
+     * @returns {String}
+     */
+    getErrorText() {
+        if (this.state.errors.invalidLogin) {
+            return this.props.translate('workspace.invite.pleaseEnterValidLogin');
+        }
+
+        if (this.state.errors.systemUserError) {
+            return this.props.translate('workspace.invite.systemUserError', {email: this.state.foundSystemLogin});
+        }
+
+        if (this.state.errors.duplicateLogin) {
+            return this.props.translate('workspace.invite.pleaseEnterUniqueLogin');
+        }
+
+        return '';
+    }
+
     focusEmailOrPhoneInput() {
         if (!this.emailOrPhoneInputRef) {
             return;
@@ -89,29 +110,55 @@ class WorkspaceInvitePage extends React.Component {
      * Handle the invite button click
      */
     inviteUser() {
+        if (!this.validate()) {
+            return;
+        }
+
+        const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
+        invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
+            this.props.route.params.policyID);
+        Navigation.goBack();
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    validate() {
         const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
         const isEnteredLoginsvalid = _.every(logins, login => Str.isValidEmail(login) || Str.isValidPhone(login));
-        if (!isEnteredLoginsvalid) {
-            Growl.error(this.props.translate('workspace.invite.pleaseEnterValidLogin'), 5000);
-            return;
+        if (logins.length <= 0 || !isEnteredLoginsvalid) {
+            this.setState({
+                errors: {
+                    invalidLogin: true,
+                },
+            });
+            return false;
         }
 
         const foundSystemLogin = _.find(logins, login => isSystemUser(login));
         if (foundSystemLogin) {
-            Growl.error(this.props.translate('workspace.invite.systemUserError', {email: foundSystemLogin}), 5000);
-            return;
+            this.setState({
+                errors: {
+                    systemUserError: true,
+                },
+                foundSystemLogin,
+            });
+            return false;
         }
 
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, addSMSDomainIfPhoneNumber(login)));
         if (areLoginsDuplicate) {
-            Growl.error(this.props.translate('workspace.invite.pleaseEnterUniqueLogin'), 5000);
-            return;
+            this.setState({
+                errors: {
+                    duplicateLogin: true,
+                },
+            });
+            return false;
         }
 
-        invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
-            this.props.route.params.policyID);
-        Navigation.goBack();
+        this.setState({errors: {}, foundSystemLogin: ''});
+        return true;
     }
 
     render() {
@@ -122,78 +169,100 @@ class WorkspaceInvitePage extends React.Component {
                         title={this.props.translate('workspace.invite.invitePeople')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6]}>
-                            {this.props.translate('workspace.invite.invitePeoplePrompt')}
-                        </Text>
-                        <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                ref={el => this.emailOrPhoneInputRef = el}
-                                label={this.props.translate('workspace.invite.enterEmailOrPhone')}
-                                placeholder={this.props.translate('workspace.invite.EmailOrPhonePlaceholder')}
-                                autoCompleteType="email"
-                                autoCorrect={false}
-                                autoCapitalize="none"
-                                multiline
-                                numberOfLines={2}
-                                value={this.state.userLogins}
-                                onChangeText={text => this.setState({userLogins: text})}
-                            />
-                        </View>
-                        <View style={styles.mb6}>
-                            <ExpensiTextInput
-                                label={this.props.translate('workspace.invite.personalMessagePrompt')}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                numberOfLines={5}
-                                textAlignVertical="top"
-                                multiline
-                                value={this.state.welcomeNote}
-                                placeholder={this.getWelcomeNotePlaceholder()}
-                                onChangeText={text => this.setState({welcomeNote: text})}
-                            />
-                            <View style={[styles.mt5, styles.alignSelfStart]}>
-                                <Pressable
-                                    onPress={(e) => {
-                                        e.preventDefault();
-                                        Linking.openURL(CONST.PRIVACY_URL);
+                    <ScrollView
+                        style={[styles.w100, styles.flex1]}
+                        ref={el => this.form = el}
+                        contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {/* Form elements */}
+                        <View style={[styles.mh5, styles.mb5]}>
+                            <Text style={[styles.mb6]}>
+                                {this.props.translate('workspace.invite.invitePeoplePrompt')}
+                            </Text>
+                            <View style={styles.mb6}>
+                                <ExpensiTextInput
+                                    ref={el => this.emailOrPhoneInputRef = el}
+                                    label={this.props.translate('workspace.invite.enterEmailOrPhone')}
+                                    placeholder={this.props.translate('workspace.invite.EmailOrPhonePlaceholder')}
+                                    autoCompleteType="email"
+                                    autoCorrect={false}
+                                    autoCapitalize="none"
+                                    multiline
+                                    numberOfLines={2}
+                                    value={this.state.userLogins}
+                                    onChangeText={(text) => {
+                                        this.setState({userLogins: text, errors: {}, foundSystemLogin: ''});
                                     }}
-                                    accessibilityRole="link"
-                                    href={CONST.PRIVACY_URL}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <View style={[styles.flexRow]}>
-                                            <Text
-                                                style={[
-                                                    styles.mr1,
-                                                    styles.label,
-                                                    (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted,
-                                                ]}
-                                            >
-                                                {this.props.translate('common.privacyPolicy')}
-                                            </Text>
-                                            <View style={styles.alignSelfCenter}>
-                                                <Icon
-                                                    src={NewWindow}
-                                                    width={variables.iconSizeSmall}
-                                                    height={variables.iconSizeSmall}
-                                                />
+                                    errorText={this.getErrorText()}
+                                />
+                            </View>
+                            <View style={styles.mb6}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('workspace.invite.personalMessagePrompt')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    numberOfLines={5}
+                                    textAlignVertical="top"
+                                    multiline
+                                    value={this.state.welcomeNote}
+                                    placeholder={this.getWelcomeNotePlaceholder()}
+                                    onChangeText={text => this.setState({welcomeNote: text})}
+                                />
+                                <View style={[styles.mt5, styles.alignSelfStart]}>
+                                    <Pressable
+                                        onPress={(e) => {
+                                            e.preventDefault();
+                                            Linking.openURL(CONST.PRIVACY_URL);
+                                        }}
+                                        accessibilityRole="link"
+                                        href={CONST.PRIVACY_URL}
+                                    >
+                                        {({hovered, pressed}) => (
+                                            <View style={[styles.flexRow]}>
+                                                <Text
+                                                    style={[
+                                                        styles.mr1,
+                                                        styles.label,
+                                                        (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted,
+                                                    ]}
+                                                >
+                                                    {this.props.translate('common.privacyPolicy')}
+                                                </Text>
+                                                <View style={styles.alignSelfCenter}>
+                                                    <Icon
+                                                        src={NewWindow}
+                                                        width={variables.iconSizeSmall}
+                                                        height={variables.iconSizeSmall}
+                                                    />
+                                                </View>
                                             </View>
-                                        </View>
-                                    )}
-                                </Pressable>
+                                        )}
+                                    </Pressable>
+                                </View>
                             </View>
                         </View>
+                        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+                            {_.size(this.state.errors) > 0 && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
+                                    <Icon src={Exclamation} fill={colors.red} />
+                                    <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                                        <FixTheErrorsText
+                                            onLinkPress={() => {
+                                                this.form.scrollTo({y: 0, animated: true});
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            )}
+                            <Button
+                                success
+                                text={this.props.translate('common.invite')}
+                                onPress={this.inviteUser}
+                                pressOnEnter
+                            />
+                        </View>
                     </ScrollView>
-                    <FixedFooter style={[styles.flexGrow0]}>
-                        <Button
-                            success
-                            isDisabled={!this.state.userLogins.trim()}
-                            text={this.props.translate('common.invite')}
-                            onPress={this.inviteUser}
-                            pressOnEnter
-                        />
-                    </FixedFooter>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

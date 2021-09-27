@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 
-import TextLink from '../../components/TextLink';
 import Text from '../../components/Text';
 import Button from '../../components/Button';
 import styles from '../../styles/styles';
@@ -16,6 +15,7 @@ import colors from '../../styles/colors';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import FixTheErrorsText from '../../components/FixTheErrorsText';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -44,22 +44,11 @@ class ReimbursementAccountForm extends React.Component {
             );
         } else {
             error = (
-                <>
-                    <Text style={styles.mutedTextLabel}>
-                        {`${this.props.translate('common.please')} `}
-                    </Text>
-                    <TextLink
-                        style={styles.label}
-                        onPress={() => {
-                            this.form.scrollTo({y: 0, animated: true});
-                        }}
-                    >
-                        {this.props.translate('bankAccount.error.fixTheErrors')}
-                    </TextLink>
-                    <Text style={styles.mutedTextLabel}>
-                        {` ${this.props.translate('bankAccount.error.inTheFormBeforeContinuing')}.`}
-                    </Text>
-                </>
+                <FixTheErrorsText
+                    onLinkPress={() => {
+                        this.form.scrollTo({y: 0, animated: true});
+                    }}
+                />
             );
         }
 
