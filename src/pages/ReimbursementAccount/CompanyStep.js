@@ -241,6 +241,7 @@ class CompanyStep extends React.Component {
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
+                        placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
                     />
                     <View style={styles.mt4}>
@@ -278,7 +279,10 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         secureTextEntry
                         textContentType="password"
-                        onChangeText={value => this.clearErrorAndSetValue('password', value)}
+                        onChangeText={(value) => {
+                            this.setState({password: value});
+                            this.clearError('password');
+                        }}
                         value={this.state.password}
                         onSubmitEditing={this.submit}
                         errorText={this.getErrorText('password')}
