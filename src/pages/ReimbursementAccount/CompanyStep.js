@@ -241,6 +241,7 @@ class CompanyStep extends React.Component {
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
+                        placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
                     />
                     <View style={styles.mt4}>
