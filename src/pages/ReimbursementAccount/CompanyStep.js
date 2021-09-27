@@ -215,6 +215,7 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('common.zip')}
                         containerStyles={[styles.mt4]}
+                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                         value={this.state.addressZipCode}
                         errorText={this.getErrorText('addressZipCode')}
