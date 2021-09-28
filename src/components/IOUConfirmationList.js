@@ -27,7 +27,7 @@ import {
 import Permissions from '../libs/Permissions';
 import isAppInstalled from '../libs/isAppInstalled';
 import {isValidUSPhone} from '../libs/ValidationUtils';
-import makeCancelablePromise from '../libs/MakeCancelaablePromise';
+import makeCancellablePromise from '../libs/MakeCancellablePromise';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -327,7 +327,7 @@ class IOUConfirmationList extends Component {
     addVenmoPaymentOptionToMenu() {
         // Add Venmo option
         if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber.length > 0 && isValidUSPhone(this.state.participants[0].phoneNumber)) {
-            this.checkVenmoAvailabilityPromise = makeCancelablePromise(isAppInstalled('venmo'))
+            this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'))
                 .then((isVenmoInstalled) => {
                     if (!isVenmoInstalled) {
                         return;

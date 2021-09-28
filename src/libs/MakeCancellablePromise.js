@@ -5,18 +5,18 @@
  * @param {Promise} promise
  * @returns {Object} {{cancel(): void, promise: Promise}}
  */
-export default function makeCancelablePromise(promise) {
-    let hasCanceled_ = false;
+export default function makeCancellablePromise(promise) {
+    let hasCancelled = false;
 
     const wrappedPromise = new Promise((resolve, reject) => {
-        promise.then((val) => hasCanceled_ ? reject({isCanceled: true}) : resolve(val));
-        promise.catch((error) => hasCanceled_ ? reject({isCanceled: true}) : reject(error));
+        promise.then(val => (hasCancelled ? reject(new Error('Promise was cancelled')) : resolve(val)));
+        promise.catch(error => (hasCancelled ? reject(new Error('Promise was cancelled'))  : reject(error)));
     });
 
     return {
         promise: wrappedPromise,
         cancel() {
-            hasCanceled_ = true;
+            hasCancelled = true;
         },
-    };
+    }
 };
