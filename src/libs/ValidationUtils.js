@@ -44,14 +44,6 @@ function isValidDate(date) {
 }
 
 /**
- * @param {String} code
- * @returns {Boolean}
- */
-function isValidIndustryCode(code) {
-    return CONST.REGEX.INDUSTRY_CODE.test(code);
-}
-
-/**
  * @param {String} zipCode
  * @returns {Boolean}
  */
@@ -116,7 +108,6 @@ export {
     isValidAge,
     isValidAddress,
     isValidDate,
-    isValidIndustryCode,
     validateIdentity,
     isValidZipCode,
     isRequiredFulfilled,

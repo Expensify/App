@@ -9,4 +9,7 @@ export default {
 
     /** Called when the user is totally done with Onfido */
     onSuccess: PropTypes.func.isRequired,
+
+    /** Called when Onfido throws an error */
+    onError: PropTypes.func.isRequired,
 };

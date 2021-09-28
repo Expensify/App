@@ -6,6 +6,7 @@ import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Text from '../../components/Text';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Style for wrapping View */
@@ -90,7 +91,7 @@ const defaultProps = {
 const IdentityForm = ({
     translate, values, onFieldChange, style, errors,
 }) => {
-    console.log('errors', errors);
+    console.log('errors', errors); // TODO: Remove this
     const {
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
     } = values;
@@ -103,6 +104,7 @@ const IdentityForm = ({
                         value={firstName}
                         onChangeText={value => onFieldChange('firstName', value)}
                         errorText={errors.firstName || ''}
+                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -111,6 +113,7 @@ const IdentityForm = ({
                         value={lastName}
                         onChangeText={value => onFieldChange('lastName', value)}
                         errorText={errors.lastName || ''}
+                        translateX={-10}
                     />
                 </View>
             </View>
@@ -125,6 +128,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={ssnLast4}
                 onChangeText={value => onFieldChange('ssnLast4', value)}
                 errorText={errors.ssnLast4 || ''}
@@ -144,6 +148,7 @@ const IdentityForm = ({
                         value={city}
                         onChangeText={value => onFieldChange('city', value)}
                         errorText={errors.city || ''}
+                        translateX={-14}
                     />
                 </View>
                 <View style={[styles.flex1]}>
@@ -158,6 +163,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={zipCode}
                 onChangeText={value => onFieldChange('zipCode', value)}
                 errorText={errors.zipCode || ''}
