@@ -312,7 +312,7 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${ccApplauseLeads}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
         ));
@@ -325,7 +325,7 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${ccApplauseLeads}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
         ));
@@ -343,11 +343,11 @@ describe('GithubUtils', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
-                        `${allVerifiedExpectedOutput}` +
-                        `${lineBreakDouble}${deployBlockerHeader}` +
-                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`
+                        `${allVerifiedExpectedOutput}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
         ));
@@ -356,11 +356,11 @@ describe('GithubUtils', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]])
                 .then((issueBody) => {
                     expect(issueBody).toBe(
-                        `${allVerifiedExpectedOutput}` +
-                        `${lineBreakDouble}${deployBlockerHeader}` +
-                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`
+                        `${allVerifiedExpectedOutput}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
         ));
@@ -369,11 +369,11 @@ describe('GithubUtils', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
-                        `${allVerifiedExpectedOutput}` +
-                        `${lineBreakDouble}${deployBlockerHeader}` +
-                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`
+                        `${allVerifiedExpectedOutput}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
         ));
