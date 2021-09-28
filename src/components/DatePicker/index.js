@@ -27,7 +27,7 @@ class Datepicker extends React.Component {
     componentDidMount() {
         if (this.inputRef) {
             // Adds nice native datepicker on web/desktop. Not possible to set this through props
-            this.inputRef.type = 'date';
+            this.inputRef.setAttribute('type', 'date');
         }
     }
 
@@ -56,12 +56,12 @@ class Datepicker extends React.Component {
             translateX,
             containerStyles,
             disabled,
-            isMediumScreenWidth,
+            isSmallScreenWidth,
         } = this.props;
 
         return (
             <ExpensiTextInput
-                forceActiveLabel={isMediumScreenWidth}
+                forceActiveLabel={!isSmallScreenWidth}
                 ref={input => this.inputRef = input}
                 label={label}
                 onChangeText={this.raiseDateChange}
