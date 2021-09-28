@@ -36,11 +36,11 @@ class InvertedFlatList extends React.Component {
                 .getScrollableNode()
                 .addEventListener('wheel', this.invertedWheelEvent);
 
-            this.list.setNativeProps({
-                style: {
-                    transform: 'translate3d(0,0,0) scaleY(-1)',
-                },
-            });
+            // this.list.setNativeProps({
+            //     style: {
+            //         transform: 'translate3d(0,0,0) scaleY(-1)',
+            //     },
+            // });
         }
     }
 

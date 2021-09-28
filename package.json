@@ -69,6 +69,7 @@
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
     "onfido-sdk-ui": "^6.7.2",
+    "patch-package": "^6.4.7",
     "prop-types": "^15.7.2",
     "pusher-js": "^7.0.0",
     "react": "^17.0.2",
