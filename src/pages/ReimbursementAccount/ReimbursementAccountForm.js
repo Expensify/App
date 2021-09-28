@@ -16,6 +16,7 @@ import colors from '../../styles/colors';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import RenderHTML from '../../components/RenderHTML';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -39,9 +40,15 @@ class ReimbursementAccountForm extends React.Component {
         let error = '';
 
         if (!_.isEmpty(this.props.reimbursementAccount.errorModalMessage)) {
-            error = (
-                <Text style={styles.mutedTextLabel}>{this.props.reimbursementAccount.errorModalMessage}</Text>
-            );
+            if (this.props.reimbursementAccount.isErrorModalMessageHtml) {
+                error = (
+                    <RenderHTML html={`<muted-text>${this.props.reimbursementAccount.errorModalMessage}</muted-text>`} />
+                );
+            } else {
+                error = (
+                    <Text style={styles.mutedTextLabel}>{this.props.reimbursementAccount.errorModalMessage}</Text>
+                );
+            }
         } else {
             error = (
                 <>

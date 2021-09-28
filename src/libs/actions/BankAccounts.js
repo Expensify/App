@@ -537,9 +537,10 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * Show error modal and optionally a specific error message
  *
  * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ * @param {Boolean} isErrorModalMessageHtml if @errorModalMessage is in html format or not
  */
-function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessageHtml = false) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage, isErrorModalMessageHtml});
 }
 
 /**
@@ -673,6 +674,7 @@ function setupWithdrawalAccount(data) {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            let htmlError = false;
             const errors = {};
 
             if (response.jsonCode === 200 && !error) {
@@ -751,7 +753,8 @@ function setupWithdrawalAccount(data) {
                 }
             } else {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
-                    error = response.message;
+                    error = response.message || response.htmlMessage;
+                    htmlError = Boolean(response.htmlMessage);
                 }
 
                 if (response.jsonCode === 402) {
@@ -779,7 +782,7 @@ function setupWithdrawalAccount(data) {
             }
             if (error) {
                 showBankAccountFormValidationError(error);
-                showBankAccountErrorModal(error);
+                showBankAccountErrorModal(error, htmlError);
             }
         })
         .catch((response) => {

@@ -223,6 +223,10 @@ const customHTMLElementModels = {
     edited: defaultHTMLElementModels.span.extend({
         tagName: 'edited',
     }),
+    'muted-text': defaultHTMLElementModels.p.extend({
+        tagName: 'muted-text',
+        mixedUAStyles: styles.mutedTextLabel,
+    }),
 };
 
 // Define the custom renderer components
@@ -231,6 +235,7 @@ const renderers = {
     code: CodeRenderer,
     img: ImgRenderer,
     edited: withLocalize(EditedRenderer),
+    'muted-text': TNodeChildrenRenderer,
 };
 
 const renderersProps = {
