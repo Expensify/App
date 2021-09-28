@@ -149,7 +149,6 @@ class IOUConfirmationList extends Component {
         }
         confirmationButtonOptions.push(defaultButtonOption);
 
-        // this.isComponentMounted = false;
         this.checkVenmoAvailabilityPromise = null;
 
         this.state = {
@@ -168,6 +167,7 @@ class IOUConfirmationList extends Component {
     componentWillUnmount() {
         if (this.checkVenmoAvailabilityPromise) {
             this.checkVenmoAvailabilityPromise.cancel();
+            this.checkVenmoAvailabilityPromise = null;
         }
     }
 
