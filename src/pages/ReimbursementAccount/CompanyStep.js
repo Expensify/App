@@ -47,7 +47,9 @@ class CompanyStep extends React.Component {
         this.submit = this.submit.bind(this);
 
         // Session domain
-        this.domain = Str.extractEmailDomain(lodashGet(props, 'session.email', ''));
+        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
+            ? 'https://'
+            : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
 
         this.state = {
             companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
@@ -56,7 +58,7 @@ class CompanyStep extends React.Component {
             addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
             addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
             companyPhone: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyPhone'),
-            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', this.domain ? `http://www.${this.domain}` : 'https://'),
+            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', this.defaultWebsite),
             companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyTaxID'),
             incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
             incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
@@ -340,6 +342,9 @@ export default compose(
         },
         session: {
             key: ONYXKEYS.SESSION,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(CompanyStep);
