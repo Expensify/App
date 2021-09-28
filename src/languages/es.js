@@ -548,7 +548,6 @@ export default {
     requestorStep: {
         headerTitle: 'Información personal',
         subtitle: 'Dé más información sobre tí.',
-        financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
         learnMore: 'Más información',
         isMyDataSafe: '¿Están seguros mis datos?',
         onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',

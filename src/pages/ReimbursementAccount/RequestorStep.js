@@ -1,6 +1,6 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
-import {View} from 'react-native';
+import {View, Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -215,31 +215,31 @@ class RequestorStep extends React.Component {
                             errorText={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')
                                 ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
                         />
-                        <Text style={[styles.textMicroSupporting, styles.mt5]}>
-                            {this.props.translate('requestorStep.financialRegulations')}
-                        </Text>
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
-                            <TextLink
-                                style={styles.textMicro}
-                                href="https://onfido.com/facial-scan-policy-and-release/"
+                            <Text
+                                onPress={() => Linking.openURL('https://onfido.com/facial-scan-policy-and-release/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
-                            </TextLink>
+                            </Text>
                             {', '}
-                            <TextLink
-                                style={styles.textMicro}
-                                href="https://onfido.com/privacy/"
+                            <Text
+                                onPress={() => Linking.openURL('https://onfido.com/privacy/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.privacyPolicy')}`}
-                            </TextLink>
+                            </Text>
                             {` ${this.props.translate('common.and')} `}
-                            <TextLink
-                                style={styles.textMicro}
-                                href="https://onfido.com/terms-of-service/"
+                            <Text
+                                onPress={() => Linking.openURL('https://onfido.com/terms-of-service/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.termsOfService')}`}
-                            </TextLink>
+                            </Text>
                         </Text>
                     </ReimbursementAccountForm>
                 )}
