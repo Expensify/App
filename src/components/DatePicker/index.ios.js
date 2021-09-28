@@ -107,7 +107,7 @@ class Datepicker extends React.Component {
                             onPress={this.reset}
                         />
                         <Button
-                            title={this.props.translate('common.confirm')}
+                            title={this.props.translate('common.done')}
                             color={themeColors.link}
                             onPress={this.selectDate}
                         />
@@ -117,6 +117,7 @@ class Datepicker extends React.Component {
                         mode="date"
                         display="spinner"
                         onChange={this.updateLocalDate}
+                        locale={this.props.preferredLocale}
                     />
                 </Popover>
             </>
