@@ -169,6 +169,7 @@ class CompanyStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('companyStep.headerTitle')}
+                    stepCounter={{step: 2, total: 5}}
                     shouldShowBackButton
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -214,6 +215,7 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('common.zip')}
                         containerStyles={[styles.mt4]}
+                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                         onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                         value={this.state.addressZipCode}
                         errorText={this.getErrorText('addressZipCode')}
@@ -241,6 +243,7 @@ class CompanyStep extends React.Component {
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
+                        placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
                     />
                     <View style={styles.mt4}>
@@ -278,7 +281,10 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         secureTextEntry
                         textContentType="password"
-                        onChangeText={value => this.clearErrorAndSetValue('password', value)}
+                        onChangeText={(value) => {
+                            this.setState({password: value});
+                            this.clearError('password');
+                        }}
                         value={this.state.password}
                         onSubmitEditing={this.submit}
                         errorText={this.getErrorText('password')}

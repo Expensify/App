@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView} from 'react-native';
+import {
+    View, ScrollView, Pressable, Linking,
+} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -15,13 +17,16 @@ import Button from '../../components/Button';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {invite} from '../../libs/actions/Policy';
-import TextLink from '../../components/TextLink';
 import Growl from '../../libs/Growl';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import {isSystemUser} from '../../libs/userUtils';
 import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
+import Icon from '../../components/Icon';
+import {NewWindow} from '../../components/Icon/Expensicons';
+import variables from '../../styles/variables';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -147,9 +152,37 @@ class WorkspaceInvitePage extends React.Component {
                                 placeholder={this.getWelcomeNotePlaceholder()}
                                 onChangeText={text => this.setState({welcomeNote: text})}
                             />
-                            <TextLink href="https://use.expensify.com/privacy">
-                                {this.props.translate('common.privacy')}
-                            </TextLink>
+                            <View style={[styles.mt5, styles.alignSelfStart]}>
+                                <Pressable
+                                    onPress={(e) => {
+                                        e.preventDefault();
+                                        Linking.openURL(CONST.PRIVACY_URL);
+                                    }}
+                                    accessibilityRole="link"
+                                    href={CONST.PRIVACY_URL}
+                                >
+                                    {({hovered, pressed}) => (
+                                        <View style={[styles.flexRow]}>
+                                            <Text
+                                                style={[
+                                                    styles.mr1,
+                                                    styles.label,
+                                                    (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted,
+                                                ]}
+                                            >
+                                                {this.props.translate('common.privacyPolicy')}
+                                            </Text>
+                                            <View style={styles.alignSelfCenter}>
+                                                <Icon
+                                                    src={NewWindow}
+                                                    width={variables.iconSizeSmall}
+                                                    height={variables.iconSizeSmall}
+                                                />
+                                            </View>
+                                        </View>
+                                    )}
+                                </Pressable>
+                            </View>
                         </View>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>

@@ -62,8 +62,7 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
-import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
+import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
@@ -71,6 +70,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
+import WorkspaceNew from '../../../pages/workspace/WorkspaceNew';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -322,24 +322,14 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
+                    name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
                     options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
+                    component={LogInWithShortLivedTokenPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
+                    name="WorkspaceNew"
                     options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
+                    component={WorkspaceNew}
                 />
 
                 {/* These are the various modal routes */}

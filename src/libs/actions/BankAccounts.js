@@ -72,7 +72,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
     if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        newACHData.subStep = 'manual';
+        newACHData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
@@ -580,7 +580,14 @@ function validateBankAccount(bankAccountID, validateCode) {
                 return;
             }
 
-            // We are generically showing any backend errors that might pop up in the validate step
+            // If the validation amounts entered were incorrect, show specific error
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
+                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                return;
+            }
+
+            // We are generically showing any other backend errors that might pop up in the validate step
             showBankAccountErrorModal(response.message);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
@@ -611,6 +618,15 @@ function setBankAccountFormValidationErrors(errors) {
  */
 function showBankAccountFormValidationError(error) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error});
+}
+
+/**
+ * Set the current sub step in first step of adding withdrawal bank account
+ *
+ * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ */
+function setBankAccountSubStep(subStep) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 
 /**
@@ -652,18 +668,8 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
-        /* eslint-disable arrow-body-style */
         .then((response) => {
-            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
-            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
-            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
-            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                loading: false,
-                achData: {...newACHData},
-            })
-                .then(() => Promise.resolve(response));
-        })
-        .then((response) => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
@@ -816,5 +822,6 @@ export {
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    setBankAccountSubStep,
     updateReimbursementAccountDraft,
 };

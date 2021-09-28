@@ -228,6 +228,7 @@ function create(name = '') {
             }
             res = response;
 
+            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
             return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
                 employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
                 id: response.policyID,

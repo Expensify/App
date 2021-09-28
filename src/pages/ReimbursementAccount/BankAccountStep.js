@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import {
-    Paycheck, Bank, Lock,
+    Paycheck, Bank, Lock, Exclamation,
 } from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
@@ -21,6 +21,7 @@ import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
     setBankAccountFormValidationErrors,
+    setBankAccountSubStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
@@ -48,7 +49,6 @@ class BankAccountStep extends React.Component {
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
-            bankAccountAddMethod: props.achData.subStep || undefined,
             hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
             accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
@@ -163,15 +163,17 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
+        const subStep = this.props.achData.subStep;
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
+                    stepCounter={this.state.bankAccountAddMethod && {step: 1, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => this.setState({bankAccountAddMethod: undefined})}
-                    shouldShowBackButton={!_.isUndefined(this.state.bankAccountAddMethod)}
+                    onBackButtonPress={() => setBankAccountSubStep(null)}
+                    shouldShowBackButton={Boolean(subStep)}
                 />
-                {!this.state.bankAccountAddMethod && (
+                {!subStep && (
                     <>
                         <View style={[styles.flex1]}>
                             <Text style={[styles.mh5, styles.mb5]}>
@@ -180,10 +182,8 @@ class BankAccountStep extends React.Component {
                             <MenuItem
                                 icon={Bank}
                                 title={this.props.translate('bankAccount.logIntoYourBank')}
-                                onPress={() => {
-                                    this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID});
-                                }}
-                                disabled={this.props.isPlaidDisabled}
+                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
+                                disabled={this.props.isPlaidDisabled || !this.props.user.validated}
                                 shouldShowRightIcon
                             />
                             {this.props.isPlaidDisabled && (
@@ -194,11 +194,20 @@ class BankAccountStep extends React.Component {
                             <MenuItem
                                 icon={Paycheck}
                                 title={this.props.translate('bankAccount.connectManually')}
-                                onPress={() => {
-                                    this.setState({bankAccountAddMethod: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL});
-                                }}
+                                disabled={!this.props.user.validated}
+                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                                 shouldShowRightIcon
                             />
+                            {!this.props.user.validated && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                                    <Text style={[styles.mutedTextLabel, styles.mr4]}>
+                                        <Icon src={Exclamation} fill={colors.red} />
+                                    </Text>
+                                    <Text style={styles.mutedTextLabel}>
+                                        {this.props.translate('bankAccount.validateAccountError')}
+                                    </Text>
+                                </View>
+                            )}
                             <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink href="https://use.expensify.com/privacy">
                                     {this.props.translate('common.privacy')}
@@ -218,16 +227,15 @@ class BankAccountStep extends React.Component {
                         </View>
                     </>
                 )}
-                {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
+                {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSubmit={this.addPlaidAccount}
-                        onExitPlaid={() => {
-                            this.setState({bankAccountAddMethod: undefined});
-                        }}
+                        onExitPlaid={() => setBankAccountSubStep(null)}
+
                     />
                 )}
-                {this.state.bankAccountAddMethod === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
+                {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ReimbursementAccountForm
                         onSubmit={this.addManualAccount}
                     >
@@ -288,6 +296,9 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(BankAccountStep);
