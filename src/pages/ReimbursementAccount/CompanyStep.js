@@ -46,7 +46,6 @@ class CompanyStep extends React.Component {
 
         this.submit = this.submit.bind(this);
 
-        // Session domain
         this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
             ? 'https://'
             : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
