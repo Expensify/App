@@ -31,5 +31,5 @@ export default PropTypes.shape({
     error: PropTypes.string,
 
     /** Object containing various errors */
-    errors: PropTypes.objectOf(PropTypes.bool),
+    errors: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.bool, PropTypes.string])),
 });
