@@ -262,15 +262,16 @@ class AuthScreens extends React.Component {
      * - We have not already loaded policies
      */
     loadPoliciesBehindBeta() {
-        // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
-        // Policy info loading should not be blocked behind the defaultRooms beta alone.
-        if (!this.hasLoadedPolicies
-            && !isTransitionOrNewWorkspacePage(this.props.currentURL)
-            && (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas))) {
-            getPolicyList();
-            getPolicySummaries();
-            this.hasLoadedPolicies = true;
+        // Do not load policies if we're not in the correct betas or if we're in the process of creating a new policy
+        if (this.hasLoadedPolicies
+            || isTransitionOrNewWorkspacePage(this.props.currentURL)
+            || !Permissions.canUseFreePlan(this.props.betas)
+            || !Permissions.canUseDefaultRooms(this.props.betas)) {
+            return;
         }
+        getPolicyList();
+        getPolicySummaries();
+        this.hasLoadedPolicies = true;
     }
 
     render() {
