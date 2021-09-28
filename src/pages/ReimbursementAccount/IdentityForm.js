@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {translateLocal} from '../../libs/translate';
 import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
+import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
 
 
@@ -120,6 +121,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={ssnLast4}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.ssnLast4')) {
@@ -174,6 +176,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={zipCode}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.zipCode')) {

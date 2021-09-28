@@ -25,7 +25,7 @@ export default {
                 },
             },
 
-            // Public Routes
+            // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
@@ -33,6 +33,7 @@ export default {
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD,
             [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
+            WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
             // Modal Screens
             Settings: {
@@ -145,11 +146,6 @@ export default {
             WorkspaceInvite: {
                 screens: {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
-                },
-            },
-            WorkspaceNew: {
-                screens: {
-                    WorkspaceNew_Root: ROUTES.WORKSPACE_NEW,
                 },
             },
 
