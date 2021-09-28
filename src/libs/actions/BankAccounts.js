@@ -753,7 +753,7 @@ function setupWithdrawalAccount(data) {
                 }
             } else {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
-                    error = response.message || response.htmlMessage;
+                    error = response.htmlMessage || response.message;
                     htmlError = Boolean(response.htmlMessage);
                 }
 
