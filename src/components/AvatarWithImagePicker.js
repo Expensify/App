@@ -174,18 +174,14 @@ class AvatarWithImagePicker extends React.Component {
                                             )
                                             : (
                                                 <>
-                                                    <Pressable
-                                                        disabled={this.props.isUploading}
-                                                        style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
-                                                        onPress={() => this.setState({isMenuVisible: true})}
-                                                    >
+                                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                                         <Icon
                                                             src={Pencil}
                                                             width={variables.iconSizeSmall}
                                                             height={variables.iconSizeSmall}
                                                             fill={themeColors.iconReversed}
                                                         />
-                                                    </Pressable>
+                                                    </View>
                                                     <PopoverMenu
                                                         isVisible={this.state.isMenuVisible}
                                                         onClose={() => this.setState({isMenuVisible: false})}
