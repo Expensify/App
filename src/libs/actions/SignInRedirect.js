@@ -1,4 +1,5 @@
 import Onyx from 'react-native-onyx';
+import SignoutManager from '../../components/SignoutManager';
 import ONYXKEYS from '../../ONYXKEYS';
 
 let currentActiveClients;
@@ -16,37 +17,41 @@ Onyx.connect({
 });
 
 /**
+ * @param {String} errorMessage
+ * @returns {Promise}
+ */
+function clearStorageAndRedirect(errorMessage) {
+    const activeClients = currentActiveClients;
+    const preferredLocale = currentPreferredLocale;
+
+    // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
+    return Onyx.clear()
+        .then(() => {
+            const promises = [];
+
+            if (preferredLocale) {
+                promises.push(Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale));
+            }
+            if (activeClients && activeClients.length > 0) {
+                promises.push(Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients));
+            }
+
+            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
+            promises.push(Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage}));
+            return Promise.all(promises);
+        });
+}
+
+SignoutManager.registerSignoutCallback(clearStorageAndRedirect);
+
+/**
  * Clears the Onyx store and redirects to the sign in page.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
  * @param {String} [errorMessage] error message to be displayed on the sign in page
  */
 function redirectToSignIn(errorMessage) {
-    const activeClients = currentActiveClients;
-    const preferredLocale = currentPreferredLocale;
-
-    // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    Onyx.clear()
-        .then(() => {
-            if (preferredLocale) {
-                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-            }
-            if (activeClients && activeClients.length > 0) {
-                Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
-            }
-
-            const session = {
-                // We must set the authToken to null so that signOut action is triggered across other clients
-                authToken: null,
-            };
-
-            if (errorMessage) {
-                session.error = errorMessage;
-            }
-
-            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
-            Onyx.merge(ONYXKEYS.SESSION, session);
-        });
+    SignoutManager.signOut(errorMessage);
 }
 
 export default redirectToSignIn;
