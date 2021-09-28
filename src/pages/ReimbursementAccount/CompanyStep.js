@@ -22,7 +22,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled,
+    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled, isValidURL,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -130,7 +130,7 @@ class CompanyStep extends React.Component {
             errors.addressZipCode = true;
         }
 
-        if (!Str.isValidURL(this.state.website)) {
+        if (!isValidURL(this.state.website)) {
             errors.website = true;
         }
 
@@ -333,6 +333,9 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
         },
     }),
 )(CompanyStep);
