@@ -10,7 +10,7 @@ export default function makeCancellablePromise(promise) {
 
     const wrappedPromise = new Promise((resolve, reject) => {
         promise.then(val => (hasCancelled ? reject(new Error('Promise was cancelled')) : resolve(val)));
-        promise.catch(error => (hasCancelled ? reject(new Error('Promise was cancelled'))  : reject(error)));
+        promise.catch(error => (hasCancelled ? reject(new Error('Promise was cancelled')) : reject(error)));
     });
 
     return {
@@ -18,5 +18,5 @@ export default function makeCancellablePromise(promise) {
         cancel() {
             hasCancelled = true;
         },
-    }
-};
+    };
+}
