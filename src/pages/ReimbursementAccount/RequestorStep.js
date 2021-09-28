@@ -144,7 +144,7 @@ class RequestorStep extends React.Component {
 
         _.each(this.requiredFields, (inputKey) => {
             if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = this.props.translate(this.errorTranslationKeys[inputKey]);
+                errors[inputKey] = true;
             }
         });
         if (_.size(errors)) {
@@ -247,7 +247,7 @@ class RequestorStep extends React.Component {
                             )}
                             style={[styles.mt4]}
                             hasError={Boolean(this.getErrors().isControllingOfficer)}
-                            errorText={this.getErrors().isControllingOfficer || ''}
+                            errorText={this.getErrors().isControllingOfficer ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
                         />
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}

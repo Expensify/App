@@ -1,7 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {translateLocal} from './translate';
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -76,29 +75,29 @@ function isValidAge(date) {
 function validateIdentity(identity) {
     const errors = {};
     if (!isValidAddress(identity.street)) {
-        errors.street = translateLocal('bankAccount.error.address');
+        errors.street = true;
     }
 
     if (!isRequiredFulfilled(identity.state)) {
-        errors.state = translateLocal('bankAccount.error.addressState');
+        errors.state = true;
     }
 
     if (!isRequiredFulfilled(identity.city)) {
-        errors.city = translateLocal('bankAccount.error.addressCity');
+        errors.city = true;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = translateLocal('bankAccount.error.zipCode');
+        errors.zipCode = true;
     }
 
     if (!isValidDate(identity.dob)) {
-        errors.dob = translateLocal('bankAccount.error.dob');
+        errors.dob = true;
     } else if (!isValidAge(identity.dob)) {
-        errors.dob = translateLocal('bankAccount.error.age');
+        errors.dobAge = true;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        errors.ssnLast4 = translateLocal('bankAccount.error.ssnLast4');
+        errors.ssnLast4 = true;
     }
 
     return errors;

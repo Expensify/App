@@ -140,8 +140,9 @@ class BeneficialOwnersStep extends React.Component {
             updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });
+
         const beneficialOwnerErrors = this.getBeneficialOwnerErrors(ownerIndex);
-        if (!beneficialOwnerErrors[inputKey]) {
+        if (!beneficialOwnerErrors[inputKey] && (inputKey !== 'dob' || !beneficialOwnerErrors.dobAge)) {
             // No error found for this inputKey
             return;
         }
@@ -149,6 +150,9 @@ class BeneficialOwnersStep extends React.Component {
         // Clear the existing error for this inputKey
         const newBeneficialOwnerErrors = {...beneficialOwnerErrors};
         delete newBeneficialOwnerErrors[inputKey];
+        if (inputKey === 'dob') {
+            delete newBeneficialOwnerErrors.dobAge;
+        }
 
         // Modify avoiding mutation
         const newErrors = {...this.props.reimbursementAccount.errors};

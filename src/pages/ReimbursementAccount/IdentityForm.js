@@ -43,31 +43,7 @@ const propTypes = {
     }),
 
     /** Any errors that can arise from form validation */
-    errors: PropTypes.shape({
-        /** First name field error */
-        firstName: PropTypes.string,
-
-        /** Last name field error */
-        lastName: PropTypes.string,
-
-        /** Address street field error */
-        street: PropTypes.string,
-
-        /** Address city field error */
-        city: PropTypes.string,
-
-        /** Address state field error */
-        state: PropTypes.string,
-
-        /** Address zip code field error */
-        zipCode: PropTypes.string,
-
-        /** Date of birth field error */
-        dob: PropTypes.string,
-
-        /** Last 4 digits of SSN field error */
-        ssnLast4: PropTypes.string,
-    }),
+    errors: PropTypes.objectOf(PropTypes.bool),
 
     ...withLocalizePropTypes,
 };
@@ -91,10 +67,13 @@ const defaultProps = {
 const IdentityForm = ({
     translate, values, onFieldChange, style, errors,
 }) => {
-    console.log('errors', errors); // TODO: Remove this
     const {
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
     } = values;
+
+    const dobErrorText = (errors.dob ? translate('bankAccount.error.dob') : '')
+        || (errors.dobAge ? translate('bankAccount.error.age') : '');
+
     return (
         <View style={style}>
             <View style={[styles.flexRow]}>
@@ -103,7 +82,7 @@ const IdentityForm = ({
                         label={`${translate('common.firstName')}`}
                         value={firstName}
                         onChangeText={value => onFieldChange('firstName', value)}
-                        errorText={errors.firstName || ''}
+                        errorText={errors.firstName ? translate('bankAccount.error.firstName') : ''}
                         translateX={-10}
                     />
                 </View>
@@ -112,7 +91,7 @@ const IdentityForm = ({
                         label={`${translate('common.lastName')}`}
                         value={lastName}
                         onChangeText={value => onFieldChange('lastName', value)}
-                        errorText={errors.lastName || ''}
+                        errorText={errors.lastName ? translate('bankAccount.error.lastName') : ''}
                         translateX={-10}
                     />
                 </View>
@@ -123,7 +102,7 @@ const IdentityForm = ({
                 placeholder={translate('common.dateFormat')}
                 value={dob}
                 onChangeText={value => onFieldChange('dob', value)}
-                errorText={errors.dob || ''}
+                errorText={dobErrorText}
             />
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
@@ -131,14 +110,14 @@ const IdentityForm = ({
                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={ssnLast4}
                 onChangeText={value => onFieldChange('ssnLast4', value)}
-                errorText={errors.ssnLast4 || ''}
+                errorText={errors.ssnLast4 ? translate('bankAccount.error.ssnLast4') : ''}
             />
             <ExpensiTextInput
                 label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
                 value={street}
                 onChangeText={value => onFieldChange('street', value)}
-                errorText={errors.street || ''}
+                errorText={errors.street ? translate('bankAccount.error.address') : ''}
             />
             <Text style={[styles.mutedTextLabel, styles.mt1]}>{translate('common.noPO')}</Text>
             <View style={[styles.flexRow, styles.mt4]}>
@@ -147,7 +126,7 @@ const IdentityForm = ({
                         label={translate('common.city')}
                         value={city}
                         onChangeText={value => onFieldChange('city', value)}
-                        errorText={errors.city || ''}
+                        errorText={errors.city ? translate('bankAccount.error.addressCity') : ''}
                         translateX={-14}
                     />
                 </View>
@@ -155,7 +134,7 @@ const IdentityForm = ({
                     <StatePicker
                         value={state}
                         onChange={value => onFieldChange('state', value)}
-                        errorText={errors.state || ''}
+                        errorText={errors.state ? translate('bankAccount.error.addressState') : ''}
                         hasError={Boolean(errors.state)}
                     />
                 </View>
@@ -166,7 +145,7 @@ const IdentityForm = ({
                 keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={zipCode}
                 onChangeText={value => onFieldChange('zipCode', value)}
-                errorText={errors.zipCode || ''}
+                errorText={errors.zipCode ? translate('bankAccount.error.zipCode') : ''}
             />
         </View>
     );
