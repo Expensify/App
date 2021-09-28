@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -45,6 +46,9 @@ class CompanyStep extends React.Component {
 
         this.submit = this.submit.bind(this);
 
+        // Session domain
+        this.domain = Str.extractEmailDomain(lodashGet(props, 'session.email', ''));
+
         this.state = {
             companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
             addressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressStreet'),
@@ -52,7 +56,7 @@ class CompanyStep extends React.Component {
             addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
             addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
             companyPhone: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyPhone'),
-            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', 'https://'),
+            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', this.domain ? `http://www.${this.domain}` : 'https://'),
             companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyTaxID'),
             incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
             incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
