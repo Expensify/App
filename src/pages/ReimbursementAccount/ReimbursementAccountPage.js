@@ -1,4 +1,3 @@
-import moment from 'moment';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
