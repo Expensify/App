@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import SignoutManager from '../../components/SignoutManager';
+import SignoutManager from '../SignoutManager';
 import ONYXKEYS from '../../ONYXKEYS';
 
 let currentActiveClients;
