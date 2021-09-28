@@ -1,10 +1,5 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Pusher from '../Pusher/pusher';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
-import PushNotification from '../Notification/PushNotification';
-import Timers from '../Timers';
-import SignoutManager from '../SignoutManager';
 
 let currentActiveClients;
 Onyx.connect({
@@ -21,20 +16,6 @@ Onyx.connect({
 });
 
 /**
- * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
- */
-function cleanupSession() {
-    // We got signed out in this tab or another so clean up any subscriptions and timers
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
-    Pusher.disconnect();
-    Timers.clearAll();
-}
-
-SignoutManager.onSignout(cleanupSession);
-
-/**
  * Clears the Onyx store and redirects to the sign in page.
  * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
  *
@@ -43,8 +24,6 @@ SignoutManager.onSignout(cleanupSession);
 function redirectToSignIn(errorMessage) {
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
-    cleanupSession();
-    SignoutManager.notifyTabsOfSignout();
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
     Onyx.clear()
