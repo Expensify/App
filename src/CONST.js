@@ -28,6 +28,7 @@ const CONST = {
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
             MAX_VALIDATION_ATTEMPTS_REACHED: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+            INCORRECT_VALIDATION_AMOUNTS: 'The validate code you entered is incorrect, please try again.',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -213,6 +214,7 @@ const CONST = {
     },
     ERROR: {
         API_OFFLINE: 'session.offlineMessageRetry',
+        UNKNOWN_ERROR: 'Unknown error',
     },
     NETWORK: {
         METHOD: {
@@ -343,6 +345,7 @@ const CONST = {
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
             USER_CANCELLED: 'User canceled flow',
+            USER_TAPPED_BACK: 'User exited by clicking the back button.',
         },
     },
 
