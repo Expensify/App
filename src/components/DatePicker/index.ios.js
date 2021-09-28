@@ -30,6 +30,9 @@ class Datepicker extends React.Component {
         this.updateLocalDate = this.updateLocalDate.bind(this);
     }
 
+    /**
+     * @param {Event} event
+     */
     showPicker(event) {
         this.initialValue = this.state.selectedDate;
         this.setState({isPickerVisible: true});
@@ -52,6 +55,10 @@ class Datepicker extends React.Component {
         this.props.onChange(this.state.selectedDate);
     }
 
+    /**
+     * @param {Event} event
+     * @param {Date} selectedDate
+     */
     updateLocalDate(event, selectedDate) {
         this.setState({selectedDate});
     }

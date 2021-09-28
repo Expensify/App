@@ -17,11 +17,18 @@ class DatePicker extends React.Component {
         this.raiseDateChange = this.raiseDateChange.bind(this);
     }
 
+    /**
+     * @param {Event} event
+     */
     showPicker(event) {
         this.setState({isPickerVisible: true});
         event.preventDefault();
     }
 
+    /**
+     * @param {Event} event
+     * @param {Date} selectedDate
+     */
     raiseDateChange(event, selectedDate) {
         if (event.type === 'set') {
             this.props.onChange(selectedDate);

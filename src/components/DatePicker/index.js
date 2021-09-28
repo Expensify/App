@@ -52,7 +52,7 @@ class Datepicker extends React.Component {
     /**
      * Pops the datepicker up when we focus this field. This only works on mWeb
      * On mWeb the user needs to tap on the field again in order to bring the datepicker. But our current styles
-     * don't make this very obvious. To avoid confusion we open the datepicker when the user focus the field
+     * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
      */
     showDatepicker() {
         if (this.inputRef) {
