@@ -4,10 +4,11 @@ import {Linking} from 'react-native';
  * Gets the URLSchema and check the existence of that application
  *
  * @param {String} urlScheme
+ * @param {Boolean} shouldMakeCancellable
  * @returns {Promise}
  */
-export default function isAppInstalled(urlScheme) {
-    return new Promise((resolve, reject) => {
+export default function isAppInstalled(urlScheme, shouldMakeCancellable = false) {
+    const promise = new Promise((resolve, reject) => {
         Linking.canOpenURL(`${urlScheme}://`)
             .then((isInstalled) => {
                 resolve(isInstalled);
@@ -16,4 +17,6 @@ export default function isAppInstalled(urlScheme) {
                 reject(error);
             });
     });
+
+    return shouldMakeCancellable ? makeCancellable(promise) : promise;
 }

@@ -27,6 +27,7 @@ import {
 import Permissions from '../libs/Permissions';
 import isAppInstalled from '../libs/isAppInstalled';
 import {isValidUSPhone} from '../libs/ValidationUtils';
+import makeCancelablePromise from '../libs/MakeCancelaablePromise';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -148,7 +149,8 @@ class IOUConfirmationList extends Component {
         }
         confirmationButtonOptions.push(defaultButtonOption);
 
-        this.isComponentMounted = false;
+        // this.isComponentMounted = false;
+        this.checkVenmoAvailabilityPromise = null;
 
         this.state = {
             confirmationButtonOptions,
@@ -160,8 +162,13 @@ class IOUConfirmationList extends Component {
     }
 
     componentDidMount() {
-        this.isComponentMounted = true;
-        this.addVenmoPaymentOption();
+        this.addVenmoPaymentOptionToMenu();
+    }
+
+    componentWillUnmount() {
+        if (this.checkVenmoAvailabilityPromise) {
+            this.checkVenmoAvailabilityPromise.cancel();
+        }
     }
 
     /**
@@ -317,14 +324,12 @@ class IOUConfirmationList extends Component {
     /**
      * Adds Venmo, if available, as the second option in the menu of payment options
      */
-    addVenmoPaymentOption() {
+    addVenmoPaymentOptionToMenu() {
         // Add Venmo option
         if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber.length > 0 && isValidUSPhone(this.state.participants[0].phoneNumber)) {
-            isAppInstalled('venmo')
+            this.checkVenmoAvailabilityPromise = makeCancelablePromise(isAppInstalled('venmo'))
                 .then((isVenmoInstalled) => {
-                    // We will return early if the component has unmounted before the async call resolves. This prevents
-                    // setting state on unmounted components which prints noisy warnings in the console.
-                    if (!isVenmoInstalled || !this.isComponentMounted) {
+                    if (!isVenmoInstalled) {
                         return;
                     }
 
