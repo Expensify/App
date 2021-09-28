@@ -63,7 +63,7 @@ class BeneficialOwnersStep extends React.Component {
     }
 
     /**
-     * @param {Integer} ownerIndex
+     * @param {Number} ownerIndex
      * @returns {Object}
      */
     getBeneficialOwnerErrors(ownerIndex) {
