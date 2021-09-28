@@ -289,20 +289,20 @@ describe('GithubUtils', () => {
         const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
         const openCheckbox = '  - [ ]';
         const closedCheckbox = '  - [x]';
-        const listStart = '- '
-        const QA = ' QA'
-        const accessibility = ' Accessibility'
+        const listStart = '- ';
+        const QA = ' QA';
+        const accessibility = ' Accessibility';
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
         const deployBlockerHeader = '\r\n**Deploy Blockers:**';
-        const lineBreak = '\r\n'
-        const lineBreakDouble = '\r\n\r\n'
+        const lineBreak = '\r\n';
+        const lineBreakDouble = '\r\n\r\n';
 
         // Valid output which will be reused in the deploy blocker tests
-        const allVerifiedExpectedOutput = `${baseExpectedOutput}` +
-                `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-        
+        const allVerifiedExpectedOutput = `${baseExpectedOutput}`
+                + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`;
+
 
         test('Test no verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList)

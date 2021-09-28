@@ -124,8 +124,8 @@ const run = function () {
             return GithubUtils.generateStagingDeployCashBody(
                 tag,
                 _.pluck(PRList, 'url'),
-                _.pluck(_.where(PRList, {isVerified: true,}), 'url'),
-                _.pluck(_.where(PRList, {isAccessible: true,}), 'url'),
+                _.pluck(_.where(PRList, {isVerified: true}), 'url'),
+                _.pluck(_.where(PRList, {isAccessible: true}), 'url'),
                 _.pluck(deployBlockers, 'url'),
                 _.pluck(_.where(deployBlockers, {isResolved: true}), 'url'),
             );
