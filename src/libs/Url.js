@@ -12,6 +12,12 @@ function addTrailingForwardSlash(url) {
     return url;
 }
 
+/**
+ * Remove / from the beginning of any URL if present
+ *
+ * @param {String} url
+ * @returns {String}
+ */
 function removeLeadingForwardSlash(url) {
     if (Str.startsWith(url, '/')) {
         return url.slice(1);
