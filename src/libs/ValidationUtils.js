@@ -70,7 +70,7 @@ function isValidAge(date) {
 
 /**
  * @param {Object} identity
- * @returns {Boolean}
+ * @returns {Object}
  */
 function validateIdentity(identity) {
     const errors = {};
