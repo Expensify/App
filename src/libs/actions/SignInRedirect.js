@@ -1,10 +1,10 @@
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as Pusher from '../Pusher/pusher';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import PushNotification from '../Notification/PushNotification';
 import Timers from '../Timers';
+import SignoutManager from '../SignoutManager';
 
 let currentActiveClients;
 Onyx.connect({
@@ -20,22 +20,19 @@ Onyx.connect({
     callback: val => currentPreferredLocale = val,
 });
 
-let previousAuthToken;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        const newAuthToken = lodashGet(val, 'authToken');
-        if (previousAuthToken && !newAuthToken) {
-            // We got signed out in this tab or another so clean up any subscriptions and timers
-            UnreadIndicatorUpdater.stopListeningForReportChanges();
-            PushNotification.deregister();
-            PushNotification.clearNotifications();
-            Pusher.disconnect();
-            Timers.clearAll();
-        }
-        previousAuthToken = newAuthToken;
-    },
-});
+/**
+ * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
+ */
+function cleanupSession() {
+    // We got signed out in this tab or another so clean up any subscriptions and timers
+    UnreadIndicatorUpdater.stopListeningForReportChanges();
+    PushNotification.deregister();
+    PushNotification.clearNotifications();
+    Pusher.disconnect();
+    Timers.clearAll();
+}
+
+SignoutManager.onSignout(cleanupSession);
 
 /**
  * Clears the Onyx store and redirects to the sign in page.
@@ -46,6 +43,8 @@ Onyx.connect({
 function redirectToSignIn(errorMessage) {
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
+    cleanupSession();
+    SignoutManager.notifyTabsOfSignout();
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
     Onyx.clear()
