@@ -564,6 +564,9 @@ export default {
         descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
+        letsChatCTA: '¡Sí, vamos a chatear!',
+        letsChatText: '¡Gracias por darnos tu información! Aún nos quedan algunas cosas por revisar, pero será mas fácil hacerlo por chat. ¿Estás listo para comenzar?',
+        letsChatTitle: '¡Vamos a chatear!',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
