@@ -2030,6 +2030,14 @@ const styles = {
             {translateY},
         ],
     }),
+
+    plaidLink: {
+        position: 'fixed',
+        right: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: variables.plaidzIndex,
+    },
 };
 
 const baseCodeTagStyles = {

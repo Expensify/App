@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+    <meta charset="utf-8" />
+
+    <!-- Ensure the file is being opened inside an iFrame parent -->
+    <script type="text/javascript">
+    if (window.self === window.top) {
+        window.stop();
+    }
+    </script>
+    <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+    <title>Plaid</title>
+</head>
+<body>
+    <script type="text/javascript">
+        /**
+         * @param {Object} data
+         */
+        function dispatchPlaidEvent(data) {
+            const event = new CustomEvent('plaidEvent', {detail: data});
+            window.parent.dispatchEvent(event);
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const params = new URLSearchParams(window.location.search);
+            const plaidInstance = Plaid.create({
+                token: params.get('token'),
+                onEvent: function (event, metadata) {
+                    dispatchPlaidEvent({eventName: 'plaid-on-event', event, metadata});
+                },
+                onLoad: function () {
+                    dispatchPlaidEvent({eventName: 'plaid-on-load'});
+                },
+                onSuccess: function (public_token, metadata) {
+                    dispatchPlaidEvent({eventName: 'plaid-on-success', public_token, metadata});
+                },
+                onExit: function (error, metadata) {
+                    dispatchPlaidEvent({eventName: 'plaid-on-exit', error, metadata});
+                },
+            });
+
+            plaidInstance.open();
+        });
+    </script>
+</body>
+</html>

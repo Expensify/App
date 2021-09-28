@@ -43,6 +43,7 @@ const webpackConfig = {
         // Copies favicons into the dist/ folder to use for unread status
         new CopyPlugin({
             patterns: [
+                {from: 'web/plaid.html'},
                 {from: 'web/favicon.png'},
                 {from: 'web/favicon-unread.png'},
                 {from: 'web/og-preview-image.png'},
