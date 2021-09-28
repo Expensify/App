@@ -62,6 +62,7 @@ class PasswordPage extends Component {
         this.getErrorText = this.getErrorText.bind(this);
         this.isValidPassword = this.isValidPassword.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.currentPasswordInputRef = null;
 
         this.errorKeysMap = {
@@ -83,6 +84,13 @@ class PasswordPage extends Component {
 
     isValidPassword(password) {
         return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+    }
+
+    clearErrorAndSetValue(field, value) {
+        this.setState(prevState => ({
+            [field]: value,
+            errors: {...prevState.errors, [field]: false},
+        }));
     }
 
     validateAndSubmitForm() {
@@ -155,7 +163,7 @@ class PasswordPage extends Component {
                                 autoCompleteType="password"
                                 textContentType="password"
                                 value={this.state.currentPassword}
-                                onChangeText={currentPassword => this.setState({currentPassword})}
+                                onChangeText={text => this.clearErrorAndSetValue('currentPassword', text)}
                                 returnKeyType="done"
                                 hasError={this.state.errors.currentPassword}
                                 errorText={this.getErrorText('currentPassword')}
@@ -170,7 +178,7 @@ class PasswordPage extends Component {
                                 value={this.state.newPassword}
                                 hasError={this.state.errors.newPassword}
                                 errorText=""
-                                onChangeText={newPassword => this.setState({newPassword})}
+                                onChangeText={text => this.clearErrorAndSetValue('newPassword', text)}
                             />
                             <Text
                                 style={[
@@ -189,7 +197,7 @@ class PasswordPage extends Component {
                                 autoCompleteType="password"
                                 textContentType="password"
                                 value={this.state.confirmNewPassword}
-                                onChangeText={confirmNewPassword => this.setState({confirmNewPassword})}
+                                onChangeText={text => this.clearErrorAndSetValue('confirmNewPassword', text)}
                                 hasError={this.state.errors.confirmNewPassword}
                                 errorText={this.getErrorText('confirmNewPassword')}
                                 onSubmitEditing={this.validateAndSubmitForm}
