@@ -309,10 +309,10 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}` +
-                        `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`
+                        + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`
                     );
                 })
         ));
@@ -321,11 +321,11 @@ describe('GithubUtils', () => {
             githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]])
                 .then((issueBody) => {
                     expect(issueBody).toBe(
-                        `${baseExpectedOutput}` +
-                        `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}` +
-                        `${lineBreakDouble}${ccApplauseLeads}`
+                        `${baseExpectedOutput}`
+                        + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`
                     );
                 })
         ));
