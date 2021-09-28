@@ -5,11 +5,11 @@ import styles from '../styles/styles';
 import Text from './Text';
 import ChatCustomAvatar from './ChatCustomAvatar';
 import ActiveRoomAvatar from '../../assets/images/avatars/room.svg';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Array of avatar URL */
     avatarImageURLs: PropTypes.arrayOf(PropTypes.string),
-
 
     /** Whether this avatar is for an custom room */
     isCustomChatRoom: PropTypes.bool,
@@ -59,7 +59,7 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
                                             ]}
                                         />
                                         <Text style={styles.avatarInnerTextChat}>
-                                            {`+${avatarImageURLs.length - 4}`}
+                                            {`+${avatarImageURLs.length - CONST.MAX_AVATARS}`}
                                         </Text>
                                     </>
                                 )}

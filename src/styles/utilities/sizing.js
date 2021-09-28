@@ -8,8 +8,8 @@ export default {
         height: '100%',
     },
 
-    w100: {
-        width: '100%',
+    w20: {
+        width: '20%',
     },
 
     w50: {
@@ -20,8 +20,8 @@ export default {
         width: '70%',
     },
 
-    w20: {
-        width: '20%',
+    w100: {
+        width: '100%',
     },
 
     mwn: {

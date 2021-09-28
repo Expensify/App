@@ -8,8 +8,6 @@ import {
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import {
     fetchActions,
     fetchChatReportsByIDs,
@@ -40,8 +38,6 @@ import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
 import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
 import {isDefaultRoom} from '../../../libs/reportUtils';
-import ONYXKEYS from '../../../ONYXKEYS';
-import {getPersonalDetailsForLogins} from '../../../libs/OptionsListUtils';
 import ChatBeginingText from '../../../components/ChatBeginingText';
 
 const propTypes = {
@@ -504,25 +500,6 @@ class ReportActionsView extends React.Component {
 
     render() {
         const isDefaultChatRoom = isDefaultRoom(this.props.report);
-        const participants = lodashGet(this.props.report, 'participants', []);
-        const isMultipleParticipant = participants.length > 1;
-        const displayNamesWithTooltips = _.map(
-            getPersonalDetailsForLogins(participants, this.props.personalDetails),
-            ({
-                displayName, firstName, login, pronouns,
-            }) => {
-                const displayNameTrimmed = Str.isSMSLogin(login) ? this.props.toLocalPhone(displayName) : displayName;
-
-                return {
-                    displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
-                    tooltip: Str.removeSMSDomain(login),
-                    pronouns,
-                };
-            },
-        );
-
-        const chatUsers = isDefaultChatRoom ? [{displayName: this.props.report.reportName}] : displayNamesWithTooltips;
-
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
@@ -539,7 +516,7 @@ class ReportActionsView extends React.Component {
                             secondAvatarStyle={[styles.secondAvatarHovered]}
                             isCustomChatRoom={isDefaultChatRoom}
                         />
-                        <ChatBeginingText chatUsers={chatUsers} isDefaultChatRoom={isDefaultChatRoom} />
+                        <ChatBeginingText report={this.props.report} isDefaultChatRoom={isDefaultChatRoom} />
                     </View>
                 </View>
             );
@@ -590,9 +567,4 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
-    withOnyx({
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-    }),
 )(ReportActionsView);

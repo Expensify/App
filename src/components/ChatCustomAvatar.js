@@ -32,8 +32,6 @@ const defaultProps = {
     size: 'default',
     isCustomChatRoom: false,
     CustomChatRoomIcon: ActiveRoomAvatar,
-
-
 };
 
 class ChatCustomAvatar extends PureComponent {

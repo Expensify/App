@@ -404,6 +404,8 @@ const CONST = {
         DEFAULT: 'default',
     },
 
+    MAX_AVATARS: 4,
+
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
