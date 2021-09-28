@@ -51,7 +51,7 @@ export default {
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
-        noPO: '(No se aceptan apartados ni direcciones postales)',
+        noPO: 'No se aceptan apartados ni direcciones postales',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código postal',
