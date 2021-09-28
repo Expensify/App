@@ -18,27 +18,23 @@ Onyx.connect({
 
 /**
  * @param {String} errorMessage
- * @returns {Promise}
  */
 function clearStorageAndRedirect(errorMessage) {
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
-    return Onyx.clear()
+    Onyx.clear()
         .then(() => {
-            const promises = [];
-
             if (preferredLocale) {
-                promises.push(Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale));
+                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
             if (activeClients && activeClients.length > 0) {
-                promises.push(Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients));
+                Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
             }
 
             // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
-            promises.push(Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage}));
-            return Promise.all(promises);
+            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
         });
 }
 
