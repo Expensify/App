@@ -753,6 +753,7 @@ function setupWithdrawalAccount(data) {
                 }
             } else {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
+                    // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
                     error = response.htmlMessage || response.message;
                     htmlError = Boolean(response.htmlMessage);
                 }
