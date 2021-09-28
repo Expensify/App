@@ -24,7 +24,6 @@ import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
 import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
-import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -209,7 +208,6 @@ AddPlaidBankAccount.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
     withOnyx({
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
