@@ -39,7 +39,7 @@ function isRequiredFulfilled(value) {
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
-    return moment(date, 'YYYY-MM-DD', true).isValid();
+    return moment(date).isValid();
 }
 
 /**
