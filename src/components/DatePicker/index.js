@@ -15,6 +15,7 @@ class Datepicker extends React.Component {
         super(props);
 
         this.raiseDateChange = this.raiseDateChange.bind(this);
+        this.showDatepicker = this.showDatepicker.bind(this);
 
         /* We're using uncontrolled input otherwise it wont be possible to
         * raise change events with a date value - each change will produce a date
@@ -48,6 +49,17 @@ class Datepicker extends React.Component {
         }
     }
 
+    /**
+     * Pops the datepicker up when we focus this field. This only works on mWeb
+     * On mWeb the user needs to tap on the field again in order to bring the datepicker. But our current styles
+     * don't make this very obvious. To avoid confusion we open the datepicker when the user focus the field
+     */
+    showDatepicker() {
+        if (this.inputRef) {
+            this.inputRef.click();
+        }
+    }
+
     render() {
         const {
             label,
@@ -63,6 +75,7 @@ class Datepicker extends React.Component {
             <ExpensiTextInput
                 forceActiveLabel={!isSmallScreenWidth}
                 ref={input => this.inputRef = input}
+                onFocus={this.showDatepicker}
                 label={label}
                 onChangeText={this.raiseDateChange}
                 defaultValue={this.defaultValue}
