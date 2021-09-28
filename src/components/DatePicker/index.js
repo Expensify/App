@@ -5,12 +5,12 @@ import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
-const webDatePickerPropTypes = {
+const datePickerPropTypes = {
     ...propTypes,
     ...windowDimensionsPropTypes,
 };
 
-class WebDatepicker extends React.Component {
+class Datepicker extends React.Component {
     constructor(props) {
         super(props);
 
@@ -33,7 +33,7 @@ class WebDatepicker extends React.Component {
 
     /**
      * Trigger the `onChange` handler when the user input has a complete date or is cleared
-     * @param {string} text
+     * @param {String} text
      */
     raiseDateChange(text) {
         if (!text) {
@@ -76,7 +76,7 @@ class WebDatepicker extends React.Component {
     }
 }
 
-WebDatepicker.propTypes = webDatePickerPropTypes;
-WebDatepicker.defaultProps = defaultProps;
+Datepicker.propTypes = datePickerPropTypes;
+Datepicker.defaultProps = defaultProps;
 
-export default withWindowDimensions(WebDatepicker);
+export default withWindowDimensions(Datepicker);

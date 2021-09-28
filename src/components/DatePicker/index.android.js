@@ -1,12 +1,11 @@
 import React from 'react';
-import DatePicker from '@react-native-community/datetimepicker';
+import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import ExpensiTextInput from '../ExpensiTextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 
-
-class DatepickerAndroid extends React.Component {
+class DatePicker extends React.Component {
     constructor(props) {
         super(props);
 
@@ -55,7 +54,7 @@ class DatepickerAndroid extends React.Component {
                     disabled={disabled}
                 />
                 {this.state.isPickerVisible && (
-                    <DatePicker
+                    <RNDatePicker
                         value={moment(value || new Date()).toDate()}
                         mode="date"
                         onChange={this.raiseDateChange}
@@ -66,7 +65,7 @@ class DatepickerAndroid extends React.Component {
     }
 }
 
-DatepickerAndroid.propTypes = propTypes;
-DatepickerAndroid.defaultProps = defaultProps;
+DatePicker.propTypes = propTypes;
+DatePicker.defaultProps = defaultProps;
 
-export default DatepickerAndroid;
+export default DatePicker;

@@ -1,21 +1,21 @@
 import React from 'react';
 import {Button, View} from 'react-native';
-import DatePicker from '@react-native-community/datetimepicker';
+import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
 import ExpensiTextInput from '../ExpensiTextInput';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Popover from '../Popover';
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
-import colors from '../../styles/colors';
+import themeColors from '../../styles/themes/default';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 
-const iosDatepickerPropTypes = {
+const datepickerPropTypes = {
     ...propTypes,
     ...withLocalizePropTypes,
 };
 
-class DatepickerIOS extends React.Component {
+class Datepicker extends React.Component {
     constructor(props) {
         super(props);
 
@@ -31,15 +31,15 @@ class DatepickerIOS extends React.Component {
     }
 
     showPicker() {
-        this.previousValue = this.state.selectedDate;
+        this.initialValue = this.state.selectedDate;
         this.setState({isPickerVisible: true});
     }
 
     /**
-     * Reset the current date spinner changes to the initial value
+     * Reset the date spinner to the initial value
      */
     reset() {
-        this.setState({selectedDate: this.previousValue});
+        this.setState({selectedDate: this.initialValue});
     }
 
     /**
@@ -96,16 +96,16 @@ class DatepickerIOS extends React.Component {
                     >
                         <Button
                             title={this.props.translate('common.reset')}
-                            color={colors.red}
+                            color={themeColors.textError}
                             onPress={this.reset}
                         />
                         <Button
                             title={this.props.translate('common.confirm')}
-                            color={colors.blue}
+                            color={themeColors.link}
                             onPress={this.selectDate}
                         />
                     </View>
-                    <DatePicker
+                    <RNDatePicker
                         value={this.state.selectedDate || new Date()}
                         mode="date"
                         display="spinner"
@@ -117,7 +117,7 @@ class DatepickerIOS extends React.Component {
     }
 }
 
-DatepickerIOS.propTypes = iosDatepickerPropTypes;
-DatepickerIOS.defaultProps = defaultProps;
+Datepicker.propTypes = datepickerPropTypes;
+Datepicker.defaultProps = defaultProps;
 
-export default withLocalize(DatepickerIOS);
+export default withLocalize(Datepicker);

@@ -44,8 +44,10 @@ const defaultProps = {
     inputStyle: [],
     ignoreLabelTranslateX: false,
 
-    /* To work as controlled and uncontrolled input only value or defaultValue should be used
-    * there should be no default value like empty string */
+    /**
+     * To be able to function as either controlled or uncontrolled component we should not
+     * assign a default prop value for `value` or `defaultValue` props
+     */
     value: undefined,
     defaultValue: undefined,
     forceActiveLabel: false,
