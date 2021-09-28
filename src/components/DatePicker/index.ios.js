@@ -21,7 +21,7 @@ class Datepicker extends React.Component {
 
         this.state = {
             isPickerVisible: false,
-            selectedDate: props.value ? moment(props.value).toDate() : null,
+            selectedDate: props.value ? moment(props.value).toDate() : new Date(),
         };
 
         this.showPicker = this.showPicker.bind(this);
@@ -30,9 +30,10 @@ class Datepicker extends React.Component {
         this.updateLocalDate = this.updateLocalDate.bind(this);
     }
 
-    showPicker() {
+    showPicker(event) {
         this.initialValue = this.state.selectedDate;
         this.setState({isPickerVisible: true});
+        event.preventDefault();
     }
 
     /**
@@ -57,6 +58,7 @@ class Datepicker extends React.Component {
 
     render() {
         const {
+            value,
             label,
             placeholder,
             errorText,
@@ -65,9 +67,7 @@ class Datepicker extends React.Component {
             disabled,
         } = this.props;
 
-        const dateAsText = this.state.selectedDate
-            ? moment(this.state.selectedDate).format(CONST.DATE.MOMENT_FORMAT_STRING)
-            : '';
+        const dateAsText = value ? moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
 
         return (
             <>
@@ -106,7 +106,7 @@ class Datepicker extends React.Component {
                         />
                     </View>
                     <RNDatePicker
-                        value={this.state.selectedDate || new Date()}
+                        value={this.state.selectedDate}
                         mode="date"
                         display="spinner"
                         onChange={this.updateLocalDate}
