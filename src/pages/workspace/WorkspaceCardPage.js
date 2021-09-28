@@ -25,6 +25,7 @@ import HeroCardMobileImage from '../../../assets/images/cascading-cards-mobile.s
 import BankAccount from '../../libs/models/BankAccount';
 import {openSignedInLink} from '../../libs/actions/App';
 import {setWorkspaceIDForReimbursementAccount} from '../../libs/actions/BankAccounts';
+import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 
 const propTypes = {
     /* Onyx Props */
@@ -51,16 +52,7 @@ const propTypes = {
     }).isRequired,
 
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Additional data */
-        achData: PropTypes.shape({
-            /** Bank account state */
-            state: PropTypes.string,
-        }),
-
-        /** Whether we are loading this bank account */
-        loading: PropTypes.bool,
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
@@ -132,7 +124,7 @@ const WorkspaceCardPage = ({
                 shouldShowInboxCallButton
                 inboxCallTaskID="WorkspaceCompanyCards"
             />
-            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
+            <ScrollView style={[styles.settingsPageBackground]}>
                 <View style={styles.pageWrapper}>
                     <View style={[
                         styles.mb3,
