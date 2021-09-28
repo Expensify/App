@@ -1,3 +1,5 @@
+import Str from 'expensify-common/lib/str';
+
 /**
  * Add / to the end of any URL if not present
  * @param {String} url
@@ -10,7 +12,14 @@ function addTrailingForwardSlash(url) {
     return url;
 }
 
+function removeLeadingForwardSlash(url) {
+    if (Str.startsWith(url, '/')) {
+        return url.slice(1);
+    }
+    return url;
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     addTrailingForwardSlash,
+    removeLeadingForwardSlash,
 };

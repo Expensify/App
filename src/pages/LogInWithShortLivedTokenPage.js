@@ -52,11 +52,6 @@ const defaultProps = {
 };
 
 class LogInWithShortLivedTokenPage extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {hasRun: false};
-    }
-
     componentDidMount() {
         const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
         const email = lodashGet(this.props.route.params, 'email', '');
@@ -69,11 +64,11 @@ class LogInWithShortLivedTokenPage extends Component {
         }
 
         signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
-        this.setState({hasRun: true});
     }
 
     componentDidUpdate() {
-        if (this.state.hasRun || !this.props.betas) {
+        const email = lodashGet(this.props.route.params, 'email', '');
+        if (!this.props.betas || !this.props.session.authToken || email !== this.props.session.email) {
             return;
         }
 

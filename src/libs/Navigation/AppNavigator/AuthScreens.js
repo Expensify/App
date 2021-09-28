@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -33,6 +34,7 @@ import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import Permissions from '../../Permissions';
 import getOperatingSystem from '../../getOperatingSystem';
 import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
+import {removeLeadingForwardSlash} from '../../Url';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -111,20 +113,12 @@ const modalScreenListeners = {
     },
 };
 
-let hasLoadedPolicies = false;
-
 /**
- * We want to only load policy info if you are in the freePlan beta.
- * @param {Array} betas
+ * @param {String} route
+ * @returns {Boolean}
  */
-function loadPoliciesBehindBeta(betas) {
-    // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
-    // Policy info loading should not be blocked behind the defaultRooms beta alone.
-    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
-        getPolicyList();
-        getPolicySummaries();
-        hasLoadedPolicies = true;
-    }
+function isTransitionOrNewWorkspacePage(route) {
+    return route && !_.any([ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN, ROUTES.WORKSPACE_NEW], badRoute => Str.startsWith(removeLeadingForwardSlash(route), badRoute));
 }
 
 const propTypes = {
@@ -148,6 +142,8 @@ const defaultProps = {
 class AuthScreens extends React.Component {
     constructor(props) {
         super(props);
+
+        this.hasLoadedPolicies = false;
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -191,7 +187,7 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
         fetchFreePlanVerifiedBankAccount();
 
-        loadPoliciesBehindBeta(this.props.betas);
+        this.loadPoliciesBehindBeta();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -235,11 +231,15 @@ class AuthScreens extends React.Component {
             return true;
         }
 
+        if (isTransitionOrNewWorkspacePage(this.props.currentURL) && !isTransitionOrNewWorkspacePage(nextProps.currentURL)) {
+            return true;
+        }
+
         return false;
     }
 
     componentDidUpdate() {
-        loadPoliciesBehindBeta(this.props.betas);
+        this.loadPoliciesBehindBeta();
     }
 
     componentWillUnmount() {
@@ -252,7 +252,25 @@ class AuthScreens extends React.Component {
         NetworkConnection.stopListeningForReconnect();
         clearInterval(this.interval);
         this.interval = null;
-        hasLoadedPolicies = false;
+        this.hasLoadedPolicies = false;
+    }
+
+    /**
+     * We want to only load policy info if:
+     * - We are on the free plan beta
+     * - We are not on the transition or new-workspace pages (if we load policies while creating a new one we may accidentally overwrite the new policy due to race condition)
+     * - We have not already loaded policies
+     */
+    loadPoliciesBehindBeta() {
+        // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
+        // Policy info loading should not be blocked behind the defaultRooms beta alone.
+        if (!this.hasLoadedPolicies
+            && !isTransitionOrNewWorkspacePage(this.props.currentURL)
+            && (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas))) {
+            getPolicyList();
+            getPolicySummaries();
+            this.hasLoadedPolicies = true;
+        }
     }
 
     render() {
@@ -458,6 +476,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        currentURL: {
+            key: ONYXKEYS.CURRENT_URL,
         },
     }),
 )(AuthScreens);
