@@ -1,10 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withOnyx} from 'react-native-onyx';
+import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import ONYXKEYS from '../../ONYXKEYS';
 
 const propTypes = {
     addressZipCode: PropTypes.string,
@@ -64,4 +67,12 @@ const ZIPCodeInput = (props) => {
 ZIPCodeInput.propTypes = propTypes;
 ZIPCodeInput.defaultProps = defaultProps;
 ZIPCodeInput.displayName = 'ZIPCodeInput';
-export default withLocalize(ZIPCodeInput);
+
+export default compose(
+    withLocalize,
+    withOnyx({
+        cityAndStateFromZipCode: {
+            key: props => `${ONYXKEYS.COLLECTION.CITYSTATE_BY_ZIPCODE}_${props.addressZipCode}`,
+        },
+    }),
+)(ZIPCodeInput);

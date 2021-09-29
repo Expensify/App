@@ -94,6 +94,7 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
+        CITYSTATE_BY_ZIPCODE: 'cityStateByZIPCode_',
     },
 
     // Indicates which locale should be used
