@@ -63,6 +63,7 @@ class TransitionPage extends PureComponent {
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', '')) || ROUTES.HOME;
         const shouldCreateNewWorkspace = exitTo === ROUTES.WORKSPACE_NEW;
 
+        // Note: Using promises to wait for actions to finish like this is a violation of the NewDot philosophy. An exception has been made in this case.
         this.signInIfNecessary()
             .then(() => loadBetasAndFetchPolicies(shouldCreateNewWorkspace))
             .then(({policyID}) => {
@@ -73,7 +74,7 @@ class TransitionPage extends PureComponent {
                 // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
                 // if they cancel out of the new workspace modal.
                 Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
+                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : exitTo);
             })
             .catch((err) => {
                 Navigation.dismissModal();
