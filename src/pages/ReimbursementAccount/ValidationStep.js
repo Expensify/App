@@ -231,10 +231,10 @@ class ValidationStep extends React.Component {
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
-                        <View style={[styles.alignItemsCenter, styles.mt5, styles.mb5]}>
+                        <View style={[styles.alignItemsCenter, styles.mb5]}>
                             <LetsChatImage />
                         </View>
-                        <Text style={[styles.mh5, styles.mt5, styles.mb5, styles.flex1]}>
+                        <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
                             {this.props.translate('validationStep.letsChatText')}
                         </Text>
                         <Button
