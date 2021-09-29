@@ -17,6 +17,9 @@ const propTypes = {
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
 
+    /** If the field should be disabled or not */
+    disabled: PropTypes.bool,
+
     /** The value that needs to be selected */
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -26,6 +29,7 @@ const propTypes = {
 const defaultProps = {
     value: '',
     hasError: false,
+    disabled: false,
 };
 
 const StatePicker = props => (
@@ -37,6 +41,7 @@ const StatePicker = props => (
         label={props.translate('common.state')}
         hasError={props.hasError}
         errorText={props.errorText}
+        isDisabled={props.disabled}
     />
 );
 

@@ -47,6 +47,15 @@ class BaseExpensiTextInput extends Component {
         }
     }
 
+    componentDidUpdate(prevProps) {
+        // If the value of the input has gone from nothing to something, then the label should be activated or else
+        // the label just sits on top of the value that was entered. This can happen when the value of the input
+        // is set by something other than user interaction (like the ZIP code setting the value of the city input).
+        if (!prevProps.value && prevProps.value !== this.props.value) {
+            this.activateLabel();
+        }
+    }
+
     onFocus() {
         if (this.props.onFocus) { this.props.onFocus(); }
         this.setState({isFocused: true});
