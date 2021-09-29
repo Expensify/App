@@ -235,7 +235,6 @@ const renderers = {
     code: CodeRenderer,
     img: ImgRenderer,
     edited: withLocalize(EditedRenderer),
-    'muted-text': TNodeChildrenRenderer,
 };
 
 const renderersProps = {
