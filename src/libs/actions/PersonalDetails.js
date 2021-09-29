@@ -224,14 +224,12 @@ function setPersonalDetails(details, shouldGrowl) {
                 mergeLocalPersonalDetails(details);
             }
 
-            if (shouldGrowl) {
-                if (response.jsonCode === 400) {
-                    Growl.error(translateLocal('profilePage.error.messageOn400'), 3000);
-                } else if (response.jsonCode === 401) {
-                    Growl.error(translateLocal('profilePage.error.messageOn401'), 3000);
-                } else {
-                    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-                }
+            if (shouldGrowl && response.jsonCode === 200) {
+                Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+            } else if (response.jsonCode === 400) {
+                Growl.error(translateLocal('profilePage.error.messageOn400'), 3000);
+            } else if (response.jsonCode === 401) {
+                Growl.error(translateLocal('profilePage.error.messageOn401'), 3000);
             }
         }).catch((error) => {
             console.debug('Error while setting personal details', error);
