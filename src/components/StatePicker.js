@@ -14,6 +14,9 @@ const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
     onChange: PropTypes.func.isRequired,
 
+    /** Should the input be styled for errors  */
+    hasError: PropTypes.bool,
+
     /** The value that needs to be selected */
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
 
@@ -22,6 +25,7 @@ const propTypes = {
 
 const defaultProps = {
     value: '',
+    hasError: false,
 };
 
 const StatePicker = props => (

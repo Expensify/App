@@ -30,6 +30,7 @@ import ExpensiPicker from '../../components/ExpensiPicker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import ZIPCodeInput from './ZIPCodeInput';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -193,31 +194,17 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('addressStreet')}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
-                    <ExpensiTextInput
-                        label={this.props.translate('common.zip')}
-                        containerStyles={[styles.mt4]}
-                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
-                        value={this.state.addressZipCode}
-                        errorText={this.getErrorText('addressZipCode')}
+
+                    <ZIPCodeInput
+                        addressZipCode={this.state.addressZipCode}
+                        addressCity={this.state.addressCity}
+                        addressState={this.state.addressState}
+                        errorTextAddressZipCode={this.getErrorText('addressZipCode')}
+                        errorTextAddressCity={this.getErrorText('addressCity')}
+                        errorTextAddressState={this.getErrorText('addressState')}
+                        onChange={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                     />
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
-                            <ExpensiTextInput
-                                label={this.props.translate('common.city')}
-                                onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
-                                value={this.state.addressCity}
-                                errorText={this.getErrorText('addressCity')}
-                                translateX={-14}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                onChange={value => this.clearErrorAndSetValue('addressState', value)}
-                                value={this.state.addressState}
-                                hasError={this.getErrors().addressState}
-                            />
-                        </View>
-                    </View>
+
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}
