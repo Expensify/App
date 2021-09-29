@@ -45,14 +45,6 @@ function isValidDate(date) {
 }
 
 /**
- * @param {String} code
- * @returns {Boolean}
- */
-function isValidIndustryCode(code) {
-    return CONST.REGEX.INDUSTRY_CODE.test(code);
-}
-
-/**
  * @param {String} zipCode
  * @returns {Boolean}
  */
@@ -75,6 +67,15 @@ function isValidSSNLastFour(ssnLast4) {
  */
 function isValidAge(date) {
     return moment().diff(moment(date), 'years') >= 18;
+}
+
+/**
+ *
+ * @param {String} url
+ * @returns {Boolean}
+ */
+function isValidURL(url) {
+    return CONST.REGEX.HYPERLINK.test(url);
 }
 
 /**
@@ -139,9 +140,9 @@ function isValidUSPhone(phoneNumber) {
 export {
     isValidAddress,
     isValidDate,
-    isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
     isRequiredFulfilled,
     isValidUSPhone,
+    isValidURL,
 };

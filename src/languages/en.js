@@ -51,7 +51,7 @@ export default {
         ssnLast4: 'Last 4 digits of SSN',
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
-        noPO: '(PO boxes and mail drop addresses are NOT allowed)',
+        noPO: 'PO boxes and mail drop addresses are not allowed',
         city: 'City',
         state: 'State',
         zip: 'Zip code',
@@ -73,6 +73,11 @@ export default {
         yesterdayAt: 'Yesterday at',
         conjunctionAt: 'at',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
+        error: {
+            invalidAmount: 'Invalid amount',
+        },
+        please: 'Please',
+        contactUs: 'contact us',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -185,7 +190,6 @@ export default {
         noReimbursableExpenses: 'This report has an invalid amount',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
-            invalidAmount: 'Invalid amount',
             invalidSplit: 'Split amounts do not equal total amount',
             other: 'Unexpected error, please try again later',
         },
@@ -339,6 +343,9 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
+        error: {
+            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+        },
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
@@ -363,7 +370,10 @@ export default {
         passwordsDontMatch: 'Passwords must match',
         newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
+        passwordNotSet: 'We were unable to set your new password correctly.',
+        accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
     },
+    stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
@@ -375,11 +385,10 @@ export default {
         toGetStarted: 'To get started with the Expensify Card, you first need to add a bank account.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
+        validateAccountError: 'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
         hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
-        confirmModalTitle: 'Oops',
-        confirmModalPrompt: 'Please double check any highlighted fields and try again.',
-        confirmModalConfirmText: 'Got it',
+        buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
             taxID: 'Please enter a valid Tax ID Number',
@@ -405,13 +414,9 @@ export default {
             firstName: 'Please enter valid first name',
             lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
-            existingOwners: {
-                alreadyInUse: 'This bank account is already in use by ',
-                pleaseAskThemToShare: 'Please ask them to share it with you.',
-                alternatively: 'Alternatively, you can ',
-                setUpThisAccountByYourself: 'set up this account by yourself',
-                validationProcessAgain: ' and go through the entire validation process again (may take up to a week).',
-            },
+            fixTheErrors: 'fix the errors',
+            inTheFormBeforeContinuing: 'in the form before continuing',
+            validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
     },
     addPersonalBankAccountPage: {
@@ -529,6 +534,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
+        taxIDNumberPlaceholder: '9 digits, no hyphens',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         industryClassificationCode: 'Industry classification code',
@@ -540,7 +546,6 @@ export default {
     requestorStep: {
         headerTitle: 'Personal information',
         subtitle: 'Please provide your personal information.',
-        financialRegulations: 'Financial regulation and bank rules require us to validate the identity of any individual setting up bank accounts on behalf of a company. ',
         learnMore: 'Learn more',
         isMyDataSafe: 'Is my data safe?',
         onFidoConditions: 'By continuing with the request to add this bank account, you confirm that you have read, understand and accept ',
@@ -551,7 +556,7 @@ export default {
     validationStep: {
         headerTitle: 'Validate',
         buttonText: 'Finish setup',
-        maxAttemptError: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+        maxAttemptsReached: 'Validation for this bank account has been disabled due to too many incorrect attempts.',
         description: 'A day or two after you add your account to Expensify we send three (3) transactions to your account. They have a merchant line like "Expensify, Inc. Validation"',
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
@@ -585,6 +590,7 @@ export default {
         common: {
             card: 'Expensify Card',
             workspace: 'Workspace',
+            edit: 'Edit workspace',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -592,16 +598,16 @@ export default {
             genericFailureMessage: 'An error occurred creating the workspace, please try again.',
         },
         people: {
-            assignee: 'Assignee',
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
             removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
             removeMembersTitle: 'Remove members',
+            selectAll: 'Select all',
         },
         card: {
             addEmail: 'Add email',
             tagline: 'The smartest corporate card in the room.',
             publicCopy: 'In order to use the Expensify Card you must use your company\'s private domain. Go ahead and add your private email address as a secondary login.',
-            privateCopy: 'Just swipe your Expensify card and your expenses are done, its that simple!',
+            privateCopy: 'Just swipe your Expensify Card and your expenses are done, it\'s that simple!',
             getStarted: 'Get started',
             finishSetup: 'Finish setup',
             manageCards: 'Manage cards',
@@ -620,7 +626,6 @@ export default {
             welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} workspace! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
-            title: 'Edit workspace',
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             save: 'Save',
@@ -632,17 +637,16 @@ export default {
         },
     },
     requestCallPage: {
-        requestACall: 'Request a call',
-        description: 'Need help with your account configuration? Our team of guides are on hand to help you each step of the way.',
-        instructions: 'Type in your name and phone number, and we’ll give you a call back.',
-        availabilityText: '*Our guides are available from Sunday at 5pm CT to Friday at 5pm CT. Any requests outside this window will be returned 9am - 5pm, Monday - Friday in your local time. Call time is based on the order the call was received.',
+        title: 'Request a call',
+        subtitle: 'Have questions, or need help?',
+        description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
-        needHelp: 'Help',
-        needHelpTooltip: 'Get live help from our team',
+        callButton: 'Call',
+        callButtonTooltip: 'Get live help from our team',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',

@@ -64,6 +64,7 @@ const CheckboxWithLabel = ({
                         styles.w100,
                         styles.flexRow,
                         styles.flexWrap,
+                        styles.flexShrink1,
                         styles.alignItemsCenter,
                     ]}
                 >

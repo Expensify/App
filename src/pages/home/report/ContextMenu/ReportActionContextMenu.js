@@ -57,7 +57,16 @@ function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
 
         return;
     }
-    setTimeout(() => contextMenuRef.current.hideContextMenu(onHideCallback), 800);
+
+    // Save the active instanceID for which hide action was called.
+    // If menu is being closed with a delay, check that whether the same instance exists or a new was created.
+    // If instance is not same, cancel the hide action
+    const instanceID = contextMenuRef.current.instanceID;
+    setTimeout(() => {
+        if (contextMenuRef.current.instanceID === instanceID) {
+            contextMenuRef.current.hideContextMenu(onHideCallback);
+        }
+    }, 800);
 }
 
 function hideDeleteModal() {

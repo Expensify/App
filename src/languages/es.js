@@ -51,7 +51,7 @@ export default {
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
-        noPO: '(No se aceptan apartados ni direcciones postales)',
+        noPO: 'No se aceptan apartados ni direcciones postales',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código postal',
@@ -73,13 +73,18 @@ export default {
         yesterdayAt: 'Ayer a las',
         conjunctionAt: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor inténtalo más tarde.',
+        error: {
+            invalidAmount: 'Monto no válido',
+        },
+        please: 'Por favor',
+        contactUs: 'contáctenos',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
         expensifyDoesntHaveAccessToCamera: 'Esta aplicación no tiene acceso a tu cámara, por favor activa el permiso y vuelve a intentarlo.',
         attachmentError: 'Error al adjuntar archivo',
         errorWhileSelectingAttachment: 'Ha ocurrido un error al seleccionar un adjunto, por favor inténtalo de nuevo',
-        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor intentalo con otro archivo',
+        errorWhileSelectingCorruptedImage: 'Ha ocurrido un error al seleccionar un adjunto corrupto, por favor inténtalo con otro archivo',
         takePhoto: 'Hacer una foto',
         chooseFromGallery: 'Elegir de la galería',
         chooseDocument: 'Elegir documento',
@@ -185,7 +190,6 @@ export default {
         noReimbursableExpenses: 'El monto de este informe es inválido',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
-            invalidAmount: 'Monto no válido',
             invalidSplit: 'La suma de las partes no equivale al monto total',
             other: 'Error inesperado, por favor inténtalo más tarde',
         },
@@ -339,6 +343,9 @@ export default {
     loginForm: {
         pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
         phoneOrEmail: 'Número de teléfono o email',
+        error: {
+            invalidFormatLogin: 'El email o número de teléfono que has introducido no es válido. Corrígelo e inténtalo de nuevo.',
+        },
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
@@ -363,7 +370,10 @@ export default {
         passwordsDontMatch: 'Las contraseñas deben coincidir',
         newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
+        passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
+        accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
     },
+    stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
@@ -375,11 +385,10 @@ export default {
         toGetStarted: 'Para comenzar con la tarjeta Expensify, primero debe agregar una cuenta bancaria.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
+        validateAccountError: 'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor revisa tu correo electrónico para validar tu cuenta y regresa aquí para continuar.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
         hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso en la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
-        confirmModalTitle: 'Ups',
-        confirmModalPrompt: 'Por favor, comprueba los campos resaltados e inténtalo de nuevo.',
-        confirmModalConfirmText: 'OK',
+        buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
             taxID: 'Ingresa un número de identificación fiscal válido',
@@ -405,13 +414,9 @@ export default {
             firstName: 'Ingresa un nombre válido',
             lastName: 'Ingresa un apellido válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
-            existingOwners: {
-                alreadyInUse: 'La cuenta bancaria ya se encuentra en uso por ',
-                pleaseAskThemToShare: 'Por favor, solicita que la compartan contigo.',
-                alternatively: 'En su defecto, puedes ',
-                setUpThisAccountByYourself: 'añadir la cuenta tú mismo',
-                validationProcessAgain: ' y completar el proceso de validación de nuevo (lo cual puede tardar hasta una semana).',
-            },
+            fixTheErrors: 'corrige los errores',
+            inTheFormBeforeContinuing: 'en el formulario antes de continuar',
+            validationAmounts: 'Los montos de validación que ingresaste son incorrectos. Verifica tu cuenta de banco e intenta de nuevo.',
         },
     },
     addPersonalBankAccountPage: {
@@ -531,6 +536,7 @@ export default {
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
+        taxIDNumberPlaceholder: '9 dígitos, sin guiones',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
         industryClassificationCode: 'Código de clasificación industrial',
@@ -542,7 +548,6 @@ export default {
     requestorStep: {
         headerTitle: 'Información personal',
         subtitle: 'Dé más información sobre tí.',
-        financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
         learnMore: 'Más información',
         isMyDataSafe: '¿Están seguros mis datos?',
         onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',
@@ -553,7 +558,7 @@ export default {
     validationStep: {
         headerTitle: 'Validar',
         buttonText: 'Finalizar configuración',
-        maxAttemptError: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos. Por favor contáctenos.',
+        maxAttemptsReached: 'Se ha inhabilitado la validación de esta cuenta bancaria, debido a demasiados intentos incorrectos.',
         description: 'Uno o dos días después de agregar su cuenta a Expensify, enviamos tres (3) transacciones a su cuenta. Tienen una línea comercial como "Expensify, Inc. Validation"',
         descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
@@ -587,6 +592,7 @@ export default {
         common: {
             card: 'Tarjeta Expensify',
             workspace: 'Espacio de trabajo',
+            edit: 'Editar espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -594,10 +600,10 @@ export default {
             genericFailureMessage: 'Se ha producido un error al intentar crear el espacio de trabajo. Por favor, inténtalo de nuevo.',
         },
         people: {
-            assignee: 'Persona asignada',
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a las personas seleccionadas de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
+            selectAll: 'Seleccionar todo',
         },
         card: {
             addEmail: 'Agregar correo electrónico',
@@ -622,7 +628,6 @@ export default {
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         editor: {
-            title: 'Editar espacio de trabajo',
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
             save: 'Guardar',
@@ -634,17 +639,16 @@ export default {
         },
     },
     requestCallPage: {
-        requestACall: 'Llámame por teléfono',
-        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte.',
-        instructions: 'Escribe tu nombre y número de teléfono y te llamaremos.',
-        availabilityText: '*Nuestros guías están disponibles de domingo desde las 17.00 CT a viernes hasta las 17.00 CT. Si solicitas una llamada fuera de este horario, te llamaremos de lunes a viernes de 9.00 a 17.00 en tu hora local. El orden de llamada corresponde con el orden de solicitud.',
+        title: 'Llámame por teléfono',
+        subtitle: '¿Tienes preguntas o necesitas ayuda?',
+        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        errorMessageInvalidPhone: 'El teléfono no es valido. Intentalo de nuevo agregando el código de país. P. ej.: +15005550006',
+        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
-        needHelp: 'Ayuda',
-        needHelpTooltip: 'Recibe ayuda telefónica de nuestro equipo',
+        callButton: 'Llamar',
+        callButtonTooltip: 'Recibe ayuda telefónica de nuestro equipo',
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',

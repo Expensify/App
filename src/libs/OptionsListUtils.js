@@ -233,7 +233,7 @@ function createOption(personalDetailList, report, draftComments, {
     return {
         text,
         alternateText,
-        icons: report ? report.icons : [personalDetail.avatar],
+        icons: lodashGet(report, 'icons', [personalDetail.avatar]),
         tooltipText,
         participantsList: personalDetailList,
 

@@ -8,6 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {translateLocal} from '../../libs/translate';
 import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Style for wrapping View */
@@ -84,6 +85,7 @@ const IdentityForm = ({
                             onFieldChange('firstName', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.firstName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -97,6 +99,7 @@ const IdentityForm = ({
                             onFieldChange('lastName', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.lastName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
             </View>
@@ -116,6 +119,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={ssnLast4}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.ssnLast4')) {
@@ -150,6 +154,7 @@ const IdentityForm = ({
                             onFieldChange('city', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.addressCity') ? error : ''}
+                        translateX={-14}
                     />
                 </View>
                 <View style={[styles.flex1]}>
@@ -169,6 +174,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={zipCode}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.zipCode')) {
