@@ -92,6 +92,13 @@ function getUserDetails() {
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
+            // Get list of validated logins and fetch domain info
+            const emailList = _.chain(loginList)
+                .filter(userLogin => userLogin.validatedDate)
+                .map(userLogin => userLogin.partnerUserID)
+                .value();
+            getDomainInfo(emailList);
+
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
