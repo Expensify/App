@@ -42,6 +42,7 @@ class DatePicker extends React.Component {
             value,
             label,
             placeholder,
+            hasError,
             errorText,
             translateX,
             containerStyles,
@@ -56,6 +57,7 @@ class DatePicker extends React.Component {
                     label={label}
                     value={dateAsText}
                     placeholder={placeholder}
+                    hasError={hasError}
                     errorText={errorText}
                     containerStyles={containerStyles}
                     translateX={translateX}
