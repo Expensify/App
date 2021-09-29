@@ -267,6 +267,15 @@ function isBlockedFromConcierge(expiresAt) {
 }
 
 /**
+ * Sets isFromPublicDomain in Onyx.
+ *
+ * @param {Boolean} isFromPublicDomain
+ */
+ function setIsFromPublicDomain(isFromPublicDomain) {
+    Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+ }
+
+/**
  * Initialize our pusher subscription to listen for user changes
  */
 function subscribeToUserEvents() {
