@@ -87,21 +87,20 @@ class ResendValidationForm extends React.Component {
     render() {
         const isNewAccount = !this.props.account.accountExists && !this.props.account.validated;
         const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated;
+        const login = Str.isSMSLogin(this.props.credentials.login) ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
         const loginType = (Str.isSMSLogin(this.props.credentials.login) ? this.props.translate('common.phoneNumber') : this.props.translate('common.email')).toLowerCase();
         let message = '';
 
         if (isNewAccount) {
             message = this.props.translate('resendValidationForm.newAccount', {
-                login: this.props.credentials.login,
+                login,
                 loginType,
             });
         } else if (isOldUnvalidatedAccount) {
-            message = this.props.translate('resendValidationForm.unvalidatedAccount', {
-                loginType,
-            });
+            message = this.props.translate('resendValidationForm.unvalidatedAccount');
         } else {
             message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
-                login: this.props.credentials.login,
+                login,
             });
         }
 
@@ -113,7 +112,7 @@ class ResendValidationForm extends React.Component {
                         imageStyles={[styles.mr2]}
                     />
                     <Text style={[styles.textStrong]}>
-                        {Str.isSMSLogin(this.props.credentials.login) ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login}
+                        {login}
                     </Text>
                 </View>
                 <View style={[styles.mv5]}>
