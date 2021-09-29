@@ -2,7 +2,6 @@ import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
 import SignInPage from '../../../pages/signin/SignInPage';
 import SetPasswordPage from '../../../pages/SetPasswordPage';
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 
@@ -14,11 +13,6 @@ export default () => (
             name={SCREENS.HOME}
             options={defaultScreenOptions}
             component={SignInPage}
-        />
-        <RootStack.Screen
-            name="ValidateLogin"
-            options={defaultScreenOptions}
-            component={ValidateLoginPage}
         />
         <RootStack.Screen
             name="SetPassword"

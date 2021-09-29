@@ -1,12 +1,12 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../libs/compose';
+import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
+import {loadBetasAndFetchPolicies, executeActionsThenReroute} from '../libs/actions/Transition';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Navigation from '../libs/Navigation/Navigation';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -38,9 +38,6 @@ const propTypes = {
         /** The authToken for the current session */
         email: PropTypes.string,
     }),
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -48,46 +45,25 @@ const defaultProps = {
         params: {},
     },
     session: {},
-    betas: null,
 };
 
-class TransitionPage extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {hasRun: false};
-    }
-
+class TransitionPage extends PureComponent {
     componentDidMount() {
-        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
         const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
 
-        // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
-        if (this.props.session.authToken && email === this.props.session.email) {
-            return;
-        }
-
-        signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
-        this.setState({hasRun: true});
-    }
-
-    componentDidUpdate() {
-        if (this.state.hasRun || !this.props.betas) {
-            return;
-        }
-
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', '')) || ROUTES.HOME;
 
-        // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-        // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
-        // of the workspace modal, then they will be routed back to
-        // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
-        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
-        // if they cancel out of the new workspace modal.
-        Navigation.dismissModal();
-        Navigation.navigate(exitTo);
+        // Define the ordered sequence of actions we need to run before rerouting to `exitTo`
+        const actions = [loadBetasAndFetchPolicies];
+        if (!this.props.session.authToken || email !== this.props.session.email) {
+            actions.unshift(() => signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken));
+        }
+
+        executeActionsThenReroute(actions, exitTo);
     }
 
     render() {
@@ -98,13 +74,8 @@ class TransitionPage extends Component {
 TransitionPage.propTypes = propTypes;
 TransitionPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(TransitionPage);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+})(TransitionPage);

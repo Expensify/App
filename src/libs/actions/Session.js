@@ -248,25 +248,19 @@ function signIn(password, twoFactorAuthCode) {
  * @param {String} email
  * @param {String} shortLivedToken
  * @param {string} encryptedAuthToken
+ * @returns {Promise}
  */
 function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
-
-    createTemporaryLogin(shortLivedToken, encryptedAuthToken, email).then((response) => {
-        Onyx.merge(ONYXKEYS.SESSION, {
-            authToken: shortLivedToken,
-            accountID,
-            email,
-        });
+    return createTemporaryLogin(shortLivedToken, encryptedAuthToken, email).then((response) => {
         if (response.jsonCode === 200) {
             getUserDetails();
-            Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+            return Onyx.merge(ONYXKEYS.SESSION, {
+                authToken: shortLivedToken,
+                accountID,
+                email,
+            });
         }
-    }).finally(() => {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        return Promise.reject(new Error(lodashGet(response, 'message', 'Unable to login.')));
     });
 }
 

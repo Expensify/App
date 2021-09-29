@@ -59,45 +59,56 @@ function getSimplifiedEmployeeList(employeeList) {
 
 /**
  * Used to update ALL of the policies at once. If a policy is present locally, but not in the policies object passed here it will be removed.
+ *
  * @param {Object} policyCollection - object of policy key and partial policy object
+ * @returns {Promise}
  */
 function updateAllPolicies(policyCollection) {
+    const promises = [];
+
     // Clear out locally cached policies that have been deleted (i.e. they exist locally but not in our new policy collection object)
     _.each(allPolicies, (policy, key) => {
         if (policyCollection[key]) {
             return;
         }
 
-        Onyx.set(key, null);
+        promises.push(Onyx.set(key, null));
     });
 
     // Set all the policies
     _.each(policyCollection, (policyData, key) => {
-        Onyx.merge(key, policyData);
+        promises.push(Onyx.merge(key, policyData));
     });
+
+    return Promise.all(promises);
 }
 
 /**
  * Fetches the policySummaryList from the API and saves a simplified version in Onyx
+ *
+ * @returns {Promise}
  */
 function getPolicySummaries() {
-    API.GetPolicySummaryList()
+    return API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policyDataToStore = _.reduce(data.policySummaryList, (memo, policy) => ({
                     ...memo,
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
                 }), {});
-                updateAllPolicies(policyDataToStore);
+                return updateAllPolicies(policyDataToStore);
             }
+            return Promise.resolve();
         });
 }
 
 /**
  * Fetches the policyList from the API and saves a simplified version in Onyx
+ *
+ * @returns {Promise}
  */
 function getPolicyList() {
-    API.GetPolicyList()
+    return API.GetPolicyList()
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
@@ -107,8 +118,9 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
-                updateAllPolicies(policyDataToStore);
+                return updateAllPolicies(policyDataToStore);
             }
+            return Promise.resolve();
         });
 }
 
@@ -215,10 +227,11 @@ function invite(logins, welcomeNote, policyID) {
  * Merges the passed in login into the specified policy
  *
  * @param {String} [name]
+ * @returns {Promise}
  */
 function create(name = '') {
     let res = null;
-    API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
+    return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
@@ -236,10 +249,8 @@ function create(name = '') {
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
             });
-        }).then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
-        });
+        })
+        .then(() => res);
 }
 
 /**

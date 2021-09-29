@@ -37,9 +37,6 @@ import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
-// Validate login page
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
-
 // Modal Stack Navigators
 import {
     IOUBillStackNavigator,
@@ -65,7 +62,6 @@ import Timers from '../../Timers';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
-import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
@@ -310,14 +306,6 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     component={MainDrawerNavigator}
-                />
-                <RootStack.Screen
-                    name="ValidateLogin"
-                    options={{
-                        headerShown: false,
-                        title: 'New Expensify',
-                    }}
-                    component={ValidateLoginPage}
                 />
 
                 {/* These are the various modal routes */}
