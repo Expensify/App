@@ -17,6 +17,7 @@ class NavigationRoot extends Component {
     constructor(props) {
         super(props);
 
+        this.currentURL = null;
         this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
     }
 
@@ -37,6 +38,7 @@ class NavigationRoot extends Component {
         } else {
             Log.info('Navigating to route', false, {path});
         }
+        this.currentURL = path;
         setCurrentURL(path);
     }
 
@@ -51,7 +53,7 @@ class NavigationRoot extends Component {
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} />
+                <AppNavigator currentURL={this.currentURL} authenticated={this.props.authenticated} />
             </NavigationContainer>
         );
     }

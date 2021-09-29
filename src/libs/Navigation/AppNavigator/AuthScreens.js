@@ -62,7 +62,6 @@ import {
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
 import spacing from '../../../styles/utilities/spacing';
 import CardOverlay from '../../../components/CardOverlay';
@@ -70,7 +69,6 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
-import WorkspaceNew from '../../../pages/workspace/WorkspaceNew';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -320,16 +318,6 @@ class AuthScreens extends React.Component {
                         title: 'New Expensify',
                     }}
                     component={ValidateLoginPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
-                    options={defaultScreenOptions}
-                    component={LogInWithShortLivedTokenPage}
-                />
-                <RootStack.Screen
-                    name="WorkspaceNew"
-                    options={defaultScreenOptions}
-                    component={WorkspaceNew}
                 />
 
                 {/* These are the various modal routes */}

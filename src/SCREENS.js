@@ -6,9 +6,5 @@ export default {
     HOME: 'Home',
     LOADING: 'Loading',
     REPORT: 'Report',
-    LOG_IN_WITH_SHORT_LIVED_TOKEN: 'LogInWithShortLivedToken',
-    LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE: 'LoginWithValidateCodeNewWorkspace',
-    LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE: 'LoginWithValidateCode2FANewWorkspace',
-    LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD: 'LoginWithValidateCodeWorkspaceCard',
-    LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD: 'LoginWithValidateCode2FAWorkspaceCard',
+    TRANSITION: 'Transition',
 };
