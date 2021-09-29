@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {TouchableOpacity} from 'react-native';
+import {TouchableOpacity, Linking} from 'react-native';
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
@@ -66,7 +66,28 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
     return contentWidth;
 }
 
-function AnchorRenderer({tnode, key, style}) {
+/**
+ * Check if there is an ancestor node with the attribute 'data-comment'.
+ * Finding 'data-comment' flags that we are rendering a comment.
+ * @param {TNode} tnode
+ * @returns {Boolean}
+ */
+function isInsideComment(tnode) {
+    let currentNode = tnode;
+    while (currentNode.parent) {
+        if (currentNode.attributes['data-comment']) {
+            return true;
+        }
+        currentNode = currentNode.parent;
+    }
+    return false;
+}
+
+function AnchorRenderer({
+    tnode,
+    key,
+    style,
+}) {
     const htmlAttribs = tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
@@ -83,6 +104,20 @@ function AnchorRenderer({tnode, key, style}) {
             <Text
                 style={styles.link}
                 onPress={() => Navigation.navigate(internalExpensifyPath)}
+            >
+                <TNodeChildrenRenderer tnode={tnode} />
+            </Text>
+        );
+    }
+
+    if (!isInsideComment(tnode)) {
+        // This is not a comment from a chat
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => {
+                    Linking.openURL(htmlAttribs.href);
+                }}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
@@ -223,7 +258,7 @@ const customHTMLElementModels = {
     edited: defaultHTMLElementModels.span.extend({
         tagName: 'edited',
     }),
-    'muted-text': defaultHTMLElementModels.p.extend({
+    'muted-text': defaultHTMLElementModels.div.extend({
         tagName: 'muted-text',
         mixedUAStyles: styles.mutedTextLabel,
     }),

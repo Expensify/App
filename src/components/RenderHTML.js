@@ -7,12 +7,12 @@ import {RenderHTMLSource} from 'react-native-render-html';
 // Configuration for RenderHTML is handled in a top-level component providing
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // The provider is available at src/components/HTMLEngineProvider/
-const RenderHTML = ({html}) => {
+const RenderHTML = ({html, comment}) => {
     const {width} = useWindowDimensions();
     return (
         <RenderHTMLSource
             contentWidth={width * 0.8}
-            source={{html}}
+            source={{html: comment ? `<div data-comment="true">${html}</div>` : html}}
         />
     );
 };
@@ -21,7 +21,10 @@ RenderHTML.displayName = 'RenderHTML';
 RenderHTML.propTypes = {
     /** HTML string to render */
     html: PropTypes.string.isRequired,
+    comment: PropTypes.bool,
 };
-RenderHTML.defaultProps = {};
+RenderHTML.defaultProps = {
+    comment: false,
+};
 
 export default RenderHTML;
