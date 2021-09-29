@@ -48,10 +48,10 @@ class BankAccountStep extends React.Component {
         this.addManualAccount = this.addManualAccount.bind(this);
         this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.state = {
-            // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
             routingNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'routingNumber'),
             accountNumber: ReimbursementAccountUtils.getDefaultStateForField(props, 'accountNumber'),
+            bankNotFound: ReimbursementAccountUtils.getDefaultStateForField(props, 'setupType', 'plaid') === 'manual',
         };
 
         // Keys in this.errorTranslationKeys are associated to inputs, they are a subset of the keys found in this.state
@@ -182,7 +182,10 @@ class BankAccountStep extends React.Component {
                             <MenuItem
                                 icon={Bank}
                                 title={this.props.translate('bankAccount.logIntoYourBank')}
-                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
+                                onPress={() => {
+                                    updateReimbursementAccountDraft({setupType: 'plaid'});
+                                    setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+                                }}
                                 disabled={this.props.isPlaidDisabled || !this.props.user.validated}
                                 shouldShowRightIcon
                             />
@@ -191,13 +194,18 @@ class BankAccountStep extends React.Component {
                                     {this.props.translate('bankAccount.error.tooManyAttempts')}
                                 </Text>
                             )}
-                            <MenuItem
-                                icon={Paycheck}
-                                title={this.props.translate('bankAccount.connectManually')}
-                                disabled={!this.props.user.validated}
-                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
-                                shouldShowRightIcon
-                            />
+                            {(this.props.isPlaidDisabled || this.state.bankNotFound) && (
+                                <MenuItem
+                                    icon={Paycheck}
+                                    title={this.props.translate('bankAccount.connectManually')}
+                                    disabled={!this.props.user.validated}
+                                    onPress={() => {
+                                        updateReimbursementAccountDraft({setupType: 'manual'});
+                                        setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+                                    }}
+                                    shouldShowRightIcon
+                                />
+                            )}
                             {!this.props.user.validated && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                                     <Text style={[styles.mutedTextLabel, styles.mr4]}>
@@ -231,7 +239,10 @@ class BankAccountStep extends React.Component {
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSubmit={this.addPlaidAccount}
-                        onExitPlaid={() => setBankAccountSubStep(null)}
+                        onExitPlaid={() => {
+                            this.setState({bankNotFound: true});
+                            setBankAccountSubStep(null);
+                        }}
 
                     />
                 )}
