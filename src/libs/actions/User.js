@@ -304,13 +304,13 @@ function subscribeToUserEvents() {
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
         setIsFromPublicDomain(pushJSON.isFromPublicDomain);
     })
-    .catch((error) => {
-        Log.info(
-            '[User] Failed to subscribe to Pusher channel',
-            false,
-            {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
-        );
-    });
+        .catch((error) => {
+            Log.info(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
+            );
+        });
 }
 
 /**
