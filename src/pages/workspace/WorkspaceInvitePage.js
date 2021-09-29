@@ -15,7 +15,7 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {invite} from '../../libs/actions/Policy';
+import {hideWorkspaceAlertMessage, invite, setWorkspaceErrors} from '../../libs/actions/Policy';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import {isSystemUser} from '../../libs/userUtils';
@@ -60,12 +60,16 @@ class WorkspaceInvitePage extends React.Component {
             userLogins: '',
             welcomeNote: this.getWelcomeNotePlaceholder(),
             foundSystemLogin: '',
-            errors: {},
         };
 
         this.focusEmailOrPhoneInput = this.focusEmailOrPhoneInput.bind(this);
         this.inviteUser = this.inviteUser.bind(this);
+        this.clearErrors = this.clearErrors.bind(this);
         this.emailOrPhoneInputRef = null;
+    }
+
+    componentDidMount() {
+        this.clearErrors();
     }
 
     /**
@@ -83,19 +87,60 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {String}
      */
     getErrorText() {
-        if (this.state.errors.invalidLogin) {
+        const errors = lodashGet(this.props.policy, 'errors', {});
+
+        if (errors.invalidLogin) {
             return this.props.translate('workspace.invite.pleaseEnterValidLogin');
         }
 
-        if (this.state.errors.systemUserError) {
+        if (errors.systemUserError) {
             return this.props.translate('workspace.invite.systemUserError', {email: this.state.foundSystemLogin});
         }
 
-        if (this.state.errors.duplicateLogin) {
+        if (errors.duplicateLogin) {
             return this.props.translate('workspace.invite.pleaseEnterUniqueLogin');
         }
 
         return '';
+    }
+
+    /**
+     * @returns {React.Component}
+     */
+    getAlertPrompt() {
+        let error = '';
+
+        if (!_.isEmpty(this.props.policy.alertMessage)) {
+            error = (
+                <Text style={styles.mutedTextLabel}>{this.props.policy.alertMessage}</Text>
+            );
+        } else {
+            error = (
+                <FixTheErrorsText
+                    onLinkPress={() => {
+                        this.form.scrollTo({y: 0, animated: true});
+                    }}
+                />
+            );
+        }
+
+        return (
+            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                {error}
+            </View>
+        );
+    }
+
+    /**
+     * @returns {Boolean}
+     */
+    getShouldShowAlertPrompt() {
+        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || this.props.policy.alertMessage.length > 0;
+    }
+
+    clearErrors() {
+        setWorkspaceErrors(this.props.route.params.policyID, {});
+        hideWorkspaceAlertMessage(this.props.route.params.policyID);
     }
 
     focusEmailOrPhoneInput() {
@@ -116,7 +161,6 @@ class WorkspaceInvitePage extends React.Component {
         const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
         invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
             this.props.route.params.policyID);
-        Navigation.goBack();
     }
 
     /**
@@ -125,39 +169,25 @@ class WorkspaceInvitePage extends React.Component {
     validate() {
         const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
         const isEnteredLoginsvalid = _.every(logins, login => Str.isValidEmail(login) || Str.isValidPhone(login));
+        const errors = {};
+        let foundSystemLogin = '';
         if (logins.length <= 0 || !isEnteredLoginsvalid) {
-            this.setState({
-                errors: {
-                    invalidLogin: true,
-                },
-            });
-            return false;
+            errors.invalidLogin = true;
         }
 
-        const foundSystemLogin = _.find(logins, login => isSystemUser(login));
+        foundSystemLogin = _.find(logins, login => isSystemUser(login));
         if (foundSystemLogin) {
-            this.setState({
-                errors: {
-                    systemUserError: true,
-                },
-                foundSystemLogin,
-            });
-            return false;
+            errors.systemUserError = true;
         }
 
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
         const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, addSMSDomainIfPhoneNumber(login)));
         if (areLoginsDuplicate) {
-            this.setState({
-                errors: {
-                    duplicateLogin: true,
-                },
-            });
-            return false;
+            errors.duplicateLogin = true;
         }
 
-        this.setState({errors: {}, foundSystemLogin: ''});
-        return true;
+        this.setState({foundSystemLogin}, () => setWorkspaceErrors(this.props.route.params.policyID, errors));
+        return _.size(errors) <= 0;
     }
 
     render() {
@@ -166,7 +196,10 @@ class WorkspaceInvitePage extends React.Component {
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.invite.invitePeople')}
-                        onCloseButtonPress={Navigation.dismissModal}
+                        onCloseButtonPress={() => {
+                            this.clearErrors();
+                            Navigation.dismissModal();
+                        }}
                     />
                     <ScrollView
                         style={[styles.w100, styles.flex1]}
@@ -191,7 +224,8 @@ class WorkspaceInvitePage extends React.Component {
                                     numberOfLines={2}
                                     value={this.state.userLogins}
                                     onChangeText={(text) => {
-                                        this.setState({userLogins: text, errors: {}, foundSystemLogin: ''});
+                                        this.clearErrors();
+                                        this.setState({userLogins: text, foundSystemLogin: ''});
                                     }}
                                     errorText={this.getErrorText()}
                                 />
@@ -242,16 +276,8 @@ class WorkspaceInvitePage extends React.Component {
                             </View>
                         </View>
                         <FormAlertWithSubmitButton
-                            isAlertVisible={_.size(this.state.errors) > 0}
-                            ErrorComponent={() => (
-                                <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                                    <FixTheErrorsText
-                                        onLinkPress={() => {
-                                            this.form.scrollTo({y: 0, animated: true});
-                                        }}
-                                    />
-                                </View>
-                            )}
+                            isAlertVisible={this.getShouldShowAlertPrompt()}
+                            AlertComponent={() => this.getAlertPrompt()}
                             buttonText={this.props.translate('common.invite')}
                             onSubmit={this.inviteUser}
                         />

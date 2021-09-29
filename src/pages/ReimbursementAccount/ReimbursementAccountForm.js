@@ -30,7 +30,7 @@ const defaultProps = {
 
 class ReimbursementAccountForm extends React.Component {
     /**
-     * @returns {React.Component|String}
+     * @returns {React.Component}
      */
     getAlertPrompt() {
         let error = '';
@@ -76,7 +76,7 @@ class ReimbursementAccountForm extends React.Component {
                 </View>
                 <FormAlertWithSubmitButton
                     isAlertVisible={isErrorVisible}
-                    ErrorComponent={this.getAlertPrompt()}
+                    AlertComponent={() => this.getAlertPrompt()}
                     buttonText={this.props.translate('common.saveAndContinue')}
                     onPress={this.props.onSubmit}
                 />

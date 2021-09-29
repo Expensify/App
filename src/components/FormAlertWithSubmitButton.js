@@ -12,7 +12,7 @@ const propTypes = {
     isAlertVisible: PropTypes.bool.isRequired,
 
     /** React component to display */
-    ErrorComponent: PropTypes.func.isRequired,
+    AlertComponent: PropTypes.func.isRequired,
 
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
@@ -22,13 +22,13 @@ const propTypes = {
 };
 
 const FormAlertWithSubmitButton = ({
-    ErrorComponent, isAlertVisible, onSubmit, buttonText,
+    AlertComponent, isAlertVisible, onSubmit, buttonText,
 }) => (
     <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
         {isAlertVisible && (
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                 <Icon src={Exclamation} fill={colors.red} />
-                <ErrorComponent />
+                <AlertComponent />
             </View>
         )}
         <Button
