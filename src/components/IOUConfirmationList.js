@@ -326,7 +326,7 @@ class IOUConfirmationList extends Component {
      */
     addVenmoPaymentOptionToMenu() {
         // Add Venmo option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber.length > 0 && isValidUSPhone(this.state.participants[0].phoneNumber)) {
+        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber && isValidUSPhone(this.state.participants[0].phoneNumber)) {
             this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'))
                 .promise
                 .then((isVenmoInstalled) => {
