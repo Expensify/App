@@ -88,11 +88,11 @@ function getDomainInfo(loginList) {
     }
 
     // Check the API for the remaining uncommon domains
-    API.User_IsFromPublicDomain({emailList})
+    API.User_IsFromPublicDomain()
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
-                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+                Onyx.merge(ONYXKEYS.USER, {email: sessionEmail});
 
                 // If the user is not on a public domain we'll want to know whether they are on a domain that has
                 // already provisioned the Expensify card
