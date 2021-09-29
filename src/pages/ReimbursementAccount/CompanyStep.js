@@ -232,7 +232,7 @@ class CompanyStep extends React.Component {
                         value={this.state.companyPhone}
                         placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.PHONE_NUMBER}
+                        maxLength={CONST.PHONE_MAX_LENGTH}
 
                     />
                     <ExpensiTextInput
