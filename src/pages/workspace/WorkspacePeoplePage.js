@@ -175,12 +175,14 @@ class WorkspacePeoplePage extends React.Component {
                 onPress={() => this.toggleUser(item.login)}
                 activeOpacity={0.7}
             >
-                <View style={[styles.peopleRowCell]}>
-                    <Checkbox
-                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                        onPress={() => this.toggleUser(item.login)}
-                    />
-                </View>
+                {this.props.policy.owner !== item.login && (
+                    <View style={[styles.peopleRowCell]}>
+                        <Checkbox
+                            isChecked={_.contains(this.state.selectedEmployees, item.login)}
+                            onPress={() => this.toggleUser(item.login)}
+                        />
+                    </View>
+                )}
                 <View style={styles.flex1}>
                     <OptionRow
                         forceTextUnreadStyle

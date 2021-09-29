@@ -38,6 +38,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
+        owner: fullPolicy.owner,
     };
 }
 
