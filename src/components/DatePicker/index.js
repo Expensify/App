@@ -4,6 +4,7 @@ import ExpensiTextInput from '../ExpensiTextInput';
 import CONST from '../../CONST';
 import {propTypes, defaultProps} from './datepickerPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import './styles.css';
 
 const datePickerPropTypes = {
     ...propTypes,
@@ -26,10 +27,9 @@ class Datepicker extends React.Component {
     }
 
     componentDidMount() {
-        if (this.inputRef) {
-            // Adds nice native datepicker on web/desktop. Not possible to set this through props
-            this.inputRef.setAttribute('type', 'date');
-        }
+        // Adds nice native datepicker on web/desktop. Not possible to set this through props
+        this.inputRef.setAttribute('type', 'date');
+        this.inputRef.classList.add('expensify-datepicker');
     }
 
     /**
