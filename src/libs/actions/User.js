@@ -75,7 +75,7 @@ function getBetas() {
  *
  * @param {Array} loginList
  */
- function getDomainInfo(loginList) {
+function getDomainInfo(loginList) {
     // First we filter out any domains that are in the list of common public domains
     const emailList = _.filter(loginList, email => (
         !_.contains(COMMON_PUBLIC_DOMAINS, Str.extractEmailDomain(email))
@@ -271,9 +271,9 @@ function isBlockedFromConcierge(expiresAt) {
  *
  * @param {Boolean} isFromPublicDomain
  */
- function setIsFromPublicDomain(isFromPublicDomain) {
+function setIsFromPublicDomain(isFromPublicDomain) {
     Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
- }
+}
 
 /**
  * Initialize our pusher subscription to listen for user changes
@@ -301,8 +301,8 @@ function subscribeToUserEvents() {
             );
         });
 
-     // Live-update if a user has private domains listed as primary or secondary logins.
-     Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
+    // Live-update if a user has private domains listed as primary or secondary logins.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
         setIsFromPublicDomain(pushJSON.isFromPublicDomain);
     })
         .catch((error) => {
