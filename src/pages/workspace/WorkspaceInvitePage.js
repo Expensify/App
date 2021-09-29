@@ -13,7 +13,6 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
-import Button from '../../components/Button';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {invite} from '../../libs/actions/Policy';
@@ -22,11 +21,11 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import {isSystemUser} from '../../libs/userUtils';
 import {addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
 import Icon from '../../components/Icon';
-import {Exclamation, NewWindow} from '../../components/Icon/Expensicons';
+import {NewWindow} from '../../components/Icon/Expensicons';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
-import colors from '../../styles/colors';
 import FixTheErrorsText from '../../components/FixTheErrorsText';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -242,26 +241,20 @@ class WorkspaceInvitePage extends React.Component {
                                 </View>
                             </View>
                         </View>
-                        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
-                            {_.size(this.state.errors) > 0 && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                                    <Icon src={Exclamation} fill={colors.red} />
-                                    <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                                        <FixTheErrorsText
-                                            onLinkPress={() => {
-                                                this.form.scrollTo({y: 0, animated: true});
-                                            }}
-                                        />
-                                    </View>
+                        <FormAlertWithSubmitButton
+                            isAlertVisible={_.size(this.state.errors) > 0}
+                            ErrorComponent={() => (
+                                <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
+                                    <FixTheErrorsText
+                                        onLinkPress={() => {
+                                            this.form.scrollTo({y: 0, animated: true});
+                                        }}
+                                    />
                                 </View>
                             )}
-                            <Button
-                                success
-                                text={this.props.translate('common.invite')}
-                                onPress={this.inviteUser}
-                                pressOnEnter
-                            />
-                        </View>
+                            buttonText={this.props.translate('common.invite')}
+                            onSubmit={this.inviteUser}
+                        />
                     </ScrollView>
                 </KeyboardAvoidingView>
             </ScreenWrapper>

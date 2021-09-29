@@ -6,16 +6,13 @@ import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 
 import Text from '../../components/Text';
-import Button from '../../components/Button';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import Icon from '../../components/Icon';
-import {Exclamation} from '../../components/Icon/Expensicons';
-import colors from '../../styles/colors';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import FixTheErrorsText from '../../components/FixTheErrorsText';
+import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -77,19 +74,12 @@ class ReimbursementAccountForm extends React.Component {
                 <View style={[styles.mh5, styles.mb5]}>
                     {this.props.children}
                 </View>
-                <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
-                    {isErrorVisible && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
-                            <Icon src={Exclamation} fill={colors.red} />
-                            {this.getAlertPrompt()}
-                        </View>
-                    )}
-                    <Button
-                        success
-                        text={this.props.translate('common.saveAndContinue')}
-                        onPress={this.props.onSubmit}
-                    />
-                </View>
+                <FormAlertWithSubmitButton
+                    isAlertVisible={isErrorVisible}
+                    ErrorComponent={this.getAlertPrompt()}
+                    buttonText={this.props.translate('common.saveAndContinue')}
+                    onPress={this.props.onSubmit}
+                />
             </ScrollView>
         );
     }
