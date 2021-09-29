@@ -1,15 +1,13 @@
-import _ from 'underscore';
 import ROUTES from '../../ROUTES';
 import Navigation from '../Navigation/Navigation';
 import {getBetas} from './User';
 import Permissions from '../Permissions';
 import {create as createPolicy, getPolicyList, getPolicySummaries} from './Policy';
-import Growl from '../Growl';
 
 /**
  * @param {Boolean} shouldCreateNewWorkspace
  */
-function loadBetasAndFetchPolicies(shouldCreateNewWorkspace) {
+function loadBetasAndFetchPolicies(shouldCreateNewWorkspace = false) {
     getBetas()
         .then((betas) => {
             if (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas)) {
@@ -33,32 +31,7 @@ function loadBetasAndFetchPolicies(shouldCreateNewWorkspace) {
         });
 }
 
-/**
- * @param {Array<Function>} actions – Each function must return a promise.
- * @param {String} exitTo
- */
-function executeActionsThenReroute(actions = [], exitTo = ROUTES.HOME) {
-    // Execute actions sequentially
-    const finalPromise = _.reduce(
-        actions,
-        (currentAction, nextAction) => currentAction()
-            .then(nextAction)
-            .catch((err) => {
-                // If any of the actions throw an error, navigate to HOME and growl the error
-                Navigation.dismissModal();
-                Navigation.navigate();
-                Growl.error(err);
-            }),
-        Promise.resolve,
-    );
-
-    finalPromise.then(() => {
-        Navigation.dismissModal();
-        Navigation.navigate(exitTo);
-    });
-}
-
 export {
+    // eslint-disable-next-line import/prefer-default-export
     loadBetasAndFetchPolicies,
-    executeActionsThenReroute,
 };

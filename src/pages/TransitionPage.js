@@ -4,9 +4,11 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
-import {loadBetasAndFetchPolicies, executeActionsThenReroute} from '../libs/actions/Transition';
+import {loadBetasAndFetchPolicies} from '../libs/actions/Transition';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import Navigation from '../libs/Navigation/Navigation';
+import Growl from '../libs/Growl';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -48,22 +50,46 @@ const defaultProps = {
 };
 
 class TransitionPage extends PureComponent {
-    componentDidMount() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const email = lodashGet(this.props.route.params, 'email', '');
-        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-        const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
+    constructor(props) {
+        super(props);
+        this.accountID = lodashGet(this.props.route.params, 'accountID', '');;
+        this.email = lodashGet(this.props.route.params, 'email', '');
+        this.shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+        this.encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
+    }
 
+    componentDidMount() {
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', '')) || ROUTES.HOME;
+        const shouldCreateNewWorkspace = exitTo === ROUTES.WORKSPACE_NEW;
 
-        // Define the ordered sequence of actions we need to run before rerouting to `exitTo`
-        const actions = [loadBetasAndFetchPolicies];
-        if (!this.props.session.authToken || email !== this.props.session.email) {
-            actions.unshift(() => signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken));
+        this.signInIfNecessary()
+            .then(() => loadBetasAndFetchPolicies(shouldCreateNewWorkspace))
+            .then(({policyID}) => {
+                // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
+                // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
+                // of the workspace modal, then they will be routed back to
+                // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
+                // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
+                // if they cancel out of the new workspace modal.
+                Navigation.dismissModal();
+                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
+            })
+            .catch((err) => {
+                Navigation.dismissModal();
+                Navigation.navigate();
+                Growl.error(err);
+            });
+    }
+
+    /**
+     * @returns {Promise}
+     */
+    signInIfNecessary() {
+        if (!this.props.session.authToken || this.email !== this.props.session.email) {
+            return signInWithShortLivedToken(this.accountID, this.email, this.shortLivedToken, this.encryptedAuthToken);
         }
-
-        executeActionsThenReroute(actions, exitTo);
+        return Promise.resolve();
     }
 
     render() {
