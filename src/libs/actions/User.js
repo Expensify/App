@@ -300,6 +300,18 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
             );
         });
+
+     // Live-update if a user has private domains listed as primary or secondary logins.
+     Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
+        setIsFromPublicDomain(pushJSON.isFromPublicDomain);
+    })
+        .catch((error) => {
+            Log.info(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
+            );
+        });
 }
 
 /**
