@@ -88,11 +88,11 @@ function getDomainInfo(loginList) {
     }
 
     // Check the API for the remaining uncommon domains
-    API.User_IsFromPublicDomain()
+    API.User_IsFromPublicDomain({emailList})
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
-                Onyx.merge(ONYXKEYS.USER, {email: sessionEmail});
+                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 
                 // If the user is not on a public domain we'll want to know whether they are on a domain that has
                 // already provisioned the Expensify card
@@ -141,8 +141,11 @@ function getUserDetails() {
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
-            // Get domainInfo for user
-            const emailList = _.map(loginList, userLogin => userLogin.partnerUserID);
+            // Get list of validated logins and fetch domain info
+            const emailList = _.chain(loginList)
+                .filter(userLogin => userLogin.validatedDate)
+                .map(userLogin => userLogin.partnerUserID)
+                .value();
             getDomainInfo(emailList);
 
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
