@@ -231,6 +231,14 @@ class AuthScreens extends React.Component {
             return true;
         }
 
+        /*
+         * We don't want to unnecessarily re-render this component every time the `currentURL` prop changes,
+         * but we do want to re-render when we're switching from `transition` or `workspace/new` to any other page.
+         * Re-rendering in that case will re-trigger `componentDidUpdate` and `loadPoliciesBehindBeta`,
+         * which we only want to do after we're done with the `transition` and `workspace/new` pages.
+         * If we don't wait to load the policies until after we're done with those pages,
+         * we may accidentally overwrite the newly-created policy and land on an infinite loading spinner.
+         */
         if (isTransitionOrNewWorkspacePage(this.props.currentURL) && !isTransitionOrNewWorkspacePage(nextProps.currentURL)) {
             return true;
         }
