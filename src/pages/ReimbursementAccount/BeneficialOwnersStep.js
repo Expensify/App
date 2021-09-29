@@ -25,7 +25,7 @@ import CONST from '../../CONST';
 import {validateIdentity} from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import {getDefaultStateForField, clearError} from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 
@@ -45,6 +45,7 @@ class BeneficialOwnersStep extends React.Component {
 
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
+        this.clearError = inputKey => clearError(this.props, inputKey);
 
         this.state = {
             ownsMoreThan25Percent: getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
@@ -141,24 +142,7 @@ class BeneficialOwnersStep extends React.Component {
             return {beneficialOwners};
         });
 
-        const beneficialOwnerErrors = this.getBeneficialOwnerErrors(ownerIndex);
-        if (!beneficialOwnerErrors[inputKey] && (inputKey !== 'dob' || !beneficialOwnerErrors.dobAge)) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newBeneficialOwnerErrors = {...beneficialOwnerErrors};
-        delete newBeneficialOwnerErrors[inputKey];
-        if (inputKey === 'dob') {
-            delete newBeneficialOwnerErrors.dobAge;
-        }
-
-        // Modify avoiding mutation
-        const newErrors = {...this.props.reimbursementAccount.errors};
-        newErrors.beneficialOwnersErrors = [...newErrors.beneficialOwnersErrors];
-        newErrors.beneficialOwnersErrors[ownerIndex] = newBeneficialOwnerErrors;
-        setBankAccountFormValidationErrors(newErrors);
+        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${inputKey}`);
     }
 
     submit() {
