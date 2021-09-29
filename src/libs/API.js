@@ -744,16 +744,19 @@ function User_GetBetas() {
 
 /**
  * @param {Object} parameters
- * @param {String} parameters.email
+ * @param {Array} parameters.emailList
  * @param {Boolean} [parameters.requireCertainty]
  * @returns {Promise}
  */
 function User_IsFromPublicDomain(parameters) {
     const commandName = 'User_IsFromPublicDomain';
-    requireParameters(['email'], parameters, commandName);
+    requireParameters(['emailList'], parameters, commandName);
     return Network.post(commandName, {
-        ...{requireCertainty: true},
         ...parameters,
+        ...{
+            requireCertainty: true,
+            emailList: parameters.email.join(','),
+        },
     });
 }
 
