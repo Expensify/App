@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -22,7 +23,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled,
+    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled, isValidURL,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -45,6 +46,10 @@ class CompanyStep extends React.Component {
 
         this.submit = this.submit.bind(this);
 
+        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
+            ? 'https://'
+            : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
+
         this.state = {
             companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
             addressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressStreet'),
@@ -52,7 +57,7 @@ class CompanyStep extends React.Component {
             addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
             addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
             companyPhone: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyPhone'),
-            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', 'https://'),
+            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', this.defaultWebsite),
             companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyTaxID'),
             incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
             incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
@@ -130,7 +135,7 @@ class CompanyStep extends React.Component {
             errors.addressZipCode = true;
         }
 
-        if (!Str.isValidURL(this.state.website)) {
+        if (!isValidURL(this.state.website)) {
             errors.website = true;
         }
 
@@ -333,6 +338,12 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(CompanyStep);
