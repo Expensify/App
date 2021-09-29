@@ -328,6 +328,7 @@ class IOUConfirmationList extends Component {
         // Add Venmo option
         if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber.length > 0 && isValidUSPhone(this.state.participants[0].phoneNumber)) {
             this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'))
+                .promise
                 .then((isVenmoInstalled) => {
                     if (!isVenmoInstalled) {
                         return;
@@ -456,6 +457,9 @@ export default compose(
         },
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(IOUConfirmationList);
