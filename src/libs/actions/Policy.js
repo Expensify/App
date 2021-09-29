@@ -304,6 +304,9 @@ function setWorkspaceErrors(policyID, errors) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
 }
 
+/**
+ * @param {String} policyID
+ */
 function hideWorkspaceAlertMessage(policyID) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
 }
