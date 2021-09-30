@@ -20,8 +20,12 @@ class AddressSearch extends React.Component {
                     console.log(data, details);
                 }}
                 query={{
-                    key: CONFIG.GOOGLE_PLACES_API_KEY,
+                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
                     language: 'en',
+                }}
+                requestUrl={{
+                    useOnPlatform: 'web',
+                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
                 }}
             />
         );
