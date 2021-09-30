@@ -44,7 +44,10 @@ function isRequiredFulfilled(value) {
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
-    return moment(date).isValid();
+    const pastDate = moment().subtract(1000, 'years');
+    const futureDate = moment().add(1000, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(pastDate, futureDate);
 }
 
 /**
