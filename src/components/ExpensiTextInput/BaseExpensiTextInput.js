@@ -22,20 +22,19 @@ class BaseExpensiTextInput extends Component {
     constructor(props) {
         super(props);
 
-        this.value = props.value || props.defaultValue || '';
-        const activeLabel = props.forceActiveLabel || this.value.length > 0;
+        const hasValue = props.value && props.value.length > 0;
 
         this.state = {
             isFocused: false,
-            labelTranslateY: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelTranslateX: new Animated.Value(activeLabel
+            labelTranslateY: new Animated.Value(hasValue ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
+            labelTranslateX: new Animated.Value(hasValue
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
-            labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
         };
 
         this.input = null;
-        this.isLabelActive = activeLabel;
-        this.onPress = this.onPress.bind(this);
+        this.value = hasValue ? props.value : '';
+        this.isLabelActive = false;
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
@@ -44,33 +43,6 @@ class BaseExpensiTextInput extends Component {
     componentDidMount() {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (this.props.autoFocus && this.input) {
-            this.input.focus();
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        // activate or deactivate the label when value is changed programmatically from outside
-        if (prevProps.value !== this.props.value) {
-            this.value = this.props.value;
-
-            if (this.props.value) {
-                this.activateLabel();
-            } else {
-                this.deactivateLabel();
-            }
-        }
-    }
-
-    onPress(event) {
-        if (this.props.disabled) {
-            return;
-        }
-
-        if (this.props.onPress) {
-            this.props.onPress(event);
-        }
-
-        if (!event.isDefaultPrevented()) {
             this.input.focus();
         }
     }
@@ -111,7 +83,7 @@ class BaseExpensiTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (!this.props.forceActiveLabel && this.value.length === 0) {
+        if (this.value.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
             this.isLabelActive = false;
         }
@@ -162,7 +134,7 @@ class BaseExpensiTextInput extends Component {
                         ...containerStyles,
                     ]}
                 >
-                    <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
+                    <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
                         <View
                             style={[
                                 styles.expensiTextInputContainer,
@@ -199,7 +171,6 @@ class BaseExpensiTextInput extends Component {
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
-                                onPressOut={this.props.onPress}
                             />
                         </View>
                     </TouchableWithoutFeedback>

@@ -2,7 +2,6 @@ import React from 'react';
 import lodashGet from 'lodash/get';
 import {View, Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import moment from 'moment';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -122,13 +121,7 @@ class RequestorStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-
-        const payload = {
-            ...this.state,
-            dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
-        };
-
-        setupWithdrawalAccount(payload);
+        setupWithdrawalAccount({...this.state});
     }
 
     render() {

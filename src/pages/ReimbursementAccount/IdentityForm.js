@@ -9,8 +9,6 @@ import {translateLocal} from '../../libs/translate';
 import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
 import CONST from '../../CONST';
-import DatePicker from '../../components/DatePicker';
-
 
 const propTypes = {
     /** Style for wrapping View */
@@ -40,7 +38,7 @@ const propTypes = {
         zipCode: PropTypes.string,
 
         /** Date of birth field */
-        dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+        dob: PropTypes.string,
 
         /** Last 4 digits of SSN */
         ssnLast4: PropTypes.string,
@@ -105,12 +103,12 @@ const IdentityForm = ({
                     />
                 </View>
             </View>
-            <DatePicker
+            <ExpensiTextInput
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
                 value={dob}
-                onChange={(val) => {
+                onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age')) {
                         hideBankAccountErrors();
                     }
