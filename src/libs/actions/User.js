@@ -88,7 +88,7 @@ function getDomainInfo(loginList) {
     }
 
     // If it is not a common public domain, check the API
-    API.User_IsFromPublicDomain({emailList})
+    API.User_IsFromPublicDomain({emailList: emailList.join(',')})
         .then((response) => {
             if (response.jsonCode === 200) {
                 const {isFromPublicDomain} = response;
