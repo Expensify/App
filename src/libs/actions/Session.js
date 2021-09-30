@@ -264,6 +264,7 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedA
         } else {
             const error = lodashGet(response, 'message', 'Unable to login.');
             Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+            Onyx.merge(ONYXKEYS.SESSION, {error});
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});

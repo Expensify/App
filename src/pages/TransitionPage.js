@@ -8,6 +8,7 @@ import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
 import * as User from '../libs/actions/User';
+import Growl from '../libs/Growl';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -38,6 +39,9 @@ const propTypes = {
 
         /** The authToken for the current session */
         email: PropTypes.string,
+
+        /** An error message, present only if authentication fails */
+        error: PropTypes.string,
     }),
 
     /** Beta features list */
@@ -72,6 +76,14 @@ class TransitionPage extends Component {
     }
 
     componentDidUpdate(prevProps) {
+        // If there was a sign-in error, reroute to home
+        if (this.props.session.error) {
+            Navigation.dismissModal();
+            Navigation.navigate();
+            Growl.error(this.props.session.error);
+            return;
+        }
+
         // Load betas if we've just signed in
         if (!this.isCorrectUserLoggedIn(prevProps.session) && this.isCorrectUserLoggedIn(this.props.session) && !this.props.betas) {
             User.getBetas();
