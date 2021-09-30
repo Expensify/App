@@ -968,7 +968,7 @@ function BankAccount_SetupWithdrawal(parameters) {
 
     requireParameters(['currentStep'], parameters, commandName);
     return Network.post(
-        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        commandName, {additionalData: JSON.stringify(additionalData)},
         CONST.NETWORK.METHOD.POST,
         true,
     );

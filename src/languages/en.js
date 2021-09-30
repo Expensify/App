@@ -58,7 +58,6 @@ export default {
         isRequiredField: 'is a required field',
         whatThis: 'What\'s this?',
         iAcceptThe: 'I accept the ',
-        passwordCannotBeBlank: 'Password cannot be blank',
         remove: 'Remove',
         admin: 'Admin',
         dateFormat: 'YYYY-MM-DD',
