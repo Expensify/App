@@ -141,7 +141,9 @@ class BeneficialOwnersStep extends React.Component {
             updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });
-
+        if (inputKey === 'dob') {
+            this.clearError(`beneficialOwnersErrors.${ownerIndex}.dobAge`);
+        }
         this.clearError(`beneficialOwnersErrors.${ownerIndex}.${inputKey}`);
     }
 
