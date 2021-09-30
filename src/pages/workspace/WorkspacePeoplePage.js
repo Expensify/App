@@ -113,9 +113,10 @@ class WorkspacePeoplePage extends React.Component {
      * Add or remove all users from the selectedEmployees list
      */
     toggleAllUsers() {
+        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
-            selectedEmployees: this.props.policy.employeeList.length !== prevState.selectedEmployees.length
-                ? _.filter(this.props.policy.employeeList, employee => employee.login !== this.props.policy.owner)
+            selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
+                ? removableMembers
                 : [],
         }));
     }
@@ -226,6 +227,7 @@ class WorkspacePeoplePage extends React.Component {
             return <Navigation.DismissModal />;
         }
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
+        const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
         const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
             .filter()
@@ -267,7 +269,7 @@ class WorkspacePeoplePage extends React.Component {
                         <View style={[styles.peopleRow]}>
                             <View style={[styles.peopleRowCell]}>
                                 <Checkbox
-                                    isChecked={this.state.selectedEmployees.length === policyEmployeeList.length}
+                                    isChecked={this.state.selectedEmployees.length === removableMembers.length}
                                     onPress={() => this.toggleAllUsers()}
                                 />
                             </View>
