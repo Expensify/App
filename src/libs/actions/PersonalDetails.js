@@ -222,7 +222,7 @@ function setPersonalDetails(details, shouldGrowl) {
                     NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
                 }
                 mergeLocalPersonalDetails(details);
-                
+
                 if (shouldGrowl) {
                     Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
                 }
