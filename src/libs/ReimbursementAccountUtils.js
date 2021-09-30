@@ -1,5 +1,6 @@
-import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import lodashSet from 'lodash/set';
+import lodashCloneDeep from 'lodash/cloneDeep';
 import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
 
 /**
@@ -24,44 +25,6 @@ function getErrors(props) {
     return lodashGet(props, ['reimbursementAccount', 'errors'], {});
 }
 
-
-/**
- * TODO: Fix documentation!
- * Returns a modified version of @object without mutating the original. @value null clears the value (thanks Onyx)
- * @param {Object} object
- * @param {String} path
- * @param {any} value
- * @return {Object}
- */
-function updateObject(object, path, value = null) {
-    const pathSections = path.split('.');
-    const updatedObject = {...object};
-    let lastUpdatedSections = updatedObject;
-    for (let index = 0; index < pathSections.length; index++) {
-        const pathSection = pathSections[index];
-        const lastSection = index === pathSections.length - 1;
-
-        if (lastSection) {
-            lastUpdatedSections[pathSection] = value;
-        } else if (_.isArray(lastUpdatedSections[pathSection])) { // traversing
-            // Copy current level
-            lastUpdatedSections[pathSection] = [...lastUpdatedSections[pathSection]];
-
-            // Move deeper
-            lastUpdatedSections = lastUpdatedSections[pathSection];
-        } else if (_.isObject(lastUpdatedSections[pathSection])) {
-            // Copy current level
-            lastUpdatedSections[pathSection] = {...lastUpdatedSections[pathSection]};
-
-            // Move deeper
-            lastUpdatedSections = lastUpdatedSections[pathSection];
-        } else {
-            console.error('Unhandled type', lastUpdatedSections, path, value, index, pathSection);
-        }
-    }
-    return updatedObject;
-}
-
 /**
  * @param {Object} props
  * @param {String} path
@@ -72,8 +35,8 @@ function clearError(props, path) {
         // No error found for this path
         return;
     }
-
-    const newErrors = updateObject(errors, path, null);
+    const newErrors = lodashCloneDeep(errors);
+    lodashSet(newErrors, path, null);
     setBankAccountFormValidationErrors(newErrors);
 }
 
