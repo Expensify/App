@@ -17,6 +17,19 @@ function isValidAddress(value) {
 }
 
 /**
+ * Validate date fields
+ *
+ * @param {String|Date} date
+ * @returns {Boolean} true if valid
+ */
+function isValidDate(date) {
+    const pastDate = moment().subtract(1000, 'years');
+    const futureDate = moment().add(1000, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(pastDate, futureDate);
+}
+
+/**
  * Used to validate a value that is "required".
  *
  * @param {*} value
@@ -26,20 +39,13 @@ function isRequiredFulfilled(value) {
     if (_.isString(value)) {
         return !_.isEmpty(value.trim());
     }
+    if (_.isDate(value)) {
+        return isValidDate(value);
+    }
     if (_.isArray(value) || _.isObject(value)) {
         return !_.isEmpty(value);
     }
     return Boolean(value);
-}
-
-/**
- * Validate date fields
- *
- * @param {String} date
- * @returns {Boolean} true if valid
- */
-function isValidDate(date) {
-    return moment(date).isValid();
 }
 
 /**
