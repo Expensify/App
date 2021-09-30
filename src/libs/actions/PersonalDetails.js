@@ -93,7 +93,7 @@ function formatPersonalDetails(personalDetailsList) {
                 pronouns,
                 timezone,
                 payPalMeAddress,
-                phoneNumber
+                phoneNumber,
             },
         };
     }, {});
