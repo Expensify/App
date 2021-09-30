@@ -564,6 +564,9 @@ export default {
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
         forNextSteps: ' for next steps to finish setting up your bank account.',
+        letsChatCTA: 'Yes, let\'s chat!',
+        letsChatText: 'Thanks for providing your information! We have a couple more things to work out, but it\'ll be easier over chat. Ready to get started?',
+        letsChatTitle: 'Let\'s chat!',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
