@@ -69,6 +69,7 @@ import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
+import {cleanupSession} from '../../actions/Session';
 import WorkspaceNew from '../../../pages/workspace/WorkspaceNew';
 
 Onyx.connect({
@@ -249,7 +250,7 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
-        NetworkConnection.stopListeningForReconnect();
+        cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
         hasLoadedPolicies = false;
