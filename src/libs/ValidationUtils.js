@@ -69,6 +69,15 @@ function isValidAge(date) {
 }
 
 /**
+ *
+ * @param {String} url
+ * @returns {Boolean}
+ */
+function isValidURL(url) {
+    return CONST.REGEX.HYPERLINK.test(url);
+}
+
+/**
  * @param {Object} identity
  * @returns {Object}
  */
@@ -110,4 +119,5 @@ export {
     validateIdentity,
     isValidZipCode,
     isRequiredFulfilled,
+    isValidURL,
 };

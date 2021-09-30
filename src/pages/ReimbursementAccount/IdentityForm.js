@@ -7,6 +7,8 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Text from '../../components/Text';
 import CONST from '../../CONST';
+import DatePicker from '../../components/DatePicker';
+
 
 const propTypes = {
     /** Style for wrapping View */
@@ -36,7 +38,7 @@ const propTypes = {
         zipCode: PropTypes.string,
 
         /** Date of birth field */
-        dob: PropTypes.string,
+        dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
         /** Last 4 digits of SSN */
         ssnLast4: PropTypes.string,
@@ -96,12 +98,12 @@ const IdentityForm = ({
                     />
                 </View>
             </View>
-            <ExpensiTextInput
+            <DatePicker
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
                 value={dob}
-                onChangeText={value => onFieldChange('dob', value)}
+                onChange={value => onFieldChange('dob', value)}
                 errorText={dobErrorText}
             />
             <ExpensiTextInput

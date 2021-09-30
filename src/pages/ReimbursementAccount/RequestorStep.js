@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import {View, Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
+import moment from 'moment';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -79,21 +80,6 @@ class RequestorStep extends React.Component {
         this.getErrors = () => getErrors(this.props);
     }
 
-    onFieldChange(field, value) {
-        const renamedFields = {
-            street: 'requestorAddressStreet',
-            city: 'requestorAddressCity',
-            state: 'requestorAddressState',
-            zipCode: 'requestorAddressZipCode',
-        };
-        const fieldName = lodashGet(renamedFields, field, field);
-        const newState = {[fieldName]: value};
-        this.setState(newState);
-        updateReimbursementAccountDraft(newState);
-
-        this.clearError(field);
-    }
-
     getErrors() {
         return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
     }
@@ -116,17 +102,7 @@ class RequestorStep extends React.Component {
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
 
-        // Errors are stored using IdentityForm field names (no renaming)
-        const errors = this.getErrors();
-        if (!errors[inputKey]) {
-            // No error found for this inputKey
-            return;
-        }
-
-        // Clear the existing error for this inputKey
-        const newErrors = {...errors};
-        delete newErrors[inputKey];
-        setBankAccountFormValidationErrors(newErrors);
+        this.clearError(inputKey);
     }
 
     /**
@@ -159,7 +135,13 @@ class RequestorStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-        setupWithdrawalAccount({...this.state});
+
+        const payload = {
+            ...this.state,
+            dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
+        };
+
+        setupWithdrawalAccount(payload);
     }
 
     render() {
