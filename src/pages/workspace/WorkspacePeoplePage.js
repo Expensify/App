@@ -169,17 +169,19 @@ class WorkspacePeoplePage extends React.Component {
     renderItem({
         item,
     }) {
+        const isDisabled = this.props.policy.owner === item.login;
         return (
             <TouchableOpacity
-                style={[styles.peopleRow]}
+                style={[styles.peopleRow, isDisabled && styles.cursorDisabled]}
                 onPress={() => this.toggleUser(item.login)}
                 activeOpacity={0.7}
+                disabled={isDisabled}
             >
                 <View style={[styles.peopleRowCell]}>
                     <Checkbox
                         isChecked={_.contains(this.state.selectedEmployees, item.login)}
                         onPress={() => this.toggleUser(item.login)}
-                        disabled={this.props.policy.owner === item.login}
+                        disabled={isDisabled}
                     />
                 </View>
                 <View style={styles.flex1}>
