@@ -28,6 +28,9 @@ function isRequiredFulfilled(value) {
     if (_.isString(value)) {
         return !_.isEmpty(value.trim());
     }
+    if (_.isDate(value)) {
+        return moment(value).isValid();
+    }
     if (_.isArray(value) || _.isObject(value)) {
         return !_.isEmpty(value);
     }
