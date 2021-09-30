@@ -102,7 +102,7 @@ const ROUTES = {
     },
 };
 
-ROUTES.SHARED_ROUTES = [ROUTES.TRANSITION];
+ROUTES.SHARED_ROUTES = [ROUTES.TRANSITION, ROUTES.WORKSPACE_NEW];
 ROUTES.isSharedRoute = route => _.any(ROUTES.SHARED_ROUTES, r => Str.startsWith(route, r));
 
 export default ROUTES;
