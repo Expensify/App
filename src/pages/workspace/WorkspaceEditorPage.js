@@ -85,7 +85,7 @@ class WorkspaceEditorPage extends React.Component {
     render() {
         const {policy} = this.props;
 
-        if (!Permissions.canUseFreePlanSoftLaunch(this.props.betas)) {
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing workspace editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }

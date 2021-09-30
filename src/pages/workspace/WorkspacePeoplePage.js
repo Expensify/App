@@ -208,7 +208,7 @@ class WorkspacePeoplePage extends React.Component {
     }
 
     render() {
-        if (!Permissions.canUseFreePlanSoftLaunch(this.props.betas)) {
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing workspace people page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
@@ -216,7 +216,9 @@ class WorkspacePeoplePage extends React.Component {
         const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
             .filter()
+            .sortBy(person => person.displayName.toLowerCase())
             .value();
+
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
@@ -235,7 +237,7 @@ class WorkspacePeoplePage extends React.Component {
                     confirmText={this.props.translate('common.remove')}
                     cancelText={this.props.translate('common.cancel')}
                 />
-                <View style={styles.pageWrapper}>
+                <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
                         <Button
                             success
@@ -250,7 +252,7 @@ class WorkspacePeoplePage extends React.Component {
                             onPress={this.askForConfirmationToRemove}
                         />
                     </View>
-                    <View style={[styles.w100, styles.mt4]}>
+                    <View style={[styles.w100, styles.mt4, styles.flex1]}>
                         <View style={[styles.peopleRow]}>
                             <View style={[styles.peopleRowCell]}>
                                 <Checkbox
@@ -268,6 +270,7 @@ class WorkspacePeoplePage extends React.Component {
                             renderItem={this.renderItem}
                             data={data}
                             keyExtractor={item => item.login}
+                            showsVerticalScrollIndicator={false}
                         />
                     </View>
                 </View>

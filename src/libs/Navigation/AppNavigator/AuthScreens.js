@@ -69,6 +69,7 @@ import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
+import {cleanupSession} from '../../actions/Session';
 import WorkspaceNew from '../../../pages/workspace/WorkspaceNew';
 
 Onyx.connect({
@@ -120,7 +121,7 @@ let hasLoadedPolicies = false;
 function loadPoliciesBehindBeta(betas) {
     // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
     // Policy info loading should not be blocked behind the defaultRooms beta alone.
-    if (!hasLoadedPolicies && (Permissions.canUseFreePlanSoftLaunch(betas) || Permissions.canUseDefaultRooms(betas))) {
+    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
         getPolicyList();
         getPolicySummaries();
         hasLoadedPolicies = true;
@@ -249,7 +250,7 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
-        NetworkConnection.stopListeningForReconnect();
+        cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
         hasLoadedPolicies = false;

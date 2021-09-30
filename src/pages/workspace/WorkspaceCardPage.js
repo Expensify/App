@@ -5,6 +5,8 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
+import {withNavigationFocus} from '@react-navigation/compat';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -54,6 +56,13 @@ const propTypes = {
     /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes,
 
+    /** Draft of bank account currently in setup */
+    // eslint-disable-next-line react/forbid-prop-types
+    reimbursementAccountDraft: PropTypes.object,
+
+    /** Is WorkspaceCard screen focused */
+    isFocused: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -66,148 +75,179 @@ const defaultProps = {
     reimbursementAccount: {
         loading: false,
     },
+    reimbursementAccountDraft: {},
 };
 
-const WorkspaceCardPage = ({
-    betas,
-    user,
-    translate,
-    route,
-    isSmallScreenWidth,
-    isMediumScreenWidth,
-    reimbursementAccount,
-}) => {
-    const isVerifying = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.VERIFYING;
-    const isPending = lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.PENDING;
-    const isNotAutoProvisioned = !user.isUsingExpensifyCard
-        && lodashGet(reimbursementAccount, 'achData.state', '') === BankAccount.STATE.OPEN;
-    let buttonText;
+class WorkspaceCardPage extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const openBankSetupModal = () => {
-        setWorkspaceIDForReimbursementAccount(route.params.policyID);
-        Navigation.navigate(ROUTES.getBankAccountRoute());
-    };
-
-    if (user.isFromPublicDomain) {
-        buttonText = translate('workspace.card.addEmail');
-    } else if (user.isUsingExpensifyCard) {
-        buttonText = translate('workspace.card.manageCards');
-    } else if (isVerifying || isPending || isNotAutoProvisioned) {
-        buttonText = translate('workspace.card.finishSetup');
-        openBankSetupModal();
-    } else {
-        buttonText = translate('workspace.card.getStarted');
+        this.onPress = this.onPress.bind(this);
+        this.state = {
+            buttonText: this.props.translate('workspace.card.getStarted'),
+        };
     }
 
-    const onPress = () => {
-        if (user.isFromPublicDomain) {
+    componentDidMount() {
+        if (!Permissions.canUseFreePlan(this.props.betas)) {
+            console.debug('Not showing workspace card page because user is not on free plan beta');
+            return Navigation.dismissModal();
+        }
+        const buttonText = this.getButtonText();
+        this.setState({buttonText});
+        if (buttonText === this.props.translate('workspace.card.finishSetup')) {
+            this.openBankSetupModal();
+        }
+    }
+
+    shouldComponentUpdate(nextProps) {
+        if (this.props.isFocused || nextProps.isFocused) {
+            return true;
+        }
+        return false;
+    }
+
+    componentDidUpdate() {
+        const buttonText = this.getButtonText();
+        if (this.state.buttonText !== buttonText) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({buttonText});
+        }
+    }
+
+    onPress() {
+        if (this.props.user.isFromPublicDomain) {
             openSignedInLink(CONST.ADD_SECONDARY_LOGIN_URL);
-        } else if (user.isUsingExpensifyCard) {
+        } else if (this.props.user.isUsingExpensifyCard) {
             openSignedInLink(CONST.MANAGE_CARDS_URL);
         } else {
-            openBankSetupModal();
+            this.openBankSetupModal();
         }
-    };
-
-    if (!Permissions.canUseFreePlanSoftLaunch(betas)) {
-        console.debug('Not showing workspace card page because user is not on free plan beta');
-        return <Navigation.DismissModal />;
     }
 
-    return (
-        <ScreenWrapper style={[styles.defaultModalContainer]}>
-            <HeaderWithCloseButton
-                title={translate('workspace.common.card')}
-                onCloseButtonPress={() => Navigation.dismissModal()}
-                onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={isSmallScreenWidth}
-                shouldShowInboxCallButton
-                inboxCallTaskID="WorkspaceCompanyCards"
-            />
-            <ScrollView style={[styles.settingsPageBackground]}>
-                <View style={styles.pageWrapper}>
-                    <View style={[
-                        styles.mb3,
-                        styles.flexRow,
-                        styles.workspaceCard,
-                        isSmallScreenWidth && styles.workspaceCardMobile,
-                        isMediumScreenWidth && styles.workspaceCardMediumScreen,
-                    ]}
-                    >
-                        {isSmallScreenWidth || isMediumScreenWidth
-                            ? (
-                                <HeroCardMobileImage
-                                    style={StyleSheet.flatten([
-                                        styles.fullscreenCard,
-                                        isSmallScreenWidth && styles.fullscreenCardMobile,
-                                        isMediumScreenWidth && styles.fullscreenCardMediumScreen,
-                                    ])}
-                                />
-                            )
-                            : (
-                                <HeroCardWebImage
-                                    style={StyleSheet.flatten([styles.fullscreenCard, styles.fullscreenCardWeb])}
-                                />
-                            )}
+    getButtonText() {
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const shouldFinishSetup = !_.every(Object.values(this.props.reimbursementAccountDraft), value => value === '')
+            || _.contains([
+                BankAccount.STATE.SETUP,
+                BankAccount.STATE.VERIFYING,
+                BankAccount.STATE.PENDING,
+                BankAccount.STATE.OPEN,
+            ], achState);
 
+        if (this.props.user.isFromPublicDomain) {
+            return this.props.translate('workspace.card.addEmail');
+        }
+        if (this.props.user.isUsingExpensifyCard) {
+            return this.props.translate('workspace.card.manageCards');
+        }
+        if (shouldFinishSetup) {
+            return this.props.translate('workspace.card.finishSetup');
+        }
+        return this.props.translate('workspace.card.getStarted');
+    }
+
+    openBankSetupModal() {
+        setWorkspaceIDForReimbursementAccount(this.props.route.params.policyID);
+        Navigation.navigate(ROUTES.getBankAccountRoute());
+    }
+
+    render() {
+        return (
+            <ScreenWrapper style={[styles.defaultModalContainer]}>
+                <HeaderWithCloseButton
+                    title={this.props.translate('workspace.common.card')}
+                    onCloseButtonPress={() => Navigation.dismissModal()}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowBackButton={this.props.isSmallScreenWidth}
+                    shouldShowInboxCallButton
+                    inboxCallTaskID="WorkspaceCompanyCards"
+                />
+                <ScrollView style={[styles.settingsPageBackground]}>
+                    <View style={styles.pageWrapper}>
                         <View style={[
-                            styles.fullscreenCard,
-                            styles.workspaceCardContent,
-                            isSmallScreenWidth && styles.p5,
-                            isMediumScreenWidth && styles.workspaceCardContentMediumScreen,
+                            styles.mb3,
+                            styles.flexRow,
+                            styles.workspaceCard,
+                            this.props.isSmallScreenWidth && styles.workspaceCardMobile,
+                            this.props.isMediumScreenWidth && styles.workspaceCardMediumScreen,
                         ]}
                         >
-                            <View
-                                style={[
-                                    styles.flexGrow1,
-                                    styles.justifyContentEnd,
-                                    styles.alignItemsStart,
-                                    !isSmallScreenWidth && styles.w50,
-                                    isMediumScreenWidth && styles.w100,
-                                ]}
+                            {this.props.isSmallScreenWidth || this.props.isMediumScreenWidth
+                                ? (
+                                    <HeroCardMobileImage
+                                        style={StyleSheet.flatten([
+                                            styles.fullscreenCard,
+                                            this.props.isSmallScreenWidth && styles.fullscreenCardMobile,
+                                            this.props.isMediumScreenWidth && styles.fullscreenCardMediumScreen,
+                                        ])}
+                                    />
+                                )
+                                : (
+                                    <HeroCardWebImage
+                                        style={StyleSheet.flatten([styles.fullscreenCard, styles.fullscreenCardWeb])}
+                                    />
+                                )}
+
+                            <View style={[
+                                styles.fullscreenCard,
+                                styles.workspaceCardContent,
+                                this.props.isSmallScreenWidth && styles.p5,
+                                this.props.isMediumScreenWidth && styles.workspaceCardContentMediumScreen,
+                            ]}
                             >
-                                <Text
+                                <View
                                     style={[
-                                        styles.workspaceCardMainText,
-                                        styles.mb5,
+                                        styles.flexGrow1,
+                                        styles.justifyContentEnd,
+                                        styles.alignItemsStart,
+                                        !this.props.isSmallScreenWidth && styles.w50,
+                                        this.props.isMediumScreenWidth && styles.w100,
                                     ]}
-                                    color={themeDefault.textReversed}
                                 >
-                                    {user.isUsingExpensifyCard
-                                        ? translate('workspace.card.cardReadyTagline')
-                                        : translate('workspace.card.tagline')}
-                                </Text>
-                                <Text
-                                    fontSize={variables.fontSizeLarge}
-                                    color={themeDefault.textReversed}
-                                    style={[styles.mb8]}
-                                >
-                                    {user.isFromPublicDomain
-                                        ? translate('workspace.card.publicCopy')
-                                        : translate('workspace.card.privateCopy')}
-                                </Text>
-                                <Button
-                                    style={[
-                                        styles.alignSelfStart,
-                                        styles.workspaceCardCTA,
-                                        isSmallScreenWidth ? styles.wAuto : {},
-                                    ]}
-                                    textStyles={
-                                        !isSmallScreenWidth ? [styles.pr5, styles.pl5] : []
-                                    }
-                                    onPress={onPress}
-                                    success
-                                    large
-                                    text={buttonText}
-                                />
+                                    <Text
+                                        style={[
+                                            styles.workspaceCardMainText,
+                                            styles.mb5,
+                                        ]}
+                                        color={themeDefault.textReversed}
+                                    >
+                                        {this.props.user.isUsingExpensifyCard
+                                            ? this.props.translate('workspace.card.cardReadyTagline')
+                                            : this.props.translate('workspace.card.tagline')}
+                                    </Text>
+                                    <Text
+                                        fontSize={variables.fontSizeLarge}
+                                        color={themeDefault.textReversed}
+                                        style={[styles.mb8]}
+                                    >
+                                        {this.props.user.isFromPublicDomain
+                                            ? this.props.translate('workspace.card.publicCopy')
+                                            : this.props.translate('workspace.card.privateCopy')}
+                                    </Text>
+                                    <Button
+                                        style={[
+                                            styles.alignSelfStart,
+                                            styles.workspaceCardCTA,
+                                            this.props.isSmallScreenWidth ? styles.wAuto : {},
+                                        ]}
+                                        textStyles={
+                                            !this.props.isSmallScreenWidth ? [styles.pr5, styles.pl5] : []
+                                        }
+                                        onPress={this.onPress}
+                                        success
+                                        large
+                                        text={this.state.buttonText}
+                                    />
+                                </View>
                             </View>
                         </View>
                     </View>
-                </View>
-            </ScrollView>
-        </ScreenWrapper>
-    );
-};
+                </ScrollView>
+            </ScreenWrapper>
+        );
+    }
+}
 
 WorkspaceCardPage.propTypes = propTypes;
 WorkspaceCardPage.defaultProps = defaultProps;
@@ -216,12 +256,16 @@ WorkspaceCardPage.displayName = 'WorkspaceCardPage';
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withNavigationFocus,
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
         },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+        },
+        reimbursementAccountDraft: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
         betas: {
             key: ONYXKEYS.BETAS,
