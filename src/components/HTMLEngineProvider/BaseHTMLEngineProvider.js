@@ -67,15 +67,15 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
 }
 
 /**
- * Check if there is an ancestor node with the attribute 'data-comment'.
- * Finding 'data-comment' flags that we are rendering a comment.
+ * Check if there is an ancestor node with name 'comment'.
+ * Finding node with name 'comment' flags that we are rendering a comment.
  * @param {TNode} tnode
  * @returns {Boolean}
  */
 function isInsideComment(tnode) {
     let currentNode = tnode;
     while (currentNode.parent) {
-        if (currentNode.attributes['data-comment']) {
+        if (currentNode.domNode.name === 'comment') {
             return true;
         }
         currentNode = currentNode.parent;
@@ -262,6 +262,9 @@ const customHTMLElementModels = {
         tagName: 'muted-text',
         mixedUAStyles: styles.mutedTextLabel,
     }),
+    comment: defaultHTMLElementModels.div.extend({
+        tagName: 'comment',
+    }),
 };
 
 // Define the custom renderer components
@@ -270,6 +273,7 @@ const renderers = {
     code: CodeRenderer,
     img: ImgRenderer,
     edited: withLocalize(EditedRenderer),
+    comment: TNodeChildrenRenderer,
 };
 
 const renderersProps = {
