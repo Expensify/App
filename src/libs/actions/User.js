@@ -304,9 +304,6 @@ function subscribeToUserEvents() {
     // Live-update if a user has private domains listed as primary or secondary logins.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
         setIsFromPublicDomain(pushJSON.isFromPublicDomain);
-    }, false,
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
         .catch((error) => {
             Log.info(
