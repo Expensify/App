@@ -7,6 +7,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import Navigation from '../libs/Navigation/Navigation';
+import * as User from '../libs/actions/User';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -54,26 +55,31 @@ const defaultProps = {
 class TransitionPage extends Component {
     constructor(props) {
         super(props);
-        this.state = {hasRun: false};
+        this.accountID = lodashGet(this.props.route.params, 'accountID', '');
+        this.email = lodashGet(this.props.route.params, 'email', '');
+        this.shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
+        this.encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
     }
 
     componentDidMount() {
-        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
-        const email = lodashGet(this.props.route.params, 'email', '');
-        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-        const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
-
-        // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
-        if (this.props.session.authToken && email === this.props.session.email) {
+        // If the user is already authenticated with the right account, just refresh betas. No need to re-authenticate.
+        if (this.isCorrectUserLoggedIn(this.props.session)) {
+            User.getBetas();
             return;
         }
 
-        signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
-        this.setState({hasRun: true});
+        signInWithShortLivedToken(this.accountID, this.email, this.shortLivedToken, this.encryptedAuthToken);
     }
 
-    componentDidUpdate() {
-        if (this.state.hasRun || !this.props.betas) {
+    componentDidUpdate(prevProps) {
+        // Load betas if we've just signed in
+        if (!this.isCorrectUserLoggedIn(prevProps.session) && this.isCorrectUserLoggedIn(this.props.session) && !this.props.betas) {
+            User.getBetas();
+            return;
+        }
+
+        // Stay in the transition page until we're logged in and our betas are loaded
+        if (!this.isCorrectUserLoggedIn(this.props.session) || !this.props.betas) {
             return;
         }
 
@@ -88,6 +94,14 @@ class TransitionPage extends Component {
         // if they cancel out of the new workspace modal.
         Navigation.dismissModal();
         Navigation.navigate(exitTo);
+    }
+
+    /**
+     * @param {Object} session
+     * @returns {Boolean}
+     */
+    isCorrectUserLoggedIn(session) {
+        return session.authToken && session.email === this.email;
     }
 
     render() {
