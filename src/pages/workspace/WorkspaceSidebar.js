@@ -14,7 +14,7 @@ import {
     Users,
     ExpensifyCard,
     Workspace,
-    Pencil,
+    Camera,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -120,7 +120,7 @@ const WorkspaceSidebar = ({
                                 <Tooltip absolute text={translate('workspace.common.edit')}>
                                     <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                         <Icon
-                                            src={Pencil}
+                                            src={Camera}
                                             width={variables.iconSizeSmall}
                                             height={variables.iconSizeSmall}
                                             fill={themedefault.iconReversed}
