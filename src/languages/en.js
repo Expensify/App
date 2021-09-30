@@ -78,6 +78,9 @@ export default {
         },
         please: 'Please',
         contactUs: 'contact us',
+        confirm: 'Confirm',
+        reset: 'Reset',
+        done: 'Done',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -561,6 +564,9 @@ export default {
         descriptionCTA: 'Please enter each transaction amount in the fields below. Example: 1.51',
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
         forNextSteps: ' for next steps to finish setting up your bank account.',
+        letsChatCTA: 'Yes, let\'s chat!',
+        letsChatText: 'Thanks for providing your information! We have a couple more things to work out, but it\'ll be easier over chat. Ready to get started?',
+        letsChatTitle: 'Let\'s chat!',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Additional information',
@@ -637,10 +643,9 @@ export default {
         },
     },
     requestCallPage: {
-        requestACall: 'Request a call',
-        description: 'Need help with your account configuration? Our team of guides are on hand to help you each step of the way.',
-        instructions: 'Type in your name and phone number, and we’ll give you a call back.',
-        availabilityText: '*Our guides are available from Sunday at 5pm CT to Friday at 5pm CT. Any requests outside this window will be returned 9am - 5pm, Monday - Friday in your local time. Call time is based on the order the call was received.',
+        title: 'Request a call',
+        subtitle: 'Have questions, or need help?',
+        description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',

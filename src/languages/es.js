@@ -78,6 +78,9 @@ export default {
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
+        confirm: 'Confirmar',
+        reset: 'Restablecer',
+        done: 'Listo',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -563,6 +566,9 @@ export default {
         descriptionCTA: 'Ingrese el monto de cada transacción en los campos a continuación. Ejemplo: 1.51',
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
+        letsChatCTA: '¡Sí, vamos a chatear!',
+        letsChatText: '¡Gracias por darnos tu información! Aún nos quedan algunas cosas por revisar, pero será mas fácil hacerlo por chat. ¿Estás listo para comenzar?',
+        letsChatTitle: '¡Vamos a chatear!',
     },
     beneficialOwnersStep: {
         additionalInformation: 'Información adicional',
@@ -639,10 +645,9 @@ export default {
         },
     },
     requestCallPage: {
-        requestACall: 'Llámame por teléfono',
-        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte.',
-        instructions: 'Escribe tu nombre y número de teléfono y te llamaremos.',
-        availabilityText: '*Nuestros guías están disponibles de domingo desde las 17.00 CT a viernes hasta las 17.00 CT. Si solicitas una llamada fuera de este horario, te llamaremos de lunes a viernes de 9.00 a 17.00 en tu hora local. El orden de llamada corresponde con el orden de solicitud.',
+        title: 'Llámame por teléfono',
+        subtitle: '¿Tienes preguntas o necesitas ayuda?',
+        description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
         errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
