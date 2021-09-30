@@ -102,6 +102,9 @@ class RequestorStep extends React.Component {
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
 
+        if (inputKey === 'dob') {
+            this.clearError('dobAge');
+        }
         this.clearError(inputKey);
     }
 
