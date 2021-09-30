@@ -61,5 +61,4 @@ export default {
     },
     CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
     ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
-    GOOGLE_PLACES_API_KEY: lodashGet(Config, 'GOOGLE_PLACES_API_KEY', ''),
 };
