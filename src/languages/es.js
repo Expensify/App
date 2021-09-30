@@ -535,7 +535,7 @@ export default {
     },
     companyStep: {
         headerTitle: 'Información de la empresa',
-        subtitle: 'Dé más información sobre su empresa.',
+        subtitle: '¡Ya casi estamos! Por motivos de seguridad, necesitamos confirmar la siguiente información:',
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
