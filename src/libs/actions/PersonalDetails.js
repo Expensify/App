@@ -222,10 +222,10 @@ function setPersonalDetails(details, shouldGrowl) {
                     NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
                 }
                 mergeLocalPersonalDetails(details);
-            }
-
-            if (shouldGrowl && response.jsonCode === 200) {
-                Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                
+                if (shouldGrowl) {
+                    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                }
             } else if (response.jsonCode === 400) {
                 Growl.error(translateLocal('profilePage.error.messageOn400'), 3000);
             } else if (response.jsonCode === 401) {
