@@ -1,4 +1,6 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
 import {addTrailingForwardSlash} from './libs/Url';
 
 /**
@@ -14,7 +16,7 @@ const IOU_REQUEST_CURRENCY = `${IOU_REQUEST}/currency`;
 const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 
-export default {
+const ROUTES = {
     BANK_ACCOUNT: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
@@ -99,3 +101,8 @@ export default {
         };
     },
 };
+
+ROUTES.SHARED_ROUTES = [ROUTES.TRANSITION];
+ROUTES.isSharedRoute = route => _.any(ROUTES.SHARED_ROUTES, r => Str.startsWith(route, r));
+
+export default ROUTES;

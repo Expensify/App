@@ -1,6 +1,5 @@
-import React from 'react';
+import React, {memo} from 'react';
 import PropTypes from 'prop-types';
-import Str from 'expensify-common/lib/str';
 import ROUTES from '../../../ROUTES';
 import PublicScreens from './PublicScreens';
 import AuthScreens from './AuthScreens';
@@ -15,7 +14,7 @@ const propTypes = {
 };
 
 const AppNavigator = (props) => {
-    if (Str.startsWith(props.currentURL, ROUTES.TRANSITION)) {
+    if (ROUTES.isSharedRoute(props.currentURL)) {
         return <SharedScreens />;
     }
 
@@ -30,6 +29,20 @@ const AppNavigator = (props) => {
         );
 };
 
+/**
+ * We do not want to re-render the full navigator every time the currentURL changes, so only re-render this component if:
+ *   1. The route changes from shared to not shared (or vice versa), OR
+ *   2. Authenticated prop changes
+ *
+ * @param {Object} prevProps
+ * @param {Object} nextProps
+ * @returns {boolean}
+ */
+function areEqual(prevProps, nextProps) {
+    return ROUTES.isSharedRoute(prevProps.currentURL) === ROUTES.isSharedRoute(nextProps.currentURL)
+        && prevProps.authenticated === nextProps.authenticated;
+}
+
 AppNavigator.propTypes = propTypes;
 AppNavigator.displayName = 'AppNavigator';
-export default AppNavigator;
+export default memo(AppNavigator, areEqual);
