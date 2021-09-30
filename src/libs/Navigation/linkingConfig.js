@@ -27,7 +27,7 @@ export default {
 
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
-            [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
+            [SCREENS.TRANSITION]: ROUTES.TRANSITION,
             WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
             // Modal Screens

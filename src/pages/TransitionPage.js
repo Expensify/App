@@ -51,7 +51,7 @@ const defaultProps = {
     betas: null,
 };
 
-class LogInWithShortLivedTokenPage extends Component {
+class TransitionPage extends Component {
     constructor(props) {
         super(props);
         this.state = {hasRun: false};
@@ -95,8 +95,8 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 }
 
-LogInWithShortLivedTokenPage.propTypes = propTypes;
-LogInWithShortLivedTokenPage.defaultProps = defaultProps;
+TransitionPage.propTypes = propTypes;
+TransitionPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -107,4 +107,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(LogInWithShortLivedTokenPage);
+)(TransitionPage);

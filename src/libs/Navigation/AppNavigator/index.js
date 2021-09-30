@@ -15,7 +15,7 @@ const propTypes = {
 };
 
 const AppNavigator = (props) => {
-    if (Str.startsWith(props.currentURL, ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) {
+    if (Str.startsWith(props.currentURL, ROUTES.TRANSITION)) {
         return <SharedScreens />;
     }
 
