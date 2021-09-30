@@ -18,6 +18,7 @@ import {removeMembers} from '../../libs/actions/Policy';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
+import Tooltip from '../../components/Tooltip';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -114,7 +115,7 @@ class WorkspacePeoplePage extends React.Component {
     toggleAllUsers() {
         this.setState(prevState => ({
             selectedEmployees: this.props.policy.employeeList.length !== prevState.selectedEmployees.length
-                ? this.props.policy.employeeList
+                ? _.filter(this.props.policy.employeeList, employee => employee.login !== this.props.policy.owner)
                 : [],
         }));
     }
@@ -170,6 +171,13 @@ class WorkspacePeoplePage extends React.Component {
         item,
     }) {
         const isDisabled = this.props.policy.owner === item.login;
+        const checkbox = (
+            <Checkbox
+                isChecked={_.contains(this.state.selectedEmployees, item.login)}
+                onPress={() => this.toggleUser(item.login)}
+                disabled={isDisabled}
+            />
+        );
         return (
             <TouchableOpacity
                 style={[styles.peopleRow, isDisabled && styles.cursorDisabled]}
@@ -178,11 +186,13 @@ class WorkspacePeoplePage extends React.Component {
                 disabled={isDisabled}
             >
                 <View style={[styles.peopleRowCell]}>
-                    <Checkbox
-                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                        onPress={() => this.toggleUser(item.login)}
-                        disabled={isDisabled}
-                    />
+                    {isDisabled
+                        ? (
+                            <Tooltip text={this.props.translate('workspace.people.error.cannotRemove')}>
+                                {checkbox}
+                            </Tooltip>
+                        )
+                        : checkbox}
                 </View>
                 <View style={styles.flex1}>
                     <OptionRow

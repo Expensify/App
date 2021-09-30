@@ -600,6 +600,9 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
+            error: {
+                cannotRemove: 'You cannot remove yourself or the workspace owner.',
+            },
         },
         card: {
             addEmail: 'Add email',

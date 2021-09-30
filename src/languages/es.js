@@ -602,6 +602,9 @@ export default {
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a las personas seleccionadas de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
+            error: {
+                cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+            },
         },
         card: {
             addEmail: 'Agregar correo electrónico',
