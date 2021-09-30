@@ -16,7 +16,7 @@ const propTypes = {
 class NavigationRoot extends Component {
     constructor(props) {
         super(props);
-
+        this.currentURL = null;
         this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
     }
 
@@ -30,6 +30,7 @@ class NavigationRoot extends Component {
         }
 
         const path = getPathFromState(state, linkingConfig.config);
+        this.currentURL = path;
 
         // Don't log the route transitions from OldDot because they contain authTokens
         if (path.includes('/transition')) {
@@ -51,7 +52,7 @@ class NavigationRoot extends Component {
                     enabled: false,
                 }}
             >
-                <AppNavigator authenticated={this.props.authenticated} />
+                <AppNavigator authenticated={this.props.authenticated} currentURL={this.currentURL} />
             </NavigationContainer>
         );
     }
