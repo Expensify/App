@@ -2,13 +2,12 @@ import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../libs/compose';
-import ONYXKEYS from '../ONYXKEYS';
-import {signInWithShortLivedToken} from '../libs/actions/Session';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
-import Navigation from '../libs/Navigation/Navigation';
-import * as User from '../libs/actions/User';
-import Growl from '../libs/Growl';
+import ONYXKEYS from '../../ONYXKEYS';
+import {signInWithShortLivedToken} from '../../libs/actions/Session';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import Navigation from '../../libs/Navigation/Navigation';
+import * as User from '../../libs/actions/User';
+import Growl from '../../libs/Growl';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -124,13 +123,11 @@ class TransitionPage extends Component {
 TransitionPage.propTypes = propTypes;
 TransitionPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(TransitionPage);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(TransitionPage);
