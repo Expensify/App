@@ -14,6 +14,7 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import Timers from '../Timers';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -110,7 +111,7 @@ function getDomainInfo(loginList) {
 
                 // eslint-disable-next-line max-len
                 console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(() => getDomainInfo(loginList), RETRY_TIMEOUT);
+                Timers.register(setTimeout(() => getDomainInfo(loginList), RETRY_TIMEOUT));
             }
         });
 }
