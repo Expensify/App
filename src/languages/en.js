@@ -411,7 +411,6 @@ export default {
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',
             dob: 'Please enter a valid date of birth',
-            age: 'Requestors must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             firstName: 'Please enter valid first name',
             lastName: 'Please enter valid last name',

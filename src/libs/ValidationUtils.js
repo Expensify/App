@@ -67,12 +67,14 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
- *
  * @param {String} date
  * @returns {Boolean}
  */
 function isValidAge(date) {
-    return moment().diff(moment(date), 'years') >= 18;
+    const eighteenYearsAgo = moment().subtract(18, 'years');
+    const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
 }
 
 /**
@@ -113,14 +115,8 @@ function isValidIdentity(identity) {
         return false;
     }
 
-    if (!isValidDate(identity.dob)) {
+    if (!isValidDate(identity.dob) || !isValidAge(identity.dob)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
-        return false;
-    }
-
-    if (!isValidAge(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
         showBankAccountErrorModal();
         return false;
     }
