@@ -26,6 +26,7 @@ export default {
         continue: 'Continuar',
         firstName: 'Primer nombre',
         lastName: 'Apellido',
+        phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
         email: 'Email',
         and: 'y',
