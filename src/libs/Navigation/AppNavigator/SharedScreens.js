@@ -1,6 +1,7 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import LogInWithShortLivedTokenPage from '../../../pages/TransitionPage';
+import TransitionPage from '../../../pages/Transition/TransitionPage';
+import TransitionNewWorkspace from '../../../pages/Transition/TransitionNewWorkspace';
 import SCREENS from '../../../SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 
@@ -11,7 +12,12 @@ export default () => (
         <RootStack.Screen
             name={SCREENS.TRANSITION}
             options={defaultScreenOptions}
-            component={LogInWithShortLivedTokenPage}
+            component={TransitionPage}
+        />
+        <RootStack.Screen
+            name="NewWorkspace"
+            options={defaultScreenOptions}
+            component={TransitionNewWorkspace}
         />
     </RootStack.Navigator>
 );
