@@ -32,6 +32,7 @@ import ExpensiPicker from '../../components/ExpensiPicker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import AddressSearch from '../../components/AddressSearch';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -192,6 +193,7 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         errorText={this.getErrorText('companyName')}
                     />
+                    <AddressSearch />
                     <ExpensiTextInput
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
