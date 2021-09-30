@@ -51,7 +51,7 @@ export default {
         ssnLast4: 'Últimos 4 dígitos de su SSN',
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
-        noPO: '(No se aceptan apartados ni direcciones postales)',
+        noPO: 'No se aceptan apartados ni direcciones postales',
         city: 'Ciudad',
         state: 'Estado',
         zip: 'Código postal',
@@ -373,6 +373,7 @@ export default {
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
         accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
     },
+    stepCounter: ({step, total}) => `Paso ${step} de ${total}`,
     bankAccount: {
         accountNumber: 'Número de cuenta',
         routingNumber: 'Número de ruta',
@@ -535,6 +536,7 @@ export default {
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
+        taxIDNumberPlaceholder: '9 dígitos, sin guiones',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
         industryClassificationCode: 'Código de clasificación industrial',
@@ -546,7 +548,6 @@ export default {
     requestorStep: {
         headerTitle: 'Información personal',
         subtitle: 'Dé más información sobre tí.',
-        financialRegulations: 'Las leyes fiscales y el reglamento bancario nos obliga a verificar la identidad de todo individuo que desee añadir una cuenta bancaria representando a una compañía. ',
         learnMore: 'Más información',
         isMyDataSafe: '¿Están seguros mis datos?',
         onFidoConditions: 'Al continuar con la solicitud de añadir esta cuenta bancaria, confirma que ha leído, entiende y acepta ',

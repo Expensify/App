@@ -51,7 +51,7 @@ export default {
         ssnLast4: 'Last 4 digits of SSN',
         personalAddress: 'Personal address',
         companyAddress: 'Company address',
-        noPO: '(PO boxes and mail drop addresses are NOT allowed)',
+        noPO: 'PO boxes and mail drop addresses are not allowed',
         city: 'City',
         state: 'State',
         zip: 'Zip code',
@@ -373,6 +373,7 @@ export default {
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
     },
+    stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {
         accountNumber: 'Account number',
         routingNumber: 'Routing number',
@@ -533,6 +534,7 @@ export default {
         legalBusinessName: 'Legal business name',
         companyWebsite: 'Company website',
         taxIDNumber: 'Tax ID number',
+        taxIDNumberPlaceholder: '9 digits, no hyphens',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
         industryClassificationCode: 'Industry classification code',
@@ -544,7 +546,6 @@ export default {
     requestorStep: {
         headerTitle: 'Personal information',
         subtitle: 'Please provide your personal information.',
-        financialRegulations: 'Financial regulation and bank rules require us to validate the identity of any individual setting up bank accounts on behalf of a company. ',
         learnMore: 'Learn more',
         isMyDataSafe: 'Is my data safe?',
         onFidoConditions: 'By continuing with the request to add this bank account, you confirm that you have read, understand and accept ',
