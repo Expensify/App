@@ -1,7 +1,31 @@
 import moment from 'moment';
+import _ from 'underscore';
 import CONST from '../CONST';
 import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
+
+
+/**
+ * Implements the Luhn Algorithm, a checksum formula used to validate credit card
+ * numbers.
+ *
+ * @param {String} val
+ * @returns {Boolean}
+ */
+function validateCardNumber(val) {
+    let sum = 0;
+    for (let i = 0; i < val.length; i++) {
+        let intVal = parseInt(val.substr(i, 1), 10);
+        if (i % 2 === 0) {
+            intVal *= 2;
+            if (intVal > 9) {
+                intVal = 1 + (intVal % 10);
+            }
+        }
+        sum += intVal;
+    }
+    return (sum % 10) === 0;
+}
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -18,30 +42,71 @@ function isValidAddress(value) {
 }
 
 /**
- * Validates that this string is composed of a single emoji
- *
- * @param {String} message
- * @returns {Boolean}
- */
-function isSingleEmoji(message) {
-    const match = message.match(CONST.REGEX.EMOJIS);
-
-    if (!match) {
-        return false;
-    }
-
-    const matchedEmoji = match[0];
-    return message.length === matchedEmoji.length;
-}
-
-/**
  * Validate date fields
  *
- * @param {String} date
+ * @param {String|Date} date
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
-    return moment(date).isValid();
+    const pastDate = moment().subtract(1000, 'years');
+    const futureDate = moment().add(1000, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(pastDate, futureDate);
+}
+
+/**
+ * Used to validate a value that is "required".
+ *
+ * @param {*} value
+ * @returns {Boolean}
+ */
+function isRequiredFulfilled(value) {
+    if (_.isString(value)) {
+        return !_.isEmpty(value.trim());
+    }
+    if (_.isDate(value)) {
+        return isValidDate(value);
+    }
+    if (_.isArray(value) || _.isObject(value)) {
+        return !_.isEmpty(value);
+    }
+    return Boolean(value);
+}
+
+/**
+ * Validates that this is a valid expiration date
+ * in the MM/YY or MM/YYYY format
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidExpirationDate(string) {
+    return CONST.REGEX.CARD_EXPIRATION_DATE.test(string);
+}
+
+/**
+ * Validates that this is a valid security code
+ * in the XXX or XXXX format.
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidSecurityCode(string) {
+    return CONST.REGEX.CARD_SECURITY_CODE.test(string);
+}
+
+/**
+ * Validates a debit card number (15 or 16 digits).
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidDebitCard(string) {
+    if (!CONST.REGEX.CARD_NUMBER.test(string)) {
+        return false;
+    }
+
+    return validateCardNumber(string);
 }
 
 /**
@@ -69,12 +134,23 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
- *
  * @param {String} date
  * @returns {Boolean}
  */
 function isValidAge(date) {
-    return moment().diff(moment(date), 'years') >= 18;
+    const eighteenYearsAgo = moment().subtract(18, 'years');
+    const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
+}
+
+/**
+ *
+ * @param {String} url
+ * @returns {Boolean}
+ */
+function isValidURL(url) {
+    return CONST.REGEX.HYPERLINK.test(url);
 }
 
 /**
@@ -94,20 +170,20 @@ function isValidIdentity(identity) {
         return false;
     }
 
+    if (identity.city === '') {
+        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
+        showBankAccountErrorModal();
+        return false;
+    }
+
     if (!isValidZipCode(identity.zipCode)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
         showBankAccountErrorModal();
         return false;
     }
 
-    if (!isValidDate(identity.dob)) {
+    if (!isValidDate(identity.dob) || !isValidAge(identity.dob)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
-        return false;
-    }
-
-    if (!isValidAge(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
         showBankAccountErrorModal();
         return false;
     }
@@ -124,8 +200,12 @@ function isValidIdentity(identity) {
 export {
     isValidAddress,
     isValidDate,
+    isValidSecurityCode,
+    isValidExpirationDate,
+    isValidDebitCard,
     isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
-    isSingleEmoji,
+    isRequiredFulfilled,
+    isValidURL,
 };

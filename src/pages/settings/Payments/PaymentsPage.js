@@ -27,6 +27,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
+const DEBIT_CARD = 'debitCard';
 
 const propTypes = {
     ...windowDimensionsPropTypes,
@@ -130,6 +131,10 @@ class PaymentsPage extends React.Component {
         if (paymentType === PAYPAL) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
         }
+
+        if (paymentType === DEBIT_CARD) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
+        }
     }
 
     /**
@@ -210,6 +215,11 @@ class PaymentsPage extends React.Component {
                             title="PayPal.me"
                             icon={PayPal}
                             onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                        />
+                        <MenuItem
+                            title="Debit Card"
+                            icon={CreditCard}
+                            onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                         />
                     </Popover>
                     <Popover
