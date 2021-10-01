@@ -8,7 +8,7 @@ import Avatar from './Avatar';
 import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
 import {
-    Upload, Trashcan, Pencil, Sync,
+    Upload, Trashcan, Camera, Sync,
 } from './Icon/Expensicons';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -176,7 +176,7 @@ class AvatarWithImagePicker extends React.Component {
                                                 <>
                                                     <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
                                                         <Icon
-                                                            src={Pencil}
+                                                            src={Camera}
                                                             width={variables.iconSizeSmall}
                                                             height={variables.iconSizeSmall}
                                                             fill={themeColors.iconReversed}
