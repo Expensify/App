@@ -111,12 +111,12 @@ const IdentityForm = ({
                 placeholder={translate('common.dateFormat')}
                 value={dob}
                 onChange={(val) => {
-                    if (error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age')) {
+                    if (error === translateLocal('bankAccount.error.dob')) {
                         hideBankAccountErrors();
                     }
                     onFieldChange('dob', val);
                 }}
-                errorText={error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age') ? error : ''}
+                errorText={error === translateLocal('bankAccount.error.dob') ? error : ''}
             />
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
