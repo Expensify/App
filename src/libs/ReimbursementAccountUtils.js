@@ -1,5 +1,6 @@
 import lodashGet from 'lodash/get';
 import lodashSet from 'lodash/set';
+import lodashUnset from 'lodash/unset';
 import lodashCloneDeep from 'lodash/cloneDeep';
 import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
 
@@ -38,7 +39,7 @@ function clearError(props, path) {
 
     // Clear the existing errors
     const newErrors = lodashCloneDeep(errors);
-    lodashSet(newErrors, path, null);
+    lodashUnset(newErrors, path);
     setBankAccountFormValidationErrors(newErrors);
 }
 
