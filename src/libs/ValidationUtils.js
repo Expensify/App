@@ -65,13 +65,16 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
- * Validate that "date" is 18 years old or older
+ * Validate that "date" is between 18 and 150 years in the past
  *
  * @param {String} date
  * @returns {Boolean}
  */
 function isValidAge(date) {
-    return moment().diff(moment(date, 'YYYY-MM-DD'), 'years') >= 18;
+    const eighteenYearsAgo = moment().subtract(18, 'years');
+    const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
 }
 
 /**

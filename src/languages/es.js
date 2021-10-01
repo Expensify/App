@@ -411,7 +411,7 @@ export default {
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduzca los detalles manualmente.',
             address: 'Ingresa una dirección válida',
             dob: 'Ingresa una fecha de nacimiento válida',
-            age: 'Los solicitantes deben ser mayores de 18 años',
+            age: 'Debe ser mayor de 18 años',
             ssnLast4: 'Ingresa los últimos 4 dígitos del número de seguro social',
             firstName: 'Ingresa un nombre válido',
             lastName: 'Ingresa un apellido válido',
@@ -534,7 +534,7 @@ export default {
     },
     companyStep: {
         headerTitle: 'Información de la empresa',
-        subtitle: 'Dé más información sobre su empresa.',
+        subtitle: '¡Ya casi estamos! Por motivos de seguridad, necesitamos confirmar la siguiente información:',
         legalBusinessName: 'Nombre comercial legal',
         companyWebsite: 'Página web de la empresa',
         taxIDNumber: 'Número de identificación fiscal',
