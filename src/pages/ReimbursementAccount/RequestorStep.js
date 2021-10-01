@@ -80,10 +80,6 @@ class RequestorStep extends React.Component {
         this.getErrors = () => getErrors(this.props);
     }
 
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
-    }
-
     /**
      * Clear the error associated to inputKey if found and store the inputKey new value in the state.
      *
