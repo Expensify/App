@@ -42,7 +42,6 @@ function clearError(props, path) {
     setBankAccountFormValidationErrors(newErrors);
 }
 
-
 /**
  * @param {Object} props
  * @param {Object} errorTranslationKeys
