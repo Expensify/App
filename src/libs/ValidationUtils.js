@@ -19,6 +19,19 @@ function isValidAddress(value) {
 }
 
 /**
+ * Validate date fields
+ *
+ * @param {String|Date} date
+ * @returns {Boolean} true if valid
+ */
+function isValidDate(date) {
+    const pastDate = moment().subtract(1000, 'years');
+    const futureDate = moment().add(1000, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(pastDate, futureDate);
+}
+
+/**
  * Used to validate a value that is "required".
  *
  * @param {*} value
@@ -28,20 +41,13 @@ function isRequiredFulfilled(value) {
     if (_.isString(value)) {
         return !_.isEmpty(value.trim());
     }
+    if (_.isDate(value)) {
+        return isValidDate(value);
+    }
     if (_.isArray(value) || _.isObject(value)) {
         return !_.isEmpty(value);
     }
     return Boolean(value);
-}
-
-/**
- * Validate date fields
- *
- * @param {String} date
- * @returns {Boolean} true if valid
- */
-function isValidDate(date) {
-    return moment(date).isValid();
 }
 
 /**
@@ -61,12 +67,14 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
- *
  * @param {String} date
  * @returns {Boolean}
  */
 function isValidAge(date) {
-    return moment().diff(moment(date), 'years') >= 18;
+    const eighteenYearsAgo = moment().subtract(18, 'years');
+    const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
+    const testDate = moment(date);
+    return testDate.isValid() && testDate.isBetween(oneHundredFiftyYearsAgo, eighteenYearsAgo);
 }
 
 /**
@@ -107,14 +115,8 @@ function isValidIdentity(identity) {
         return false;
     }
 
-    if (!isValidDate(identity.dob)) {
+    if (!isValidDate(identity.dob) || !isValidAge(identity.dob)) {
         showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
-        return false;
-    }
-
-    if (!isValidAge(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.age'));
         showBankAccountErrorModal();
         return false;
     }
