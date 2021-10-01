@@ -175,6 +175,7 @@ function validateIdentity(identity) {
         errors.zipCode = true;
     }
 
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
     if (!isValidDate(identity.dob)) {
         errors.dob = true;
     } else if (!isValidAge(identity.dob)) {

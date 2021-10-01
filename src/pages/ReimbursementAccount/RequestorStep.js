@@ -98,6 +98,7 @@ class RequestorStep extends React.Component {
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
 
+        // dob field has multiple validations/errors, we are handling it temporarily like this.
         if (inputKey === 'dob') {
             this.clearError('dobAge');
         }

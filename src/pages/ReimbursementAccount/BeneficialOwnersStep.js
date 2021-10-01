@@ -147,6 +147,8 @@ class BeneficialOwnersStep extends React.Component {
             updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });
+
+        // dob field has multiple validations/errors, we are handling it temporarily like this.
         if (inputKey === 'dob') {
             this.clearError(`beneficialOwnersErrors.${ownerIndex}.dobAge`);
         }

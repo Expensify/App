@@ -73,6 +73,7 @@ const IdentityForm = ({
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
     } = values;
 
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
     const dobErrorText = (errors.dob ? translate('bankAccount.error.dob') : '')
         || (errors.dobAge ? translate('bankAccount.error.age') : '');
 
