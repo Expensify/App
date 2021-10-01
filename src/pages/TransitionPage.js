@@ -2,13 +2,17 @@ import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import AppNavigatorContext from '../../libs/Navigation/AppNavigator/AppNavigatorContext';
-import ONYXKEYS from '../../ONYXKEYS';
-import {signInWithShortLivedToken} from '../../libs/actions/Session';
-import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import Navigation from '../../libs/Navigation/Navigation';
-import * as User from '../../libs/actions/User';
-import Growl from '../../libs/Growl';
+import Str from 'expensify-common/lib/str';
+import AppNavigatorContext from '../libs/Navigation/AppNavigator/AppNavigatorContext';
+import ROUTES from '../ROUTES';
+import ONYXKEYS from '../ONYXKEYS';
+import {signInWithShortLivedToken} from '../libs/actions/Session';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import Navigation from '../libs/Navigation/Navigation';
+import * as User from '../libs/actions/User';
+import * as Policy from '../libs/actions/Policy';
+import Growl from '../libs/Growl';
+import Permissions from '../libs/Permissions';
 
 const propTypes = {
     /** The parameters needed to authenticate with a short lived token are in the URL */
@@ -66,16 +70,28 @@ class TransitionPage extends Component {
         this.email = lodashGet(this.props.route.params, 'email', '');
         this.shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
         this.encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
+
+        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
+        this.exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+        this.shouldCreateNewPolicy = Str.startsWith(this.exitTo, ROUTES.WORKSPACE_NEW);
+        this.isCreatingNewPolicy = false;
     }
 
     componentDidMount() {
-        // If the user is already authenticated with the right account, just refresh betas. No need to re-authenticate.
-        if (this.isCorrectUserLoggedIn(this.props.session)) {
+        // First, make sure we're logged in to the correct account
+        if (!this.isCorrectUserLoggedIn(this.props.session)) {
+            signInWithShortLivedToken(this.accountID, this.email, this.shortLivedToken, this.encryptedAuthToken);
+            return;
+        }
+
+        // Next, make sure betas are loaded
+        if (!this.props.betas) {
             User.getBetas();
             return;
         }
 
-        signInWithShortLivedToken(this.accountID, this.email, this.shortLivedToken, this.encryptedAuthToken);
+        // Lastly, create a new policy if needed
+        this.maybeCreateNewPolicy();
     }
 
     componentDidUpdate(prevProps) {
@@ -93,14 +109,19 @@ class TransitionPage extends Component {
             return;
         }
 
-        // Stay in the transition page until we're logged in and our betas are loaded
-        if (!this.isCorrectUserLoggedIn(this.props.session) || !this.props.betas) {
+        this.maybeCreateNewPolicy();
+
+        // Stay in the transition page until we're logged in, our betas are loaded, and we've created our new policy
+        if (!this.isCorrectUserLoggedIn(this.props.session)
+            || !this.props.betas
+            || (this.shouldCreateNewPolicy && this.isCreatingNewPolicy)) {
             return;
         }
 
-        // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
-        Navigation.navigate(exitTo);
+        // Navigate to exitTo unless we created a new policy – in that case we automatically route to the new policy
+        if (!this.shouldCreateNewPolicy) {
+            Navigation.navigate(this.exitTo);
+        }
     }
 
     /**
@@ -109,6 +130,16 @@ class TransitionPage extends Component {
      */
     isCorrectUserLoggedIn(session) {
         return session.authToken && session.email === this.email;
+    }
+
+    maybeCreateNewPolicy() {
+        if (this.shouldCreateNewPolicy
+            && !this.isCreatingNewPolicy
+            && this.isCorrectUserLoggedIn(this.props.session)
+            && (Permissions.canUseFreePlan(this.props.betas) || Permissions.canUseDefaultRooms(this.props.betas))) {
+            this.isCreatingNewPolicy = true;
+            Policy.create();
+        }
     }
 
     render() {
