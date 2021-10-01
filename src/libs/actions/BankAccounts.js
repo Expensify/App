@@ -674,7 +674,7 @@ function setupWithdrawalAccount(data) {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
-            let htmlError = false;
+            let isErrorHTML = false;
             const errors = {};
 
             if (response.jsonCode === 200 && !error) {
@@ -755,7 +755,7 @@ function setupWithdrawalAccount(data) {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
                     // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
                     error = response.htmlMessage || response.message;
-                    htmlError = Boolean(response.htmlMessage);
+                    isErrorHTML = Boolean(response.htmlMessage);
                 }
 
                 if (response.jsonCode === 402) {
@@ -783,7 +783,7 @@ function setupWithdrawalAccount(data) {
             }
             if (error) {
                 showBankAccountFormValidationError(error);
-                showBankAccountErrorModal(error, htmlError);
+                showBankAccountErrorModal(error, isErrorHTML);
             }
         })
         .catch((response) => {
