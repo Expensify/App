@@ -35,6 +35,8 @@ function clearError(props, path) {
         // No error found for this path
         return;
     }
+
+    // Clear the existing errors
     const newErrors = lodashCloneDeep(errors);
     lodashSet(newErrors, path, null);
     setBankAccountFormValidationErrors(newErrors);
