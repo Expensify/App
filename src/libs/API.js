@@ -339,6 +339,16 @@ function AuthenticateWithAccountID(parameters) {
 
 /**
  * @param {Object} parameters
+ * @returns {Promise}
+ */
+function AddBillingCard(parameters) {
+    const commandName = 'User_AddBillingCard';
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.oldPassword
  * @param {String} parameters.password
  * @returns {Promise}
@@ -1079,6 +1089,7 @@ function UpdatePolicy(parameters) {
 export {
     Authenticate,
     AuthenticateWithAccountID,
+    AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
