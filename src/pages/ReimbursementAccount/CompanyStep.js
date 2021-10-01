@@ -194,7 +194,13 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyName')}
                     />
                     <AddressSearch
-
+                        label={this.props.translate('common.companyAddress')}
+                        containerStyles={[styles.mt4]}
+                        value={`${this.state.addressStreet} ${this.state.addressCity} ${this.state.addressState} ${this.state.addressZipCode}`}
+                        onChangeText={(fieldName, value) => {
+                            this.clearErrorAndSetValue(fieldName, value);
+                            console.log(fieldName, value);
+                        }}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.companyAddress')}

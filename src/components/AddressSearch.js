@@ -1,15 +1,32 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
+import {TextInput} from 'react-native';
 
 const propTypes = {
+    /** The label to display for the field */
+    label: PropTypes.string.isRequired,
+
+    /** The value to set the field to initially */
+    value: PropTypes.string,
+
+    /** A callback function when the value of this field has changed */
+    onChangeText: PropTypes.func.isRequired,
+
+    /** Customize the ExpensiTextInput container */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
-const defaultProps = {};
+const defaultProps = {
+    value: '',
+    containerStyles: null,
+};
 
 class AddressSearch extends React.Component {
     constructor(props) {
@@ -23,6 +40,7 @@ class AddressSearch extends React.Component {
      */
     saveLocationDetails(details) {
         if (details.address_components) {
+            // Gather the values from the Google details
             const streetNumber = _.chain(details.address_components)
                 .find(component => _.contains(component.types, 'street_number'))
                 .get('long_name')
@@ -37,12 +55,18 @@ class AddressSearch extends React.Component {
                 .value();
             const state = _.chain(details.address_components)
                 .find(component => _.contains(component.types, 'administrative_area_level_1'))
-                .get('long_name')
+                .get('short_name')
                 .value();
             const zipCode = _.chain(details.address_components)
                 .find(component => _.contains(component.types, 'postal_code'))
                 .get('long_name')
                 .value();
+
+            // Trigger text change events for each of the individual fields being saved on the server
+            this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
+            this.props.onChangeText('addressCity', city);
+            this.props.onChangeText('addressState', state);
+            this.props.onChangeText('addressZipCode', zipCode);
         }
     }
 
@@ -50,7 +74,7 @@ class AddressSearch extends React.Component {
         return (
             <GooglePlacesAutocomplete
                 fetchDetails
-                autoFocus={false}
+                keepResultsAfterBlur
                 onPress={(data, details) => this.saveLocationDetails(details)}
                 query={{
                     key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
@@ -62,9 +86,10 @@ class AddressSearch extends React.Component {
                 }}
                 textInputProps={{
                     InputComp: ExpensiTextInput,
-                    label: this.props.translate('common.companyAddress'),
-                    containerStyles: [styles.mt4],
-                    onChange: console.log,
+                    label: this.props.label,
+                    // value: this.props.value,
+                    containerStyles: this.props.containerStyles,
+                    onChangeText: value => console.log(value),
                 }}
                 styles={{
                     textInputContainer: [styles.googleSearchTextInputContainer],
