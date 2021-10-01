@@ -10,10 +10,15 @@ const propTypes = {
     authenticated: PropTypes.bool.isRequired,
 
     /** The current URL to render */
-    currentURL: PropTypes.string.isRequired,
+    currentURL: PropTypes.string,
+};
+
+const defaultProps = {
+    currentURL: null,
 };
 
 const AppNavigator = (props) => {
+    console.log('RORY_DEBUG currentURL:', props.currentURL);
     if (ROUTES.isSharedRoute(props.currentURL)) {
         return <SharedScreens />;
     }
@@ -39,10 +44,11 @@ const AppNavigator = (props) => {
  * @returns {boolean}
  */
 function areEqual(prevProps, nextProps) {
-    return ROUTES.isSharedRoute(prevProps.currentURL) === ROUTES.isSharedRoute(nextProps.currentURL)
+    return ROUTES.isSharedRoute(prevProps.initialURL) === ROUTES.isSharedRoute(nextProps.initialURL)
         && prevProps.authenticated === nextProps.authenticated;
 }
 
 AppNavigator.propTypes = propTypes;
+AppNavigator.defaultProps = defaultProps;
 AppNavigator.displayName = 'AppNavigator';
-export default memo(AppNavigator, areEqual);
+export default AppNavigator;

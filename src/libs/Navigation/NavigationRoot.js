@@ -11,12 +11,19 @@ import Log from '../Log';
 const propTypes = {
     /** Whether the current user is logged in with an authToken */
     authenticated: PropTypes.bool.isRequired,
+
+    /** The initial URL used to open the app. */
+    initialURL: PropTypes.string,
+};
+
+const defaultProps = {
+    initialURL: null,
 };
 
 class NavigationRoot extends Component {
     constructor(props) {
         super(props);
-        this.currentURL = null;
+        this.currentURL = props.initialURL;
         this.parseAndStoreRoute = this.parseAndStoreRoute.bind(this);
     }
 
@@ -59,4 +66,5 @@ class NavigationRoot extends Component {
 }
 
 NavigationRoot.propTypes = propTypes;
+NavigationRoot.defaultProps = defaultProps;
 export default NavigationRoot;

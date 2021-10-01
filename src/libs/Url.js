@@ -10,7 +10,20 @@ function addTrailingForwardSlash(url) {
     return url;
 }
 
+/**
+ * @param {String} url
+ * @returns {String|null}
+ */
+function getPath(url) {
+    try {
+        return new URL(url).pathname;
+    } catch (e) {
+        console.debug(`Error: Could not parse URL ${url}`);
+        return null;
+    }
+}
+
 export {
-    // eslint-disable-next-line import/prefer-default-export
     addTrailingForwardSlash,
+    getPath,
 };

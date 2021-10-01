@@ -244,7 +244,7 @@ function signIn(password, twoFactorAuthCode) {
 /**
  * Uses a short lived authToken to continue a user's session from OldDot
  *
- * @param {String} accountID
+ * @param {Number} accountID
  * @param {String} email
  * @param {String} shortLivedToken
  * @param {string} encryptedAuthToken
@@ -264,7 +264,6 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedA
         } else {
             const error = lodashGet(response, 'message', 'Unable to login.');
             Onyx.merge(ONYXKEYS.ACCOUNT, {error});
-            Onyx.merge(ONYXKEYS.SESSION, {error});
         }
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});

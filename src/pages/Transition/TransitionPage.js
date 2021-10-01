@@ -38,7 +38,9 @@ const propTypes = {
 
         /** The authToken for the current session */
         email: PropTypes.string,
+    }),
 
+    account: PropTypes.shape({
         /** An error message, present only if authentication fails */
         error: PropTypes.string,
     }),
@@ -52,13 +54,14 @@ const defaultProps = {
         params: {},
     },
     session: {},
+    account: {},
     betas: null,
 };
 
 class TransitionPage extends Component {
     constructor(props) {
         super(props);
-        this.accountID = lodashGet(this.props.route.params, 'accountID', '');
+        this.accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
         this.email = lodashGet(this.props.route.params, 'email', '');
         this.shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
         this.encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
@@ -76,10 +79,9 @@ class TransitionPage extends Component {
 
     componentDidUpdate(prevProps) {
         // If there was a sign-in error, reroute to home
-        if (this.props.session.error) {
-            Navigation.dismissModal();
+        if (this.props.account.error) {
             Navigation.navigate();
-            Growl.error(this.props.session.error);
+            Growl.error(this.props.account.error);
             return;
         }
 
@@ -96,14 +98,6 @@ class TransitionPage extends Component {
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
-
-        // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
-        // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
-        // of the workspace modal, then they will be routed back to
-        // /transition/<accountID>/<email>/<authToken>/workspace/<policyID>/card and we don't want that. We want them to go back to `/`
-        // and by calling dismissModal(), the /transition/... route is removed from history so the user will get taken to `/`
-        // if they cancel out of the new workspace modal.
-        Navigation.dismissModal();
         Navigation.navigate(exitTo);
     }
 
@@ -126,6 +120,9 @@ TransitionPage.defaultProps = defaultProps;
 export default withOnyx({
     session: {
         key: ONYXKEYS.SESSION,
+    },
+    account: {
+        key: ONYXKEYS.ACCOUNT,
     },
     betas: {
         key: ONYXKEYS.BETAS,

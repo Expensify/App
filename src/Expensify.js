@@ -1,7 +1,8 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {View, AppState} from 'react-native';
+import {View, AppState, Linking} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
@@ -16,6 +17,7 @@ import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
+import {getPath} from './libs/Url';
 
 const propTypes = {
     /* Onyx Props */
@@ -60,6 +62,7 @@ class Expensify extends PureComponent {
         this.initializeClient = this.initializeClient.bind(true);
         this.state = {
             isOnyxMigrated: false,
+            initialURL: undefined,
         };
     }
 
@@ -83,6 +86,10 @@ class Expensify extends PureComponent {
                 this.setState({isOnyxMigrated: true});
             });
 
+        // Determine the initial path (string if we are on web or app was opened by deeplink, otherwise null)
+        Linking.getInitialURL()
+            .then(url => this.setState({initialURL: getPath(url)}));
+
         AppState.addEventListener('change', this.initializeClient);
     }
 
@@ -100,7 +107,7 @@ class Expensify extends PureComponent {
             BootSplash.show({fade: true});
         }
 
-        if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
+        if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded && !_.isUndefined(this.state.initialURL)) {
             this.hideSplash();
         }
     }
@@ -135,7 +142,7 @@ class Expensify extends PureComponent {
                 <GrowlNotification ref={growlRef} />
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
-                <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
+                <NavigationRoot authenticated={Boolean(this.getAuthToken())} initialURL={this.state.initialURL} />
             </>
         );
     }
