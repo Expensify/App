@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import AppNavigatorContext from '../../libs/Navigation/AppNavigator/AppNavigatorContext';
 import ONYXKEYS from '../../ONYXKEYS';
 import {signInWithShortLivedToken} from '../../libs/actions/Session';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
@@ -80,8 +81,9 @@ class TransitionPage extends Component {
     componentDidUpdate(prevProps) {
         // If there was a sign-in error, reroute to home
         if (this.props.account.error) {
+            this.context.exitSharedStack();
             Navigation.navigate();
-            Growl.error(this.props.account.error);
+            Growl.error('Error: Login failed');
             return;
         }
 
@@ -116,6 +118,7 @@ class TransitionPage extends Component {
 
 TransitionPage.propTypes = propTypes;
 TransitionPage.defaultProps = defaultProps;
+TransitionPage.contextType = AppNavigatorContext;
 
 export default withOnyx({
     session: {

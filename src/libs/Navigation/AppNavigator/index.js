@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import ROUTES from '../../../ROUTES';
+import AppNavigatorContext from './AppNavigatorContext';
 import PublicScreens from './PublicScreens';
 import AuthScreens from './AuthScreens';
 import SharedScreens from './SharedScreens';
@@ -17,22 +18,42 @@ const defaultProps = {
     currentURL: null,
 };
 
-const AppNavigator = (props) => {
-    console.log('RORY_DEBUG currentURL:', props.currentURL);
-    if (ROUTES.isSharedRoute(props.currentURL)) {
-        return <SharedScreens />;
+class AppNavigator extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isSharedRoute: ROUTES.isSharedRoute(props.currentURL),
+        };
+        this.exitSharedStack = this.exitSharedStack.bind(this);
     }
 
-    return props.authenticated
-        ? (
+    exitSharedStack() {
+        this.setState({isSharedRoute: false});
+    }
 
-            // These are the protected screens and only accessible when an authToken is present
-            <AuthScreens />
-        )
-        : (
-            <PublicScreens />
+    render() {
+        let nestedNavigator;
+        if (this.state.isSharedRoute) {
+            nestedNavigator = <SharedScreens />;
+        } else {
+            nestedNavigator = this.props.authenticated
+                ? (
+
+                    // These are the protected screens and only accessible when an authToken is present
+                    <AuthScreens />
+                )
+                : (
+                    <PublicScreens />
+                );
+        }
+
+        return (
+            <AppNavigatorContext.Provider value={{exitSharedStack: this.exitSharedStack}}>
+                {nestedNavigator}
+            </AppNavigatorContext.Provider>
         );
-};
+    }
+}
 
 /**
  * We do not want to re-render the full navigator every time the currentURL changes, so only re-render this component if:
@@ -44,7 +65,7 @@ const AppNavigator = (props) => {
  * @returns {boolean}
  */
 function areEqual(prevProps, nextProps) {
-    return ROUTES.isSharedRoute(prevProps.initialURL) === ROUTES.isSharedRoute(nextProps.initialURL)
+    return ROUTES.isSharedRoute(prevProps.currentURL) === ROUTES.isSharedRoute(nextProps.currentURL)
         && prevProps.authenticated === nextProps.authenticated;
 }
 

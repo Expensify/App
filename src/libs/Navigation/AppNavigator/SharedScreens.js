@@ -7,7 +7,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 
 const RootStack = createStackNavigator();
 
-export default () => (
+const SharedScreens = () => (
     <RootStack.Navigator>
         <RootStack.Screen
             name={SCREENS.TRANSITION}
@@ -21,3 +21,7 @@ export default () => (
         />
     </RootStack.Navigator>
 );
+
+SharedScreens.displayName = 'SharedScreens';
+
+export default SharedScreens;
