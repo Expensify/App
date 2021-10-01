@@ -1,12 +1,11 @@
 import _ from 'underscore';
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
-import {TextInput} from 'react-native';
 
 const propTypes = {
     /** The label to display for the field */
@@ -28,17 +27,17 @@ const defaultProps = {
     containerStyles: null,
 };
 
-class AddressSearch extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.saveLocationDetails = this.saveLocationDetails.bind(this);
-    }
+const AddressSearch = (props) => {
+    // Using a hook is the only way to see the value of this component
+    const ref = useRef();
+    useEffect(() => {
+        ref?.current?.setAddressText(props.value);
+    }, []);
 
     /**
      * @param {Object} details See https://developers.google.com/maps/documentation/places/web-service/details#PlaceDetailsResponses
      */
-    saveLocationDetails(details) {
+    const saveLocationDetails = (details) => {
         if (details.address_components) {
             // Gather the values from the Google details
             const streetNumber = _.chain(details.address_components)
@@ -63,41 +62,38 @@ class AddressSearch extends React.Component {
                 .value();
 
             // Trigger text change events for each of the individual fields being saved on the server
-            this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            this.props.onChangeText('addressCity', city);
-            this.props.onChangeText('addressState', state);
-            this.props.onChangeText('addressZipCode', zipCode);
+            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
+            props.onChangeText('addressCity', city);
+            props.onChangeText('addressState', state);
+            props.onChangeText('addressZipCode', zipCode);
         }
-    }
+    };
 
-    render() {
-        return (
-            <GooglePlacesAutocomplete
-                fetchDetails
-                keepResultsAfterBlur
-                onPress={(data, details) => this.saveLocationDetails(details)}
-                query={{
-                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                    language: this.props.preferredLocale,
-                }}
-                requestUrl={{
-                    useOnPlatform: 'web',
-                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
-                }}
-                textInputProps={{
-                    InputComp: ExpensiTextInput,
-                    label: this.props.label,
-                    // value: this.props.value,
-                    containerStyles: this.props.containerStyles,
-                    onChangeText: value => console.log(value),
-                }}
-                styles={{
-                    textInputContainer: [styles.googleSearchTextInputContainer],
-                }}
-            />
-        );
-    }
-}
+    return (
+        <GooglePlacesAutocomplete
+            ref={ref}
+            fetchDetails
+            keepResultsAfterBlur
+            onPress={(data, details) => saveLocationDetails(details)}
+            query={{
+                key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                language: props.preferredLocale,
+            }}
+            requestUrl={{
+                useOnPlatform: 'web',
+                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+            }}
+            textInputProps={{
+                InputComp: ExpensiTextInput,
+                label: props.label,
+                containerStyles: props.containerStyles,
+            }}
+            styles={{
+                textInputContainer: [styles.googleSearchTextInputContainer],
+            }}
+        />
+    );
+};
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
