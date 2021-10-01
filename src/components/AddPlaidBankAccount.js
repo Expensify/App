@@ -26,7 +26,6 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
-import {Exclamation} from './Icon/Expensicons';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -182,7 +181,7 @@ class AddPlaidBankAccount extends React.Component {
                         )}
                         {/* @TODO there are a bunch of logos to incorporate here to replace this name
                         https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
-                        <View style={[styles.flexRow,styles.alignItemsCenter, styles.mb5]}>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                             <Icon
                                 src={getBankIcon(this.state.institution.name).icon}
                             />
