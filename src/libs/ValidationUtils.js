@@ -74,6 +74,50 @@ function isRequiredFulfilled(value) {
 }
 
 /**
+ * Validates that this is a valid expiration date
+ * in the MM/YY or MM/YYYY format
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidExpirationDate(string) {
+    return CONST.REGEX.CARD_EXPIRATION_DATE.test(string);
+}
+
+/**
+ * Validates that this is a valid security code
+ * in the XXX or XXXX format.
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidSecurityCode(string) {
+    return CONST.REGEX.CARD_SECURITY_CODE.test(string);
+}
+
+/**
+ * Validates a debit card number (15 or 16 digits).
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidDebitCard(string) {
+    if (!CONST.REGEX.CARD_NUMBER.test(string)) {
+        return false;
+    }
+
+    return validateCardNumber(string);
+}
+
+/**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidIndustryCode(code) {
+    return CONST.REGEX.INDUSTRY_CODE.test(code);
+}
+
+/**
  * @param {String} zipCode
  * @returns {Boolean}
  */
