@@ -83,11 +83,7 @@ function isInsideComment(tnode) {
     return false;
 }
 
-function AnchorRenderer({
-    tnode,
-    key,
-    style,
-}) {
+function AnchorRenderer({tnode, key, style}) {
     const htmlAttribs = tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
