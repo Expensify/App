@@ -25,6 +25,8 @@ import personalDetailsPropType from '../personalDetailsPropType';
 import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../home/sidebar/OptionRow';
+import getPlatform from '../../libs/getPlatform';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -66,6 +68,7 @@ class WorkspacePeoplePage extends React.Component {
         this.state = {
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
+            isNonRemovableMemberModalVisible: false,
         };
 
         this.renderItem = this.renderItem.bind(this);
@@ -106,7 +109,7 @@ class WorkspacePeoplePage extends React.Component {
      * Hide the confirmation modal
      */
     hideConfirmModal() {
-        this.setState({isRemoveMembersConfirmModalVisible: false});
+        this.setState({isRemoveMembersConfirmModalVisible: false, isNonRemovableMemberModalVisible: false});
     }
 
     /**
@@ -127,6 +130,14 @@ class WorkspacePeoplePage extends React.Component {
      * @param {String} login
      */
     toggleUser(login) {
+        // Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
+        const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
+        if (!canBeRemoved && (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS)) {
+            this.setState({isNonRemovableMemberModalVisible: true});
+            return;
+        }
+
+        // Add or remove the user if the checkbox is enabled and is clickable.
         if (_.contains(this.state.selectedEmployees, login)) {
             this.removeUser(login);
         } else {
@@ -171,23 +182,24 @@ class WorkspacePeoplePage extends React.Component {
     renderItem({
         item,
     }) {
-        const isDisabled = this.props.policy.owner === item.login;
+        const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
+        const isDisabled = getPlatform() !== CONST.PLATFORM.ANDROID && getPlatform() !== CONST.PLATFORM.IOS;
         const checkbox = (
             <Checkbox
                 isChecked={_.contains(this.state.selectedEmployees, item.login)}
                 onPress={() => this.toggleUser(item.login)}
-                disabled={isDisabled}
+                disabled={!canBeRemoved}
             />
         );
         return (
             <TouchableOpacity
-                style={[styles.peopleRow, isDisabled && styles.cursorDisabled]}
+                style={[styles.peopleRow, canBeRemoved && styles.cursorDisabled]}
                 onPress={() => this.toggleUser(item.login)}
                 activeOpacity={0.7}
                 disabled={isDisabled}
             >
                 <View style={[styles.peopleRowCell]}>
-                    {isDisabled
+                    {!canBeRemoved
                         ? (
                             <Tooltip text={this.props.translate('workspace.people.error.cannotRemove')}>
                                 {checkbox}
@@ -252,6 +264,13 @@ class WorkspacePeoplePage extends React.Component {
                     confirmText={this.props.translate('common.remove')}
                     cancelText={this.props.translate('common.cancel')}
                 />
+                <ConfirmModal
+                    title={this.props.translate('workspace.people.error.cannotRemove')}
+                    isVisible={this.state.isNonRemovableMemberModalVisible}
+                    onConfirm={this.hideConfirmModal}
+                    confirmText={this.props.translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
                         <Button
@@ -271,7 +290,7 @@ class WorkspacePeoplePage extends React.Component {
                         <View style={[styles.peopleRow]}>
                             <View style={[styles.peopleRowCell]}>
                                 <Checkbox
-                                    isChecked={this.state.selectedEmployees.length === removableMembers.length}
+                                    isChecked={this.state.selectedEmployees.length === removableMembers.length && removableMembers.length !== 0}
                                     onPress={() => this.toggleAllUsers()}
                                 />
                             </View>
