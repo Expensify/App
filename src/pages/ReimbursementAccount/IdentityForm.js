@@ -8,6 +8,9 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import {translateLocal} from '../../libs/translate';
 import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
 import Text from '../../components/Text';
+import CONST from '../../CONST';
+import DatePicker from '../../components/DatePicker';
+
 
 const propTypes = {
     /** Style for wrapping View */
@@ -37,7 +40,7 @@ const propTypes = {
         zipCode: PropTypes.string,
 
         /** Date of birth field */
-        dob: PropTypes.string,
+        dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
         /** Last 4 digits of SSN */
         ssnLast4: PropTypes.string,
@@ -84,6 +87,7 @@ const IdentityForm = ({
                             onFieldChange('firstName', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.firstName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -97,25 +101,27 @@ const IdentityForm = ({
                             onFieldChange('lastName', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.lastName') ? error : ''}
+                        translateX={-10}
                     />
                 </View>
             </View>
-            <ExpensiTextInput
+            <DatePicker
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
                 value={dob}
-                onChangeText={(val) => {
-                    if (error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age')) {
+                onChange={(val) => {
+                    if (error === translateLocal('bankAccount.error.dob')) {
                         hideBankAccountErrors();
                     }
                     onFieldChange('dob', val);
                 }}
-                errorText={error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age') ? error : ''}
+                errorText={error === translateLocal('bankAccount.error.dob') ? error : ''}
             />
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={ssnLast4}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.ssnLast4')) {
@@ -150,6 +156,7 @@ const IdentityForm = ({
                             onFieldChange('city', val);
                         }}
                         errorText={error === translateLocal('bankAccount.error.addressCity') ? error : ''}
+                        translateX={-14}
                     />
                 </View>
                 <View style={[styles.flex1]}>
@@ -169,6 +176,7 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                 value={zipCode}
                 onChangeText={(val) => {
                     if (error === translateLocal('bankAccount.error.zipCode')) {

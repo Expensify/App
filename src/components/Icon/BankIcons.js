@@ -8,7 +8,6 @@ import Chase from '../../../assets/images/bankicons/chase.svg';
 import CitiBank from '../../../assets/images/bankicons/citibank.svg';
 import CitizensBank from '../../../assets/images/bankicons/citizens-bank.svg';
 import Discover from '../../../assets/images/bankicons/discover.svg';
-import Expensify from '../../../assets/images/bankicons/expensify.svg';
 import Fidelity from '../../../assets/images/bankicons/fidelity.svg';
 import HuntingtonBank from '../../../assets/images/bankicons/huntington-bank.svg';
 import NavyFederalCreditUnion from '../../../assets/images/bankicons/navy-federal-credit-union.svg';
@@ -28,10 +27,6 @@ import variables from '../../styles/variables';
  */
 
 function getAssetIcon(bankName, isCard) {
-    if (bankName === 'expensify card') {
-        return Expensify;
-    }
-
     if (bankName.includes('americanexpress')) {
         return AmericanExpress;
     }

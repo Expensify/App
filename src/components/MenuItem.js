@@ -116,6 +116,7 @@ const MenuItem = ({
             getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
             wrapperStyle,
         ])}
+        disabled={disabled}
     >
         {({hovered, pressed}) => (
             <>
