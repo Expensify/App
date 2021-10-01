@@ -4,6 +4,29 @@ import CONST from '../CONST';
 import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
 import {translateLocal} from './translate';
 
+
+/**
+ * Implements the Luhn Algorithm, a checksum formula used to validate credit card
+ * numbers.
+ *
+ * @param {String} val
+ * @returns {Boolean}
+ */
+function validateCardNumber(val) {
+    let sum = 0;
+    for (let i = 0; i < val.length; i++) {
+        let intVal = parseInt(val.substr(i, 1), 10);
+        if (i % 2 === 0) {
+            intVal *= 2;
+            if (intVal > 9) {
+                intVal = 1 + (intVal % 10);
+            }
+        }
+        sum += intVal;
+    }
+    return (sum % 10) === 0;
+}
+
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
  *
@@ -48,6 +71,50 @@ function isRequiredFulfilled(value) {
         return !_.isEmpty(value);
     }
     return Boolean(value);
+}
+
+/**
+ * Validates that this is a valid expiration date
+ * in the MM/YY or MM/YYYY format
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidExpirationDate(string) {
+    return CONST.REGEX.CARD_EXPIRATION_DATE.test(string);
+}
+
+/**
+ * Validates that this is a valid security code
+ * in the XXX or XXXX format.
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidSecurityCode(string) {
+    return CONST.REGEX.CARD_SECURITY_CODE.test(string);
+}
+
+/**
+ * Validates a debit card number (15 or 16 digits).
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidDebitCard(string) {
+    if (!CONST.REGEX.CARD_NUMBER.test(string)) {
+        return false;
+    }
+
+    return validateCardNumber(string);
+}
+
+/**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidIndustryCode(code) {
+    return CONST.REGEX.INDUSTRY_CODE.test(code);
 }
 
 /**
@@ -133,6 +200,10 @@ function isValidIdentity(identity) {
 export {
     isValidAddress,
     isValidDate,
+    isValidSecurityCode,
+    isValidExpirationDate,
+    isValidDebitCard,
+    isValidIndustryCode,
     isValidIdentity,
     isValidZipCode,
     isRequiredFulfilled,
