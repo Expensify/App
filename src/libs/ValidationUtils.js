@@ -137,7 +137,7 @@ function isValidSSNLastFour(ssnLast4) {
  * @param {String} date
  * @returns {Boolean}
  */
-function isValidAge(date) {
+function meetsAgeRequirements(date) {
     const eighteenYearsAgo = moment().subtract(18, 'years');
     const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
     const testDate = moment(date);
@@ -178,7 +178,7 @@ function validateIdentity(identity) {
     // dob field has multiple validations/errors, we are handling it temporarily like this.
     if (!isValidDate(identity.dob)) {
         errors.dob = true;
-    } else if (!isValidAge(identity.dob)) {
+    } else if (!meetsAgeRequirements(identity.dob)) {
         errors.dobAge = true;
     }
 
@@ -190,7 +190,7 @@ function validateIdentity(identity) {
 }
 
 export {
-    isValidAge,
+    meetsAgeRequirements,
     isValidAddress,
     isValidDate,
     isValidSecurityCode,
