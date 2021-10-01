@@ -67,7 +67,7 @@ function addBillingCard(params) {
                 currency: 'USD',
                 fundID: lodashGet(response, 'fundID', ''),
             };
-            Onyx.merge(ONYXKEYS.CARD_LIST, cardObject);
+            Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         } else {
