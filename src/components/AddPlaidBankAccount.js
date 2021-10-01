@@ -183,7 +183,7 @@ class AddPlaidBankAccount extends React.Component {
                             <Icon
                                 src={getBankIcon(this.state.institution.name).icon}
                                 height={40}
-                                width={41}
+                                width={40}
                             />
                             <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
                         </View>
