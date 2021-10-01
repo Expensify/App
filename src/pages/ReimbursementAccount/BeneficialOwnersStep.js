@@ -80,14 +80,6 @@ class BeneficialOwnersStep extends React.Component {
     }
 
     /**
-     * @param {Number} ownerIndex
-     * @returns {Object}
-     */
-    getBeneficialOwnerErrors(ownerIndex) {
-        return lodashGet(this.getErrors(), `beneficialOwnersErrors[${ownerIndex}]`, {});
-    }
-
-    /**
      * @returns {Boolean}
      */
     validate() {
@@ -252,7 +244,7 @@ class BeneficialOwnersStep extends React.Component {
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
-                                        errors={this.getBeneficialOwnerErrors(index)}
+                                        errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
                                         <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
