@@ -182,8 +182,10 @@ class AddPlaidBankAccount extends React.Component {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                             <Icon
                                 src={getBankIcon(this.state.institution.name).icon}
+                                height={40}
+                                width={41}
                             />
-                            <Text style={[styles.ml3, styles.h1]}>{this.state.institution.name}</Text>
+                            <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
                         </View>
                         <View style={[styles.mb5]}>
                             <ExpensiPicker
