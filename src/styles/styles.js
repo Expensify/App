@@ -2030,6 +2030,10 @@ const styles = {
             {translateY},
         ],
     }),
+
+    googleSearchTextInputContainer: {
+        flexDirection: 'none',
+    },
 };
 
 const baseCodeTagStyles = {

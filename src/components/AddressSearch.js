@@ -3,6 +3,8 @@ import React from 'react';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import styles from '../styles/styles';
+import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -16,8 +18,10 @@ class AddressSearch extends React.Component {
         this.saveLocationDetails = this.saveLocationDetails.bind(this);
     }
 
+    /**
+     * @param {Object} details See https://developers.google.com/maps/documentation/places/web-service/details#PlaceDetailsResponses
+     */
     saveLocationDetails(details) {
-        console.log(details);
         if (details.address_components) {
             const streetNumber = _.chain(details.address_components)
                 .find(component => _.contains(component.types, 'street_number'))
@@ -39,16 +43,14 @@ class AddressSearch extends React.Component {
                 .find(component => _.contains(component.types, 'postal_code'))
                 .get('long_name')
                 .value();
-            console.log(streetNumber, streetName, city, state, zipCode);
         }
     }
 
     render() {
         return (
             <GooglePlacesAutocomplete
-                placeholder="Search"
                 fetchDetails
-                currentLocation
+                autoFocus={false}
                 onPress={(data, details) => this.saveLocationDetails(details)}
                 query={{
                     key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
@@ -57,6 +59,15 @@ class AddressSearch extends React.Component {
                 requestUrl={{
                     useOnPlatform: 'web',
                     url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                }}
+                textInputProps={{
+                    InputComp: ExpensiTextInput,
+                    label: this.props.translate('common.companyAddress'),
+                    containerStyles: [styles.mt4],
+                    onChange: console.log,
+                }}
+                styles={{
+                    textInputContainer: [styles.googleSearchTextInputContainer],
                 }}
             />
         );

@@ -193,7 +193,9 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         errorText={this.getErrorText('companyName')}
                     />
-                    <AddressSearch />
+                    <AddressSearch
+
+                    />
                     <ExpensiTextInput
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
