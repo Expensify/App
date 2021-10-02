@@ -54,6 +54,14 @@ const propTypes = {
         cardID: PropTypes.number,
     })),
 
+    userWallet: PropTypes.arrayOf(PropTypes.shape({
+        /** The ID of the linked account */
+        walletLinkedAccountID: PropTypes.number,
+
+        /** The type of the linked account (debitCard or bankAccount) */
+        walletLinkedAccountType: PropTypes.string,
+    })),
+
     ...withLocalizePropTypes,
 };
 
@@ -87,6 +95,7 @@ class PaymentMethodList extends Component {
                         bankAccount.accountNumber.slice(-4)
                     }`
                     : null;
+                const isDefault = this.props.userWallet.walletLinkedAccountType === 'bankAccount' && this.props.userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
                 const {icon, iconSize} = getBankIcon(bankAccount.additionalData.bankName);
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
@@ -98,6 +107,7 @@ class PaymentMethodList extends Component {
                     iconSize,
                     onPress: e => this.props.onPress(e, 'bankAccount', bankAccount),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
+                    isDefault
                 });
             }
         });
@@ -106,6 +116,7 @@ class PaymentMethodList extends Component {
             const formattedCardNumber = card.cardNumber
                 ? `${this.props.translate('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
                 : null;
+            const isDefault = this.props.userWallet.walletLinkedAccountType === 'debitCard' && this.props.userWallet.walletLinkedAccountID === card.fundID;
             const {icon, iconSize} = getBankIcon(card.bank, true);
             combinedPaymentMethods.push({
                 type: MENU_ITEM,
@@ -116,6 +127,7 @@ class PaymentMethodList extends Component {
                 iconSize,
                 onPress: e => this.props.onPress(e, 'card', card),
                 key: `card-${card.cardNumber}`,
+                isDefault
             });
         });
 
@@ -169,6 +181,7 @@ class PaymentMethodList extends Component {
                     disabled={item.disabled}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
+                    badgeText={item.isDefault ? 'Default' : null}
                 />
             );
         }
@@ -206,6 +219,9 @@ export default compose(
         },
         payPalMeUsername: {
             key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(PaymentMethodList);
