@@ -54,13 +54,13 @@ const propTypes = {
         cardID: PropTypes.number,
     })),
 
-    userWallet: PropTypes.arrayOf(PropTypes.shape({
+    userWallet: PropTypes.shape({
         /** The ID of the linked account */
         walletLinkedAccountID: PropTypes.number,
 
         /** The type of the linked account (debitCard or bankAccount) */
         walletLinkedAccountType: PropTypes.string,
-    })),
+    }),
 
     ...withLocalizePropTypes,
 };
@@ -69,6 +69,10 @@ const defaultProps = {
     payPalMeUsername: '',
     bankAccountList: [],
     cardList: [],
+    userWallet: {
+        walletLinkedAccountID: 0,
+        walletLinkedAccountType: '',
+    },
     isLoadingPayments: false,
 };
 
@@ -107,7 +111,7 @@ class PaymentMethodList extends Component {
                     iconSize,
                     onPress: e => this.props.onPress(e, 'bankAccount', bankAccount),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
-                    isDefault
+                    isDefault,
                 });
             }
         });
@@ -127,7 +131,7 @@ class PaymentMethodList extends Component {
                 iconSize,
                 onPress: e => this.props.onPress(e, 'card', card),
                 key: `card-${card.cardNumber}`,
-                isDefault
+                isDefault,
             });
         });
 
