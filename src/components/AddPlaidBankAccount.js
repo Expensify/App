@@ -26,6 +26,7 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
+import variables from '../styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -182,8 +183,8 @@ class AddPlaidBankAccount extends React.Component {
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                             <Icon
                                 src={getBankIcon(this.state.institution.name).icon}
-                                height={40}
-                                width={40}
+                                height={variables.avatarSizeNormal}
+                                width={variables.avatarSizeNormal}
                             />
                             <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
                         </View>
