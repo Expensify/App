@@ -45,6 +45,7 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
     })
         .then(() => {
             Onyx.merge(ONYXKEYS.USER_WALLET, {walletLinkedAccountID: bankAccountID ? bankAccountID : fundID, walletLinkedAccountType: bankAccountID ? 'bankAccount' : 'debitCard'});
+            Growl.show('Default set!', CONST.GROWL.SUCCESS, 5000);
         });
 }
 
