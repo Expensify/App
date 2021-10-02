@@ -307,6 +307,8 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Métodos de pago',
+        setDefaultSuccess: 'TODO',
+        setDefaultFailure: 'TODO',
     },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',

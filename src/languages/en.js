@@ -307,6 +307,8 @@ export default {
     },
     paymentsPage: {
         paymentMethodsTitle: 'Payment methods',
+        setDefaultSuccess: 'Default payment method set!',
+        setDefaultFailure: 'Failed to set default payment method. Please try again later.',
     },
     paymentMethodList: {
         addPaymentMethod: 'Add payment method',
