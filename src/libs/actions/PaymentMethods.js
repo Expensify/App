@@ -42,7 +42,10 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
         password,
         bankAccountID,
         fundID,
-    });
+    })
+        .then(() => {
+            Onyx.merge(ONYXKEYS.USER_WALLET, {walletLinkedAccountID: bankAccountID ? bankAccountID : fundID, walletLinkedAccountType: bankAccountID ? 'bankAccount' : 'debitCard'});
+        });
 }
 
 /**
