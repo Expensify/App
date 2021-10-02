@@ -789,7 +789,7 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
 function deleteBankAccount(bankAccountID, password) {
     API.DeleteBankAccount({
         bankAccountID,
-        password
+        password,
     })
         .then((response) => {
             console.log(response);
