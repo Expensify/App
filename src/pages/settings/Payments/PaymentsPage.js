@@ -164,7 +164,7 @@ class PaymentsPage extends React.Component {
         if (this.state.selectedPaymentMethodType === 'bankAccount') {
             setWalletLinkedAccount(password, this.state.selectedPaymentMethod.bankAccountID, null);
         } else if (this.state.selectedPaymentMethodType === 'card') {
-            setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.managedBy);
+            setWalletLinkedAccount(password, null, this.state.selectedPaymentMethod.fundID);
         }
     }
 
