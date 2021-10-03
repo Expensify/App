@@ -1559,7 +1559,7 @@ const styles = {
     avatarInnerTextChat: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeNormal,
-        marginLeft: -16,
+        left: 1,
         textAlign: 'center',
         fontWeight: 'normal',
         position: 'absolute',
