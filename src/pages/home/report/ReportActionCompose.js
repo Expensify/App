@@ -581,7 +581,6 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                     // it will focus the input when isFocused from props came true (it will be true when it is a new chat.)     
                                     autoFocus={this.shouldFocusInputOnScreenFocus && this.props.isFocused}
                                     multiline
                                     ref={this.setTextInputRef}
