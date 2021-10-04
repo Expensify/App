@@ -264,6 +264,10 @@ export default {
         paddingLeft: 20,
     },
 
+    pt0: {
+        paddingTop: 0,
+    },
+
     pt2: {
         paddingTop: 8,
     },
