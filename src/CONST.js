@@ -91,6 +91,7 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
+        IOU_SEND: 'sendMoney',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -376,6 +377,11 @@ const CONST = {
             EXPENSIFY: 'Expensify',
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
+        },
+        IOU_TYPE: {
+            SEND: 'send',
+            SPLIT: 'split',
+            REQUEST: 'request',
         },
         AMOUNT_MAX_LENGTH: 10,
     },
