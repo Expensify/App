@@ -568,7 +568,7 @@ export default {
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
-        companyPhonePlaceholder: '10 digits, no hyphens',
+        companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
     },
     requestorStep: {
         headerTitle: 'Personal information',

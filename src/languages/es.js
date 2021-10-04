@@ -570,7 +570,7 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
-        companyPhonePlaceholder: '10 dígitos, sin guiones',
+        companyPhonePlaceholder: '(prefijo) + (número)',
     },
     requestorStep: {
         headerTitle: 'Información personal',
