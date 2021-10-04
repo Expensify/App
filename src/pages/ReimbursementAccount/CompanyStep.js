@@ -64,7 +64,6 @@ class CompanyStep extends React.Component {
             incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
             incorporationState: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationState'),
             hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
-            password: '',
         };
 
         // These fields need to be filled out in order to submit the form
@@ -79,7 +78,6 @@ class CompanyStep extends React.Component {
             'incorporationDate',
             'incorporationState',
             'incorporationType',
-            'password',
             'companyPhone',
             'hasNoConnectionToCannabis',
         ];
@@ -95,7 +93,6 @@ class CompanyStep extends React.Component {
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
             incorporationType: 'bankAccount.error.companyType',
-            password: 'common.passwordCannotBeBlank',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
 
@@ -289,23 +286,6 @@ class CompanyStep extends React.Component {
                             />
                         </View>
                     </View>
-                    <ExpensiTextInput
-                        label={`Expensify ${this.props.translate('common.password')}`}
-                        containerStyles={[styles.mt4]}
-                        secureTextEntry
-                        textContentType="password"
-                        onChangeText={(value) => {
-                            this.setState({password: value});
-                            this.clearError('password');
-                        }}
-                        value={this.state.password}
-                        onSubmitEditing={this.submit}
-                        errorText={this.getErrorText('password')}
-
-                        // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
-                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                        autoCompleteType="new-password"
-                    />
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
                         onPress={() => {

@@ -96,6 +96,7 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
+        IOU_SEND: 'sendMoney',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -382,6 +383,11 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
+        IOU_TYPE: {
+            SEND: 'send',
+            SPLIT: 'split',
+            REQUEST: 'request',
+        },
         AMOUNT_MAX_LENGTH: 10,
     },
 
@@ -432,6 +438,9 @@ const CONST = {
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /[0-9]{4}/,
         NUMBER: /^[0-9]+$/,
+        CARD_NUMBER: /^[0-9]{15,16}$/,
+        CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
+        CARD_EXPIRATION_DATE: /(0[1-9]|10|11|12)\/20[0-9]{2}$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
