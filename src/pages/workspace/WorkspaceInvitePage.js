@@ -24,7 +24,6 @@ import Icon from '../../components/Icon';
 import {NewWindow} from '../../components/Icon/Expensicons';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
-import FixTheErrorsText from '../../components/FixTheErrorsText';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
@@ -102,33 +101,6 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         return '';
-    }
-
-    /**
-     * @returns {React.Component}
-     */
-    getAlertPrompt() {
-        let error = '';
-
-        if (!_.isEmpty(this.props.policy.alertMessage)) {
-            error = (
-                <Text style={styles.mutedTextLabel}>{this.props.policy.alertMessage}</Text>
-            );
-        } else {
-            error = (
-                <FixTheErrorsText
-                    onLinkPress={() => {
-                        this.form.scrollTo({y: 0, animated: true});
-                    }}
-                />
-            );
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                {error}
-            </View>
-        );
     }
 
     /**
