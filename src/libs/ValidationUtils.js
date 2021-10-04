@@ -1,8 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
-import {translateLocal} from './translate';
 
 
 /**
@@ -134,10 +132,12 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ * Validate that "date" is between 18 and 150 years in the past
+ *
  * @param {String} date
  * @returns {Boolean}
  */
-function isValidAge(date) {
+function meetsAgeRequirements(date) {
     const eighteenYearsAgo = moment().subtract(18, 'years');
     const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
     const testDate = moment(date);
@@ -155,46 +155,38 @@ function isValidURL(url) {
 
 /**
  * @param {Object} identity
- * @returns {Boolean}
+ * @returns {Object}
  */
-function isValidIdentity(identity) {
+function validateIdentity(identity) {
+    const errors = {};
     if (!isValidAddress(identity.street)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
-        showBankAccountErrorModal();
-        return false;
+        errors.street = true;
     }
 
-    if (identity.state === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
-        showBankAccountErrorModal();
-        return false;
+    if (!isRequiredFulfilled(identity.state)) {
+        errors.state = true;
     }
 
-    if (identity.city === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
-        showBankAccountErrorModal();
-        return false;
+    if (!isRequiredFulfilled(identity.city)) {
+        errors.city = true;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
-        showBankAccountErrorModal();
-        return false;
+        errors.zipCode = true;
     }
 
-    if (!isValidDate(identity.dob) || !isValidAge(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
-        return false;
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
+    if (!isValidDate(identity.dob)) {
+        errors.dob = true;
+    } else if (!meetsAgeRequirements(identity.dob)) {
+        errors.dobAge = true;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
-        showBankAccountErrorModal();
-        return false;
+        errors.ssnLast4 = true;
     }
 
-    return true;
+    return errors;
 }
 
 /**
@@ -207,15 +199,16 @@ function isValidUSPhone(phoneNumber) {
 }
 
 export {
+    meetsAgeRequirements,
     isValidAddress,
     isValidDate,
     isValidSecurityCode,
     isValidExpirationDate,
     isValidDebitCard,
     isValidIndustryCode,
-    isValidIdentity,
     isValidZipCode,
     isRequiredFulfilled,
     isValidUSPhone,
     isValidURL,
+    validateIdentity,
 };
