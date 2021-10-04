@@ -63,8 +63,18 @@ function canUseInternationalization(betas) {
  * @param {Array<String>} betas
  * @returns {Boolean}
  */
+
+function canUseIOUSend(betas) {
+    return _.contains(betas, CONST.BETAS.IOU_SEND) || canUseAllBetas(betas);
+}
+
+/**
+ * @param {Array<String>} betas
+ * @returns {Boolean}
+ */
+
 function canUseWallet(betas) {
-    return _.contains(betas, CONST.BETAS.BETA_EXPENSIFY_WALLET || canUseAllBetas(betas));
+    return _.contains(betas, CONST.BETAS.BETA_EXPENSIFY_WALLET) || canUseAllBetas(betas);
 }
 
 export default {
@@ -74,5 +84,6 @@ export default {
     canUseFreePlan,
     canUseDefaultRooms,
     canUseInternationalization,
+    canUseIOUSend,
     canUseWallet,
 };
