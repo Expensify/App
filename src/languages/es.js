@@ -436,6 +436,7 @@ export default {
             tooManyAttempts: 'Debido a la gran cantidad de intentos de inicio de sesión, esta opción se ha desactivado temporalmente durante 24 horas. Vuelve a intentarlo más tarde o introduzca los detalles manualmente.',
             address: 'Ingresa una dirección válida',
             dob: 'Ingresa una fecha de nacimiento válida',
+            age: 'Debe ser mayor de 18 años',
             ssnLast4: 'Ingresa los últimos 4 dígitos del número de seguro social',
             firstName: 'Ingresa un nombre válido',
             lastName: 'Ingresa un apellido válido',
