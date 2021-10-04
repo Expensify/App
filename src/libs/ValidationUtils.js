@@ -158,17 +158,19 @@ function isValidURL(url) {
  * @returns {Object}
  */
 function validateIdentity(identity) {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zip', 'state', 'ssnLast4'];
     const errors = {};
+
+    // Check that all required fields are filled
+    _.each(requiredFields, (fieldName) => {
+        if (isRequiredFulfilled(identity[fieldName])) {
+            return;
+        }
+        errors[fieldName] = true;
+    });
+
     if (!isValidAddress(identity.street)) {
         errors.street = true;
-    }
-
-    if (!isRequiredFulfilled(identity.state)) {
-        errors.state = true;
-    }
-
-    if (!isRequiredFulfilled(identity.city)) {
-        errors.city = true;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
