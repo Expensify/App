@@ -1380,6 +1380,25 @@ const styles = {
         flex: 1,
     },
 
+    borderTop: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderTopRounded: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+    },
+
+    borderBottomRounded: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        borderBottomLeftRadius: variables.componentBorderRadiusNormal,
+        borderBottomRightRadius: variables.componentBorderRadiusNormal,
+    },
+
     borderBottom: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
@@ -1387,6 +1406,11 @@ const styles = {
 
     borderRight: {
         borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderLeft: {
+        borderLeftWidth: 1,
         borderColor: themeColors.border,
     },
 

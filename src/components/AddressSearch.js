@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
+import {View, Text} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -74,6 +75,8 @@ const AddressSearch = (props) => {
             ref={ref}
             fetchDetails
             keepResultsAfterBlur
+            suppressDefaultStyles
+            enablePoweredByContainer={false}
             onPress={(data, details) => saveLocationDetails(details)}
             query={{
                 key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
@@ -90,6 +93,26 @@ const AddressSearch = (props) => {
             }}
             styles={{
                 textInputContainer: [styles.googleSearchTextInputContainer],
+            }}
+            renderRow={(data, index) => {
+                // This is using a custom render component in order for the styles to be properly applied to the top row.
+                // The styles for the top and bottom row could have instead by passed to `styles.listView` for
+                // <GooglePlacesAutocomplete>, however the list is always visible, even when there are no results.
+                // Because of this, if the padding and borders are applied to the list, even when it's empty, it takes
+                // up space in the UI and looks like a horizontal line with padding around it.
+                // Using this custom render, the rounded borders and padding can be applied to the first row
+                // so that they are only visible when there are results.
+                const rowStyles = [styles.pv4, styles.ph3, styles.borderLeft, styles.borderRight, styles.borderBottom];
+
+                if (index === 0) {
+                    rowStyles.push(styles.borderTop);
+                    rowStyles.push(styles.mt2);
+                }
+                return (
+                    <View style={rowStyles}>
+                        <Text>{data.description}</Text>
+                    </View>
+                );
             }}
         />
     );
