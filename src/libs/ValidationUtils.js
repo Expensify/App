@@ -146,6 +146,14 @@ function meetsAgeRequirements(date) {
 
 /**
  *
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidPhoneWithSpecialChars(phoneNumber) {
+    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH;
+}
+
+/**
  * @param {String} url
  * @returns {Boolean}
  */
@@ -208,6 +216,7 @@ export {
     isValidIndustryCode,
     isValidZipCode,
     isRequiredFulfilled,
+    isValidPhoneWithSpecialChars,
     isValidUSPhone,
     isValidURL,
     validateIdentity,
