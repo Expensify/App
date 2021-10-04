@@ -162,7 +162,7 @@ function isValidURL(url) {
  * @returns {Object}
  */
 function validateIdentity(identity) {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zip', 'state', 'ssnLast4', 'dob'];
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
     const errors = {};
 
     // Check that all required fields are filled
