@@ -25,6 +25,7 @@ import Permissions from '../../libs/Permissions';
 import {
     Cash, PayPal, Venmo, Wallet,
 } from '../../components/Icon/Expensicons';
+import {isValidUSPhone} from '../../libs/ValidationUtils';
 
 const propTypes = {
     /** URL Route params */
@@ -133,18 +134,6 @@ class IOUDetailsModal extends Component {
     }
 
     /**
-     * @param {String} phoneNumber
-     * @returns {Boolean}
-     */
-    isValidUSPhone(phoneNumber) {
-        // Remove alphanumeric characters and validate that this is in fact a phone number
-        return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, ''))
-
-            // Next make sure it's a US phone number
-            && CONST.REGEX.US_PHONE.test(phoneNumber);
-    }
-
-    /**
      * Checks to see if we can use Venmo. The following conditions must be met:
      *
      *   1. The IOU report currency is USD
@@ -162,7 +151,7 @@ class IOUDetailsModal extends Component {
             return;
         }
 
-        this.submitterPhoneNumber = _.find(submitterPhoneNumbers, this.isValidUSPhone);
+        this.submitterPhoneNumber = _.find(submitterPhoneNumbers, isValidUSPhone);
         if (!this.submitterPhoneNumber) {
             return;
         }

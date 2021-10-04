@@ -25,13 +25,15 @@ export default {
                 },
             },
 
-            // Public Routes
+            // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
             ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD,
+            [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
+            WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
             // Modal Screens
             Settings: {
@@ -53,6 +55,10 @@ export default {
                     },
                     Settings_Add_Paypal_Me: {
                         path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
+                        exact: true,
+                    },
+                    Settings_Add_Debit_Card: {
+                        path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
                         exact: true,
                     },
                     Settings_Profile: {

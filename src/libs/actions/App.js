@@ -10,10 +10,12 @@ import Performance from '../Performance';
 import Timing from './Timing';
 
 let currentUserAccountID;
+let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 
@@ -48,8 +50,8 @@ function setLocale(locale) {
  * @param {string} url relative URL starting with `/` to open in expensify.com
  */
 function openSignedInLink(url = '') {
-    API.GetShortLivedAuthToken().then((response) => {
-        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${response.authToken}&email=${encodeURIComponent(response.email)}`);
+    API.GetShortLivedAuthToken().then(({shortLivedAuthToken}) => {
+        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`);
     });
 }
 
