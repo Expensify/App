@@ -9,6 +9,7 @@ import colors from '../styles/colors';
 import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextLink from './TextLink';
+import Text from './Text';
 
 const propTypes = {
     /** Whether to show the alert text */

@@ -48,7 +48,7 @@ class ReimbursementAccountForm extends React.Component {
                 <FormAlertWithSubmitButton
                     isAlertVisible={isErrorVisible}
                     buttonText={this.props.translate('common.saveAndContinue')}
-                    onPress={this.props.onSubmit}
+                    onSubmit={this.props.onSubmit}
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
