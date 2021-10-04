@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import {
-    Paycheck, Bank, Lock,
+    Paycheck, Bank, Lock, Exclamation,
 } from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
@@ -168,6 +168,7 @@ class BankAccountStep extends React.Component {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('bankAccount.addBankAccount')}
+                    stepCounter={subStep && {step: 1, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => setBankAccountSubStep(null)}
                     shouldShowBackButton={Boolean(subStep)}
@@ -182,7 +183,7 @@ class BankAccountStep extends React.Component {
                                 icon={Bank}
                                 title={this.props.translate('bankAccount.logIntoYourBank')}
                                 onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
-                                disabled={this.props.isPlaidDisabled}
+                                disabled={this.props.isPlaidDisabled || !this.props.user.validated}
                                 shouldShowRightIcon
                             />
                             {this.props.isPlaidDisabled && (
@@ -193,9 +194,20 @@ class BankAccountStep extends React.Component {
                             <MenuItem
                                 icon={Paycheck}
                                 title={this.props.translate('bankAccount.connectManually')}
+                                disabled={!this.props.user.validated}
                                 onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                                 shouldShowRightIcon
                             />
+                            {!this.props.user.validated && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                                    <Text style={[styles.mutedTextLabel, styles.mr4]}>
+                                        <Icon src={Exclamation} fill={colors.red} />
+                                    </Text>
+                                    <Text style={styles.mutedTextLabel}>
+                                        {this.props.translate('bankAccount.validateAccountError')}
+                                    </Text>
+                                </View>
+                            )}
                             <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink href="https://use.expensify.com/privacy">
                                     {this.props.translate('common.privacy')}
@@ -284,6 +296,9 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(BankAccountStep);

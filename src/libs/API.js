@@ -60,6 +60,7 @@ function addDefaultValuesToParameters(command, parameters) {
             console.debug('A request was made without an authToken', {command, parameters});
             Network.pauseRequestQueue();
             Network.clearRequestQueue();
+            Network.unpauseRequestQueue();
             return;
         }
 
@@ -336,6 +337,16 @@ function AuthenticateWithAccountID(parameters) {
         doNotRetry: true,
     });
 }
+
+/**
+ * @param {Object} parameters
+ * @returns {Promise}
+ */
+function AddBillingCard(parameters) {
+    const commandName = 'User_AddBillingCard';
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
 
 /**
  * @param {Object} parameters
@@ -968,7 +979,7 @@ function BankAccount_SetupWithdrawal(parameters) {
 
     requireParameters(['currentStep'], parameters, commandName);
     return Network.post(
-        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        commandName, {additionalData: JSON.stringify(additionalData)},
         CONST.NETWORK.METHOD.POST,
         true,
     );
@@ -1079,6 +1090,7 @@ function UpdatePolicy(parameters) {
 export {
     Authenticate,
     AuthenticateWithAccountID,
+    AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
