@@ -65,7 +65,6 @@ class CompanyStep extends React.Component {
             incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
             incorporationState: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationState'),
             hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
-            password: '',
         };
 
         // These fields need to be filled out in order to submit the form
@@ -76,7 +75,6 @@ class CompanyStep extends React.Component {
             'incorporationDate',
             'incorporationState',
             'incorporationType',
-            'password',
             'companyPhone',
             'hasNoConnectionToCannabis',
         ];
@@ -89,7 +87,6 @@ class CompanyStep extends React.Component {
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
             incorporationType: 'bankAccount.error.companyType',
-            password: 'common.passwordCannotBeBlank',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
 
@@ -133,6 +130,10 @@ class CompanyStep extends React.Component {
 
         if (!isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
+        }
+
+        if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+            errors.companyPhone = true;
         }
 
         _.each(this.requiredFields, (inputKey) => {
@@ -193,6 +194,8 @@ class CompanyStep extends React.Component {
                         value={this.state.companyPhone}
                         placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
+                        maxLength={CONST.PHONE_MAX_LENGTH}
+
                     />
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.companyWebsite')}
@@ -204,12 +207,13 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
                         <ExpensiPicker
@@ -240,23 +244,6 @@ class CompanyStep extends React.Component {
                             />
                         </View>
                     </View>
-                    <ExpensiTextInput
-                        label={`Expensify ${this.props.translate('common.password')}`}
-                        containerStyles={[styles.mt4]}
-                        secureTextEntry
-                        textContentType="password"
-                        onChangeText={(value) => {
-                            this.setState({password: value});
-                            this.clearError('password');
-                        }}
-                        value={this.state.password}
-                        onSubmitEditing={this.submit}
-                        errorText={this.getErrorText('password')}
-
-                        // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
-                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                        autoCompleteType="new-password"
-                    />
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
                         onPress={() => {
