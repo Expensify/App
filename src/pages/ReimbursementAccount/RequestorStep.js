@@ -110,6 +110,8 @@ class RequestorStep extends React.Component {
      */
     validate() {
         const errors = validateIdentity({
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
             street: this.state.requestorAddressStreet,
             state: this.state.requestorAddressState,
             city: this.state.requestorAddressCity,
