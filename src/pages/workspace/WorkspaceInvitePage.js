@@ -277,9 +277,12 @@ class WorkspaceInvitePage extends React.Component {
                         </View>
                         <FormAlertWithSubmitButton
                             isAlertVisible={this.getShouldShowAlertPrompt()}
-                            AlertComponent={() => this.getAlertPrompt()}
                             buttonText={this.props.translate('common.invite')}
                             onSubmit={this.inviteUser}
+                            onFixTheErrorsLinkPressed={() => {
+                                this.form.scrollTo({y: 0, animated: true});
+                            }}
+                            message={this.props.policy.alertMessage}
                         />
                     </ScrollView>
                 </KeyboardAvoidingView>

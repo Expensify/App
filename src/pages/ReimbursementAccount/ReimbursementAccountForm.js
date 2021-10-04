@@ -5,13 +5,11 @@ import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 
-import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import FixTheErrorsText from '../../components/FixTheErrorsText';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 
 const propTypes = {
@@ -29,33 +27,6 @@ const defaultProps = {
 };
 
 class ReimbursementAccountForm extends React.Component {
-    /**
-     * @returns {React.Component}
-     */
-    getAlertPrompt() {
-        let error = '';
-
-        if (!_.isEmpty(this.props.reimbursementAccount.errorModalMessage)) {
-            error = (
-                <Text style={styles.mutedTextLabel}>{this.props.reimbursementAccount.errorModalMessage}</Text>
-            );
-        } else {
-            error = (
-                <FixTheErrorsText
-                    onLinkPress={() => {
-                        this.form.scrollTo({y: 0, animated: true});
-                    }}
-                />
-            );
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.ml2, styles.flexWrap, styles.flex1]}>
-                {error}
-            </View>
-        );
-    }
-
     render() {
         const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
             || lodashGet(this.props, 'reimbursementAccount.errorModalMessage', '').length > 0
@@ -76,9 +47,12 @@ class ReimbursementAccountForm extends React.Component {
                 </View>
                 <FormAlertWithSubmitButton
                     isAlertVisible={isErrorVisible}
-                    AlertComponent={() => this.getAlertPrompt()}
                     buttonText={this.props.translate('common.saveAndContinue')}
                     onPress={this.props.onSubmit}
+                    onFixTheErrorsLinkPressed={() => {
+                        this.form.scrollTo({y: 0, animated: true});
+                    }}
+                    message={this.props.reimbursementAccount.errorModalMessage}
                 />
             </ScrollView>
         );
