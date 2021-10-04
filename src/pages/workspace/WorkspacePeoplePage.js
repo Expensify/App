@@ -26,6 +26,7 @@ import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../home/sidebar/OptionRow';
 import getPlatform from '../../libs/getPlatform';
+import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 
 const propTypes = {
@@ -68,7 +69,6 @@ class WorkspacePeoplePage extends React.Component {
         this.state = {
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
-            isNonRemovableMemberModalVisible: false,
         };
 
         this.renderItem = this.renderItem.bind(this);
@@ -109,7 +109,7 @@ class WorkspacePeoplePage extends React.Component {
      * Hide the confirmation modal
      */
     hideConfirmModal() {
-        this.setState({isRemoveMembersConfirmModalVisible: false, isNonRemovableMemberModalVisible: false});
+        this.setState({isRemoveMembersConfirmModalVisible: false});
     }
 
     /**
@@ -133,7 +133,7 @@ class WorkspacePeoplePage extends React.Component {
         // Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
         const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
         if (!canBeRemoved && (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS)) {
-            this.setState({isNonRemovableMemberModalVisible: true});
+            Growl.show(this.props.translate('workspace.people.error.cannotRemove'), CONST.GROWL.WARNING, 3000);
             return;
         }
 
@@ -263,13 +263,6 @@ class WorkspacePeoplePage extends React.Component {
                     prompt={this.props.translate('workspace.people.removeMembersPrompt')}
                     confirmText={this.props.translate('common.remove')}
                     cancelText={this.props.translate('common.cancel')}
-                />
-                <ConfirmModal
-                    title={this.props.translate('workspace.people.error.cannotRemove')}
-                    isVisible={this.state.isNonRemovableMemberModalVisible}
-                    onConfirm={this.hideConfirmModal}
-                    confirmText={this.props.translate('common.close')}
-                    shouldShowCancelButton={false}
                 />
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
