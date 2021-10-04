@@ -35,7 +35,7 @@ const defaultProps = {
     betas: [],
 };
 
-class WorkspaceEditorPage extends React.Component {
+class WorkspaceSettingsPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -151,8 +151,8 @@ class WorkspaceEditorPage extends React.Component {
     }
 }
 
-WorkspaceEditorPage.propTypes = propTypes;
-WorkspaceEditorPage.defaultProps = defaultProps;
+WorkspaceSettingsPage.propTypes = propTypes;
+WorkspaceSettingsPage.defaultProps = defaultProps;
 
 export default compose(
     withOnyx({
@@ -169,4 +169,4 @@ export default compose(
         },
     }),
     withLocalize,
-)(WorkspaceEditorPage);
+)(WorkspaceSettingsPage);

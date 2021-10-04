@@ -28,7 +28,7 @@ import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
-import WorkspaceEditorPage from '../../../pages/workspace/WorkspaceEditorPage';
+import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -237,7 +237,7 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
 }]);
 
 const WorkspaceEditorNavigator = createModalStackNavigator([{
-    Component: WorkspaceEditorPage,
+    Component: WorkspaceSettingsPage,
     name: 'WorkspaceEditor_Root',
 }]);
 
