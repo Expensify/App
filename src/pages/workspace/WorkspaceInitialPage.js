@@ -50,7 +50,7 @@ const defaultProps = {
     policy: {},
 };
 
-const WorkspaceSidebar = ({
+const WorkspaceInitialPage = ({
     translate, isSmallScreenWidth, policy, isFocused,
 }) => {
     if (_.isEmpty(policy)) {
@@ -205,9 +205,9 @@ const WorkspaceSidebar = ({
     );
 };
 
-WorkspaceSidebar.propTypes = propTypes;
-WorkspaceSidebar.defaultProps = defaultProps;
-WorkspaceSidebar.displayName = 'WorkspaceSidebar';
+WorkspaceInitialPage.propTypes = propTypes;
+WorkspaceInitialPage.defaultProps = defaultProps;
+WorkspaceInitialPage.displayName = 'WorkspaceSidebar';
 
 export default compose(
     withLocalize,
@@ -223,4 +223,4 @@ export default compose(
             },
         },
     }),
-)(WorkspaceSidebar);
+)(WorkspaceInitialPage);

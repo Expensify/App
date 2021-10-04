@@ -58,7 +58,7 @@ const defaultProps = {
     },
 };
 
-class WorkspacePeoplePage extends React.Component {
+class WorkspaceMembersPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -279,9 +279,9 @@ class WorkspacePeoplePage extends React.Component {
     }
 }
 
-WorkspacePeoplePage.propTypes = propTypes;
-WorkspacePeoplePage.defaultProps = defaultProps;
-WorkspacePeoplePage.displayName = 'WorkspacePeoplePage';
+WorkspaceMembersPage.propTypes = propTypes;
+WorkspaceMembersPage.defaultProps = defaultProps;
+WorkspaceMembersPage.displayName = 'WorkspacePeoplePage';
 
 export default compose(
     withLocalize,
@@ -300,4 +300,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(WorkspacePeoplePage);
+)(WorkspaceMembersPage);

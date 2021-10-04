@@ -3,13 +3,13 @@ import React from 'react';
 // Screens
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import WorkspaceCardPage from '../../../pages/workspace/WorkspaceCardPage';
-import WorkspacePeoplePage from '../../../pages/workspace/WorkspacePeoplePage';
-import WorkspaceSidebar from '../../../pages/workspace/WorkspaceSidebar';
+import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
+import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
 
 const WorkspaceSettingsDrawerNavigator = () => (
     <BaseDrawerNavigator
         // eslint-disable-next-line react/jsx-props-no-spreading
-        drawerContent={props => <WorkspaceSidebar {...props} />}
+        drawerContent={props => <WorkspaceInitialPage {...props} />}
         screens={[
             {
                 name: 'WorkspaceCard',
@@ -18,7 +18,7 @@ const WorkspaceSettingsDrawerNavigator = () => (
             },
             {
                 name: 'WorkspacePeople',
-                component: WorkspacePeoplePage,
+                component: WorkspaceMembersPage,
                 initialParams: {},
             },
         ]}
