@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {
-    View, FlatList, TouchableOpacity,
+    View, FlatList, TouchableOpacity, Dimensions,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
@@ -28,6 +28,7 @@ import OptionRow from '../home/sidebar/OptionRow';
 import getPlatform from '../../libs/getPlatform';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
+import variables from '../../styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -132,7 +133,7 @@ class WorkspacePeoplePage extends React.Component {
     toggleUser(login) {
         // Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
         const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
-        if (!canBeRemoved && (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS)) {
+        if (!canBeRemoved) {
             Growl.show(this.props.translate('workspace.people.error.cannotRemove'), CONST.GROWL.WARNING, 3000);
             return;
         }
@@ -182,8 +183,10 @@ class WorkspacePeoplePage extends React.Component {
     renderItem({
         item,
     }) {
+        const initialDimensions = Dimensions.get('window');
+        const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
+        const isMobileDevice = getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS || isSmallScreenWidth;
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
-        const isDisabled = getPlatform() !== CONST.PLATFORM.ANDROID && getPlatform() !== CONST.PLATFORM.IOS;
         const checkbox = (
             <Checkbox
                 isChecked={_.contains(this.state.selectedEmployees, item.login)}
@@ -193,10 +196,10 @@ class WorkspacePeoplePage extends React.Component {
         );
         return (
             <TouchableOpacity
-                style={[styles.peopleRow, canBeRemoved && styles.cursorDisabled]}
+                style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
                 onPress={() => this.toggleUser(item.login)}
                 activeOpacity={0.7}
-                disabled={isDisabled}
+                disabled={!isMobileDevice && !canBeRemoved}
             >
                 <View style={[styles.peopleRowCell]}>
                     {!canBeRemoved
