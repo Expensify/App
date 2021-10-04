@@ -339,7 +339,7 @@ class AuthScreens extends React.Component {
                 use a navigator */}
                 <RootStack.Screen
                     name="WorkspaceSettings"
-                    options={fullscreenModalScreenOptions}
+                    options={modalScreenOptions}
                     component={WorkspaceSettingsDrawerNavigator}
                     listeners={modalScreenListeners}
                 />

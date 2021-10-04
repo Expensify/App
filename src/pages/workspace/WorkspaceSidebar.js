@@ -59,20 +59,52 @@ const WorkspaceSidebar = ({
 
     const menuItems = [
         {
+            translationKey: 'workspace.common.settings',
+            icon: ExpensifyCard,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+        },
+        {
             translationKey: 'workspace.common.card',
             icon: ExpensifyCard,
-            action: () => {
-                Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id));
-            },
+            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
         },
         {
-            translationKey: 'common.people',
+            translationKey: 'workspace.common.reimburse',
+            icon: ExpensifyCard,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.bills',
+            icon: ExpensifyCard,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBillsRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.invoices',
+            icon: ExpensifyCard,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.travel',
+            icon: ExpensifyCard,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.members',
             icon: Users,
-            action: () => {
-                Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
-            },
+            action: () => Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.bankAccount',
+            icon: Users,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
         },
     ];
 

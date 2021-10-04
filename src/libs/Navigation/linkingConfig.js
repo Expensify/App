@@ -36,6 +36,37 @@ export default {
             WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
             // Modal Screens
+            Workspace: {
+                screens: {
+                    Workspace_Root: {
+                        path: ROUTES.WORKSPACE,
+                    },
+                    Workspace_Settings: {
+                        path: ROUTES.WORKSPACE_SETTINGS,
+                    },
+                    Workspace_Card: {
+                        path: ROUTES.WORKSPACE_CARD,
+                    },
+                    Workspace_Reimburse: {
+                        path: ROUTES.WORKSPACE_REIMBURSE,
+                    },
+                    Workspace_Bills: {
+                        path: ROUTES.WORKSPACE_BILLS,
+                    },
+                    Workspace_Invoices: {
+                        path: ROUTES.WORKSPACE_INVOICES,
+                    },
+                    Workspace_Travel: {
+                        path: ROUTES.WORKSPACE_TRAVEL,
+                    },
+                    Workspace_Members: {
+                        path: ROUTES.WORKSPACE_MEMBERS,
+                    },
+                    WorkspaceBankAccountPage: {
+                        path: ROUTES.WORKSPACE_BANKACCOUNT,
+                    },
+                },
+            },
             Settings: {
                 screens: {
                     Settings_Root: {
@@ -150,14 +181,6 @@ export default {
             WorkspaceInvite: {
                 screens: {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
-                },
-            },
-
-            WorkspaceSettings: {
-                path: ROUTES.WORKSPACE,
-                screens: {
-                    WorkspaceCard: ROUTES.WORKSPACE_CARD,
-                    WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
                 },
             },
 
