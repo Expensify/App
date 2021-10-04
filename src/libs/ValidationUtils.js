@@ -46,6 +46,10 @@ function isValidAddress(value) {
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
+    if (!date) {
+        return false;
+    }
+
     const pastDate = moment().subtract(1000, 'years');
     const futureDate = moment().add(1000, 'years');
     const testDate = moment(date);
@@ -158,7 +162,7 @@ function isValidURL(url) {
  * @returns {Object}
  */
 function validateIdentity(identity) {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zip', 'state', 'ssnLast4'];
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zip', 'state', 'ssnLast4', 'dob'];
     const errors = {};
 
     // Check that all required fields are filled
