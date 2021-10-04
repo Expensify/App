@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, { useRef, useEffect } from 'react';
+import React, {useRef, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
