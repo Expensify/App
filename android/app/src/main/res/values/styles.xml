@@ -3,14 +3,13 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="android:textColor">#000000</item>
-        <!-- colors.gray4 -->
-        <item name="android:colorEdgeEffect">#7D8B8F</item>
+        <item name="android:textColor">@color/dark</item>
+        <item name="android:colorEdgeEffect">@color/gray4</item>
+        <item name="colorAccent">@color/accent</item>
     </style>
 
     <style name="BootTheme" parent="AppTheme">
         <!-- set the generated bootsplash.xml drawable as activity background -->
         <item name="android:background">@drawable/bootsplash</item>
     </style>
-
 </resources>

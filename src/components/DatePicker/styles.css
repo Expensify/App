@@ -1,0 +1,8 @@
+.expensify-datepicker::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 12px;
+    top: 13px;
+}
+.expensify-datepicker::-webkit-date-and-time-value {
+    text-align: left;
+}
