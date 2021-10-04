@@ -2056,7 +2056,7 @@ const styles = {
     }),
 
     googleSearchTextInputContainer: {
-        flexDirection: 'none',
+        flexDirection: 'column',
     },
 };
 
