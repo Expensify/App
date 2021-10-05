@@ -243,8 +243,6 @@ function createOption(personalDetailList, report, draftComments, {
         phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
         payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         reportID: report ? report.reportID : null,
-        phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
-        payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
