@@ -126,15 +126,15 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})[\r\n]        - \\[ ] QA`, 'g'))],
             match => ({
-                url: match[1],
+                url: match[0],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
                 isVerified: false,
             }),
         );
         const verifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- \\[x] (${PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})[\r\n]        - \\[x] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
