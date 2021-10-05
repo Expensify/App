@@ -1,13 +1,17 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text} from 'react-native';
+import {View, Text, LogBox} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 
+// The error that's being thrown below will be ignored until we fork the 
+// react-native-google-places-autocomplete repo and replace the 
+// VirtualizedList component with a VirtualizedList-backed instead
+LogBox.ignoreLogs([ 'VirtualizedLists should never be nested']);
 
 const propTypes = {
     /** The label to display for the field */
