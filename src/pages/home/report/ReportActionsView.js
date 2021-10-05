@@ -404,9 +404,7 @@ class ReportActionsView extends React.Component {
                 ? this.props.report.unreadActionCount
                 : prevState.localUnreadActionCount + this.props.report.unreadActionCount;
             this.updateUnreadIndicatorPosition(localUnreadActionCount);
-            return {
-                localUnreadActionCount,
-            };
+            return {localUnreadActionCount};
         });
     }
 
