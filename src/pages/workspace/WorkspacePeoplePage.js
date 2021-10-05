@@ -29,6 +29,7 @@ import getPlatform from '../../libs/getPlatform';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import variables from '../../styles/variables';
+import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -131,13 +132,6 @@ class WorkspacePeoplePage extends React.Component {
      * @param {String} login
      */
     toggleUser(login) {
-        // Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
-        const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
-        if (!canBeRemoved) {
-            Growl.show(this.props.translate('workspace.people.error.cannotRemove'), CONST.GROWL.WARNING, 3000);
-            return;
-        }
-
         // Add or remove the user if the checkbox is enabled and is clickable.
         if (_.contains(this.state.selectedEmployees, login)) {
             this.removeUser(login);
@@ -183,33 +177,20 @@ class WorkspacePeoplePage extends React.Component {
     renderItem({
         item,
     }) {
-        const initialDimensions = Dimensions.get('window');
-        const isSmallScreenWidth = initialDimensions.width <= variables.mobileResponsiveWidthBreakpoint;
-        const isMobileDevice = getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS || isSmallScreenWidth;
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
-        const checkbox = (
-            <Checkbox
-                isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                onPress={() => this.toggleUser(item.login)}
-                disabled={!canBeRemoved}
-            />
-        );
         return (
             <TouchableOpacity
                 style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
                 onPress={() => this.toggleUser(item.login)}
                 activeOpacity={0.7}
-                disabled={!isMobileDevice && !canBeRemoved}
             >
-                <View style={[styles.peopleRowCell]}>
-                    {!canBeRemoved
-                        ? (
-                            <Tooltip text={this.props.translate('workspace.people.error.cannotRemove')}>
-                                {checkbox}
-                            </Tooltip>
-                        )
-                        : checkbox}
-                </View>
+                <CheckboxWithTooltip
+                    style={[styles.peopleRowCell]}
+                    disabled={!canBeRemoved}
+                    onPress={canBeRemoved ? () => this.toggleUser(item.login) : {}}
+                    toogleTooltip={!canBeRemoved}
+                    text={this.props.translate('workspace.people.error.cannotRemove')}
+                />
                 <View style={styles.flex1}>
                     <OptionRow
                         forceTextUnreadStyle

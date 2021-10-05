@@ -1,30 +1,33 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
-
-const propTypes = {
-    /** Whether the checkbox is checked */
-    isChecked: PropTypes.bool.isRequired,
-
-    /** Called when the checkbox or label is pressed */
-    onPress: PropTypes.func.isRequired,
-
-    /** Container styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-};
-
-const defaultProps = {
-    style: [],
-};
+import Checkbox from '../Checkbox';
+import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
+import Tooltip from '../Tooltip';
 
 /**
  * @param {propTypes} props
  * @returns {ReactNodeLike}
  */
-const CheckboxWithTooltip = props => (
-    <View style={props.style}>
-    </View>
-);
+const CheckboxWithTooltip = (props) => {
+    const checkbox = (
+        <Checkbox
+            isChecked={props.isChecked}
+            onPress={props.onPress}
+            disabled={props.disabled}
+        />
+    );
+    return (
+        <View style={props.style}>
+            {props.toggleTooltip
+                ? (
+                    <Tooltip text={props.text}>
+                        {checkbox}
+                    </Tooltip>
+                )
+                : checkbox}
+        </View>
+    );
+};
 
 CheckboxWithTooltip.propTypes = propTypes;
 CheckboxWithTooltip.defaultProps = defaultProps;

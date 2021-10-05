@@ -1,32 +1,45 @@
 import React from 'react';
 import {View} from 'react-native';
-import PropTypes from 'prop-types';
+import Checkbox from '../Checkbox';
+import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
+import Growl from '../../libs/Growl';
+import CONST from '../../CONST';
+import compose from '../../libs/compose';
+import withWindowDimensions from '../withWindowDimensions';
 
-const propTypes = {
-    /** Whether the checkbox is checked */
-    isChecked: PropTypes.bool.isRequired,
+class CheckboxWithTooltip extends React.Component {
+    constructor(props) {
+        super(props);
+        this.onPress = this.onPress.bind(this);
+    }
 
-    /** Called when the checkbox or label is pressed */
-    onPress: PropTypes.func.isRequired,
+    /**
+     * Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
+     */
+    onPress() {
+        if (this.props.toggleTooltip) {
+            Growl.show(this.props.text, CONST.GROWL.WARNING, 3000);
+        }
+        this.props.onPress();
+    }
 
-    /** Container styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
-};
-
-const defaultProps = {
-    style: [],
-};
-
-/**
- * @param {propTypes} props
- * @returns {ReactNodeLike}
- */
-const CheckboxWithTooltip = props => (
-    <View style={props.style}>
-    </View>
-);
+    render() {
+        return (
+            <View style={this.props.style}>
+                <Checkbox
+                    isChecked={this.props.isChecked}
+                    onPress={() => this.onPress()}
+                    disabled={this.props.disabled}
+                />
+            </View>
+        );
+    }
+}
 
 CheckboxWithTooltip.propTypes = propTypes;
 CheckboxWithTooltip.defaultProps = defaultProps;
 CheckboxWithTooltip.displayName = 'CheckboxWithTooltip';
-export default CheckboxWithTooltip;
+
+export default compose(
+    withWindowDimensions,
+)(CheckboxWithTooltip);

@@ -8,8 +8,14 @@ const propTypes = {
     /** Called when the checkbox or label is pressed */
     onPress: PropTypes.func.isRequired,
 
+    /** Flag to determine to toggle or not the tooltip */
+    toggleTooltip: PropTypes.bool,
+
     /** The text to display in the tooltip. */
     text: PropTypes.string.isRequired,
+
+    /** Should the input be disabled  */
+    disabled: PropTypes.bool,
 
     /** Container styles */
     style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -20,6 +26,8 @@ const propTypes = {
 
 const defaultProps = {
     style: [],
+    disabled: false,
+    toggleOnPress: true,
 };
 
 export {
