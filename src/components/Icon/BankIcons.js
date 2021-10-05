@@ -1,4 +1,4 @@
-import {Bank, CreditCard, ExpensifyCard} from './Expensicons';
+import {Bank, CreditCard} from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -27,10 +27,6 @@ import variables from '../../styles/variables';
  */
 
 function getAssetIcon(bankName, isCard) {
-    if (bankName === 'expensify card') {
-        return ExpensifyCard;
-    }
-
     if (bankName.includes('americanexpress')) {
         return AmericanExpress;
     }
@@ -122,8 +118,8 @@ export default function getBankIcon(bankName, isCard) {
         bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
     }
 
-    // For default icon & expensify (for now) the icon size should not be set.
-    if (![ExpensifyCard, CreditCard, Bank].includes(bankIcon.icon)) {
+    // For default icons the icon size should not be set.
+    if (![CreditCard, Bank].includes(bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 

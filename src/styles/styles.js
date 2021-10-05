@@ -50,6 +50,16 @@ const styles = {
         color: themeColors.linkHover,
     },
 
+    linkMuted: {
+        color: themeColors.textSupporting,
+        textDecorationColor: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+    },
+
+    linkMutedHovered: {
+        color: themeColors.textMutedReversed,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -79,6 +89,11 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
+    },
+
+    label: {
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
     },
 
     textLabel: {
@@ -194,6 +209,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+
+        // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+        // It allows to vertically center the text.
+        lineHeight: undefined,
     },
 
     buttonSmall: {
@@ -217,15 +236,13 @@ const styles = {
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonLargeText: {
-        fontSize: variables.fontSizeLarge,
-        lineHeight: 18,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -1136,11 +1153,24 @@ const styles = {
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListLandscape: {
+        height: 240,
+    },
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    emojiSkinToneTitle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv1,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,

@@ -7,7 +7,6 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import BankAccount from '../models/BankAccount';
-import promiseAllSettled from '../promiseAllSettled';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
@@ -73,7 +72,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
     if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        newACHData.subStep = 'manual';
+        newACHData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
@@ -337,20 +336,9 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
-    const oldACHData = {
-        accountNumber: reimbursementAccountInSetup.accountNumber || '',
-        routingNumber: reimbursementAccountInSetup.routingNumber || '',
-    };
-
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        loading: true,
-        error: '',
-
-        // We temporarily keep the achData state to prevent UI changes while fetching.
-        achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
-    });
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
     let bankAccountID;
 
     API.Get({
@@ -363,54 +351,28 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
             const failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
 
             // Now that we have the bank account. Lets grab the rest of the bank info we need
-            promiseAllSettled([
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: failedValidationAttemptsName,
-                }),
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: 'expensify_migration_2020_04_28_RunKycVerifications',
-                }),
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: CONST.NVP.ACH_DATA_THROTTLED,
-                }),
-                API.Get({returnValueList: 'bankAccountList'}),
-                API.Get({
-                    returnValueList: 'nameValuePairs',
-                    name: CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
-                }),
-            ])
-                .then(([
-                    failedValidationAttemptsResponse,
-                    kycVerificationsMigrationResponse,
-                    achDataThrottledResponse,
-                    bankAccountListResponse,
-                    throttledBankAccountGetResponse,
-                ]) => {
+            API.Get({
+                returnValueList: 'nameValuePairs, bankAccountList',
+                nvpNames: [
+                    failedValidationAttemptsName,
+                    CONST.NVP.KYC_MIGRATION,
+                    CONST.NVP.ACH_DATA_THROTTLED,
+                    CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
+                ].join(),
+            })
+                .then(({bankAccountList, nameValuePairs}) => {
                     // Users have a limited amount of attempts to get the validations amounts correct.
                     // Once exceeded, we need to block them from attempting to validate.
-                    const failedValidationAttempts = lodashGet(failedValidationAttemptsResponse, [
-                        'value', 'nameValuePairs', failedValidationAttemptsName,
-                    ], 0);
+                    const failedValidationAttempts = lodashGet(nameValuePairs, failedValidationAttemptsName, 0);
                     const maxAttemptsReached = failedValidationAttempts > CONST.BANK_ACCOUNT.VERIFICATION_MAX_ATTEMPTS;
 
-                    const kycVerificationsMigration = lodashGet(kycVerificationsMigrationResponse, [
-                        'value', 'nameValuePairs', 'expensify_migration_2020_04_28_RunKycVerifications',
-                    ], '');
-                    const throttledDate = lodashGet(achDataThrottledResponse, [
-                        'value', 'nameValuePairs', CONST.NVP.ACH_DATA_THROTTLED,
-                    ], '');
-                    const bankAccountJSON = _.find(
-                        lodashGet(bankAccountListResponse, ['value', 'bankAccountList'], []), account => (
-                            account.bankAccountID === bankAccountID
-                        ),
-                    );
+                    const kycVerificationsMigration = lodashGet(nameValuePairs, CONST.NVP.KYC_MIGRATION, '');
+                    const throttledDate = lodashGet(nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
+                    const bankAccountJSON = _.find(bankAccountList, account => (
+                        account.bankAccountID === bankAccountID
+                    ));
                     const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
-                    const throttledHistoryCount = lodashGet(throttledBankAccountGetResponse, [
-                        'value', 'nameValuePairs', CONST.NVP.BANK_ACCOUNT_GET_THROTTLED,
-                    ], 0);
+                    const throttledHistoryCount = lodashGet(nameValuePairs, CONST.NVP.BANK_ACCOUNT_GET_THROTTLED, 0);
                     const isPlaidDisabled = throttledHistoryCount > CONST.BANK_ACCOUNT.PLAID.ALLOWED_THROTTLED_COUNT;
 
                     // Next we'll build the achData and save it to Onyx
@@ -422,11 +384,6 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
-
-                    // Adding a default empty state to make sure we override the temporary one we are keeping
-                    // for UI purposes. This covers an edge case in which a user deleted their bank account,
-                    // but would still see Finish Setup in the UI, instead of Get Started.
-                    achData.state = lodashGet(achData, 'state', '');
 
                     // If the bank account has already been created in the db and is not yet open
                     // let's show the manual form with the previously added values
@@ -503,18 +460,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     goToWithdrawalAccountSetupStep(currentStep, achData);
                 })
                 .finally(() => {
-                    const dataToMerge = {
-                        loading: false,
-                    };
-
-                    // If we didn't get a routingNumber and accountNumber from the response and we have previously saved
-                    // values, autofill them
-                    if (!reimbursementAccountInSetup.routingNumber && !reimbursementAccountInSetup.accountNumber
-                        && oldACHData.routingNumber && oldACHData.accountNumber) {
-                        dataToMerge.achData = oldACHData;
-                    }
-
-                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, dataToMerge);
+                    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 });
         });
 }
@@ -577,6 +523,15 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 }
 
 /**
+ * Show error modal and optionally a specific error message
+ *
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ */
+function showBankAccountErrorModal(errorModalMessage = null) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+}
+
+/**
  * @param {Number} bankAccountID
  * @param {String} validateCode
  */
@@ -587,6 +542,7 @@ function validateBankAccount(bankAccountID, validateCode) {
         .then((response) => {
             if (response.jsonCode === 200) {
                 Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
+                Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         const reimbursementAccount = {
@@ -607,17 +563,23 @@ function validateBankAccount(bankAccountID, validateCode) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
-        });
-}
+            // User has input the validate code incorrectly many times so we will return early in this case and not let them enter the amounts again.
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.MAX_VALIDATION_ATTEMPTS_REACHED) {
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, maxAttemptsReached: true});
+                return;
+            }
 
-/**
- * Show error modal and optionally a specific error message
- *
- * @param {String} errorModalMessage The error message to be displayed in the modal's body.
- */
-function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+            // If the validation amounts entered were incorrect, show specific error
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
+                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                return;
+            }
+
+            // We are generically showing any other backend errors that might pop up in the validate step
+            showBankAccountErrorModal(response.message);
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        });
 }
 
 /**
@@ -648,13 +610,22 @@ function showBankAccountFormValidationError(error) {
 }
 
 /**
+ * Set the current sub step in first step of adding withdrawal bank account
+ *
+ * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ */
+function setBankAccountSubStep(subStep) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+}
+
+/**
  * Create or update the bank account in db with the updated data.
  *
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
     let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
 
     const newACHData = {
         ...reimbursementAccountInSetup,
@@ -686,18 +657,8 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
-        /* eslint-disable arrow-body-style */
         .then((response) => {
-            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
-            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
-            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
-            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                loading: false,
-                achData: {...newACHData},
-            })
-                .then(() => Promise.resolve(response));
-        })
-        .then((response) => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
@@ -709,19 +670,6 @@ function setupWithdrawalAccount(data) {
                 // set up for the free plan.
                 if (achData.bankAccountID) {
                     setFreePlanVerifiedBankAccountID(achData.bankAccountID);
-                }
-
-                // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    console.error('Cannot set up withdrawal account due to existing owners', response);
-                    Onyx.merge(
-                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {
-                            existingOwners: response.existingOwners,
-                            error: CONST.BANK_ACCOUNT.ERROR.EXISTING_OWNERS,
-                        },
-                    );
-                    return;
                 }
 
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -809,10 +757,6 @@ function setupWithdrawalAccount(data) {
                         console.error(response.message);
                     }
                 }
-
-                if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
-                    achData.disableFields = true;
-                }
             }
 
             // Go to next step
@@ -835,11 +779,18 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: [], errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
+}
+
+/**
+ * @param {Object} bankAccountData
+ */
+function updateReimbursementAccountDraft(bankAccountData) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
 }
 
 export {
@@ -860,4 +811,6 @@ export {
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    setBankAccountSubStep,
+    updateReimbursementAccountDraft,
 };

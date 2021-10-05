@@ -1,5 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -10,21 +12,27 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
-import getPaymentMethods from '../../../libs/actions/PaymentMethods';
+import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal} from '../../../components/Icon/Expensicons';
+import {PayPal, CreditCard} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
+import ONYXKEYS from '../../../ONYXKEYS';
+import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
+const DEBIT_CARD = 'debitCard';
 
 const propTypes = {
     ...withLocalizePropTypes,
+
+    /** List of betas available to current user */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
-    payPalMeUsername: '',
+    betas: [],
 };
 
 class PaymentsPage extends React.Component {
@@ -83,6 +91,10 @@ class PaymentsPage extends React.Component {
         if (paymentType === PAYPAL) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
         }
+
+        if (paymentType === DEBIT_CARD) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
+        }
     }
 
     /**
@@ -103,7 +115,9 @@ class PaymentsPage extends React.Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <View>
-                        <CurrentWalletBalance />
+                        {
+                            Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
+                        }
                         <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
@@ -128,6 +142,11 @@ class PaymentsPage extends React.Component {
                             icon={PayPal}
                             onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
                         />
+                        <MenuItem
+                            title="Debit Card"
+                            icon={CreditCard}
+                            onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
+                        />
                     </Popover>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
@@ -141,4 +160,9 @@ PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
+    withOnyx({
+        betas: {
+            key: ONYXKEYS.BETAS,
+        },
+    }),
 )(PaymentsPage);

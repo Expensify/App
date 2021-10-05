@@ -5,6 +5,7 @@ import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
 import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import variables from '../../styles/variables';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -53,6 +54,7 @@ class PDFView extends PureComponent {
                 style={[styles.PDFView, this.props.style]}
             >
                 <Document
+                    loading={<FullScreenLoadingIndicator visible />}
                     file={this.props.sourceURL}
                     options={{
                         cMapUrl: 'cmaps/',
