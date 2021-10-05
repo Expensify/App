@@ -8,10 +8,10 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 
-// The error that's being thrown below will be ignored until we fork the 
-// react-native-google-places-autocomplete repo and replace the 
+// The error that's being thrown below will be ignored until we fork the
+// react-native-google-places-autocomplete repo and replace the
 // VirtualizedList component with a VirtualizedList-backed instead
-LogBox.ignoreLogs([ 'VirtualizedLists should never be nested']);
+LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 const propTypes = {
     /** The label to display for the field */
@@ -43,11 +43,11 @@ class AddressSearch extends React.Component {
         this.googlePlacesRef.current?.setAddressText(this.props.value);
     }
 
-    getAddressComponent(field, nameType) {
+    getAddressComponent(object, field, nameType) {
         return _.chain(details.address_components)
-        .find(component => _.contains(component.types, field))
-        .get(nameType)
-        .value();
+            .find(component => _.contains(component.types, field))
+            .get(nameType)
+            .value();
     }
 
     /**
