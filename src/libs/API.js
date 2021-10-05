@@ -60,6 +60,7 @@ function addDefaultValuesToParameters(command, parameters) {
             console.debug('A request was made without an authToken', {command, parameters});
             Network.pauseRequestQueue();
             Network.clearRequestQueue();
+            Network.unpauseRequestQueue();
             return;
         }
 

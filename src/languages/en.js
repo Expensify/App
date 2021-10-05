@@ -26,6 +26,7 @@ export default {
         continue: 'Continue',
         firstName: 'First name',
         lastName: 'Last name',
+        phone: 'Phone',
         phoneNumber: 'Phone number',
         email: 'Email',
         and: 'and',
@@ -376,8 +377,10 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
-        weSentYouMagicSignInLink: ({loginType}) => `We've sent a magic sign in link to your ${loginType}.`,
+        weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
         resendLink: 'Resend link',
+        unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
+        newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },
     detailsPage: {
         localTime: 'Local time',
@@ -414,7 +417,7 @@ export default {
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
         validateAccountError: 'In order to finish setting up your bank account, you must validate your account. Please check your email to validate your account, and return here to finish up!',
         hasPhoneLoginError: 'To add a verified bank account please ensure your primary login is a valid email and try again. You can add your phone number as a secondary login.',
-        hasBeenThrottledError: ({fromNow}) => `For security reasons, we're taking a break from bank account setup so you can double-check your company information. Please try again ${fromNow}. Sorry!`,
+        hasBeenThrottledError: 'There was an error adding your bank account. Please wait a few minutes and try again.',
         buttonConfirm: 'Got it',
         error: {
             noBankAccountAvailable: 'Sorry, no bank account is available',
@@ -436,6 +439,7 @@ export default {
             tooManyAttempts: 'Due to a high number of login attempts, this option has been temporarily disabled for 24 hours. Please try again later or manually enter details instead.',
             address: 'Please enter a valid address',
             dob: 'Please enter a valid date of birth',
+            age: 'Must be over 18 years old',
             ssnLast4: 'Please enter valid last 4 digits of SSN',
             firstName: 'Please enter valid first name',
             lastName: 'Please enter valid last name',
@@ -567,7 +571,7 @@ export default {
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
-        companyPhonePlaceholder: '10 digits, no hyphens',
+        companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
     },
     requestorStep: {
         headerTitle: 'Personal information',
