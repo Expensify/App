@@ -44,7 +44,7 @@ class AddressSearch extends React.Component {
     }
 
     getAddressComponent(object, field, nameType) {
-        return _.chain(details.address_components)
+        return _.chain(object.address_components)
             .find(component => _.contains(component.types, field))
             .get(nameType)
             .value();
