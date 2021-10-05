@@ -8,7 +8,6 @@
     return crypto.getRandomValues(randomArray)[0];
 }
 
-
 export {
     // eslint-disable-next-line import/prefer-default-export
     getIdempotencyKey,
