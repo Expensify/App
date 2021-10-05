@@ -56,11 +56,11 @@ class AddressSearch extends React.Component {
     saveLocationDetails = (details) => {
         if (details.address_components) {
             // Gather the values from the Google details
-            const streetNumber = this.getAddressComponent('street_number', 'long_name');
-            const streetName = this.getAddressComponent('route', 'long_name');
-            const city = this.getAddressComponent('locality', 'long_name');
-            const state = this.getAddressComponent('administrative_area_level_1', 'short_name');
-            const zipCode = this.getAddressComponent('postal_code', 'long_name');
+            const streetNumber = this.getAddressComponent(details, 'street_number', 'long_name');
+            const streetName = this.getAddressComponent(details, 'route', 'long_name');
+            const city = this.getAddressComponent(details, 'locality', 'long_name');
+            const state = this.getAddressComponent(details, 'administrative_area_level_1', 'short_name');
+            const zipCode = this.getAddressComponent(details, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
             this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
