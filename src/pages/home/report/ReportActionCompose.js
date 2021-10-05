@@ -178,8 +178,12 @@ class ReportActionCompose extends React.Component {
 
     componentDidMount() {
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            // it will focus the input when isFocused from props came true (it will be true when it is a new chat.) and will check that the device is focusable or not.
             if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
+                this.focus(false);
+            }
+            
+            // it will focus the input when isFocused from props came true (it will be true when it is a new chat.) and will check that the device is focusable or not.
+            if (_.size(this.props.reportActions) === 1) {
                 this.focus(false);
             }
         });
@@ -595,7 +599,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus={this.shouldFocusInputOnScreenFocus && this.props.isFocused}
+                                    autoFocus={this.shouldFocusInputOnScreenFocus}
                                     multiline
                                     ref={this.setTextInputRef}
                                     textAlignVertical="top"
