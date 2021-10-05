@@ -79,6 +79,7 @@ export default {
     ENABLE_PAYMENTS: 'enable-payments',
     WORKSPACE: 'workspace',
     WORKSPACE_NEW: 'workspace/new',
+    WORKSPACE_INITIAL: 'workspace/:policyID',
     WORKSPACE_INVITE: 'workspace/:policyID/invite',
     WORKSPACE_SETTINGS: 'workspace/:policyID/settings',
     WORKSPACE_CARD: 'workspace/:policyID/card',
@@ -88,6 +89,7 @@ export default {
     WORKSPACE_TRAVEL: 'workspace/:policyID/travel',
     WORKSPACE_MEMBERS: 'workspace/:policyID/members',
     WORKSPACE_BANKACCOUNT: 'workspace/:policyID/bankAccount',
+    getWorkspaceInitialRoute: policyID => `workspace/${policyID}`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     getWorkspaceSettingsRoute: policyID => `workspace/${policyID}/settings`,
     getWorkspaceCardRoute: policyID => `workspace/${policyID}/card`,
@@ -98,7 +100,6 @@ export default {
     getWorkspaceMembersRoute: policyID => `workspace/${policyID}/members`,
     getWorkspaceBankAccountRoute: policyID => `workspace/${policyID}/bankAccount`,
     getRequestCallRoute: taskID => `request-call/${taskID}`,
-
     REQUEST_CALL: 'request-call/:taskID',
 
     /**

@@ -624,6 +624,13 @@ export default {
             card: 'Expensify Card',
             workspace: 'Workspace',
             edit: 'Edit workspace',
+            settings: 'Settings',
+            reimburse: 'Reimburse',
+            bills: 'Bills',
+            invoices: 'Invoices',
+            travel: 'Travel',
+            members: 'Members',
+            bankAccount: 'Bank Account',
         },
         new: {
             newWorkspace: 'New workspace',

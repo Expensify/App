@@ -97,8 +97,8 @@ const WorkspaceInitialPage = ({
         {
             translationKey: 'workspace.common.members',
             icon: Users,
-            action: () => Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceMembersRoute(policy.id)),
         },
         {
             translationKey: 'workspace.common.bankAccount',
@@ -112,6 +112,12 @@ const WorkspaceInitialPage = ({
 
     return (
         <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={translate('common.profile')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
             <ScrollView
                 contentContainerStyle={[
                     styles.flexGrow1,

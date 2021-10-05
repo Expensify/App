@@ -29,6 +29,14 @@ import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/Reimbu
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPage';
+import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
+import WorkspaceCardPage from '../../../pages/workspace/WorkspaceCardPage';
+import WorkspaceReimbursePage from '../../../pages/workspace/WorkspaceReimbursePage';
+import WorkspaceInvoicesPage from '../../../pages/workspace/WorkspaceInvoicesPage';
+import WorkspaceBillsPage from '../../../pages/workspace/WorkspaceBillsPage';
+import WorkspaceTravelPage from '../../../pages/workspace/WorkspaceTravelPage';
+import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
+import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -132,7 +140,7 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
 const WorkspaceModalStackNavigator = createModalStackNavigator([
     {
         Component: WorkspaceInitialPage,
-        name: 'Workspace_Root',
+        name: 'Workspace_Initial',
     },
     {
         Component: WorkspaceSettingsPage,
@@ -236,11 +244,6 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
     name: 'RequestCall_Root',
 }]);
 
-const WorkspaceEditorNavigator = createModalStackNavigator([{
-    Component: WorkspaceSettingsPage,
-    name: 'WorkspaceEditor_Root',
-}]);
-
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -258,5 +261,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
-    WorkspaceEditorNavigator,
+    WorkspaceModalStackNavigator,
 };

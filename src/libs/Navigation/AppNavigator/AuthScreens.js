@@ -4,7 +4,7 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import styles, {getNavigationModalCardStyle} from '../../../styles/styles';
+import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -58,14 +58,11 @@ import {
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    WorkspaceEditorNavigator,
+    WorkspaceModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
-import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
-import spacing from '../../../styles/utilities/spacing';
-import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
@@ -276,17 +273,6 @@ class AuthScreens extends React.Component {
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
-        const fullscreenModalScreenOptions = {
-            ...commonModalScreenOptions,
-            cardStyle: {
-                ...styles.fullscreenCard,
-                padding: this.props.isSmallScreenWidth ? spacing.p0.padding : spacing.p5.padding,
-            },
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: !this.props.isSmallScreenWidth,
-            isFullScreenModal: true,
-            cardOverlay: CardOverlay,
-        };
 
         return (
             <RootStack.Navigator
@@ -338,9 +324,9 @@ class AuthScreens extends React.Component {
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
                 <RootStack.Screen
-                    name="WorkspaceSettings"
+                    name="Workspace"
                     options={modalScreenOptions}
-                    component={WorkspaceSettingsDrawerNavigator}
+                    component={WorkspaceModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
@@ -436,12 +422,6 @@ class AuthScreens extends React.Component {
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="WorkspaceEditor"
-                    options={modalScreenOptions}
-                    component={WorkspaceEditorNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

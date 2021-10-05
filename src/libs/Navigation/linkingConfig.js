@@ -38,32 +38,41 @@ export default {
             // Modal Screens
             Workspace: {
                 screens: {
-                    Workspace_Root: {
-                        path: ROUTES.WORKSPACE,
+                    Workspace_Initial: {
+                        path: ROUTES.WORKSPACE_INITIAL,
+                        exact: true,
                     },
                     Workspace_Settings: {
                         path: ROUTES.WORKSPACE_SETTINGS,
+                        exact: true,
                     },
                     Workspace_Card: {
                         path: ROUTES.WORKSPACE_CARD,
+                        exact: true,
                     },
                     Workspace_Reimburse: {
                         path: ROUTES.WORKSPACE_REIMBURSE,
+                        exact: true,
                     },
                     Workspace_Bills: {
                         path: ROUTES.WORKSPACE_BILLS,
+                        exact: true,
                     },
                     Workspace_Invoices: {
                         path: ROUTES.WORKSPACE_INVOICES,
+                        exact: true,
                     },
                     Workspace_Travel: {
                         path: ROUTES.WORKSPACE_TRAVEL,
+                        exact: true,
                     },
                     Workspace_Members: {
                         path: ROUTES.WORKSPACE_MEMBERS,
+                        exact: true,
                     },
                     WorkspaceBankAccountPage: {
                         path: ROUTES.WORKSPACE_BANKACCOUNT,
+                        exact: true,
                     },
                 },
             },
@@ -183,13 +192,6 @@ export default {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
-
-            WorkspaceEditor: {
-                screens: {
-                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
-                },
-            },
-
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
