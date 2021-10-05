@@ -644,8 +644,8 @@ export default {
             cardReadyTagline: 'Your Expensify Cards are ready to go!',
         },
         invite: {
-            invitePeople: 'Invite people',
-            invitePeoplePrompt: 'Invite colleagues to your workspace.',
+            invitePeople: 'Invite new members',
+            invitePeoplePrompt: 'Invite new members to your workspace.',
             personalMessagePrompt: 'Add a personal message (optional)',
             enterEmailOrPhone: 'Emails or phone numbers',
             EmailOrPhonePlaceholder: 'Enter comma-separated list of emails or phone numbers',

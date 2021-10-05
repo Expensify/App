@@ -646,8 +646,8 @@ export default {
             cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
         invite: {
-            invitePeople: 'Invitar a la gente',
-            invitePeoplePrompt: 'Invita a tus compañeros a tu espacio de trabajo.',
+            invitePeople: 'Invitar nuevos miembros',
+            invitePeoplePrompt: 'Invita nuevos miembros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             enterEmailOrPhone: 'Correos electrónicos o números de teléfono',
             EmailOrPhonePlaceholder: 'Introduce una lista de correos electrónicos o números de teléfono separado por comas',
