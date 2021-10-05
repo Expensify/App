@@ -43,32 +43,24 @@ class AddressSearch extends React.Component {
         this.googlePlacesRef.current?.setAddressText(this.props.value);
     }
 
+    getAddressInfo(field, nameType) {
+        return _.chain(details.address_components)
+        .find(component => _.contains(component.types, field))
+        .get(nameType)
+        .value();
+    }
+
     /**
      * @param {Object} details See https://developers.google.com/maps/documentation/places/web-service/details#PlaceDetailsResponses
      */
     saveLocationDetails = (details) => {
         if (details.address_components) {
             // Gather the values from the Google details
-            const streetNumber = _.chain(details.address_components)
-                .find(component => _.contains(component.types, 'street_number'))
-                .get('long_name')
-                .value();
-            const streetName = _.chain(details.address_components)
-                .find(component => _.contains(component.types, 'route'))
-                .get('long_name')
-                .value();
-            const city = _.chain(details.address_components)
-                .find(component => _.contains(component.types, 'locality'))
-                .get('long_name')
-                .value();
-            const state = _.chain(details.address_components)
-                .find(component => _.contains(component.types, 'administrative_area_level_1'))
-                .get('short_name')
-                .value();
-            const zipCode = _.chain(details.address_components)
-                .find(component => _.contains(component.types, 'postal_code'))
-                .get('long_name')
-                .value();
+            const streetNumber = this.getAddressInfo('street_number', 'long_name');
+            const streetName = this.getAddressInfo('route', 'long_name');
+            const city = this.getAddressInfo('locality', 'long_name');
+            const state = this.getAddressInfo('administrative_area_level_1', 'short_name');
+            const zipCode = this.getAddressInfo('postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
             this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
