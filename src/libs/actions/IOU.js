@@ -261,13 +261,13 @@ function payIOUReport({
     requestorEmail,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
-    const randomArray = new Uint32Array(10);
+    const idempotencyKey = getIdempotencyKey();
     const newIOUReportDetails = {
         amount,
         currency,
         requestorEmail,
         comment,
-        idempotencyKey: crypto.getRandomValues(randomArray)[0],
+        idempotencyKey,
     };
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
         ? API.PayWithWallet({reportID, newIOUReportDetails})
