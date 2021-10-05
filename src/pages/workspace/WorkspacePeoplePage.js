@@ -176,14 +176,15 @@ class WorkspacePeoplePage extends React.Component {
         return (
             <TouchableOpacity
                 style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
-                onPress={() => this.toggleUser(item.login)}
+                onPress={canBeRemoved ? () => this.toggleUser(item.login) : () => {}}
                 activeOpacity={0.7}
             >
                 <CheckboxWithTooltip
                     style={[styles.peopleRowCell]}
+                    isChecked={_.contains(this.state.selectedEmployees, item.login)}
                     disabled={!canBeRemoved}
-                    onPress={canBeRemoved ? () => this.toggleUser(item.login) : {}}
-                    toogleTooltip={!canBeRemoved}
+                    onPress={canBeRemoved ? () => this.toggleUser(item.login) : () => {}}
+                    toggleTooltip={!canBeRemoved}
                     text={this.props.translate('workspace.people.error.cannotRemove')}
                 />
                 <View style={styles.flex1}>

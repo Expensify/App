@@ -28,8 +28,7 @@ class CheckboxWithTooltip extends React.Component {
             <View style={this.props.style}>
                 <Checkbox
                     isChecked={this.props.isChecked}
-                    onPress={() => this.onPress()}
-                    disabled={this.props.disabled}
+                    onPress={this.onPress}
                 />
             </View>
         );

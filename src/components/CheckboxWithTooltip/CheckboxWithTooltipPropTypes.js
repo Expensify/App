@@ -27,7 +27,7 @@ const propTypes = {
 const defaultProps = {
     style: [],
     disabled: false,
-    toggleOnPress: true,
+    toggleTooltip: true,
 };
 
 export {
