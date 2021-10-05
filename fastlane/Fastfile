@@ -111,23 +111,31 @@ platform :ios do
         scheme: "NewExpensify"
     )
 
-    upload_to_testflight(
-        api_key_path: "./ios/ios-fastlane-json-key.json",
-        distribute_external: true,
-        notify_external_testers: true,
-        changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
-        groups: ["Beta"],
-        demo_account_required: true,
-        beta_app_review_info: {
-            contact_email: ENV["APPLE_CONTACT_EMAIL"],
-            contact_first_name: "Andrew",
-            contact_last_name: "Gable",
-            contact_phone: ENV["APPLE_CONTACT_PHONE"],
-            demo_account_name: ENV["APPLE_DEMO_EMAIL"],
-            demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
-            notes: "Use the account provided. Thank you for the review."
-        }
-    )
+    begin
+      upload_to_testflight(
+          api_key_path: "./ios/ios-fastlane-json-key.json",
+          distribute_external: true,
+          notify_external_testers: true,
+          changelog: "Thank you for beta testing New Expensify, this version includes bug fixes and improvements.",
+          groups: ["Beta"],
+          demo_account_required: true,
+          beta_app_review_info: {
+              contact_email: ENV["APPLE_CONTACT_EMAIL"],
+              contact_first_name: "Andrew",
+              contact_last_name: "Gable",
+              contact_phone: ENV["APPLE_CONTACT_PHONE"],
+              demo_account_name: ENV["APPLE_DEMO_EMAIL"],
+              demo_account_password: ENV["APPLE_DEMO_PASSWORD"],
+              notes: "Use the account provided. Thank you for the review."
+          }
+      )
+    rescue Exception => e
+      if e.message.include? "Another build is in review"
+        UI.important("Another build is already in external beta review. Skipping external beta review submission")
+      else
+        raise
+      end
+    end
 
     upload_symbols_to_crashlytics(
       dsym_path: lane_context[SharedValues::DSYM_OUTPUT_PATH],

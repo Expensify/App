@@ -12,9 +12,9 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
-import getPaymentMethods from '../../../libs/actions/PaymentMethods';
+import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal} from '../../../components/Icon/Expensicons';
+import {PayPal, CreditCard} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
@@ -22,6 +22,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
+const DEBIT_CARD = 'debitCard';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -90,6 +91,10 @@ class PaymentsPage extends React.Component {
         if (paymentType === PAYPAL) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
         }
+
+        if (paymentType === DEBIT_CARD) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
+        }
     }
 
     /**
@@ -136,6 +141,11 @@ class PaymentsPage extends React.Component {
                             title="PayPal.me"
                             icon={PayPal}
                             onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                        />
+                        <MenuItem
+                            title="Debit Card"
+                            icon={CreditCard}
+                            onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                         />
                     </Popover>
                 </KeyboardAvoidingView>

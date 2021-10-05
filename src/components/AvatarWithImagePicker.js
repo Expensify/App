@@ -8,7 +8,7 @@ import Avatar from './Avatar';
 import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
 import {
-    Upload, Trashcan, Pencil, Sync,
+    Upload, Trashcan, Camera, Sync,
 } from './Icon/Expensicons';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -140,65 +140,65 @@ class AvatarWithImagePicker extends React.Component {
 
         return (
             <View style={[styles.alignItemsCenter, ...additionalStyles]}>
+                <Pressable
+                    onPress={() => this.setState({isMenuVisible: true})}
+                    disabled={this.props.isUploading}
+                >
+                    <View style={[styles.pRelative, styles.avatarLarge]}>
+                        {this.props.avatarURL
+                            ? (
+                                <Avatar
+                                    containerStyles={styles.avatarLarge}
+                                    imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
+                                    source={this.props.avatarURL}
+                                />
+                            )
+                            : (
+                                <DefaultAvatar />
+                            )}
+                        <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
+                            {({openPicker}) => (
+                                <>
+                                    {
+                                        this.props.isUploading
+                                            ? (
+                                                <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
 
-                <View style={[styles.pRelative, styles.avatarLarge]}>
-                    {this.props.avatarURL
-                        ? (
-                            <Avatar
-                                containerStyles={styles.avatarLarge}
-                                imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                source={this.props.avatarURL}
-                            />
-                        )
-                        : (
-                            <DefaultAvatar />
-                        )}
-                    <AttachmentPicker type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}>
-                        {({openPicker}) => (
-                            <>
-                                {
-                                    this.props.isUploading
-                                        ? (
-                                            <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
-
-                                                <Icon
-                                                    src={Sync}
-                                                    fill={themeColors.textReversed}
-                                                    width={indicatorIconSize}
-                                                    height={indicatorIconSize}
-                                                />
-                                            </Animated.View>
-                                        )
-                                        : (
-                                            <>
-                                                <Pressable
-                                                    disabled={this.props.isUploading}
-                                                    style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}
-                                                    onPress={() => this.setState({isMenuVisible: true})}
-                                                >
                                                     <Icon
-                                                        src={Pencil}
-                                                        width={variables.iconSizeSmall}
-                                                        height={variables.iconSizeSmall}
-                                                        fill={themeColors.iconReversed}
+                                                        src={Sync}
+                                                        fill={themeColors.textReversed}
+                                                        width={indicatorIconSize}
+                                                        height={indicatorIconSize}
                                                     />
-                                                </Pressable>
-                                                <PopoverMenu
-                                                    isVisible={this.state.isMenuVisible}
-                                                    onClose={() => this.setState({isMenuVisible: false})}
-                                                    onItemSelected={() => this.setState({isMenuVisible: false})}
-                                                    menuItems={this.createMenuItems(openPicker)}
-                                                    anchorPosition={this.props.anchorPosition}
-                                                    animationIn="fadeInDown"
-                                                    animationOut="fadeOutUp"
-                                                />
-                                            </>
-                                        )
-                                }
-                            </>
-                        )}
-                    </AttachmentPicker>
-                </View>
+                                                </Animated.View>
+                                            )
+                                            : (
+                                                <>
+                                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                                        <Icon
+                                                            src={Camera}
+                                                            width={variables.iconSizeSmall}
+                                                            height={variables.iconSizeSmall}
+                                                            fill={themeColors.iconReversed}
+                                                        />
+                                                    </View>
+                                                    <PopoverMenu
+                                                        isVisible={this.state.isMenuVisible}
+                                                        onClose={() => this.setState({isMenuVisible: false})}
+                                                        onItemSelected={() => this.setState({isMenuVisible: false})}
+                                                        menuItems={this.createMenuItems(openPicker)}
+                                                        anchorPosition={this.props.anchorPosition}
+                                                        animationIn="fadeInDown"
+                                                        animationOut="fadeOutUp"
+                                                    />
+                                                </>
+                                            )
+                                    }
+                                </>
+                            )}
+                        </AttachmentPicker>
+                    </View>
+                </Pressable>
             </View>
         );
     }
