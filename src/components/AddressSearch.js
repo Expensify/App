@@ -43,7 +43,7 @@ class AddressSearch extends React.Component {
         this.googlePlacesRef.current?.setAddressText(this.props.value);
     }
 
-    getAddressInfo(field, nameType) {
+    getAddressComponent(field, nameType) {
         return _.chain(details.address_components)
         .find(component => _.contains(component.types, field))
         .get(nameType)
@@ -56,11 +56,11 @@ class AddressSearch extends React.Component {
     saveLocationDetails = (details) => {
         if (details.address_components) {
             // Gather the values from the Google details
-            const streetNumber = this.getAddressInfo('street_number', 'long_name');
-            const streetName = this.getAddressInfo('route', 'long_name');
-            const city = this.getAddressInfo('locality', 'long_name');
-            const state = this.getAddressInfo('administrative_area_level_1', 'short_name');
-            const zipCode = this.getAddressInfo('postal_code', 'long_name');
+            const streetNumber = this.getAddressComponent('street_number', 'long_name');
+            const streetName = this.getAddressComponent('route', 'long_name');
+            const city = this.getAddressComponent('locality', 'long_name');
+            const state = this.getAddressComponent('administrative_area_level_1', 'short_name');
+            const zipCode = this.getAddressComponent('postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
             this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
