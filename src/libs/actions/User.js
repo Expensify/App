@@ -105,9 +105,9 @@ function getDomainInfo(loginList) {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                     });
             } else {
-                // If the command failed, we'll retry again in 10 minutes,
+                // If the command failed, we'll retry again in 1 minute,
                 // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
-                const RETRY_TIMEOUT = 600_000;
+                const RETRY_TIMEOUT = 60_000;
 
                 // eslint-disable-next-line max-len
                 console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
