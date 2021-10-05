@@ -75,7 +75,7 @@ class AddressSearch extends React.Component {
     }
 
     render() {
-        return(
+        return (
             <GooglePlacesAutocomplete
                 ref={this.googlePlacesRef}
                 fetchDetails
