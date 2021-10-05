@@ -1,4 +1,3 @@
-import moment from 'moment';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -161,18 +160,13 @@ class ReimbursementAccountPage extends React.Component {
 
         const throttledDate = lodashGet(this.props, 'reimbursementAccount.throttledDate');
         if (throttledDate) {
-            const throttledEnd = moment().add(24, 'hours');
-            if (moment() < throttledEnd) {
-                errorComponent = (
-                    <View style={[styles.m5]}>
-                        <Text>
-                            {this.props.translate('bankAccount.hasBeenThrottledError', {
-                                fromNow: throttledEnd.fromNow(),
-                            })}
-                        </Text>
-                    </View>
-                );
-            }
+            errorComponent = (
+                <View style={[styles.m5]}>
+                    <Text>
+                        {this.props.translate('bankAccount.hasBeenThrottledError')}
+                    </Text>
+                </View>
+            );
         }
 
         if (errorComponent) {

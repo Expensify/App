@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -15,6 +16,7 @@ import {
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
+import DatePicker from '../../components/DatePicker';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
@@ -22,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled,
+    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled, isValidPhoneWithSpecialChars, isValidURL,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -45,6 +47,10 @@ class CompanyStep extends React.Component {
 
         this.submit = this.submit.bind(this);
 
+        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
+            ? 'https://'
+            : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
+
         this.state = {
             companyName: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyName'),
             addressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressStreet'),
@@ -52,13 +58,12 @@ class CompanyStep extends React.Component {
             addressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressState'),
             addressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'addressZipCode'),
             companyPhone: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyPhone'),
-            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', 'https://'),
+            website: ReimbursementAccountUtils.getDefaultStateForField(props, 'website', this.defaultWebsite),
             companyTaxID: ReimbursementAccountUtils.getDefaultStateForField(props, 'companyTaxID'),
             incorporationType: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationType'),
             incorporationDate: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationDate'),
             incorporationState: ReimbursementAccountUtils.getDefaultStateForField(props, 'incorporationState'),
             hasNoConnectionToCannabis: ReimbursementAccountUtils.getDefaultStateForField(props, 'hasNoConnectionToCannabis', false),
-            password: '',
         };
 
         // These fields need to be filled out in order to submit the form
@@ -73,7 +78,6 @@ class CompanyStep extends React.Component {
             'incorporationDate',
             'incorporationState',
             'incorporationType',
-            'password',
             'companyPhone',
             'hasNoConnectionToCannabis',
         ];
@@ -89,7 +93,6 @@ class CompanyStep extends React.Component {
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
             incorporationType: 'bankAccount.error.companyType',
-            password: 'common.passwordCannotBeBlank',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
 
@@ -130,7 +133,7 @@ class CompanyStep extends React.Component {
             errors.addressZipCode = true;
         }
 
-        if (!Str.isValidURL(this.state.website)) {
+        if (!isValidURL(this.state.website)) {
             errors.website = true;
         }
 
@@ -140,6 +143,10 @@ class CompanyStep extends React.Component {
 
         if (!isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
+        }
+
+        if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+            errors.companyPhone = true;
         }
 
         _.each(this.requiredFields, (inputKey) => {
@@ -215,10 +222,11 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('common.zip')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                         value={this.state.addressZipCode}
                         errorText={this.getErrorText('addressZipCode')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
@@ -228,6 +236,8 @@ class CompanyStep extends React.Component {
                         value={this.state.companyPhone}
                         placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
+                        maxLength={CONST.PHONE_MAX_LENGTH}
+
                     />
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.companyWebsite')}
@@ -239,12 +249,13 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
                         <ExpensiPicker
@@ -258,10 +269,9 @@ class CompanyStep extends React.Component {
                     </View>
                     <View style={[styles.flexRow, styles.mt4]}>
                         <View style={[styles.flex2, styles.mr2]}>
-                            {/* TODO: Replace with date picker */}
-                            <ExpensiTextInput
+                            <DatePicker
                                 label={this.props.translate('companyStep.incorporationDate')}
-                                onChangeText={value => this.clearErrorAndSetValue('incorporationDate', value)}
+                                onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
                                 value={this.state.incorporationDate}
                                 placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                                 errorText={this.getErrorText('incorporationDate')}
@@ -276,23 +286,6 @@ class CompanyStep extends React.Component {
                             />
                         </View>
                     </View>
-                    <ExpensiTextInput
-                        label={`Expensify ${this.props.translate('common.password')}`}
-                        containerStyles={[styles.mt4]}
-                        secureTextEntry
-                        textContentType="password"
-                        onChangeText={(value) => {
-                            this.setState({password: value});
-                            this.clearError('password');
-                        }}
-                        value={this.state.password}
-                        onSubmitEditing={this.submit}
-                        errorText={this.getErrorText('password')}
-
-                        // Use new-password to prevent an autoComplete bug https://github.com/Expensify/Expensify/issues/173177
-                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                        autoCompleteType="new-password"
-                    />
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
                         onPress={() => {
@@ -333,6 +326,12 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(CompanyStep);

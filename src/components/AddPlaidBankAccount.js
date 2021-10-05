@@ -24,6 +24,9 @@ import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
 import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
+import getBankIcon from './Icon/BankIcons';
+import Icon from './Icon';
+import variables from '../styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -177,9 +180,14 @@ class AddPlaidBankAccount extends React.Component {
                         {!_.isEmpty(this.props.text) && (
                             <Text style={[styles.mb5]}>{this.props.text}</Text>
                         )}
-                        {/* @TODO there are a bunch of logos to incorporate here to replace this name
-                        https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
-                        <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+                            <Icon
+                                src={getBankIcon(this.state.institution.name).icon}
+                                height={variables.avatarSizeNormal}
+                                width={variables.avatarSizeNormal}
+                            />
+                            <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
+                        </View>
                         <View style={[styles.mb5]}>
                             <ExpensiPicker
                                 label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
