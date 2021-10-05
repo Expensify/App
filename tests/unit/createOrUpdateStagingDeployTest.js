@@ -82,6 +82,8 @@ const basePRList = [
     'https://github.com/Expensify/App/pull/8',
     'https://github.com/Expensify/App/pull/9',
     'https://github.com/Expensify/App/pull/10',
+    'https://github.com/Expensify/App/pull/11',
+    'https://github.com/Expensify/App/pull/12',
 ];
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
@@ -161,7 +163,15 @@ describe('createOrUpdateStagingDeployCash', () => {
             number: 29,
             labels: [LABELS.STAGING_DEPLOY_CASH],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.2-1`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n\r\ncc @Expensify/applauseleads\r\n',
+            body: `${baseExpectedOutput()}`
+                + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${deployBlockerHeader}`
+                + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[4]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
         };
 
@@ -173,13 +183,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/App/issues/9',
+                html_url: 'https://github.com/Expensify/App/pull/9',
                 number: 9,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/App/issues/10',
+                html_url: 'https://github.com/Expensify/App/pull/10',
                 number: 10,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -219,13 +229,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentOpenDeployBlockers,
                             {
-                                html_url: 'https://github.com/Expensify/App/issues/11', // New
+                                html_url: 'https://github.com/Expensify/App/pull/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url: 'https://github.com/Expensify/App/issues/12', // New
+                                html_url: 'https://github.com/Expensify/App/pull/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -245,7 +255,19 @@ describe('createOrUpdateStagingDeployCash', () => {
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: `**Release Version:** \`1.0.2-2\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n- [ ] https://github.com/Expensify/App/pull/${newPullRequests[0]}\r\n- [ ] https://github.com/Expensify/App/pull/${newPullRequests[1]}\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n- [ ] https://github.com/Expensify/App/issues/11\r\n- [ ] https://github.com/Expensify/App/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n`,
+                    body: `${baseExpectedOutput('1.0.2-2')}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[4]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[4]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
         });
