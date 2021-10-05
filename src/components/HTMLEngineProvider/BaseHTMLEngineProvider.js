@@ -271,7 +271,6 @@ const renderers = {
     code: CodeRenderer,
     img: ImgRenderer,
     edited: withLocalize(EditedRenderer),
-    comment: TNodeChildrenRenderer,
 };
 
 const renderersProps = {
