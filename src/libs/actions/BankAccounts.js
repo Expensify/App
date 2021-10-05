@@ -72,7 +72,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
     if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        newACHData.subStep = 'manual';
+        newACHData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
@@ -338,13 +338,7 @@ function fetchUserWallet() {
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        loading: true,
-        error: '',
-
-        // We temporarily keep the achData state to prevent UI changes while fetching.
-        achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
-    });
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
     let bankAccountID;
 
     API.Get({
@@ -390,11 +384,6 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
-
-                    // Adding a default empty state to make sure we override the temporary one we are keeping
-                    // for UI purposes. This covers an edge case in which a user deleted their bank account,
-                    // but would still see Finish Setup in the UI, instead of Get Started.
-                    achData.state = lodashGet(achData, 'state', '');
 
                     // If the bank account has already been created in the db and is not yet open
                     // let's show the manual form with the previously added values
@@ -580,7 +569,14 @@ function validateBankAccount(bankAccountID, validateCode) {
                 return;
             }
 
-            // We are generically showing any backend errors that might pop up in the validate step
+            // If the validation amounts entered were incorrect, show specific error
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
+                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                return;
+            }
+
+            // We are generically showing any other backend errors that might pop up in the validate step
             showBankAccountErrorModal(response.message);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
@@ -614,13 +610,22 @@ function showBankAccountFormValidationError(error) {
 }
 
 /**
+ * Set the current sub step in first step of adding withdrawal bank account
+ *
+ * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ */
+function setBankAccountSubStep(subStep) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+}
+
+/**
  * Create or update the bank account in db with the updated data.
  *
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
     let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
 
     const newACHData = {
         ...reimbursementAccountInSetup,
@@ -652,18 +657,8 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
-        /* eslint-disable arrow-body-style */
         .then((response) => {
-            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
-            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
-            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
-            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                loading: false,
-                achData: {...newACHData},
-            })
-                .then(() => Promise.resolve(response));
-        })
-        .then((response) => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
@@ -675,18 +670,6 @@ function setupWithdrawalAccount(data) {
                 // set up for the free plan.
                 if (achData.bankAccountID) {
                     setFreePlanVerifiedBankAccountID(achData.bankAccountID);
-                }
-
-                // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    Onyx.merge(
-                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {
-                            existingOwners: response.existingOwners,
-                            isErrorModalVisible: true,
-                        },
-                    );
-                    return;
                 }
 
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -796,7 +779,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: null, errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
@@ -828,5 +811,6 @@ export {
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    setBankAccountSubStep,
     updateReimbursementAccountDraft,
 };

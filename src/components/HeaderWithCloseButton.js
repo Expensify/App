@@ -40,6 +40,12 @@ const propTypes = {
     /** The task ID to associate with the call button, if we show it */
     inboxCallTaskID: PropTypes.string,
 
+    /** Data to display a step counter in the header */
+    stepCounter: PropTypes.shape({
+        step: PropTypes.number,
+        total: PropTypes.number,
+    }),
+
     ...withLocalizePropTypes,
 };
 
@@ -53,6 +59,7 @@ const defaultProps = {
     shouldShowDownloadButton: false,
     shouldShowInboxCallButton: false,
     inboxCallTaskID: '',
+    stepCounter: null,
 };
 
 const HeaderWithCloseButton = props => (
@@ -76,7 +83,10 @@ const HeaderWithCloseButton = props => (
                     </TouchableOpacity>
                 </Tooltip>
             )}
-            <Header title={props.title} />
+            <Header
+                title={props.title}
+                subtitle={props.stepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
+            />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
                     props.shouldShowDownloadButton && (

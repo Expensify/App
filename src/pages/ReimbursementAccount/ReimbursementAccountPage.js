@@ -1,4 +1,3 @@
-import moment from 'moment';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -8,7 +7,6 @@ import PropTypes from 'prop-types';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
     fetchFreePlanVerifiedBankAccount,
-    hideBankAccountErrorModal,
     hideBankAccountErrors,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -31,28 +29,14 @@ import BeneficialOwnersStep from './BeneficialOwnersStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ConfirmModal from '../../components/ConfirmModal';
-import ExistingOwners from './ExistingOwners';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount: PropTypes.shape({
-        /** Whether we are loading the data via the API */
-        loading: PropTypes.bool,
-
-        /** A date that indicates the user has been throttled */
-        throttledDate: PropTypes.string,
-
-        /** Additional data for the account in setup */
-        achData: PropTypes.shape({
-
-            /** Step of the setup flow that we are on. Determines which view is presented. */
-            currentStep: PropTypes.string,
-        }),
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -152,17 +136,6 @@ class ReimbursementAccountPage extends React.Component {
         }
     }
 
-    /**
-     * @returns {React.Component|string}
-     */
-    getErrorModalPrompt() {
-        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
-            return <ExistingOwners />;
-        }
-
-        return this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt');
-    }
-
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
             console.debug('Not showing new bank account page because user is not on free plan beta');
@@ -187,18 +160,13 @@ class ReimbursementAccountPage extends React.Component {
 
         const throttledDate = lodashGet(this.props, 'reimbursementAccount.throttledDate');
         if (throttledDate) {
-            const throttledEnd = moment().add(24, 'hours');
-            if (moment() < throttledEnd) {
-                errorComponent = (
-                    <View style={[styles.m5]}>
-                        <Text>
-                            {this.props.translate('bankAccount.hasBeenThrottledError', {
-                                fromNow: throttledEnd.fromNow(),
-                            })}
-                        </Text>
-                    </View>
-                );
-            }
+            errorComponent = (
+                <View style={[styles.m5]}>
+                    <Text>
+                        {this.props.translate('bankAccount.hasBeenThrottledError')}
+                    </Text>
+                </View>
+            );
         }
 
         if (errorComponent) {
@@ -246,14 +214,6 @@ class ReimbursementAccountPage extends React.Component {
                             achData={this.props.reimbursementAccount.achData}
                         />
                     )}
-                    <ConfirmModal
-                        title={this.props.translate('bankAccount.confirmModalTitle')}
-                        onConfirm={hideBankAccountErrorModal}
-                        prompt={this.getErrorModalPrompt()}
-                        isVisible={lodashGet(this.props, 'reimbursementAccount.isErrorModalVisible', false)}
-                        confirmText={this.props.translate('bankAccount.confirmModalConfirmText')}
-                        shouldShowCancelButton={false}
-                    />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

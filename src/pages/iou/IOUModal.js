@@ -114,8 +114,8 @@ class IOUModal extends Component {
                 alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
                 icons: [personalDetails.avatar],
                 keyForList: personalDetails.login,
-                phoneNumber: personalDetails.phoneNumber,
-                payPalMeAddress: personalDetails.payPalMeAddress,
+                payPalMeAddress: personalDetails.payPalMeAddress ?? '',
+                phoneNumber: personalDetails.phoneNumber ?? '',
             }));
 
         this.state = {
@@ -371,6 +371,8 @@ class IOUModal extends Component {
                                             comment={this.state.comment}
                                             onUpdateComment={this.updateComment}
                                             onUpdatePaymentType={this.updatePaymentType}
+                                            iouType={this.props.iouType}
+                                            localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
                                         />
                                     )}
                                 </>

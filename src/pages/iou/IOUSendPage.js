@@ -1,4 +1,5 @@
 import React from 'react';
+import CONST from '../../CONST';
 import IOUModal from './IOUModal';
 import CONST from '../../CONST';
 

@@ -1,8 +1,7 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View, ScrollView} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import styles from '../../styles/styles';
@@ -23,28 +22,15 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import ReimbursementAccountForm from './ReimbursementAccountForm';
+import LetsChatImage from '../../../assets/images/lets-chat.svg';
 
 const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
-    reimbursementAccount: PropTypes.shape({
-        /** Object containing various errors */
-        errors: PropTypes.objectOf(PropTypes.bool),
-
-        /** Whether we have reached the maximum attempts */
-        maxAttemptsReached: PropTypes.bool,
-
-        /** Additional data for the account in setup */
-        achData: PropTypes.shape({
-
-            /** Bank account ID of the VBA that we are validating is required */
-            bankAccountID: PropTypes.number.isRequired,
-
-            /** State of bank account */
-            state: PropTypes.string,
-        }).isRequired,
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 };
 
 const defaultProps = {
@@ -180,10 +166,13 @@ class ValidationStep extends React.Component {
         }
 
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+        const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
+
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('validationStep.headerTitle')}
+                    title={isVerifying ? this.props.translate('validationStep.letsChatTitle') : this.props.translate('validationStep.headerTitle')}
+                    stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {maxAttemptsReached && (
@@ -201,20 +190,22 @@ class ValidationStep extends React.Component {
                     </View>
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
-                    <ScrollView style={[styles.flex1, styles.w100]} contentContainerStyle={[styles.mt2, styles.flexGrow1]}>
+                    <ReimbursementAccountForm
+                        onSubmit={this.submit}
+                    >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mh5, styles.mb5]}>
+                            <Text style={[styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
                             </Text>
-                            <Text style={[styles.mh5, styles.mb2]}>
+                            <Text style={[styles.mb2]}>
                                 {this.props.translate('validationStep.descriptionCTA')}
                             </Text>
                         </View>
-                        <View style={[styles.m5]}>
+                        <View style={[styles.mv5, styles.flex1]}>
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.52"
-                                keyboardType="number-pad"
+                                keyboardType="decimal-pad"
                                 value={this.state.amount1}
                                 onChangeText={amount1 => this.clearErrorAndSetValue('amount1', amount1)}
                                 errorText={this.getErrorText('amount1')}
@@ -222,7 +213,7 @@ class ValidationStep extends React.Component {
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.53"
-                                keyboardType="number-pad"
+                                keyboardType="decimal-pad"
                                 value={this.state.amount2}
                                 onChangeText={amount2 => this.clearErrorAndSetValue('amount2', amount2)}
                                 errorText={this.getErrorText('amount2')}
@@ -230,36 +221,27 @@ class ValidationStep extends React.Component {
                             <ExpensiTextInput
                                 containerStyles={[styles.mb1]}
                                 placeholder="1.54"
-                                keyboardType="number-pad"
+                                keyboardType="decimal-pad"
                                 value={this.state.amount3}
                                 onChangeText={amount3 => this.clearErrorAndSetValue('amount3', amount3)}
                                 errorText={this.getErrorText('amount3')}
                             />
                         </View>
-                        <View style={[styles.flex1, styles.justifyContentEnd]}>
-                            <Button
-                                success
-                                text={this.props.translate('validationStep.buttonText')}
-                                style={[styles.mh5, styles.mb5]}
-                                onPress={this.submit}
-                            />
-                        </View>
-                    </ScrollView>
+                    </ReimbursementAccountForm>
                 )}
-                {!maxAttemptsReached && state === BankAccount.STATE.VERIFYING && (
+                {isVerifying && (
                     <View style={[styles.flex1]}>
+                        <View style={[styles.alignItemsCenter, styles.mb5]}>
+                            <LetsChatImage />
+                        </View>
                         <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
-                            {this.props.translate('validationStep.reviewingInfo')}
-                            <TextLink onPress={this.navigateToConcierge}>
-                                {this.props.translate('common.here')}
-                            </TextLink>
-                            {this.props.translate('validationStep.forNextSteps')}
+                            {this.props.translate('validationStep.letsChatText')}
                         </Text>
                         <Button
                             success
-                            text={this.props.translate('bankAccount.confirmModalConfirmText')}
+                            text={this.props.translate('validationStep.letsChatCTA')}
                             style={[styles.mh5, styles.mb5]}
-                            onPress={() => Navigation.dismissModal()}
+                            onPress={this.navigateToConcierge}
                         />
                     </View>
                 )}

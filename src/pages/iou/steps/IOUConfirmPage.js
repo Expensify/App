@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -22,6 +23,8 @@ const propTypes = {
     /** IOU amount */
     iouAmount: PropTypes.string.isRequired,
 
+    localCurrencyCode: PropTypes.string,
+
     /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
@@ -35,13 +38,19 @@ const propTypes = {
         isUnread: PropTypes.bool,
         reportID: PropTypes.number,
         participantsList: PropTypes.arrayOf(PropTypes.object),
+        payPalMeAddress: PropTypes.string,
+        phoneNumber: PropTypes.string,
     })).isRequired,
 
+    /** IOU type */
+    iouType: PropTypes.string,
 };
 
 const defaultProps = {
     onUpdateComment: null,
     comment: '',
+    iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    localCurrencyCode: CONST.CURRENCY.USD,
 };
 
 const IOUConfirmPage = props => (
@@ -52,6 +61,8 @@ const IOUConfirmPage = props => (
         onUpdateComment={props.onUpdateComment}
         iouAmount={props.iouAmount}
         onConfirm={props.onConfirm}
+        iouType={props.iouType}
+        localCurrencyCode={props.localCurrencyCode}
     />
 );
 
