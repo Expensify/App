@@ -87,7 +87,7 @@ class PaymentMethodList extends Component {
                         bankAccount.accountNumber.slice(-4)
                     }`
                     : null;
-                const {icon, iconSize} = getBankIcon(bankAccount.additionalData.bankName);
+                const {icon, iconSize} = getBankIcon(_.get(bankAccount, 'additionalData.bankName', ''));
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: bankAccount.addressName,
