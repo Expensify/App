@@ -8,12 +8,18 @@ import {
     NewWindow,
 } from '../../../components/Icon/Expensicons';
 import WorkspaceSection from '../WorkspaceSection';
+import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
+import {openSignedInLink} from '../../../libs/actions/App';
+import PropTypes from 'prop-types';
 
 const propTypes = {
+    /** The policy ID currently being configured */
+    policyID: PropTypes.string.isRequired,
+
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimburseVBAView = ({translate}) => (
+const WorkspaceReimburseVBAView = ({translate, policyID}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.reimburse.captureReceipts')}
@@ -21,7 +27,7 @@ const WorkspaceReimburseVBAView = ({translate}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => console.log(1),
+                    onPress: () => openSignedInLink(`expenses?param={"policyID":"${policyID}"}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -29,9 +35,14 @@ const WorkspaceReimburseVBAView = ({translate}) => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}</Text>
-                <Text> receipts@expensify.com </Text>
-                <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                <Text>
+                    {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                    <CopyTextToClipboard
+                        text="receipts@expensify.com"
+                        textStyles={[styles.textBlue]}
+                    />
+                    <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                </Text>
             </View>
         </WorkspaceSection>
 
@@ -41,7 +52,7 @@ const WorkspaceReimburseVBAView = ({translate}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.reimburseReceipts'),
-                    onPress: () => console.log(2),
+                    onPress: () => openSignedInLink(`/reports?param={"startDate":","endDate":","reportName":","policyID":"${policyID}","from":"all","type":"expense","states":{"Open":false,"Processing":false,"Approved":false,"Reimbursed":false,"Archived":true},"isAdvancedFilterMode":true}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,

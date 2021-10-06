@@ -61,7 +61,7 @@ class WorkspaceReimbursePage extends React.Component {
                         )}
 
                         {hasVBA && (
-                            <WorkspaceReimburseVBAView />
+                            <WorkspaceReimburseVBAView policyID={policyID} />
                         )}
 
                     </View>

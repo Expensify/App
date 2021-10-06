@@ -16,6 +16,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
+import {openSignedInLink} from '../../../libs/actions/App';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -32,7 +33,7 @@ const WorkspaceCardNoVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => console.log(1),
+                    onPress: () => openSignedInLink(`expenses?param={"policyID":"${policyID}"}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
