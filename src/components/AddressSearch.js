@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text, LogBox} from 'react-native';
+import {LogBox} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
