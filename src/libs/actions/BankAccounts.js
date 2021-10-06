@@ -336,6 +336,9 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+    // Remember which account BankAccountStep subStep the user had before so we can set it later
+    const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
+
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
@@ -386,9 +389,13 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.domainLimit = 0;
 
                     // If the bank account has already been created in the db and is not yet open
-                    // let's show the manual form with the previously added values
-                    achData.subStep = bankAccount && bankAccount.isInSetup()
-                                      && CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                    // let's show the manual form with the previously added values. Otherwise, we will
+                    // make the subStep the previous value.
+                    if (bankAccount && bankAccount.isInSetup()) {
+                        achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                    } else {
+                        achData.subStep = subStep;
+                    }
 
                     // If we're not in setup, it means we already have a withdrawal account
                     // and we're upgrading it to a business bank account. So let the user
