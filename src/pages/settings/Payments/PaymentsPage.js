@@ -166,6 +166,7 @@ export default compose(
         },
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+            initWithStoredValues: false,
         },
     }),
 )(PaymentsPage);

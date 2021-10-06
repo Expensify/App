@@ -109,6 +109,7 @@ export default compose(
     withOnyx({
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+            initWithStoredValues: false,
         },
         user: {
             key: ONYXKEYS.USER,
