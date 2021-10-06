@@ -31,7 +31,7 @@ import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPage';
 import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
 import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
-import WorkspaceReimbursePage from '../../../pages/workspace/WorkspaceReimbursePage';
+import WorkspaceReimbursePage from '../../../pages/workspace/reimburse/WorkspaceReimbursePage';
 import WorkspaceInvoicesPage from '../../../pages/workspace/WorkspaceInvoicesPage';
 import WorkspaceBillsPage from '../../../pages/workspace/WorkspaceBillsPage';
 import WorkspaceTravelPage from '../../../pages/workspace/WorkspaceTravelPage';
