@@ -150,7 +150,7 @@ class BankAccountStep extends React.Component {
             plaidAccountID: params.account.plaidAccountID,
             ownershipType: params.account.ownershipType,
             isSavings: params.account.isSavings,
-            bankName: params.account.bankName,
+            bankName: params.bankName,
             addressName: params.account.addressName,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan

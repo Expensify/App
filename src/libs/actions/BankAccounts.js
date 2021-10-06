@@ -115,6 +115,7 @@ function getPlaidBankAccounts(publicToken, bank) {
                     ...account,
                     accountNumber: Str.maskPAN(account.accountNumber),
                 })),
+                bankName,
             });
         });
 }
