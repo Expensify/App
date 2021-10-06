@@ -78,10 +78,53 @@ function updateAllPolicies(policyCollection) {
 }
 
 /**
- * Fetches the policySummaryList from the API and saves a simplified version in Onyx
+ * Merges the passed in login into the specified policy
+ *
+ * @param {String} [name]
+ * @param {Boolean} [shouldAutomaticallyReroute]
+ * @returns {Promise}
  */
-function getPolicySummaries() {
-    API.GetPolicySummaryList()
+function create(name = '', shouldAutomaticallyReroute = true) {
+    let res = null;
+    return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
+            res = response;
+
+            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
+                id: response.policyID,
+                type: response.policy.type,
+                name: response.policy.name,
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+        }).then(() => {
+            if (shouldAutomaticallyReroute) {
+                Navigation.dismissModal();
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
+            }
+            return Promise.resolve(res.policyID);
+        });
+}
+
+/**
+ * Fetches the policySummaryList from the API and saves a simplified version in Onyx
+ *
+ * @param {Boolean} [shouldCreateNewPolicy]
+ */
+function getPolicySummaries(shouldCreateNewPolicy = false) {
+    let newPolicyID;
+    (shouldCreateNewPolicy ? create('', false) : Promise.resolve())
+        .then(({policyID}) => {
+            newPolicyID = policyID;
+            return API.GetPolicySummaryList();
+        })
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policyDataToStore = _.reduce(data.policySummaryList, (memo, policy) => ({
@@ -89,6 +132,11 @@ function getPolicySummaries() {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
                 }), {});
                 updateAllPolicies(policyDataToStore);
+            }
+
+            if (shouldCreateNewPolicy) {
+                Navigation.dismissModal();
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(newPolicyID));
             }
         });
 }
@@ -209,37 +257,6 @@ function invite(logins, welcomeNote, policyID) {
             }
 
             Onyx.set(key, policyDataWithoutLogin);
-        });
-}
-
-/**
- * Merges the passed in login into the specified policy
- *
- * @param {String} [name]
- */
-function create(name = '') {
-    let res = null;
-    API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
-            res = response;
-
-            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
-                id: response.policyID,
-                type: response.policy.type,
-                name: response.policy.name,
-                role: CONST.POLICY.ROLE.ADMIN,
-            });
-        }).then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
         });
 }
 
