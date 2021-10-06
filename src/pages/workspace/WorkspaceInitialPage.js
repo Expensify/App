@@ -106,8 +106,8 @@ const WorkspaceInitialPage = ({
         {
             translationKey: 'workspace.common.bankAccount',
             icon: Bank,
-            action: () => Navigation.navigate(ROUTES.getBankAccountRoute()),
-            isActive: false,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
         },
     ];
 

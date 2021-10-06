@@ -71,6 +71,10 @@ export default {
                         exact: true,
                     },
                     Workspace_BankAccount: {
+                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
+                        exact: true,
+                    },
+                    ReimbursementAccount: {
                         path: ROUTES.BANK_ACCOUNT,
                         exact: true,
                     },

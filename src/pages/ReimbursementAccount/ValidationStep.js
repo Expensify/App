@@ -10,7 +10,6 @@ import {
     validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
-import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
@@ -24,7 +23,6 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import LetsChatImage from '../../../assets/images/lets-chat.svg';
 import Icon from '../../components/Icon';
 import {Bank, ChatBubble} from '../../components/Icon/Expensicons';
 import colors from '../../styles/colors';
