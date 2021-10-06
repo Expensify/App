@@ -13,6 +13,9 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import ONYXKEYS from '../../ONYXKEYS';
 import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
+import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import userPropTypes from '../settings/userPropTypes';
+
 
 const propTypes = {
     /** The text to display in the header */
@@ -27,6 +30,10 @@ const propTypes = {
         }).isRequired,
     }).isRequired,
 
+    /** From Onyx */
+    reimbursementAccount: reimbursementAccountPropTypes,
+    user: userPropTypes,
+
     children: PropTypes.func,
 
     ...withLocalizePropTypes,
@@ -34,6 +41,8 @@ const propTypes = {
 
 const defaultProps = {
     children: () => {},
+    user: {},
+    reimbursementAccount: {},
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -44,6 +53,7 @@ class WorkspacePageWithSections extends React.Component {
     render() {
         const achState = _.get(this.props.reimbursementAccount, ['achData', 'state'], '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
+        const isUsingECard = _.get(this.props.user, 'isUsingExpensifyCard');
         const policyID = _.get(this.props.route, ['params', 'policyID']);
 
         return (
@@ -57,7 +67,7 @@ class WorkspacePageWithSections extends React.Component {
                 <ScrollView style={[styles.settingsPageBackground]}>
                     <View style={styles.w100}>
 
-                        {this.props.children(hasVBA, policyID)}
+                        {this.props.children(hasVBA, policyID, isUsingECard)}
 
                     </View>
                 </ScrollView>
@@ -72,6 +82,9 @@ WorkspacePageWithSections.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withOnyx({
+        user: {
+            key: ONYXKEYS.USER,
+        },
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
