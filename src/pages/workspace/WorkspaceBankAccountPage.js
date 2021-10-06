@@ -1,3 +1,3 @@
-const WorkspaceBankAccountPage = () => {};
+import ReimbursementAccountPage from '../ReimbursementAccount/ReimbursementAccountPage';
 
-export default WorkspaceBankAccountPage;
+export default ReimbursementAccountPage;

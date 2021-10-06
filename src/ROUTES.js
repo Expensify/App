@@ -98,7 +98,6 @@ export default {
     getWorkspaceInvoicesRoute: policyID => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: policyID => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: policyID => `workspace/${policyID}/members`,
-    getWorkspaceBankAccountRoute: policyID => `workspace/${policyID}/bankAccount`,
     getRequestCallRoute: taskID => `request-call/${taskID}`,
     REQUEST_CALL: 'request-call/:taskID',
 

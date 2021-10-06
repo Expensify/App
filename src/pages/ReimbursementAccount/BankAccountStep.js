@@ -31,6 +31,7 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import variables from '../../styles/variables';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -167,15 +168,26 @@ class BankAccountStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('bankAccount.addBankAccount')}
+                    title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={subStep && {step: 1, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => setBankAccountSubStep(null)}
-                    shouldShowBackButton={Boolean(subStep)}
+                    onBackButtonPress={() => {
+                        // If we have a subStep then we will remove otherwise we will go back
+                        if (subStep) {
+                            setBankAccountSubStep(null);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton
                 />
                 {!subStep && (
                     <>
                         <View style={[styles.flex1]}>
+                            <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                                <Text style={[styles.textLarge, styles.textStrong]}>Streamline payments</Text>
+                                <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
+                            </View>
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
                             </Text>

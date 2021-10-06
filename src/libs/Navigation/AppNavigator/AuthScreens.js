@@ -54,7 +54,6 @@ import {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
@@ -398,13 +397,6 @@ class AuthScreens extends React.Component {
                     options={modalScreenOptions}
                     component={AddPersonalBankAccountModalStackNavigator}
                     listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="ReimbursementAccount"
-                    options={modalScreenOptions}
-                    component={ReimbursementAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
                 />
                 <RootStack.Screen
                     name="WorkspaceInvite"

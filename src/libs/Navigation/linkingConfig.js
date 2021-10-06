@@ -70,8 +70,8 @@ export default {
                         path: ROUTES.WORKSPACE_MEMBERS,
                         exact: true,
                     },
-                    WorkspaceBankAccountPage: {
-                        path: ROUTES.WORKSPACE_BANKACCOUNT,
+                    Workspace_BankAccount: {
+                        path: ROUTES.BANK_ACCOUNT,
                         exact: true,
                     },
                 },
@@ -180,11 +180,6 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
-                },
-            },
-            ReimbursementAccount: {
-                screens: {
-                    ReimbursementAccount_Root: ROUTES.BANK_ACCOUNT,
                 },
             },
             WorkspaceInvite: {
