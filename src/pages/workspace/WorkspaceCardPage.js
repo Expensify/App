@@ -16,7 +16,6 @@ import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
 import ONYXKEYS from '../../ONYXKEYS';
 import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
 import VBALoadingIndicator from '../../components/VBALoadingIndicator';
-import lodashGet from 'lodash/get';
 import BankAccount from '../../libs/models/BankAccount';
 
 const propTypes = {
@@ -42,7 +41,7 @@ class WorkspaceCardPage extends React.Component {
             return (<VBALoadingIndicator />);
         }
 
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const achState = _.get(this.props.reimbursementAccount, ['achData', 'state'], '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
         const isUsingECard = _.get(this.props.user, 'isUsingExpensifyCard');
         const policyID = _.get(this.props.route, ['params', 'policyID']);
