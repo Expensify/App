@@ -1,3 +1,4 @@
+/* TODO: Delete this file! */
 import React from 'react';
 import {
     View, ScrollView, StyleSheet,
