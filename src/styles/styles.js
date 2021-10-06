@@ -2060,12 +2060,8 @@ const styles = {
     },
 
     googleSearchSeperator: {
-        height: '1px',
+        height: 1,
         backgroundColor: themeColors.border,
-    },
-
-    googleSearchRow: {
-        maxWidth: '320px',
     },
 
     googleSearchText: {
