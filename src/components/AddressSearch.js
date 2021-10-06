@@ -101,8 +101,9 @@ class AddressSearch extends React.Component {
                         styles.borderLeft,
                         styles.borderRight,
                         styles.overflowAuto,
-                        styles.googleSearchRowWidth,
+                        styles.googleSearchRow,
                     ],
+                    description: [styles.googleSearchText],
                     separator: [styles.googleSearchSeperator],
                 }}
             />

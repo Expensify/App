@@ -2064,9 +2064,17 @@ const styles = {
         backgroundColor: themeColors.border,
     },
 
-    googleSearchRowWidth: {
+    googleSearchRow: {
         maxWidth: '320px',
     },
+
+    googleSearchText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
+        fontFamily: fontFamily.GTA,
+        flex: 1,
+    }
 };
 
 const baseCodeTagStyles = {
