@@ -2074,7 +2074,7 @@ const styles = {
         lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
-    }
+    },
 };
 
 const baseCodeTagStyles = {
