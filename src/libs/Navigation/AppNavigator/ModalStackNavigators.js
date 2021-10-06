@@ -30,7 +30,7 @@ import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
 import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPage';
 import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
-import WorkspaceCardPage from '../../../pages/workspace/workspaceCard/WorkspaceCardPage';
+import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
 import WorkspaceReimbursePage from '../../../pages/workspace/WorkspaceReimbursePage';
 import WorkspaceInvoicesPage from '../../../pages/workspace/WorkspaceInvoicesPage';
 import WorkspaceBillsPage from '../../../pages/workspace/WorkspaceBillsPage';

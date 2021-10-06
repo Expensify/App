@@ -2,7 +2,7 @@ import React from 'react';
 
 // Screens
 import BaseDrawerNavigator from './BaseDrawerNavigator';
-import WorkspaceCardPage from '../../../pages/workspace/workspaceCard/WorkspaceCardPage';
+import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
 
