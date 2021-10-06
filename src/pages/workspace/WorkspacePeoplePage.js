@@ -66,6 +66,7 @@ class WorkspacePeoplePage extends React.Component {
         this.state = {
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
+            showTooltipForLogin: '',
         };
 
         this.renderItem = this.renderItem.bind(this);
@@ -127,6 +128,12 @@ class WorkspacePeoplePage extends React.Component {
      * @param {String} login
      */
     toggleUser(login) {
+        const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
+        if (!canBeRemoved) {
+            this.setState({showTooltipForLogin: login});
+            return;
+        }
+
         // Add or remove the user if the checkbox is enabled and is clickable.
         if (_.contains(this.state.selectedEmployees, login)) {
             this.removeUser(login);
@@ -176,15 +183,15 @@ class WorkspacePeoplePage extends React.Component {
         return (
             <TouchableOpacity
                 style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
-                onPress={canBeRemoved ? () => this.toggleUser(item.login) : () => {}}
+                onPress={() => this.toggleUser(item.login)}
                 activeOpacity={0.7}
             >
                 <CheckboxWithTooltip
                     style={[styles.peopleRowCell]}
                     isChecked={_.contains(this.state.selectedEmployees, item.login)}
                     disabled={!canBeRemoved}
-                    onPress={canBeRemoved ? () => this.toggleUser(item.login) : () => {}}
-                    toggleTooltip={!canBeRemoved}
+                    onPress={() => this.toggleUser(item.login)}
+                    toggleTooltip={this.state.showTooltipForLogin === item.login}
                     text={this.props.translate('workspace.people.error.cannotRemove')}
                 />
                 <View style={styles.flex1}>
