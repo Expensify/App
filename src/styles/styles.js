@@ -1192,11 +1192,6 @@ const styles = {
         borderRadius: 8,
     },
 
-    emojiSkinToneItem: {
-        width: 'auto',
-        ...spacing.ph1,
-    },
-
     emojiItemHighlighted: {
         transition: '0.2s ease',
         backgroundColor: themeColors.buttonDefaultBG,
