@@ -3,20 +3,20 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import compose from '../../libs/compose';
-import ROUTES from '../../ROUTES';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import styles from '../../../styles/styles';
+import Navigation from '../../../libs/Navigation/Navigation';
+import compose from '../../../libs/compose';
+import ROUTES from '../../../ROUTES';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
-import ONYXKEYS from '../../ONYXKEYS';
-import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
-import VBALoadingIndicator from '../../components/VBALoadingIndicator';
-import BankAccount from '../../libs/models/BankAccount';
+import ONYXKEYS from '../../../ONYXKEYS';
+import {fetchFreePlanVerifiedBankAccount} from '../../../libs/actions/BankAccounts';
+import VBALoadingIndicator from '../../../components/VBALoadingIndicator';
+import BankAccount from '../../../libs/models/BankAccount';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */

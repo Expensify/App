@@ -1,11 +1,11 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import styles from '../../styles/styles';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {Apple, Bank, NewWindow} from '../../components/Icon/Expensicons';
-import UnorderedList from '../../components/UnorderedList';
-import {openSignedInLink} from '../../libs/actions/App';
-import WorkspaceSection from './WorkspaceSection';
+import styles from '../../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import {Apple, Bank, NewWindow} from '../../../components/Icon/Expensicons';
+import UnorderedList from '../../../components/UnorderedList';
+import {openSignedInLink} from '../../../libs/actions/App';
+import WorkspaceSection from '../WorkspaceSection';
 
 const propTypes = {
     ...withLocalizePropTypes,

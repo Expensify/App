@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View, Text} from 'react-native';
-import styles from '../../styles/styles';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {Apple, Bank} from '../../components/Icon/Expensicons';
-import UnorderedList from '../../components/UnorderedList';
-import WorkspaceSection from './WorkspaceSection';
+import styles from '../../../styles/styles';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import {Apple, Bank} from '../../../components/Icon/Expensicons';
+import UnorderedList from '../../../components/UnorderedList';
+import WorkspaceSection from '../WorkspaceSection';
 
 const propTypes = {
     /** The policy ID currently being configured */
