@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
@@ -21,25 +22,23 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import CONST from '../../CONST';
 
 const propTypes = {
+    /** Are we loading payment methods? */
+    isLoadingPaymentMethods: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
-class EnableStep extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isLoadingPaymentMethods: true,
-        };
-    }
+const defaultProps = {
+    isLoadingPaymentMethods: true,
+};
 
+class EnableStep extends React.Component {
     componentDidMount() {
-        getPaymentMethods().then(() => {
-            this.setState({isLoadingPaymentMethods: false});
-        });
+        getPaymentMethods();
     }
 
     render() {
-        if (this.state.isLoadingPaymentMethods) {
+        if (this.props.isLoadingPaymentMethods) {
             return (
                 <FullScreenLoadingIndicator visible />
             );
@@ -103,11 +102,14 @@ class EnableStep extends React.Component {
 }
 
 EnableStep.propTypes = propTypes;
-EnableStep.displayName = 'EnableStep';
+EnableStep.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
     withOnyx({
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+        },
         user: {
             key: ONYXKEYS.USER,
         },

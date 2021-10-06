@@ -29,10 +29,14 @@ const propTypes = {
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Are we loading payment methods? */
+    isLoadingPaymentMethods: PropTypes.bool,
 };
 
 const defaultProps = {
     betas: [],
+    isLoadingPaymentMethods: true,
 };
 
 class PaymentsPage extends React.Component {
@@ -43,7 +47,6 @@ class PaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
-            isLoadingPaymentMethods: true,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -52,9 +55,7 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods().then(() => {
-            this.setState({isLoadingPaymentMethods: false});
-        });
+        getPaymentMethods();
     }
 
     /**
@@ -126,7 +127,7 @@ class PaymentsPage extends React.Component {
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
-                            isLoadingPayments={this.state.isLoadingPaymentMethods}
+                            isLoadingPayments={this.props.isLoadingPaymentMethods}
                         />
                     </View>
                     <Popover
@@ -156,13 +157,15 @@ class PaymentsPage extends React.Component {
 
 PaymentsPage.propTypes = propTypes;
 PaymentsPage.defaultProps = defaultProps;
-PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
         },
     }),
 )(PaymentsPage);
