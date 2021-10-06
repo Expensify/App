@@ -480,17 +480,6 @@ function GetPolicyList() {
 /**
  * @returns {Promise}
  */
-function GetPolicySummaryList() {
-    const commandName = 'Get';
-    const parameters = {
-        returnValueList: 'policySummaryList',
-    };
-    return Network.post(commandName, parameters);
-}
-
-/**
- * @returns {Promise}
- */
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
     return Network.post(commandName);
@@ -1104,7 +1093,6 @@ export {
     GetShortLivedAuthToken,
     GetIOUReport,
     GetPolicyList,
-    GetPolicySummaryList,
     GetReportSummaryList,
     GetRequestCountryCode,
     Graphite_Timer,

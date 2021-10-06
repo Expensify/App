@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -27,10 +28,9 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
+import {getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import Permissions from '../../Permissions';
 import getOperatingSystem from '../../getOperatingSystem';
 import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
 
@@ -112,22 +112,6 @@ const modalScreenListeners = {
     },
 };
 
-let hasLoadedPolicies = false;
-
-/**
- * We want to only load policy info if you are in the freePlan beta.
- * @param {Array} betas
- */
-function loadPoliciesBehindBeta(betas) {
-    // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
-    // Policy info loading should not be blocked behind the defaultRooms beta alone.
-    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
-        getPolicyList();
-        getPolicySummaries();
-        hasLoadedPolicies = true;
-    }
-}
-
 const propTypes = {
     /** Information about the network */
     network: PropTypes.shape({
@@ -135,20 +119,18 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
-    betas: [],
 };
 
 class AuthScreens extends React.Component {
     constructor(props) {
         super(props);
+
+        this.hasLoadedPolicies = false;
 
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -192,7 +174,7 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
         fetchFreePlanVerifiedBankAccount();
 
-        loadPoliciesBehindBeta(this.props.betas);
+        this.loadPolicies();
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -228,19 +210,11 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
-            return true;
-        }
-
-        if (nextProps.betas !== this.props.betas) {
-            return true;
-        }
-
-        return false;
+        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
     componentDidUpdate() {
-        loadPoliciesBehindBeta(this.props.betas);
+        this.loadPolicies();
     }
 
     componentWillUnmount() {
@@ -253,7 +227,24 @@ class AuthScreens extends React.Component {
         cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-        hasLoadedPolicies = false;
+    }
+
+    /**
+     * Load policies, maybe creating a new policy first.
+     */
+    loadPolicies() {
+        const {path, params} = Navigation.getCurrentRoute() || {};
+
+        // Don't try to load policies until the path is loaded and we know whether or not we need to create a new policy
+        if (!path) {
+            return;
+        }
+
+        if (!this.hasLoadedPolicies) {
+            this.hasLoadedPolicies = true;
+            const shouldCreateFreePolicy = Str.startsWith(path, ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN) && params.exitTo === ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN;
+            getPolicyList(shouldCreateFreePolicy);
+        }
     }
 
     render() {
@@ -456,9 +447,6 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(AuthScreens);
