@@ -631,6 +631,7 @@ export default {
             travel: 'Book travel',
             members: 'Manage members',
             bankAccount: 'Connect bank account',
+            addWorkEmailAddress: 'Add work email address',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -654,6 +655,7 @@ export default {
             cardReadyTagline: 'Your Expensify Cards are ready to go!',
             header: 'Unlock free Expensify Cards',
             noVBACopy: 'Connect a bank account to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
+            VBANoECardCopy: 'Add a work email address to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
             benefit1: 'Up to 2% cash back',
             benefit2: 'Digital and physical cards',
             benefit3: 'No personal liability',
