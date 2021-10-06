@@ -25,6 +25,11 @@ import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import LetsChatImage from '../../../assets/images/lets-chat.svg';
+import Icon from '../../components/Icon';
+import {Bank, ChatBubble} from '../../components/Icon/Expensicons';
+import colors from '../../styles/colors';
+import variables from '../../styles/variables';
+import MenuItem from '../../components/MenuItem';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -171,9 +176,11 @@ class ValidationStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={isVerifying ? this.props.translate('validationStep.letsChatTitle') : this.props.translate('validationStep.headerTitle')}
+                    title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowBackButton
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
@@ -231,17 +238,18 @@ class ValidationStep extends React.Component {
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
-                        <View style={[styles.alignItemsCenter, styles.mb5]}>
-                            <LetsChatImage />
+                        <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                            <Text style={[styles.textLarge, styles.textStrong]}>{'Let\'s finish in chat!'}</Text>
+                            <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
                         </View>
-                        <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
+                        <Text style={[styles.mh5, styles.mb5]}>
                             {this.props.translate('validationStep.letsChatText')}
                         </Text>
-                        <Button
-                            success
-                            text={this.props.translate('validationStep.letsChatCTA')}
-                            style={[styles.mh5, styles.mb5]}
+                        <MenuItem
+                            title={this.props.translate('validationStep.letsChatCTA')}
+                            icon={ChatBubble}
                             onPress={this.navigateToConcierge}
+                            shouldShowRightIcon
                         />
                     </View>
                 )}
