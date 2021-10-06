@@ -8,7 +8,7 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {Apple, ArrowRight, Bank} from '../../components/Icon/Expensicons';
+import {Apple, Bank} from '../../components/Icon/Expensicons';
 import Icon from '../../components/Icon';
 import UnorderedList from '../../components/UnorderedList';
 import MenuItemList from '../../components/MenuItemList';
@@ -68,7 +68,7 @@ const WorkspaceCardPage = ({translate, route}) => (
                     menuItems={[
                         {
                             title: translate('workspace.common.bankAccount'),
-                            onPress: () => console.log('bankAccount'),
+                            onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(_.get(route, ['params', 'policyID']))),
                             icon: Bank,
                             shouldShowRightIcon: true,
                         },
