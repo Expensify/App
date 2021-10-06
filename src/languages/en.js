@@ -652,6 +652,12 @@ export default {
             finishSetup: 'Finish setup',
             manageCards: 'Manage cards',
             cardReadyTagline: 'Your Expensify Cards are ready to go!',
+            header: 'Unlock free Expensify Cards',
+            noVBACopy: 'Connect a bank account to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
+            benefit1: 'Up to 2% cash back',
+            benefit2: 'Digital and physical cards',
+            benefit3: 'No personal liability',
+            benefit4: 'Customizable limits',
         },
         invite: {
             invitePeople: 'Invite people',
