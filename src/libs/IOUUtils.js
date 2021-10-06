@@ -3,7 +3,7 @@
  *
  * @returns {String}
  */
- function getIdempotencyKey() {
+function getIdempotencyKey() {
     const randomArray = new Uint32Array(10);
     return crypto.getRandomValues(randomArray)[0];
 }
