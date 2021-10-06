@@ -37,9 +37,6 @@ import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
 
-// Validate login page
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
-
 // Modal Stack Navigators
 import {
     IOUBillStackNavigator,
@@ -302,14 +299,6 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     component={MainDrawerNavigator}
-                />
-                <RootStack.Screen
-                    name="ValidateLogin"
-                    options={{
-                        headerShown: false,
-                        title: 'New Expensify',
-                    }}
-                    component={ValidateLoginPage}
                 />
                 <RootStack.Screen
                     name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
