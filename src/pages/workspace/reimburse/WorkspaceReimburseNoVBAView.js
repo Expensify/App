@@ -8,10 +8,14 @@ import {
     Receipt,
     NewWindow,
     Bank,
+    Clipboard,
+    Checkmark,
 } from '../../../components/Icon/Expensicons';
 import WorkspaceSection from '../WorkspaceSection';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
+import Icon from '../../../components/Icon';
+import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -35,10 +39,15 @@ const WorkspaceCardNoVBAView = ({translate, policyID}) => (
                 },
             ]}
         >
-            <View style={[styles.mv4]}>
-                <Text>{translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}</Text>
-                <Text> receipts@expensify.com </Text>
-                <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+            <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
+                <Text>
+                    {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                    <CopyTextToClipboard
+                        text="receipts@expensify.com"
+                        textStyles={[styles.textBlue]}
+                    />
+                    <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                </Text>
             </View>
         </WorkspaceSection>
 
