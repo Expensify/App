@@ -70,7 +70,6 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
-import WorkspaceNew from '../../../pages/workspace/WorkspaceNew';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -242,7 +241,7 @@ class AuthScreens extends React.Component {
 
         if (!this.hasLoadedPolicies) {
             this.hasLoadedPolicies = true;
-            const shouldCreateFreePolicy = Str.startsWith(path, ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN) && params.exitTo === ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN;
+            const shouldCreateFreePolicy = Str.startsWith(path, ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN) && params.exitTo === ROUTES.WORKSPACE_NEW;
             getPolicyList(shouldCreateFreePolicy);
         }
     }
@@ -316,11 +315,6 @@ class AuthScreens extends React.Component {
                     name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
                     options={defaultScreenOptions}
                     component={LogInWithShortLivedTokenPage}
-                />
-                <RootStack.Screen
-                    name="WorkspaceNew"
-                    options={defaultScreenOptions}
-                    component={WorkspaceNew}
                 />
 
                 {/* These are the various modal routes */}
