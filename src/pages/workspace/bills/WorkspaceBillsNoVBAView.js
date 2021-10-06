@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
@@ -17,7 +18,6 @@ import {openSignedInLink} from '../../../libs/actions/App';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {

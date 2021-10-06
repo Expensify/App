@@ -686,6 +686,9 @@ export default {
             hassleFreeBills: 'Hassle-free bills!',
             VBACopy: 'You\'re all set to make payments from your bank account!',
         },
+        invoices: {
+
+        },
         invite: {
             invitePeople: 'Invite people',
             invitePeoplePrompt: 'Invite colleagues to your workspace.',

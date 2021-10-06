@@ -32,7 +32,7 @@ import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPag
 import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
 import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
 import WorkspaceReimbursePage from '../../../pages/workspace/reimburse/WorkspaceReimbursePage';
-import WorkspaceInvoicesPage from '../../../pages/workspace/WorkspaceInvoicesPage';
+import WorkspaceInvoicesPage from '../../../pages/workspace/invoices/WorkspaceInvoicesPage';
 import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPage';
 import WorkspaceTravelPage from '../../../pages/workspace/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
