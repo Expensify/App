@@ -762,13 +762,13 @@ function subscribeToUserEvents() {
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
-    .catch((error) => {
-        Log.info(
-            '[Report] Failed to subscribe to Pusher channel',
-            false,
-            {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
-        );
-    });
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
+            );
+        });
 }
 
 /**

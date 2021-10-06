@@ -14,7 +14,6 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
-import Timers from '../Timers';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -109,7 +108,6 @@ function getDomainInfo(loginList) {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                     });
             } else {
-
                 // eslint-disable-next-line max-len
                 console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
                 setTimeout(() => getDomainInfo(loginList), RETRY_TIMEOUT);
@@ -262,15 +260,6 @@ function isBlockedFromConcierge(expiresAt) {
     }
 
     return moment().isBefore(moment(expiresAt), 'day');
-}
-
-/**
- * Sets isFromPublicDomain in Onyx.
- *
- * @param {Boolean} isFromPublicDomain
- */
-function setIsFromPublicDomain(isFromPublicDomain) {
-    Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 }
 
 /**
