@@ -2058,6 +2058,15 @@ const styles = {
     googleSearchTextInputContainer: {
         flexDirection: 'column',
     },
+
+    googleSearchSeperator: {
+        height: '1px',
+        backgroundColor: themeColors.border,
+    },
+
+    googleSearchRowWidth: {
+        maxWidth: '320px',
+    },
 };
 
 const baseCodeTagStyles = {
