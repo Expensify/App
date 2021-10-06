@@ -78,6 +78,9 @@ export default {
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
+        pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
+        fixTheErrors: 'corrige los errores',
+        inTheFormBeforeContinuing: 'en el formulario antes de continuar',
         confirm: 'Confirmar',
         reset: 'Restablecer',
         done: 'Listo',
@@ -369,7 +372,6 @@ export default {
         },
     },
     loginForm: {
-        pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
         phoneOrEmail: 'Número de teléfono o email',
         error: {
             invalidFormatLogin: 'El email o número de teléfono que has introducido no es válido. Corrígelo e inténtalo de nuevo.',
@@ -444,8 +446,6 @@ export default {
             firstName: 'Ingresa un nombre válido',
             lastName: 'Ingresa un apellido válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
-            fixTheErrors: 'corrige los errores',
-            inTheFormBeforeContinuing: 'en el formulario antes de continuar',
             validationAmounts: 'Los montos de validación que ingresaste son incorrectos. Verifica tu cuenta de banco e intenta de nuevo.',
         },
     },
