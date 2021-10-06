@@ -665,6 +665,17 @@ export default {
             benefit3: 'No personal liability',
             benefit4: 'Customizable limits',
         },
+        reimburse: {
+            captureReceipts: 'Capture receipts',
+            fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
+            viewAllReceipts: 'View all receipts',
+            reimburseReceipts: 'Reimburse receipts',
+            unlockNextDayReimbursements: 'Unlock next day reimbursements',
+            captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to',
+            captureNoVBACopyAfterEmail: 'and download the Expensify App to track cash expenses on the go.',
+            unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
+            fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
+        },
         invite: {
             invitePeople: 'Invite people',
             invitePeoplePrompt: 'Invite colleagues to your workspace.',

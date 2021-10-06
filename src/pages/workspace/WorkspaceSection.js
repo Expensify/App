@@ -33,7 +33,7 @@ const WorkspaceSection = ({
 }) => (
     <>
         <View style={styles.pageWrapper}>
-            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                 <View style={[styles.flexShrink1]}>
                     <Text style={[styles.textXLarge]}>{title}</Text>
                 </View>
