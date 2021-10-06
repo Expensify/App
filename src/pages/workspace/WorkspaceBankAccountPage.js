@@ -48,14 +48,14 @@ const WorkspaceBankAccountPage = (props) => {
                 shouldShowBackButton
             />
             <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <Text style={[styles.textLarge, styles.textStrong]}>Almost done!</Text>
+                <Text style={[styles.textLarge, styles.textStrong]}>{props.translate('workspace.bankAccount.almostDone')}</Text>
                 <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
             </View>
             <Text style={[styles.mh5, styles.mb5]}>
-                {'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.'}
+                {props.translate('workspace.bankAccount.youreAlmostDone')}
             </Text>
             <MenuItem
-                title="Continue with setup"
+                title={props.translate('workspace.bankAccount.continueWithSetup')}
                 icon={Bank}
                 onPress={() => Navigation.navigate(ROUTES.getBankAccountRoute())}
                 shouldShowRightIcon

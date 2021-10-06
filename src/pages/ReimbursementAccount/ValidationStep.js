@@ -237,7 +237,7 @@ class ValidationStep extends React.Component {
                 {isVerifying && (
                     <View style={[styles.flex1]}>
                         <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLarge, styles.textStrong]}>{'Let\'s finish in chat!'}</Text>
+                            <Text style={[styles.textLarge, styles.textStrong]}>{this.props.translate('workspace.bankAccount.letsFinishInChat')}</Text>
                             <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
                         </View>
                         <Text style={[styles.mh5, styles.mb5]}>

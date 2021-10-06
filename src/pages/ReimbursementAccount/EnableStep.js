@@ -18,6 +18,7 @@ import {openSignedInLink} from '../../libs/actions/App';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import CONST from '../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -53,7 +54,7 @@ class EnableStep extends React.Component {
             throw new Error('Account not found in EnableStep');
         }
 
-        const {icon} = getBankIcon(account.additionalData.bankName);
+        const {icon, iconSize} = getBankIcon(account.additionalData.bankName);
         const formattedBankAccountNumber = account.accountNumber
             ? `${translate('paymentMethodList.accountLastFour')} ${
                 account.accountNumber.slice(-4)
@@ -70,26 +71,28 @@ class EnableStep extends React.Component {
                 />
                 <View style={[styles.flex1]}>
                     <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text style={[styles.textLarge, styles.textStrong]}>{!isUsingExpensifyCard ? 'Basically done!' : 'All set!'}</Text>
+                        <Text style={[styles.textLarge, styles.textStrong]}>
+                            {!isUsingExpensifyCard ? translate('workspace.bankAccount.basicallyDone') : translate('workspace.bankAccount.allSet')}
+                        </Text>
                         <Icon src={Bank} fill={colors.yellow} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
                     </View>
                     <MenuItem
                         title={bankName}
                         description={formattedBankAccountNumber}
                         icon={icon}
+                        iconWidth={iconSize}
+                        iconHeight={iconSize}
                     />
                     <Text style={[styles.mh5, styles.mb5]}>
                         {!isUsingExpensifyCard
-                            ? 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account. To enable the Expensify Card, please add a work email address.'
-                            : 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.'}
+                            ? translate('workspace.bankAccount.accountDescriptionNoCards')
+                            : translate('workspace.bankAccount.accountDescriptionWithCards')}
                     </Text>
                     {!isUsingExpensifyCard && (
                         <MenuItem
-                            title="Add work email"
+                            title={translate('workspace.bankAccount.addWorkEmail')}
                             icon={Pencil}
-                            onPress={() => {
-                                openSignedInLink('settings?param={“section”:”account”,”openModal”:”secondaryLogin”}');
-                            }}
+                            onPress={() => openSignedInLink(CONST.URL_OLDDOT_SECONDARY_LOGIN)}
                             shouldShowRightIcon
                         />
                     )}

@@ -681,6 +681,18 @@ export default {
         error: {
             growlMessageInvalidPolicy: 'Invalid workspace!',
         },
+        bankAccount: {
+            continueWithSetup: 'Continue with setup',
+            youreAlmostDone: 'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.',
+            streamlinePayments: 'Streamline payments',
+            basicallyDone: 'Basically done!',
+            allSet: 'All set!',
+            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account. To enable the Expensify Card, please add a work email address.',
+            accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
+            addWorkEmail: 'Add work email',
+            letsFinishInChat: 'Let\'s finish in chat!',
+            almostDone: 'Almost done!',
+        },
     },
     requestCallPage: {
         title: 'Request a call',

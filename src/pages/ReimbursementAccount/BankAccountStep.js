@@ -185,7 +185,7 @@ class BankAccountStep extends React.Component {
                     <>
                         <View style={[styles.flex1]}>
                             <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLarge, styles.textStrong]}>Streamline payments</Text>
+                                <Text style={[styles.textLarge, styles.textStrong]}>{this.props.translate('workspace.bankAccount.streamlinePayments')}</Text>
                                 <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
                             </View>
                             <Text style={[styles.mh5, styles.mb5]}>
