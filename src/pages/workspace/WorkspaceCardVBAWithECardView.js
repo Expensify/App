@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {Apple, Bank, NewWindow} from '../../components/Icon/Expensicons';
+import {Apple, Bank, NewWindow, ExpensifyCard} from '../../components/Icon/Expensicons';
 import UnorderedList from '../../components/UnorderedList';
 import MenuItemList from '../../components/MenuItemList';
 import {openSignedInLink} from '../../libs/actions/App';
@@ -12,12 +12,12 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardVBANoECardView = ({translate}) => (
+const WorkspaceCardVBAWithECardView = ({translate}) => (
     <>
         <View style={styles.pageWrapper}>
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <View style={[styles.flexShrink1]}>
-                    <Text style={[styles.textXLarge]}>{translate('workspace.card.header')}</Text>
+                    <Text style={[styles.textXLarge]}>{translate('workspace.card.headerWithEcard')}</Text>
                 </View>
                 <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
                     {/* TODO: Replace this with the proper icon */}
@@ -27,7 +27,7 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
 
             <View style={[styles.w100]}>
                 <View style={[styles.mv4]}>
-                    <Text>{translate('workspace.card.VBANoECardCopy')}</Text>
+                    <Text>{translate('workspace.card.VBAWithECardCopy')}</Text>
                 </View>
 
                 <UnorderedList
@@ -44,9 +44,16 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
         <MenuItemList
             menuItems={[
                 {
-                    title: translate('workspace.common.addWorkEmailAddress'),
+                    title: translate('workspace.common.issueAndManageCards'),
+                    onPress: () => openSignedInLink('domain_companycards'),
+                    icon: ExpensifyCard,
+                    shouldShowRightIcon: true,
+                    iconRight: NewWindow,
+                },
+                {
+                    title: translate('workspace.common.reconcileCards'),
                     onPress: () => openSignedInLink('settings?param={"section":"account","openModal":"secondaryLogin"})'),
-                    /* TODO: Need to use the briefcase icon once it's added to the repo */
+                    /* TODO: Need to use the reconcile icon once it's added to the repo */
                     icon: Bank,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -56,7 +63,7 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
     </>
 );
 
-WorkspaceCardVBANoECardView.propTypes = propTypes;
-WorkspaceCardVBANoECardView.displayName = 'WorkspaceCardVBANoECardView';
+WorkspaceCardVBAWithECardView.propTypes = propTypes;
+WorkspaceCardVBAWithECardView.displayName = 'WorkspaceCardVBAWithECardView';
 
-export default withLocalize(WorkspaceCardVBANoECardView);
+export default withLocalize(WorkspaceCardVBAWithECardView);

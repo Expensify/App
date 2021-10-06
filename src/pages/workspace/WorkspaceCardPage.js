@@ -12,6 +12,7 @@ import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import Icon from '../../components/Icon';
 import {Apple} from '../../components/Icon/Expensicons';
+import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -37,18 +38,7 @@ const WorkspaceCardPage = ({translate, route}) => (
         <ScrollView style={[styles.settingsPageBackground]}>
             <View style={styles.w100}>
 
-                <View style={styles.pageWrapper}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                        <View style={[styles.flexShrink1]}>
-                            <Text style={[styles.textXLarge]}>{translate('workspace.card.header')}</Text>
-                        </View>
-                        <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
-                            {/* TODO: Replace this with the proper icon */}
-                            <Icon src={Apple} height={50} width={50} />
-                        </View>
-                    </View>
-                </View>
-
+                <WorkspaceCardVBAWithECardView />
                 <WorkspaceCardNoVBAView policyID={_.get(route, ['params', 'policyID'])} />
                 <WorkspaceCardVBANoECardView />
 
