@@ -8,9 +8,10 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {Apple} from '../../components/Icon/Expensicons';
+import {Apple, ArrowRight, Bank} from '../../components/Icon/Expensicons';
 import Icon from '../../components/Icon';
-import OrderedList from '../../components/OrderedList';
+import UnorderedList from '../../components/UnorderedList';
+import MenuItemList from '../../components/MenuItemList';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -52,7 +53,7 @@ const WorkspaceCardPage = ({translate, route}) => (
                             <Text>{translate('workspace.card.noVBACopy')}</Text>
                         </View>
 
-                        <OrderedList
+                        <UnorderedList
                             items={[
                                 translate('workspace.card.benefit1'),
                                 translate('workspace.card.benefit2'),
@@ -62,6 +63,17 @@ const WorkspaceCardPage = ({translate, route}) => (
                         />
                     </View>
                 </View>
+
+                <MenuItemList
+                    menuItems={[
+                        {
+                            title: translate('workspace.common.bankAccount'),
+                            onPress: () => console.log('bankAccount'),
+                            icon: Bank,
+                            shouldShowRightIcon: true,
+                        },
+                    ]}
+                />
             </View>
         </ScrollView>
     </ScreenWrapper>

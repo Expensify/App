@@ -5,13 +5,14 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 
 const propTypes = {
+    /** An array of strings to display as an unordered list */
     items: PropTypes.arrayOf(PropTypes.string),
 };
 const defaultProps = {
     items: [],
 };
 
-const OrderedList = ({items}) => (
+const UnorderedList = ({items}) => (
     <>
         {_.map(items, itemText => (
             <View
@@ -25,8 +26,8 @@ const OrderedList = ({items}) => (
     </>
 );
 
-OrderedList.displayName = 'OrderedList';
-OrderedList.propTypes = propTypes;
-OrderedList.defaultProps = defaultProps;
+UnorderedList.displayName = 'OrderedList';
+UnorderedList.propTypes = propTypes;
+UnorderedList.defaultProps = defaultProps;
 
-export default OrderedList;
+export default UnorderedList;
