@@ -529,7 +529,7 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {Boolean} isErrorModalMessageHtml if @errorModalMessage is in html format or not
  */
 function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessageHtml = false) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage, isErrorModalMessageHtml});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorModalMessage, isErrorModalMessageHtml});
 }
 
 /**
@@ -581,13 +581,6 @@ function validateBankAccount(bankAccountID, validateCode) {
             showBankAccountErrorModal(response.message);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
-}
-
-/**
- * Hide error modal
- */
-function hideBankAccountErrorModal() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: false});
 }
 
 /**
@@ -810,7 +803,6 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
-    hideBankAccountErrorModal,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
