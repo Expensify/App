@@ -7,13 +7,14 @@ import {
     Apple,
     Receipt,
     NewWindow,
+    ArrowRight,
     Bank,
 } from '../../../components/Icon/Expensicons';
 import WorkspaceSection from '../WorkspaceSection';
-import Navigation from '../../../libs/Navigation/Navigation';
-import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import {openSignedInLink} from '../../../libs/actions/App';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -22,35 +23,36 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardNoVBAView = ({translate, policyID}) => (
+const WorkspaceBillsNoVBAView = ({translate, policyID}) => (
     <>
         <WorkspaceSection
-            title={translate('workspace.reimburse.captureReceipts')}
+            title={translate('workspace.bills.manageYourBills')}
             icon={Apple} // TODO: Replace this with the proper icon
             menuItems={[
                 {
-                    title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => openSignedInLink(`expenses?param={"policyID":"${policyID}"}`),
-                    icon: Receipt,
+                    title: translate('workspace.bills.viewAllBills'),
+                    // eslint-disable-next-line max-len
+                    onPress: () => openSignedInLink(`https://www.expensify.com/reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                    icon: Receipt, // TODO: use the bill icon once it's added to this repo
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
                 },
             ]}
         >
-            <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
+            <View style={[styles.mv4]}>
                 <Text>
-                    {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                    {translate('workspace.bills.askYourVendorsBeforeEmail')}
                     <CopyTextToClipboard
-                        text="receipts@expensify.com"
+                        text="your.domain@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
-                    <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                    <Text>{translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
                 </Text>
             </View>
         </WorkspaceSection>
 
         <WorkspaceSection
-            title={translate('workspace.reimburse.unlockNextDayReimbursements')}
+            title={translate('workspace.bills.unlockOnlineBillPayment')}
             icon={Apple} // TODO: Replace this with the proper icon
             menuItems={[
                 {
@@ -58,17 +60,18 @@ const WorkspaceCardNoVBAView = ({translate, policyID}) => (
                     onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
                     icon: Bank,
                     shouldShowRightIcon: true,
+                    iconRight: ArrowRight,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                <Text>{translate('workspace.bills.unlockNoVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>
 );
 
-WorkspaceCardNoVBAView.propTypes = propTypes;
-WorkspaceCardNoVBAView.displayName = 'WorkspaceCardNoVBAView';
+WorkspaceBillsNoVBAView.propTypes = propTypes;
+WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
 
-export default withLocalize(WorkspaceCardNoVBAView);
+export default withLocalize(WorkspaceBillsNoVBAView);

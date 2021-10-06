@@ -676,6 +676,16 @@ export default {
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
             fastReimbursementsVBACopy: 'You\'re all set to reimburse receipts from your bank account!',
         },
+        bills: {
+            manageYourBills: 'Manage your bills',
+            askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
+            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay',
+            viewAllBills: 'View all bills',
+            unlockOnlineBillPayment: 'Unlock online bill payment',
+            unlockNoVBACopy: 'Connect your bank account to pay bills online for free!',
+            hassleFreeBills: 'Hassle-free bills!',
+            VBACopy: 'You\'re all set to make payments from your bank account!',
+        },
         invite: {
             invitePeople: 'Invite people',
             invitePeoplePrompt: 'Invite colleagues to your workspace.',

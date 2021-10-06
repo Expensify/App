@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text} from 'react-native';
+import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
@@ -10,7 +11,6 @@ import {
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import {openSignedInLink} from '../../../libs/actions/App';
-import PropTypes from 'prop-types';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -27,7 +27,7 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => openSignedInLink(`expenses?param={"policyID":"${policyID}"}`),
+                    onPress: () => openSignedInLink(`expenses?param={"policyIDList":"${policyID}"}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -52,6 +52,7 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.reimburseReceipts'),
+                    // eslint-disable-next-line max-len
                     onPress: () => openSignedInLink(`/reports?param={"startDate":","endDate":","reportName":","policyID":"${policyID}","from":"all","type":"expense","states":{"Open":false,"Processing":false,"Approved":false,"Reimbursed":false,"Archived":true},"isAdvancedFilterMode":true}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,

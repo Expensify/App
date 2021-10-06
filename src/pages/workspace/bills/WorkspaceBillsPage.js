@@ -14,8 +14,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import {fetchFreePlanVerifiedBankAccount} from '../../../libs/actions/BankAccounts';
 import VBALoadingIndicator from '../../../components/VBALoadingIndicator';
 import BankAccount from '../../../libs/models/BankAccount';
-import WorkspaceReimburseNoVBAView from './WorkspaceReimburseNoVBAView';
-import WorkspaceReimburseVBAView from './WorkspaceReimburseVBAView';
+import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
+import WorkspaceBillsVBAView from './WorkspaceBillsVBAView';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -30,7 +30,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class WorkspaceReimbursePage extends React.Component {
+class WorkspaceBillsPage extends React.Component {
     componentDidMount() {
         fetchFreePlanVerifiedBankAccount();
     }
@@ -47,7 +47,7 @@ class WorkspaceReimbursePage extends React.Component {
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.reimburse')}
+                    title={this.props.translate('workspace.common.bills')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -56,11 +56,11 @@ class WorkspaceReimbursePage extends React.Component {
                     <View style={styles.w100}>
 
                         {!hasVBA && (
-                            <WorkspaceReimburseNoVBAView policyID={policyID} />
+                            <WorkspaceBillsNoVBAView policyID={policyID} />
                         )}
 
                         {hasVBA && (
-                            <WorkspaceReimburseVBAView policyID={policyID} />
+                            <WorkspaceBillsVBAView policyID={policyID} />
                         )}
 
                     </View>
@@ -70,7 +70,7 @@ class WorkspaceReimbursePage extends React.Component {
     }
 }
 
-WorkspaceReimbursePage.propTypes = propTypes;
+WorkspaceBillsPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
@@ -79,4 +79,4 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-)(WorkspaceReimbursePage);
+)(WorkspaceBillsPage);
