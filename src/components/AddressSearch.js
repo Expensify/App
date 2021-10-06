@@ -94,7 +94,7 @@ class AddressSearch extends React.Component {
                 }}
                 styles={{
                     textInputContainer: [styles.flexColumn],
-                    listView: [styles.borderTopRounded, styles.borderBottomRounded, styles.mt4, styles.overflowAuto,],
+                    listView: [styles.borderTopRounded, styles.borderBottomRounded, styles.mt4, styles.overflowAuto],
                     row: [
                         styles.pv4,
                         styles.ph3,
@@ -103,7 +103,7 @@ class AddressSearch extends React.Component {
                         styles.overflowAuto,
                         styles.googleSearchRowWidth,
                     ],
-                    separator: [styles.googleSearchSeperator]
+                    separator: [styles.googleSearchSeperator],
                 }}
             />
         );
