@@ -15,7 +15,6 @@ import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
 import WorkspaceCardVBAWithECardView from './WorkspaceCardVBAWithECardView';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {fetchFreePlanVerifiedBankAccount} from '../../../libs/actions/BankAccounts';
-import VBALoadingIndicator from '../../../components/VBALoadingIndicator';
 import BankAccount from '../../../libs/models/BankAccount';
 
 const propTypes = {
@@ -37,10 +36,6 @@ class WorkspaceCardPage extends React.Component {
     }
 
     render() {
-        if (this.props.reimbursementAccount.loading) {
-            return (<VBALoadingIndicator />);
-        }
-
         const achState = _.get(this.props.reimbursementAccount, ['achData', 'state'], '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
         const isUsingECard = _.get(this.props.user, 'isUsingExpensifyCard');

@@ -12,7 +12,6 @@ import ScreenWrapper from '../../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import {fetchFreePlanVerifiedBankAccount} from '../../../libs/actions/BankAccounts';
-import VBALoadingIndicator from '../../../components/VBALoadingIndicator';
 import BankAccount from '../../../libs/models/BankAccount';
 import WorkspaceReimburseNoVBAView from './WorkspaceReimburseNoVBAView';
 import WorkspaceReimburseVBAView from './WorkspaceReimburseVBAView';
@@ -36,10 +35,6 @@ class WorkspaceReimbursePage extends React.Component {
     }
 
     render() {
-        if (this.props.reimbursementAccount.loading) {
-            return (<VBALoadingIndicator />);
-        }
-
         const achState = _.get(this.props.reimbursementAccount, ['achData', 'state'], '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
         const policyID = _.get(this.props.route, ['params', 'policyID']);
