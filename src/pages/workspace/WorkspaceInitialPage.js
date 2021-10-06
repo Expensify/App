@@ -11,10 +11,13 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import Icon from '../../components/Icon';
 import {
-    Users,
+    Bank,
+    Gear,
     ExpensifyCard,
-    Workspace,
     Pencil,
+    Receipt,
+    Users,
+    Workspace,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -60,7 +63,7 @@ const WorkspaceInitialPage = ({
     const menuItems = [
         {
             translationKey: 'workspace.common.settings',
-            icon: ExpensifyCard,
+            icon: Gear,
             action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceSettingsRoute(policy.id)),
         },
@@ -72,7 +75,7 @@ const WorkspaceInitialPage = ({
         },
         {
             translationKey: 'workspace.common.reimburse',
-            icon: ExpensifyCard,
+            icon: Receipt,
             action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceReimburseRoute(policy.id)),
         },
@@ -102,7 +105,7 @@ const WorkspaceInitialPage = ({
         },
         {
             translationKey: 'workspace.common.bankAccount',
-            icon: Users,
+            icon: Bank,
             action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
         },
@@ -113,10 +116,10 @@ const WorkspaceInitialPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('common.profile')}
+                title={translate('workspace.common.workspace')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-                onCloseButtonPress={() => Navigation.dismissModal(true)}
+                onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <ScrollView
                 contentContainerStyle={[
@@ -126,13 +129,6 @@ const WorkspaceInitialPage = ({
                 ]}
             >
                 <View style={[styles.flex1]}>
-                    {isSmallScreenWidth
-                        && (
-                            <HeaderWithCloseButton
-                                title={translate('workspace.common.workspace')}
-                                onCloseButtonPress={() => Navigation.dismissModal()}
-                            />
-                        )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                             <Pressable
