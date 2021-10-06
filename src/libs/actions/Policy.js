@@ -237,8 +237,10 @@ function create(name = '') {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
         }).then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
+            if (res) {
+                Navigation.dismissModal();
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
+            }
         });
 }
 
