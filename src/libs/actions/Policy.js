@@ -113,6 +113,18 @@ function getPolicyList() {
 }
 
 /**
+ * Is the user an admin of a free policy (aka workspace)?
+ *
+ * @param {Array} policies
+ * @returns {Boolean}
+ */
+function isAdminOfFreePolicy(policies) {
+    return _.some(policies, policy => policy
+        && policy.type === CONST.POLICY.TYPE.FREE
+        && policy.role === CONST.POLICY.ROLE.ADMIN);
+}
+
+/**
  * Remove the passed members from the policy employeeList
  *
  * @param {Array} members
@@ -216,6 +228,7 @@ function create(name = '') {
             }
             res = response;
 
+            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
             return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
                 employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
                 id: response.policyID,
@@ -286,6 +299,7 @@ export {
     getPolicyList,
     removeMembers,
     invite,
+    isAdminOfFreePolicy,
     create,
     uploadAvatar,
     update,

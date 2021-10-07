@@ -114,8 +114,8 @@ class PaymentMethodList extends Component {
                 description: formattedCardNumber,
                 icon,
                 iconSize,
-                onPress: e => this.props.onPress(e, card.cardID),
-                key: `card-${card.cardID}`,
+                onPress: e => this.props.onPress(e, card.cardNumber),
+                key: `card-${card.cardNumber}`,
             });
         });
 
@@ -187,7 +187,6 @@ class PaymentMethodList extends Component {
             <FlatList
                 data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
-                bounces
             />
         );
     }

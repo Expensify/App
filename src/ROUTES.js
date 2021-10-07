@@ -27,6 +27,7 @@ export default {
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_PAYMENTS: 'settings/payments',
     SETTINGS_ADD_PAYPAL_ME: 'settings/payments/add-paypal-me',
+    SETTINGS_ADD_DEBIT_CARD: 'settings/payments/add-debit-card',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     NEW_GROUP: 'new/group',
@@ -67,6 +68,7 @@ export default {
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     VALIDATE_LOGIN: 'v',
     VALIDATE_LOGIN_WITH_VALIDATE_CODE: 'v/:accountID/:validateCode',
+    LOGIN_WITH_SHORT_LIVED_TOKEN: 'transition',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.
@@ -78,6 +80,7 @@ export default {
     WORKSPACE: 'workspace',
     WORKSPACE_CARD: ':policyID/card',
     WORKSPACE_PEOPLE: ':policyID/people',
+    WORKSPACE_NEW: 'workspace/new',
     getWorkspaceCardRoute: policyID => `workspace/${policyID}/card`,
     getWorkspacePeopleRoute: policyID => `workspace/${policyID}/people`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,

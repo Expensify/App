@@ -1,6 +1,9 @@
 import PropTypes from 'prop-types';
 
 const propTypes = {
+    /** Whether to disable additional wrapper around the children. It will only work for single native(View|Text) child.  */
+    absolute: PropTypes.bool,
+
     /** Children to wrap with Hoverable. */
     children: PropTypes.oneOfType([
         PropTypes.node,
@@ -22,6 +25,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    absolute: false,
     containerStyles: [],
     onHoverIn: () => {},
     onHoverOut: () => {},
