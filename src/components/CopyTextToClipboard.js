@@ -46,15 +46,15 @@ class CopyTextToClipboard extends React.Component {
 
     render() {
         return (
-            <TouchableOpacity
+            <Text
                 onPress={this.copyToClipboard}
-                style={[styles.flexRow, styles.cursorPointer]}
+                style={[styles.flexRow, styles.cursorPointer, {position: 'relative'}]}
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
                 {this.state.showCheckmark
-                    ? <Icon src={Checkmark} height={20} width={20} />
-                    : <Icon src={ClipboardIcon} height={20} width={20} />}
-            </TouchableOpacity>
+                    ? <Icon src={Checkmark} height={14} width={14} />
+                    : <Icon src={ClipboardIcon} height={14} width={14} />}
+            </Text>
         );
     }
 }
