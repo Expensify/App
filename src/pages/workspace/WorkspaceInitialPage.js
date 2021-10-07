@@ -14,7 +14,6 @@ import {
     Bank,
     Gear,
     ExpensifyCard,
-    Pencil,
     Receipt,
     Users,
     Workspace,
@@ -31,8 +30,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
-import Tooltip from '../../components/Tooltip';
-import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
