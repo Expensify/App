@@ -142,7 +142,10 @@ function getUserDetails() {
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
             // Get list of validated logins and fetch domain info
-            const emailList = _.map(loginList, userLogin => userLogin.partnerUserID);
+            const emailList = _.chain(loginList)
+                .filter(userLogin => userLogin.validatedDate)
+                .map(userLogin => userLogin.partnerUserID)
+                .value();
             getDomainInfo(emailList);
 
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
