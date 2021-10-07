@@ -30,6 +30,7 @@ const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.invoices.viewUnpaidInvoices'),
+                    // eslint-disable-next-line max-len
                     onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":false,"Processing":true,"Approved":false,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
                     icon: Bank, // TODO: Use the icon that's a circle with an hourglass in it
                     shouldShowRightIcon: true,

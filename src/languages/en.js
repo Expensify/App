@@ -632,7 +632,7 @@ export default {
             members: 'Manage members',
             bankAccount: 'Connect bank account',
             addWorkEmailAddress: 'Add work email address',
-            issueAndManageCards: 'Issues and manage cards',
+            issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
         },
         new: {
@@ -695,6 +695,13 @@ export default {
             moneyBackInAFlash: 'Money back, in a flash!',
             unlockVBACopy: 'You\'re all set to accept payments by ACH or credit card!',
             viewUnpaidInvoices: 'View unpaid invoices',
+        },
+        travel: {
+            unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
+            noVBACopy: 'Connect your bank account to let workspace members book their flights, hotels, and cars by starting a chat with Concierge.',
+            packYourBags: 'Pack your bags!',
+            VBACopy: 'Members with the Expensify card can chat with Concierge to book travel!',
+            bookTravelWithConcierge: 'Book travel with concierge',
         },
         invite: {
             invitePeople: 'Invite people',

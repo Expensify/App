@@ -34,7 +34,7 @@ import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
 import WorkspaceReimbursePage from '../../../pages/workspace/reimburse/WorkspaceReimbursePage';
 import WorkspaceInvoicesPage from '../../../pages/workspace/invoices/WorkspaceInvoicesPage';
 import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPage';
-import WorkspaceTravelPage from '../../../pages/workspace/WorkspaceTravelPage';
+import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
 
