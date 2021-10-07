@@ -195,6 +195,13 @@ function isActiveRoute(routePath) {
 }
 
 /**
+ * Pop the current page off of the stack
+ */
+function pop() {
+    navigationRef.current.dispatch(StackActions.pop());
+}
+
+/**
  * Alternative to the `Navigation.dismissModal()` function that we can use inside
  * the render function of other components to avoid breaking React rules about side-effects.
  *
@@ -231,4 +238,5 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+    pop,
 };
