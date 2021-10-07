@@ -1,4 +1,6 @@
 import lodashGet from 'lodash/get';
+import lodashUnset from 'lodash/unset';
+import lodashCloneDeep from 'lodash/cloneDeep';
 import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
 
 /**
@@ -25,18 +27,18 @@ function getErrors(props) {
 
 /**
  * @param {Object} props
- * @param {String} inputKey
+ * @param {String} path
  */
-function clearError(props, inputKey) {
+function clearError(props, path) {
     const errors = getErrors(props);
-    if (!errors[inputKey]) {
-        // No error found for this inputKey
+    if (!lodashGet(errors, path, false)) {
+        // No error found for this path
         return;
     }
 
-    // Clear the existing error for this inputKey
-    const newErrors = {...errors};
-    delete newErrors[inputKey];
+    // Clear the existing errors
+    const newErrors = lodashCloneDeep(errors);
+    lodashUnset(newErrors, path);
     setBankAccountFormValidationErrors(newErrors);
 }
 
