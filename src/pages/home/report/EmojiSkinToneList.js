@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import compose from '../../../libs/compose';
 import {skinTones} from '../../../../assets/emojis';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
@@ -102,6 +101,4 @@ class EmojiSkinToneList extends Component {
 
 EmojiSkinToneList.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-)(EmojiSkinToneList);
+export default withLocalize(EmojiSkinToneList);

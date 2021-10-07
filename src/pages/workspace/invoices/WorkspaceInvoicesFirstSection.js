@@ -55,6 +55,4 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
 WorkspaceInvoicesFirstSection.propTypes = propTypes;
 WorkspaceInvoicesFirstSection.displayName = 'WorkspaceInvoicesFirstSection';
 
-export default compose(
-    withLocalize,
-)(WorkspaceInvoicesFirstSection);
+export default withLocalize(WorkspaceInvoicesFirstSection);

@@ -9,7 +9,6 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {JewelBoxYellow} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 
@@ -45,6 +44,4 @@ const WorkspaceTravelNoVBAView = ({translate, policyID}) => (
 WorkspaceTravelNoVBAView.propTypes = propTypes;
 WorkspaceTravelNoVBAView.displayName = 'WorkspaceTravelNoVBAView';
 
-export default compose(
-    withLocalize,
-)(WorkspaceTravelNoVBAView);
+export default withLocalize(WorkspaceTravelNoVBAView);

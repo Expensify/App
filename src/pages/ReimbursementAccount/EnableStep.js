@@ -8,7 +8,6 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
-import compose from '../../libs/compose';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -51,6 +50,4 @@ const EnableStep = ({translate}) => {
 EnableStep.propTypes = propTypes;
 EnableStep.displayName = 'EnableStep';
 
-export default compose(
-    withLocalize,
-)(EnableStep);
+export default withLocalize(EnableStep);

@@ -48,6 +48,4 @@ const WorkspaceBillsNoVBAView = ({translate, policyID}) => (
 WorkspaceBillsNoVBAView.propTypes = propTypes;
 WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
 
-export default compose(
-    withLocalize,
-)(WorkspaceBillsNoVBAView);
+export default withLocalize(WorkspaceBillsNoVBAView);

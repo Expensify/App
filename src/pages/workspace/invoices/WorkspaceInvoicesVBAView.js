@@ -9,7 +9,6 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import compose from '../../../libs/compose';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
 import {openSignedInLink} from '../../../libs/actions/App';
 
@@ -48,6 +47,4 @@ const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
 WorkspaceInvoicesVBAView.propTypes = propTypes;
 WorkspaceInvoicesVBAView.displayName = 'WorkspaceInvoicesVBAView';
 
-export default compose(
-    withLocalize,
-)(WorkspaceInvoicesVBAView);
+export default withLocalize(WorkspaceInvoicesVBAView);

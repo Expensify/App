@@ -38,6 +38,4 @@ const WorkspaceBillsPage = ({translate, route}) => (
 
 WorkspaceBillsPage.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-)(WorkspaceBillsPage);
+export default withLocalize(WorkspaceBillsPage);

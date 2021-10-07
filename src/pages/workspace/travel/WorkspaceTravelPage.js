@@ -39,6 +39,4 @@ const WorkspaceTravelPage = ({translate, route}) => (
 WorkspaceTravelPage.propTypes = propTypes;
 WorkspaceTravelPage.displayName = 'WorkspaceTravelPage';
 
-export default compose(
-    withLocalize,
-)(WorkspaceTravelPage);
+export default withLocalize(WorkspaceTravelPage);
