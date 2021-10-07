@@ -658,7 +658,7 @@ export default {
             pleaseEnterUniqueLogin: 'Ese usuario ya es miembro de este espacio de trabajo.',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
             systemUserError: ({email}) => `Lo sentimos, no puedes invitar a ${email} a un espacio de trabajo.`,
-            welcomeNote: ({workspaceName}) => `¡Has sido invitado a la ${workspaceName} Espacio de trabajo! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
+            welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         editor: {
             nameInputLabel: 'Nombre',
