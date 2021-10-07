@@ -29,10 +29,16 @@ class CopyTextToClipboard extends React.Component {
         };
     }
 
+    componentWillUnmount() {
+        // Clear the interval when the component unmounts so that if the user navigates
+        // away quickly, then setState() won't try to update a component that's been unmounted
+        clearInterval(this.showCheckmarkInterval);
+    }
+
     copyToClipboard() {
         Clipboard.setString(this.props.text);
         this.setState({showCheckmark: true}, () => {
-            setTimeout(() => {
+            this.showCheckmarkInterval = setTimeout(() => {
                 this.setState({showCheckmark: false});
             }, 2000);
         });
