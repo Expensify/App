@@ -42,7 +42,8 @@ function popAndNavigateToBankAccountRoute() {
 
 const WorkspaceBankAccountPage = (props) => {
     // If we have an open bank account or no bank account at all then we will immediately redirect the user to /bank-account to display the next step
-    if (!lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || lodashGet(props.reimbursementAccount, 'achData.state') === BankAccount.STATE.OPEN) {
+    const state = lodashGet(props.reimbursementAccount, 'achData.state');
+    if (!lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || state === BankAccount.STATE.OPEN) {
         popAndNavigateToBankAccountRoute();
         return null;
     }

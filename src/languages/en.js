@@ -409,7 +409,7 @@ export default {
         routingNumber: 'Routing number',
         addBankAccount: 'Add bank account',
         chooseAnAccount: 'Choose an account',
-        logIntoYourBank: 'Connect online with Plaid',
+        connectOnlineWithPlaid: 'Connect online with Plaid',
         connectManually: 'Connect manually',
         yourDataIsSecure: 'Your data is secure',
         toGetStarted: 'Add a bank account and issue corporate cards, reimburse expenses, collect invoice payments, and pay bills, all from one place.',

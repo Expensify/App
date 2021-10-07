@@ -193,7 +193,7 @@ class BankAccountStep extends React.Component {
                             </Text>
                             <MenuItem
                                 icon={Bank}
-                                title={this.props.translate('bankAccount.logIntoYourBank')}
+                                title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                                 onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                                 disabled={this.props.isPlaidDisabled || !this.props.user.validated}
                                 shouldShowRightIcon
