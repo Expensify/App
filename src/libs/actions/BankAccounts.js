@@ -383,8 +383,9 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     // If the user is already setting up a bank account we will continue the flow for them
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
-                    if (achData.currentStep) {
-                        currentStep = achData.currentStep;
+                    if (!stepToOpen && achData.currentStep) {
+                        // eslint-disable-next-line no-use-before-define
+                        currentStep = getNextStepToComplete(achData);
                     }
 
                     achData.useOnfido = true;
@@ -516,14 +517,27 @@ function getIndexByStepID(stepID) {
 
 /**
  * Get next step ID
+ * @param {String} [stepID]
  * @return {String}
  */
-function getNextStepID() {
+function getNextStepID(stepID) {
     const nextStepIndex = Math.min(
-        getIndexByStepID(reimbursementAccountInSetup.currentStep) + 1,
+        getIndexByStepID(stepID || reimbursementAccountInSetup.currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
     return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+}
+
+/**
+ * @param {Object} achData
+ * @returns {String}
+ */
+function getNextStepToComplete(achData) {
+    if (achData.currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && !achData.isOnfidoSetupComplete) {
+        return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+    }
+
+    return getNextStepID(achData.currentStep);
 }
 
 /**

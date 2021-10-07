@@ -32,12 +32,18 @@ const defaultProps = {
     },
 };
 
+/**
+ * We need to pop this page before we redirect or else when we goBack() we'll get a white screen
+ */
+function popAndNavigateToBankAccountRoute() {
+    Navigation.pop();
+    Navigation.navigate(ROUTES.getBankAccountRoute());
+}
+
 const WorkspaceBankAccountPage = (props) => {
     // If we have an open bank account or no bank account at all then we will immediately redirect the user to /bank-account to display the next step
     if (!lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || lodashGet(props.reimbursementAccount, 'achData.state') === BankAccount.STATE.OPEN) {
-        // We need to pop this page before we redirect or else when we goBack() we'll get a white screen
-        Navigation.pop();
-        Navigation.navigate(ROUTES.getBankAccountRoute());
+        popAndNavigateToBankAccountRoute();
         return null;
     }
 
@@ -60,7 +66,7 @@ const WorkspaceBankAccountPage = (props) => {
             <MenuItem
                 title={props.translate('workspace.bankAccount.continueWithSetup')}
                 icon={Bank}
-                onPress={() => Navigation.navigate(ROUTES.getBankAccountRoute())}
+                onPress={popAndNavigateToBankAccountRoute}
                 shouldShowRightIcon
             />
         </ScreenWrapper>
