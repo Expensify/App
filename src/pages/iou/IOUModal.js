@@ -254,7 +254,7 @@ class IOUModal extends Component {
      * @param {Array} [splits]
      */
     confirm(splits) {
-        if (this.state.iouType === CONST.IOU.IOU_TYPE.SEND) {
+        if (this.state.paymentType === CONST.IOU.IOU_TYPE.SEND) {
             payIOUReport({
                 chatReportID: this.props.route.params.reportID,
                 reportID: 0,
