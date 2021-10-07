@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {Concierge, NewWindow} from '../../../components/Icon/Expensicons';
+import {Concierge} from '../../../components/Icon/Expensicons';
 import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';

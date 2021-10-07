@@ -1,5 +1,4 @@
 import PropTypes from 'prop-types';
-import {getDomainInfo} from '../../libs/actions/User';
 
 export default PropTypes.shape({
     /** error associated with adding a secondary login */
