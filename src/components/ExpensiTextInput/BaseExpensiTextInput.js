@@ -166,7 +166,6 @@ class BaseExpensiTextInput extends Component {
                         <View
                             style={[
                                 styles.expensiTextInputContainer,
-                                !hasLabel && styles.pv0,
                                 this.state.isFocused && styles.borderColorFocus,
                                 (hasError || errorText) && styles.borderColorDanger,
                             ]}
@@ -194,7 +193,7 @@ class BaseExpensiTextInput extends Component {
                                 placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
-                                style={inputStyle}
+                                style={[inputStyle, !hasLabel && styles.pv0,]}
                                 multiline={multiline}
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
