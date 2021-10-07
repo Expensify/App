@@ -4,11 +4,11 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
-    Receipt,
     NewWindow,
     Bank,
+    Receipt,
 } from '../../../components/Icon/Expensicons';
+import {ReceiptYellow, JewelBoxGreen} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -26,7 +26,7 @@ const WorkspaceCardNoVBAView = ({translate, policyID}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.reimburse.captureReceipts')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={ReceiptYellow}
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
@@ -51,7 +51,7 @@ const WorkspaceCardNoVBAView = ({translate, policyID}) => (
 
         <WorkspaceSection
             title={translate('workspace.reimburse.unlockNextDayReimbursements')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={JewelBoxGreen}
             menuItems={[
                 {
                     title: translate('workspace.common.bankAccount'),

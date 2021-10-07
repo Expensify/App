@@ -4,10 +4,11 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
+    Bank,
     Receipt,
     NewWindow,
 } from '../../../components/Icon/Expensicons';
+import {BankUserGreen, ReceiptYellow} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import {openSignedInLink} from '../../../libs/actions/App';
@@ -23,7 +24,7 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.reimburse.captureReceipts')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={ReceiptYellow}
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
@@ -48,13 +49,13 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
 
         <WorkspaceSection
             title={translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={BankUserGreen}
             menuItems={[
                 {
                     title: translate('workspace.reimburse.reimburseReceipts'),
                     // eslint-disable-next-line max-len
                     onPress: () => openSignedInLink(`/reports?param={"startDate":","endDate":","reportName":","policyID":"${policyID}","from":"all","type":"expense","states":{"Open":false,"Processing":false,"Approved":false,"Reimbursed":false,"Archived":true},"isAdvancedFilterMode":true}`),
-                    icon: Receipt,
+                    icon: Bank,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
                 },
