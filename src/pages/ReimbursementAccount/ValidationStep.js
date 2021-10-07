@@ -151,9 +151,6 @@ class ValidationStep extends React.Component {
     }
 
     navigateToConcierge() {
-        // There are two modals that must be dismissed before we can reveal the Concierge
-        // chat underneath these screens
-        Navigation.dismissModal();
         Navigation.dismissModal();
         navigateToConciergeChat();
     }

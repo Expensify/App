@@ -82,7 +82,10 @@ class EnableStep extends React.Component {
                         menuItems={!isUsingExpensifyCard ? [{
                             title: translate('workspace.bankAccount.chatWithConcierge'),
                             icon: ChatBubble,
-                            onPress: navigateToConciergeChat,
+                            onPress: () => {
+                                Navigation.dismissModal();
+                                navigateToConciergeChat();
+                            },
                             shouldShowRightIcon: true,
                         }] : []}
                     >
