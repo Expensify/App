@@ -50,7 +50,7 @@ const WorkspaceBankAccountPage = (props) => {
             <HeaderWithCloseButton
                 title={props.translate('workspace.common.bankAccount')}
                 onCloseButtonPress={Navigation.dismissModal}
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.route.params.policyID))}
                 shouldShowBackButton
             />
             <WorkspaceSection
