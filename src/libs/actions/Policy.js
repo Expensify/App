@@ -73,7 +73,7 @@ function updateAllPolicies(policyCollection) {
 
     // Set all the policies
     _.each(policyCollection, (policyData, key) => {
-        Onyx.merge(key, policyData);
+        Onyx.merge(key, {...policyData, alertMessage: '', errors: null});
     });
 }
 
@@ -179,6 +179,7 @@ function invite(logins, welcomeNote, policyID) {
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
     policy.employeeList = [...policy.employeeList, ...newEmployeeList];
+    policy.alertMessage = '';
 
     // Optimistically add the user to the policy
     Onyx.set(key, policy);
@@ -193,21 +194,21 @@ function invite(logins, welcomeNote, policyID) {
             // Save the personalDetails for the invited user in Onyx
             if (data.jsonCode === 200) {
                 Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(data.personalDetails));
+                Navigation.goBack();
                 return;
             }
 
             // If the operation failed, undo the optimistic addition
             const policyDataWithoutLogin = _.clone(allPolicies[key]);
             policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
-            Onyx.set(key, policyDataWithoutLogin);
 
             // Show the user feedback that the addition failed
-            let errorMessage = translateLocal('workspace.invite.genericFailureMessage');
+            policyDataWithoutLogin.alertMessage = translateLocal('workspace.invite.genericFailureMessage');
             if (data.jsonCode === 402) {
-                errorMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
+                policyDataWithoutLogin.alertMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
-            Growl.error(errorMessage, 5000);
+            Onyx.set(key, policyDataWithoutLogin);
         });
 }
 
@@ -294,6 +295,22 @@ function updateLocalPolicyValues(policyID, values) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
+/**
+ * @param {String} policyID
+ * @param {Object} errors
+ */
+function setWorkspaceErrors(policyID, errors) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
+}
+
+/**
+ * @param {String} policyID
+ */
+function hideWorkspaceAlertMessage(policyID) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {alertMessage: ''});
+}
+
 export {
     getPolicySummaries,
     getPolicyList,
@@ -304,4 +321,6 @@ export {
     uploadAvatar,
     update,
     updateLocalPolicyValues,
+    setWorkspaceErrors,
+    hideWorkspaceAlertMessage,
 };

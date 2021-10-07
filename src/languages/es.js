@@ -26,6 +26,7 @@ export default {
         continue: 'Continuar',
         firstName: 'Primer nombre',
         lastName: 'Apellido',
+        phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
         email: 'Email',
         and: 'y',
@@ -77,6 +78,9 @@ export default {
         },
         please: 'Por favor',
         contactUs: 'contáctenos',
+        pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
+        fixTheErrors: 'corrige los errores',
+        inTheFormBeforeContinuing: 'en el formulario antes de continuar',
         confirm: 'Confirmar',
         reset: 'Restablecer',
         done: 'Listo',
@@ -368,7 +372,6 @@ export default {
         },
     },
     loginForm: {
-        pleaseEnterEmailOrPhoneNumber: 'Por favor escribe un email o número de teléfono',
         phoneOrEmail: 'Número de teléfono o email',
         error: {
             invalidFormatLogin: 'El email o número de teléfono que has introducido no es válido. Corrígelo e inténtalo de nuevo.',
@@ -376,8 +379,10 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: ({loginType}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${loginType}.`,
+        weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
         resendLink: 'Reenviar enlace',
+        unvalidatedAccount: 'Esta cuenta existe pero no está validada, por favor busca el enlace mágico en tu bandeja de entrada',
+        newAccount: ({login, loginType}) => `¡Bienvenido ${login}, es genial ver una cara nueva por aquí! En tu ${loginType} encontrarás un enlace para validar tu cuenta, por favor, revísalo`,
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -441,8 +446,6 @@ export default {
             firstName: 'Ingresa un nombre válido',
             lastName: 'Ingresa un apellido válido',
             noDefaultDepositAccountOrDebitCardAvailable: 'Por favor agrega una cuenta bancaria para depósitos o una tarjeta de débito',
-            fixTheErrors: 'corrige los errores',
-            inTheFormBeforeContinuing: 'en el formulario antes de continuar',
             validationAmounts: 'Los montos de validación que ingresaste son incorrectos. Verifica tu cuenta de banco e intenta de nuevo.',
         },
     },
@@ -631,7 +634,7 @@ export default {
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
-            removeMembersPrompt: '¿Estás seguro que quieres eliminar a las personas seleccionadas de tu espacio de trabajo?',
+            removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
         },
@@ -646,8 +649,8 @@ export default {
             cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
         invite: {
-            invitePeople: 'Invitar a la gente',
-            invitePeoplePrompt: 'Invita a tus compañeros a tu espacio de trabajo.',
+            invitePeople: 'Invitar nuevos miembros',
+            invitePeoplePrompt: 'Invita nuevos miembros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             enterEmailOrPhone: 'Correos electrónicos o números de teléfono',
             EmailOrPhonePlaceholder: 'Introduce una lista de correos electrónicos o números de teléfono separado por comas',
