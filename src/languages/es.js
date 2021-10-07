@@ -26,6 +26,7 @@ export default {
         continue: 'Continuar',
         firstName: 'Primer nombre',
         lastName: 'Apellido',
+        phone: 'teléfono',
         phoneNumber: 'Número de teléfono',
         email: 'Email',
         and: 'y',
@@ -376,8 +377,10 @@ export default {
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: ({loginType}) => `Hemos enviado un enlace mágico de inicio de sesión a tu ${loginType}.`,
+        weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
         resendLink: 'Reenviar enlace',
+        unvalidatedAccount: 'Esta cuenta existe pero no está validada, por favor busca el enlace mágico en tu bandeja de entrada',
+        newAccount: ({login, loginType}) => `¡Bienvenido ${login}, es genial ver una cara nueva por aquí! En tu ${loginType} encontrarás un enlace para validar tu cuenta, por favor, revísalo`,
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -414,7 +417,7 @@ export default {
         checkHelpLine: 'Su número de ruta y número de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
         validateAccountError: 'Para terminar de configurar tu cuenta bancaria, debes validar tu cuenta de Expensify. Por favor revisa tu correo electrónico para validar tu cuenta y regresa aquí para continuar.',
         hasPhoneLoginError: 'Para agregar una cuenta bancaria verificada, asegúrate de que tu nombre de usuario principal sea un correo electrónico válido y vuelve a intentarlo. Puedes agregar tu número de teléfono como nombre de usuario secundario.',
-        hasBeenThrottledError: ({fromNow}) => `Por razones de seguridad, nos tomamos un descanso en la configuración de la cuenta bancaria para que pueda verificar la información de su empresa. Inténtalo de nuevo ${fromNow}. ¡Lo siento!`,
+        hasBeenThrottledError: 'Se produjo un error al intentar agregar tu cuenta bancaria. Por favor, espera unos minutos e inténtalo de nuevo.',
         buttonConfirm: 'OK',
         error: {
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
@@ -570,7 +573,7 @@ export default {
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
-        companyPhonePlaceholder: '10 dígitos, sin guiones',
+        companyPhonePlaceholder: '(prefijo) + (número)',
     },
     requestorStep: {
         headerTitle: 'Información personal',
@@ -631,7 +634,7 @@ export default {
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un usuario del espacio de trabajo. Por favor inténtalo más tarde.',
-            removeMembersPrompt: '¿Estás seguro que quieres eliminar a las personas seleccionadas de tu espacio de trabajo?',
+            removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
         },
@@ -646,8 +649,8 @@ export default {
             cardReadyTagline: 'Tus tarjetas Expensify están listas para usar!',
         },
         invite: {
-            invitePeople: 'Invitar a la gente',
-            invitePeoplePrompt: 'Invita a tus compañeros a tu espacio de trabajo.',
+            invitePeople: 'Invitar nuevos miembros',
+            invitePeoplePrompt: 'Invita nuevos miembros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             enterEmailOrPhone: 'Correos electrónicos o números de teléfono',
             EmailOrPhonePlaceholder: 'Introduce una lista de correos electrónicos o números de teléfono separado por comas',

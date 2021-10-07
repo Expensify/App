@@ -24,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled, isValidURL,
+    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled, isValidPhoneWithSpecialChars, isValidURL,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -145,6 +145,10 @@ class CompanyStep extends React.Component {
             errors.incorporationDate = true;
         }
 
+        if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+            errors.companyPhone = true;
+        }
+
         _.each(this.requiredFields, (inputKey) => {
             if (!isRequiredFulfilled(this.state[inputKey])) {
                 errors[inputKey] = true;
@@ -218,10 +222,11 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('common.zip')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
                         value={this.state.addressZipCode}
                         errorText={this.getErrorText('addressZipCode')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
@@ -231,6 +236,8 @@ class CompanyStep extends React.Component {
                         value={this.state.companyPhone}
                         placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
+                        maxLength={CONST.PHONE_MAX_LENGTH}
+
                     />
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.companyWebsite')}
@@ -242,12 +249,13 @@ class CompanyStep extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.taxIDNumber')}
                         containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                         onChangeText={value => this.clearErrorAndSetValue('companyTaxID', value)}
                         value={this.state.companyTaxID}
                         disabled={shouldDisableCompanyTaxID}
                         placeholder={this.props.translate('companyStep.taxIDNumberPlaceholder')}
                         errorText={this.getErrorText('companyTaxID')}
+                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.TAX_ID_NUMBER}
                     />
                     <View style={styles.mt4}>
                         <ExpensiPicker

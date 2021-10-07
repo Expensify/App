@@ -110,10 +110,11 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                 value={ssnLast4}
                 onChangeText={value => onFieldChange('ssnLast4', value)}
                 errorText={errors.ssnLast4 ? translate('bankAccount.error.ssnLast4') : ''}
+                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             <ExpensiTextInput
                 label={translate('common.personalAddress')}
@@ -145,10 +146,11 @@ const IdentityForm = ({
             <ExpensiTextInput
                 label={translate('common.zip')}
                 containerStyles={[styles.mt4]}
-                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                 value={zipCode}
                 onChangeText={value => onFieldChange('zipCode', value)}
                 errorText={errors.zipCode ? translate('bankAccount.error.zipCode') : ''}
+                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
             />
         </View>
     );

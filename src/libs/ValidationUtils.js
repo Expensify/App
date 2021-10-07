@@ -46,6 +46,10 @@ function isValidAddress(value) {
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
+    if (!date) {
+        return false;
+    }
+
     const pastDate = moment().subtract(1000, 'years');
     const futureDate = moment().add(1000, 'years');
     const testDate = moment(date);
@@ -146,6 +150,14 @@ function meetsAgeRequirements(date) {
 
 /**
  *
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidPhoneWithSpecialChars(phoneNumber) {
+    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH;
+}
+
+/**
  * @param {String} url
  * @returns {Boolean}
  */
@@ -158,17 +170,19 @@ function isValidURL(url) {
  * @returns {Object}
  */
 function validateIdentity(identity) {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
     const errors = {};
+
+    // Check that all required fields are filled
+    _.each(requiredFields, (fieldName) => {
+        if (isRequiredFulfilled(identity[fieldName])) {
+            return;
+        }
+        errors[fieldName] = true;
+    });
+
     if (!isValidAddress(identity.street)) {
         errors.street = true;
-    }
-
-    if (!isRequiredFulfilled(identity.state)) {
-        errors.state = true;
-    }
-
-    if (!isRequiredFulfilled(identity.city)) {
-        errors.city = true;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
@@ -208,6 +222,7 @@ export {
     isValidIndustryCode,
     isValidZipCode,
     isRequiredFulfilled,
+    isValidPhoneWithSpecialChars,
     isValidUSPhone,
     isValidURL,
     validateIdentity,
