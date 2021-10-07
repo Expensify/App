@@ -3,12 +3,12 @@ import {View, Text, Linking} from 'react-native';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
-    Bank,
+    Concierge,
     ExpensifyCard,
     NewWindow,
     Info,
 } from '../../../components/Icon/Expensicons';
+import {RocketOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import compose from '../../../libs/compose';
 import {openSignedInLink} from '../../../libs/actions/App';
@@ -21,7 +21,7 @@ const WorkspaceTravelVBAView = ({translate}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.travel.packYourBags')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={RocketOrange}
             menuItems={[
                 {
                     title: translate('workspace.common.issueAndManageCards'),
@@ -33,7 +33,7 @@ const WorkspaceTravelVBAView = ({translate}) => (
                 {
                     title: translate('workspace.travel.bookTravelWithConcierge'),
                     onPress: () => console.log('TODO: link to the concierge chat'),
-                    icon: Bank, // TODO: use the concierge bell icon
+                    icon: Concierge,
                     shouldShowRightIcon: true,
                 },
                 {
