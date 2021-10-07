@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, Linking} from 'react-native';
+import {View, Linking} from 'react-native';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
