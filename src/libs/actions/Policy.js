@@ -30,6 +30,7 @@ Onyx.connect({
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
+ * @param {String} fullPolicy.outputCurrency
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicy) {
@@ -38,6 +39,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
+        outputCurrency: fullPolicy.outputCurrency,
     };
 }
 
@@ -105,6 +107,7 @@ function getPolicyList() {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {
                         employeeList: getSimplifiedEmployeeList(policy.value.employeeList),
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
+                        outputCurrency: policy.value.outputCurrency,
                     },
                 }), {});
                 updateAllPolicies(policyDataToStore);
@@ -236,6 +239,7 @@ function create(name = '') {
                 type: response.policy.type,
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: response.policy.outputCurrency,
             });
         }).then(() => {
             Navigation.dismissModal();
@@ -274,6 +278,7 @@ function update(policyID, values) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
                 return;
             }
 
@@ -281,6 +286,7 @@ function update(policyID, values) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
             Navigation.dismissModal();
         }).catch(() => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });

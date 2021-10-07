@@ -711,6 +711,9 @@ export default {
         editor: {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
+            nameIsRequiredError: 'You need to define a name for your workspace',
+            currencyInputLabel: 'Default Currency',
+            currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',

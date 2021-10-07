@@ -18,6 +18,9 @@ const propTypes = {
 
     /** Error text to display */
     errorText: PropTypes.string,
+
+    /** Styles of the picker */
+    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
 };
 
 const defaultProps = {
@@ -25,6 +28,7 @@ const defaultProps = {
     isDisabled: false,
     hasError: false,
     errorText: '',
+    style: [],
 };
 
 class ExpensiPicker extends PureComponent {
@@ -37,7 +41,7 @@ class ExpensiPicker extends PureComponent {
 
     render() {
         const {
-            label, isDisabled, ...pickerProps
+            label, isDisabled, style, ...pickerProps
         } = this.props;
         return (
             <>
@@ -47,6 +51,7 @@ class ExpensiPicker extends PureComponent {
                         this.state.isOpen && styles.borderColorFocus,
                         isDisabled && styles.inputDisabled,
                         this.props.hasError && styles.borderColorDanger,
+                        style,
                     ]}
                 >
                     {label && (

@@ -711,6 +711,9 @@ export default {
         editor: {
             nameInputLabel: 'Nombre',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
+            nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
+            currencyInputLabel: 'Moneda por defecto',
+            currencyInputHelpText: 'Todas los gastos en este epecio de trabajo serán convertidos a esta moneda.',
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
