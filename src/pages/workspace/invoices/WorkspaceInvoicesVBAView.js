@@ -20,31 +20,29 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesVBAView = ({translate, policyID}) => {
-    return (
-        <>
-            <WorkspaceInvoicesFirstSection policyID={policyID} />
+const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
+    <>
+        <WorkspaceInvoicesFirstSection policyID={policyID} />
 
-            <WorkspaceSection
-                title={translate('workspace.invoices.moneyBackInAFlash')}
-                icon={Apple} // TODO: Replace this with the proper icon
-                menuItems={[
-                    {
-                        title: translate('workspace.invoices.viewUnpaidInvoices'),
-                        onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":false,"Processing":true,"Approved":false,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
-                        icon: Bank, // TODO: Use the icon that's a circle with an hourglass in it
-                        shouldShowRightIcon: true,
-                        iconRight: NewWindow,
-                    },
-                ]}
-            >
-                <View style={[styles.mv4]}>
-                    <Text>{translate('workspace.invoices.unlockVBACopy')}</Text>
-                </View>
-            </WorkspaceSection>
-        </>
-    );
-};
+        <WorkspaceSection
+            title={translate('workspace.invoices.moneyBackInAFlash')}
+            icon={Apple} // TODO: Replace this with the proper icon
+            menuItems={[
+                {
+                    title: translate('workspace.invoices.viewUnpaidInvoices'),
+                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":false,"Processing":true,"Approved":false,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
+                    icon: Bank, // TODO: Use the icon that's a circle with an hourglass in it
+                    shouldShowRightIcon: true,
+                    iconRight: NewWindow,
+                },
+            ]}
+        >
+            <View style={[styles.mv4]}>
+                <Text>{translate('workspace.invoices.unlockVBACopy')}</Text>
+            </View>
+        </WorkspaceSection>
+    </>
+);
 
 WorkspaceInvoicesVBAView.propTypes = propTypes;
 WorkspaceInvoicesVBAView.displayName = 'WorkspaceInvoicesVBAView';

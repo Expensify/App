@@ -19,39 +19,37 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesFirstSection = ({translate, policyID}) => {
-    return (
-        <>
-            <WorkspaceSection
-                title={translate('workspace.invoices.invoiceClientsAndCustomers')}
-                icon={Apple} // TODO: Replace this with the proper icon
-                menuItems={[
-                    {
-                        title: translate('workspace.common.invoices'),
-                        onPress: () => openSignedInLink('reports?param={"createInvoice":true}'),
-                        icon: Send,
-                        shouldShowRightIcon: true,
-                        iconRight: NewWindow,
-                    },
-                    {
-                        title: translate('workspace.invoices.viewAllInvoices'),
-                        // eslint-disable-next-line max-len
-                        onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
-                        icon: Send, // TODO: Replace with the proper invoice icon (envelope with up arrow)
-                        shouldShowRightIcon: true,
-                        iconRight: NewWindow,
-                    },
-                ]}
-            >
-                <View style={[styles.mv4]}>
-                    <Text>
-                        {translate('workspace.invoices.invoiceFirstSectionCopy')}
-                    </Text>
-                </View>
-            </WorkspaceSection>
-        </>
-    );
-};
+const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
+    <>
+        <WorkspaceSection
+            title={translate('workspace.invoices.invoiceClientsAndCustomers')}
+            icon={Apple} // TODO: Replace this with the proper icon
+            menuItems={[
+                {
+                    title: translate('workspace.common.invoices'),
+                    onPress: () => openSignedInLink('reports?param={"createInvoice":true}'),
+                    icon: Send,
+                    shouldShowRightIcon: true,
+                    iconRight: NewWindow,
+                },
+                {
+                    title: translate('workspace.invoices.viewAllInvoices'),
+                    // eslint-disable-next-line max-len
+                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                    icon: Send, // TODO: Replace with the proper invoice icon (envelope with up arrow)
+                    shouldShowRightIcon: true,
+                    iconRight: NewWindow,
+                },
+            ]}
+        >
+            <View style={[styles.mv4]}>
+                <Text>
+                    {translate('workspace.invoices.invoiceFirstSectionCopy')}
+                </Text>
+            </View>
+        </WorkspaceSection>
+    </>
+);
 
 WorkspaceInvoicesFirstSection.propTypes = propTypes;
 WorkspaceInvoicesFirstSection.displayName = 'WorkspaceInvoicesFirstSection';

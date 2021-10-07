@@ -9,8 +9,8 @@ import {
     NewWindow,
 } from '../../../components/Icon/Expensicons';
 import WorkspaceSection from '../WorkspaceSection';
-import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import {openSignedInLink} from '../../../libs/actions/App';
+import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -21,31 +21,7 @@ const propTypes = {
 
 const WorkspaceBillsVBAView = ({translate, policyID}) => (
     <>
-        <WorkspaceSection
-            title={translate('workspace.bills.manageYourBills')}
-            icon={Apple} // TODO: Replace this with the proper icon
-            menuItems={[
-                {
-                    title: translate('workspace.bills.viewAllBills'),
-                    // eslint-disable-next-line max-len
-                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
-                    icon: Receipt, // TODO: use the bill icon once it's added to this repo
-                    shouldShowRightIcon: true,
-                    iconRight: NewWindow,
-                },
-            ]}
-        >
-            <View style={[styles.mv4]}>
-                <Text>
-                    {translate('workspace.bills.askYourVendorsBeforeEmail')}
-                    <CopyTextToClipboard
-                        text="your.domain@expensify.com"
-                        textStyles={[styles.textBlue]}
-                    />
-                    <Text>{translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
-                </Text>
-            </View>
-        </WorkspaceSection>
+        <WorkspaceBillsFirstSection policyID={policyID} />
 
         <WorkspaceSection
             title={translate('workspace.bills.hassleFreeBills')}

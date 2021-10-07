@@ -21,31 +21,29 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsNoVBAView = ({translate, policyID}) => {
-    return (
-        <>
-            <WorkspaceInvoicesFirstSection policyID={policyID} />
+const WorkspaceBillsNoVBAView = ({translate, policyID}) => (
+    <>
+        <WorkspaceInvoicesFirstSection policyID={policyID} />
 
-            <WorkspaceSection
-                title={translate('workspace.invoices.unlockOnlineInvoicesCollection')}
-                icon={Apple} // TODO: Replace this with the proper icon
-                menuItems={[
-                    {
-                        title: translate('workspace.common.bankAccount'),
-                        onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
-                        icon: Bank,
-                        shouldShowRightIcon: true,
-                        iconRight: ArrowRight,
-                    },
-                ]}
-            >
-                <View style={[styles.mv4]}>
-                    <Text>{translate('workspace.invoices.unlockNoVBACopy')}</Text>
-                </View>
-            </WorkspaceSection>
-        </>
-    );
-};
+        <WorkspaceSection
+            title={translate('workspace.invoices.unlockOnlineInvoicesCollection')}
+            icon={Apple} // TODO: Replace this with the proper icon
+            menuItems={[
+                {
+                    title: translate('workspace.common.bankAccount'),
+                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
+                    icon: Bank,
+                    shouldShowRightIcon: true,
+                    iconRight: ArrowRight,
+                },
+            ]}
+        >
+            <View style={[styles.mv4]}>
+                <Text>{translate('workspace.invoices.unlockNoVBACopy')}</Text>
+            </View>
+        </WorkspaceSection>
+    </>
+);
 
 WorkspaceBillsNoVBAView.propTypes = propTypes;
 WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
