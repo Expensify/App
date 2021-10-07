@@ -10,7 +10,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {ChatBubble} from '../../components/Icon/Expensicons';
+import {Bell, ChatBubble} from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
@@ -18,6 +18,7 @@ import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndica
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
+import Icon from '../../components/Icon';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -77,7 +78,7 @@ class EnableStep extends React.Component {
                         <Text style={[styles.textLarge, styles.textStrong]}>
                             {!isUsingExpensifyCard ? translate('workspace.bankAccount.oneMoreThing') : translate('workspace.bankAccount.allSet')}
                         </Text>
-                        <Image src={confettiPop} height={80} width={80} />
+                        {!isUsingExpensifyCard ? <Icon src={Bell} width={80} height={80} /> : <Image src={confettiPop} height={80} width={80} />}
                     </View>
                     <MenuItem
                         title={bankName}
