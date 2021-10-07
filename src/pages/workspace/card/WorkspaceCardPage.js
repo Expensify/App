@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import WorkspaceCardNoVBAView from './WorkspaceCardNoVBAView';
 import WorkspaceCardVBANoECardView from './WorkspaceCardVBANoECardView';
@@ -45,6 +44,4 @@ const WorkspaceCardPage = ({translate, route}) => (
 
 WorkspaceCardPage.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-)(WorkspaceCardPage);
+export default withLocalize(WorkspaceCardPage);

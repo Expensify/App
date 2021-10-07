@@ -1,7 +1,8 @@
 import React from 'react';
 import _ from 'underscore';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Text from './Text';
 import styles from '../styles/styles';
 
 const propTypes = {

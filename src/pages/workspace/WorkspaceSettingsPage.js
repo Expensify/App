@@ -12,9 +12,7 @@ import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
-import {
-    uploadAvatar, update, updateLocalPolicyValues,
-} from '../../libs/actions/Policy';
+import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
 import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
@@ -26,6 +24,7 @@ import {getCurrencyList} from '../../libs/actions/PersonalDetails';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
     /** List of betas */
@@ -64,30 +63,14 @@ class WorkspaceSettingsPage extends React.Component {
         };
 
         this.submit = this.submit.bind(this);
-        this.onImageSelected = this.onImageSelected.bind(this);
-        this.onImageRemoved = this.onImageRemoved.bind(this);
+        this.uploadAvatar = this.uploadAvatar.bind(this);
+        this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.uploadAvatarPromise = Promise.resolve();
     }
 
     componentDidMount() {
         getCurrencyList();
-    }
-
-    onImageSelected(image) {
-        updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
-        this.setState({previewAvatarURL: image.uri});
-
-        // Store the upload avatar promise so we can wait for it to finish before updating the policy
-        this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
-            this.setState({avatarURL: url}, resolve);
-        })).catch(() => {
-            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
-        }).finally(() => updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
-    }
-
-    onImageRemoved() {
-        this.setState({previewAvatarURL: '', avatarURL: ''});
     }
 
     /**
@@ -101,8 +84,28 @@ class WorkspaceSettingsPage extends React.Component {
         }));
     }
 
+    removeAvatar() {
+        this.setState({previewAvatarURL: '', avatarURL: ''});
+    }
+
+    /**
+     * @param {Object} image
+     * @param {String} image.uri
+     */
+    uploadAvatar(image) {
+        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
+        this.setState({previewAvatarURL: image.uri});
+
+        // Store the upload avatar promise so we can wait for it to finish before updating the policy
+        this.uploadAvatarPromise = Policy.uploadAvatar(image).then(url => new Promise((resolve) => {
+            this.setState({avatarURL: url}, resolve);
+        })).catch(() => {
+            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
+        }).finally(() => Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
+    }
+
     submit() {
-        updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
+        Policy.updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
 
         // Wait for the upload avatar promise to finish before updating the policy
         this.uploadAvatarPromise.then(() => {
@@ -111,9 +114,9 @@ class WorkspaceSettingsPage extends React.Component {
             const policyID = this.props.policy.id;
             const currency = this.state.currency;
 
-            update(policyID, {name, avatarURL, outputCurrency: currency});
+            Policy.update(policyID, {name, avatarURL, outputCurrency: currency});
         }).catch(() => {
-            updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
+            Policy.updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
         });
     }
 
@@ -126,7 +129,7 @@ class WorkspaceSettingsPage extends React.Component {
         }
 
         if (_.isEmpty(policy)) {
-            return null;
+            return <FullScreenLoadingIndicator visible />;
         }
 
         return (
@@ -153,8 +156,8 @@ class WorkspaceSettingsPage extends React.Component {
                                     style={[styles.mb3]}
                                     anchorPosition={{top: 172, right: 18}}
                                     isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                                    onImageSelected={this.onImageSelected}
-                                    onImageRemoved={this.onImageRemoved}
+                                    uploadAvatar={this.uploadAvatar}
+                                    onImageRemoved={this.removeAvatar}
                                 />
 
                                 <ExpensiTextInput

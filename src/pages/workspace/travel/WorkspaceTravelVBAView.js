@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, Linking} from 'react-native';
+import {View, Linking} from 'react-native';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
@@ -10,7 +11,6 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {RocketOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import compose from '../../../libs/compose';
 import {openSignedInLink} from '../../../libs/actions/App';
 import {navigateToConciergeChat} from '../../../libs/actions/Report';
 
@@ -56,6 +56,4 @@ const WorkspaceTravelVBAView = ({translate}) => (
 WorkspaceTravelVBAView.propTypes = propTypes;
 WorkspaceTravelVBAView.displayName = 'WorkspaceTravelVBAView';
 
-export default compose(
-    withLocalize,
-)(WorkspaceTravelVBAView);
+export default withLocalize(WorkspaceTravelVBAView);

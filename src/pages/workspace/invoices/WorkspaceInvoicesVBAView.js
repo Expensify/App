@@ -1,6 +1,7 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
@@ -9,7 +10,6 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import compose from '../../../libs/compose';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
 import {openSignedInLink} from '../../../libs/actions/App';
 
@@ -48,6 +48,4 @@ const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
 WorkspaceInvoicesVBAView.propTypes = propTypes;
 WorkspaceInvoicesVBAView.displayName = 'WorkspaceInvoicesVBAView';
 
-export default compose(
-    withLocalize,
-)(WorkspaceInvoicesVBAView);
+export default withLocalize(WorkspaceInvoicesVBAView);

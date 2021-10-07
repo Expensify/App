@@ -218,7 +218,7 @@ class WorkspaceMembersPage extends React.Component {
             .filter()
             .sortBy(person => person.displayName.toLowerCase())
             .value();
-        const policyID = _.get(this.props.route, ['params', 'policyID']);
+        const policyID = lodashGet(this.props.route, 'params.policyID');
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>

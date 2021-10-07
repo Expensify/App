@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
@@ -31,7 +32,7 @@ const WorkspaceCardVBAWithECardView = ({translate}) => (
                 },
                 {
                     title: translate('workspace.common.reconcileCards'),
-                    onPress: () => openSignedInLink('settings?param={"section":"account","openModal":"secondaryLogin"})'),
+                    onPress: () => openSignedInLink('domain_companycards?param={"section":"cardReconciliation"}'),
                     icon: ReceiptSearch,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,

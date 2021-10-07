@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import WorkspaceTravelNoVBAView from './WorkspaceTravelNoVBAView';
@@ -39,6 +38,4 @@ const WorkspaceTravelPage = ({translate, route}) => (
 WorkspaceTravelPage.propTypes = propTypes;
 WorkspaceTravelPage.displayName = 'WorkspaceTravelPage';
 
-export default compose(
-    withLocalize,
-)(WorkspaceTravelPage);
+export default withLocalize(WorkspaceTravelPage);

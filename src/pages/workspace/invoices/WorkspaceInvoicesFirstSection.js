@@ -1,6 +1,7 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
@@ -11,7 +12,6 @@ import {
 import {MoneyEnvelopeBlue} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import {openSignedInLink} from '../../../libs/actions/App';
-import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -55,6 +55,4 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
 WorkspaceInvoicesFirstSection.propTypes = propTypes;
 WorkspaceInvoicesFirstSection.displayName = 'WorkspaceInvoicesFirstSection';
 
-export default compose(
-    withLocalize,
-)(WorkspaceInvoicesFirstSection);
+export default withLocalize(WorkspaceInvoicesFirstSection);

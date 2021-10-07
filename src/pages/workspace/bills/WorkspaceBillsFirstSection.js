@@ -1,13 +1,13 @@
 import React from 'react';
 import {
     View,
-    Text,
     TouchableOpacity,
     Linking,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
@@ -39,7 +39,7 @@ const propTypes = {
     user: userPropTypes.isRequired,
 };
 
-const WorkspaceBillsNoVBAView = ({
+const WorkspaceBillsFirstSection = ({
     translate,
     policyID,
     session,
@@ -85,8 +85,8 @@ const WorkspaceBillsNoVBAView = ({
     );
 };
 
-WorkspaceBillsNoVBAView.propTypes = propTypes;
-WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
+WorkspaceBillsFirstSection.propTypes = propTypes;
+WorkspaceBillsFirstSection.displayName = 'WorkspaceBillsFirstSection';
 
 export default compose(
     withLocalize,
@@ -98,4 +98,4 @@ export default compose(
             key: ONYXKEYS.USER,
         },
     }),
-)(WorkspaceBillsNoVBAView);
+)(WorkspaceBillsFirstSection);

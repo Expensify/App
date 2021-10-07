@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
+import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
