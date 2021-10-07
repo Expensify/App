@@ -633,7 +633,6 @@ export default {
             travel: 'Reservar viaje',
             members: 'Gestionar miembros',
             bankAccount: 'Conectar cuenta bancaria',
-            addWorkEmailAddress: 'Añadir correo de trabajo',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
         },
@@ -649,14 +648,6 @@ export default {
             selectAll: 'Seleccionar todo',
         },
         card: {
-            addEmail: 'Agregar correo electrónico',
-            tagline: 'La tarjeta corporativa más inteligente de la habitación.',
-            publicCopy: 'Para utilizar la Tarjeta Expensify debe utilizar el dominio privado de su empresa. Continúe y agregue su dirección de correo electrónico privada como inicio de sesión secundario.',
-            privateCopy: 'Simplemente deslice su Tarjeta Expensify y sus gastos estarán listos, ¡es así de simple!',
-            getStarted: 'Empezar',
-            finishSetup: 'Finalizar configuración',
-            manageCards: 'Administrar tarjetas',
-            cardReadyTagline: '¡Tus tarjetas Expensify están listas para usar!',
             header: 'Desbloquea Tarjetas Expensify gratis',
             headerWithEcard: '¡Tus tarjetas están listas!',
             noVBACopy: 'Conecta una cuenta bancaria para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
@@ -723,9 +714,6 @@ export default {
             save: 'Guardar',
             genericFailureMessage: 'Se produjo un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
-        },
-        error: {
-            growlMessageInvalidPolicy: '¡Espacio de trabajo no válido!',
         },
     },
     requestCallPage: {

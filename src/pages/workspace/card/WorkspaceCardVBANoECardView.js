@@ -2,11 +2,11 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {Briefcase, NewWindow} from '../../../components/Icon/Expensicons';
+import {Concierge, NewWindow} from '../../../components/Icon/Expensicons';
 import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import {openSignedInLink} from '../../../libs/actions/App';
 import WorkspaceSection from '../WorkspaceSection';
+import {navigateToConciergeChat} from '../../../libs/actions/Report';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -19,11 +19,10 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
             icon={JewelBoxBlue}
             menuItems={[
                 {
-                    title: translate('workspace.common.addWorkEmailAddress'),
-                    onPress: () => openSignedInLink('settings?param={"section":"account","openModal":"secondaryLogin"})'),
-                    icon: Briefcase,
+                    title: translate('workspace.card.chatWithConcierge'),
+                    onPress: () => navigateToConciergeChat(),
+                    icon: Concierge,
                     shouldShowRightIcon: true,
-                    iconRight: NewWindow,
                 },
             ]}
         >
@@ -39,6 +38,10 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
                     translate('workspace.card.benefit4'),
                 ]}
             />
+
+            <View style={[styles.mv4]}>
+                <Text>{translate('workspace.card.conciergeCanHelp')}</Text>
+            </View>
         </WorkspaceSection>
     </>
 );
