@@ -277,6 +277,7 @@ function update(policyID, values) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
                 return;
             }
 
@@ -284,6 +285,7 @@ function update(policyID, values) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
             Navigation.dismissModal();
         }).catch(() => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });

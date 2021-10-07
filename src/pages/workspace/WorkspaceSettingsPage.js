@@ -16,7 +16,7 @@ import {
     uploadAvatar, update, updateLocalPolicyValues,
 } from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
-import {Workspace} from '../../components/Icon/Expensicons';
+import {Camera} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
@@ -30,6 +30,21 @@ import WorkspacePageWithSections from './WorkspacePageWithSections';
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Policy for the current route */
+    policy: PropTypes.shape({
+        /** ID of the policy */
+        id: PropTypes.string,
+
+        /** Name of the policy */
+        name: PropTypes.string.isRequired,
+
+        /** Avatar of the policy */
+        avatarURL: PropTypes.string.isRequired,
+
+        /** Currency of the policy */
+        outputCurrency: PropTypes.string.isRequired,
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -76,16 +91,14 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     /**
-     *
      * @returns {Object[]}
      */
     getCurrencyItems() {
         const currencyListKeys = _.keys(this.props.currencyList);
-        const a = _.map(currencyListKeys, currencyCode => ({
+        return _.map(currencyListKeys, currencyCode => ({
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
-        return a;
     }
 
     submit() {
@@ -124,7 +137,7 @@ class WorkspaceSettingsPage extends React.Component {
                 headerText={this.props.translate('workspace.common.edit')}
                 route={this.props.route}
             >
-                {(hasVBA) => (
+                {hasVBA => (
                     <>
                         <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
                             <View style={[styles.w100, styles.flex1]}>
@@ -134,7 +147,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     size={CONST.AVATAR_SIZE.LARGE}
                                     DefaultAvatar={() => (
                                         <Icon
-                                            src={Workspace}
+                                            src={Camera}
                                             height={80}
                                             width={80}
                                             fill={defaultTheme.iconSuccessFill}
