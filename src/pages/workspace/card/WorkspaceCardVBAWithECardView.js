@@ -31,7 +31,7 @@ const WorkspaceCardVBAWithECardView = ({translate}) => (
                 },
                 {
                     title: translate('workspace.common.reconcileCards'),
-                    onPress: () => openSignedInLink('settings?param={"section":"account","openModal":"secondaryLogin"})'),
+                    onPress: () => openSignedInLink('domain_companycards?param={"section":"cardReconciliation"}'),
                     icon: ReceiptSearch,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
