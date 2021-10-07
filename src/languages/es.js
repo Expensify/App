@@ -674,7 +674,7 @@ export default {
             continueWithSetup: 'Continuar con la configuración',
             youreAlmostDone: 'Casi has acabado de configurar tu cuenta bancaria, que te permitirá emitir tarjetas corporativas, reembolsar gastos y cobrar pagar facturas, todo desde la misma cuenta bancaria.',
             streamlinePayments: 'Optimiza pagos',
-            basicallyDone: '¡Prácticamente hecho!',
+            basicallyDone: '¡Prácticamente listo!',
             allSet: '¡Todo listo!',
             accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta. Concierge puede ayudarte a añadir tu correo de trabajo para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',

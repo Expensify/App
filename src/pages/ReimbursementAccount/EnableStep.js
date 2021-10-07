@@ -10,16 +10,14 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import Icon from '../../components/Icon';
-import {Bank, ChatBubble} from '../../components/Icon/Expensicons';
-import colors from '../../styles/colors';
-import variables from '../../styles/variables';
+import {ChatBubble} from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
+import confettiPop from '../../../assets/images/confetti-pop.gif';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -54,6 +52,8 @@ class EnableStep extends React.Component {
         const isUsingExpensifyCard = user.isUsingExpensifyCard;
         const account = _.find(bankAccountList, bankAccount => bankAccount.bankAccountID === reimbursementAccount.achData.bankAccountID);
         if (!account) {
+            // This shouldn't happen as we can only end up here if we have successfully added a bank account.
+            // But in case it does we'll throw here directly so it can be caught by the error boundary.
             throw new Error('Account not found in EnableStep');
         }
 
@@ -77,7 +77,7 @@ class EnableStep extends React.Component {
                         <Text style={[styles.textLarge, styles.textStrong]}>
                             {!isUsingExpensifyCard ? translate('workspace.bankAccount.basicallyDone') : translate('workspace.bankAccount.allSet')}
                         </Text>
-                        <Icon src={Bank} fill={colors.yellow} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
+                        <Image src={confettiPop} height={80} width={80} />
                     </View>
                     <MenuItem
                         title={bankName}

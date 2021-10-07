@@ -24,7 +24,7 @@ import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import Icon from '../../components/Icon';
-import {Bank, ChatBubble} from '../../components/Icon/Expensicons';
+import {Bank, Bell, ChatBubble} from '../../components/Icon/Expensicons';
 import colors from '../../styles/colors';
 import variables from '../../styles/variables';
 import MenuItem from '../../components/MenuItem';
@@ -238,7 +238,7 @@ class ValidationStep extends React.Component {
                     <View style={[styles.flex1]}>
                         <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                             <Text style={[styles.textLarge, styles.textStrong]}>{this.props.translate('workspace.bankAccount.letsFinishInChat')}</Text>
-                            <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
+                            <Icon src={Bell} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
                         </View>
                         <Text style={[styles.mh5, styles.mb5]}>
                             {this.props.translate('validationStep.letsChatText')}

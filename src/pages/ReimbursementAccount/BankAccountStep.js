@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import {
-    Paycheck, Bank, Lock, Exclamation,
+    Paycheck, Bank, Lock, Exclamation, BankMouse,
 } from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
@@ -186,7 +186,7 @@ class BankAccountStep extends React.Component {
                         <View style={[styles.flex1]}>
                             <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                                 <Text style={[styles.textLarge, styles.textStrong]}>{this.props.translate('workspace.bankAccount.streamlinePayments')}</Text>
-                                <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
+                                <Icon src={BankMouse} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
                             </View>
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}

@@ -3,6 +3,9 @@ import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
+import BankArrow from '../../../assets/images/bank-arrow.svg';
+import BankMouse from '../../../assets/images/bank-mouse.svg';
+import Bell from '../../../assets/images/bell.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
 import Camera from '../../../assets/images/camera.svg';
@@ -60,6 +63,9 @@ export {
     ArrowRight,
     BackArrow,
     Bank,
+    BankArrow,
+    BankMouse,
+    Bell,
     Building,
     Bug,
     Camera,
