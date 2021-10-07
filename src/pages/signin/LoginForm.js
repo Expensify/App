@@ -44,12 +44,25 @@ class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
+        this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
             formError: false,
             login: '',
         };
+    }
+
+    /**
+     * Handle text input and clear formError upon text change
+     *
+     * @param {String} text
+     */
+    onTextInput(text) {
+        this.setState({
+            login: text,
+            formError: null,
+        });
     }
 
     /**
@@ -83,7 +96,7 @@ class LoginForm extends React.Component {
                         value={this.state.login}
                         autoCompleteType="email"
                         textContentType="username"
-                        onChangeText={text => this.setState({login: text})}
+                        onChangeText={this.onTextInput}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
