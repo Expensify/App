@@ -85,6 +85,7 @@ class EnableStep extends React.Component {
                         icon={icon}
                         iconWidth={iconSize}
                         iconHeight={iconSize}
+                        onPress={() => {}}
                     />
                     <Text style={[styles.mh5, styles.mb5]}>
                         {!isUsingExpensifyCard
