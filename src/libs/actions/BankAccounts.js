@@ -64,7 +64,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
         delete newACHData.questions;
         delete newACHData.answers;
-        if (lodashHas(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
+        if (lodashHas(newACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
             delete newACHData.verifications.externalApiResponses.requestorIdentityID;
             delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
         }
@@ -383,6 +383,10 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     // If the user is already setting up a bank account we will continue the flow for them
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
+                    if (achData.currentStep) {
+                        currentStep = achData.currentStep;
+                    }
+
                     achData.useOnfido = true;
                     achData.policyID = reimbursementAccountWorkspaceID || '';
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
