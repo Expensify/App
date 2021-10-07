@@ -28,48 +28,86 @@ const defaultProps = {
     },
 };
 
-/**
- * We need to pop this page before we redirect or else when we goBack() we'll get a white screen
- */
-function popAndNavigateToBankAccountRoute() {
-    Navigation.pop();
-    Navigation.navigate(ROUTES.getBankAccountRoute());
-}
-
-const WorkspaceBankAccountPage = (props) => {
-    // If we have an open bank account or no bank account at all then we will immediately redirect the user to /bank-account to display the next step
-    const state = lodashGet(props.reimbursementAccount, 'achData.state');
-    if (!lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || state === BankAccount.STATE.OPEN) {
-        popAndNavigateToBankAccountRoute();
-        return null;
+class WorkspaceBankAccountPage extends React.Component {
+    constructor(props) {
+        super(props);
+        this.onScreenFocus = this.onScreenFocus.bind(this);
+        this.getShouldShowPage = this.getShouldShowPage.bind(this);
+        this.navigateToBankAccountRoute = this.navigateToBankAccountRoute.bind(this);
     }
 
-    // Otherwise we should an interstitial page that let's them continue progress
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate('workspace.common.bankAccount')}
-                onCloseButtonPress={Navigation.dismissModal}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(props.route.params.policyID))}
-                shouldShowBackButton
-            />
-            <WorkspaceSection
-                title={props.translate('workspace.bankAccount.almostDone')}
-                icon={BankArrowPink}
-                menuItems={[{
-                    title: props.translate('workspace.bankAccount.continueWithSetup'),
-                    icon: Bank,
-                    onPress: popAndNavigateToBankAccountRoute,
-                    shouldShowRightIcon: true,
-                }]}
-            >
-                <Text>
-                    {props.translate('workspace.bankAccount.youreAlmostDone')}
-                </Text>
-            </WorkspaceSection>
-        </ScreenWrapper>
-    );
-};
+    componentDidMount() {
+        this.unsubscribe = this.props.navigation.addListener('focus', this.onScreenFocus);
+    }
+
+    componentWillUnmount() {
+        if (!this.unsubscribe) {
+            return;
+        }
+
+        this.unsubscribe();
+    }
+
+    /**
+     * When we are returning to this screen we want to check if we should go back or show the alternate view with "Continue with setup" button.
+     */
+    onScreenFocus() {
+        if (this.getShouldShowPage()) {
+            return;
+        }
+
+        this.props.navigation.goBack();
+    }
+
+    /**
+     * If we have an open bank account or no bank account at all then we will immediately redirect the user to /bank-account to display the next step
+     *
+     * @returns {Boolean}
+     */
+    getShouldShowPage() {
+        const state = lodashGet(this.props.reimbursementAccount, 'achData.state');
+        return lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') && state !== BankAccount.STATE.OPEN;
+    }
+
+    /**
+     * Navigate to the bank account route
+     */
+    navigateToBankAccountRoute() {
+        Navigation.navigate(ROUTES.getBankAccountRoute());
+    }
+
+    render() {
+        if (!this.getShouldShowPage()) {
+            this.navigateToBankAccountRoute();
+            return null;
+        }
+
+        return (
+            <ScreenWrapper>
+                <HeaderWithCloseButton
+                    title={this.props.translate('workspace.common.bankAccount')}
+                    onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                    shouldShowBackButton
+                />
+                <WorkspaceSection
+                    title={this.props.translate('workspace.bankAccount.almostDone')}
+                    icon={BankArrowPink}
+                    menuItems={[{
+                        title: this.props.translate('workspace.bankAccount.continueWithSetup'),
+                        icon: Bank,
+                        onPress: this.navigateToBankAccountRoute,
+                        shouldShowRightIcon: true,
+                    }]}
+                >
+                    <Text>
+                        {this.props.translate('workspace.bankAccount.youreAlmostDone')}
+                    </Text>
+                </WorkspaceSection>
+            </ScreenWrapper>
+        );
+    }
+}
 
 WorkspaceBankAccountPage.propTypes = propTypes;
 WorkspaceBankAccountPage.defaultProps = defaultProps;
