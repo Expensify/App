@@ -17,7 +17,10 @@ import {
     Pencil,
     Receipt,
     Users,
-    Workspace, Bill, Invoice,
+    Workspace,
+    Bill,
+    Invoice,
+    Luggage,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -93,7 +96,7 @@ const WorkspaceInitialPage = ({
         },
         {
             translationKey: 'workspace.common.travel',
-            icon: ExpensifyCard, // TODO: Use the suitcase icon
+            icon: Luggage,
             action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(policy.id)),
         },

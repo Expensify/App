@@ -38,7 +38,7 @@ const WorkspaceSection = ({
                     <Text style={[styles.textXLarge]}>{title}</Text>
                 </View>
                 <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
-                    <Icon src={icon} height={50} width={50} />
+                    <Icon src={icon} height={80} width={80} />
                 </View>
             </View>
 

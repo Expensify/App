@@ -6,6 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
+import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -14,7 +15,6 @@ import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts'
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
-
 
 const propTypes = {
     /** The text to display in the header */
@@ -60,7 +60,7 @@ class WorkspacePageWithSections extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.headerText}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={[styles.settingsPageBackground]}>
