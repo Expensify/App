@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import Picker from './Picker';
 import styles from '../styles/styles';
 import InlineErrorText from './InlineErrorText';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Picker label */
@@ -20,7 +21,7 @@ const propTypes = {
     errorText: PropTypes.string,
 
     /** Styles of the picker */
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+    style: stylePropTypes,
 };
 
 const defaultProps = {
