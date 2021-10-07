@@ -687,7 +687,14 @@ export default {
             VBACopy: 'You\'re all set to make payments from your bank account!',
         },
         invoices: {
-
+            invoiceClientsAndCustomers: 'Invoice clients and customers',
+            invoiceFirstSectionCopy: 'Send beautiful, professional invoices directly to your clients and customers right from within the Expensify app.',
+            viewAllInvoices: 'View all invoices',
+            unlockOnlineInvoicesCollection: 'Unlock online invoices collection',
+            unlockNoVBACopy: 'Connect your bank account to accept online payments for invoices - by ACH or credit card - to be deposited straight into your account.',
+            moneyBackInAFlash: 'Money back, in a flash!',
+            unlockVBACopy: 'You\'re all set to accept payments by ACH or credit card!',
+            viewUnpaidInvoices: 'View unpaid invoices',
         },
         invite: {
             invitePeople: 'Invite people',

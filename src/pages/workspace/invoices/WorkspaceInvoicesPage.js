@@ -2,9 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import WorkspaceBillsNoVBAView from '../bills/WorkspaceBillsNoVBAView';
 import WorkspaceBillsVBAView from '../bills/WorkspaceBillsVBAView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
+import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
+import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
 
 const propTypes = {
     /** The route object passed to this page from the navigator */
@@ -27,11 +28,11 @@ const WorkspaceInvoicesPage = ({translate, route}) => (
         {(hasVBA, policyID) => (
             <>
                 {!hasVBA && (
-                    <WorkspaceBillsNoVBAView policyID={policyID} />
+                    <WorkspaceInvoicesNoVBAView policyID={policyID} />
                 )}
 
                 {hasVBA && (
-                    <WorkspaceBillsVBAView policyID={policyID} />
+                    <WorkspaceInvoicesVBAView policyID={policyID} />
                 )}
             </>
         )}

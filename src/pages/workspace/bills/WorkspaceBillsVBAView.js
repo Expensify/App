@@ -28,7 +28,7 @@ const WorkspaceBillsVBAView = ({translate, policyID}) => (
                 {
                     title: translate('workspace.bills.viewAllBills'),
                     // eslint-disable-next-line max-len
-                    onPress: () => openSignedInLink(`https://www.expensify.com/reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
                     icon: Receipt, // TODO: use the bill icon once it's added to this repo
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -54,7 +54,7 @@ const WorkspaceBillsVBAView = ({translate, policyID}) => (
                 {
                     title: translate('workspace.common.bills'),
                     // eslint-disable-next-line max-len
-                    onPress: () => openSignedInLink(`https://www.expensify.com/reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":false,"Processing":true,"Approved":true,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
+                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":false,"Processing":true,"Approved":true,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
                     icon: Receipt, // TODO: Replace this with the right bills upload icon
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,

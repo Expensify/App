@@ -38,7 +38,7 @@ const WorkspaceBillsNoVBAView = ({translate, policyID, session}) => {
                     {
                         title: translate('workspace.bills.viewAllBills'),
                         // eslint-disable-next-line max-len
-                        onPress: () => openSignedInLink(`https://www.expensify.com/reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                        onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
                         icon: Receipt, // TODO: use the bill icon once it's added to this repo
                         shouldShowRightIcon: true,
                         iconRight: NewWindow,
