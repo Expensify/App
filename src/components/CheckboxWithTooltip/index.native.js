@@ -13,6 +13,12 @@ class CheckboxWithTooltip extends React.Component {
         this.onPress = this.onPress.bind(this);
     }
 
+    componentDidUpdate() {
+        if (this.props.toggleTooltip) {
+            Growl.show(this.props.text, CONST.GROWL.WARNING, 3000);
+        }
+    }
+
     /**
      * Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
      */

@@ -140,6 +140,8 @@ class WorkspacePeoplePage extends React.Component {
         } else {
             this.addUser(login);
         }
+
+        this.setState({showTooltipForLogin: ''});
     }
 
     /**
