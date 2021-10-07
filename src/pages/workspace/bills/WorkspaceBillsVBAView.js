@@ -4,10 +4,10 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
-    Receipt,
+    Bill,
     NewWindow,
 } from '../../../components/Icon/Expensicons';
+import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import {openSignedInLink} from '../../../libs/actions/App';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
@@ -25,13 +25,13 @@ const WorkspaceBillsVBAView = ({translate, policyID}) => (
 
         <WorkspaceSection
             title={translate('workspace.bills.hassleFreeBills')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={MoneyMousePink}
             menuItems={[
                 {
                     title: translate('workspace.common.bills'),
                     // eslint-disable-next-line max-len
                     onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":false,"Processing":true,"Approved":true,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
-                    icon: Receipt, // TODO: Replace this with the right bills upload icon
+                    icon: Bill,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
                 },

@@ -6,10 +6,10 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
-    Receipt,
+    Bill,
     NewWindow,
 } from '../../../components/Icon/Expensicons';
+import {InvoiceOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
 import {openSignedInLink} from '../../../libs/actions/App';
@@ -36,13 +36,13 @@ const WorkspaceBillsNoVBAView = ({translate, policyID, session}) => {
         <>
             <WorkspaceSection
                 title={translate('workspace.bills.manageYourBills')}
-                icon={Apple} // TODO: Replace this with the proper icon
+                icon={InvoiceOrange}
                 menuItems={[
                     {
                         title: translate('workspace.bills.viewAllBills'),
                         // eslint-disable-next-line max-len
                         onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
-                        icon: Receipt, // TODO: use the bill icon once it's added to this repo
+                        icon: Bill,
                         shouldShowRightIcon: true,
                         iconRight: NewWindow,
                     },
