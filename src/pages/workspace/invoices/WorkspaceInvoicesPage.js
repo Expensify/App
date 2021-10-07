@@ -26,11 +26,9 @@ const WorkspaceInvoicesPage = ({translate, route}) => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA && (
+                {!hasVBA ? (
                     <WorkspaceInvoicesNoVBAView policyID={policyID} />
-                )}
-
-                {hasVBA && (
+                ) : (
                     <WorkspaceInvoicesVBAView policyID={policyID} />
                 )}
             </>

@@ -26,11 +26,9 @@ const WorkspaceReimbursePage = ({translate, route}) => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA && (
+                {!hasVBA ? (
                     <WorkspaceReimburseNoVBAView policyID={policyID} />
-                )}
-
-                {hasVBA && (
+                ) : (
                     <WorkspaceReimburseVBAView policyID={policyID} />
                 )}
             </>

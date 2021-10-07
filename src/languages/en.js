@@ -694,7 +694,7 @@ export default {
             noVBACopy: 'Connect your bank account to let workspace members book their flights, hotels, and cars by starting a chat with Concierge.',
             packYourBags: 'Pack your bags!',
             VBACopy: 'Members with the Expensify card can chat with Concierge to book travel!',
-            bookTravelWithConcierge: 'Book travel with concierge',
+            bookTravelWithConcierge: 'Book travel with Concierge',
         },
         invite: {
             invitePeople: 'Invite people',
