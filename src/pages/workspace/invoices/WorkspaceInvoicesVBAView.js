@@ -4,10 +4,10 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
-    Bank,
+    CircleHourglass,
     NewWindow,
 } from '../../../components/Icon/Expensicons';
+import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import compose from '../../../libs/compose';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
@@ -26,13 +26,13 @@ const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
 
         <WorkspaceSection
             title={translate('workspace.invoices.moneyBackInAFlash')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={MoneyMousePink}
             menuItems={[
                 {
                     title: translate('workspace.invoices.viewUnpaidInvoices'),
                     // eslint-disable-next-line max-len
                     onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":false,"Processing":true,"Approved":false,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
-                    icon: Bank, // TODO: Use the icon that's a circle with an hourglass in it
+                    icon: CircleHourglass,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
                 },

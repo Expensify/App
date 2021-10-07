@@ -4,10 +4,10 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
     ArrowRight,
     Bank,
 } from '../../../components/Icon/Expensicons';
+import {JewelBoxGreen} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -27,7 +27,7 @@ const WorkspaceBillsNoVBAView = ({translate, policyID}) => (
 
         <WorkspaceSection
             title={translate('workspace.invoices.unlockOnlineInvoicesCollection')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={JewelBoxGreen}
             menuItems={[
                 {
                     title: translate('workspace.common.bankAccount'),

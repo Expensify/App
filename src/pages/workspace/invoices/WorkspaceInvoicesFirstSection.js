@@ -4,10 +4,11 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
+    Invoice,
     NewWindow,
     Send,
 } from '../../../components/Icon/Expensicons';
+import {MoneyEnvelopeBlue} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import {openSignedInLink} from '../../../libs/actions/App';
 import compose from '../../../libs/compose';
@@ -23,7 +24,7 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.invoices.invoiceClientsAndCustomers')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={MoneyEnvelopeBlue}
             menuItems={[
                 {
                     title: translate('workspace.common.invoices'),
@@ -36,7 +37,7 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
                     title: translate('workspace.invoices.viewAllInvoices'),
                     // eslint-disable-next-line max-len
                     onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
-                    icon: Send, // TODO: Replace with the proper invoice icon (envelope with up arrow)
+                    icon: Invoice,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
                 },
