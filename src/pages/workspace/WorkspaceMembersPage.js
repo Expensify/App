@@ -225,7 +225,7 @@ class WorkspaceMembersPage extends React.Component {
                     title={this.props.translate('common.people')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.goBack()}
-                    shouldShowBackButton={this.props.isSmallScreenWidth}
+                    shouldShowBackButton
                 />
                 <ConfirmModal
                     danger

@@ -6,7 +6,6 @@ import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
-import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -61,7 +60,7 @@ class WorkspacePageWithSections extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.headerText}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <ScrollView style={[styles.settingsPageBackground]}>

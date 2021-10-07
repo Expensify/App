@@ -121,6 +121,8 @@ class WorkspaceInvitePage extends React.Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.invite.invitePeople')}
                         onCloseButtonPress={Navigation.dismissModal}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <Text style={[styles.mb6]}>
