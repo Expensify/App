@@ -3,11 +3,11 @@ import {View, Text} from 'react-native';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {
-    Apple,
-    Bank,
     NewWindow,
     ExpensifyCard,
+    ReceiptSearch,
 } from '../../../components/Icon/Expensicons';
+import {CreditCardsBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import {openSignedInLink} from '../../../libs/actions/App';
 import WorkspaceSection from '../WorkspaceSection';
@@ -20,7 +20,7 @@ const WorkspaceCardVBAWithECardView = ({translate}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.card.headerWithEcard')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={CreditCardsBlue}
             menuItems={[
                 {
                     title: translate('workspace.common.issueAndManageCards'),
@@ -32,9 +32,7 @@ const WorkspaceCardVBAWithECardView = ({translate}) => (
                 {
                     title: translate('workspace.common.reconcileCards'),
                     onPress: () => openSignedInLink('settings?param={"section":"account","openModal":"secondaryLogin"})'),
-
-                    /* TODO: Need to use the reconcile icon once it's added to the repo */
-                    icon: Bank,
+                    icon: ReceiptSearch,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
                 },

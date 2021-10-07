@@ -17,7 +17,7 @@ import {
     Pencil,
     Receipt,
     Users,
-    Workspace,
+    Workspace, Bill, Invoice,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -81,19 +81,19 @@ const WorkspaceInitialPage = ({
         },
         {
             translationKey: 'workspace.common.bills',
-            icon: ExpensifyCard,
+            icon: Bill,
             action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBillsRoute(policy.id)),
         },
         {
             translationKey: 'workspace.common.invoices',
-            icon: ExpensifyCard,
+            icon: Invoice,
             action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
         },
         {
             translationKey: 'workspace.common.travel',
-            icon: ExpensifyCard,
+            icon: ExpensifyCard, // TODO: Use the suitcase icon
             action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(policy.id)),
         },

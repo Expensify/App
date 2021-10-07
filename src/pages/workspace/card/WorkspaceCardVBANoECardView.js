@@ -2,7 +2,8 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {Apple, Bank, NewWindow} from '../../../components/Icon/Expensicons';
+import {Briefcase, NewWindow} from '../../../components/Icon/Expensicons';
+import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import {openSignedInLink} from '../../../libs/actions/App';
 import WorkspaceSection from '../WorkspaceSection';
@@ -15,14 +16,12 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.card.header')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={JewelBoxBlue}
             menuItems={[
                 {
                     title: translate('workspace.common.addWorkEmailAddress'),
                     onPress: () => openSignedInLink('settings?param={"section":"account","openModal":"secondaryLogin"})'),
-
-                    /* TODO: Need to use the briefcase icon once it's added to the repo */
-                    icon: Bank,
+                    icon: Briefcase,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
                 },

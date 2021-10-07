@@ -5,7 +5,8 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {Apple, Bank} from '../../../components/Icon/Expensicons';
+import {Bank} from '../../../components/Icon/Expensicons';
+import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';
 
@@ -20,7 +21,7 @@ const WorkspaceCardNoVBAView = ({translate, policyID}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.card.header')}
-            icon={Apple} // TODO: Replace this with the proper icon
+            icon={JewelBoxBlue}
             menuItems={[
                 {
                     title: translate('workspace.common.bankAccount'),
