@@ -16,14 +16,14 @@ import {
     uploadAvatar, update, updateLocalPolicyValues,
 } from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
-import {Camera} from '../../components/Icon/Expensicons';
+import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import {getCurrencyList} from '../../libs/actions/PersonalDetails';
-import ExpensiTextInput from '../../components/ExpensiTextInput/index';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 
@@ -129,9 +129,6 @@ class WorkspaceSettingsPage extends React.Component {
             return null;
         }
 
-        const isButtonDisabled = policy.isAvatarUploading
-                                  || (this.state.avatarURL === this.props.policy.avatarURL
-                                    && this.state.name === this.props.policy.name);
         return (
             <WorkspacePageWithSections
                 headerText={this.props.translate('workspace.common.edit')}
@@ -139,15 +136,15 @@ class WorkspaceSettingsPage extends React.Component {
             >
                 {hasVBA => (
                     <>
-                        <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
-                            <View style={[styles.w100, styles.flex1]}>
+                        <View style={[styles.pageWrapper, styles.flex1, styles.pRelative, styles.flexGrow1]}>
+                            <View style={[styles.w100, styles.flexGrow1]}>
                                 <AvatarWithImagePicker
                                     isUploading={policy.isAvatarUploading}
                                     avatarURL={this.state.previewAvatarURL}
                                     size={CONST.AVATAR_SIZE.LARGE}
                                     DefaultAvatar={() => (
                                         <Icon
-                                            src={Camera}
+                                            src={Workspace}
                                             height={80}
                                             width={80}
                                             fill={defaultTheme.iconSuccessFill}
@@ -177,7 +174,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     style={[styles.mt4]}
                                     isDisabled={hasVBA}
                                 />
-                                <Text style={[styles.mt2, styles.formHint]}>
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                                     {this.props.translate('workspace.editor.currencyInputHelpText')}
                                 </Text>
                             </View>
@@ -186,7 +183,6 @@ class WorkspaceSettingsPage extends React.Component {
                                 <Button
                                     success
                                     isLoading={policy.isPolicyUpdating}
-                                    isDisabled={isButtonDisabled}
                                     text={this.props.translate('workspace.editor.save')}
                                     onPress={this.submit}
                                     pressOnEnter

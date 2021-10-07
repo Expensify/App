@@ -63,8 +63,11 @@ class WorkspacePageWithSections extends React.Component {
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
-                <ScrollView style={[styles.settingsPageBackground]}>
-                    <View style={styles.w100}>
+                <ScrollView
+                    style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
+                    contentContainerStyle={[styles.flex1]}
+                >
+                    <View style={[styles.w100, styles.flex1]}>
 
                         {this.props.children(hasVBA, policyID, isUsingECard)}
 
