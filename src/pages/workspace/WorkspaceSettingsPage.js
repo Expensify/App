@@ -74,7 +74,11 @@ class WorkspaceSettingsPage extends React.Component {
         getCurrencyList();
     }
 
-    onImageSelected(image) {
+    /**
+     * @param {Object} image
+     * @param {String} image.uri
+     */
+     uploadAvatar(image) {
         updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
         this.setState({previewAvatarURL: image.uri});
 
