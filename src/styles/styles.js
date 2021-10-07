@@ -1848,6 +1848,10 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
     fullscreenCard: {
         position: 'absolute',
         left: 0,
