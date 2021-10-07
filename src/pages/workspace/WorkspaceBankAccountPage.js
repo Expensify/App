@@ -10,6 +10,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
@@ -32,8 +33,8 @@ const defaultProps = {
 };
 
 const WorkspaceBankAccountPage = (props) => {
-    // If we have no bank account in setup then we will immediately redirect the user to /bank-account to begin setup
-    if (!lodashGet(props.reimbursementAccount, 'achData.bankAccountID')) {
+    // If we have an open bank account or no bank account at all then we will immediately redirect the user to /bank-account to display the next step
+    if (!lodashGet(props.reimbursementAccount, 'achData.bankAccountID') || lodashGet(props.reimbursementAccount, 'achData.state') === BankAccount.STATE.OPEN) {
         Navigation.navigate(ROUTES.getBankAccountRoute());
         return null;
     }
