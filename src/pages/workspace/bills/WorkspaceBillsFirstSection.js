@@ -39,7 +39,7 @@ const propTypes = {
     user: userPropTypes.isRequired,
 };
 
-const WorkspaceBillsNoVBAView = ({
+const WorkspaceBillsFirstSection = ({
     translate,
     policyID,
     session,
@@ -85,8 +85,8 @@ const WorkspaceBillsNoVBAView = ({
     );
 };
 
-WorkspaceBillsNoVBAView.propTypes = propTypes;
-WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
+WorkspaceBillsFirstSection.propTypes = propTypes;
+WorkspaceBillsFirstSection.displayName = 'WorkspaceBillsFirstSection';
 
 export default compose(
     withLocalize,
@@ -98,4 +98,4 @@ export default compose(
             key: ONYXKEYS.USER,
         },
     }),
-)(WorkspaceBillsNoVBAView);
+)(WorkspaceBillsFirstSection);
