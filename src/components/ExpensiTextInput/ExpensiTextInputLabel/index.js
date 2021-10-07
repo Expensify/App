@@ -19,7 +19,6 @@ const ExpensiTextInputLabel = ({
                 labelScale,
             ),
         ]}
-        selectable={false}
     >
         {label}
     </Animated.Text>
