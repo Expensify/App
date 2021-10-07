@@ -46,7 +46,7 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the URL path */
         params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/people */
+            /** policyID passed via route: /workspace/:policyID/members */
             policyID: PropTypes.string,
         }),
     }).isRequired,
@@ -218,13 +218,14 @@ class WorkspaceMembersPage extends React.Component {
             .filter()
             .sortBy(person => person.displayName.toLowerCase())
             .value();
+        const policyID = _.get(this.props.route, ['params', 'policyID']);
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('common.people')}
+                    title={this.props.translate('common.members')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     shouldShowBackButton
                 />
                 <ConfirmModal

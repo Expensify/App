@@ -45,7 +45,7 @@ export default {
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
         termsOfService: 'Terms of service',
-        people: 'People',
+        members: 'Members',
         invite: 'Invite',
         here: 'here',
         dob: 'Date of birth',
