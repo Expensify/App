@@ -142,7 +142,6 @@ const CONST = {
     NEWDOT: 'new.expensify.com',
     NEW_EXPENSIFY_URL,
     STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
-    URL_OLDDOT_SECONDARY_LOGIN: 'settings?param={"section":"account","openModal":"secondaryLogin"}',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
