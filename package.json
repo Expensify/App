@@ -247,5 +247,8 @@
         "expo-permissions"
       ]
     }
+  },
+  "engines": {
+    "node": "14.17.4"
   }
 }
