@@ -75,7 +75,7 @@ class EnableStep extends React.Component {
                 <View style={[styles.flex1]}>
                     <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                         <Text style={[styles.textLarge, styles.textStrong]}>
-                            {!isUsingExpensifyCard ? translate('workspace.bankAccount.basicallyDone') : translate('workspace.bankAccount.allSet')}
+                            {!isUsingExpensifyCard ? translate('workspace.bankAccount.oneMoreThing') : translate('workspace.bankAccount.allSet')}
                         </Text>
                         <Image src={confettiPop} height={80} width={80} />
                     </View>
