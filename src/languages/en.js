@@ -78,6 +78,9 @@ export default {
         },
         please: 'Please',
         contactUs: 'contact us',
+        pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
+        fixTheErrors: 'fix the errors',
+        inTheFormBeforeContinuing: 'in the form before continuing',
         confirm: 'Confirm',
         reset: 'Reset',
         done: 'Done',
@@ -369,7 +372,6 @@ export default {
         },
     },
     loginForm: {
-        pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
         error: {
             invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
@@ -444,8 +446,6 @@ export default {
             firstName: 'Please enter valid first name',
             lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
-            fixTheErrors: 'fix the errors',
-            inTheFormBeforeContinuing: 'in the form before continuing',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
     },
@@ -641,7 +641,7 @@ export default {
         },
         people: {
             genericFailureMessage: 'An error occurred removing a user from the workspace, please try again.',
-            removeMembersPrompt: 'Are you sure you want to remove the selected people from your workspace?',
+            removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
         },
@@ -697,8 +697,8 @@ export default {
             bookTravelWithConcierge: 'Book travel with Concierge',
         },
         invite: {
-            invitePeople: 'Invite people',
-            invitePeoplePrompt: 'Invite colleagues to your workspace.',
+            invitePeople: 'Invite new members',
+            invitePeoplePrompt: 'Invite new members to your workspace.',
             personalMessagePrompt: 'Add a personal message (optional)',
             enterEmailOrPhone: 'Emails or phone numbers',
             EmailOrPhonePlaceholder: 'Enter comma-separated list of emails or phone numbers',

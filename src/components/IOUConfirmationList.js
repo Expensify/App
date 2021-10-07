@@ -161,7 +161,10 @@ class IOUConfirmationList extends Component {
     }
 
     componentDidMount() {
-        this.addVenmoPaymentOptionToMenu();
+        // Only add the Venmo option if we're sending a payment
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            this.addVenmoPaymentOptionToMenu();
+        }
     }
 
     componentWillUnmount() {
