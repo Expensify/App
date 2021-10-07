@@ -12,7 +12,6 @@ import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import styles from '../../styles/styles';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import WorkspaceSection from './WorkspaceSection';
 

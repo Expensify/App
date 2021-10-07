@@ -31,7 +31,6 @@ import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
-import variables from '../../styles/variables';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {BankMouseGreen} from '../../components/Icon/Illustrations';
 
