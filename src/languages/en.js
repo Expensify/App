@@ -78,6 +78,9 @@ export default {
         },
         please: 'Please',
         contactUs: 'contact us',
+        pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
+        fixTheErrors: 'fix the errors',
+        inTheFormBeforeContinuing: 'in the form before continuing',
         confirm: 'Confirm',
         reset: 'Reset',
         done: 'Done',
@@ -369,7 +372,6 @@ export default {
         },
     },
     loginForm: {
-        pleaseEnterEmailOrPhoneNumber: 'Please enter an email or phone number',
         phoneOrEmail: 'Phone or email',
         error: {
             invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
@@ -444,8 +446,6 @@ export default {
             firstName: 'Please enter valid first name',
             lastName: 'Please enter valid last name',
             noDefaultDepositAccountOrDebitCardAvailable: 'Please add a default deposit bank account or debit card',
-            fixTheErrors: 'fix the errors',
-            inTheFormBeforeContinuing: 'in the form before continuing',
             validationAmounts: 'The validation amounts you entered are incorrect. Please double-check your bank statement and try again.',
         },
     },
