@@ -24,7 +24,7 @@ import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import Icon from '../../components/Icon';
-import {Bank, Bell, ChatBubble} from '../../components/Icon/Expensicons';
+import {Bell, ChatBubble} from '../../components/Icon/Expensicons';
 import colors from '../../styles/colors';
 import variables from '../../styles/variables';
 import MenuItem from '../../components/MenuItem';
