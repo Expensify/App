@@ -11,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
@@ -24,6 +23,11 @@ import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
+import ExpensiPicker from '../../components/ExpensiPicker';
+import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import ROUTES from '../../ROUTES';
+import ExpensiTextInput from '../../components/ExpensiTextInput/index';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     /** List of betas */
@@ -43,12 +47,18 @@ class WorkspaceSettingsPage extends React.Component {
             name: props.policy.name,
             avatarURL: props.policy.avatarURL,
             previewAvatarURL: props.policy.avatarURL,
+            currency: props.policy.outputCurrency,
         };
 
         this.submit = this.submit.bind(this);
         this.onImageSelected = this.onImageSelected.bind(this);
         this.onImageRemoved = this.onImageRemoved.bind(this);
+        this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.uploadAvatarPromise = Promise.resolve();
+    }
+
+    componentDidMount() {
+        getCurrencyList();
     }
 
     onImageSelected(image) {
@@ -67,6 +77,19 @@ class WorkspaceSettingsPage extends React.Component {
         this.setState({previewAvatarURL: '', avatarURL: ''});
     }
 
+    /**
+     *
+     * @returns {Object[]}
+     */
+    getCurrencyItems() {
+        const currencyListKeys = _.keys(this.props.currencyList);
+        const a = _.map(currencyListKeys, currencyCode => ({
+            value: currencyCode,
+            label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
+        }));
+        return a;
+    }
+
     submit() {
         updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
 
@@ -75,8 +98,9 @@ class WorkspaceSettingsPage extends React.Component {
             const name = this.state.name.trim();
             const avatarURL = this.state.avatarURL;
             const policyID = this.props.policy.id;
+            const currency = this.state.currency;
 
-            update(policyID, {name, avatarURL});
+            update(policyID, {name, avatarURL, outputCurrency: currency});
         }).catch(() => {
             updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
         });
@@ -102,6 +126,8 @@ class WorkspaceSettingsPage extends React.Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.edit')}
                     onCloseButtonPress={Navigation.dismissModal}
+                    shouldShowBackButton
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id))}
                 />
 
                 <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
@@ -125,26 +151,36 @@ class WorkspaceSettingsPage extends React.Component {
                             onImageRemoved={this.onImageRemoved}
                         />
 
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('workspace.editor.nameInputLabel')}
-                            value={this.state.name}
+                            containerStyles={[styles.mt4]}
                             onChangeText={name => this.setState({name})}
-                            onSubmitEditting={this.submit}
+                            value={this.state.name}
+                            hasError={false}
+                            errorText={this.props.translate('workspace.editor.nameIsRequiredError')}
+                        />
+
+                        <ExpensiPicker
+                            label={this.props.translate('workspace.editor.currencyInputLabel')}
+                            onChange={currency => this.setState({currency})}
+                            items={this.getCurrencyItems()}
+                            value={this.state.currency}
                         />
                         <Text style={[styles.mt2, styles.formHint]}>
-                            {this.props.translate('workspace.editor.nameInputHelpText')}
+                            {this.props.translate('workspace.editor.currencyInputHelpText')}
                         </Text>
                     </View>
 
-                    <Button
-                        success
-                        isLoading={policy.isPolicyUpdating}
-                        isDisabled={isButtonDisabled}
-                        style={[styles.w100]}
-                        text={this.props.translate('workspace.editor.save')}
-                        onPress={this.submit}
-                        pressOnEnter
-                    />
+                    <FixedFooter style={[styles.w100]}>
+                        <Button
+                            success
+                            isLoading={policy.isPolicyUpdating}
+                            isDisabled={isButtonDisabled}
+                            text={this.props.translate('workspace.editor.save')}
+                            onPress={this.submit}
+                            pressOnEnter
+                        />
+                    </FixedFooter>
                 </View>
             </ScreenWrapper>
         );
@@ -167,6 +203,7 @@ export default compose(
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
         },
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,
 )(WorkspaceSettingsPage);
