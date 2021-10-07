@@ -170,6 +170,10 @@ const styles = {
         color: colors.white,
     },
 
+    textBlue: {
+        color: colors.blue,
+    },
+
     textUppercase: {
         textTransform: 'uppercase',
     },

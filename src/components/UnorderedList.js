@@ -26,7 +26,7 @@ const UnorderedList = ({items}) => (
     </>
 );
 
-UnorderedList.displayName = 'OrderedList';
+UnorderedList.displayName = 'UnorderedList';
 UnorderedList.propTypes = propTypes;
 UnorderedList.defaultProps = defaultProps;
 
