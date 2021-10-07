@@ -64,34 +64,14 @@ class WorkspaceSettingsPage extends React.Component {
         };
 
         this.submit = this.submit.bind(this);
-        this.onImageSelected = this.onImageSelected.bind(this);
-        this.onImageRemoved = this.onImageRemoved.bind(this);
+        this.uploadAvatar = this.uploadAvatar.bind(this);
+        this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.uploadAvatarPromise = Promise.resolve();
     }
 
     componentDidMount() {
         getCurrencyList();
-    }
-
-    /**
-     * @param {Object} image
-     * @param {String} image.uri
-     */
-     uploadAvatar(image) {
-        updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
-        this.setState({previewAvatarURL: image.uri});
-
-        // Store the upload avatar promise so we can wait for it to finish before updating the policy
-        this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
-            this.setState({avatarURL: url}, resolve);
-        })).catch(() => {
-            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
-        }).finally(() => updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
-    }
-
-    onImageRemoved() {
-        this.setState({previewAvatarURL: '', avatarURL: ''});
     }
 
     /**
@@ -103,6 +83,26 @@ class WorkspaceSettingsPage extends React.Component {
             value: currencyCode,
             label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
         }));
+    }
+
+    removeAvatar() {
+        this.setState({previewAvatarURL: '', avatarURL: ''});
+    }
+
+    /**
+     * @param {Object} image
+     * @param {String} image.uri
+     */
+    uploadAvatar(image) {
+        updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
+        this.setState({previewAvatarURL: image.uri});
+
+        // Store the upload avatar promise so we can wait for it to finish before updating the policy
+        this.uploadAvatarPromise = uploadAvatar(image).then(url => new Promise((resolve) => {
+            this.setState({avatarURL: url}, resolve);
+        })).catch(() => {
+            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
+        }).finally(() => updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
     }
 
     submit() {
@@ -157,8 +157,8 @@ class WorkspaceSettingsPage extends React.Component {
                                     style={[styles.mb3]}
                                     anchorPosition={{top: 172, right: 18}}
                                     isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                                    onImageSelected={this.onImageSelected}
-                                    onImageRemoved={this.onImageRemoved}
+                                    uploadAvatar={this.uploadAvatar}
+                                    onImageRemoved={this.removeAvatar}
                                 />
 
                                 <ExpensiTextInput
