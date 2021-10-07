@@ -5,8 +5,6 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
@@ -25,9 +23,9 @@ import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import {getCurrencyList} from '../../libs/actions/PersonalDetails';
-import ROUTES from '../../ROUTES';
 import ExpensiTextInput from '../../components/ExpensiTextInput/index';
 import FixedFooter from '../../components/FixedFooter';
+import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 const propTypes = {
     /** List of betas */
@@ -122,67 +120,69 @@ class WorkspaceSettingsPage extends React.Component {
                                   || (this.state.avatarURL === this.props.policy.avatarURL
                                     && this.state.name === this.props.policy.name);
         return (
-            <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.edit')}
-                    onCloseButtonPress={Navigation.dismissModal}
-                    shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id))}
-                />
-
-                <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
-                    <View style={[styles.w100, styles.flex1]}>
-                        <AvatarWithImagePicker
-                            isUploading={policy.isAvatarUploading}
-                            avatarURL={this.state.previewAvatarURL}
-                            size={CONST.AVATAR_SIZE.LARGE}
-                            DefaultAvatar={() => (
-                                <Icon
-                                    src={Workspace}
-                                    height={80}
-                                    width={80}
-                                    fill={defaultTheme.iconSuccessFill}
+            <WorkspacePageWithSections
+                headerText={this.props.translate('workspace.common.edit')}
+                route={this.props.route}
+            >
+                {(hasVBA) => (
+                    <>
+                        <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
+                            <View style={[styles.w100, styles.flex1]}>
+                                <AvatarWithImagePicker
+                                    isUploading={policy.isAvatarUploading}
+                                    avatarURL={this.state.previewAvatarURL}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    DefaultAvatar={() => (
+                                        <Icon
+                                            src={Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={defaultTheme.iconSuccessFill}
+                                        />
+                                    )}
+                                    style={[styles.mb3]}
+                                    anchorPosition={{top: 172, right: 18}}
+                                    isUsingDefaultAvatar={!this.state.previewAvatarURL}
+                                    onImageSelected={this.onImageSelected}
+                                    onImageRemoved={this.onImageRemoved}
                                 />
-                            )}
-                            style={[styles.mb3]}
-                            anchorPosition={{top: 172, right: 18}}
-                            isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                            onImageSelected={this.onImageSelected}
-                            onImageRemoved={this.onImageRemoved}
-                        />
 
-                        <ExpensiTextInput
-                            label={this.props.translate('workspace.editor.nameInputLabel')}
-                            containerStyles={[styles.mt4]}
-                            onChangeText={name => this.setState({name})}
-                            value={this.state.name}
-                            hasError={false}
-                            errorText={this.props.translate('workspace.editor.nameIsRequiredError')}
-                        />
+                                <ExpensiTextInput
+                                    label={this.props.translate('workspace.editor.nameInputLabel')}
+                                    containerStyles={[styles.mt4]}
+                                    onChangeText={name => this.setState({name})}
+                                    value={this.state.name}
+                                    hasError={!this.state.name.trim().length}
+                                    errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
+                                />
 
-                        <ExpensiPicker
-                            label={this.props.translate('workspace.editor.currencyInputLabel')}
-                            onChange={currency => this.setState({currency})}
-                            items={this.getCurrencyItems()}
-                            value={this.state.currency}
-                        />
-                        <Text style={[styles.mt2, styles.formHint]}>
-                            {this.props.translate('workspace.editor.currencyInputHelpText')}
-                        </Text>
-                    </View>
+                                <ExpensiPicker
+                                    label={this.props.translate('workspace.editor.currencyInputLabel')}
+                                    onChange={currency => this.setState({currency})}
+                                    items={this.getCurrencyItems()}
+                                    value={this.state.currency}
+                                    style={[styles.mt4]}
+                                    isDisabled={hasVBA}
+                                />
+                                <Text style={[styles.mt2, styles.formHint]}>
+                                    {this.props.translate('workspace.editor.currencyInputHelpText')}
+                                </Text>
+                            </View>
 
-                    <FixedFooter style={[styles.w100]}>
-                        <Button
-                            success
-                            isLoading={policy.isPolicyUpdating}
-                            isDisabled={isButtonDisabled}
-                            text={this.props.translate('workspace.editor.save')}
-                            onPress={this.submit}
-                            pressOnEnter
-                        />
-                    </FixedFooter>
-                </View>
-            </ScreenWrapper>
+                            <FixedFooter style={[styles.w100]}>
+                                <Button
+                                    success
+                                    isLoading={policy.isPolicyUpdating}
+                                    isDisabled={isButtonDisabled}
+                                    text={this.props.translate('workspace.editor.save')}
+                                    onPress={this.submit}
+                                    pressOnEnter
+                                />
+                            </FixedFooter>
+                        </View>
+                    </>
+                )}
+            </WorkspacePageWithSections>
         );
     }
 }
