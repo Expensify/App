@@ -79,7 +79,7 @@ class ProfilePage extends Component {
             firstName,
             lastName,
             pronouns,
-            selfSelectedPronouns: pronouns && !pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            hasSelfSelectedPronouns: pronouns && !pronouns.startsWith(CONST.PRONOUNS.PREFIX),
             selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
             isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
             logins: this.getLogins(props.user.loginList),
@@ -182,7 +182,7 @@ class ProfilePage extends Component {
             && (this.props.myPersonalDetails.timezone.automatic === this.state.isAutomaticTimezone)
             && arePronounsUnchanged;
 
-        const pronounsPickerValue = this.state.selfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
+        const pronounsPickerValue = this.state.hasSelfSelectedPronouns ? CONST.PRONOUNS.SELF_SELECT : this.state.pronouns;
 
         return (
             <ScreenWrapper>
@@ -219,10 +219,10 @@ class ProfilePage extends Component {
                                 <ExpensiPicker
                                     label={this.props.translate('profilePage.preferredPronouns')}
                                     onChange={(pronouns) => {
-                                        const selfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                        const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
                                         this.setState({
-                                            pronouns: selfSelectedPronouns ? '' : pronouns,
-                                            selfSelectedPronouns,
+                                            pronouns: hasSelfSelectedPronouns ? '' : pronouns,
+                                            hasSelfSelectedPronouns,
                                         });
                                     }}
                                     items={pronounsList}
@@ -233,7 +233,7 @@ class ProfilePage extends Component {
                                     value={pronounsPickerValue}
                                 />
                             </View>
-                            {this.state.selfSelectedPronouns && (
+                            {this.state.hasSelfSelectedPronouns && (
                                 <ExpensiTextInput
                                     value={this.state.pronouns}
                                     onChangeText={pronouns => this.setState({pronouns})}
