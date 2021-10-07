@@ -5,13 +5,10 @@ import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
-import TextInputWithLabel from '../../components/TextInputWithLabel';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
@@ -24,10 +21,30 @@ import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
+import ExpensiPicker from '../../components/ExpensiPicker';
+import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
+import FixedFooter from '../../components/FixedFooter';
+import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Policy for the current route */
+    policy: PropTypes.shape({
+        /** ID of the policy */
+        id: PropTypes.string,
+
+        /** Name of the policy */
+        name: PropTypes.string.isRequired,
+
+        /** Avatar of the policy */
+        avatarURL: PropTypes.string.isRequired,
+
+        /** Currency of the policy */
+        outputCurrency: PropTypes.string.isRequired,
+    }).isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -43,12 +60,18 @@ class WorkspaceSettingsPage extends React.Component {
             name: props.policy.name,
             avatarURL: props.policy.avatarURL,
             previewAvatarURL: props.policy.avatarURL,
+            currency: props.policy.outputCurrency,
         };
 
         this.submit = this.submit.bind(this);
         this.onImageSelected = this.onImageSelected.bind(this);
         this.onImageRemoved = this.onImageRemoved.bind(this);
+        this.getCurrencyItems = this.getCurrencyItems.bind(this);
         this.uploadAvatarPromise = Promise.resolve();
+    }
+
+    componentDidMount() {
+        getCurrencyList();
     }
 
     onImageSelected(image) {
@@ -67,6 +90,17 @@ class WorkspaceSettingsPage extends React.Component {
         this.setState({previewAvatarURL: '', avatarURL: ''});
     }
 
+    /**
+     * @returns {Object[]}
+     */
+    getCurrencyItems() {
+        const currencyListKeys = _.keys(this.props.currencyList);
+        return _.map(currencyListKeys, currencyCode => ({
+            value: currencyCode,
+            label: `${currencyCode} - ${this.props.currencyList[currencyCode].symbol}`,
+        }));
+    }
+
     submit() {
         updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
 
@@ -75,8 +109,9 @@ class WorkspaceSettingsPage extends React.Component {
             const name = this.state.name.trim();
             const avatarURL = this.state.avatarURL;
             const policyID = this.props.policy.id;
+            const currency = this.state.currency;
 
-            update(policyID, {name, avatarURL});
+            update(policyID, {name, avatarURL, outputCurrency: currency});
         }).catch(() => {
             updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
         });
@@ -94,59 +129,69 @@ class WorkspaceSettingsPage extends React.Component {
             return null;
         }
 
-        const isButtonDisabled = policy.isAvatarUploading
-                                  || (this.state.avatarURL === this.props.policy.avatarURL
-                                    && this.state.name === this.props.policy.name);
         return (
-            <ScreenWrapper>
-                <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.edit')}
-                    onCloseButtonPress={Navigation.dismissModal}
-                />
-
-                <View style={[styles.pageWrapper, styles.flex1, styles.pRelative]}>
-                    <View style={[styles.w100, styles.flex1]}>
-                        <AvatarWithImagePicker
-                            isUploading={policy.isAvatarUploading}
-                            avatarURL={this.state.previewAvatarURL}
-                            size={CONST.AVATAR_SIZE.LARGE}
-                            DefaultAvatar={() => (
-                                <Icon
-                                    src={Workspace}
-                                    height={80}
-                                    width={80}
-                                    fill={defaultTheme.iconSuccessFill}
+            <WorkspacePageWithSections
+                headerText={this.props.translate('workspace.common.edit')}
+                route={this.props.route}
+            >
+                {hasVBA => (
+                    <>
+                        <View style={[styles.pageWrapper, styles.flex1, styles.pRelative, styles.flexGrow1]}>
+                            <View style={[styles.w100, styles.flexGrow1]}>
+                                <AvatarWithImagePicker
+                                    isUploading={policy.isAvatarUploading}
+                                    avatarURL={this.state.previewAvatarURL}
+                                    size={CONST.AVATAR_SIZE.LARGE}
+                                    DefaultAvatar={() => (
+                                        <Icon
+                                            src={Workspace}
+                                            height={80}
+                                            width={80}
+                                            fill={defaultTheme.iconSuccessFill}
+                                        />
+                                    )}
+                                    style={[styles.mb3]}
+                                    anchorPosition={{top: 172, right: 18}}
+                                    isUsingDefaultAvatar={!this.state.previewAvatarURL}
+                                    onImageSelected={this.onImageSelected}
+                                    onImageRemoved={this.onImageRemoved}
                                 />
-                            )}
-                            style={[styles.mb3]}
-                            anchorPosition={{top: 172, right: 18}}
-                            isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                            onImageSelected={this.onImageSelected}
-                            onImageRemoved={this.onImageRemoved}
-                        />
 
-                        <TextInputWithLabel
-                            label={this.props.translate('workspace.editor.nameInputLabel')}
-                            value={this.state.name}
-                            onChangeText={name => this.setState({name})}
-                            onSubmitEditting={this.submit}
-                        />
-                        <Text style={[styles.mt2, styles.formHint]}>
-                            {this.props.translate('workspace.editor.nameInputHelpText')}
-                        </Text>
-                    </View>
+                                <ExpensiTextInput
+                                    label={this.props.translate('workspace.editor.nameInputLabel')}
+                                    containerStyles={[styles.mt4]}
+                                    onChangeText={name => this.setState({name})}
+                                    value={this.state.name}
+                                    hasError={!this.state.name.trim().length}
+                                    errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
+                                />
 
-                    <Button
-                        success
-                        isLoading={policy.isPolicyUpdating}
-                        isDisabled={isButtonDisabled}
-                        style={[styles.w100]}
-                        text={this.props.translate('workspace.editor.save')}
-                        onPress={this.submit}
-                        pressOnEnter
-                    />
-                </View>
-            </ScreenWrapper>
+                                <ExpensiPicker
+                                    label={this.props.translate('workspace.editor.currencyInputLabel')}
+                                    onChange={currency => this.setState({currency})}
+                                    items={this.getCurrencyItems()}
+                                    value={this.state.currency}
+                                    style={[styles.mt4]}
+                                    isDisabled={hasVBA}
+                                />
+                                <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                                    {this.props.translate('workspace.editor.currencyInputHelpText')}
+                                </Text>
+                            </View>
+
+                            <FixedFooter style={[styles.w100]}>
+                                <Button
+                                    success
+                                    isLoading={policy.isPolicyUpdating}
+                                    text={this.props.translate('workspace.editor.save')}
+                                    onPress={this.submit}
+                                    pressOnEnter
+                                />
+                            </FixedFooter>
+                        </View>
+                    </>
+                )}
+            </WorkspacePageWithSections>
         );
     }
 }
@@ -167,6 +212,7 @@ export default compose(
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
         },
+        currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),
     withLocalize,
 )(WorkspaceSettingsPage);

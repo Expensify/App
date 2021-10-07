@@ -33,7 +33,7 @@ const WorkspaceTravelVBAView = ({translate}) => (
                 },
                 {
                     title: translate('workspace.travel.bookTravelWithConcierge'),
-                    onPress: () => navigateToConciergeChat(),
+                    onPress: navigateToConciergeChat,
                     icon: Concierge,
                     shouldShowRightIcon: true,
                 },

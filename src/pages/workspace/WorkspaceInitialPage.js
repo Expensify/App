@@ -14,7 +14,6 @@ import {
     Bank,
     Gear,
     ExpensifyCard,
-    Pencil,
     Receipt,
     Users,
     Workspace,
@@ -31,8 +30,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
-import Tooltip from '../../components/Tooltip';
-import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
@@ -114,7 +111,7 @@ const WorkspaceInitialPage = ({
         },
     ];
 
-    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
+    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id));
 
     return (
         <ScreenWrapper>
@@ -154,16 +151,6 @@ const WorkspaceInitialPage = ({
                                             fill={themedefault.iconSuccessFill}
                                         />
                                     )}
-                                <Tooltip absolute text={translate('workspace.common.edit')}>
-                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                        <Icon
-                                            src={Pencil}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                            fill={themedefault.iconReversed}
-                                        />
-                                    </View>
-                                </Tooltip>
                             </Pressable>
 
                             <Pressable
@@ -175,17 +162,15 @@ const WorkspaceInitialPage = ({
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Tooltip text={policy.name}>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[
-                                            styles.displayName,
-                                            styles.alignSelfCenter,
-                                        ]}
-                                    >
-                                        {policy.name}
-                                    </Text>
-                                </Tooltip>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[
+                                        styles.displayName,
+                                        styles.alignSelfCenter,
+                                    ]}
+                                >
+                                    {policy.name}
+                                </Text>
                             </Pressable>
                         </View>
                     </View>

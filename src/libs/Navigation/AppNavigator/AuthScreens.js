@@ -57,7 +57,6 @@ import {
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    WorkspaceModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -322,12 +321,6 @@ class AuthScreens extends React.Component {
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
-                <RootStack.Screen
-                    name="Workspace"
-                    options={modalScreenOptions}
-                    component={WorkspaceModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}

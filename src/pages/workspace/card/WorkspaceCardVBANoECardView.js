@@ -20,7 +20,7 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
             menuItems={[
                 {
                     title: translate('workspace.card.chatWithConcierge'),
-                    onPress: () => navigateToConciergeChat(),
+                    onPress: navigateToConciergeChat,
                     icon: Concierge,
                     shouldShowRightIcon: true,
                 },

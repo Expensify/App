@@ -35,51 +35,7 @@ export default {
             [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
             WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
-            // Modal Screens
-            Workspace: {
-                screens: {
-                    Workspace_Initial: {
-                        path: ROUTES.WORKSPACE_INITIAL,
-                        exact: true,
-                    },
-                    Workspace_Settings: {
-                        path: ROUTES.WORKSPACE_SETTINGS,
-                        exact: true,
-                    },
-                    Workspace_Card: {
-                        path: ROUTES.WORKSPACE_CARD,
-                        exact: true,
-                    },
-                    Workspace_Reimburse: {
-                        path: ROUTES.WORKSPACE_REIMBURSE,
-                        exact: true,
-                    },
-                    Workspace_Bills: {
-                        path: ROUTES.WORKSPACE_BILLS,
-                        exact: true,
-                    },
-                    Workspace_Invoices: {
-                        path: ROUTES.WORKSPACE_INVOICES,
-                        exact: true,
-                    },
-                    Workspace_Travel: {
-                        path: ROUTES.WORKSPACE_TRAVEL,
-                        exact: true,
-                    },
-                    Workspace_Members: {
-                        path: ROUTES.WORKSPACE_MEMBERS,
-                        exact: true,
-                    },
-                    Workspace_BankAccount: {
-                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
-                        exact: true,
-                    },
-                    ReimbursementAccount: {
-                        path: ROUTES.BANK_ACCOUNT,
-                        exact: true,
-                    },
-                },
-            },
+            // Modal Screens=
             Settings: {
                 screens: {
                     Settings_Root: {
@@ -119,6 +75,46 @@ export default {
                     },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
+                    },
+                    Workspace_Initial: {
+                        path: ROUTES.WORKSPACE_INITIAL,
+                        exact: true,
+                    },
+                    Workspace_Settings: {
+                        path: ROUTES.WORKSPACE_SETTINGS,
+                        exact: true,
+                    },
+                    Workspace_Card: {
+                        path: ROUTES.WORKSPACE_CARD,
+                        exact: true,
+                    },
+                    Workspace_Reimburse: {
+                        path: ROUTES.WORKSPACE_REIMBURSE,
+                        exact: true,
+                    },
+                    Workspace_Bills: {
+                        path: ROUTES.WORKSPACE_BILLS,
+                        exact: true,
+                    },
+                    Workspace_Invoices: {
+                        path: ROUTES.WORKSPACE_INVOICES,
+                        exact: true,
+                    },
+                    Workspace_Travel: {
+                        path: ROUTES.WORKSPACE_TRAVEL,
+                        exact: true,
+                    },
+                    Workspace_Members: {
+                        path: ROUTES.WORKSPACE_MEMBERS,
+                        exact: true,
+                    },
+                    Workspace_BankAccount: {
+                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
+                        exact: true,
+                    },
+                    ReimbursementAccount: {
+                        path: ROUTES.BANK_ACCOUNT,
+                        exact: true,
                     },
                 },
             },

@@ -139,50 +139,6 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
     name: 'NewChat_Root',
 }]);
 
-const WorkspaceModalStackNavigator = createModalStackNavigator([
-    {
-        Component: WorkspaceInitialPage,
-        name: 'Workspace_Initial',
-    },
-    {
-        Component: WorkspaceSettingsPage,
-        name: 'Workspace_Settings',
-    },
-    {
-        Component: WorkspaceCardPage,
-        name: 'Workspace_Card',
-    },
-    {
-        Component: WorkspaceReimbursePage,
-        name: 'Workspace_Reimburse',
-    },
-    {
-        Component: WorkspaceBillsPage,
-        name: 'Workspace_Bills',
-    },
-    {
-        Component: WorkspaceInvoicesPage,
-        name: 'Workspace_Invoices',
-    },
-    {
-        Component: WorkspaceTravelPage,
-        name: 'Workspace_Travel',
-    },
-    {
-        Component: WorkspaceMembersPage,
-        name: 'Workspace_Members',
-    },
-    {
-        Component: WorkspaceBankAccountPage,
-        name: 'Workspace_BankAccount',
-    },
-    {
-        Component: ReimbursementAccountPage,
-        name: 'ReimbursementAccount',
-        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
-    },
-]);
-
 const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsInitialPage,
@@ -223,6 +179,47 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsAddDebitCardPage,
         name: 'Settings_Add_Debit_Card',
+    },
+    {
+        Component: WorkspaceInitialPage,
+        name: 'Workspace_Initial',
+    },
+    {
+        Component: WorkspaceSettingsPage,
+        name: 'Workspace_Settings',
+    },
+    {
+        Component: WorkspaceCardPage,
+        name: 'Workspace_Card',
+    },
+    {
+        Component: WorkspaceReimbursePage,
+        name: 'Workspace_Reimburse',
+    },
+    {
+        Component: WorkspaceBillsPage,
+        name: 'Workspace_Bills',
+    },
+    {
+        Component: WorkspaceInvoicesPage,
+        name: 'Workspace_Invoices',
+    },
+    {
+        Component: WorkspaceTravelPage,
+        name: 'Workspace_Travel',
+    },
+    {
+        Component: WorkspaceMembersPage,
+        name: 'Workspace_Members',
+    },
+    {
+        Component: WorkspaceBankAccountPage,
+        name: 'Workspace_BankAccount',
+    },
+    {
+        Component: ReimbursementAccountPage,
+        name: 'ReimbursementAccount',
+        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
     },
 ]);
 
@@ -268,5 +265,4 @@ export {
     ReimbursementAccountModalStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
-    WorkspaceModalStackNavigator,
 };
