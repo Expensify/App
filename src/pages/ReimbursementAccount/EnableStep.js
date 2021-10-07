@@ -11,25 +11,29 @@ import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Icon from '../../components/Icon';
-import {Bank, Pencil} from '../../components/Icon/Expensicons';
+import {Bank, ChatBubble} from '../../components/Icon/Expensicons';
 import colors from '../../styles/colors';
 import variables from '../../styles/variables';
 import MenuItem from '../../components/MenuItem';
-import {openSignedInLink} from '../../libs/actions/App';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import CONST from '../../CONST';
+import bankAccountPropTypes from '../../components/bankAccountPropTypes';
+import {navigateToConciergeChat} from '../../libs/actions/Report';
 
 const propTypes = {
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    /** Array of bank account objects */
+    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isLoadingPaymentMethods: true,
+    bankAccountList: [],
 };
 
 class EnableStep extends React.Component {
@@ -38,15 +42,15 @@ class EnableStep extends React.Component {
     }
 
     render() {
-        if (this.props.isLoadingPaymentMethods) {
+        const {
+            user, reimbursementAccount, translate, bankAccountList,
+        } = this.props;
+        if (this.props.isLoadingPaymentMethods || _.isEmpty(bankAccountList)) {
             return (
                 <FullScreenLoadingIndicator visible />
             );
         }
 
-        const {
-            user, reimbursementAccount, translate, bankAccountList,
-        } = this.props;
         const isUsingExpensifyCard = user.isUsingExpensifyCard;
         const account = _.find(bankAccountList, bankAccount => bankAccount.bankAccountID === reimbursementAccount.achData.bankAccountID);
         if (!account) {
@@ -89,9 +93,9 @@ class EnableStep extends React.Component {
                     </Text>
                     {!isUsingExpensifyCard && (
                         <MenuItem
-                            title={translate('workspace.bankAccount.addWorkEmail')}
-                            icon={Pencil}
-                            onPress={() => openSignedInLink(CONST.URL_OLDDOT_SECONDARY_LOGIN)}
+                            title={translate('workspace.bankAccount.chatWithConcierge')}
+                            icon={ChatBubble}
+                            onPress={() => navigateToConciergeChat()}
                             shouldShowRightIcon
                         />
                     )}
@@ -119,6 +123,7 @@ export default compose(
         },
         bankAccountList: {
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
+            initWithStoredValues: false,
         },
     }),
 )(EnableStep);

@@ -670,6 +670,9 @@ export default {
         error: {
             growlMessageInvalidPolicy: '¡Espacio de trabajo no válido!',
         },
+        bankAccount: {
+            chatWithConcierge: 'Chat con Concierge',
+        },
     },
     requestCallPage: {
         title: 'Llámame por teléfono',
