@@ -97,7 +97,7 @@ class AddressSearch extends React.Component {
                     listView: [
                         styles.borderTopRounded,
                         styles.borderBottomRounded,
-                        styles.mt4,
+                        styles.mt1,
                         styles.overflowAuto,
                         styles.borderLeft,
                         styles.borderRight,
