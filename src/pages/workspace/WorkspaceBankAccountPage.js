@@ -1,11 +1,9 @@
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Icon from '../../components/Icon';
 import {Bank} from '../../components/Icon/Expensicons';
-import MenuItem from '../../components/MenuItem';
+import {BankArrowPink} from '../../components/Icon/Illustrations';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -14,10 +12,9 @@ import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
-import colors from '../../styles/colors';
 import styles from '../../styles/styles';
-import variables from '../../styles/variables';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import WorkspaceSection from './WorkspaceSection';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -57,19 +54,20 @@ const WorkspaceBankAccountPage = (props) => {
                 onBackButtonPress={() => Navigation.goBack()}
                 shouldShowBackButton
             />
-            <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                <Text style={[styles.textLarge, styles.textStrong]}>{props.translate('workspace.bankAccount.almostDone')}</Text>
-                <Icon src={Bank} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
-            </View>
-            <Text style={[styles.mh5, styles.mb5]}>
-                {props.translate('workspace.bankAccount.youreAlmostDone')}
-            </Text>
-            <MenuItem
-                title={props.translate('workspace.bankAccount.continueWithSetup')}
-                icon={Bank}
-                onPress={popAndNavigateToBankAccountRoute}
-                shouldShowRightIcon
-            />
+            <WorkspaceSection
+                title={props.translate('workspace.bankAccount.almostDone')}
+                icon={BankArrowPink}
+                menuItems={[{
+                    title: props.translate('workspace.bankAccount.continueWithSetup'),
+                    icon: Bank,
+                    onPress: popAndNavigateToBankAccountRoute,
+                    shouldShowRightIcon: true,
+                }]}
+            >
+                <Text>
+                    {props.translate('workspace.bankAccount.youreAlmostDone')}
+                </Text>
+            </WorkspaceSection>
         </ScreenWrapper>
     );
 };

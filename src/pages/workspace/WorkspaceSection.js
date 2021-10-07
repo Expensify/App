@@ -14,7 +14,10 @@ const propTypes = {
     title: PropTypes.string.isRequired,
 
     /** The icon to display along with the title */
-    icon: PropTypes.func.isRequired,
+    icon: PropTypes.func,
+
+    /** Icon component */
+    IconComponent: PropTypes.func,
 
     /** Contents to display inside the section */
     children: PropTypes.node,
@@ -23,6 +26,8 @@ const propTypes = {
 const defaultProps = {
     menuItems: null,
     children: null,
+    icon: null,
+    IconComponent: null,
 };
 
 const WorkspaceSection = ({
@@ -30,6 +35,7 @@ const WorkspaceSection = ({
     title,
     icon,
     children,
+    IconComponent,
 }) => (
     <>
         <View style={styles.pageWrapper}>
@@ -38,7 +44,8 @@ const WorkspaceSection = ({
                     <Text style={[styles.textXLarge]}>{title}</Text>
                 </View>
                 <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
-                    <Icon src={icon} height={80} width={80} />
+                    {icon && <Icon src={icon} height={80} width={80} />}
+                    {IconComponent && <IconComponent />}
                 </View>
             </View>
 

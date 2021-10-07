@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import {
-    Paycheck, Bank, Lock, Exclamation, BankMouse,
+    Paycheck, Bank, Lock, Exclamation,
 } from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
@@ -32,6 +32,8 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import variables from '../../styles/variables';
+import WorkspaceSection from '../workspace/WorkspaceSection';
+import {BankMouseGreen} from '../../components/Icon/Illustrations';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -184,10 +186,10 @@ class BankAccountStep extends React.Component {
                 {!subStep && (
                     <>
                         <View style={[styles.flex1]}>
-                            <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                                <Text style={[styles.textLarge, styles.textStrong]}>{this.props.translate('workspace.bankAccount.streamlinePayments')}</Text>
-                                <Icon src={BankMouse} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
-                            </View>
+                            <WorkspaceSection
+                                icon={BankMouseGreen}
+                                title={this.props.translate('workspace.bankAccount.streamlinePayments')}
+                            />
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
                             </Text>

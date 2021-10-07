@@ -23,11 +23,9 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import Icon from '../../components/Icon';
-import {Bell, ChatBubble} from '../../components/Icon/Expensicons';
-import colors from '../../styles/colors';
-import variables from '../../styles/variables';
-import MenuItem from '../../components/MenuItem';
+import {ChatBubble} from '../../components/Icon/Expensicons';
+import {ConciergeBlue} from '../../components/Icon/Illustrations';
+import WorkspaceSection from '../workspace/WorkspaceSection';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -236,19 +234,20 @@ class ValidationStep extends React.Component {
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
-                        <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                            <Text style={[styles.textLarge, styles.textStrong]}>{this.props.translate('workspace.bankAccount.letsFinishInChat')}</Text>
-                            <Icon src={Bell} fill={colors.green} height={variables.componentSizeNormal} width={variables.componentSizeNormal} />
-                        </View>
-                        <Text style={[styles.mh5, styles.mb5]}>
-                            {this.props.translate('validationStep.letsChatText')}
-                        </Text>
-                        <MenuItem
-                            title={this.props.translate('validationStep.letsChatCTA')}
-                            icon={ChatBubble}
-                            onPress={this.navigateToConcierge}
-                            shouldShowRightIcon
-                        />
+                        <WorkspaceSection
+                            title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
+                            icon={ConciergeBlue}
+                            menuItems={[{
+                                title: this.props.translate('validationStep.letsChatCTA'),
+                                icon: ChatBubble,
+                                onPress: this.navigateToConcierge,
+                                shouldShowRightIcon: true,
+                            }]}
+                        >
+                            <Text>
+                                {this.props.translate('validationStep.letsChatText')}
+                            </Text>
+                        </WorkspaceSection>
                     </View>
                 )}
             </View>

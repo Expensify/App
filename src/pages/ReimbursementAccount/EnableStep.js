@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -10,7 +10,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {Bell, ChatBubble} from '../../components/Icon/Expensicons';
+import {ChatBubble} from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
@@ -19,6 +19,8 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
+import WorkspaceSection from '../workspace/WorkspaceSection';
+import {ConciergeBlue} from '../../components/Icon/Illustrations';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -74,33 +76,31 @@ class EnableStep extends React.Component {
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1]}>
-                    <View style={[styles.mh5, styles.mb5, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text style={[styles.textLarge, styles.textStrong]}>
-                            {!isUsingExpensifyCard ? translate('workspace.bankAccount.oneMoreThing') : translate('workspace.bankAccount.allSet')}
-                        </Text>
-                        {!isUsingExpensifyCard ? <Icon src={Bell} width={80} height={80} /> : <Image src={confettiPop} height={80} width={80} />}
-                    </View>
-                    <MenuItem
-                        title={bankName}
-                        description={formattedBankAccountNumber}
-                        icon={icon}
-                        iconWidth={iconSize}
-                        iconHeight={iconSize}
-                        onPress={() => {}}
-                    />
-                    <Text style={[styles.mh5, styles.mb5]}>
-                        {!isUsingExpensifyCard
-                            ? translate('workspace.bankAccount.accountDescriptionNoCards')
-                            : translate('workspace.bankAccount.accountDescriptionWithCards')}
-                    </Text>
-                    {!isUsingExpensifyCard && (
+                    <WorkspaceSection
+                        title={!isUsingExpensifyCard ? translate('workspace.bankAccount.oneMoreThing') : translate('workspace.bankAccount.allSet')}
+                        IconComponent={() => (!isUsingExpensifyCard ? <Icon src={ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
+                        menuItems={!isUsingExpensifyCard ? [{
+                            title: translate('workspace.bankAccount.chatWithConcierge'),
+                            icon: ChatBubble,
+                            onPress: navigateToConciergeChat,
+                            shouldShowRightIcon: true,
+                        }] : []}
+                    >
                         <MenuItem
-                            title={translate('workspace.bankAccount.chatWithConcierge')}
-                            icon={ChatBubble}
-                            onPress={() => navigateToConciergeChat()}
-                            shouldShowRightIcon
+                            title={bankName}
+                            description={formattedBankAccountNumber}
+                            icon={icon}
+                            iconWidth={iconSize}
+                            iconHeight={iconSize}
+                            onPress={() => {}}
+                            wrapperStyle={{paddingHorizontal: 0, marginBottom: 12}}
                         />
-                    )}
+                        <Text>
+                            {!isUsingExpensifyCard
+                                ? translate('workspace.bankAccount.accountDescriptionNoCards')
+                                : translate('workspace.bankAccount.accountDescriptionWithCards')}
+                        </Text>
+                    </WorkspaceSection>
                 </View>
             </View>
         );

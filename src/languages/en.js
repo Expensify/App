@@ -721,7 +721,7 @@ export default {
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
             allSet: 'All set!',
-            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account. Concierge can help you add a work email address to enable the Expensify Card.',
+            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nConcierge can help you add a work email address to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
             chatWithConcierge: 'Chat with Concierge',
             letsFinishInChat: 'Let\'s finish in chat!',
