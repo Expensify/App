@@ -129,7 +129,7 @@ class GithubUtils {
             [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[ \\] QA`, 'g'))],
             match => ({
                 url: match[1],
-                number: GithubUtils.getPullRequestNumberFromURL(match[2]),
+                number: GithubUtils.getPullRequestNumberFromURL(match[1]),
                 isVerified: false,
             }),
         );
