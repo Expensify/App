@@ -24,9 +24,15 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Menu options to display */
-    /** [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}, {text: 'Venmo', icon: Venmo}] */
+    /** [
+     *   {text: 'Pay with Expensify', paymentType: 'Expensify', icon: Wallet},
+     *   {text: 'PayPal', paymentType: 'PayPal.me', icon: PayPal},
+     *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
+     *  ]
+     * */
     options: PropTypes.arrayOf(PropTypes.shape({
         text: PropTypes.string.isRequired,
+        paymentType: PropTypes.string,
         icon: PropTypes.elementType,
         iconWidth: PropTypes.number,
         iconHeight: PropTypes.number,
