@@ -2,11 +2,11 @@ import React from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import MenuItem from './MenuItem';
-import MenuItemPropTypes from './MenuItemPropTypes';
+import menuItemPropTypes from './menuItemPropTypes';
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
-    menuItems: PropTypes.arrayOf(PropTypes.shape(MenuItemPropTypes)),
+    menuItems: PropTypes.arrayOf(PropTypes.shape(menuItemPropTypes)),
 };
 const defaultProps = {
     menuItems: [],

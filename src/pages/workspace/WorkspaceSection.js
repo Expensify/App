@@ -5,11 +5,11 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import MenuItemList from '../../components/MenuItemList';
 import Icon from '../../components/Icon';
-import MenuItemPropTypes from '../../components/MenuItemPropTypes';
+import menuItemPropTypes from '../../components/menuItemPropTypes';
 
 const propTypes = {
     /** An array of props that are pass to individual MenuItem components */
-    menuItems: PropTypes.arrayOf(PropTypes.shape(MenuItemPropTypes)),
+    menuItems: PropTypes.arrayOf(PropTypes.shape(menuItemPropTypes)),
 
     /** The text to display in the title of the section */
     title: PropTypes.string.isRequired,

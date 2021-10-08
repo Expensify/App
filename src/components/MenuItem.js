@@ -10,10 +10,10 @@ import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CONST from '../CONST';
-import MenuItemPropTypes from './MenuItemPropTypes';
+import menuItemPropTypes from './menuItemPropTypes';
 
 const propTypes = {
-    ...MenuItemPropTypes,
+    ...menuItemPropTypes,
 };
 
 const defaultProps = {
