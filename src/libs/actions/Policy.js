@@ -46,6 +46,7 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
+ * @param {String} fullPolicy.value.outputCurrency
  * @param {Object} fullPolicy.value.employeeList
  * @param {String} [fullPolicy.value.avatarURL]
  * @returns {Object}
@@ -56,6 +57,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
+        outputCurrency: lodashGet(fullPolicy, 'value.outputCurrency', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
     };
@@ -118,6 +120,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 type: response.policy.type,
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: response.policy.outputCurrency,
             });
         }).then(() => {
             const policyID = lodashGet(res, 'policyID');
@@ -305,13 +308,14 @@ function update(policyID, values) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
                 return;
             }
 
             const updatedValues = {...values, ...{isPolicyUpdating: false}};
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
-            Navigation.dismissModal();
         }).catch(() => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });

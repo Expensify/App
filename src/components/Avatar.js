@@ -3,6 +3,7 @@ import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import RoomAvatar from './RoomAvatar';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Url source for the avatar */
@@ -12,7 +13,7 @@ const propTypes = {
     imageStyles: PropTypes.arrayOf(PropTypes.object),
 
     /** Extra styles to pass to View wrapper */
-    containerStyles: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+    containerStyles: stylePropTypes,
 
     /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),

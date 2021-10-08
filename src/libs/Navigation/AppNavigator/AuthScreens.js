@@ -6,7 +6,7 @@ import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import styles, {getNavigationModalCardStyle} from '../../../styles/styles';
+import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -55,18 +55,13 @@ import {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    WorkspaceEditorNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
-import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
-import spacing from '../../../styles/utilities/spacing';
-import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
@@ -250,17 +245,6 @@ class AuthScreens extends React.Component {
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
         };
-        const fullscreenModalScreenOptions = {
-            ...commonModalScreenOptions,
-            cardStyle: {
-                ...styles.fullscreenCard,
-                padding: this.props.isSmallScreenWidth ? spacing.p0.padding : spacing.p5.padding,
-            },
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: !this.props.isSmallScreenWidth,
-            isFullScreenModal: true,
-            cardOverlay: CardOverlay,
-        };
 
         return (
             <RootStack.Navigator
@@ -306,12 +290,6 @@ class AuthScreens extends React.Component {
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
-                <RootStack.Screen
-                    name="WorkspaceSettings"
-                    options={fullscreenModalScreenOptions}
-                    component={WorkspaceSettingsDrawerNavigator}
-                    listeners={modalScreenListeners}
-                />
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
@@ -383,13 +361,6 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="ReimbursementAccount"
-                    options={modalScreenOptions}
-                    component={ReimbursementAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
-                />
-                <RootStack.Screen
                     name="WorkspaceInvite"
                     options={modalScreenOptions}
                     component={WorkspaceInviteModalStackNavigator}
@@ -405,12 +376,6 @@ class AuthScreens extends React.Component {
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="WorkspaceEditor"
-                    options={modalScreenOptions}
-                    component={WorkspaceEditorNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

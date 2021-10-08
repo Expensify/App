@@ -43,7 +43,7 @@ class NavigationRoot extends Component {
     render() {
         return (
             <NavigationContainer
-                fallback={<FullScreenLoadingIndicator visible />}
+                fallback={<FullScreenLoadingIndicator />}
                 onStateChange={this.parseAndStoreRoute}
                 ref={navigationRef}
                 linking={linkingConfig}
