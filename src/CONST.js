@@ -213,6 +213,7 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        TOOLTIP_SENSE: 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
