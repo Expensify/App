@@ -656,7 +656,7 @@ export default {
             pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
             systemUserError: ({email}) => `Sorry, you cannot invite ${email} to a workspace.`,
-            welcomeNote: ({workspaceName}) => `You have been invited to the ${workspaceName} workspace! Download the Expensify mobile app to start tracking your expenses.`,
+            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName}! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
             nameInputLabel: 'Name',
