@@ -7,7 +7,7 @@ import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 
-class CheckboxWithTooltip extends React.Component {
+export class CheckboxWithTooltip extends React.Component {
     constructor(props) {
         super(props);
         this.onPress = this.onPress.bind(this);

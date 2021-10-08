@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import CheckboxWithTooltipNative from 'index.native';
+import {CheckboxWithTooltip as CheckboxWithTooltipNative} from './index.native';
 import Checkbox from '../Checkbox';
 import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
 import Tooltip from '../Tooltip';
