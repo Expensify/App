@@ -260,7 +260,7 @@ class IOUModal extends Component {
                 reportID: 0,
                 paymentMethodType: this.state.paymentType,
 
-                // should send in cents to API
+                // Send in cents to API.
                 amount: Math.round(this.state.amount * 100),
                 currency: this.props.iou.selectedCurrencyCode,
                 submitterPayPalMeAddress: this.state.participants[0].payPalMeAddress,
@@ -275,7 +275,7 @@ class IOUModal extends Component {
             createIOUSplit({
                 comment: this.state.comment,
 
-                // should send in cents to API
+                // Send in cents to API.
                 amount: Math.round(this.state.amount * 100),
                 currency: this.props.iou.selectedCurrencyCode,
                 splits,
@@ -286,7 +286,7 @@ class IOUModal extends Component {
         createIOUTransaction({
             comment: this.state.comment,
 
-            // should send in cents to API
+            // Send in cents to API.
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: addSMSDomainIfPhoneNumber(this.state.participants[0].login),
