@@ -16,7 +16,7 @@ const MenuItemList = ({menuItems}) => (
     <>
         {_.map(menuItems, menuItemProps => (
             <MenuItem
-                key={_.uniqueId(menuItemProps.title)}
+                key={menuItemProps.title}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...menuItemProps}
             />

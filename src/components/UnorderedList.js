@@ -17,7 +17,7 @@ const UnorderedList = ({items}) => (
     <>
         {_.map(items, itemText => (
             <View
-                key={_.uniqueId(itemText)}
+                key={itemText}
                 style={[styles.flexRow, styles.alignItemsStart, styles.ml2]}
             >
                 <Text style={[styles.mr2]}>{'\u2022'}</Text>
