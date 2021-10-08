@@ -198,11 +198,11 @@ class IOUParticipantsSplit extends Component {
     render() {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-        const headerMessage = maxParticipantsReached ? '' : getHeaderMessage(
+        const headerMessage = !maxParticipantsReached ? getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
-        );
+        ) : '';
         return (
             <>
                 <View style={[styles.flex1, styles.w100]}>
