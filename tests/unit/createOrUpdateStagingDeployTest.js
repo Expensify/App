@@ -115,7 +115,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         labels: [LABELS.STAGING_DEPLOY_CASH],
         html_url: 'https://github.com/Expensify/App/issues/29',
         // eslint-disable-next-line max-len
-        body: `${baseExpectedOutput('1.0.2-1')}`
+        body: `${baseExpectedOutput('1.0.1-0')}`
             + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
             + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
             + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
