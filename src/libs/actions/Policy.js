@@ -109,11 +109,12 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
         }).then(() => {
+            const policyID = lodashGet(res, 'policyID');
             if (shouldAutomaticallyReroute) {
                 Navigation.dismissModal();
-                Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(policyID));
             }
-            return Promise.resolve(lodashGet(res, 'policyID'));
+            return Promise.resolve(policyID);
         });
 }
 
