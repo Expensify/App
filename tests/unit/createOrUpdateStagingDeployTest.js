@@ -90,6 +90,11 @@ const basePRList = [
     'https://github.com/Expensify/App/pull/11',
     'https://github.com/Expensify/App/pull/12',
 ];
+
+const baseIssueList = [
+    'https://github.com/Expensify/App/issues/11',
+    'https://github.com/Expensify/App/issues/12',
+]
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
 const openCheckbox = '  - [ ]';
@@ -272,11 +277,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[10]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[11]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
