@@ -172,7 +172,7 @@ class ValidationStep extends React.Component {
                     title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack()}
                     shouldShowBackButton
                 />
                 {maxAttemptsReached && (
