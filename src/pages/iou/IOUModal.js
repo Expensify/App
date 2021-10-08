@@ -121,7 +121,9 @@ class IOUModal extends Component {
         this.state = {
             currentStepIndex: 0,
             participants: participantsWithDetails,
-            paymentType: props.iouType,
+
+            // Set default payment type to "Elsewhere"
+            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
 
             // amount is currency in decimal format
             amount: '',
@@ -254,7 +256,7 @@ class IOUModal extends Component {
      * @param {Array} [splits]
      */
     confirm(splits) {
-        if (this.state.paymentType === CONST.IOU.IOU_TYPE.SEND) {
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             payIOUReport({
                 chatReportID: this.props.route.params.reportID,
                 reportID: 0,
