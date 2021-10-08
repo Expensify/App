@@ -63,6 +63,7 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         iouType={props.iouType}
         localCurrencyCode={props.localCurrencyCode}
+        onUpdatePaymentType={props.onUpdatePaymentType}
     />
 );
 

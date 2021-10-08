@@ -36,6 +36,10 @@ const propTypes = {
     // Callback to update comment from IOUModal
     onUpdateComment: PropTypes.func,
 
+    /** Callback to update payment type in IOUModal */
+    /* eslint-disable-next-line react/no-unused-prop-types */
+    onUpdatePaymentType: PropTypes.func.isRequired,
+
     /** Comment value from IOUModal */
     comment: PropTypes.string,
 
@@ -138,14 +142,14 @@ class IOUConfirmationList extends Component {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.props.participants.length === 1 && Permissions.canUseIOUSend(this.props.betas)) {
             // Add the Expensify Wallet option if available and make it the first option
             if (this.props.localCurrencyCode === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
-                confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), icon: Wallet});
+                confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), type: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, icon: Wallet});
             }
 
             // Add PayPal option
             if (this.props.participants[0].payPalMeAddress) {
-                confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), icon: PayPal});
+                confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), type: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, icon: PayPal});
             }
-            defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), icon: Cash};
+            defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), type: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, icon: Cash};
         }
         confirmationButtonOptions.push(defaultButtonOption);
 
@@ -340,7 +344,7 @@ class IOUConfirmationList extends Component {
 
                     this.setState(prevState => ({
                         confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
-                            {text: this.props.translate('iou.settleVenmo'), icon: Venmo},
+                            {text: this.props.translate('iou.settleVenmo'), type: CONST.IOU.PAYMENT_TYPE.VENMO, icon: Venmo},
                             ...prevState.confirmationButtonOptions.slice(1),
                         ],
                     }));
@@ -437,6 +441,7 @@ class IOUConfirmationList extends Component {
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
                         menuHeaderText={this.props.translate('iou.choosePaymentMethod')}
                         onPress={this.onPress}
+                        onChange={this.props.onUpdatePaymentType}
                     />
                 </FixedFooter>
             </>

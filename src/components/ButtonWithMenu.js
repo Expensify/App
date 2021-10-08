@@ -45,6 +45,8 @@ class ButtonWithMenu extends PureComponent {
     constructor(props) {
         super(props);
 
+        console.log("Option: ", props.options)
+
         this.state = {
             selectedItem: props.options[0],
             isMenuVisible: false,
