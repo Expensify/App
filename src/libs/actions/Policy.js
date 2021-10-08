@@ -22,32 +22,6 @@ Onyx.connect({
 });
 
 /**
- * Takes a full policy summary that is returned from the policySummaryList and simplifies it so we are only storing
- * the pieces of data that we need to in Onyx
- *
- * @param {Object} fullPolicy
- * @param {String} fullPolicy.id
- * @param {String} fullPolicy.name
- * @param {String} fullPolicy.role
- * @param {String} fullPolicy.type
- * @param {String} fullPolicy.outputCurrency
- * @param {Object} fullPolicy.value.employeeList
- * @param {String} [fullPolicy.value.avatarURL]
- * @returns {Object}
- */
-function getSimplifiedPolicyObject(fullPolicy) {
-    return {
-        id: fullPolicy.id,
-        name: fullPolicy.name,
-        role: fullPolicy.role,
-        type: fullPolicy.type,
-        outputCurrency: fullPolicy.outputCurrency,
-        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
-        avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
-    };
-}
-
-/**
  * Simplifies the employeeList response into an object containing an array of emails
  *
  * @param {Object} employeeList
@@ -61,6 +35,49 @@ function getSimplifiedEmployeeList(employeeList) {
         .value();
 
     return employeeListEmails;
+}
+
+/**
+ * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
+ * the pieces of data that we need to in Onyx
+ *
+ * @param {Object} fullPolicy
+ * @param {String} fullPolicy.id
+ * @param {String} fullPolicy.name
+ * @param {String} fullPolicy.role
+ * @param {String} fullPolicy.type
+<<<<<<< HEAD
+ * @param {String} fullPolicy.outputCurrency
+=======
+>>>>>>> 30ce47c12 (Merge pull request #5706 from Expensify/Rory-FixLoadingSpinnerRaceCondition)
+ * @param {Object} fullPolicy.value.employeeList
+ * @param {String} [fullPolicy.value.avatarURL]
+ * @returns {Object}
+ */
+function getSimplifiedPolicyObject(fullPolicy) {
+    return {
+        id: fullPolicy.id,
+        name: fullPolicy.name,
+        role: fullPolicy.role,
+        type: fullPolicy.type,
+<<<<<<< HEAD
+        outputCurrency: fullPolicy.outputCurrency,
+=======
+>>>>>>> 30ce47c12 (Merge pull request #5706 from Expensify/Rory-FixLoadingSpinnerRaceCondition)
+        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
+        avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
+    };
+}
+
+/**
+ * @param {Array<Object>} policyList
+ * @returns {Object}
+ */
+function transformPolicyListToOnyxCollection(policyList) {
+    return _.reduce(policyList, (memo, policy) => ({
+        ...memo,
+        [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+    }), {});
 }
 
 /**
@@ -84,35 +101,82 @@ function updateAllPolicies(policyCollection) {
 }
 
 /**
- * Fetches the policySummaryList from the API and saves a simplified version in Onyx
+ * Merges the passed in login into the specified policy
+ *
+ * @param {String} [name]
+ * @param {Boolean} [shouldAutomaticallyReroute]
+ * @returns {Promise}
  */
-function getPolicySummaries() {
-    API.GetPolicySummaryList()
-        .then((data) => {
-            if (data.jsonCode === 200) {
-                const policyDataToStore = _.reduce(data.policySummaryList, (memo, policy) => ({
-                    ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-                }), {});
-                updateAllPolicies(policyDataToStore);
+function create(name = '', shouldAutomaticallyReroute = true) {
+    let res = null;
+    return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
             }
+            res = response;
+
+            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
+            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
+                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
+                id: response.policyID,
+                type: response.policy.type,
+                name: response.policy.name,
+                role: CONST.POLICY.ROLE.ADMIN,
+            });
+        }).then(() => {
+            const policyID = lodashGet(res, 'policyID');
+            if (shouldAutomaticallyReroute) {
+                Navigation.dismissModal();
+                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
+            }
+            return Promise.resolve(policyID);
         });
 }
 
 /**
- * Fetches the policyList from the API and saves a simplified version in Onyx
+ * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
+ *
+ * More specifically, this action will:
+ * 1. Optionally create a new policy.
+ * 2. Fetch policy summaries.
+ * 3. Optionally navigate to the new policy.
+ * 4. Then fetch full policies.
+ *
+ * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
+ * and we also don't have to wait for full policies to load before navigating to the new policy.
+ *
+ * @param {Boolean} [shouldCreateNewPolicy]
  */
-function getPolicyList() {
-    API.GetPolicyList()
+function getPolicyList(shouldCreateNewPolicy = false) {
+    let newPolicyID;
+    const createPolicyPromise = shouldCreateNewPolicy
+        ? create('', false)
+        : Promise.resolve();
+    createPolicyPromise
+        .then((policyID) => {
+            newPolicyID = policyID;
+            return API.GetPolicySummaryList();
+        })
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
-                    ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {
-                        employeeList: getSimplifiedEmployeeList(policy.value.employeeList),
-                        avatarURL: lodashGet(policy, 'value.avatarURL', ''),
-                    },
-                }), {});
+                const policyDataToStore = transformPolicyListToOnyxCollection(data.policySummaryList || []);
+                updateAllPolicies(policyDataToStore);
+            }
+
+            if (shouldCreateNewPolicy) {
+                Navigation.dismissModal();
+                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceCardRoute(newPolicyID) : ROUTES.HOME);
+            }
+
+            return API.GetPolicyList();
+        })
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
                 updateAllPolicies(policyDataToStore);
             }
         });
@@ -219,6 +283,7 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
+<<<<<<< HEAD
  * Merges the passed in login into the specified policy
  *
  * @param {String} [name]
@@ -251,6 +316,8 @@ function create(name = '') {
 }
 
 /**
+=======
+>>>>>>> 30ce47c12 (Merge pull request #5706 from Expensify/Rory-FixLoadingSpinnerRaceCondition)
  * @param {Object} file
  * @returns {Promise}
  */
@@ -320,7 +387,6 @@ function hideWorkspaceAlertMessage(policyID) {
 }
 
 export {
-    getPolicySummaries,
     getPolicyList,
     removeMembers,
     invite,
