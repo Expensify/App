@@ -25,7 +25,7 @@ const propTypes = {
 
     /** Menu options to display */
     /** [
-     *   {text: 'Settle up elsewhere', paymentType: 'Elsewhere', icon: Cash},
+     *   {text: 'I\'ll settle up elsewhere', paymentType: 'Elsewhere', icon: Cash},
      *   {text: 'Pay with Expensify', paymentType: 'Expensify', icon: Wallet},
      *   {text: 'PayPal', paymentType: 'PayPal.me', icon: PayPal},
      *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
@@ -99,7 +99,7 @@ class ButtonWithMenu extends PureComponent {
                             ...item,
                             onSelected: () => {
                                 this.setState({selectedItem: item});
-                                this.props.onChange(item.paymentType || "");
+                                this.props.onChange(item.paymentType || '');
                             },
                         }))}
                     />
