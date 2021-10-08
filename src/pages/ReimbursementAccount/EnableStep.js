@@ -48,7 +48,7 @@ class EnableStep extends React.Component {
         } = this.props;
         if (this.props.isLoadingPaymentMethods || _.isEmpty(bankAccountList)) {
             return (
-                <FullScreenLoadingIndicator visible />
+                <FullScreenLoadingIndicator />
             );
         }
 
