@@ -46,6 +46,7 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
+ * @param {String} fullPolicy.value.outputCurrency
  * @param {Object} fullPolicy.value.employeeList
  * @param {String} [fullPolicy.value.avatarURL]
  * @returns {Object}
@@ -56,9 +57,21 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
-        employeeList: getSimplifiedEmployeeList(fullPolicy.value.employeeList),
+        outputCurrency: lodashGet(fullPolicy, 'value.outputCurrency', ''),
+        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
     };
+}
+
+/**
+ * @param {Array<Object>} policyList
+ * @returns {Object}
+ */
+function transformPolicyListToOnyxCollection(policyList) {
+    return _.reduce(policyList, (memo, policy) => ({
+        ...memo,
+        [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+    }), {});
 }
 
 /**
@@ -107,40 +120,59 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 type: response.policy.type,
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: response.policy.outputCurrency,
             });
         }).then(() => {
+            const policyID = lodashGet(res, 'policyID');
             if (shouldAutomaticallyReroute) {
                 Navigation.dismissModal();
-                Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
+                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
             }
-            return Promise.resolve(res.policyID);
+            return Promise.resolve(policyID);
         });
 }
 
 /**
  * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
  *
+ * More specifically, this action will:
+ * 1. Optionally create a new policy.
+ * 2. Fetch policy summaries.
+ * 3. Optionally navigate to the new policy.
+ * 4. Then fetch full policies.
+ *
+ * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
+ * and we also don't have to wait for full policies to load before navigating to the new policy.
+ *
  * @param {Boolean} [shouldCreateNewPolicy]
  */
 function getPolicyList(shouldCreateNewPolicy = false) {
     let newPolicyID;
-    (shouldCreateNewPolicy ? create('', false) : Promise.resolve())
-        .then(({policyID}) => {
+    const createPolicyPromise = shouldCreateNewPolicy
+        ? create('', false)
+        : Promise.resolve();
+    createPolicyPromise
+        .then((policyID) => {
             newPolicyID = policyID;
-            return API.GetPolicyList();
+            return API.GetPolicySummaryList();
         })
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
-                    ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-                }), {});
+                const policyDataToStore = transformPolicyListToOnyxCollection(data.policySummaryList || []);
                 updateAllPolicies(policyDataToStore);
             }
 
             if (shouldCreateNewPolicy) {
                 Navigation.dismissModal();
-                Navigation.navigate(ROUTES.getWorkspaceCardRoute(newPolicyID));
+                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceCardRoute(newPolicyID) : ROUTES.HOME);
+            }
+
+            return API.GetPolicyList();
+        })
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
+                updateAllPolicies(policyDataToStore);
             }
         });
 }
@@ -276,13 +308,14 @@ function update(policyID, values) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
                 return;
             }
 
             const updatedValues = {...values, ...{isPolicyUpdating: false}};
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
-            Navigation.dismissModal();
         }).catch(() => {
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });

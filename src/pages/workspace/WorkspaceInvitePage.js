@@ -107,7 +107,7 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {Boolean}
      */
     getShouldShowAlertPrompt() {
-        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || this.props.policy.alertMessage.length > 0;
+        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || lodashGet(this.props.policy, 'alertMessage.length') > 0;
     }
 
     clearErrors() {
@@ -172,6 +172,8 @@ class WorkspaceInvitePage extends React.Component {
                             this.clearErrors();
                             Navigation.dismissModal();
                         }}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.goBack()}
                     />
                     <ScrollView
                         style={[styles.w100, styles.flex1]}

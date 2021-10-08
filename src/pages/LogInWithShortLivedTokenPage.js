@@ -74,10 +74,10 @@ class LogInWithShortLivedTokenPage extends Component {
         }
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        let exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
-            exitTo = '';
+            return;
         }
 
         // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current

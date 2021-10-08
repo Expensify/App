@@ -108,7 +108,10 @@ platform :ios do
 
     build_app(
         workspace: "./ios/NewExpensify.xcworkspace",
-        scheme: "NewExpensify"
+        scheme: "NewExpensify",
+        export_options: {
+            manageAppVersionAndBuildNumber: false
+        }
     )
 
     begin
@@ -150,7 +153,7 @@ platform :ios do
       api_key_path: "./ios/ios-fastlane-json-key.json",
 
       # Skip HTMl report verification
-      force: true, 
+      force: true,
 
       # VERSION will be set to the full build_number e.g. '1.0.92.0'
       build_number: ENV["VERSION"],

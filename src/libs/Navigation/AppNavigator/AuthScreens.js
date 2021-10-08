@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import styles, {getNavigationModalCardStyle} from '../../../styles/styles';
+import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -51,18 +52,13 @@ import {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    WorkspaceEditorNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
-import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
-import spacing from '../../../styles/utilities/spacing';
-import CardOverlay from '../../../components/CardOverlay';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
@@ -126,8 +122,6 @@ class AuthScreens extends React.Component {
     constructor(props) {
         super(props);
 
-        this.hasLoadedPolicies = false;
-
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
     }
@@ -170,7 +164,14 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
         fetchFreePlanVerifiedBankAccount();
 
-        this.loadPolicies();
+        // Load policies, maybe creating a new policy first.
+        Linking.getInitialURL()
+            .then((url) => {
+                const path = new URL(url).pathname;
+                const exitTo = new URLSearchParams(url).get('exitTo');
+                const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
+                getPolicyList(shouldCreateFreePolicy);
+            });
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -209,10 +210,6 @@ class AuthScreens extends React.Component {
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
-    componentDidUpdate() {
-        this.loadPolicies();
-    }
-
     componentWillUnmount() {
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
@@ -223,24 +220,6 @@ class AuthScreens extends React.Component {
         cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-    }
-
-    /**
-     * Load policies, maybe creating a new policy first.
-     */
-    loadPolicies() {
-        const {path, params} = Navigation.getCurrentRoute() || {};
-
-        // Don't try to load policies until the path is loaded and we know whether or not we need to create a new policy
-        if (!path) {
-            return;
-        }
-
-        if (!this.hasLoadedPolicies) {
-            this.hasLoadedPolicies = true;
-            const shouldCreateFreePolicy = Str.startsWith(path, ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN) && params.exitTo === ROUTES.WORKSPACE_NEW;
-            getPolicyList(shouldCreateFreePolicy);
-        }
     }
 
     render() {
@@ -262,17 +241,6 @@ class AuthScreens extends React.Component {
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
-        };
-        const fullscreenModalScreenOptions = {
-            ...commonModalScreenOptions,
-            cardStyle: {
-                ...styles.fullscreenCard,
-                padding: this.props.isSmallScreenWidth ? spacing.p0.padding : spacing.p5.padding,
-            },
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: !this.props.isSmallScreenWidth,
-            isFullScreenModal: true,
-            cardOverlay: CardOverlay,
         };
 
         return (
@@ -311,12 +279,6 @@ class AuthScreens extends React.Component {
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
-                <RootStack.Screen
-                    name="WorkspaceSettings"
-                    options={fullscreenModalScreenOptions}
-                    component={WorkspaceSettingsDrawerNavigator}
-                    listeners={modalScreenListeners}
-                />
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
@@ -388,13 +350,6 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="ReimbursementAccount"
-                    options={modalScreenOptions}
-                    component={ReimbursementAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
-                />
-                <RootStack.Screen
                     name="WorkspaceInvite"
                     options={modalScreenOptions}
                     component={WorkspaceInviteModalStackNavigator}
@@ -410,12 +365,6 @@ class AuthScreens extends React.Component {
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="WorkspaceEditor"
-                    options={modalScreenOptions}
-                    component={WorkspaceEditorNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
