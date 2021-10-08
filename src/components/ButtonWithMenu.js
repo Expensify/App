@@ -25,6 +25,7 @@ const propTypes = {
 
     /** Menu options to display */
     /** [
+     *   {text: 'Settle up elsewhere', paymentType: 'Elsewhere', icon: Cash},
      *   {text: 'Pay with Expensify', paymentType: 'Expensify', icon: Wallet},
      *   {text: 'PayPal', paymentType: 'PayPal.me', icon: PayPal},
      *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
