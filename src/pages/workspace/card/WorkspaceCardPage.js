@@ -43,5 +43,6 @@ const WorkspaceCardPage = ({translate, route}) => (
 );
 
 WorkspaceCardPage.propTypes = propTypes;
+WorkspaceCardPage.displayName = 'WorkspaceCardPage';
 
 export default withLocalize(WorkspaceCardPage);

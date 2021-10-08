@@ -35,7 +35,7 @@ export default {
             [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
             WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
-            // Modal Screens=
+            // Modal Screens
             Settings: {
                 screens: {
                     Settings_Root: {
