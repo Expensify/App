@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity} from 'react-native';
 import Text from './Text';
 import {Checkmark, Clipboard as ClipboardIcon} from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';

@@ -45,7 +45,6 @@ export default {
         saveAndContinue: 'Guardar y continuar',
         settings: 'Configuración',
         termsOfService: 'Términos de servicio',
-        people: 'Personas',
         invite: 'Invitación',
         here: 'aquí',
         dob: 'Fecha de Nacimiento',
