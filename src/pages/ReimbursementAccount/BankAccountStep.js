@@ -170,7 +170,7 @@ class BankAccountStep extends React.Component {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
-                    stepCounter={subStep ? {step: 1, total: 5} : null}
+                    stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => {
                         // If we have a subStep then we will remove otherwise we will go back
