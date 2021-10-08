@@ -42,7 +42,7 @@ const AppDownloadLinksPage = ({translate}) => {
             <HeaderWithCloseButton
                 title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={Navigation.goBack}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.mt5]}>

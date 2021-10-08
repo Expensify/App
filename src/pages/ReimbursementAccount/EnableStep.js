@@ -73,7 +73,7 @@ class EnableStep extends React.Component {
                     title={translate('workspace.common.bankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={Navigation.goBack}
                 />
                 <View style={[styles.flex1]}>
                     <WorkspaceSection

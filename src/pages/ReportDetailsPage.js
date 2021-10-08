@@ -120,7 +120,7 @@ class ReportDetailsPage extends Component {
                 <HeaderWithCloseButton
                     title={this.props.translate('common.details')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={Navigation.goBack}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
                 <View style={[styles.flex1]}>
