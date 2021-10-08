@@ -178,7 +178,6 @@ class AuthScreens extends React.Component {
                 const path = new URL(url).pathname;
                 const exitTo = new URLSearchParams(url).get('exitTo');
                 const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
-                console.log('RORY_DEBUG calling getPolicyList w/ shouldCreateFreePolicy', shouldCreateFreePolicy);
                 getPolicyList(shouldCreateFreePolicy);
             });
 
