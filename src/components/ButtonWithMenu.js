@@ -32,7 +32,7 @@ const propTypes = {
      * */
     options: PropTypes.arrayOf(PropTypes.shape({
         text: PropTypes.string.isRequired,
-        paymentType: PropTypes.string,
+        paymentType: PropTypes.string.isRequired,
         icon: PropTypes.elementType,
         iconWidth: PropTypes.number,
         iconHeight: PropTypes.number,
@@ -100,7 +100,7 @@ class ButtonWithMenu extends PureComponent {
                             ...item,
                             onSelected: () => {
                                 this.setState({selectedItem: item});
-                                this.props.onChange(item);
+                                this.props.onChange(item.paymentType);
                             },
                         }))}
                     />
