@@ -2070,12 +2070,12 @@ const styles = {
         width: 100,
         marginBottom: 20,
     },
-    
+
     googleSearchTextInputContainer: {
         flexDirection: 'column',
     },
 
-    googleSearchSeperator: {
+    googleSearchSeparator: {
         height: 1,
         backgroundColor: themeColors.border,
     },
