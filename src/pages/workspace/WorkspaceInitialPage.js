@@ -197,7 +197,7 @@ const WorkspaceInitialPage = ({
 
 WorkspaceInitialPage.propTypes = propTypes;
 WorkspaceInitialPage.defaultProps = defaultProps;
-WorkspaceInitialPage.displayName = 'WorkspaceSidebar';
+WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
