@@ -100,7 +100,7 @@ class WorkspaceInvitePage extends React.Component {
 
     getExcludedUsers() {
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...EXCLUDED_GROUP_EMAILS, policyEmployeeList];
+        return [...EXCLUDED_GROUP_EMAILS, ...policyEmployeeList];
     }
 
     /**
