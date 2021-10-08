@@ -123,18 +123,6 @@ function navigate(route = ROUTES.HOME) {
 }
 
 /**
- * @returns {Object|undefined}
- */
-function getCurrentRoute() {
-    if (!navigationRef.isReady()) {
-        console.debug('[Navigation] navigate failed because navigation ref was not yet ready');
-        return;
-    }
-
-    return navigationRef.getCurrentRoute();
-}
-
-/**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
  * @param {Boolean} shouldOpenDrawer
@@ -236,7 +224,6 @@ DismissModal.defaultProps = {
 
 export default {
     navigate,
-    getCurrentRoute,
     dismissModal,
     isActiveRoute,
     goBack,

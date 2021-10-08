@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
@@ -129,8 +130,6 @@ class AuthScreens extends React.Component {
     constructor(props) {
         super(props);
 
-        this.hasLoadedPolicies = false;
-
         Timing.start(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
         Timing.start(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
     }
@@ -173,7 +172,15 @@ class AuthScreens extends React.Component {
         UnreadIndicatorUpdater.listenForReportChanges();
         fetchFreePlanVerifiedBankAccount();
 
-        this.loadPolicies();
+        // Load policies, maybe creating a new policy first.
+        Linking.getInitialURL()
+            .then((url) => {
+                const path = new URL(url).pathname;
+                const exitTo = new URLSearchParams(url).get('exitTo');
+                const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
+                console.log('RORY_DEBUG calling getPolicyList w/ shouldCreateFreePolicy', shouldCreateFreePolicy);
+                getPolicyList(shouldCreateFreePolicy);
+            });
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -212,10 +219,6 @@ class AuthScreens extends React.Component {
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
-    componentDidUpdate() {
-        this.loadPolicies();
-    }
-
     componentWillUnmount() {
         if (this.unsubscribeSearchShortcut) {
             this.unsubscribeSearchShortcut();
@@ -226,24 +229,6 @@ class AuthScreens extends React.Component {
         cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-    }
-
-    /**
-     * Load policies, maybe creating a new policy first.
-     */
-    loadPolicies() {
-        const {path, params} = Navigation.getCurrentRoute() || {};
-
-        // Don't try to load policies until the path is loaded and we know whether or not we need to create a new policy
-        if (!path) {
-            return;
-        }
-
-        if (!this.hasLoadedPolicies) {
-            this.hasLoadedPolicies = true;
-            const shouldCreateFreePolicy = Str.startsWith(path, ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN) && params.exitTo === ROUTES.WORKSPACE_NEW;
-            getPolicyList(shouldCreateFreePolicy);
-        }
     }
 
     render() {

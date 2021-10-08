@@ -125,7 +125,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
 function getPolicyList(shouldCreateNewPolicy = false) {
     let newPolicyID;
     (shouldCreateNewPolicy ? create('', false) : Promise.resolve())
-        .then(({policyID}) => {
+        .then((policyID) => {
             newPolicyID = policyID;
             return API.GetPolicyList();
         })
