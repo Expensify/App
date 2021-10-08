@@ -156,7 +156,7 @@ class WorkspaceSettingsPage extends React.Component {
                                     style={[styles.mb3]}
                                     anchorPosition={{top: 172, right: 18}}
                                     isUsingDefaultAvatar={!this.state.previewAvatarURL}
-                                    uploadAvatar={this.uploadAvatar}
+                                    onImageSelected={this.uploadAvatar}
                                     onImageRemoved={this.removeAvatar}
                                 />
 
