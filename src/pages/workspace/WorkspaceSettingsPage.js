@@ -129,7 +129,7 @@ class WorkspaceSettingsPage extends React.Component {
         }
 
         if (_.isEmpty(policy)) {
-            return <FullScreenLoadingIndicator visible />;
+            return <FullScreenLoadingIndicator />;
         }
 
         return (

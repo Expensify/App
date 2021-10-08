@@ -15,7 +15,7 @@ const propTypes = {
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
 
-    /** Icon Height */
+    /** Icon Width */
     iconWidth: PropTypes.number,
 
     /** Icon Height */

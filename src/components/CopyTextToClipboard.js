@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {TouchableOpacity} from 'react-native';
 import Text from './Text';
 import {Checkmark, Clipboard as ClipboardIcon} from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
@@ -49,7 +48,7 @@ class CopyTextToClipboard extends React.Component {
         return (
             <Text
                 onPress={this.copyToClipboard}
-                style={[styles.flexRow, styles.cursorPointer, {position: 'relative'}]}
+                style={[styles.flexRow, styles.cursorPointer]}
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
                 {this.state.showCheckmark

@@ -36,5 +36,6 @@ const WorkspaceReimbursePage = ({translate, route}) => (
 );
 
 WorkspaceReimbursePage.propTypes = propTypes;
+WorkspaceReimbursePage.displayName = 'WorkspaceReimbursePage';
 
 export default withLocalize(WorkspaceReimbursePage);

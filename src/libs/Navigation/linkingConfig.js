@@ -35,7 +35,7 @@ export default {
             [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
             WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
-            // Modal Screens=
+            // Modal Screens
             Settings: {
                 screens: {
                     Settings_Root: {
@@ -100,8 +100,13 @@ export default {
                     Workspace_Members: {
                         path: ROUTES.WORKSPACE_MEMBERS,
                     },
-                    WorkspaceBankAccountPage: {
-                        path: ROUTES.WORKSPACE_BANKACCOUNT,
+                    Workspace_BankAccount: {
+                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
+                        exact: true,
+                    },
+                    ReimbursementAccount: {
+                        path: ROUTES.BANK_ACCOUNT,
+                        exact: true,
                     },
                 },
             },
@@ -167,11 +172,6 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
-                },
-            },
-            ReimbursementAccount: {
-                screens: {
-                    ReimbursementAccount_Root: ROUTES.BANK_ACCOUNT,
                 },
             },
             WorkspaceInvite: {

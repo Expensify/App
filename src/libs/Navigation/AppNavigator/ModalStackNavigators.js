@@ -37,6 +37,7 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -63,6 +64,7 @@ function createModalStackNavigator(screens) {
                     key={screen.name}
                     name={screen.name}
                     component={screen.Component}
+                    initialParams={screen.initialParams}
                 />
             ))}
         </ModalStackNavigator.Navigator>
@@ -213,6 +215,11 @@ const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: WorkspaceBankAccountPage,
         name: 'Workspace_BankAccount',
+    },
+    {
+        Component: ReimbursementAccountPage,
+        name: 'ReimbursementAccount',
+        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
     },
 ]);
 

@@ -23,7 +23,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardNoVBAView = ({translate, policyID}) => (
+const WorkspaceReimburseNoVBAView = ({translate, policyID}) => (
     <>
         <WorkspaceSection
             title={translate('workspace.reimburse.captureReceipts')}
@@ -69,7 +69,7 @@ const WorkspaceCardNoVBAView = ({translate, policyID}) => (
     </>
 );
 
-WorkspaceCardNoVBAView.propTypes = propTypes;
-WorkspaceCardNoVBAView.displayName = 'WorkspaceCardNoVBAView';
+WorkspaceReimburseNoVBAView.propTypes = propTypes;
+WorkspaceReimburseNoVBAView.displayName = 'WorkspaceReimburseNoVBAView';
 
-export default withLocalize(WorkspaceCardNoVBAView);
+export default withLocalize(WorkspaceReimburseNoVBAView);

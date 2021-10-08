@@ -173,7 +173,7 @@ class WorkspaceInvitePage extends React.Component {
                             Navigation.dismissModal();
                         }}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={Navigation.goBack}
                     />
                     <ScrollView
                         style={[styles.w100, styles.flex1]}

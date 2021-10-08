@@ -14,37 +14,35 @@ const propTypes = {
 };
 
 const WorkspaceCardVBANoECardView = ({translate}) => (
-    <>
-        <WorkspaceSection
-            title={translate('workspace.card.header')}
-            icon={JewelBoxBlue}
-            menuItems={[
-                {
-                    title: translate('workspace.card.chatWithConcierge'),
-                    onPress: navigateToConciergeChat,
-                    icon: Concierge,
-                    shouldShowRightIcon: true,
-                },
+    <WorkspaceSection
+        title={translate('workspace.card.header')}
+        icon={JewelBoxBlue}
+        menuItems={[
+            {
+                title: translate('workspace.card.chatWithConcierge'),
+                onPress: navigateToConciergeChat,
+                icon: Concierge,
+                shouldShowRightIcon: true,
+            },
+        ]}
+    >
+        <View style={[styles.mv4]}>
+            <Text>{translate('workspace.card.VBANoECardCopy')}</Text>
+        </View>
+
+        <UnorderedList
+            items={[
+                translate('workspace.card.benefit1'),
+                translate('workspace.card.benefit2'),
+                translate('workspace.card.benefit3'),
+                translate('workspace.card.benefit4'),
             ]}
-        >
-            <View style={[styles.mv4]}>
-                <Text>{translate('workspace.card.VBANoECardCopy')}</Text>
-            </View>
+        />
 
-            <UnorderedList
-                items={[
-                    translate('workspace.card.benefit1'),
-                    translate('workspace.card.benefit2'),
-                    translate('workspace.card.benefit3'),
-                    translate('workspace.card.benefit4'),
-                ]}
-            />
-
-            <View style={[styles.mv4]}>
-                <Text>{translate('workspace.card.conciergeCanHelp')}</Text>
-            </View>
-        </WorkspaceSection>
-    </>
+        <View style={[styles.mv4]}>
+            <Text>{translate('workspace.card.conciergeCanHelp')}</Text>
+        </View>
+    </WorkspaceSection>
 );
 
 WorkspaceCardVBANoECardView.propTypes = propTypes;

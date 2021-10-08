@@ -19,33 +19,31 @@ const propTypes = {
 };
 
 const WorkspaceCardNoVBAView = ({translate, policyID}) => (
-    <>
-        <WorkspaceSection
-            title={translate('workspace.card.header')}
-            icon={JewelBoxBlue}
-            menuItems={[
-                {
-                    title: translate('workspace.common.bankAccount'),
-                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
-                    icon: Bank,
-                    shouldShowRightIcon: true,
-                },
-            ]}
-        >
-            <View style={[styles.mv4]}>
-                <Text>{translate('workspace.card.noVBACopy')}</Text>
-            </View>
+    <WorkspaceSection
+        title={translate('workspace.card.header')}
+        icon={JewelBoxBlue}
+        menuItems={[
+            {
+                title: translate('workspace.common.bankAccount'),
+                onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
+                icon: Bank,
+                shouldShowRightIcon: true,
+            },
+        ]}
+    >
+        <View style={[styles.mv4]}>
+            <Text>{translate('workspace.card.noVBACopy')}</Text>
+        </View>
 
-            <UnorderedList
-                items={[
-                    translate('workspace.card.benefit1'),
-                    translate('workspace.card.benefit2'),
-                    translate('workspace.card.benefit3'),
-                    translate('workspace.card.benefit4'),
-                ]}
-            />
-        </WorkspaceSection>
-    </>
+        <UnorderedList
+            items={[
+                translate('workspace.card.benefit1'),
+                translate('workspace.card.benefit2'),
+                translate('workspace.card.benefit3'),
+                translate('workspace.card.benefit4'),
+            ]}
+        />
+    </WorkspaceSection>
 );
 
 WorkspaceCardNoVBAView.propTypes = propTypes;

@@ -87,7 +87,7 @@ export default {
     WORKSPACE_INVOICES: 'workspace/:policyID/invoices',
     WORKSPACE_TRAVEL: 'workspace/:policyID/travel',
     WORKSPACE_MEMBERS: 'workspace/:policyID/members',
-    WORKSPACE_BANKACCOUNT: 'workspace/:policyID/bankAccount',
+    WORKSPACE_BANK_ACCOUNT: 'workspace/:policyID/bank-account',
     getWorkspaceInitialRoute: policyID => `workspace/${policyID}`,
     getWorkspaceInviteRoute: policyID => `workspace/${policyID}/invite`,
     getWorkspaceSettingsRoute: policyID => `workspace/${policyID}/settings`,
@@ -97,7 +97,7 @@ export default {
     getWorkspaceInvoicesRoute: policyID => `workspace/${policyID}/invoices`,
     getWorkspaceTravelRoute: policyID => `workspace/${policyID}/travel`,
     getWorkspaceMembersRoute: policyID => `workspace/${policyID}/members`,
-    getWorkspaceBankAccountRoute: policyID => `workspace/${policyID}/bankAccount`,
+    getWorkspaceBankAccountRoute: policyID => `workspace/${policyID}/bank-account`,
     getRequestCallRoute: taskID => `request-call/${taskID}`,
     REQUEST_CALL: 'request-call/:taskID',
 

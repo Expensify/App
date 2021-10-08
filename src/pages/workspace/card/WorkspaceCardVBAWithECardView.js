@@ -18,41 +18,39 @@ const propTypes = {
 };
 
 const WorkspaceCardVBAWithECardView = ({translate}) => (
-    <>
-        <WorkspaceSection
-            title={translate('workspace.card.headerWithEcard')}
-            icon={CreditCardsBlue}
-            menuItems={[
-                {
-                    title: translate('workspace.common.issueAndManageCards'),
-                    onPress: () => openSignedInLink('domain_companycards'),
-                    icon: ExpensifyCard,
-                    shouldShowRightIcon: true,
-                    iconRight: NewWindow,
-                },
-                {
-                    title: translate('workspace.common.reconcileCards'),
-                    onPress: () => openSignedInLink('domain_companycards?param={"section":"cardReconciliation"}'),
-                    icon: ReceiptSearch,
-                    shouldShowRightIcon: true,
-                    iconRight: NewWindow,
-                },
-            ]}
-        >
-            <View style={[styles.mv4]}>
-                <Text>{translate('workspace.card.VBAWithECardCopy')}</Text>
-            </View>
+    <WorkspaceSection
+        title={translate('workspace.card.headerWithEcard')}
+        icon={CreditCardsBlue}
+        menuItems={[
+            {
+                title: translate('workspace.common.issueAndManageCards'),
+                onPress: () => openSignedInLink('domain_companycards'),
+                icon: ExpensifyCard,
+                shouldShowRightIcon: true,
+                iconRight: NewWindow,
+            },
+            {
+                title: translate('workspace.common.reconcileCards'),
+                onPress: () => openSignedInLink('domain_companycards?param={"section":"cardReconciliation"}'),
+                icon: ReceiptSearch,
+                shouldShowRightIcon: true,
+                iconRight: NewWindow,
+            },
+        ]}
+    >
+        <View style={[styles.mv4]}>
+            <Text>{translate('workspace.card.VBAWithECardCopy')}</Text>
+        </View>
 
-            <UnorderedList
-                items={[
-                    translate('workspace.card.benefit1'),
-                    translate('workspace.card.benefit2'),
-                    translate('workspace.card.benefit3'),
-                    translate('workspace.card.benefit4'),
-                ]}
-            />
-        </WorkspaceSection>
-    </>
+        <UnorderedList
+            items={[
+                translate('workspace.card.benefit1'),
+                translate('workspace.card.benefit2'),
+                translate('workspace.card.benefit3'),
+                translate('workspace.card.benefit4'),
+            ]}
+        />
+    </WorkspaceSection>
 );
 
 WorkspaceCardVBAWithECardView.propTypes = propTypes;
