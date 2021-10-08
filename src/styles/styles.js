@@ -1386,6 +1386,25 @@ const styles = {
         flex: 1,
     },
 
+    borderTop: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderTopRounded: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+    },
+
+    borderBottomRounded: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        borderBottomLeftRadius: variables.componentBorderRadiusNormal,
+        borderBottomRightRadius: variables.componentBorderRadiusNormal,
+    },
+
     borderBottom: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
@@ -1393,6 +1412,11 @@ const styles = {
 
     borderRight: {
         borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderLeft: {
+        borderLeftWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -2045,6 +2069,23 @@ const styles = {
         height: 100,
         width: 100,
         marginBottom: 20,
+    },
+    
+    googleSearchTextInputContainer: {
+        flexDirection: 'column',
+    },
+
+    googleSearchSeperator: {
+        height: 1,
+        backgroundColor: themeColors.border,
+    },
+
+    googleSearchText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
+        fontFamily: fontFamily.GTA,
+        flex: 1,
     },
 };
 

@@ -242,8 +242,10 @@ function create(name = '') {
                 outputCurrency: response.policy.outputCurrency,
             });
         }).then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
+            if (res) {
+                Navigation.dismissModal();
+                Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
+            }
         });
 }
 
