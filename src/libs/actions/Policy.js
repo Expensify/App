@@ -113,7 +113,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 Navigation.dismissModal();
                 Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
             }
-            return Promise.resolve(res.policyID);
+            return Promise.resolve(lodashGet(res, 'policyID'));
         });
 }
 
@@ -124,7 +124,10 @@ function create(name = '', shouldAutomaticallyReroute = true) {
  */
 function getPolicyList(shouldCreateNewPolicy = false) {
     let newPolicyID;
-    (shouldCreateNewPolicy ? create('', false) : Promise.resolve())
+    const createPolicyPromise = shouldCreateNewPolicy
+        ? create('', false)
+        : Promise.resolve();
+    createPolicyPromise
         .then((policyID) => {
             newPolicyID = policyID;
             return API.GetPolicyList();
