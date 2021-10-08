@@ -2040,6 +2040,12 @@ const styles = {
             {translateY},
         ],
     }),
+
+    confettiIcon: {
+        height: 100,
+        width: 100,
+        marginBottom: 20,
+    },
 };
 
 const baseCodeTagStyles = {
