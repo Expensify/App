@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import Picker from './Picker';
 import styles from '../styles/styles';
 import InlineErrorText from './InlineErrorText';
-import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Picker label */
@@ -19,9 +18,6 @@ const propTypes = {
 
     /** Error text to display */
     errorText: PropTypes.string,
-
-    /** Styles of the picker */
-    style: stylePropTypes,
 };
 
 const defaultProps = {
@@ -29,7 +25,6 @@ const defaultProps = {
     isDisabled: false,
     hasError: false,
     errorText: '',
-    style: [],
 };
 
 class ExpensiPicker extends PureComponent {
@@ -42,7 +37,7 @@ class ExpensiPicker extends PureComponent {
 
     render() {
         const {
-            label, isDisabled, style, ...pickerProps
+            label, isDisabled, ...pickerProps
         } = this.props;
         return (
             <>
@@ -52,7 +47,6 @@ class ExpensiPicker extends PureComponent {
                         this.state.isOpen && styles.borderColorFocus,
                         isDisabled && styles.inputDisabled,
                         this.props.hasError && styles.borderColorDanger,
-                        style,
                     ]}
                 >
                     {label && (

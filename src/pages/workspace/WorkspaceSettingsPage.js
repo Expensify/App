@@ -169,14 +169,15 @@ class WorkspaceSettingsPage extends React.Component {
                                     errorText={this.state.name.trim().length ? '' : this.props.translate('workspace.editor.nameIsRequiredError')}
                                 />
 
-                                <ExpensiPicker
-                                    label={this.props.translate('workspace.editor.currencyInputLabel')}
-                                    onChange={currency => this.setState({currency})}
-                                    items={this.getCurrencyItems()}
-                                    value={this.state.currency}
-                                    style={[styles.mt4]}
-                                    isDisabled={hasVBA}
-                                />
+                                <View style={[styles.mt4]}>
+                                    <ExpensiPicker
+                                        label={this.props.translate('workspace.editor.currencyInputLabel')}
+                                        onChange={currency => this.setState({currency})}
+                                        items={this.getCurrencyItems()}
+                                        value={this.state.currency}
+                                        isDisabled={hasVBA}
+                                    />
+                                </View>
                                 <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                                     {this.props.translate('workspace.editor.currencyInputHelpText')}
                                 </Text>
