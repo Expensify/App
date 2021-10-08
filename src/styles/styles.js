@@ -50,6 +50,16 @@ const styles = {
         color: themeColors.linkHover,
     },
 
+    linkMuted: {
+        color: themeColors.textSupporting,
+        textDecorationColor: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+    },
+
+    linkMutedHovered: {
+        color: themeColors.textMutedReversed,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -79,6 +89,11 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
+    },
+
+    label: {
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
     },
 
     textLabel: {
@@ -194,6 +209,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+
+        // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+        // It allows to vertically center the text.
+        lineHeight: undefined,
     },
 
     buttonSmall: {
@@ -217,15 +236,13 @@ const styles = {
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonLargeText: {
-        fontSize: variables.fontSizeLarge,
-        lineHeight: 18,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -1175,11 +1192,6 @@ const styles = {
         borderRadius: 8,
     },
 
-    emojiSkinToneItem: {
-        width: 'auto',
-        ...spacing.ph1,
-    },
-
     emojiItemHighlighted: {
         transition: '0.2s ease',
         backgroundColor: themeColors.buttonDefaultBG,
@@ -1363,6 +1375,25 @@ const styles = {
         flex: 1,
     },
 
+    borderTop: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderTopRounded: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+    },
+
+    borderBottomRounded: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        borderBottomLeftRadius: variables.componentBorderRadiusNormal,
+        borderBottomRightRadius: variables.componentBorderRadiusNormal,
+    },
+
     borderBottom: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
@@ -1370,6 +1401,11 @@ const styles = {
 
     borderRight: {
         borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderLeft: {
+        borderLeftWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -2013,6 +2049,23 @@ const styles = {
             {translateY},
         ],
     }),
+
+    googleSearchTextInputContainer: {
+        flexDirection: 'column',
+    },
+
+    googleSearchSeperator: {
+        height: 1,
+        backgroundColor: themeColors.border,
+    },
+
+    googleSearchText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
+        fontFamily: fontFamily.GTA,
+        flex: 1,
+    },
 };
 
 const baseCodeTagStyles = {

@@ -20,6 +20,7 @@ const Template = args => <CheckboxWithLabel {...args} />;
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
 export const Default = Template.bind({});
 export const WithLabelComponent = Template.bind({});
+export const WithErrors = Template.bind({});
 Default.args = {
     isChecked: true,
     label: 'Plain text label',
@@ -36,4 +37,12 @@ WithLabelComponent.args = {
             <Text style={[styles.textMicroSupporting]}>Test</Text>
         </>
     ),
+};
+
+WithErrors.args = {
+    isChecked: false,
+    hasError: true,
+    errorText: 'Please accept Terms before continuing.',
+    onPress: () => {},
+    label: 'I accept the Terms & Conditions',
 };
