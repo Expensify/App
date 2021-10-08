@@ -21,7 +21,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsNoVBAView = ({translate, policyID}) => (
+const WorkspaceInvoicesNoVBAView = ({translate, policyID}) => (
     <>
         <WorkspaceInvoicesFirstSection policyID={policyID} />
 
@@ -45,7 +45,7 @@ const WorkspaceBillsNoVBAView = ({translate, policyID}) => (
     </>
 );
 
-WorkspaceBillsNoVBAView.propTypes = propTypes;
-WorkspaceBillsNoVBAView.displayName = 'WorkspaceBillsNoVBAView';
+WorkspaceInvoicesNoVBAView.propTypes = propTypes;
+WorkspaceInvoicesNoVBAView.displayName = 'WorkspaceInvoicesNoVBAView';
 
-export default withLocalize(WorkspaceBillsNoVBAView);
+export default withLocalize(WorkspaceInvoicesNoVBAView);

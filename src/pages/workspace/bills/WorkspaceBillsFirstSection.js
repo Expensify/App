@@ -47,41 +47,39 @@ const WorkspaceBillsFirstSection = ({
 }) => {
     const emailDomain = Str.extractEmailDomain(session.email);
     return (
-        <>
-            <WorkspaceSection
-                title={translate('workspace.bills.manageYourBills')}
-                icon={InvoiceOrange}
-                menuItems={[
-                    {
-                        title: translate('workspace.bills.viewAllBills'),
-                        // eslint-disable-next-line max-len
-                        onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
-                        icon: Bill,
-                        shouldShowRightIcon: true,
-                        iconRight: NewWindow,
-                    },
-                ]}
-            >
-                <View style={[styles.mv4]}>
-                    <Text>
-                        {translate('workspace.bills.askYourVendorsBeforeEmail')}
-                        {user.isFromPublicDomain ? (
-                            <TouchableOpacity
-                                onPress={() => Linking.openURL('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
-                            >
-                                <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
-                            </TouchableOpacity>
-                        ) : (
-                            <CopyTextToClipboard
-                                text={`${emailDomain}@expensify.cash`}
-                                textStyles={[styles.textBlue]}
-                            />
-                        )}
-                        <Text>{translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
-                    </Text>
-                </View>
-            </WorkspaceSection>
-        </>
+        <WorkspaceSection
+            title={translate('workspace.bills.manageYourBills')}
+            icon={InvoiceOrange}
+            menuItems={[
+                {
+                    title: translate('workspace.bills.viewAllBills'),
+                    // eslint-disable-next-line max-len
+                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                    icon: Bill,
+                    shouldShowRightIcon: true,
+                    iconRight: NewWindow,
+                },
+            ]}
+        >
+            <View style={[styles.mv4]}>
+                <Text>
+                    {translate('workspace.bills.askYourVendorsBeforeEmail')}
+                    {user.isFromPublicDomain ? (
+                        <TouchableOpacity
+                            onPress={() => Linking.openURL('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                        >
+                            <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <CopyTextToClipboard
+                            text={`${emailDomain}@expensify.cash`}
+                            textStyles={[styles.textBlue]}
+                        />
+                    )}
+                    <Text>{translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
+                </Text>
+            </View>
+        </WorkspaceSection>
     );
 };
 
