@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -15,10 +14,9 @@ import ONYXKEYS from '../../ONYXKEYS';
 import {hideWorkspaceAlertMessage, invite, setWorkspaceErrors} from '../../libs/actions/Policy';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import {isSystemUser} from '../../libs/userUtils';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
-import {getNewGroupOptions, getHeaderMessage, addSMSDomainIfPhoneNumber} from '../../libs/OptionsListUtils';
+import {getNewGroupOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
 import {EXCLUDED_GROUP_EMAILS} from '../../CONST';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -90,7 +88,6 @@ class WorkspaceInvitePage extends React.Component {
             selectedOptions: [],
             userToInvite,
             welcomeNote: this.getWelcomeNotePlaceholder(),
-            foundSystemLogin: '',
         };
     }
 
@@ -120,16 +117,8 @@ class WorkspaceInvitePage extends React.Component {
     getErrorText() {
         const errors = lodashGet(this.props.policy, 'errors', {});
 
-        if (errors.invalidLogin) {
-            return this.props.translate('workspace.invite.pleaseEnterValidLogin');
-        }
-
-        if (errors.systemUserError) {
-            return this.props.translate('workspace.invite.systemUserError', {email: this.state.foundSystemLogin});
-        }
-
-        if (errors.duplicateLogin) {
-            return this.props.translate('workspace.invite.pleaseEnterUniqueLogin');
+        if (errors.noUserSelected) {
+            return this.props.translate('workspace.invite.pleaseSelectUser');
         }
 
         return '';
@@ -144,11 +133,9 @@ class WorkspaceInvitePage extends React.Component {
 
     /**
      * Returns the sections needed for the OptionsSelector
-     *
-     * @param {Boolean} maxParticipantsReached
      * @returns {Array}
      */
-    getSections(maxParticipantsReached) {
+    getSections() {
         const sections = [];
         sections.push({
             title: undefined,
@@ -156,10 +143,6 @@ class WorkspaceInvitePage extends React.Component {
             shouldShow: true,
             indexOffset: 0,
         });
-
-        if (maxParticipantsReached) {
-            return sections;
-        }
 
         sections.push({
             title: this.props.translate('common.contacts'),
@@ -190,6 +173,8 @@ class WorkspaceInvitePage extends React.Component {
      * @param {Object} option
      */
     toggleOption(option) {
+        this.clearErrors();
+
         this.setState((prevState) => {
             const isOptionInList = _.some(prevState.selectedOptions, selectedOption => (
                 selectedOption.login === option.login
@@ -234,35 +219,20 @@ class WorkspaceInvitePage extends React.Component {
             return;
         }
 
-        const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
-        invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(),
-            this.props.route.params.policyID);
+        const logins = _.map(this.state.selectedOptions, option => option.login);
+        invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
     }
 
     /**
      * @returns {Boolean}
      */
     validate() {
-        const logins = _.map(_.compact(this.state.userLogins.split(',')), login => login.trim());
-        const isEnteredLoginsvalid = _.every(logins, login => Str.isValidEmail(login) || Str.isValidPhone(login));
         const errors = {};
-        let foundSystemLogin = '';
-        if (logins.length <= 0 || !isEnteredLoginsvalid) {
-            errors.invalidLogin = true;
+        if (this.state.selectedOptions.length <= 0) {
+            errors.noUserSelected = true;
         }
 
-        foundSystemLogin = _.find(logins, login => isSystemUser(login));
-        if (foundSystemLogin) {
-            errors.systemUserError = true;
-        }
-
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        const areLoginsDuplicate = _.some(logins, login => _.contains(policyEmployeeList, addSMSDomainIfPhoneNumber(login)));
-        if (areLoginsDuplicate) {
-            errors.duplicateLogin = true;
-        }
-
-        this.setState({foundSystemLogin}, () => setWorkspaceErrors(this.props.route.params.policyID, errors));
+        setWorkspaceErrors(this.props.route.params.policyID, errors);
         return _.size(errors) <= 0;
     }
 
@@ -274,7 +244,7 @@ class WorkspaceInvitePage extends React.Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper onTransitionEnd={this.focusEmailOrPhoneInput}>
+            <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('workspace.invite.invitePeople')}
@@ -322,7 +292,7 @@ class WorkspaceInvitePage extends React.Component {
                                 label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
-                                numberOfLines={5}
+                                numberOfLines={3}
                                 textAlignVertical="top"
                                 multiline
                                 value={this.state.welcomeNote}
@@ -334,9 +304,6 @@ class WorkspaceInvitePage extends React.Component {
                             isAlertVisible={this.getShouldShowAlertPrompt()}
                             buttonText={this.props.translate('common.invite')}
                             onSubmit={this.inviteUser}
-                            onFixTheErrorsLinkPressed={() => {
-                                this.form.scrollTo({y: 0, animated: true});
-                            }}
                             message={this.props.policy.alertMessage}
                         />
                     </View>
