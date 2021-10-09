@@ -30,12 +30,9 @@ Onyx.connect({
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
-<<<<<<< HEAD
-=======
  * @param {String} fullPolicy.value.outputCurrency
  * @param {Object} fullPolicy.value.employeeList
  * @param {String} [fullPolicy.value.avatarURL]
->>>>>>> 2ae2fd8bd (Merge pull request #5642 from Expensify/tgolen-workspace-settings)
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicy) {
@@ -44,12 +41,9 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
-<<<<<<< HEAD
-=======
         outputCurrency: lodashGet(fullPolicy, 'value.outputCurrency', ''),
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
->>>>>>> 2ae2fd8bd (Merge pull request #5642 from Expensify/tgolen-workspace-settings)
     };
 }
 
@@ -92,7 +86,6 @@ function updateAllPolicies(policyCollection) {
 /**
  * Fetches the policySummaryList from the API and saves a simplified version in Onyx
  */
-<<<<<<< HEAD
 function getPolicySummaries() {
     API.GetPolicySummaryList()
         .then((data) => {
@@ -102,34 +95,6 @@ function getPolicySummaries() {
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
                 }), {});
                 updateAllPolicies(policyDataToStore);
-=======
-function create(name = '', shouldAutomaticallyReroute = true) {
-    let res = null;
-    return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
-            res = response;
-
-            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
-                id: response.policyID,
-                type: response.policy.type,
-                name: response.policy.name,
-                role: CONST.POLICY.ROLE.ADMIN,
-                outputCurrency: response.policy.outputCurrency,
-            });
-        }).then(() => {
-            const policyID = lodashGet(res, 'policyID');
-            if (shouldAutomaticallyReroute) {
-                Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
->>>>>>> 2ae2fd8bd (Merge pull request #5642 from Expensify/tgolen-workspace-settings)
             }
         });
 }
@@ -277,6 +242,7 @@ function create(name = '') {
                 type: response.policy.type,
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: response.policy.outputCurrency,
             });
         }).then(() => {
             Navigation.dismissModal();
