@@ -54,7 +54,7 @@ class PDFView extends PureComponent {
                 style={[styles.PDFView, this.props.style]}
             >
                 <Document
-                    loading={<FullScreenLoadingIndicator visible />}
+                    loading={<FullScreenLoadingIndicator />}
                     file={this.props.sourceURL}
                     options={{
                         cMapUrl: 'cmaps/',

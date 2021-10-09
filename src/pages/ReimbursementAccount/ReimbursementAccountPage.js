@@ -70,7 +70,10 @@ const defaultProps = {
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
         // We can specify a step to navigate to by using route params when the component mounts.
-        fetchFreePlanVerifiedBankAccount(this.getStepToOpenFromRouteParams());
+        const stepToOpen = this.getStepToOpenFromRouteParams();
+
+        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
+        fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
     }
 
     componentDidUpdate(prevProps) {
@@ -111,6 +114,8 @@ class ReimbursementAccountPage extends React.Component {
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
             case 'validate':
                 return CONST.BANK_ACCOUNT.STEP.VALIDATION;
+            case 'enable':
+                return CONST.BANK_ACCOUNT.STEP.ENABLE;
             default:
                 return '';
         }
@@ -130,6 +135,8 @@ class ReimbursementAccountPage extends React.Component {
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 return 'validate';
+            case CONST.BANK_ACCOUNT.STEP.ENABLE:
+                return 'enable';
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             default:
                 return 'new';
@@ -173,7 +180,7 @@ class ReimbursementAccountPage extends React.Component {
             return (
                 <ScreenWrapper>
                     <HeaderWithCloseButton
-                        title={this.props.translate('bankAccount.addBankAccount')}
+                        title={this.props.translate('workspace.common.bankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
                     {errorComponent}
