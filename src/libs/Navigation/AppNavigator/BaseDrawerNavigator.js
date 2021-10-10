@@ -35,6 +35,7 @@ const Drawer = createDrawerNavigator();
 const BaseDrawerNavigator = (props) => {
     const content = (
         <Drawer.Navigator
+            backBehavior="none"
             defaultStatus={Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={props.drawerContent}
