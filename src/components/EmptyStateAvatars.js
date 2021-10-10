@@ -50,7 +50,7 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
                             <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                                 <Image source={{uri: val}} style={[styles.emptyStateAvatar]} />
 
-                                {index === 3 && avatarImageURLs.length - CONST.MAX_AVATARS !== 0 && (
+                                {index === 3 && avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                                     <>
                                         <View
                                             style={[
@@ -59,7 +59,7 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
                                             ]}
                                         />
                                         <Text style={styles.avatarInnerTextChat}>
-                                            {`+${avatarImageURLs.length - CONST.MAX_AVATARS}`}
+                                            {`+${avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
                                         </Text>
                                     </>
                                 )}
@@ -75,5 +75,6 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
 
 EmptyStateAvatars.defaultProps = defaultProps;
 EmptyStateAvatars.propTypes = propTypes;
+EmptyStateAvatars.displayName = 'EmptyStateAvatars';
 
 export default memo(EmptyStateAvatars);

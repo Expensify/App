@@ -1,4 +1,4 @@
-import React, {PureComponent} from 'react';
+import React from 'react';
 import {Image, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
@@ -34,28 +34,26 @@ const defaultProps = {
     CustomChatRoomIcon: ActiveRoomAvatar,
 };
 
-class ChatCustomAvatar extends PureComponent {
-    render() {
-        const {CustomChatRoomIcon} = this.props;
-        if (!this.props.source && !this.props.isCustomChatRoom) {
-            return null;
-        }
-
-        const imageStyle = [
-            this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
-            ...this.props.imageStyles,
-        ];
-        return (
-            <View pointerEvents="none" style={this.props.containerStyles}>
-                {this.props.isCustomChatRoom
-                    ? <CustomChatRoomIcon style={imageStyle} />
-                    : <Image source={{uri: this.props.source}} style={imageStyle} />}
-            </View>
-        );
+const ChatCustomAvatar = (props) => {
+    const {CustomChatRoomIcon} = props;
+    if (!props.source && !props.isCustomChatRoom) {
+        return null;
     }
-}
+    const imageStyle = [
+        props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
+        ...props.imageStyles,
+    ];
+    return (
+        <View pointerEvents="none" style={props.containerStyles}>
+            {props.isCustomChatRoom
+                ? <CustomChatRoomIcon style={imageStyle} />
+                : <Image source={{uri: props.source}} style={imageStyle} />}
+        </View>
+    );
+};
 
 ChatCustomAvatar.defaultProps = defaultProps;
 ChatCustomAvatar.propTypes = propTypes;
+ChatCustomAvatar.displayName = 'ChatCustomAvatar';
 
 export default ChatCustomAvatar;

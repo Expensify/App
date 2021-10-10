@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
@@ -12,7 +12,7 @@ import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
-    /** Weather it is a default Chat Room */
+    /** Wether it is a default Chat Room */
     isDefaultChatRoom: PropTypes.bool,
 
     /** The report currently being looked at */
@@ -51,17 +51,20 @@ const ChatBeginingText = ({
     return (
         <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
             <Text>
-                {isDefaultChatRoom ? `${translate('reportActionsView.beginingOfChatHistroyPrivate')} ` : `${translate('reportActionsView.beginingOfChatHistroy')} `}
+                {isDefaultChatRoom
+                    ? `${translate('reportActionsView.beginingOfChatHistroyPrivate')} `
+                    : `${translate('reportActionsView.beginingOfChatHistroy')} `}
             </Text>
             {isDefaultChatRoom
             && (
                 <Text>
-                    {`${lodashGet(chatUsers, 'chatUsers[0].displayName', '')} ${translate('reportActionsView.beginingOfChatHistroyPrivateSectionPart')}`}
+                    {`${lodashGet(chatUsers, 'chatUsers[0].displayName', '')} 
+                    ${translate('reportActionsView.beginingOfChatHistroyPrivateSectionPart')}`}
                 </Text>
             )}
             {!isDefaultChatRoom
             && (
-                <Text>
+                <>
                     {chatUsers.map(({displayName, pronouns}, index) => (
                         <Text key={displayName}>
                             <Text style={[styles.chatTextStyle]}>
@@ -73,7 +76,7 @@ const ChatBeginingText = ({
                             {(chatUsers.length - 2 !== index && chatUsers.length - 1 !== index) && chatUsers.length > 1 && ', '}
                         </Text>
                     ))}
-                </Text>
+                </>
             )}
         </Text>
     );

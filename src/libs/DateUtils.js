@@ -111,14 +111,6 @@ function startCurrentDateUpdater() {
 }
 
 /*
- * get the time using user's timezone for chat start screen.
- */
-export const currentTimeStampFromProvidedZone = (userTimeZone, format) => {
-    const currentTime = moment().tz(userTimeZone);
-    return moment(currentTime).format(format);
-};
-
-/*
  * Updates user's timezone, if their timezone is set to automatic and
  * is different from current timezone
  */

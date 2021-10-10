@@ -183,6 +183,7 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        MAX_PREVIEW_AVATARS: 4,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -426,10 +427,7 @@ const CONST = {
         DEFAULT: 'default',
     },
 
-    MAX_AVATARS: 4,
-  
     PHONE_MAX_LENGTH: 15,
-  
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
