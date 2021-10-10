@@ -232,7 +232,7 @@ class OptionsSelector extends Component {
                             forceTextUnreadStyle={this.props.forceTextUnreadStyle}
                             showTitleTooltip={this.props.showTitleTooltip}
                         />
-                    ) : <FullScreenLoadingIndicator isVisible={this.props.isLoading} />}
+                    ) : <FullScreenLoadingIndicator />}
                 </View>
 
             </View>
