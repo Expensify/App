@@ -38,6 +38,7 @@ import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravel
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
 import CONST from '../../../CONST';
+import getTransitionSpec from '../../getTransitionSpec';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -125,31 +126,10 @@ const ReportParticipantsModalStackNavigator = createModalStackNavigator([
     },
 ]);
 
-// https://reactnavigation.org/docs/stack-navigator/#options
-// We can refactor and move this somewhere else
-const searchNavigationOptions = {
-    transitionSpec: {
-        open: {
-            animation: 'timing',
-            config: {
-                duration: 200,
-                delay: 0,
-            },
-        },
-        close: {
-            animation: 'timing',
-            config: {
-                duration: 300,
-                delay: 0,
-            },
-        },
-    },
-};
-
 const SearchModalStackNavigator = createModalStackNavigator([{
     Component: SearchPage,
     name: 'Search_Root',
-    options: searchNavigationOptions,
+    options: getTransitionSpec(CONST.TRANSITION.DURATION_SHORT),
 }]);
 
 const NewGroupModalStackNavigator = createModalStackNavigator([{

@@ -399,6 +399,10 @@ const CONST = {
         DURATION_LONG: 3500,
     },
 
+    TRANSITION: {
+        DURATION_SHORT: 250,
+    },
+
     DEFAULT_LOCALE: 'en',
     DEFAULT_SKIN_TONE: 'default',
 
