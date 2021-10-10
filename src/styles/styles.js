@@ -50,6 +50,16 @@ const styles = {
         color: themeColors.linkHover,
     },
 
+    linkMuted: {
+        color: themeColors.textSupporting,
+        textDecorationColor: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+    },
+
+    linkMutedHovered: {
+        color: themeColors.textMutedReversed,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -79,6 +89,11 @@ const styles = {
 
     textUnderline: {
         textDecorationLine: 'underline',
+    },
+
+    label: {
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
     },
 
     textLabel: {
@@ -123,6 +138,13 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXLarge,
+        fontWeight: fontWeightBold,
+    },
+
     textXXXLarge: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -146,6 +168,10 @@ const styles = {
 
     textWhite: {
         color: colors.white,
+    },
+
+    textBlue: {
+        color: colors.blue,
     },
 
     textUppercase: {
@@ -194,6 +220,10 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+
+        // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+        // It allows to vertically center the text.
+        lineHeight: undefined,
     },
 
     buttonSmall: {
@@ -217,15 +247,13 @@ const styles = {
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonLargeText: {
-        fontSize: variables.fontSizeLarge,
-        lineHeight: 18,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -1136,11 +1164,24 @@ const styles = {
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListLandscape: {
+        height: 240,
+    },
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
         width: '100%',
         ...spacing.pv3,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
+    emojiSkinToneTitle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv1,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
@@ -1345,6 +1386,25 @@ const styles = {
         flex: 1,
     },
 
+    borderTop: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderTopRounded: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+    },
+
+    borderBottomRounded: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        borderBottomLeftRadius: variables.componentBorderRadiusNormal,
+        borderBottomRightRadius: variables.componentBorderRadiusNormal,
+    },
+
     borderBottom: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
@@ -1352,6 +1412,11 @@ const styles = {
 
     borderRight: {
         borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderLeft: {
+        borderLeftWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -1807,6 +1872,10 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
     fullscreenCard: {
         position: 'absolute',
         left: 0,
@@ -1995,6 +2064,29 @@ const styles = {
             {translateY},
         ],
     }),
+
+    confettiIcon: {
+        height: 100,
+        width: 100,
+        marginBottom: 20,
+    },
+
+    googleSearchTextInputContainer: {
+        flexDirection: 'column',
+    },
+
+    googleSearchSeparator: {
+        height: 1,
+        backgroundColor: themeColors.border,
+    },
+
+    googleSearchText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
+        fontFamily: fontFamily.GTA,
+        flex: 1,
+    },
 };
 
 const baseCodeTagStyles = {

@@ -8,7 +8,6 @@ import {
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
 
@@ -46,7 +45,7 @@ const AppDownloadLinksPage = ({translate}) => {
                 onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView style={[styles.mt5]} bounces={false}>
+            <ScrollView style={[styles.mt5]}>
                 {menuItems.map(item => (
                     <MenuItem
                         key={item.translationKey}
@@ -65,6 +64,4 @@ const AppDownloadLinksPage = ({translate}) => {
 AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
-export default compose(
-    withLocalize,
-)(AppDownloadLinksPage);
+export default withLocalize(AppDownloadLinksPage);

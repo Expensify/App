@@ -22,6 +22,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
+import RequestCallIcon from '../../assets/images/request-call.svg';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -70,27 +71,38 @@ class RequestCallPage extends Component {
             firstName,
             lastName,
             phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
+            phoneNumberError: '',
             isLoading: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
         this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
+        this.validatePhoneInput = this.validatePhoneInput.bind(this);
     }
 
     onSubmit() {
-        this.setState({isLoading: true});
-        if (!this.state.firstName.length || !this.state.lastName.length) {
-            Growl.success(this.props.translate('requestCallPage.growlMessageEmptyName'));
-            this.setState({isLoading: false});
+        const shouldNotSubmit = _.isEmpty(this.state.firstName.trim())
+            || _.isEmpty(this.state.lastName.trim())
+            || _.isEmpty(this.state.phoneNumber.trim())
+            || !Str.isValidPhone(this.state.phoneNumber);
+
+        if (_.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim())) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
             return;
         }
 
-        const personalPolicy = _.find(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.PERSONAL);
+        this.validatePhoneInput();
+
+        if (shouldNotSubmit) {
+            return;
+        }
+        const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
         if (!personalPolicy) {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
+        this.setState({isLoading: true});
         requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
@@ -149,13 +161,22 @@ class RequestCallPage extends Component {
         return {firstName, lastName};
     }
 
+    validatePhoneInput() {
+        if (_.isEmpty(this.state.phoneNumber.trim())) {
+            this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
+        } else if (!Str.isValidPhone(this.state.phoneNumber)) {
+            this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
+        } else {
+            this.setState({phoneNumberError: ''});
+        }
+    }
+
     render() {
-        const isButtonDisabled = false;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.props.translate('requestCallPage.requestACall')}
+                        title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
                         onBackButtonPress={() => fetchOrCreateChatReport([
                             this.props.session.email,
@@ -163,19 +184,20 @@ class RequestCallPage extends Component {
                         ], true)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</Text>
+                            <RequestCallIcon width={160} height={100} style={styles.flex1} />
+                        </View>
                         <Text style={[styles.mb4]}>
                             {this.props.translate('requestCallPage.description')}
-                        </Text>
-                        <Text style={[styles.mt4, styles.mb4]}>
-                            {this.props.translate('requestCallPage.instructions')}
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
                             lastName={this.state.lastName}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
-                            style={[styles.mt4, styles.mb4]}
+                            style={[styles.mv4]}
                         />
                         <View style={styles.mt4}>
                             <ExpensiTextInput
@@ -184,17 +206,15 @@ class RequestCallPage extends Component {
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
                                 placeholder="+14158675309"
+                                errorText={this.state.phoneNumberError}
+                                onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}
                             />
                         </View>
-                        <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
-                            {this.props.translate('requestCallPage.availabilityText')}
-                        </Text>
                     </ScrollView>
                     <FixedFooter>
                         <Button
                             success
-                            isDisabled={isButtonDisabled}
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}

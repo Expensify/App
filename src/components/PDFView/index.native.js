@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import PDF from 'react-native-pdf';
 import styles, {getWidthAndHeightStyle} from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
+import FullScreenLoadingIndicator from '../FullscreenLoadingIndicator';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -31,6 +32,7 @@ const defaultProps = {
 const PDFView = props => (
     <View style={[styles.flex1, props.style]}>
         <PDF
+            activityIndicator={<FullScreenLoadingIndicator />}
             source={{uri: props.sourceURL}}
             style={[
                 styles.imageModalPDF,
