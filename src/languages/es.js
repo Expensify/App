@@ -569,6 +569,7 @@ export default {
         taxIDNumberPlaceholder: '9 dígitos, sin guiones',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
+        incorporationState: 'Estado de incorporación',
         industryClassificationCode: 'Código de clasificación industrial',
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
