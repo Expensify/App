@@ -18,6 +18,7 @@ import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButto
 import OptionsSelector from '../../components/OptionsSelector';
 import {getNewGroupOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
 import {EXCLUDED_GROUP_EMAILS} from '../../CONST';
+import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -245,73 +246,78 @@ class WorkspaceInvitePage extends React.Component {
         );
         return (
             <ScreenWrapper>
-                <KeyboardAvoidingView>
-                    <HeaderWithCloseButton
-                        title={this.props.translate('workspace.invite.invitePeople')}
-                        onCloseButtonPress={() => {
-                            this.clearErrors();
-                            Navigation.dismissModal();
-                        }}
-                        shouldShowBackButton
-                        onBackButtonPress={() => Navigation.goBack()}
-                    />
-                    <View style={styles.flex1}>
-                        <OptionsSelector
-                            canSelectMultipleOptions
-                            sections={sections}
-                            selectedOptions={this.state.selectedOptions}
-                            value={this.state.searchValue}
-                            onSelectRow={this.toggleOption}
-                            onChangeText={(searchValue = '') => {
-                                const {
-                                    personalDetails,
-                                    userToInvite,
-                                } = getNewGroupOptions(
-                                    [],
-                                    this.props.personalDetails,
-                                    this.props.betas,
-                                    searchValue,
-                                    [],
-                                    this.getExcludedUsers(),
-                                );
-                                this.setState({
-                                    searchValue,
-                                    userToInvite,
-                                    personalDetails,
-                                });
+                {({didScreenTransitionEnd}) => (
+                    <KeyboardAvoidingView>
+                        <HeaderWithCloseButton
+                            title={this.props.translate('workspace.invite.invitePeople')}
+                            onCloseButtonPress={() => {
+                                this.clearErrors();
+                                Navigation.dismissModal();
                             }}
-                            headerMessage={headerMessage}
-                            disableArrowKeysActions
-                            hideSectionHeaders
-                            hideAdditionalOptionStates
-                            forceTextUnreadStyle
-                            shouldFocusOnSelectRow
+                            shouldShowBackButton
+                            onBackButtonPress={() => Navigation.goBack()}
                         />
-                    </View>
-                    <View style={[styles.flexShrink0]}>
-                        <View style={[styles.ph5, styles.pv3, styles.pb3, styles.flexGrow1, styles.flexShrink0]}>
-                            <ExpensiTextInput
-                                label={this.props.translate('workspace.invite.personalMessagePrompt')}
-                                autoCompleteType="off"
-                                autoCorrect={false}
-                                numberOfLines={3}
-                                textAlignVertical="top"
-                                multiline
-                                value={this.state.welcomeNote}
-                                placeholder={this.getWelcomeNotePlaceholder()}
-                                onChangeText={text => this.setState({welcomeNote: text})}
+                        <View style={styles.flex1}>
+                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                            {didScreenTransitionEnd && (
+                                <OptionsSelector
+                                    canSelectMultipleOptions
+                                    sections={sections}
+                                    selectedOptions={this.state.selectedOptions}
+                                    value={this.state.searchValue}
+                                    onSelectRow={this.toggleOption}
+                                    onChangeText={(searchValue = '') => {
+                                        const {
+                                            personalDetails,
+                                            userToInvite,
+                                        } = getNewGroupOptions(
+                                            [],
+                                            this.props.personalDetails,
+                                            this.props.betas,
+                                            searchValue,
+                                            [],
+                                            this.getExcludedUsers(),
+                                        );
+                                        this.setState({
+                                            searchValue,
+                                            userToInvite,
+                                            personalDetails,
+                                        });
+                                    }}
+                                    headerMessage={headerMessage}
+                                    disableArrowKeysActions
+                                    hideSectionHeaders
+                                    hideAdditionalOptionStates
+                                    forceTextUnreadStyle
+                                    shouldFocusOnSelectRow
+                                />
+                            )}
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <View style={[styles.ph5, styles.pv3, styles.pb3, styles.flexGrow1, styles.flexShrink0]}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('workspace.invite.personalMessagePrompt')}
+                                    autoCompleteType="off"
+                                    autoCorrect={false}
+                                    numberOfLines={3}
+                                    textAlignVertical="top"
+                                    multiline
+                                    value={this.state.welcomeNote}
+                                    placeholder={this.getWelcomeNotePlaceholder()}
+                                    onChangeText={text => this.setState({welcomeNote: text})}
+                                />
+                            </View>
+                            <FormAlertWithSubmitButton
+                                isDisabled={!this.state.selectedOptions.length}
+                                isAlertVisible={this.getShouldShowAlertPrompt()}
+                                buttonText={this.props.translate('common.invite')}
+                                onSubmit={this.inviteUser}
+                                onFixTheErrorsLinkPressed={() => {}}
+                                message={this.props.policy.alertMessage}
                             />
                         </View>
-                        <FormAlertWithSubmitButton
-                            isDisabled={!this.state.selectedOptions.length}
-                            isAlertVisible={this.getShouldShowAlertPrompt()}
-                            buttonText={this.props.translate('common.invite')}
-                            onSubmit={this.inviteUser}
-                            onFixTheErrorsLinkPressed={() => {}}
-                            message={this.props.policy.alertMessage}
-                        />
-                    </View>
-                </KeyboardAvoidingView>
+                    </KeyboardAvoidingView>
+                )}
             </ScreenWrapper>
         );
     }
