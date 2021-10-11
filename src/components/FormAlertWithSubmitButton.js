@@ -15,6 +15,9 @@ const propTypes = {
     /** Whether to show the alert text */
     isAlertVisible: PropTypes.bool.isRequired,
 
+    /** Whether the button is disabled */
+    isDisabled: PropTypes.bool,
+
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
 
@@ -32,10 +35,12 @@ const propTypes = {
 
 const defaultProps = {
     message: '',
+    isDisabled: false,
 };
 
 const FormAlertWithSubmitButton = ({
     isAlertVisible,
+    isDisabled,
     onSubmit,
     buttonText,
     translate,
@@ -88,9 +93,10 @@ const FormAlertWithSubmitButton = ({
             )}
             <Button
                 success
+                pressOnEnter
                 text={buttonText}
                 onPress={onSubmit}
-                pressOnEnter
+                isDisabled={isDisabled}
             />
         </View>
     );

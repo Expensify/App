@@ -301,9 +301,11 @@ class WorkspaceInvitePage extends React.Component {
                             />
                         </View>
                         <FormAlertWithSubmitButton
+                            isDisabled={!this.state.selectedOptions.length}
                             isAlertVisible={this.getShouldShowAlertPrompt()}
                             buttonText={this.props.translate('common.invite')}
                             onSubmit={this.inviteUser}
+                            onFixTheErrorsLinkPressed={() => {}}
                             message={this.props.policy.alertMessage}
                         />
                     </View>
