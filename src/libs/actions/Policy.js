@@ -106,6 +106,7 @@ function getPolicyList() {
     API.GetPolicyList()
         .then((data) => {
             if (data.jsonCode === 200) {
+<<<<<<< HEAD
                 const policyDataToStore = _.reduce(data.policyList, (memo, policy) => ({
                     ...memo,
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: {
@@ -113,6 +114,22 @@ function getPolicyList() {
                         avatarURL: lodashGet(policy, 'value.avatarURL', ''),
                     },
                 }), {});
+=======
+                const policyDataToStore = transformPolicyListToOnyxCollection(data.policySummaryList || []);
+                updateAllPolicies(policyDataToStore);
+            }
+
+            if (shouldCreateNewPolicy) {
+                Navigation.dismissModal();
+                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceInitialRoute(newPolicyID) : ROUTES.HOME);
+            }
+
+            return API.GetPolicyList();
+        })
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
+>>>>>>> 00d3ea471 (Merge pull request #5747 from Expensify/alberto-routeCard)
                 updateAllPolicies(policyDataToStore);
             }
         });
