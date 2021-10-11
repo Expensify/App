@@ -30,7 +30,7 @@ Onyx.connect({
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
- * @param {String} fullPolicy.value.outputCurrency
+ * @param {String} fullPolicy.outputCurrency
  * @param {Object} fullPolicy.value.employeeList
  * @param {String} [fullPolicy.value.avatarURL]
  * @returns {Object}
@@ -41,7 +41,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
-        outputCurrency: lodashGet(fullPolicy, 'value.outputCurrency', ''),
+        outputCurrency: fullPolicy.outputCurrency,
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
     };
