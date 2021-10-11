@@ -234,6 +234,10 @@ class OptionsList extends Component {
                     ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
+
+                    // Does not work on Android
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                    keyboardDismissMode="on-drag"
                     onScrollBeginDrag={() => Keyboard.dismiss()}
                     contentContainerStyle={[...this.props.contentContainerStyles]}
                     showsVerticalScrollIndicator={false}
