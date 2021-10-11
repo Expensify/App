@@ -33,7 +33,6 @@ export default {
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD,
             [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD,
             [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
-            WorkspaceNew: ROUTES.WORKSPACE_NEW,
 
             // Modal Screens
             Settings: {
@@ -75,6 +74,38 @@ export default {
                     },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
+                    },
+                    Workspace_Initial: {
+                        path: ROUTES.WORKSPACE_INITIAL,
+                    },
+                    Workspace_Settings: {
+                        path: ROUTES.WORKSPACE_SETTINGS,
+                    },
+                    Workspace_Card: {
+                        path: ROUTES.WORKSPACE_CARD,
+                    },
+                    Workspace_Reimburse: {
+                        path: ROUTES.WORKSPACE_REIMBURSE,
+                    },
+                    Workspace_Bills: {
+                        path: ROUTES.WORKSPACE_BILLS,
+                    },
+                    Workspace_Invoices: {
+                        path: ROUTES.WORKSPACE_INVOICES,
+                    },
+                    Workspace_Travel: {
+                        path: ROUTES.WORKSPACE_TRAVEL,
+                    },
+                    Workspace_Members: {
+                        path: ROUTES.WORKSPACE_MEMBERS,
+                    },
+                    Workspace_BankAccount: {
+                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
+                        exact: true,
+                    },
+                    ReimbursementAccount: {
+                        path: ROUTES.BANK_ACCOUNT,
+                        exact: true,
                     },
                 },
             },
@@ -142,31 +173,11 @@ export default {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                 },
             },
-            ReimbursementAccount: {
-                screens: {
-                    ReimbursementAccount_Root: ROUTES.BANK_ACCOUNT,
-                },
-            },
             WorkspaceInvite: {
                 screens: {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
-
-            WorkspaceSettings: {
-                path: ROUTES.WORKSPACE,
-                screens: {
-                    WorkspaceCard: ROUTES.WORKSPACE_CARD,
-                    WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
-                },
-            },
-
-            WorkspaceEditor: {
-                screens: {
-                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
-                },
-            },
-
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
