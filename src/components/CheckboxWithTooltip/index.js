@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {CheckboxWithTooltip as CheckboxWithTooltipNative} from './index.native';
+import CheckboxWithTooltipForMobileWebAndNative from './CheckboxWithTooltipForMobileWebAndNative';
 import Checkbox from '../Checkbox';
 import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
 import Tooltip from '../Tooltip';
@@ -10,7 +10,7 @@ import compose from '../../libs/compose';
 const CheckboxWithTooltip = (props) => {
     if (props.isSmallScreenWidth || props.isMediumScreenWidth) {
         return (
-            <CheckboxWithTooltipNative
+            <CheckboxWithTooltipForMobileWebAndNative
                 style={props.style}
                 isChecked={props.isChecked}
                 onPress={props.onPress}
