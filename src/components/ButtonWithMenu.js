@@ -99,7 +99,7 @@ class ButtonWithMenu extends PureComponent {
                             ...item,
                             onSelected: () => {
                                 this.setState({selectedItem: item});
-                                this.props.onChange(item.paymentType || '');
+                                this.props.onChange(item);
                             },
                         }))}
                     />

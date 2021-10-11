@@ -242,11 +242,11 @@ class IOUModal extends Component {
     /**
      * Update the payment type
      *
-     * @param {String} paymentType
+     * @param {Object} paymentOption
      */
-    updatePaymentType(paymentType) {
+    updatePaymentType(paymentOption) {
         this.setState({
-            paymentType,
+            paymentType: paymentOption.paymentType || '',
         });
     }
 
