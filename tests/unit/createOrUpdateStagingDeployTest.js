@@ -94,7 +94,7 @@ const basePRList = [
 const baseIssueList = [
     'https://github.com/Expensify/App/issues/11',
     'https://github.com/Expensify/App/issues/12',
-]
+];
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
 const openCheckbox = '  - [ ]';
