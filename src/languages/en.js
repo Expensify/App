@@ -567,6 +567,7 @@ export default {
         taxIDNumberPlaceholder: '9 digits, no hyphens',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
+        incorporationState: 'Incorporation state',
         industryClassificationCode: 'Industry classification code',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
