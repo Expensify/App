@@ -708,6 +708,7 @@ function setupWithdrawalAccount(data) {
                             // Requestor Step still needs to run Onfido
                             achData.sdkToken = sdkToken;
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                             return;
                         }
                     } else if (requestorResponse) {
@@ -725,6 +726,7 @@ function setupWithdrawalAccount(data) {
                         if (!_.isEmpty(questions)) {
                             achData.questions = questions;
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                             return;
                         }
                     }
