@@ -40,20 +40,20 @@ const CommunicationsLink = props => (
             styles.communicationsLinkHeight,
         ]}
         >
-            {props.isSmallScreenWidth
-                ? (
-                    <Pressable
-                        style={styles.flexShrink1}
-                        onPress={() => Linking.openURL(
-                            props.type === CONST.LOGIN_TYPE.PHONE
-                                ? `tel:${props.value}`
-                                : `mailto:${props.value}`,
-                        )}
-                    >
-                        {props.children}
-                    </Pressable>
-                ) : props.children}
-
+            <View style={styles.flexShrink1}>
+                {props.isSmallScreenWidth
+                    ? (
+                        <Pressable
+                            onPress={() => Linking.openURL(
+                                props.type === CONST.LOGIN_TYPE.PHONE
+                                    ? `tel:${props.value}`
+                                    : `mailto:${props.value}`,
+                            )}
+                        >
+                            {props.children}
+                        </Pressable>
+                    ) : props.children}
+            </View>
             <ContextMenuItem
                 icon={ClipboardIcon}
                 text={props.translate('reportActionContextMenu.copyToClipboard')}
