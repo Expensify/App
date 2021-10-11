@@ -7,10 +7,6 @@ import Tooltip from '../Tooltip';
 import withWindowDimensions from '../withWindowDimensions';
 import compose from '../../libs/compose';
 
-/**
- * @param {propTypes} props
- * @returns {ReactNodeLike}
- */
 const CheckboxWithTooltip = (props) => {
     if (props.isSmallScreenWidth || props.isMediumScreenWidth) {
         return (
