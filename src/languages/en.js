@@ -633,6 +633,7 @@ export default {
             bankAccount: 'Connect bank account',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
+            growlMessageOnSave: 'Your workspace settings were successfully saved!',
         },
         new: {
             newWorkspace: 'New workspace',

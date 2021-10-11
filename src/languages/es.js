@@ -635,6 +635,7 @@ export default {
             bankAccount: 'Conectar cuenta bancaria',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            growlMessageOnSave: '¡Tus configuraciónes del espacio de trabajo se han guardado correctamente!',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
