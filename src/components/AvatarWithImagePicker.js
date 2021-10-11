@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
+import Tooltip from './Tooltip';
 
 const propTypes = {
     /** Avatar URL to display */
@@ -174,14 +175,16 @@ class AvatarWithImagePicker extends React.Component {
                                             )
                                             : (
                                                 <>
-                                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                                        <Icon
-                                                            src={Camera}
-                                                            width={variables.iconSizeSmall}
-                                                            height={variables.iconSizeSmall}
-                                                            fill={themeColors.iconReversed}
-                                                        />
-                                                    </View>
+                                                    <Tooltip absolute text={this.props.translate('avatarWithImagePicker.editImage')}>
+                                                        <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
+                                                            <Icon
+                                                                src={Camera}
+                                                                width={variables.iconSizeSmall}
+                                                                height={variables.iconSizeSmall}
+                                                                fill={themeColors.iconReversed}
+                                                            />
+                                                        </View>
+                                                    </Tooltip>
                                                     <PopoverMenu
                                                         isVisible={this.state.isMenuVisible}
                                                         onClose={() => this.setState({isMenuVisible: false})}
