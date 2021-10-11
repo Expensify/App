@@ -73,6 +73,11 @@ const CONST = {
             VERIFYING: 'VERIFYING',
             PENDING: 'PENDING',
         },
+        MAX_LENGTH: {
+            TAX_ID_NUMBER: 9,
+            SSN: 4,
+            ZIP_CODE: 5,
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -91,6 +96,7 @@ const CONST = {
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
         INTERNATIONALIZATION: 'internationalization',
+        IOU_SEND: 'sendMoney',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -377,6 +383,11 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
+        IOU_TYPE: {
+            SEND: 'send',
+            SPLIT: 'split',
+            REQUEST: 'request',
+        },
         AMOUNT_MAX_LENGTH: 10,
     },
 
@@ -414,11 +425,12 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
     },
-
+    PHONE_MAX_LENGTH: 15,
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
+        PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
@@ -426,6 +438,9 @@ const CONST = {
         INDUSTRY_CODE: /^[0-9]{6}$/,
         SSN_LAST_FOUR: /[0-9]{4}/,
         NUMBER: /^[0-9]+$/,
+        CARD_NUMBER: /^[0-9]{15,16}$/,
+        CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
+        CARD_EXPIRATION_DATE: /(0[1-9]|10|11|12)\/20[0-9]{2}$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len

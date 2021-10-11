@@ -1,4 +1,3 @@
-import moment from 'moment';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -71,7 +70,10 @@ const defaultProps = {
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
         // We can specify a step to navigate to by using route params when the component mounts.
-        fetchFreePlanVerifiedBankAccount(this.getStepToOpenFromRouteParams());
+        const stepToOpen = this.getStepToOpenFromRouteParams();
+
+        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
+        fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
     }
 
     componentDidUpdate(prevProps) {
@@ -112,6 +114,8 @@ class ReimbursementAccountPage extends React.Component {
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
             case 'validate':
                 return CONST.BANK_ACCOUNT.STEP.VALIDATION;
+            case 'enable':
+                return CONST.BANK_ACCOUNT.STEP.ENABLE;
             default:
                 return '';
         }
@@ -131,6 +135,8 @@ class ReimbursementAccountPage extends React.Component {
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 return 'validate';
+            case CONST.BANK_ACCOUNT.STEP.ENABLE:
+                return 'enable';
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             default:
                 return 'new';
@@ -161,25 +167,20 @@ class ReimbursementAccountPage extends React.Component {
 
         const throttledDate = lodashGet(this.props, 'reimbursementAccount.throttledDate');
         if (throttledDate) {
-            const throttledEnd = moment().add(24, 'hours');
-            if (moment() < throttledEnd) {
-                errorComponent = (
-                    <View style={[styles.m5]}>
-                        <Text>
-                            {this.props.translate('bankAccount.hasBeenThrottledError', {
-                                fromNow: throttledEnd.fromNow(),
-                            })}
-                        </Text>
-                    </View>
-                );
-            }
+            errorComponent = (
+                <View style={[styles.m5]}>
+                    <Text>
+                        {this.props.translate('bankAccount.hasBeenThrottledError')}
+                    </Text>
+                </View>
+            );
         }
 
         if (errorComponent) {
             return (
                 <ScreenWrapper>
                     <HeaderWithCloseButton
-                        title={this.props.translate('bankAccount.addBankAccount')}
+                        title={this.props.translate('workspace.common.bankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
                     {errorComponent}

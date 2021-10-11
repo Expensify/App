@@ -1,8 +1,29 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
-import {translateLocal} from './translate';
+
+
+/**
+ * Implements the Luhn Algorithm, a checksum formula used to validate credit card
+ * numbers.
+ *
+ * @param {String} val
+ * @returns {Boolean}
+ */
+function validateCardNumber(val) {
+    let sum = 0;
+    for (let i = 0; i < val.length; i++) {
+        let intVal = parseInt(val.substr(i, 1), 10);
+        if (i % 2 === 0) {
+            intVal *= 2;
+            if (intVal > 9) {
+                intVal = 1 + (intVal % 10);
+            }
+        }
+        sum += intVal;
+    }
+    return (sum % 10) === 0;
+}
 
 /**
  * Validating that this is a valid address (PO boxes are not allowed)
@@ -25,6 +46,10 @@ function isValidAddress(value) {
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
+    if (!date) {
+        return false;
+    }
+
     const pastDate = moment().subtract(1000, 'years');
     const futureDate = moment().add(1000, 'years');
     const testDate = moment(date);
@@ -51,6 +76,50 @@ function isRequiredFulfilled(value) {
 }
 
 /**
+ * Validates that this is a valid expiration date
+ * in the MM/YY or MM/YYYY format
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidExpirationDate(string) {
+    return CONST.REGEX.CARD_EXPIRATION_DATE.test(string);
+}
+
+/**
+ * Validates that this is a valid security code
+ * in the XXX or XXXX format.
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidSecurityCode(string) {
+    return CONST.REGEX.CARD_SECURITY_CODE.test(string);
+}
+
+/**
+ * Validates a debit card number (15 or 16 digits).
+ *
+ * @param {String} string
+ * @returns {Boolean}
+ */
+function isValidDebitCard(string) {
+    if (!CONST.REGEX.CARD_NUMBER.test(string)) {
+        return false;
+    }
+
+    return validateCardNumber(string);
+}
+
+/**
+ * @param {String} code
+ * @returns {Boolean}
+ */
+function isValidIndustryCode(code) {
+    return CONST.REGEX.INDUSTRY_CODE.test(code);
+}
+
+/**
  * @param {String} zipCode
  * @returns {Boolean}
  */
@@ -67,10 +136,12 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ * Validate that "date" is between 18 and 150 years in the past
+ *
  * @param {String} date
  * @returns {Boolean}
  */
-function isValidAge(date) {
+function meetsAgeRequirements(date) {
     const eighteenYearsAgo = moment().subtract(18, 'years');
     const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
     const testDate = moment(date);
@@ -79,6 +150,14 @@ function isValidAge(date) {
 
 /**
  *
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidPhoneWithSpecialChars(phoneNumber) {
+    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH;
+}
+
+/**
  * @param {String} url
  * @returns {Boolean}
  */
@@ -88,53 +167,63 @@ function isValidURL(url) {
 
 /**
  * @param {Object} identity
- * @returns {Boolean}
+ * @returns {Object}
  */
-function isValidIdentity(identity) {
+function validateIdentity(identity) {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
+    const errors = {};
+
+    // Check that all required fields are filled
+    _.each(requiredFields, (fieldName) => {
+        if (isRequiredFulfilled(identity[fieldName])) {
+            return;
+        }
+        errors[fieldName] = true;
+    });
+
     if (!isValidAddress(identity.street)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
-        showBankAccountErrorModal();
-        return false;
-    }
-
-    if (identity.state === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
-        showBankAccountErrorModal();
-        return false;
-    }
-
-    if (identity.city === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
-        showBankAccountErrorModal();
-        return false;
+        errors.street = true;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
-        showBankAccountErrorModal();
-        return false;
+        errors.zipCode = true;
     }
 
-    if (!isValidDate(identity.dob) || !isValidAge(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
-        return false;
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
+    if (!isValidDate(identity.dob)) {
+        errors.dob = true;
+    } else if (!meetsAgeRequirements(identity.dob)) {
+        errors.dobAge = true;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
-        showBankAccountErrorModal();
-        return false;
+        errors.ssnLast4 = true;
     }
 
-    return true;
+    return errors;
+}
+
+/**
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidUSPhone(phoneNumber) {
+    // Remove alphanumeric characters and validate that this is in fact a phone number
+    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
 }
 
 export {
+    meetsAgeRequirements,
     isValidAddress,
     isValidDate,
-    isValidIdentity,
+    isValidSecurityCode,
+    isValidExpirationDate,
+    isValidDebitCard,
+    isValidIndustryCode,
     isValidZipCode,
     isRequiredFulfilled,
+    isValidPhoneWithSpecialChars,
+    isValidUSPhone,
     isValidURL,
+    validateIdentity,
 };

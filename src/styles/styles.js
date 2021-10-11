@@ -22,10 +22,13 @@ const expensiPicker = {
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
-    paddingHorizontal: 12,
+    paddingHorizontal: 11.5,
     paddingBottom: 8,
     paddingTop: 24,
     height: 52,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: themeColors.border,
     borderRadius: variables.componentBorderRadiusNormal,
 };
 
@@ -138,6 +141,13 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXLarge,
+        fontWeight: fontWeightBold,
+    },
+
     textXXXLarge: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -161,6 +171,10 @@ const styles = {
 
     textWhite: {
         color: colors.white,
+    },
+
+    textBlue: {
+        color: colors.blue,
     },
 
     textUppercase: {
@@ -343,7 +357,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 0,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -356,7 +372,9 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 0,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderStyle: 'solid',
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
@@ -372,7 +390,9 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 0,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderStyle: 'solid',
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: variables.componentSizeSmall,
@@ -487,14 +507,14 @@ const styles = {
         borderColor: themeColors.border,
         paddingTop: 25,
         paddingBottom: 8,
-        paddingHorizontal: 12,
+        paddingHorizontal: 11.5,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
     },
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 12,
+        left: 11.5,
         top: 16,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
@@ -539,15 +559,14 @@ const styles = {
     },
 
     expensiPickerContainer: {
-        borderWidth: 1,
+        borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 12,
+        left: 11.5,
         top: 8,
     },
     expensiPicker: (disabled = false) => ({
@@ -558,7 +577,6 @@ const styles = {
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            border: 'none',
             ...expensiPicker,
         },
         inputNative: {
@@ -1192,11 +1210,6 @@ const styles = {
         borderRadius: 8,
     },
 
-    emojiSkinToneItem: {
-        width: 'auto',
-        ...spacing.ph1,
-    },
-
     emojiItemHighlighted: {
         transition: '0.2s ease',
         backgroundColor: themeColors.buttonDefaultBG,
@@ -1380,6 +1393,25 @@ const styles = {
         flex: 1,
     },
 
+    borderTop: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderTopRounded: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+    },
+
+    borderBottomRounded: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        borderBottomLeftRadius: variables.componentBorderRadiusNormal,
+        borderBottomRightRadius: variables.componentBorderRadiusNormal,
+    },
+
     borderBottom: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
@@ -1387,6 +1419,11 @@ const styles = {
 
     borderRight: {
         borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderLeft: {
+        borderLeftWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -1842,6 +1879,10 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
     fullscreenCard: {
         position: 'absolute',
         left: 0,
@@ -2030,6 +2071,29 @@ const styles = {
             {translateY},
         ],
     }),
+
+    confettiIcon: {
+        height: 100,
+        width: 100,
+        marginBottom: 20,
+    },
+
+    googleSearchTextInputContainer: {
+        flexDirection: 'column',
+    },
+
+    googleSearchSeparator: {
+        height: 1,
+        backgroundColor: themeColors.border,
+    },
+
+    googleSearchText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
+        fontFamily: fontFamily.GTA,
+        flex: 1,
+    },
 };
 
 const baseCodeTagStyles = {

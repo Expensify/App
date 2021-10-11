@@ -130,4 +130,10 @@ class Datepicker extends React.Component {
 Datepicker.propTypes = datepickerPropTypes;
 Datepicker.defaultProps = defaultProps;
 
+/**
+ * We're applying localization here because we present a modal (with buttons) ourselves
+ * Furthermore we're passing the locale down so that the modal and the date spinner are in the same
+ * locale. Otherwise the spinner would be present in the system locale and it would be weird if it happens
+ * that the modal buttons are in one locale (app) while the (spinner) month names are another (system)
+ */
 export default withLocalize(Datepicker);

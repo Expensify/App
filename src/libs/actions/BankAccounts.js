@@ -64,7 +64,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
         delete newACHData.questions;
         delete newACHData.answers;
-        if (lodashHas(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
+        if (lodashHas(newACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
             delete newACHData.verifications.externalApiResponses.requestorIdentityID;
             delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
         }
@@ -115,6 +115,7 @@ function getPlaidBankAccounts(publicToken, bank) {
                     ...account,
                     accountNumber: Str.maskPAN(account.accountNumber),
                 })),
+                bankName,
             });
         });
 }
@@ -336,6 +337,9 @@ function fetchUserWallet() {
  * @param {String} [stepToOpen]
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+    // Remember which account BankAccountStep subStep the user had before so we can set it later
+    const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
+
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
@@ -379,6 +383,11 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     // If the user is already setting up a bank account we will continue the flow for them
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
+                    if (!stepToOpen && achData.currentStep) {
+                        // eslint-disable-next-line no-use-before-define
+                        currentStep = getNextStepToComplete(achData);
+                    }
+
                     achData.useOnfido = true;
                     achData.policyID = reimbursementAccountWorkspaceID || '';
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
@@ -386,9 +395,13 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     achData.domainLimit = 0;
 
                     // If the bank account has already been created in the db and is not yet open
-                    // let's show the manual form with the previously added values
-                    achData.subStep = bankAccount && bankAccount.isInSetup()
-                                      && CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                    // let's show the manual form with the previously added values. Otherwise, we will
+                    // make the subStep the previous value.
+                    if (bankAccount && bankAccount.isInSetup()) {
+                        achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                    } else {
+                        achData.subStep = subStep;
+                    }
 
                     // If we're not in setup, it means we already have a withdrawal account
                     // and we're upgrading it to a business bank account. So let the user
@@ -504,14 +517,27 @@ function getIndexByStepID(stepID) {
 
 /**
  * Get next step ID
+ * @param {String} [stepID]
  * @return {String}
  */
-function getNextStepID() {
+function getNextStepID(stepID) {
     const nextStepIndex = Math.min(
-        getIndexByStepID(reimbursementAccountInSetup.currentStep) + 1,
+        getIndexByStepID(stepID || reimbursementAccountInSetup.currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
     return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+}
+
+/**
+ * @param {Object} achData
+ * @returns {String}
+ */
+function getNextStepToComplete(achData) {
+    if (achData.currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && !achData.isOnfidoSetupComplete) {
+        return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+    }
+
+    return getNextStepID(achData.currentStep);
 }
 
 /**
@@ -528,7 +554,7 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {String} errorModalMessage The error message to be displayed in the modal's body.
  */
 function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorModalMessage});
 }
 
 /**
@@ -580,13 +606,6 @@ function validateBankAccount(bankAccountID, validateCode) {
             showBankAccountErrorModal(response.message);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
-}
-
-/**
- * Hide error modal
- */
-function hideBankAccountErrorModal() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: false});
 }
 
 /**
@@ -658,7 +677,7 @@ function setupWithdrawalAccount(data) {
 
     API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
@@ -727,6 +746,7 @@ function setupWithdrawalAccount(data) {
                                 || achData.state === BankAccount.STATE.VERIFYING;
 
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                         });
                     return;
                 }
@@ -770,6 +790,7 @@ function setupWithdrawalAccount(data) {
                 showBankAccountFormValidationError(error);
                 showBankAccountErrorModal(error);
             }
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
@@ -806,7 +827,6 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
-    hideBankAccountErrorModal,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
