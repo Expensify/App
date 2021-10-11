@@ -25,11 +25,11 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/21\r\n- [x] https://github.com/Expensify/App/pull/22\r\n- [ ] https://github.com/Expensify/App/pull/23\r\n\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- https://github.com/Expensify/App/pull/21\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/22\r\n        - [x] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/23\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n',
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
-        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/issues/1\r\n- [x] https://github.com/Expensify/App/issues/2\r\n- [ ] https://github.com/Expensify/App/pull/1234\r\n';
+        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- https://github.com/Expensify/App/issues/1\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/issues/2\r\n        - [x] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/1234\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n';
 
         const baseExpectedResponse = {
             PRList: [
