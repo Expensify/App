@@ -134,7 +134,7 @@ class WorkspaceSettingsPage extends React.Component {
 
         return (
             <WorkspacePageWithSections
-                headerText={this.props.translate('workspace.common.edit')}
+                headerText={this.props.translate('workspace.common.settings')}
                 route={this.props.route}
             >
                 {hasVBA => (

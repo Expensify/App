@@ -626,7 +626,6 @@ export default {
         common: {
             card: 'Emitir tarjetas corporativas',
             workspace: 'Espacio de trabajo',
-            edit: 'Editar espacio de trabajo',
             settings: 'Configuración general',
             reimburse: 'Reembolsar recibos',
             bills: 'Pagar facturas',
