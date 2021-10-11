@@ -11,10 +11,15 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import Icon from '../../components/Icon';
 import {
-    Users,
+    Bank,
+    Gear,
     ExpensifyCard,
+    Receipt,
+    Users,
     Workspace,
-    Pencil,
+    Bill,
+    Invoice,
+    Luggage,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -25,8 +30,6 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
-import Tooltip from '../../components/Tooltip';
-import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 
 const propTypes = {
@@ -50,7 +53,7 @@ const defaultProps = {
     policy: {},
 };
 
-const WorkspaceSidebar = ({
+const WorkspaceInitialPage = ({
     translate, isSmallScreenWidth, policy, isFocused,
 }) => {
     if (_.isEmpty(policy)) {
@@ -59,27 +62,65 @@ const WorkspaceSidebar = ({
 
     const menuItems = [
         {
+            translationKey: 'workspace.common.settings',
+            icon: Gear,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+        },
+        {
             translationKey: 'workspace.common.card',
             icon: ExpensifyCard,
-            action: () => {
-                Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id));
-            },
+            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
         },
         {
-            translationKey: 'common.people',
+            translationKey: 'workspace.common.reimburse',
+            icon: Receipt,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.bills',
+            icon: Bill,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBillsRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.invoices',
+            icon: Invoice,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.travel',
+            icon: Luggage,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.members',
             icon: Users,
-            action: () => {
-                Navigation.navigate(ROUTES.getWorkspacePeopleRoute(policy.id));
-            },
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspacePeopleRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceMembersRoute(policy.id)),
+        },
+        {
+            translationKey: 'workspace.common.bankAccount',
+            icon: Bank,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
         },
     ];
 
-    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceEditorRoute(policy.id));
+    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id));
 
     return (
         <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={translate('workspace.common.workspace')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onCloseButtonPress={() => Navigation.dismissModal()}
+            />
             <ScrollView
                 contentContainerStyle={[
                     styles.flexGrow1,
@@ -88,13 +129,6 @@ const WorkspaceSidebar = ({
                 ]}
             >
                 <View style={[styles.flex1]}>
-                    {isSmallScreenWidth
-                        && (
-                            <HeaderWithCloseButton
-                                title={translate('workspace.common.workspace')}
-                                onCloseButtonPress={() => Navigation.dismissModal()}
-                            />
-                        )}
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                             <Pressable
@@ -117,16 +151,6 @@ const WorkspaceSidebar = ({
                                             fill={themedefault.iconSuccessFill}
                                         />
                                     )}
-                                <Tooltip absolute text={translate('workspace.common.edit')}>
-                                    <View style={[styles.smallEditIcon, styles.smallAvatarEditIcon]}>
-                                        <Icon
-                                            src={Pencil}
-                                            width={variables.iconSizeSmall}
-                                            height={variables.iconSizeSmall}
-                                            fill={themedefault.iconReversed}
-                                        />
-                                    </View>
-                                </Tooltip>
                             </Pressable>
 
                             <Pressable
@@ -138,17 +162,15 @@ const WorkspaceSidebar = ({
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Tooltip text={policy.name}>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[
-                                            styles.displayName,
-                                            styles.alignSelfCenter,
-                                        ]}
-                                    >
-                                        {policy.name}
-                                    </Text>
-                                </Tooltip>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[
+                                        styles.displayName,
+                                        styles.alignSelfCenter,
+                                    ]}
+                                >
+                                    {policy.name}
+                                </Text>
                             </Pressable>
                         </View>
                     </View>
@@ -173,9 +195,9 @@ const WorkspaceSidebar = ({
     );
 };
 
-WorkspaceSidebar.propTypes = propTypes;
-WorkspaceSidebar.defaultProps = defaultProps;
-WorkspaceSidebar.displayName = 'WorkspaceSidebar';
+WorkspaceInitialPage.propTypes = propTypes;
+WorkspaceInitialPage.defaultProps = defaultProps;
+WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default compose(
     withLocalize,
@@ -191,4 +213,4 @@ export default compose(
             },
         },
     }),
-)(WorkspaceSidebar);
+)(WorkspaceInitialPage);

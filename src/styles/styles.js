@@ -138,6 +138,13 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
+    textXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXLarge,
+        fontWeight: fontWeightBold,
+    },
+
     textXXXLarge: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -161,6 +168,10 @@ const styles = {
 
     textWhite: {
         color: colors.white,
+    },
+
+    textBlue: {
+        color: colors.blue,
     },
 
     textUppercase: {
@@ -1861,6 +1872,10 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
     fullscreenCard: {
         position: 'absolute',
         left: 0,
@@ -2050,11 +2065,17 @@ const styles = {
         ],
     }),
 
+    confettiIcon: {
+        height: 100,
+        width: 100,
+        marginBottom: 20,
+    },
+
     googleSearchTextInputContainer: {
         flexDirection: 'column',
     },
 
-    googleSearchSeperator: {
+    googleSearchSeparator: {
         height: 1,
         backgroundColor: themeColors.border,
     },
