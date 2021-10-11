@@ -365,13 +365,16 @@ describe('GithubUtils', () => {
         ));
 
         test('Test all resolved deploy blockers', () => (
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, [], baseDeployBlockerList, baseDeployBlockerList)
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList, baseDeployBlockerList)
                 .then((issueBody) => {
                     expect(issueBody).toBe(
-                        `${allVerifiedExpectedOutput}`
+                        `${baseExpectedOutput}`
+                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
