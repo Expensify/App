@@ -223,7 +223,7 @@ class WorkspaceMembersPage extends React.Component {
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('common.members')}
+                    title={this.props.translate('workspace.common.members')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
                     onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
                     shouldShowBackButton
