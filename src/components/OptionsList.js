@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
@@ -234,6 +234,7 @@ class OptionsList extends Component {
                     ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
+                    onScrollBeginDrag={() => Keyboard.dismiss()}
                     contentContainerStyle={[...this.props.contentContainerStyles]}
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
