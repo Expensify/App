@@ -30,6 +30,9 @@ function showGrowlIfOffline() {
     return isNetworkOffline;
 }
 
+/**
+ * @param {String} url
+ */
 function openOldDotLink(url) {
     if (!showGrowlIfOffline()) {
         API.GetShortLivedAuthToken().then(({shortLivedAuthToken}) => {
@@ -39,6 +42,9 @@ function openOldDotLink(url) {
     }
 }
 
+/**
+ * @param {String} url
+ */
 function openExternalLink(url) {
     if (!showGrowlIfOffline()) {
         Linking.openURL(url);
