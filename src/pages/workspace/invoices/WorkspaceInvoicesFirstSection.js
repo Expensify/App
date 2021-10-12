@@ -26,13 +26,8 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
         icon={MoneyEnvelopeBlue}
         menuItems={[
             {
-<<<<<<< HEAD
                 title: translate('workspace.common.invoices'),
-                onPress: () => openSignedInLink('reports?param={"createInvoice":true}'),
-=======
-                title: translate('workspace.invoices.sendInvoice'),
                 onPress: () => openOldDotLink('reports?param={"createInvoice":true}'),
->>>>>>> d66c278fa (Merge pull request #5776 from Expensify/tgolen-offline-links)
                 icon: Send,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
