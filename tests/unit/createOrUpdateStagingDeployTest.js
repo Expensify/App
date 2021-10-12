@@ -87,8 +87,8 @@ const basePRList = [
     'https://github.com/Expensify/App/pull/8',
     'https://github.com/Expensify/App/pull/9',
     'https://github.com/Expensify/App/pull/10',
-    'https://github.com/Expensify/App/pull/11',
-    'https://github.com/Expensify/App/pull/12',
+    'https://github.com/Expensify/App/issues/11',
+    'https://github.com/Expensify/App/issues/12',
 ];
 
 const baseIssueList = [
@@ -200,13 +200,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/App/pull/9',
+                html_url: 'https://github.com/Expensify/App/issues/9',
                 number: 9,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
             },
             {
-                html_url: 'https://github.com/Expensify/App/pull/10',
+                html_url: 'https://github.com/Expensify/App/issues/10',
                 number: 10,
                 state: 'open',
                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
@@ -246,13 +246,13 @@ describe('createOrUpdateStagingDeployCash', () => {
                         data: [
                             ...currentOpenDeployBlockers,
                             {
-                                html_url: 'https://github.com/Expensify/App/pull/11', // New
+                                html_url: 'https://github.com/Expensify/App/issues/11', // New
                                 number: 11,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
                             },
                             {
-                                html_url: 'https://github.com/Expensify/App/pull/12', // New
+                                html_url: 'https://github.com/Expensify/App/issues/12', // New
                                 number: 12,
                                 state: 'open',
                                 labels: [LABELS.DEPLOY_BLOCKER_CASH],
