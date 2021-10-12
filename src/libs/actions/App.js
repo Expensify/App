@@ -1,11 +1,10 @@
-import {AppState, Linking} from 'react-native';
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import CONFIG from '../../CONFIG';
 import Performance from '../Performance';
 import Timing from './Timing';
 
@@ -43,18 +42,6 @@ function setLocale(locale) {
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
-/**
- * This links to a page in e.com ensuring the user is logged in.
- * It does so by getting a validate code and redirecting to the validate URL with exitTo set to the URL
- * we want to visit
- * @param {string} url relative URL starting with `/` to open in expensify.com
- */
-function openSignedInLink(url = '') {
-    API.GetShortLivedAuthToken().then(({shortLivedAuthToken}) => {
-        Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`);
-    });
-}
-
 function setSidebarLoaded() {
     if (isSidebarLoaded) {
         return;
@@ -77,6 +64,5 @@ AppState.addEventListener('change', (nextAppState) => {
 export {
     setCurrentURL,
     setLocale,
-    openSignedInLink,
     setSidebarLoaded,
 };
