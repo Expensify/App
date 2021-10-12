@@ -8,17 +8,36 @@ import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
 let isAuthenticating;
-let credentials;
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
-});
 
-let authToken;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
-});
+/**
+ *  Gets the authToken from Onyx as Promise and returns a null value if it doesn't exist
+ *
+ * @returns {Promise<String|null>}
+ */
+function getAuthTokenFromOnyx() {
+    // TODO: Expose Onyx.get and use it in this function instead of Onyx.connect
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.SESSION,
+            callback: val => resolve(val ? val.authToken : null),
+        });
+    });
+}
+
+/**
+ *  Gets the credentials object from Onyx as Promise
+ *
+ * @returns {Promise<Object>}
+ */
+function getCredentialsFromOnyx() {
+    // TODO: Expose Onyx.get and use it in this function instead of Onyx.connect
+    return new Promise((resolve) => {
+        Onyx.connect({
+            key: ONYXKEYS.CREDENTIALS,
+            callback: val => resolve(val),
+        });
+    });
+}
 
 /**
  * Does this command require an authToken?
@@ -46,15 +65,16 @@ function isAuthTokenRequired(command) {
  *
  * @param {String} command
  * @param {Object} parameters
- * @returns {Object}
+ * @param {String} authTokenFromOnyx
+ * @returns {Object} A copy of "parameters" object with modified attributes
  */
-function addDefaultValuesToParameters(command, parameters) {
+function addDefaultValuesToParameters(command, parameters, authTokenFromOnyx) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
         // If we end up here with no authToken it means we are trying to make an API request before we are signed in.
         // In this case, we should cancel the current request by pausing the queue and clearing the remaining requests.
-        if (!authToken) {
+        if (!authTokenFromOnyx) {
             redirectToSignIn();
 
             console.debug('A request was made without an authToken', {command, parameters});
@@ -64,7 +84,7 @@ function addDefaultValuesToParameters(command, parameters) {
             return;
         }
 
-        finalParameters.authToken = authToken;
+        finalParameters.authToken = authTokenFromOnyx;
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
@@ -76,8 +96,36 @@ function addDefaultValuesToParameters(command, parameters) {
     return finalParameters;
 }
 
-// Tie into the network layer to add auth token to the parameters of all requests
-Network.registerParameterEnhancer(addDefaultValuesToParameters);
+function registerParameterEnhancer(authToken) {
+    /**
+     * This function decorates the original "addDefaultValuesToParameters" function to add the
+     * authToken (from Onyx) and returns the same returned value from the original function.
+     * @param {String} command
+     * @param {Object} parameters
+     * @returns {Object} Same returned object of addDefaultValuesToParameters
+     */
+    const addDefaultValuesToParametersWithToken = (command, parameters) => addDefaultValuesToParameters(command, parameters, authToken);
+
+    // Tie into the network layer to add auth token to the parameters of all requests
+    Network.registerParameterEnhancer(addDefaultValuesToParametersWithToken);
+}
+
+// getAuthTokenFromOnyx().then(registerParameterEnhancer);
+
+// We ensure we get the authToken from Onyx before a network request is made.
+// This is to avoid a race condition on Android devices where the AsyncStorage could have
+// a little delay and could return the authToken after a network request is made, resulting
+// in a forced logout when the user opens the app.
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (val) => {
+        // setTimeout(() => {
+        const authToken = val ? val.authToken : null;
+        registerParameterEnhancer(authToken);
+
+        // }, 3000);
+    },
+});
 
 /**
  * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
@@ -128,9 +176,9 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
 
     // eslint-disable-next-line no-use-before-define
     return reauthenticate(originalCommand)
-        .then(() => {
+        .then((authTokenFromOnyx) => {
             // Now that the API is authenticated, make the original request again with the new authToken
-            const params = addDefaultValuesToParameters(originalCommand, originalParameters);
+            const params = addDefaultValuesToParameters(originalCommand, originalParameters, authTokenFromOnyx);
             return Network.post(originalCommand, params, originalType);
         })
         .catch(() => (
@@ -143,21 +191,23 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
 
 Network.registerResponseHandler((queuedRequest, response) => {
     if (response.jsonCode === 407) {
-        // Credentials haven't been initialized. We will not be able to re-authenticates with the API
-        const unableToReauthenticate = (!credentials || !credentials.autoGeneratedLogin
-            || !credentials.autoGeneratedPassword);
+        getCredentialsFromOnyx().then((credentials) => {
+            // Credentials haven't been initialized. We will not be able to re-authenticates with the API
+            const unableToReauthenticate = (!credentials || !credentials.autoGeneratedLogin
+                || !credentials.autoGeneratedPassword);
 
-        // There are some API requests that should not be retried when there is an auth failure like
-        // creating and deleting logins. In those cases, they should handle the original response instead
-        // of the new response created by handleExpiredAuthToken.
-        if (queuedRequest.data.doNotRetry || unableToReauthenticate) {
-            queuedRequest.resolve(response);
-            return;
-        }
+            // There are some API requests that should not be retried when there is an auth failure like
+            // creating and deleting logins. In those cases, they should handle the original response instead
+            // of the new response created by handleExpiredAuthToken.
+            if (queuedRequest.data.doNotRetry || unableToReauthenticate) {
+                queuedRequest.resolve(response);
+                return;
+            }
 
-        handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
+            handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
+                .then(queuedRequest.resolve)
+                .catch(queuedRequest.reject);
+        });
         return;
     }
 
@@ -183,7 +233,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
 
 /**
  * @param {Object} parameters
- * @param {String} [parameters.useExpensifyLogin]
+ * @param {Boolean} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
@@ -257,10 +307,10 @@ function Authenticate(parameters) {
  * Reauthenticate using the stored credentials and redirect to the sign in page if unable to do so.
  *
  * @param {String} [command] command name for loggin purposes
- * @returns {Promise}
+ * @returns {Promise<String>}
  */
 function reauthenticate(command = '') {
-    return Authenticate({
+    return getCredentialsFromOnyx().then(credentials => getAuthTokenFromOnyx().then(authToken => Authenticate({
         useExpensifyLogin: false,
         partnerName: CONFIG.EXPENSIFY.PARTNER_NAME,
         partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
@@ -281,12 +331,12 @@ function reauthenticate(command = '') {
                 authToken: response.authToken,
                 encryptedAuthToken: response.encryptedAuthToken,
             });
-            authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
             // processing requests
             isAuthenticating = false;
             Network.unpauseRequestQueue();
+            return response.authToken;
         })
 
         .catch((error) => {
@@ -308,7 +358,7 @@ function reauthenticate(command = '') {
                 command,
                 error: error.message,
             });
-        });
+        })));
 }
 
 /**
