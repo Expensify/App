@@ -55,7 +55,7 @@ class BaseExpensiTextInput extends Component {
 
             if (this.props.value) {
                 this.activateLabel();
-            } else {
+            } else if (!this.state.isFocused) {
                 this.deactivateLabel();
             }
         }
