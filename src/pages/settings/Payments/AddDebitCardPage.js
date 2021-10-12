@@ -23,6 +23,7 @@ import {
     isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard, isValidSecurityCode,
 } from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     /* Onyx Props */
@@ -140,6 +141,8 @@ class DebitCardPage extends Component {
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title={this.props.translate('addDebitCardPage.addADebitCard')}
+                        shouldShowBackButton
+                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
