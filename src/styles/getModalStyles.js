@@ -151,7 +151,7 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             modalContainerStyle = {
                 borderRadius: 12,
                 borderWidth: 1,
-                borderColor: themeColors.border,
+                borderColor: themeColors.accentBorder,
                 justifyContent: 'center',
                 overflow: 'hidden',
                 boxShadow: '0px 0px 10px 0px rgba(0, 0, 0, 0.025)',

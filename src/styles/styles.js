@@ -28,7 +28,7 @@ const expensiPicker = {
     height: 52,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: themeColors.border,
+    borderColor: themeColors.accentBorder,
     borderRadius: variables.componentBorderRadiusNormal,
 };
 
@@ -358,7 +358,7 @@ const styles = {
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
-            borderColor: themeColors.border,
+            borderColor: themeColors.accentBorder,
             borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
@@ -373,7 +373,7 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 1,
-            borderColor: themeColors.border,
+            borderColor: themeColors.accentBorder,
             borderStyle: 'solid',
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
@@ -391,7 +391,7 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 1,
-            borderColor: themeColors.border,
+            borderColor: themeColors.accentBorder,
             borderStyle: 'solid',
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
@@ -444,11 +444,11 @@ const styles = {
     border: {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
     },
 
     borderColorFocus: {
-        borderColor: themeColors.borderFocus,
+        borderColor: themeColors.accentBorderFocus,
     },
 
     borderColorDanger: {
@@ -504,7 +504,7 @@ const styles = {
         flex: 1,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
+        borderColor: themeColors.componentBorder,
         paddingTop: 25,
         paddingBottom: 8,
         paddingHorizontal: 11.5,
@@ -546,7 +546,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
         height: variables.inputComponentSizeNormal,
-        borderColor: themeColors.border,
+        borderColor: themeColors.componentBorder,
         borderWidth: 1,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
@@ -918,7 +918,7 @@ const styles = {
     },
 
     sidebarLinkActive: {
-        backgroundColor: themeColors.border,
+        backgroundColor: themeColors.activeComponentBG,
         textDecorationLine: 'none',
     },
 
@@ -984,7 +984,7 @@ const styles = {
 
     appContentHeader: {
         borderBottomWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         height: variables.contentHeaderHeight,
         justifyContent: 'center',
         display: 'flex',
@@ -1115,11 +1115,11 @@ const styles = {
     },
 
     chatItemComposeBoxColor: {
-        borderColor: themeColors.border,
+        borderColor: themeColors.componentBorder,
     },
 
     chatItemComposeBoxFocusedColor: {
-        borderColor: themeColors.borderFocus,
+        borderColor: themeColors.accentBorderFocus,
     },
 
     chatItemComposeBox: {
@@ -1131,7 +1131,7 @@ const styles = {
 
     textInputCompose: addOutlineWidth({
         backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
+        borderColor: themeColors.componentBorder,
         color: themeColors.text,
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
@@ -1230,7 +1230,7 @@ const styles = {
     chatItemAttachButton: {
         alignItems: 'center',
         alignSelf: 'flex-end',
-        borderRightColor: themeColors.border,
+        borderRightColor: themeColors.accentBorder,
         borderRightWidth: 1,
         height: 26,
         marginBottom: 6,
@@ -1241,7 +1241,7 @@ const styles = {
 
     chatItemAttachmentPlaceholder: {
         backgroundColor: themeColors.sidebar,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         height: 150,
@@ -1276,7 +1276,7 @@ const styles = {
     exampleCheckImage: {
         width: '100%',
         height: 80,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
     },
@@ -1372,8 +1372,8 @@ const styles = {
     },
 
     focusedAvatar: {
-        backgroundColor: themeColors.border,
-        borderColor: themeColors.border,
+        backgroundColor: themeColors.accentBorder,
+        borderColor: themeColors.accentBorder,
     },
 
     emptyAvatar: {
@@ -1395,36 +1395,36 @@ const styles = {
 
     borderTop: {
         borderTopWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
     },
 
     borderTopRounded: {
         borderTopWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
         borderTopRightRadius: variables.componentBorderRadiusNormal,
     },
 
     borderBottomRounded: {
         borderBottomWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         borderBottomLeftRadius: variables.componentBorderRadiusNormal,
         borderBottomRightRadius: variables.componentBorderRadiusNormal,
     },
 
     borderBottom: {
         borderBottomWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
     },
 
     borderRight: {
         borderRightWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
     },
 
     borderLeft: {
         borderLeftWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
     },
 
     headerBar: {
@@ -1477,7 +1477,7 @@ const styles = {
         backgroundColor: themeColors.sidebar,
         borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         flexDirection: 'row',
         padding: 20,
         alignItems: 'center',
@@ -1603,7 +1603,7 @@ const styles = {
     selectCircle: {
         width: variables.componentSizeSmall,
         height: variables.componentSizeSmall,
-        borderColor: themeColors.border,
+        borderColor: themeColors.componentBorder,
         borderWidth: 1,
         borderRadius: variables.componentSizeSmall / 2,
         justifyContent: 'center',
@@ -1708,7 +1708,7 @@ const styles = {
         borderRadius: 2,
         height: 20,
         width: 20,
-        borderColor: themeColors.border,
+        borderColor: themeColors.componentBorder,
         borderWidth: 1,
         justifyContent: 'center',
         alignItems: 'center',
@@ -1734,7 +1734,7 @@ const styles = {
 
     iouPreviewBox: {
         backgroundColor: themeColors.componentBG,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusCard,
         padding: 20,
@@ -1869,7 +1869,7 @@ const styles = {
     },
 
     blockquote: {
-        borderLeftColor: themeColors.border,
+        borderLeftColor: themeColors.accentBorder,
         borderLeftWidth: 4,
         paddingLeft: 12,
         marginVertical: 4,
@@ -1972,7 +1972,7 @@ const styles = {
         flexDirection: 'row',
         justifyContent: 'space-between',
         borderBottomWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
         ...spacing.pv2,
     },
 
@@ -2031,7 +2031,7 @@ const styles = {
 
     collapsibleSectionBorder: {
         borderBottomWidth: 2,
-        borderBottomColor: themeColors.border,
+        borderBottomColor: themeColors.accentBorder,
     },
 
     communicationsLinkHeight: {
@@ -2084,7 +2084,7 @@ const styles = {
 
     googleSearchSeparator: {
         height: 1,
-        backgroundColor: themeColors.border,
+        backgroundColor: themeColors.accentBorder,
     },
 
     googleSearchText: {
@@ -2099,7 +2099,7 @@ const styles = {
 const baseCodeTagStyles = {
     borderWidth: 1,
     borderRadius: 5,
-    borderColor: themeColors.border,
+    borderColor: themeColors.accentBorder,
     backgroundColor: themeColors.textBackground,
 };
 
@@ -2132,7 +2132,7 @@ const webViewStyles = {
         },
 
         blockquote: {
-            borderLeftColor: themeColors.border,
+            borderLeftColor: themeColors.accentBorder,
             borderLeftWidth: 4,
             paddingLeft: 12,
             marginTop: 4,
@@ -2163,7 +2163,7 @@ const webViewStyles = {
         },
 
         img: {
-            borderColor: themeColors.border,
+            borderColor: themeColors.accentBorder,
             borderRadius: variables.componentBorderRadiusNormal,
             borderWidth: 1,
         },
@@ -2212,12 +2212,12 @@ function getNavigationDrawerStyle(isSmallScreenWidth) {
         ? {
             width: '100%',
             height: '100%',
-            borderColor: themeColors.border,
+            borderColor: themeColors.accentBorder,
         }
         : {
             height: '100%',
             width: variables.sideBarWidth,
-            borderRightColor: themeColors.border,
+            borderRightColor: themeColors.accentBorder,
         };
 }
 

@@ -12,7 +12,7 @@ const miniWrapperStyle = [
     {
         borderRadius: variables.componentBorderRadiusNormal,
         borderWidth: 1,
-        borderColor: themeColors.border,
+        borderColor: themeColors.accentBorder,
     },
 ];
 
