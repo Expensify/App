@@ -138,8 +138,11 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         const account = this.getAccounts()[this.state.selectedIndex];
+        const bankName = lodashGet(this.props.plaidBankAccounts, 'bankName');
         this.props.onSubmit({
-            account, plaidLinkToken: this.props.plaidLinkToken,
+            bankName,
+            account,
+            plaidLinkToken: this.props.plaidLinkToken,
         });
     }
 

@@ -18,13 +18,14 @@ import variables from '../styles/variables';
 import CONST from '../CONST';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Avatar URL to display */
     avatarURL: PropTypes.string,
 
     /** Additional style props */
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+    style: stylePropTypes,
 
     /** Executed once an image has been selected */
     onImageSelected: PropTypes.func,
