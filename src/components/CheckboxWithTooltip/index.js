@@ -44,6 +44,4 @@ CheckboxWithTooltip.propTypes = propTypes;
 CheckboxWithTooltip.defaultProps = defaultProps;
 CheckboxWithTooltip.displayName = 'CheckboxWithTooltip';
 
-export default compose(
-    withWindowDimensions,
-)(CheckboxWithTooltip);
+export default withWindowDimensions(CheckboxWithTooltip);

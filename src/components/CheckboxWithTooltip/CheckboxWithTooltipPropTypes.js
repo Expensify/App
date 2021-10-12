@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import CONST from '../../CONST';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Whether the checkbox is checked */
@@ -17,8 +19,11 @@ const propTypes = {
     /** Should the input be disabled  */
     disabled: PropTypes.bool,
 
+    /** Type of the growl to be displayed in case of mobile devices  */
+    growlType: PropTypes.string,
+
     /** Container styles */
-    style: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
+    style: stylePropTypes,
 
     /** Props inherited from withWindowDimensions */
     ...windowDimensionsPropTypes,
@@ -28,6 +33,7 @@ const defaultProps = {
     style: [],
     disabled: false,
     toggleTooltip: true,
+    growlType: CONST.GROWL.WARNING,
 };
 
 export {
