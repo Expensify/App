@@ -11,7 +11,7 @@ import {
 import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
-import {openSignedInLink} from '../../../libs/actions/Link';
+import {openOldDotLink} from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -31,7 +31,7 @@ const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
                 {
                     title: translate('workspace.invoices.viewUnpaidInvoices'),
                     // eslint-disable-next-line max-len
-                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":false,"Processing":true,"Approved":false,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
+                    onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":false,"Processing":true,"Approved":false,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
                     icon: CircleHourglass,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,

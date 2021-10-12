@@ -11,7 +11,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {RocketOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import {openSignedInLink} from '../../../libs/actions/Link';
+import {openOldDotLink} from '../../../libs/actions/Link';
 import {navigateToConciergeChat} from '../../../libs/actions/Report';
 
 const propTypes = {
@@ -25,7 +25,7 @@ const WorkspaceTravelVBAView = ({translate}) => (
         menuItems={[
             {
                 title: translate('workspace.common.issueAndManageCards'),
-                onPress: () => openSignedInLink('domain_companycards'),
+                onPress: () => openOldDotLink('domain_companycards'),
                 icon: ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,

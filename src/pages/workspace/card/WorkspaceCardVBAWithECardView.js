@@ -10,7 +10,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {CreditCardsBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import {openSignedInLink} from '../../../libs/actions/Link';
+import {openOldDotLink} from '../../../libs/actions/Link';
 import WorkspaceSection from '../WorkspaceSection';
 
 const propTypes = {
@@ -24,14 +24,14 @@ const WorkspaceCardVBAWithECardView = ({translate}) => (
         menuItems={[
             {
                 title: translate('workspace.common.issueAndManageCards'),
-                onPress: () => openSignedInLink('domain_companycards'),
+                onPress: () => openOldDotLink('domain_companycards'),
                 icon: ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
             },
             {
                 title: translate('workspace.common.reconcileCards'),
-                onPress: () => openSignedInLink('domain_companycards?param={"section":"cardReconciliation"}'),
+                onPress: () => openOldDotLink('domain_companycards?param={"section":"cardReconciliation"}'),
                 icon: ReceiptSearch,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,

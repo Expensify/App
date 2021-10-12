@@ -12,7 +12,7 @@ import {
 import {BankUserGreen, ReceiptYellow} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openSignedInLink} from '../../../libs/actions/Link';
+import {openOldDotLink} from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -29,7 +29,7 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => openSignedInLink(`expenses?param={"policyIDList":"${policyID}"}`),
+                    onPress: () => openOldDotLink(`expenses?param={"policyIDList":"${policyID}"}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -55,7 +55,7 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
                 {
                     title: translate('workspace.reimburse.reimburseReceipts'),
                     // eslint-disable-next-line max-len
-                    onPress: () => openSignedInLink(`/reports?param={"startDate":","endDate":","reportName":","policyID":"${policyID}","from":"all","type":"expense","states":{"Open":false,"Processing":false,"Approved":false,"Reimbursed":false,"Archived":true},"isAdvancedFilterMode":true}`),
+                    onPress: () => openOldDotLink(`/reports?param={"startDate":","endDate":","reportName":","policyID":"${policyID}","from":"all","type":"expense","states":{"Open":false,"Processing":false,"Approved":false,"Reimbursed":false,"Archived":true},"isAdvancedFilterMode":true}`),
                     icon: Bank,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
