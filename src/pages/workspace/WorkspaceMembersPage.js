@@ -25,6 +25,7 @@ import Permissions from '../../libs/Permissions';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
+import Hoverable from '../../components/Hoverable';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -114,6 +115,7 @@ class WorkspaceMembersPage extends React.Component {
      * Add or remove all users from the selectedEmployees list
      */
     toggleAllUsers() {
+        this.setState({showTooltipForLogin: ''});
         const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
         this.setState(prevState => ({
             selectedEmployees: removableMembers.length !== prevState.selectedEmployees.length
@@ -128,9 +130,7 @@ class WorkspaceMembersPage extends React.Component {
      * @param {String} login
      */
     toggleUser(login) {
-        const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
-        if (!canBeRemoved) {
-            this.setState({showTooltipForLogin: login});
+        if (this.willTooltipShowForLogin(login)) {
             return;
         }
 
@@ -142,6 +142,21 @@ class WorkspaceMembersPage extends React.Component {
         }
 
         this.setState({showTooltipForLogin: ''});
+    }
+
+    /**
+     * Shows the tooltip for non removable members
+     *
+     * @param {String} login
+     * @returns {Boolean} Return true if the tooltip was displayed so we can use the state of it in other functions.
+     */
+    willTooltipShowForLogin(login) {
+        const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
+        if (!canBeRemoved) {
+            this.setState({showTooltipForLogin: login});
+        }
+
+        return !canBeRemoved;
     }
 
     /**
@@ -183,42 +198,44 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <TouchableOpacity
-                style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
-                onPress={() => this.toggleUser(item.login)}
-                activeOpacity={0.7}
-            >
-                <CheckboxWithTooltip
-                    style={[styles.peopleRowCell]}
-                    isChecked={_.contains(this.state.selectedEmployees, item.login)}
-                    disabled={!canBeRemoved}
+            <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
+                <TouchableOpacity
+                    style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
                     onPress={() => this.toggleUser(item.login)}
-                    toggleTooltip={this.state.showTooltipForLogin === item.login}
-                    text={this.props.translate('workspace.people.error.cannotRemove')}
-                />
-                <View style={styles.flex1}>
-                    <OptionRow
-                        forceTextUnreadStyle
-                        disableRowInteractivity
-                        option={{
-                            text: Str.removeSMSDomain(item.displayName),
-                            alternateText: Str.removeSMSDomain(item.login),
-                            participantsList: [item],
-                            icons: [item.avatar],
-                            keyForList: item.login,
-                        }}
+                    activeOpacity={0.7}
+                >
+                    <CheckboxWithTooltip
+                        style={[styles.peopleRowCell]}
+                        isChecked={_.contains(this.state.selectedEmployees, item.login)}
+                        disabled={!canBeRemoved}
+                        onPress={() => this.toggleUser(item.login)}
+                        toggleTooltip={this.state.showTooltipForLogin === item.login}
+                        text={this.props.translate('workspace.people.error.cannotRemove')}
                     />
-                </View>
-                {this.props.session.email === item.login && (
-                    <View style={styles.peopleRowCell}>
-                        <View style={[styles.badge, styles.peopleBadge]}>
-                            <Text style={[styles.peopleBadgeText]}>
-                                {this.props.translate('common.admin')}
-                            </Text>
-                        </View>
+                    <View style={styles.flex1}>
+                        <OptionRow
+                            forceTextUnreadStyle
+                            disableRowInteractivity
+                            option={{
+                                text: Str.removeSMSDomain(item.displayName),
+                                alternateText: Str.removeSMSDomain(item.login),
+                                participantsList: [item],
+                                icons: [item.avatar],
+                                keyForList: item.login,
+                            }}
+                        />
                     </View>
-                )}
-            </TouchableOpacity>
+                    {this.props.session.email === item.login && (
+                        <View style={styles.peopleRowCell}>
+                            <View style={[styles.badge, styles.peopleBadge]}>
+                                <Text style={[styles.peopleBadgeText]}>
+                                    {this.props.translate('common.admin')}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+                </TouchableOpacity>
+            </Hoverable>
         );
     }
 
