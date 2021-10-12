@@ -3,8 +3,6 @@ import {View} from 'react-native';
 import Checkbox from '../Checkbox';
 import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
 import Growl from '../../libs/Growl';
-import CONST from '../../CONST';
-import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 
 class CheckboxWithTooltipForMobileWebAndNative extends React.Component {

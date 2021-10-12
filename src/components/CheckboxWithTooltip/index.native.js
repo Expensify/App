@@ -1,6 +1,5 @@
 import React from 'react';
 import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
-import compose from '../../libs/compose';
 import withWindowDimensions from '../withWindowDimensions';
 import CheckboxWithTooltipForMobileWebAndNative from './CheckboxWithTooltipForMobileWebAndNative';
 

@@ -5,7 +5,6 @@ import Checkbox from '../Checkbox';
 import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
 import Tooltip from '../Tooltip';
 import withWindowDimensions from '../withWindowDimensions';
-import compose from '../../libs/compose';
 
 const CheckboxWithTooltip = (props) => {
     if (props.isSmallScreenWidth || props.isMediumScreenWidth) {
