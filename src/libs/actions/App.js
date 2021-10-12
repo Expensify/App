@@ -9,12 +9,10 @@ import Performance from '../Performance';
 import Timing from './Timing';
 
 let currentUserAccountID;
-let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserAccountID = lodashGet(val, 'accountID', '');
-        currentUserEmail = lodashGet(val, 'email', '');
     },
 });
 

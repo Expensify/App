@@ -33,6 +33,7 @@ function showGrowlIfOffline() {
 function openOldDotLink(url) {
     if (!showGrowlIfOffline()) {
         API.GetShortLivedAuthToken().then(({shortLivedAuthToken}) => {
+            // eslint-disable-next-line max-len
             Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`);
         });
     }
