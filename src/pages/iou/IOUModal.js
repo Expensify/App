@@ -217,46 +217,6 @@ class IOUModal extends Component {
     }
 
     /**
-     * Navigate to the next IOU step if possible
-     */
-    navigateToPreviousStep() {
-        if (this.state.currentStepIndex <= 0) {
-            return;
-        }
-        this.setState(prevState => ({
-            currentStepIndex: prevState.currentStepIndex - 1,
-        }));
-    }
-
-    /**
-     * Navigate to the previous IOU step if possible
-     */
-    navigateToNextStep() {
-        if (this.state.currentStepIndex >= this.steps.length - 1) {
-            return;
-        }
-
-        // Compose list of payment options
-        if (this.steps[this.state.currentStepIndex + 1] === Steps.IOUConfirm) {
-            this.getPaymentOptions()
-        }
-        this.setState(prevState => ({
-            currentStepIndex: prevState.currentStepIndex + 1,
-        }));
-    }
-
-    /**
-     * Update comment whenever user enters any new text
-     *
-     * @param {String} comment
-     */
-    updateComment(comment) {
-        this.setState({
-            comment,
-        });
-    }
-
-    /**
      * Get list of payment options for the confirmation button
      */
     getPaymentOptions() {
@@ -283,12 +243,41 @@ class IOUModal extends Component {
             defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, icon: Cash};
         }
         confirmationButtonOptions.push(defaultButtonOption);
-        this.setState({confirmationButtonOptions, paymentType: confirmationButtonOptions[0].paymentType || ''})
+        this.setState({confirmationButtonOptions, paymentType: confirmationButtonOptions[0].paymentType || ''});
 
         // Only add the Venmo option if we're sending a payment
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             this.addVenmoPaymentOptionToMenu();
         }
+    }
+
+    /**
+     * Navigate to the next IOU step if possible
+     */
+    navigateToPreviousStep() {
+        if (this.state.currentStepIndex <= 0) {
+            return;
+        }
+        this.setState(prevState => ({
+            currentStepIndex: prevState.currentStepIndex - 1,
+        }));
+    }
+
+    /**
+     * Navigate to the previous IOU step if possible
+     */
+    navigateToNextStep() {
+        if (this.state.currentStepIndex >= this.steps.length - 1) {
+            return;
+        }
+
+        // Compose list of payment options
+        if (this.steps[this.state.currentStepIndex + 1] === Steps.IOUConfirm) {
+            this.getPaymentOptions();
+        }
+        this.setState(prevState => ({
+            currentStepIndex: prevState.currentStepIndex + 1,
+        }));
     }
 
     /**
@@ -350,7 +339,7 @@ class IOUModal extends Component {
     /**
      * Adds Venmo, if available, as the second option in the menu of payment options
      */
-     addVenmoPaymentOptionToMenu() {
+    addVenmoPaymentOptionToMenu() {
         // Add Venmo option
         if (this.props.myPersonalDetails.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber && isValidUSPhone(this.state.participants[0].phoneNumber)) {
             this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
