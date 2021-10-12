@@ -126,7 +126,7 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`(${PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[ \\] QA`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`(${PULL_REQUEST_REGEX.source})\\s+- \\[ \\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
@@ -134,7 +134,7 @@ class GithubUtils {
             }),
         );
         const verifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`(${PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[x\\] QA`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`(${PULL_REQUEST_REGEX.source})\\s+- \\[x\\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
@@ -162,7 +162,7 @@ class GithubUtils {
         }
         deployBlockerSection = deployBlockerSection[1];
         const unresolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`(${ISSUE_OR_PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[ \\] QA`, 'g'))],
+            [...deployBlockerSection.matchAll(new RegExp(`(${ISSUE_OR_PULL_REQUEST_REGEX.source})\\s+- \\[ \\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
@@ -170,7 +170,7 @@ class GithubUtils {
             }),
         );
         const resolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`(${ISSUE_OR_PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[x\\] QA`, 'g'))],
+            [...deployBlockerSection.matchAll(new RegExp(`(${ISSUE_OR_PULL_REQUEST_REGEX.source})\\s+- \\[x\\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
