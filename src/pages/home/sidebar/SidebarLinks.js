@@ -152,17 +152,19 @@ class SidebarLinks extends React.Component {
                             <Icon src={MagnifyingGlass} />
                         </TouchableOpacity>
                     </Tooltip>
-                    <TouchableOpacity
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
-                        accessibilityRole="button"
-                        onPress={this.props.onAvatarClick}
-                    >
-                        <AvatarWithIndicator
-                            source={this.props.myPersonalDetails.avatar}
-                            isActive={this.props.network && !this.props.network.isOffline}
-                            isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
-                        />
-                    </TouchableOpacity>
+                    <Tooltip text={this.props.translate('common.settings')}>
+                        <TouchableOpacity
+                            accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
+                            accessibilityRole="button"
+                            onPress={this.props.onAvatarClick}
+                        >
+                            <AvatarWithIndicator
+                                source={this.props.myPersonalDetails.avatar}
+                                isActive={this.props.network && !this.props.network.isOffline}
+                                isSyncing={this.props.network && !this.props.network.isOffline && this.props.isSyncingData}
+                            />
+                        </TouchableOpacity>
+                    </Tooltip>
                 </View>
                 <OptionsList
                     contentContainerStyles={[
