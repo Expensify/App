@@ -21,13 +21,6 @@ import FixedFooter from './FixedFooter';
 import ExpensiTextInput from './ExpensiTextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
-import {
-    Cash, Wallet, Venmo, PayPal,
-} from './Icon/Expensicons';
-import Permissions from '../libs/Permissions';
-import isAppInstalled from '../libs/isAppInstalled';
-import {isValidUSPhone} from '../libs/ValidationUtils';
-import makeCancellablePromise from '../libs/MakeCancellablePromise';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -112,7 +105,7 @@ const propTypes = {
      *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
      *  ]
      * */
-     confirmationButtonOptions: PropTypes.arrayOf(PropTypes.shape({
+    confirmationButtonOptions: PropTypes.arrayOf(PropTypes.shape({
         text: PropTypes.string.isRequired,
         paymentType: PropTypes.string,
         icon: PropTypes.elementType,

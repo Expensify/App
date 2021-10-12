@@ -271,8 +271,8 @@ function payIOUReport({
         idempotencyKey,
     };
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
-        ? API.PayWithWallet({reportID, 'newIOUReportDetails': JSON.stringify(newIOUReportDetails)})
-        : API.PayIOU({reportID, paymentMethodType, 'newIOUReportDetails': JSON.stringify(newIOUReportDetails)});
+        ? API.PayWithWallet({reportID, newIOUReportDetails: JSON.stringify(newIOUReportDetails)})
+        : API.PayIOU({reportID, paymentMethodType, newIOUReportDetails: JSON.stringify(newIOUReportDetails)});
 
     // Build the url for the user's platform of choice if they have
     // selected something other than a manual settlement or Expensify Wallet e.g. Venmo or PayPal.me

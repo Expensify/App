@@ -13,7 +13,9 @@ import Icon from '../../components/Icon';
 import {
     createIOUSplit, createIOUTransaction, payIOUReport, setIOUSelectedCurrency,
 } from '../../libs/actions/IOU';
-import {Close, BackArrow} from '../../components/Icon/Expensicons';
+import {
+    Close, BackArrow, Cash, Wallet, Venmo, PayPal,
+} from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -26,13 +28,9 @@ import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import makeCancellablePromise from '../../libs/MakeCancellablePromise';
-import {
-    Cash, Wallet, Venmo, PayPal,
-} from '../../components/Icon/Expensicons';
-
 import Permissions from '../../libs/Permissions';
 import isAppInstalled from '../../libs/isAppInstalled';
-import {isValidUSPhone} from '../../libs/ValidationUtils'
+import {isValidUSPhone} from '../../libs/ValidationUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -127,7 +125,7 @@ class IOUModal extends Component {
                 payPalMeAddress: personalDetails.payPalMeAddress ?? '',
                 phoneNumber: personalDetails.phoneNumber ?? '',
             }));
-        
+
         this.checkVenmoAvailabilityPromise = null;
 
         this.state = {
@@ -157,13 +155,6 @@ class IOUModal extends Component {
         setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
     }
 
-    componentWillUnmount() {
-        if (this.checkVenmoAvailabilityPromise) {
-            this.checkVenmoAvailabilityPromise.cancel();
-            this.checkVenmoAvailabilityPromise = null;
-        }
-    }
-
     componentDidUpdate(prevProps) {
         // Successfully close the modal if transaction creation has ended and there is no error
         if (prevProps.iou.creatingIOUTransaction && !this.props.iou.creatingIOUTransaction && !this.props.iou.error) {
@@ -180,6 +171,13 @@ class IOUModal extends Component {
         if (prevProps.iou.selectedCurrencyCode
             !== this.props.iou.selectedCurrencyCode) {
             setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
+        }
+    }
+
+    componentWillUnmount() {
+        if (this.checkVenmoAvailabilityPromise) {
+            this.checkVenmoAvailabilityPromise.cancel();
+            this.checkVenmoAvailabilityPromise = null;
         }
     }
 
@@ -216,12 +214,6 @@ class IOUModal extends Component {
         }
 
         return this.props.translate(this.steps[currentStepIndex]) || '';
-    }
-
-    addParticipants(participants) {
-        this.setState({
-            participants,
-        });
     }
 
     /**
@@ -377,6 +369,12 @@ class IOUModal extends Component {
                     }));
                 });
         }
+    }
+
+    addParticipants(participants) {
+        this.setState({
+            participants,
+        });
     }
 
     render() {
