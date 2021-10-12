@@ -277,6 +277,7 @@ describe('GithubUtils', () => {
             'https://github.com/Expensify/App/pull/3',
             'https://github.com/Expensify/App/pull/1',
             'https://github.com/Expensify/App/pull/4',
+            'https://github.com/Expensify/App/pull/3', // This is an intentional duplicate for testing duplicates
         ];
 
         const baseDeployBlockerList = [
