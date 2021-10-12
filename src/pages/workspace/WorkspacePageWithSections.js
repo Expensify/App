@@ -46,9 +46,7 @@ const defaultProps = {
 
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        const hasVBA = achState === BankAccount.STATE.OPEN;
-        fetchFreePlanVerifiedBankAccount('', hasVBA);
+        fetchFreePlanVerifiedBankAccount();
     }
 
     render() {

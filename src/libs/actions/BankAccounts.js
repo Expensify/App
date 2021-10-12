@@ -335,20 +335,12 @@ function fetchUserWallet() {
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  *
  * @param {String} [stepToOpen]
- * @param {Boolean} [hasLocalOpenAccount]
  */
-function fetchFreePlanVerifiedBankAccount(stepToOpen, hasLocalOpenAccount = false) {
+function fetchFreePlanVerifiedBankAccount(stepToOpen) {
     // Remember which account BankAccountStep subStep the user had before so we can set it later
     const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
 
-    // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
-    // and determine which step to navigate to, unless there is an already open local account, in which case we'll only.
-    // override the data in ONYX if there isn't one on the server side.
-    if (hasLocalOpenAccount) {
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
-    } else {
-        Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
-    }
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
     let bankAccountID;
 
     API.Get({
@@ -390,12 +382,6 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, hasLocalOpenAccount = fals
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
 
-                    // If we passed the flag indicating there was an already open account in local data, and there isn't
-                    // one on the server side, let's make sure we use just the server-side data.
-                    if (hasLocalOpenAccount && lodashGet(achData, 'state', '') !== BankAccount.STATE.OPEN) {
-                        Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: ''});
-                        reimbursementAccountInSetup = {};
-                    }
                     if (!stepToOpen && achData.currentStep) {
                         // eslint-disable-next-line no-use-before-define
                         currentStep = getNextStepToComplete(achData);
