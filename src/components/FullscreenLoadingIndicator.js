@@ -1,16 +1,22 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Controls whether the loader is mounted and displayed */
     visible: PropTypes.bool,
+
+    /** Additional style props */
+    style: stylePropTypes,
 };
 
 const defaultProps = {
     visible: true,
+    style: [],
 };
 
 /**
@@ -18,11 +24,18 @@ const defaultProps = {
  *
  * @returns {JSX.Element}
  */
-const FullScreenLoadingIndicator = ({visible}) => visible && (
-    <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading]}>
-        <ActivityIndicator color={themeColors.spinner} size="large" />
-    </View>
-);
+const FullScreenLoadingIndicator = ({visible, style}) => {
+    if (!visible) {
+        return null;
+    }
+
+    const additionalStyles = _.isArray(style) ? style : [style];
+    return (
+        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, ...additionalStyles]}>
+            <ActivityIndicator color={themeColors.spinner} size="large" />
+        </View>
+    );
+};
 
 FullScreenLoadingIndicator.propTypes = propTypes;
 FullScreenLoadingIndicator.defaultProps = defaultProps;

@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -150,8 +151,24 @@ class ReimbursementAccountPage extends React.Component {
             return null;
         }
 
+        // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
+        // user left off. This view will refer to the achData as the single source of truth to determine which route to
+        // display. We can also specify a specific route to navigate to via route params when the component first
+        // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
+        // next step.
+        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (this.props.reimbursementAccount.loading) {
-            return <ReimbursementAccountLoadingIndicator />;
+            const isSubmittingVerificationsData = _.contains([
+                CONST.BANK_ACCOUNT.STEP.COMPANY,
+                CONST.BANK_ACCOUNT.STEP.REQUESTOR,
+                CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
+            ], currentStep);
+            return (
+                <ReimbursementAccountLoadingIndicator
+                    isSubmittingVerificationsData={isSubmittingVerificationsData}
+                />
+            );
         }
 
         let errorComponent;
@@ -188,13 +205,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
-        // user left off. This view will refer to the achData as the single source of truth to determine which route to
-        // display. We can also specify a specific route to navigate to via route params when the component first
-        // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
-        // next step.
-        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
-        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
