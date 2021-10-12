@@ -25,6 +25,23 @@ const propTypes = {
 
     localCurrencyCode: PropTypes.string,
 
+    /** Menu options to display */
+    /** [
+     *   {text: 'I\'ll settle up elsewhere', paymentType: 'Elsewhere', icon: Cash},
+     *   {text: 'Pay with Expensify', paymentType: 'Expensify', icon: Wallet},
+     *   {text: 'PayPal', paymentType: 'PayPal.me', icon: PayPal},
+     *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
+     *  ]
+     * */
+    confirmationButtonOptions: PropTypes.arrayOf(PropTypes.shape({
+        text: PropTypes.string.isRequired,
+        paymentType: PropTypes.string,
+        icon: PropTypes.elementType,
+        iconWidth: PropTypes.number,
+        iconHeight: PropTypes.number,
+        iconDescription: PropTypes.string,
+    })).isRequired,
+
     /** Selected participants from IOUMOdal with login */
     participants: PropTypes.arrayOf(PropTypes.shape({
         login: PropTypes.string.isRequired,
@@ -64,6 +81,7 @@ const IOUConfirmPage = props => (
         iouType={props.iouType}
         localCurrencyCode={props.localCurrencyCode}
         onUpdatePaymentType={props.onUpdatePaymentType}
+        confirmationButtonOptions={props.confirmationButtonOptions}
     />
 );
 

@@ -25,6 +25,14 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import makeCancellablePromise from '../../libs/MakeCancellablePromise';
+import {
+    Cash, Wallet, Venmo, PayPal,
+} from '../../components/Icon/Expensicons';
+
+import Permissions from '../../libs/Permissions';
+import isAppInstalled from '../../libs/isAppInstalled';
+import {isValidUSPhone} from '../../libs/ValidationUtils'
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -106,6 +114,8 @@ class IOUModal extends Component {
         this.confirm = this.confirm.bind(this);
         this.updateComment = this.updateComment.bind(this);
         this.updatePaymentType = this.updatePaymentType.bind(this);
+        this.getPaymentOptions = this.getPaymentOptions.bind(this);
+        this.addVenmoPaymentOptionToMenu = this.addVenmoPaymentOptionToMenu.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
@@ -117,10 +127,13 @@ class IOUModal extends Component {
                 payPalMeAddress: personalDetails.payPalMeAddress ?? '',
                 phoneNumber: personalDetails.phoneNumber ?? '',
             }));
+        
+        this.checkVenmoAvailabilityPromise = null;
 
         this.state = {
             currentStepIndex: 0,
             participants: participantsWithDetails,
+            confirmationButtonOptions: [],
 
             // Set default payment type to "Elsewhere"
             paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
@@ -142,6 +155,13 @@ class IOUModal extends Component {
     componentDidMount() {
         PersonalDetails.fetchLocalCurrency();
         setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
+    }
+
+    componentWillUnmount() {
+        if (this.checkVenmoAvailabilityPromise) {
+            this.checkVenmoAvailabilityPromise.cancel();
+            this.checkVenmoAvailabilityPromise = null;
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -223,6 +243,11 @@ class IOUModal extends Component {
         if (this.state.currentStepIndex >= this.steps.length - 1) {
             return;
         }
+
+        // Compose list of payment options
+        if (this.steps[this.state.currentStepIndex + 1] === Steps.IOUConfirm) {
+            this.getPaymentOptions()
+        }
         this.setState(prevState => ({
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
@@ -237,6 +262,41 @@ class IOUModal extends Component {
         this.setState({
             comment,
         });
+    }
+
+    /**
+     * Get list of payment options for the confirmation button
+     */
+    getPaymentOptions() {
+        // Add the button options to payment menu
+        const confirmationButtonOptions = [];
+        let defaultButtonOption = {
+            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
+                amount: this.props.numberFormat(
+                    this.props.iouAmount,
+                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
+                ),
+            }),
+        };
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.state.participants.length === 1 && Permissions.canUseIOUSend(this.props.betas)) {
+            // Add the Expensify Wallet option if available and make it the first option
+            if (this.props.myPersonalDetails.localCurrencyCode === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
+                confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, icon: Wallet});
+            }
+
+            // Add PayPal option
+            if (this.state.participants[0].payPalMeAddress) {
+                confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), paymentType: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, icon: PayPal});
+            }
+            defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, icon: Cash};
+        }
+        confirmationButtonOptions.push(defaultButtonOption);
+        this.setState({confirmationButtonOptions, paymentType: confirmationButtonOptions[0].paymentType || ''})
+
+        // Only add the Venmo option if we're sending a payment
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            this.addVenmoPaymentOptionToMenu();
+        }
     }
 
     /**
@@ -293,6 +353,30 @@ class IOUModal extends Component {
             currency: this.props.iou.selectedCurrencyCode,
             debtorEmail: addSMSDomainIfPhoneNumber(this.state.participants[0].login),
         });
+    }
+
+    /**
+     * Adds Venmo, if available, as the second option in the menu of payment options
+     */
+     addVenmoPaymentOptionToMenu() {
+        // Add Venmo option
+        if (this.props.myPersonalDetails.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber && isValidUSPhone(this.state.participants[0].phoneNumber)) {
+            this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
+            this.checkVenmoAvailabilityPromise
+                .promise
+                .then((isVenmoInstalled) => {
+                    if (!isVenmoInstalled) {
+                        return;
+                    }
+
+                    this.setState(prevState => ({
+                        confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
+                            {text: this.props.translate('iou.settleVenmo'), paymentType: CONST.IOU.PAYMENT_TYPE.VENMO, icon: Venmo},
+                            ...prevState.confirmationButtonOptions.slice(1),
+                        ],
+                    }));
+                });
+        }
     }
 
     render() {
@@ -373,6 +457,7 @@ class IOUModal extends Component {
                                             comment={this.state.comment}
                                             onUpdateComment={this.updateComment}
                                             onUpdatePaymentType={this.updatePaymentType}
+                                            confirmationButtonOptions={this.state.confirmationButtonOptions}
                                             iouType={this.props.iouType}
                                             localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
                                         />

@@ -104,6 +104,23 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    /** Menu options to display */
+    /** [
+     *   {text: 'I\'ll settle up elsewhere', paymentType: 'Elsewhere', icon: Cash},
+     *   {text: 'Pay with Expensify', paymentType: 'Expensify', icon: Wallet},
+     *   {text: 'PayPal', paymentType: 'PayPal.me', icon: PayPal},
+     *   {text: 'Venmo', paymentType: 'Venmo', icon: Venmo}
+     *  ]
+     * */
+     confirmationButtonOptions: PropTypes.arrayOf(PropTypes.shape({
+        text: PropTypes.string.isRequired,
+        paymentType: PropTypes.string,
+        icon: PropTypes.elementType,
+        iconWidth: PropTypes.number,
+        iconHeight: PropTypes.number,
+        iconDescription: PropTypes.string,
+    })).isRequired,
+
     /** Current user session */
     session: PropTypes.shape({
         email: PropTypes.string.isRequired,
@@ -129,53 +146,12 @@ class IOUConfirmationList extends Component {
             ...participant, selected: true,
         }));
 
-        // Add the button options to payment menu
-        const confirmationButtonOptions = [];
-        let defaultButtonOption = {
-            text: this.props.translate(this.props.hasMultipleParticipants ? 'iou.split' : 'iou.request', {
-                amount: this.props.numberFormat(
-                    this.props.iouAmount,
-                    {style: 'currency', currency: this.props.iou.selectedCurrencyCode},
-                ),
-            }),
-        };
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.props.participants.length === 1 && Permissions.canUseIOUSend(this.props.betas)) {
-            // Add the Expensify Wallet option if available and make it the first option
-            if (this.props.localCurrencyCode === CONST.CURRENCY.USD && Permissions.canUsePayWithExpensify(this.props.betas) && Permissions.canUseWallet(this.props.betas)) {
-                confirmationButtonOptions.push({text: this.props.translate('iou.settleExpensify'), paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, icon: Wallet});
-            }
-
-            // Add PayPal option
-            if (this.props.participants[0].payPalMeAddress) {
-                confirmationButtonOptions.push({text: this.props.translate('iou.settlePaypalMe'), paymentType: CONST.IOU.PAYMENT_TYPE.PAYPAL_ME, icon: PayPal});
-            }
-            defaultButtonOption = {text: this.props.translate('iou.settleElsewhere'), paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, icon: Cash};
-        }
-        confirmationButtonOptions.push(defaultButtonOption);
-
-        this.checkVenmoAvailabilityPromise = null;
-
         this.state = {
-            confirmationButtonOptions,
             participants: formattedParticipants,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
         this.onPress = this.onPress.bind(this);
-    }
-
-    componentDidMount() {
-        // Only add the Venmo option if we're sending a payment
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
-            this.addVenmoPaymentOptionToMenu();
-        }
-    }
-
-    componentWillUnmount() {
-        if (this.checkVenmoAvailabilityPromise) {
-            this.checkVenmoAvailabilityPromise.cancel();
-            this.checkVenmoAvailabilityPromise = null;
-        }
     }
 
     /**
@@ -328,29 +304,6 @@ class IOUConfirmationList extends Component {
         ];
     }
 
-    /**
-     * Adds Venmo, if available, as the second option in the menu of payment options
-     */
-    addVenmoPaymentOptionToMenu() {
-        // Add Venmo option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber && isValidUSPhone(this.state.participants[0].phoneNumber)) {
-            this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
-            this.checkVenmoAvailabilityPromise
-                .promise
-                .then((isVenmoInstalled) => {
-                    if (!isVenmoInstalled) {
-                        return;
-                    }
-
-                    this.setState(prevState => ({
-                        confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
-                            {text: this.props.translate('iou.settleVenmo'), paymentType: CONST.IOU.PAYMENT_TYPE.VENMO, icon: Venmo},
-                            ...prevState.confirmationButtonOptions.slice(1),
-                        ],
-                    }));
-                });
-        }
-    }
 
     /**
      * Calculates the amount per user given a list of participants
@@ -436,7 +389,7 @@ class IOUConfirmationList extends Component {
                         </Text>
                     )}
                     <ButtonWithMenu
-                        options={this.state.confirmationButtonOptions}
+                        options={this.props.confirmationButtonOptions}
                         isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
                         menuHeaderText={this.props.translate('iou.choosePaymentMethod')}
