@@ -114,7 +114,7 @@ class WorkspaceSettingsPage extends React.Component {
             const policyID = this.props.policy.id;
             const currency = this.state.currency;
 
-            Policy.update(policyID, {name, avatarURL, outputCurrency: currency});
+            Policy.update(policyID, {name, avatarURL, outputCurrency: currency}, true);
         }).catch(() => {
             Policy.updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
         });
@@ -134,7 +134,7 @@ class WorkspaceSettingsPage extends React.Component {
 
         return (
             <WorkspacePageWithSections
-                headerText={this.props.translate('workspace.common.edit')}
+                headerText={this.props.translate('workspace.common.settings')}
                 route={this.props.route}
             >
                 {hasVBA => (

@@ -205,7 +205,6 @@ export default {
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
-        members: 'Miembros',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
@@ -625,7 +624,6 @@ export default {
         common: {
             card: 'Emitir tarjetas corporativas',
             workspace: 'Espacio de trabajo',
-            edit: 'Editar espacio de trabajo',
             settings: 'Configuración general',
             reimburse: 'Reembolsar recibos',
             bills: 'Pagar facturas',
@@ -635,6 +633,7 @@ export default {
             bankAccount: 'Conectar cuenta bancaria',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -685,11 +684,12 @@ export default {
             invoiceClientsAndCustomers: 'Emite facturas a tus clientes',
             invoiceFirstSectionCopy: 'Envía facturas detalladas y profesionales directamente a tus clientes desde la app de Expensify.',
             viewAllInvoices: 'Ver facturas emitidas',
-            unlockOnlineInvoicesCollection: 'Desbloquea el cobro de facturas online',
+            unlockOnlineInvoiceCollection: 'Desbloquea el cobro de facturas online',
             unlockNoVBACopy: 'Conecta tu cuenta bancaria para recibir pagos online de facturas - por transferencia o con tarjeta - directamente en tu cuenta.',
             moneyBackInAFlash: '¡Tu dinero de vuelta en un momento!',
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
+            sendInvoice: 'Enviar factura',
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',

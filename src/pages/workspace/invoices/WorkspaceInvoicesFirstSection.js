@@ -26,8 +26,13 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
         icon={MoneyEnvelopeBlue}
         menuItems={[
             {
+<<<<<<< HEAD
                 title: translate('workspace.common.invoices'),
                 onPress: () => openOldDotLink('reports?param={"createInvoice":true}'),
+=======
+                title: translate('workspace.invoices.sendInvoice'),
+                onPress: () => openSignedInLink('reports?param={"createInvoice":true}'),
+>>>>>>> 8fd5aecc0 (Merge pull request #5759 from Expensify/Rory-TitlesWorkspaceSettings)
                 icon: Send,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
