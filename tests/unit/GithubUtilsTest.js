@@ -25,11 +25,11 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- https://github.com/Expensify/App/pull/21\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/22\r\n        - [x] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/23\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\nhttps://github.com/Expensify/App/pull/21\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\nhttps://github.com/Expensify/App/pull/22\r\n        - [x] QA\r\n        - [ ] Accessibility\r\n\r\nhttps://github.com/Expensify/App/pull/23\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n',
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
-        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- https://github.com/Expensify/App/issues/1\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/issues/2\r\n        - [x] QA\r\n        - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/1234\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n';
+        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\nhttps://github.com/Expensify/App/issues/1\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\nhttps://github.com/Expensify/App/issues/2\r\n        - [x] QA\r\n        - [ ] Accessibility\r\n\r\nhttps://github.com/Expensify/App/pull/1234\r\n        - [ ] QA\r\n        - [ ] Accessibility\r\n\r\n';
 
         const baseExpectedResponse = {
             PRList: [
@@ -288,7 +288,6 @@ describe('GithubUtils', () => {
         const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
         const openCheckbox = '  - [ ]';
         const closedCheckbox = '  - [x]';
-        const listStart = '- ';
         const QA = ' QA';
         const accessibility = ' Accessibility';
         const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
@@ -298,9 +297,9 @@ describe('GithubUtils', () => {
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}`
-                + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`;
+                + `${lineBreakDouble}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`;
 
 
         test('Test no verified PRs', () => (
@@ -308,9 +307,9 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -321,9 +320,9 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -344,8 +343,8 @@ describe('GithubUtils', () => {
                     expect(issueBody).toBe(
                         `${allVerifiedExpectedOutput}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -357,8 +356,8 @@ describe('GithubUtils', () => {
                     expect(issueBody).toBe(
                         `${allVerifiedExpectedOutput}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -369,12 +368,12 @@ describe('GithubUtils', () => {
                 .then((issueBody) => {
                     expect(issueBody).toBe(
                         `${baseExpectedOutput}`
-                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${listStart}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -393,9 +392,9 @@ describe('GithubUtils', () => {
     describe('getReleaseBody', () => {
         test.each([
             // eslint-disable-next-line max-len
-            [[1, 2, 3], '- https://github.com/Expensify/App/pull/1\r\n- https://github.com/Expensify/App/pull/2\r\n- https://github.com/Expensify/App/pull/3'],
+            [[1, 2, 3], 'https://github.com/Expensify/App/pull/1\r\nhttps://github.com/Expensify/App/pull/2\r\nhttps://github.com/Expensify/App/pull/3'],
             [[], ''],
-            [[12345], '- https://github.com/Expensify/App/pull/12345'],
+            [[12345], 'https://github.com/Expensify/App/pull/12345'],
         ])('getReleaseBody("%s")', (input, expectedOutput) => (
             expect(GithubUtils.getReleaseBody(input)).toBe(expectedOutput)
         ));
