@@ -297,14 +297,14 @@ function subscribeToUserEvents() {
  *
  * @param {Boolean} isFromPublicDomain
  */
- function setIsFromPublicDomain(isFromPublicDomain) {
+function setIsFromPublicDomain(isFromPublicDomain) {
     Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 }
 
 /**
  * Subscribe to email validation event
  */
- function subscribeToEmailValidationEvent() {
+function subscribeToEmailValidationEvent() {
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
 
     // Live-update if a user has private domains listed as primary or secondary logins.
