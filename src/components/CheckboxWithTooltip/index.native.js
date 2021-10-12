@@ -9,7 +9,6 @@ const CheckboxWithTooltip = props => (
         isChecked={props.isChecked}
         onPress={props.onPress}
         text={props.text}
-        disabled={props.disabled}
         toggleTooltip={props.toggleTooltip}
     />
 );

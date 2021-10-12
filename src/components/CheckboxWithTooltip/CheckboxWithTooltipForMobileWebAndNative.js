@@ -8,7 +8,7 @@ import withWindowDimensions from '../withWindowDimensions';
 class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
     constructor(props) {
         super(props);
-        this.showGrowlAndTriggerOnPress = this.showGrowlAndTriggerOnPress.bind(this);
+        this.showGrowlOrTriggerOnPress = this.showGrowlOrTriggerOnPress.bind(this);
     }
 
     componentDidUpdate() {
@@ -20,9 +20,10 @@ class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
     /**
      * Show warning modal on mobile devices since tooltips are not supported when checkbox is disabled.
      */
-    showGrowlAndTriggerOnPress() {
+    showGrowlOrTriggerOnPress() {
         if (this.props.toggleTooltip) {
             Growl.show(this.props.text, this.props.growlType, 3000);
+            return;
         }
         this.props.onPress();
     }
@@ -32,7 +33,7 @@ class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
             <View style={this.props.style}>
                 <Checkbox
                     isChecked={this.props.isChecked}
-                    onPress={this.showGrowlAndTriggerOnPress}
+                    onPress={this.showGrowlOrTriggerOnPress}
                 />
             </View>
         );

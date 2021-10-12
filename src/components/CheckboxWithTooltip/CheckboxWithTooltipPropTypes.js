@@ -16,9 +16,6 @@ const propTypes = {
     /** The text to display in the tooltip. */
     text: PropTypes.string.isRequired,
 
-    /** Should the input be disabled  */
-    disabled: PropTypes.bool,
-
     /** Type of the growl to be displayed in case of mobile devices  */
     growlType: PropTypes.string,
 
