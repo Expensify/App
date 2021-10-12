@@ -34,6 +34,7 @@ const defaultProps = {
     subtitle: undefined,
     iconType: 'icon',
     onPress: () => {},
+    interactive: true,
 };
 
 const MenuItem = ({
@@ -54,6 +55,7 @@ const MenuItem = ({
     disabled,
     subtitle,
     iconType,
+    interactive,
 }) => {
     const additionalWrapperStyles = _.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle];
     return (
@@ -67,7 +69,7 @@ const MenuItem = ({
             }}
             style={({hovered, pressed}) => ([
                 styles.popoverMenuItem,
-                getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
+                getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled, interactive)),
                 ...additionalWrapperStyles,
             ])}
             disabled={disabled}
@@ -87,7 +89,7 @@ const MenuItem = ({
                                     width={iconWidth}
                                     height={iconHeight}
                                     fill={iconFill || getIconFillColor(
-                                        getButtonState(focused || hovered, pressed, success, disabled),
+                                        getButtonState(focused || hovered, pressed, success, disabled, interactive),
                                     )}
                                 />
                             </View>
@@ -110,7 +112,7 @@ const MenuItem = ({
                                 style={[
                                     styles.popoverMenuText,
                                     styles.ml3,
-                                    (disabled ? styles.disabledText : undefined),
+                                    (interactive && disabled ? styles.disabledText : undefined),
                                 ]}
                                 numberOfLines={1}
                             >
@@ -138,7 +140,7 @@ const MenuItem = ({
                             <View style={styles.popoverMenuIcon}>
                                 <Icon
                                     src={iconRight}
-                                    fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
+                                    fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled, interactive))}
                                 />
                             </View>
                         )}

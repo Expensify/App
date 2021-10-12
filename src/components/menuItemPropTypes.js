@@ -54,6 +54,9 @@ const propTypes = {
 
     /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON]),
+
+    /** Whether the menu item should be interactive at all */
+    interactive: PropTypes.bool,
 };
 
 export default propTypes;

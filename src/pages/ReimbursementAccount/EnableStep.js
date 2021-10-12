@@ -97,7 +97,8 @@ class EnableStep extends React.Component {
                             iconWidth={iconSize}
                             iconHeight={iconSize}
                             disabled
-                            wrapperStyle={[styles.buttonDefaultBackgroundColor, styles.ph0, styles.mb3]}
+                            interactive={false}
+                            wrapperStyle={[styles.ph0, styles.mb3]}
                         />
                         <Text>
                             {!isUsingExpensifyCard

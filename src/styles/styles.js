@@ -217,10 +217,6 @@ const styles = {
         ...spacing.ph3,
     },
 
-    buttonDefaultBackgroundColor: {
-        backgroundColor: themeColors.buttonDefaultBG,
-    },
-
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
