@@ -252,6 +252,17 @@ class IOUModal extends Component {
     }
 
     /**
+     * Update comment whenever user enters any new text
+     *
+     * @param {String} comment
+     */
+    updateComment(comment) {
+        this.setState({
+            comment,
+        });
+    }
+
+    /**
      * Navigate to the next IOU step if possible
      */
     navigateToPreviousStep() {
