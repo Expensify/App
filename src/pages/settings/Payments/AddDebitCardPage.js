@@ -50,6 +50,7 @@ class DebitCardPage extends Component {
             zipCode: '',
             acceptedTerms: false,
             isAddingCard: false,
+            errors: {},
         };
 
         this.requiredFields = [
@@ -77,8 +78,6 @@ class DebitCardPage extends Component {
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
         };
 
-        this.errors = {};
-
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
         this.handleExpirationInput = this.handleExpirationInput.bind(this);
         this.handleCardNumberInput = this.handleCardNumberInput.bind(this);
@@ -91,44 +90,45 @@ class DebitCardPage extends Component {
      * @returns {Boolean}
      */
     validate() {
-        this.errors = {};
-        if (this.state.nameOnCard === '') {
-            this.errors.nameOnCard = true;
+        const errors = {};
+        if (this.state.nameOnCard.length !== 4) {
+            errors.nameOnCard = true;
         }
 
         if (!isValidDebitCard(this.state.cardNumber.replace(/ /g, ''))) {
-            this.errors.cardNumber = true;
+            errors.cardNumber = true;
         }
 
         if (!isValidExpirationDate(this.state.expirationDate)) {
-            this.errors.expirationDate = true;
+            errors.expirationDate = true;
         }
 
         if (!isValidSecurityCode(this.state.securityCode)) {
-            this.errors.securityCode = true;
+            errors.securityCode = true;
         }
 
         if (!isValidAddress(this.state.billingAddress)) {
-            this.errors.billingAddress = true;
+            errors.billingAddress = true;
         }
 
         if (this.state.city === '') {
-            this.errors.city = true;
+            errors.city = true;
         }
 
         if (this.state.selectedState === '') {
-            this.errors.selectedState = true;
+            errors.selectedState = true;
         }
 
         if (!isValidZipCode(this.state.zipCode)) {
-            this.errors.zipCode = true;
+            errors.zipCode = true;
         }
 
         if (!this.state.acceptedTerms) {
-            this.errors.acceptedTerms = true;
+            errors.acceptedTerms = true;
         }
 
-        return _.size(this.errors) === 0;
+        this.setState({errors: errors});
+        return _.size(errors) === 0;
     }
 
     submit() {
@@ -166,11 +166,11 @@ class DebitCardPage extends Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         this.setState({[inputKey]: value});
-        this.validate();
+        this.state.errors[inputKey] = false;
     }
 
     getErrorText(inputKey) {
-        if (!lodashGet(this.errors, inputKey, false)) {
+        if (!lodashGet(this.state.errors, inputKey, false)) {
             return '';
         }
 
@@ -190,7 +190,7 @@ class DebitCardPage extends Component {
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
                         <ExpensiTextInput
                             label={this.props.translate('addDebitCardPage.nameOnCard')}
-                            onChangeText={nameOnCard => this.clearErrorAndSetValue('nameOnCard',nameOnCard)}
+                            onChangeText={nameOnCard => this.clearErrorAndSetValue('nameOnCard', nameOnCard)}
                             value={this.state.nameOnCard}
                             errorText={this.getErrorText('nameOnCard')}
                         />
