@@ -99,6 +99,7 @@ const baseIssueList = [
 const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
 const openCheckbox = '  - [ ]';
 const closedCheckbox = '  - [x]';
+const listStart = '- ';
 const QA = ' QA';
 const accessibility = ' Accessibility';
 const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
@@ -115,13 +116,13 @@ describe('createOrUpdateStagingDeployCash', () => {
         html_url: 'https://github.com/Expensify/App/issues/29',
         // eslint-disable-next-line max-len
         body: `${baseExpectedOutput('1.0.1-0')}`
-            + `${lineBreakDouble}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-            + `${lineBreakDouble}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-            + `${lineBreakDouble}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
             + `${lineBreakDouble}${deployBlockerHeader}`
-            + `${lineBreakDouble}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-            + `${lineBreakDouble}${basePRList[3]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-            + `${lineBreakDouble}${basePRList[4]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[4]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
             + `${lineBreakDouble}${ccApplauseLeads}`,
     };
 
@@ -164,9 +165,9 @@ describe('createOrUpdateStagingDeployCash', () => {
                 html_url: 'https://github.com/Expensify/App/issues/29',
                 assignees: [GithubUtils.APPLAUSE_BOT],
                 body: `${baseExpectedOutput()}`
-                    + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                    + `${lineBreakDouble}${basePRList[6]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                    + `${lineBreakDouble}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                    + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                    + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                    + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                     + `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });
@@ -180,13 +181,13 @@ describe('createOrUpdateStagingDeployCash', () => {
             labels: [LABELS.STAGING_DEPLOY_CASH],
             // eslint-disable-next-line max-len
             body: `${baseExpectedOutput()}`
-                + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
-                + `${lineBreakDouble}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                 + `${lineBreakDouble}${deployBlockerHeader}`
-                + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                + `${lineBreakDouble}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
                 + `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
         };
@@ -272,17 +273,17 @@ describe('createOrUpdateStagingDeployCash', () => {
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
                     body: `${baseExpectedOutput('1.0.2-2')}`
-                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[9]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
-                        + `${lineBreakDouble}${basePRList[10]}${lineBreak}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${basePRList[11]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[10]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[11]}${lineBreak}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
@@ -334,15 +335,15 @@ describe('createOrUpdateStagingDeployCash', () => {
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
                     body: `${baseExpectedOutput('1.0.2-2')}`
-                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
-                        + `${lineBreakDouble}${baseIssueList[0]}${lineBreak}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${baseIssueList[1]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${baseIssueList[0]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${baseIssueList[1]}${lineBreak}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
