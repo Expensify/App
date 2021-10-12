@@ -14,7 +14,7 @@ import WorkspaceSection from '../WorkspaceSection';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openSignedInLink} from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */

@@ -11,7 +11,7 @@ import {
 import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import WorkspaceInvoicesFirstSection from './WorkspaceInvoicesFirstSection';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openSignedInLink} from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */

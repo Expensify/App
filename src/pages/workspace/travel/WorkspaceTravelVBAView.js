@@ -11,7 +11,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {RocketOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openSignedInLink} from '../../../libs/actions/Link';
 import {navigateToConciergeChat} from '../../../libs/actions/Report';
 
 const propTypes = {

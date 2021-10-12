@@ -10,7 +10,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openSignedInLink} from '../../../libs/actions/Link';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
 const propTypes = {

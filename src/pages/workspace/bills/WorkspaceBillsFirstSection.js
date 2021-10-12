@@ -17,7 +17,7 @@ import {
 import {InvoiceOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openSignedInLink} from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';

@@ -12,7 +12,7 @@ import {
 import {BankUserGreen, ReceiptYellow} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openSignedInLink} from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */

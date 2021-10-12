@@ -10,7 +10,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {CreditCardsBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openSignedInLink} from '../../../libs/actions/Link';
 import WorkspaceSection from '../WorkspaceSection';
 
 const propTypes = {
