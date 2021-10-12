@@ -129,7 +129,7 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {Boolean}
      */
     getShouldShowAlertPrompt() {
-        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || lodashGet(this.props.policy, 'alertMessage.length') > 0;
+        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || lodashGet(this.props.policy, 'alertMessage', '').length > 0;
     }
 
     /**

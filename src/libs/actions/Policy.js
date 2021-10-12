@@ -46,7 +46,7 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
- * @param {String} fullPolicy.value.outputCurrency
+ * @param {String} fullPolicy.outputCurrency
  * @param {Object} fullPolicy.value.employeeList
  * @param {String} [fullPolicy.value.avatarURL]
  * @returns {Object}
@@ -57,7 +57,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
-        outputCurrency: lodashGet(fullPolicy, 'value.outputCurrency', ''),
+        outputCurrency: fullPolicy.outputCurrency,
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
     };
@@ -300,8 +300,9 @@ function uploadAvatar(file) {
  *
  * @param {String} policyID
  * @param {Object} values
+ * @param {Boolean} [shouldGrowl]
  */
-function update(policyID, values) {
+function update(policyID, values, shouldGrowl = false) {
     API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
@@ -314,6 +315,9 @@ function update(policyID, values) {
 
             const updatedValues = {...values, ...{isPolicyUpdating: false}};
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
+            if (shouldGrowl) {
+                Growl.show(translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+            }
         }).catch(() => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
