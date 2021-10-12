@@ -10,7 +10,7 @@ import {
     hideBankAccountErrors,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
-import VBALoadingIndicator from '../../components/VBALoadingIndicator';
+import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -151,7 +151,7 @@ class ReimbursementAccountPage extends React.Component {
         }
 
         if (this.props.reimbursementAccount.loading) {
-            return <VBALoadingIndicator />;
+            return <ReimbursementAccountLoadingIndicator />;
         }
 
         let errorComponent;

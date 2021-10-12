@@ -611,7 +611,7 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
-    vbaLoadingAnimation: {
+    reimbursementAccountLoadingAnimation: {
         oneMoment: 'One Moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
