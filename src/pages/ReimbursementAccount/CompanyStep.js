@@ -24,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidAddress, isValidDate, isValidZipCode, isRequiredFulfilled, isValidPhoneWithSpecialChars, isValidURL,
+    isValidDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -32,6 +32,7 @@ import ExpensiPicker from '../../components/ExpensiPicker';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import AddressSearch from '../../components/AddressSearch';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -69,10 +70,6 @@ class CompanyStep extends React.Component {
         // These fields need to be filled out in order to submit the form
         this.requiredFields = [
             'companyName',
-            'addressStreet',
-            'addressCity',
-            'addressState',
-            'addressZipCode',
             'website',
             'companyTaxID',
             'incorporationDate',
@@ -84,9 +81,6 @@ class CompanyStep extends React.Component {
 
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
-            addressStreet: 'bankAccount.error.addressStreet',
-            addressCity: 'bankAccount.error.addressCity',
-            addressZipCode: 'bankAccount.error.zipCode',
             companyName: 'bankAccount.error.companyName',
             companyPhone: 'bankAccount.error.phoneNumber',
             website: 'bankAccount.error.website',
@@ -125,13 +119,6 @@ class CompanyStep extends React.Component {
      */
     validate() {
         const errors = {};
-        if (!isValidAddress(this.state.addressStreet)) {
-            errors.addressStreet = true;
-        }
-
-        if (!isValidZipCode(this.state.addressZipCode)) {
-            errors.addressZipCode = true;
-        }
 
         if (!isValidURL(this.state.website)) {
             errors.website = true;
@@ -193,40 +180,11 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         errorText={this.getErrorText('companyName')}
                     />
-                    <ExpensiTextInput
+                    <AddressSearch
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
-                        onChangeText={value => this.clearErrorAndSetValue('addressStreet', value)}
-                        value={this.state.addressStreet}
-                        errorText={this.getErrorText('addressStreet')}
-                    />
-                    <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
-                            <ExpensiTextInput
-                                label={this.props.translate('common.city')}
-                                onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
-                                value={this.state.addressCity}
-                                errorText={this.getErrorText('addressCity')}
-                                translateX={-14}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                onChange={value => this.clearErrorAndSetValue('addressState', value)}
-                                value={this.state.addressState}
-                                hasError={this.getErrors().addressState}
-                            />
-                        </View>
-                    </View>
-                    <ExpensiTextInput
-                        label={this.props.translate('common.zip')}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
-                        value={this.state.addressZipCode}
-                        errorText={this.getErrorText('addressZipCode')}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                        value={`${this.state.addressStreet} ${this.state.addressCity} ${this.state.addressState} ${this.state.addressZipCode}`}
+                        onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
@@ -268,7 +226,7 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                     <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
+                        <View style={[styles.flex1, styles.mr2]}>
                             <DatePicker
                                 label={this.props.translate('companyStep.incorporationDate')}
                                 onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
@@ -280,6 +238,7 @@ class CompanyStep extends React.Component {
                         </View>
                         <View style={[styles.flex1]}>
                             <StatePicker
+                                label={this.props.translate('companyStep.incorporationState')}
                                 onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                                 value={this.state.incorporationState}
                                 hasError={this.getErrors().incorporationState}
