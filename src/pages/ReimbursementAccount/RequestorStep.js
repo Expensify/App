@@ -92,6 +92,11 @@ class RequestorStep extends React.Component {
             city: 'requestorAddressCity',
             state: 'requestorAddressState',
             zipCode: 'requestorAddressZipCode',
+
+            addressStreet: 'requestorAddressStreet',
+            addressCity: 'requestorAddressCity',
+            addressState: 'requestorAddressState',
+            addressZipCode: 'requestorAddressZipCode',
         };
         const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
         const newState = {[renamedInputKey]: value};
