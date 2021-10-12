@@ -343,8 +343,8 @@ describe('GithubUtils', () => {
                     expect(issueBody).toBe(
                         `${allVerifiedExpectedOutput}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -356,8 +356,8 @@ describe('GithubUtils', () => {
                     expect(issueBody).toBe(
                         `${allVerifiedExpectedOutput}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -372,8 +372,8 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[0]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${baseDeployBlockerList[1]}${lineBreak}${closedCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })

@@ -239,7 +239,6 @@ class GithubUtils {
                     _.each(sortedDeployBlockers, (URL) => {
                         issueBody += `\r\n\r\n${URL}`;
                         issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
-                        issueBody += _.contains(accessablePRList, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
                     });
                 }
 

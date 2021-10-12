@@ -278,11 +278,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                         + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${basePRList[9]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[10]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[11]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${basePRList[10]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${basePRList[11]}${lineBreak}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
@@ -338,11 +338,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                         + `${lineBreakDouble}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${baseIssueList[0]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
-                        + `${lineBreakDouble}${baseIssueList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${baseIssueList[0]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${baseIssueList[1]}${lineBreak}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
