@@ -50,6 +50,18 @@ class DebitCardPage extends Component {
             isAddingCard: false,
         };
 
+        this.requiredFields = [
+            'nameOnCard',
+            'cardNumber',
+            'expirationDate',
+            'securityCode',
+            'billingAddress',
+            'city',
+            'selectedState',
+            'zipCode',
+            'acceptedTerms',
+        ];
+
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
         this.handleExpirationInput = this.handleExpirationInput.bind(this);
         this.handleCardNumberInput = this.handleCardNumberInput.bind(this);
