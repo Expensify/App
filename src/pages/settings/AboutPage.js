@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View, ScrollView, Linking} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -23,6 +23,7 @@ import Logo from '../../../assets/images/new-expensify.svg';
 import {version} from '../../../package.json';
 import {fetchOrCreateChatReport} from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
+import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
     /** Onyx Props */
@@ -50,7 +51,7 @@ const AboutPage = ({translate, session}) => {
             icon: Eye,
             iconRight: NewWindow,
             action: () => {
-                Linking.openURL(CONST.GITHUB_URL);
+                openExternalLink(CONST.GITHUB_URL);
             },
         },
         {
@@ -58,7 +59,7 @@ const AboutPage = ({translate, session}) => {
             icon: MoneyBag,
             iconRight: NewWindow,
             action: () => {
-                Linking.openURL(CONST.UPWORK_URL);
+                openExternalLink(CONST.UPWORK_URL);
             },
         },
         {
@@ -128,7 +129,7 @@ const AboutPage = ({translate, session}) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => Linking.openURL(CONST.TERMS_URL)}
+                            onPress={() => openExternalLink(CONST.TERMS_URL)}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
@@ -141,7 +142,7 @@ const AboutPage = ({translate, session}) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => Linking.openURL(CONST.PRIVACY_URL)}
+                            onPress={() => openExternalLink(CONST.PRIVACY_URL)}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',

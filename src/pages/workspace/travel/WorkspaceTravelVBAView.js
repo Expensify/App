@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Linking} from 'react-native';
+import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -11,7 +11,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {RocketOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import {openOldDotLink} from '../../../libs/actions/Link';
+import {openExternalLink, openOldDotLink} from '../../../libs/actions/Link';
 import {navigateToConciergeChat} from '../../../libs/actions/Report';
 
 const propTypes = {
@@ -38,7 +38,7 @@ const WorkspaceTravelVBAView = ({translate}) => (
             },
             {
                 title: translate('requestorStep.learnMore'),
-                onPress: () => Linking.openURL('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
+                onPress: () => openExternalLink('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
                 icon: Info,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,

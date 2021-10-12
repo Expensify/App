@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-    View,
-    TouchableOpacity,
-    Linking,
-} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -17,7 +13,7 @@ import {
 import {InvoiceOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openOldDotLink} from '../../../libs/actions/Link';
+import {openExternalLink, openOldDotLink} from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';
@@ -66,7 +62,7 @@ const WorkspaceBillsFirstSection = ({
                     {translate('workspace.bills.askYourVendorsBeforeEmail')}
                     {user.isFromPublicDomain ? (
                         <TouchableOpacity
-                            onPress={() => Linking.openURL('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                            onPress={() => openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
                             <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
                         </TouchableOpacity>
