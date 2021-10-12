@@ -28,6 +28,7 @@ import BankAccount from '../../libs/models/BankAccount';
 import {openSignedInLink} from '../../libs/actions/App';
 import {setWorkspaceIDForReimbursementAccount} from '../../libs/actions/BankAccounts';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
+import {subscribeToEmailValidationEvent} from '../../libs/actions/User';
 
 const propTypes = {
     /* Onyx Props */
@@ -118,6 +119,7 @@ class WorkspaceCardPage extends React.Component {
     onPress() {
         if (this.props.user.isFromPublicDomain) {
             openSignedInLink(CONST.ADD_SECONDARY_LOGIN_URL);
+            subscribeToEmailValidationEvent();
         } else if (this.props.user.isUsingExpensifyCard) {
             openSignedInLink(CONST.MANAGE_CARDS_URL);
         } else {

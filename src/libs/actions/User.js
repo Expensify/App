@@ -293,6 +293,43 @@ function subscribeToUserEvents() {
 }
 
 /**
+ * Updates isFromPublicDomain in Onyx.
+ *
+ * @param {Boolean} isFromPublicDomain
+ */
+ function setIsFromPublicDomain(isFromPublicDomain) {
+    Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+}
+
+/**
+ * Subscribe to email validation event
+ */
+ function subscribeToEmailValidationEvent() {
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+
+    // Live-update if a user has private domains listed as primary or secondary logins.
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
+        Log.info(
+            `[User] Handled ${Pusher.TYPE.ACCOUNT_VALIDATED} event sent by Pusher`,
+            false,
+            {isFromPublicDomain: pushJSON.isFromPublicDomain},
+        );
+        setIsFromPublicDomain(pushJSON.isFromPublicDomain);
+        Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks(`pusher re-subscribed to ${Pusher.TYPE.ACCOUNT_VALIDATED} event`);
+    })
+        .catch((error) => {
+            Log.info(
+                '[Report] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
+            );
+        });
+}
+
+/**
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
@@ -321,4 +358,5 @@ export {
     subscribeToUserEvents,
     setPreferredSkinTone,
     setShouldUseSecureStaging,
+    subscribeToEmailValidationEvent,
 };
