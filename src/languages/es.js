@@ -674,7 +674,7 @@ export default {
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
-            askYourVendorsAfterEmail: ' y las escanearemos para que las pagues',
+            askYourVendorsAfterEmail: ' y las escanearemos para que las pagues.',
             viewAllBills: 'Ver facturas recibidas',
             unlockOnlineBillPayment: 'Desbloquea el pago de facturas online',
             unlockNoVBACopy: '¡Conecta tu cuenta bancaria para pagar tus facturas online de manera gratuita!',
