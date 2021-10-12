@@ -214,7 +214,7 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[ \\] QA`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`(${PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[ \\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
@@ -222,7 +222,7 @@ class GithubUtils {
             }),
         );
         const verifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[x\\] QA`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`(${PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[x\\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
@@ -250,7 +250,7 @@ class GithubUtils {
         }
         deployBlockerSection = deployBlockerSection[1];
         const unresolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`- (${ISSUE_OR_PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[ \\] QA`, 'g'))],
+            [...deployBlockerSection.matchAll(new RegExp(`(${ISSUE_OR_PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[ \\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
@@ -258,7 +258,7 @@ class GithubUtils {
             }),
         );
         const resolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`- (${ISSUE_OR_PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[x\\] QA`, 'g'))],
+            [...deployBlockerSection.matchAll(new RegExp(`(${ISSUE_OR_PULL_REQUEST_REGEX.source})[\r\n]\\s+- \\[x\\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
@@ -315,7 +315,7 @@ class GithubUtils {
                 if (!_.isEmpty(sortedPRList)) {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**';
                     _.each(sortedPRList, (URL) => {
-                        issueBody += `\r\n\r\n- ${URL}`;
+                        issueBody += `\r\n\r\n${URL}`;
                         issueBody += _.contains(verifiedPRList, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                         issueBody += _.contains(accessabilityPRList, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
                     });
@@ -325,7 +325,7 @@ class GithubUtils {
                 if (!_.isEmpty(deployBlockers)) {
                     issueBody += '\r\n\r\n\r\n**Deploy Blockers:**';
                     _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += `\r\n\r\n- ${URL}`;
+                        issueBody += `\r\n\r\n${URL}`;
                         issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                         issueBody += _.contains(accessabilityPRList, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
                     });
@@ -409,7 +409,7 @@ class GithubUtils {
     static getReleaseBody(pullRequests) {
         return _.map(
             pullRequests,
-            number => `- ${this.getPullRequestURLFromNumber(number)}`,
+            number => `${this.getPullRequestURLFromNumber(number)}`,
         ).join('\r\n');
     }
 
