@@ -11,7 +11,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {MoneyEnvelopeBlue} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openOldDotLink} from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -26,8 +26,13 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
         icon={MoneyEnvelopeBlue}
         menuItems={[
             {
+<<<<<<< HEAD
                 title: translate('workspace.common.invoices'),
                 onPress: () => openSignedInLink('reports?param={"createInvoice":true}'),
+=======
+                title: translate('workspace.invoices.sendInvoice'),
+                onPress: () => openOldDotLink('reports?param={"createInvoice":true}'),
+>>>>>>> d66c278fa (Merge pull request #5776 from Expensify/tgolen-offline-links)
                 icon: Send,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
@@ -35,7 +40,7 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
             {
                 title: translate('workspace.invoices.viewAllInvoices'),
                 // eslint-disable-next-line max-len
-                onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
                 icon: Invoice,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,

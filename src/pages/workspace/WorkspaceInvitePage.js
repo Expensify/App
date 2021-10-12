@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    View, ScrollView, Pressable, Linking,
-} from 'react-native';
+import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -25,6 +23,7 @@ import {NewWindow} from '../../components/Icon/Expensicons';
 import variables from '../../styles/variables';
 import CONST from '../../CONST';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -220,7 +219,7 @@ class WorkspaceInvitePage extends React.Component {
                                     <Pressable
                                         onPress={(e) => {
                                             e.preventDefault();
-                                            Linking.openURL(CONST.PRIVACY_URL);
+                                            openExternalLink(CONST.PRIVACY_URL);
                                         }}
                                         accessibilityRole="link"
                                         href={CONST.PRIVACY_URL}
