@@ -26,7 +26,7 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
         icon={MoneyEnvelopeBlue}
         menuItems={[
             {
-                title: translate('workspace.common.invoices'),
+                title: translate('workspace.invoices.sendInvoice'),
                 onPress: () => openOldDotLink('reports?param={"createInvoice":true}'),
                 icon: Send,
                 shouldShowRightIcon: true,
