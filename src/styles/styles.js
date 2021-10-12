@@ -505,9 +505,6 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
-        paddingTop: 25,
-        paddingBottom: 8,
-        paddingHorizontal: 11.5,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
@@ -520,6 +517,7 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+        zIndex: -1,
     },
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
@@ -536,6 +534,9 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
         ...spacing.pv0,
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 11.5,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
