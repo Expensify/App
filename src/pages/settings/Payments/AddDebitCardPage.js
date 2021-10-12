@@ -24,6 +24,8 @@ import {
 } from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import ROUTES from '../../../ROUTES';
+import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /* Onyx Props */
@@ -62,12 +64,27 @@ class DebitCardPage extends Component {
             'acceptedTerms',
         ];
 
+        // Map a field to the key of the error's translation
+        this.errorTranslationKeys = {
+            nameOnCard: 'addDebitCardPage.error.invalidName',
+            cardNumber: 'addDebitCardPage.error.debitCardNumber',
+            expirationDate: 'addDebitCardPage.error.expirationDate',
+            securityCode: 'addDebitCardPage.error.securityCode',
+            billingAddress: 'addDebitCardPage.error.address',
+            city: 'addDebitCardPage.error.addressCity',
+            selectedState: 'addDebitCardPage.error.addressState',
+            zipCode: 'addDebitCardPage.error.zipCode',
+            acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
+        };
+
         this.errors = {};
 
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
         this.handleExpirationInput = this.handleExpirationInput.bind(this);
         this.handleCardNumberInput = this.handleCardNumberInput.bind(this);
         this.submit = this.submit.bind(this);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
+        this.getErrorText = this.getErrorText.bind(this);
     }
 
     /**
@@ -141,6 +158,25 @@ class DebitCardPage extends Component {
         }
     }
 
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
+        this.setState({[inputKey]: value});
+        this.validate();
+    }
+
+    getErrorText(inputKey) {
+        if (!lodashGet(this.errors, inputKey, false)) {
+            return '';
+        }
+
+        return this.props.translate(this.errorTranslationKeys[inputKey]);
+    }
+
     render() {
         return (
             <ScreenWrapper>
@@ -152,12 +188,11 @@ class DebitCardPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('addDebitCardPage.nameOnCard')}
-                            placeholder={this.props.translate('addDebitCardPage.nameOnCard')}
-                            containerStyles={[styles.flex1, styles.mb2]}
-                            onChangeText={nameOnCard => this.setState({nameOnCard})}
+                            onChangeText={nameOnCard => this.clearErrorAndSetValue('nameOnCard',nameOnCard)}
                             value={this.state.nameOnCard}
+                            errorText={this.getErrorText('nameOnCard')}
                         />
                         <TextInputWithLabel
                             label={this.props.translate('addDebitCardPage.debitCardNumber')}
