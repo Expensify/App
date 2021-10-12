@@ -25,7 +25,7 @@ const WorkspaceTravelPage = ({translate, route}) => (
     >
         {(hasVBA, policyID) => (
             <>
-                {!hasVBA ? (
+                {hasVBA ? (
                     <WorkspaceTravelNoVBAView policyID={policyID} />
                 ) : (
                     <WorkspaceTravelVBAView />
