@@ -18,7 +18,7 @@ import {addBillingCard} from '../../../libs/actions/PaymentMethods';
 import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
-import Growl from '../../../libs/Growl';
+import _ from 'underscore';
 import {
     isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard, isValidSecurityCode,
 } from '../../../libs/ValidationUtils';
@@ -62,6 +62,8 @@ class DebitCardPage extends Component {
             'acceptedTerms',
         ];
 
+        this.errors = {};
+
         this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
         this.handleExpirationInput = this.handleExpirationInput.bind(this);
         this.handleCardNumberInput = this.handleCardNumberInput.bind(this);
@@ -72,52 +74,44 @@ class DebitCardPage extends Component {
      * @returns {Boolean}
      */
     validate() {
+        this.errors = {};
         if (this.state.nameOnCard === '') {
-            Growl.error(this.props.translate('addDebitCardPage.error.invalidName'));
-            return false;
+            this.errors.nameOnCard = true;
         }
 
         if (!isValidDebitCard(this.state.cardNumber.replace(/ /g, ''))) {
-            Growl.error(this.props.translate('addDebitCardPage.error.debitCardNumber'));
-            return false;
+            this.errors.cardNumber = true;
         }
 
         if (!isValidExpirationDate(this.state.expirationDate)) {
-            Growl.error(this.props.translate('addDebitCardPage.error.expirationDate'));
-            return false;
+            this.errors.expirationDate = true;
         }
 
         if (!isValidSecurityCode(this.state.securityCode)) {
-            Growl.error(this.props.translate('addDebitCardPage.error.securityCode'));
-            return false;
+            this.errors.securityCode = true;
         }
 
         if (!isValidAddress(this.state.billingAddress)) {
-            Growl.error(this.props.translate('addDebitCardPage.error.address'));
-            return false;
+            this.errors.billingAddress = true;
         }
 
         if (this.state.city === '') {
-            Growl.error(this.props.translate('addDebitCardPage.error.addressCity'));
-            return false;
+            this.errors.city = true;
         }
 
         if (this.state.selectedState === '') {
-            Growl.error(this.props.translate('addDebitCardPage.error.addressState'));
-            return false;
+            this.errors.selectedState = true;
         }
 
         if (!isValidZipCode(this.state.zipCode)) {
-            Growl.error(this.props.translate('addDebitCardPage.error.zipCode'));
-            return false;
+            this.errors.zipCode = true;
         }
 
         if (!this.state.acceptedTerms) {
-            Growl.error(this.props.translate('addDebitCardPage.error.acceptedTerms'));
-            return false;
+            this.errors.acceptedTerms = true;
         }
 
-        return true;
+        return _.size(this.errors) === 0;
     }
 
     submit() {
