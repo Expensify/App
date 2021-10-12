@@ -26,7 +26,7 @@ const WorkspaceInvoicesNoVBAView = ({translate, policyID}) => (
         <WorkspaceInvoicesFirstSection policyID={policyID} />
 
         <WorkspaceSection
-            title={translate('workspace.invoices.unlockOnlineInvoicesCollection')}
+            title={translate('workspace.invoices.unlockOnlineInvoiceCollection')}
             icon={JewelBoxGreen}
             menuItems={[
                 {
