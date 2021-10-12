@@ -217,6 +217,10 @@ const styles = {
         ...spacing.ph3,
     },
 
+    buttonDefaultBackgroundColor: {
+        backgroundColor: themeColors.buttonDefaultBG,
+    },
+
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -1812,7 +1816,7 @@ const styles = {
         zIndex: 10,
     },
 
-    vbaFullScreenLoading: {
+    reimbursementAccountFullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'flex-start',

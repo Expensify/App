@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {
     View, Pressable,
@@ -19,7 +20,7 @@ const propTypes = {
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
-    wrapperStyle: {},
+    wrapperStyle: [],
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -32,6 +33,7 @@ const defaultProps = {
     disabled: false,
     subtitle: undefined,
     iconType: 'icon',
+    onPress: () => {},
 };
 
 const MenuItem = ({
@@ -52,97 +54,100 @@ const MenuItem = ({
     disabled,
     subtitle,
     iconType,
-}) => (
-    <Pressable
-        onPress={(e) => {
-            if (disabled) {
-                return;
-            }
+}) => {
+    const additionalWrapperStyles = _.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle];
+    return (
+        <Pressable
+            onPress={(e) => {
+                if (disabled) {
+                    return;
+                }
 
-            onPress(e);
-        }}
-        style={({hovered, pressed}) => ([
-            styles.popoverMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
-            wrapperStyle,
-        ])}
-        disabled={disabled}
-    >
-        {({hovered, pressed}) => (
-            <>
-                <View style={styles.flexRow}>
-                    {(icon && iconType === CONST.ICON_TYPE_ICON) && (
-                        <View
-                            style={[
-                                styles.popoverMenuIcon,
-                                ...iconStyles,
-                            ]}
-                        >
-                            <Icon
-                                src={icon}
-                                width={iconWidth}
-                                height={iconHeight}
-                                fill={iconFill || getIconFillColor(
-                                    getButtonState(focused || hovered, pressed, success, disabled),
-                                )}
-                            />
-                        </View>
-                    )}
-                    {(icon && iconType === CONST.ICON_TYPE_AVATAR) && (
-                        <View
-                            style={[
-                                styles.popoverMenuIcon,
-                                ...iconStyles,
-                            ]}
-                        >
-                            <Avatar
-                                imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
-                                source={icon}
-                            />
-                        </View>
-                    )}
-                    <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
-                        <Text
-                            style={[
-                                styles.popoverMenuText,
-                                styles.ml3,
-                                (disabled ? styles.disabledText : undefined),
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {title}
-                        </Text>
-                        {description && (
-                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
-                                {description}
+                onPress(e);
+            }}
+            style={({hovered, pressed}) => ([
+                styles.popoverMenuItem,
+                getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
+                ...additionalWrapperStyles,
+            ])}
+            disabled={disabled}
+        >
+            {({hovered, pressed}) => (
+                <>
+                    <View style={styles.flexRow}>
+                        {(icon && iconType === CONST.ICON_TYPE_ICON) && (
+                            <View
+                                style={[
+                                    styles.popoverMenuIcon,
+                                    ...iconStyles,
+                                ]}
+                            >
+                                <Icon
+                                    src={icon}
+                                    width={iconWidth}
+                                    height={iconHeight}
+                                    fill={iconFill || getIconFillColor(
+                                        getButtonState(focused || hovered, pressed, success, disabled),
+                                    )}
+                                />
+                            </View>
+                        )}
+                        {(icon && iconType === CONST.ICON_TYPE_AVATAR) && (
+                            <View
+                                style={[
+                                    styles.popoverMenuIcon,
+                                    ...iconStyles,
+                                ]}
+                            >
+                                <Avatar
+                                    imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
+                                    source={icon}
+                                />
+                            </View>
+                        )}
+                        <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
+                            <Text
+                                style={[
+                                    styles.popoverMenuText,
+                                    styles.ml3,
+                                    (disabled ? styles.disabledText : undefined),
+                                ]}
+                                numberOfLines={1}
+                            >
+                                {title}
                             </Text>
+                            {description && (
+                                <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
+                                    {description}
+                                </Text>
+                            )}
+                        </View>
+                    </View>
+                    <View style={[styles.flexRow, styles.menuItemTextContainer]}>
+                        {badgeText && <Badge text={badgeText} badgeStyles={[styles.alignSelfCenter]} />}
+                        {subtitle && (
+                            <View style={[styles.justifyContentCenter, styles.mr1]}>
+                                <Text
+                                    style={styles.textLabelSupporting}
+                                >
+                                    {subtitle}
+                                </Text>
+                            </View>
+                        )}
+                        {shouldShowRightIcon && (
+                            <View style={styles.popoverMenuIcon}>
+                                <Icon
+                                    src={iconRight}
+                                    fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
+                                />
+                            </View>
                         )}
                     </View>
-                </View>
-                <View style={[styles.flexRow, styles.menuItemTextContainer]}>
-                    {badgeText && <Badge text={badgeText} badgeStyles={[styles.alignSelfCenter]} />}
-                    {subtitle && (
-                        <View style={[styles.justifyContentCenter, styles.mr1]}>
-                            <Text
-                                style={styles.textLabelSupporting}
-                            >
-                                {subtitle}
-                            </Text>
-                        </View>
-                    )}
-                    {shouldShowRightIcon && (
-                        <View style={styles.popoverMenuIcon}>
-                            <Icon
-                                src={iconRight}
-                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
-                            />
-                        </View>
-                    )}
-                </View>
-            </>
-        )}
-    </Pressable>
-);
+                </>
+            )}
+        </Pressable>
+    );
+};
 
 MenuItem.propTypes = propTypes;
 MenuItem.defaultProps = defaultProps;

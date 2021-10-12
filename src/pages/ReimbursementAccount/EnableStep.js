@@ -21,6 +21,7 @@ import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
+import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -95,8 +96,8 @@ class EnableStep extends React.Component {
                             icon={icon}
                             iconWidth={iconSize}
                             iconHeight={iconSize}
-                            onPress={() => {}}
-                            wrapperStyle={{paddingHorizontal: 0, marginBottom: 12}}
+                            disabled
+                            wrapperStyle={[styles.buttonDefaultBackgroundColor, styles.ph0, styles.mb3]}
                         />
                         <Text>
                             {!isUsingExpensifyCard
