@@ -381,7 +381,6 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     // If the user is already setting up a bank account we will continue the flow for them
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
-
                     if (!stepToOpen && achData.currentStep) {
                         // eslint-disable-next-line no-use-before-define
                         currentStep = getNextStepToComplete(achData);
