@@ -44,9 +44,7 @@ class ExpensiPicker extends PureComponent {
                 <View
                     style={[
                         styles.expensiPickerContainer,
-                        this.state.isOpen && styles.borderColorFocus,
                         isDisabled && styles.inputDisabled,
-                        this.props.hasError && styles.borderColorDanger,
                     ]}
                 >
                     {label && (
@@ -56,6 +54,7 @@ class ExpensiPicker extends PureComponent {
                         onOpen={() => this.setState({isOpen: true})}
                         onClose={() => this.setState({isOpen: false})}
                         disabled={isDisabled}
+                        focused={this.state.isOpen}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
                     />

@@ -9,10 +9,13 @@ const propTypes = {
     onChange: PropTypes.func.isRequired,
 
     /** Whether or not to show the disabled styles */
-    isDisabled: PropTypes.bool,
-
-    /** Disables interaction with the component */
     disabled: PropTypes.bool,
+
+    /** Should the picker be styled for errors  */
+    hasError: PropTypes.bool,
+
+    /** Should the picker be styled for focus state  */
+    focsued: PropTypes.bool,
 
     /** The items to display in the list of selections */
     items: PropTypes.arrayOf(PropTypes.shape({
@@ -42,8 +45,9 @@ const propTypes = {
     size: PropTypes.oneOf(['normal', 'small']),
 };
 const defaultProps = {
-    isDisabled: false,
     disabled: false,
+    hasError: false,
+    focused: false,
     placeholder: {},
     value: null,
     icon: size => (

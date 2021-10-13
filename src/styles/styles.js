@@ -573,7 +573,7 @@ const styles = {
         left: 11.5,
         top: 7,
     },
-    expensiPicker: (disabled = false) => ({
+    expensiPicker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
             top: 16,
             right: 12,
@@ -582,9 +582,13 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...expensiPicker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...expensiPicker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
     }),
 

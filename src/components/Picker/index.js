@@ -15,11 +15,13 @@ const Picker = ({
     onOpen,
     onClose,
     size,
+    hasError,
+    focused,
 }) => (
     <RNPickerSelect
         onValueChange={onChange}
         items={items}
-        style={size === 'normal' ? pickerStyles(disabled) : styles.pickerSmall}
+        style={size === 'normal' ? pickerStyles(disabled, hasError, focused) : styles.pickerSmall}
         useNativeAndroidPickerStyle={false}
         placeholder={placeholder}
         value={value}
