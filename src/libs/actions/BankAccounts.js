@@ -870,9 +870,10 @@ function resetFreePlanBankAccount(password = 'Password1') {
                 return;
             }
 
-            // Clear both reimbursement account and drafts
+            // Clear reimbursement account, draft user input, and the bank account list
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {});
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
+            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, []);
 
             // Clear the NVP for the bank account so the user can add a new one
             API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});

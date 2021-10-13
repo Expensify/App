@@ -13,6 +13,7 @@ import CONST from '../../CONST';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
+import BankAccount from '../../libs/models/BankAccount';
 
 const propTypes = {
     /** Reimbursement account data */
@@ -30,16 +31,16 @@ const defaultProps = {
 };
 
 const WorkspaceResetBankAccountModal = (props) => {
-    const isEnableStep = lodashGet(props.reimbursementAccount, 'achData.currentStep') === CONST.BANK_ACCOUNT.STEP.ENABLE;
+    const isInOpenState = lodashGet(props.reimbursementAccount, 'achData.state') === BankAccount.STATE.OPEN;
     const bankAccountID = lodashGet(props.reimbursementAccount, 'achData.bankAccountID');
     const account = _.find(props.bankAccountList, bankAccount => bankAccount.bankAccountID === bankAccountID);
     const bankShortName = account ? `${account.addressName} ${account.accountNumber.slice(-4)}` : '';
     return (
         <ConfirmModal
             title="Are you sure?"
-            confirmText={isEnableStep ? 'Yes, disconnect my bank account' : 'Yes, start over'}
+            confirmText={isInOpenState ? 'Yes, disconnect my bank account' : 'Yes, start over'}
             cancelText="Cancel"
-            prompt={isEnableStep ? (
+            prompt={isInOpenState ? (
                 <Text>
                     <Text>Disconnect your </Text>
                     <Text style={styles.textStrong}>
