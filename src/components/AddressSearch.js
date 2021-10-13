@@ -44,7 +44,7 @@ const AddressSearch = (props) => {
             .find(component => _.contains(component.types, field))
             .get(nameType)
             .value();
-    }
+    };
 
 
     const saveLocationDetails = (details) => {
@@ -62,7 +62,7 @@ const AddressSearch = (props) => {
             props.onChangeText('addressState', state);
             props.onChangeText('addressZipCode', zipCode);
         }
-    }
+    };
 
     return (
         <>
@@ -107,7 +107,6 @@ const AddressSearch = (props) => {
             />
         </>
     );
-
 }
 
 AddressSearch.propTypes = propTypes;
