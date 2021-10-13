@@ -153,6 +153,23 @@ class CompanyStep extends React.Component {
         return _.size(errors) === 0;
     }
 
+    getFormattedAddressValue() {
+        let addressString = '';
+        if (this.state.addressStreet) {
+            addressString += `${this.state.addressStreet}, `;
+        }
+        if (this.state.addressCity) {
+            addressString += `${this.state.addressCity}, `;
+        }
+        if (this.state.addressState) {
+            addressString += `${this.state.addressState}, `;
+        }
+        if (this.state.addressZipCode) {
+            addressString += `${this.state.addressZipCode}`;
+        }
+        return addressString;
+    }
+
     submit() {
         if (!this.validate()) {
             showBankAccountErrorModal();
@@ -191,7 +208,7 @@ class CompanyStep extends React.Component {
                     <AddressSearch
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
-                        value={`${this.state.addressStreet} ${this.state.addressCity} ${this.state.addressState} ${this.state.addressZipCode}`}
+                        value={this.getFormattedAddressValue()}
                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                         errorText={this.getErrorText('addressStreet')}
                     />
