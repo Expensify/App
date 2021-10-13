@@ -76,12 +76,12 @@ class AddPayPalMePage extends React.Component {
      */
     validatePaypalMeUsername() {
         const regex = CONST.REGEX.PAYPAL_ME_USERNAME;
-        if (this.state.payPalMeUsername && regex.test(this.state.payPalMeUsername)) {
+        if (this.state.payPalMeUsername && !regex.test(this.state.payPalMeUsername)) {
             this.setState({payPalMeUsernameError: true});
-            return true;
+            return false;
         }
         this.setState({payPalMeUsernameError: false});
-        return false;
+        return true;
     }
 
 
@@ -115,7 +115,7 @@ class AddPayPalMePage extends React.Component {
                                 onChangeText={text => this.setState({payPalMeUsername: text})}
                                 returnKeyType="done"
                                 hasError={this.state.payPalMeUsernameError}
-                                errorText={this.props.translate('addPayPalMePage.formatError')}
+                                errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
 
                             />
                         </View>
