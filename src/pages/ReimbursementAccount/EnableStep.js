@@ -95,8 +95,9 @@ class EnableStep extends React.Component {
                             icon={icon}
                             iconWidth={iconSize}
                             iconHeight={iconSize}
-                            onPress={() => {}}
-                            wrapperStyle={{paddingHorizontal: 0, marginBottom: 12}}
+                            disabled
+                            interactive={false}
+                            wrapperStyle={[styles.ph0, styles.mb3]}
                         />
                         <Text>
                             {!isUsingExpensifyCard

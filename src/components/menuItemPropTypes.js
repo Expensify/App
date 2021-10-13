@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import CONST from '../CONST';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Text to be shown as badge near the right end. */
@@ -7,10 +8,10 @@ const propTypes = {
 
     /** Any additional styles to apply */
     // eslint-disable-next-line react/forbid-prop-types
-    wrapperStyle: PropTypes.object,
+    wrapperStyle: stylePropTypes,
 
     /** Function to fire when component is pressed */
-    onPress: PropTypes.func.isRequired,
+    onPress: PropTypes.func,
 
     /** Icon to display on the left side of component */
     icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
@@ -53,6 +54,9 @@ const propTypes = {
 
     /** Flag to choose between avatar image or an icon */
     iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON]),
+
+    /** Whether the menu item should be interactive at all */
+    interactive: PropTypes.bool,
 };
 
 export default propTypes;
