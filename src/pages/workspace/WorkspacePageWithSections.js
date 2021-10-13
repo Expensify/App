@@ -31,9 +31,15 @@ const propTypes = {
 
     /** From Onyx */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** User Data from Onyx */
     user: userPropTypes,
 
+    /** Main content of the page */
     children: PropTypes.func,
+
+    /** Content to be added as fixed footer */
+    footer: PropTypes.element,
 
     ...withLocalizePropTypes,
 };
@@ -42,6 +48,7 @@ const defaultProps = {
     children: () => {},
     user: {},
     reimbursementAccount: {},
+    footer: null,
 };
 
 class WorkspacePageWithSections extends React.Component {
@@ -73,6 +80,7 @@ class WorkspacePageWithSections extends React.Component {
 
                     </View>
                 </ScrollView>
+                {this.props.footer}
             </ScreenWrapper>
         );
     }
