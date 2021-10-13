@@ -21,7 +21,6 @@ import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
-import themeColors from '../../styles/themes/default';
 
 const propTypes = {
     /** Are we loading payment methods? */
