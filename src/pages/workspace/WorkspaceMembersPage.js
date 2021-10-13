@@ -7,6 +7,7 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import Log from '../../libs/Log';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -247,7 +248,7 @@ class WorkspaceMembersPage extends React.Component {
 
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
-            console.debug('Not showing workspace people page because user is not on free plan beta');
+            Log.info('Not showing workspace people page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);

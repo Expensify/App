@@ -1,6 +1,7 @@
 import React, {PureComponent} from 'react';
 import {Image} from 'react-native';
 import PropTypes from 'prop-types';
+import Log from '../libs/Log';
 import styles from '../styles/styles';
 
 const propTypes = {
@@ -63,7 +64,7 @@ class ImageWithSizeCalculation extends PureComponent {
 
             this.props.onMeasure({width, height});
         }, (error) => {
-            console.debug('Unable to fetch image to calculate size', {error});
+            Log.hmmm('Unable to fetch image to calculate size', {error});
         });
     }
 

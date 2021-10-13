@@ -1,3 +1,5 @@
+import Log from '../Log';
+
 /**
  * Listens for storage events so that multiple tabs can keep track of what
  * other tabs are doing
@@ -10,7 +12,7 @@ function listenToStorageEvents(callback) {
         try {
             newValue = JSON.parse(e.newValue);
         } catch (err) {
-            console.debug('Could not parse the newValue of the storage event', err, e);
+            Log.info('Could not parse the newValue of the storage event', false,{event: e, error: err});
         }
         if (newValue !== undefined) {
             callback(e.key, newValue);

@@ -3,6 +3,7 @@ import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
+import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
@@ -129,7 +130,7 @@ function fetchPersonalDetails() {
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
         })
-        .catch(error => console.debug('Error fetching personal details', error));
+        .catch(error => Log.hmmm('Error fetching personal details', error));
 }
 
 /**
@@ -261,7 +262,7 @@ function fetchLocalCurrency() {
         .then(() => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
         })
-        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
+        .catch(error => Log.hmmm('Error fetching currency preference:', {error}))
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {
                 isRetrievingCurrency: false,

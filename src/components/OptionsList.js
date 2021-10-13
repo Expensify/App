@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Log from '../libs/Log';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
@@ -154,7 +155,7 @@ class OptionsList extends Component {
      * @param {Object} info
      */
     onScrollToIndexFailed(info) {
-        console.debug(info);
+        Log.info('[OptionsList] scrollToIndex failed', false, info);
     }
 
     /**

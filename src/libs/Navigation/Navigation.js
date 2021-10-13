@@ -8,6 +8,7 @@ import {
 } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
+import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
@@ -39,7 +40,7 @@ function setDidTapNotification() {
  */
 function openDrawer() {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] openDrawer failed because navigation ref was not yet ready');
+        Log.info('[Navigation] openDrawer failed because navigation ref was not yet ready');
         return;
     }
     navigationRef.current.dispatch(DrawerActions.openDrawer());
@@ -51,7 +52,7 @@ function openDrawer() {
  */
 function closeDrawer() {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] closeDrawer failed because navigation ref was not yet ready');
+        Log.info('[Navigation] closeDrawer failed because navigation ref was not yet ready');
         return;
     }
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
@@ -74,12 +75,12 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  */
 function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] goBack failed because navigation ref was not yet ready');
+        Log.info('[Navigation] goBack failed because navigation ref was not yet ready');
         return;
     }
 
     if (!navigationRef.current.canGoBack()) {
-        console.debug('Unable to go back');
+        Log.info('[Navigation] Unable to go back');
         if (shouldOpenDrawer) {
             openDrawer();
         }
@@ -95,7 +96,7 @@ function goBack(shouldOpenDrawer = true) {
  */
 function navigate(route = ROUTES.HOME) {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] navigate failed because navigation ref was not yet ready');
+        Log.info('[Navigation] navigate failed because navigation ref was not yet ready');
         return;
     }
 
@@ -129,7 +130,7 @@ function navigate(route = ROUTES.HOME) {
  */
 function dismissModal(shouldOpenDrawer = false) {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] dismissModal failed because navigation ref was not yet ready');
+        Log.info('[Navigation] dismissModal failed because navigation ref was not yet ready');
         return;
     }
 

@@ -2,6 +2,7 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
+import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
 import * as API from '../API';
@@ -82,7 +83,7 @@ function signOut() {
     }
     Timing.clearData();
     redirectToSignIn();
-    console.debug('Redirecting to Sign In because signOut() was called');
+    Log.info('Redirecting to Sign In because signOut() was called');
 }
 
 /**
@@ -194,7 +195,7 @@ function createTemporaryLogin(authToken, encryptedAuthToken, email) {
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                     doNotRetry: true,
                 })
-                    .catch(console.debug);
+                    .catch(Log.info);
             }
 
             Onyx.merge(ONYXKEYS.CREDENTIALS, {
