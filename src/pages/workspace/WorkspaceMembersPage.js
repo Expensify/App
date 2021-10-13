@@ -148,9 +148,15 @@ class WorkspaceMembersPage extends React.Component {
      * Shows the tooltip for non removable members
      *
      * @param {String} login
+     * @param {Boolean} wasHovered
      * @returns {Boolean} Return true if the tooltip was displayed so we can use the state of it in other functions.
      */
-    willTooltipShowForLogin(login) {
+    willTooltipShowForLogin(login, wasHovered = false) {
+        // Small screens only show the tooltip on press, so ignore hovered event on those cases.
+        if (wasHovered && (this.props.isSmallScreenWidth || this.props.isMediumScreenWidth)) {
+            return false;
+        }
+
         const canBeRemoved = this.props.policy.owner !== login && this.props.session.email !== login;
         if (!canBeRemoved) {
             this.setState({showTooltipForLogin: login});
@@ -198,7 +204,7 @@ class WorkspaceMembersPage extends React.Component {
     }) {
         const canBeRemoved = this.props.policy.owner !== item.login && this.props.session.email !== item.login;
         return (
-            <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
+            <Hoverable onHoverIn={() => this.willTooltipShowForLogin(item.login, true)} onHoverOut={() => this.setState({showTooltipForLogin: ''})}>
                 <TouchableOpacity
                     style={[styles.peopleRow, !canBeRemoved && styles.cursorDisabled]}
                     onPress={() => this.toggleUser(item.login)}
