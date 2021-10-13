@@ -30,7 +30,6 @@ const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.invoices.viewUnpaidInvoices'),
-                    // eslint-disable-next-line max-len
                     onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`),
                     icon: CircleHourglass,
                     shouldShowRightIcon: true,
