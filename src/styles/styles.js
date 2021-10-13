@@ -15,15 +15,20 @@ import textInputAlignSelf from './utilities/textInputAlignSelf';
 import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
+import visibility from './utilities/visibility';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
+    color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
-    paddingHorizontal: 12,
+    paddingHorizontal: 11.5,
     paddingBottom: 8,
     paddingTop: 24,
     height: 52,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: themeColors.border,
     borderRadius: variables.componentBorderRadiusNormal,
 };
 
@@ -48,6 +53,16 @@ const styles = {
         color: themeColors.linkHover,
     },
 
+    linkMuted: {
+        color: themeColors.textSupporting,
+        textDecorationColor: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+    },
+
+    linkMutedHovered: {
+        color: themeColors.textMutedReversed,
+    },
+
     h1: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -58,11 +73,13 @@ const styles = {
     h3: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeNormal,
+        fontWeight: fontWeightBold,
     },
 
     h4: {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeLabel,
+        fontWeight: fontWeightBold,
     },
 
     textAlignCenter: {
@@ -77,8 +94,19 @@ const styles = {
         textDecorationLine: 'underline',
     },
 
+    label: {
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
+
     textLabel: {
         color: themeColors.text,
+        fontSize: variables.fontSizeLabel,
+        lineHeight: 18,
+    },
+
+    mutedTextLabel: {
+        color: themeColors.textSupporting,
         fontSize: variables.fontSizeLabel,
         lineHeight: 18,
     },
@@ -103,8 +131,21 @@ const styles = {
         lineHeight: 14,
     },
 
+    textExtraSmallSupporting: {
+        color: themeColors.textSupporting,
+        fontFamily: fontFamily.GTA,
+        fontSize: variables.fontSizeExtraSmall,
+    },
+
     textLarge: {
         fontSize: variables.fontSizeLarge,
+    },
+
+    textXLarge: {
+        color: themeColors.heading,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontSize: variables.fontSizeXLarge,
+        fontWeight: fontWeightBold,
     },
 
     textXXXLarge: {
@@ -130,6 +171,10 @@ const styles = {
 
     textWhite: {
         color: colors.white,
+    },
+
+    textBlue: {
+        color: colors.blue,
     },
 
     textUppercase: {
@@ -167,7 +212,7 @@ const styles = {
     button: {
         backgroundColor: themeColors.buttonDefaultBG,
         borderRadius: variables.componentBorderRadiusNormal,
-        height: variables.componentSizeNormal,
+        height: variables.componentSizeLarge,
         justifyContent: 'center',
         ...spacing.ph3,
     },
@@ -175,9 +220,13 @@ const styles = {
     buttonText: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeLabel,
+        fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         textAlign: 'center',
+
+        // It is needed to unset the Lineheight. We don't need it for buttons as button always contains single line of text.
+        // It allows to vertically center the text.
+        lineHeight: undefined,
     },
 
     buttonSmall: {
@@ -201,15 +250,13 @@ const styles = {
 
     buttonSmallText: {
         fontSize: variables.fontSizeSmall,
-        lineHeight: 16,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
     },
 
     buttonLargeText: {
-        fontSize: variables.fontSizeLarge,
-        lineHeight: 18,
+        fontSize: variables.fontSizeNormal,
         fontFamily: fontFamily.GTA_BOLD,
         fontWeight: fontWeightBold,
         textAlign: 'center',
@@ -249,7 +296,8 @@ const styles = {
     },
 
     buttonDropdown: {
-        marginLeft: 1,
+        borderLeftWidth: 1,
+        borderColor: themeColors.textReversed,
     },
 
     noRightBorderRadius: {
@@ -300,56 +348,6 @@ const styles = {
         height: 160,
     },
 
-    picker: {
-        inputIOS: {
-            flex: 1,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadiusNormal,
-            borderColor: themeColors.border,
-            paddingTop: 25,
-            paddingHorizontal: 12,
-            paddingBottom: 8,
-            justifyContent: 'center',
-            height: '100%',
-            backgroundColor: themeColors.componentBG,
-        },
-        inputWeb: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
-            borderColor: themeColors.border,
-            color: themeColors.text,
-            appearance: 'none',
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
-            cursor: 'pointer',
-        },
-        inputAndroid: {
-            fontFamily: fontFamily.GTA,
-            fontSize: variables.fontSizeNormal,
-            paddingLeft: 12,
-            paddingRight: 12,
-            paddingTop: 10,
-            paddingBottom: 10,
-            borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
-            borderColor: themeColors.border,
-            color: themeColors.text,
-            height: variables.inputComponentSizeNormal,
-            opacity: 1,
-        },
-        iconContainer: {
-            top: 12,
-            right: 12,
-            pointerEvents: 'none',
-        },
-    },
-
     pickerSmall: {
         inputIOS: {
             fontFamily: fontFamily.GTA,
@@ -361,6 +359,7 @@ const styles = {
             borderRadius: variables.componentBorderRadius,
             borderWidth: 1,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -374,8 +373,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
+            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
             height: variables.componentSizeSmall,
@@ -391,8 +391,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderWidth: 1,
-            borderRadius: variables.componentBorderRadius,
             borderColor: themeColors.border,
+            borderStyle: 'solid',
+            borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -504,21 +505,19 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
-        paddingTop: 25,
-        paddingBottom: 8,
-        paddingHorizontal: 12,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
     },
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 12,
-        top: 14,
+        left: 11.5,
+        top: 16,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+        zIndex: -1,
     },
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
@@ -533,6 +532,11 @@ const styles = {
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
+        color: themeColors.text,
+        ...spacing.pv0,
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 11.5,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -556,15 +560,14 @@ const styles = {
     },
 
     expensiPickerContainer: {
-        borderWidth: 1,
+        borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 12,
+        left: 11.5,
         top: 8,
     },
     expensiPicker: (disabled = false) => ({
@@ -575,7 +578,6 @@ const styles = {
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            border: 'none',
             ...expensiPicker,
         },
         inputNative: {
@@ -708,19 +710,10 @@ const styles = {
         maxWidth: 400,
     },
 
-    loginTermsText: {
-        color: themeColors.textSupporting,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeExtraSmall,
-    },
-
-    termsLink: {
-        color: themeColors.link,
-    },
-
-    termsLinkNative: {
-        color: themeColors.link,
-        margin: 0,
+    changeExpensifyLoginLinkContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        ...wordBreak.breakWord,
     },
 
     // Sidebar Styles
@@ -878,6 +871,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         fontWeight: fontWeightBold,
         color: themeColors.heading,
+        maxWidth: 240,
     },
 
     menuItemTextContainer: {
@@ -1178,6 +1172,9 @@ const styles = {
         width: '100%',
         ...spacing.ph4,
     },
+    emojiPickerListLandscape: {
+        height: 240,
+    },
 
     emojiHeaderStyle: {
         backgroundColor: themeColors.componentBG,
@@ -1189,20 +1186,23 @@ const styles = {
         fontSize: variables.fontSizeSmall,
     },
 
+    emojiSkinToneTitle: {
+        backgroundColor: themeColors.componentBG,
+        width: '100%',
+        ...spacing.pv1,
+        fontFamily: fontFamily.GTA_BOLD,
+        fontWeight: fontWeightBold,
+        color: themeColors.heading,
+        fontSize: variables.fontSizeSmall,
+    },
+
     // Emoji Picker Styles
     emojiText: {
         fontFamily: fontFamily.GTA_BOLD,
         textAlign: 'center',
-        ...spacing.pv1,
-        ...spacing.ph2,
-    },
-
-    emojiExtraSmall: {
-        fontSize: variables.iconSizeExtraSmall,
-    },
-
-    emojiLarge: {
-        fontSize: variables.iconSizeLarge,
+        fontSize: variables.emojiSize,
+        ...spacing.pv0,
+        ...spacing.ph0,
     },
 
     emojiItem: {
@@ -1394,6 +1394,25 @@ const styles = {
         flex: 1,
     },
 
+    borderTop: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderTopRounded: {
+        borderTopWidth: 1,
+        borderColor: themeColors.border,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+    },
+
+    borderBottomRounded: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.border,
+        borderBottomLeftRadius: variables.componentBorderRadiusNormal,
+        borderBottomRightRadius: variables.componentBorderRadiusNormal,
+    },
+
     borderBottom: {
         borderBottomWidth: 1,
         borderColor: themeColors.border,
@@ -1401,6 +1420,11 @@ const styles = {
 
     borderRight: {
         borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    borderLeft: {
+        borderLeftWidth: 1,
         borderColor: themeColors.border,
     },
 
@@ -1742,6 +1766,10 @@ const styles = {
         paddingEnd: 20,
     },
 
+    iouConfirmComment: {
+        flexBasis: 92,
+    },
+
     noScrollbars: {
         scrollbarWidth: 'none',
     },
@@ -1781,6 +1809,14 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+
+    reimbursementAccountFullScreenLoading: {
+        backgroundColor: themeColors.componentBG,
+        opacity: 0.8,
+        justifyContent: 'flex-start',
         alignItems: 'center',
         zIndex: 10,
     },
@@ -1844,6 +1880,10 @@ const styles = {
         cursor: 'not-allowed',
     },
 
+    cursorPointer: {
+        cursor: 'pointer',
+    },
+
     fullscreenCard: {
         position: 'absolute',
         left: 0,
@@ -1863,6 +1903,12 @@ const styles = {
         left: '-20%',
         top: '-30%',
         width: '150%',
+    },
+
+    fullscreenCardMediumScreen: {
+        left: '-15%',
+        top: '-30%',
+        width: '145%',
     },
 
     smallEditIcon: {
@@ -1895,6 +1941,10 @@ const styles = {
         height: 475,
     },
 
+    workspaceCardMediumScreen: {
+        height: 540,
+    },
+
     workspaceCardMainText: {
         fontSize: variables.fontSizeXXXLarge,
         fontWeight: 'bold',
@@ -1904,6 +1954,10 @@ const styles = {
     workspaceCardContent: {
         zIndex: 1,
         padding: 50,
+    },
+
+    workspaceCardContentMediumScreen: {
+        padding: 25,
     },
 
     workspaceCardCTA: {
@@ -1983,6 +2037,63 @@ const styles = {
 
     communicationsLinkHeight: {
         height: 20,
+    },
+
+    reportMarkerBadgeWrapper: {
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        zIndex: 100,
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadgeWrapperAndroid: {
+        left: 0,
+        width: '100%',
+        alignItems: 'center',
+        position: 'absolute',
+        top: 0,
+        zIndex: 100,
+        ...visibility('hidden'),
+    },
+
+    reportMarkerBadgeSubWrapperAndroid: {
+        left: '50%',
+        width: 'auto',
+    },
+
+    reportMarkerBadge: {
+        left: '-50%',
+        ...visibility('visible'),
+    },
+
+    reportMarkerBadgeTransformation: translateY => ({
+        transform: [
+            {translateY},
+        ],
+    }),
+
+    confettiIcon: {
+        height: 100,
+        width: 100,
+        marginBottom: 20,
+    },
+
+    googleSearchTextInputContainer: {
+        flexDirection: 'column',
+    },
+
+    googleSearchSeparator: {
+        height: 1,
+        backgroundColor: themeColors.border,
+    },
+
+    googleSearchText: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
+        fontFamily: fontFamily.GTA,
+        flex: 1,
     },
 };
 
@@ -2143,12 +2254,21 @@ function getZoomCursorStyle(isZoomed, isDragging) {
 
 /**
  * @param {Boolean} isZoomed
+ * @param {Number} imgWidth
+ * @param {Number} imgHeight
+ * @param {Number} zoomScale
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed) {
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale) {
+    if (imgWidth === 0 || imgHeight === 0) {
+        return {
+            height: isZoomed ? '250%' : '100%',
+            width: isZoomed ? '250%' : '100%',
+        };
+    }
     return {
-        height: isZoomed ? '250%' : '100%',
-        width: isZoomed ? '250%' : '100%',
+        height: isZoomed ? `${(imgHeight * zoomScale)}px` : '100%',
+        width: isZoomed ? `${(imgWidth * zoomScale)}px` : '100%',
     };
 }
 

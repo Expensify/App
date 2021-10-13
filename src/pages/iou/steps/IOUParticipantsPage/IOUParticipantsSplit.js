@@ -7,7 +7,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
-import CONST from '../../../../CONST';
+import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
@@ -80,10 +80,10 @@ class IOUParticipantsSplit extends Component {
         } = getNewGroupOptions(
             props.reports,
             props.personalDetails,
+            props.betas,
             '',
             props.participants,
-            true,
-            props.betas,
+            EXCLUDED_IOU_EMAILS,
         );
 
         this.state = {
@@ -181,10 +181,10 @@ class IOUParticipantsSplit extends Component {
             } = getNewGroupOptions(
                 this.props.reports,
                 this.props.personalDetails,
+                this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                true,
-                this.props.betas,
+                EXCLUDED_IOU_EMAILS,
             );
             return {
                 recentReports,
@@ -218,10 +218,10 @@ class IOUParticipantsSplit extends Component {
                             } = getNewGroupOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
+                                this.props.betas,
                                 searchValue,
                                 [],
-                                true,
-                                this.props.betas,
+                                EXCLUDED_IOU_EMAILS,
                             );
                             this.setState({
                                 searchValue,
@@ -237,6 +237,11 @@ class IOUParticipantsSplit extends Component {
                 </View>
                 {this.props.participants?.length > 0 && (
                     <FixedFooter>
+                        {maxParticipantsReached && (
+                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
+                                {this.props.translate('iou.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS})}
+                            </Text>
+                        )}
                         <Button
                             success
                             style={[styles.w100]}

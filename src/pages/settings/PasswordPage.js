@@ -19,6 +19,7 @@ import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import InlineErrorText from '../../components/InlineErrorText';
 
 const propTypes = {
     /* Onyx Props */
@@ -71,15 +72,15 @@ class PasswordPage extends Component {
 
         if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
             stateToUpdate.shouldShowPasswordConfirmError = true;
+        } else {
+            stateToUpdate.shouldShowPasswordConfirmError = false;
         }
 
-        if (!isEmpty(stateToUpdate)) {
-            this.setState(stateToUpdate);
-        }
+        this.setState(stateToUpdate);
     }
 
     onBlurConfirmPassword() {
-        if (!this.state.confirmNewPassword || !this.doPasswordsMatch()) {
+        if ((this.state.newPassword && !this.state.confirmNewPassword) || !this.doPasswordsMatch()) {
             this.setState({shouldShowPasswordConfirmError: true});
         } else {
             this.setState({shouldShowPasswordConfirmError: false});
@@ -170,9 +171,9 @@ class PasswordPage extends Component {
                             </Text>
                         )}
                         {this.state.shouldShowPasswordConfirmError && (
-                            <Text style={[styles.formError, styles.mt1]}>
+                            <InlineErrorText>
                                 {this.props.translate('setPasswordPage.passwordsDontMatch')}
-                            </Text>
+                            </InlineErrorText>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>

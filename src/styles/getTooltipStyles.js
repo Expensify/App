@@ -118,10 +118,10 @@ export default function getTooltipStyles(
             top: shouldShowBelow
 
                 // We need to shift the tooltip down below the component. So shift the tooltip down (+) by...
-                ? yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical
+                ? (yOffset + componentHeight + POINTER_HEIGHT + manualShiftVertical)
 
                 // We need to shift the tooltip up above the component. So shift the tooltip up (-) by...
-                : (yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical,
+                : ((yOffset - (tooltipHeight + POINTER_HEIGHT)) + manualShiftVertical),
 
             // Next, we'll position it horizontally.
             // we will use xOffset to position the tooltip relative to the Wrapped Component
@@ -158,7 +158,7 @@ export default function getTooltipStyles(
             //      so that the top of the pointer aligns with the bottom of the component.
             //
             // Always add the manual vertical shift passed in as a parameter.
-            top: shouldShowBelow ? manualShiftVertical - POINTER_HEIGHT : tooltipHeight + manualShiftVertical,
+            top: shouldShowBelow ? (manualShiftVertical - POINTER_HEIGHT) : (tooltipHeight + manualShiftVertical),
 
             // To align it horizontally, we'll:
             //   1) Shift the pointer to the right (+) by the half the tooltipWidth's width,

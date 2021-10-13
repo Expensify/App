@@ -19,31 +19,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import userPropTypes from './userPropTypes';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** error associated with adding a secondary login */
-        error: PropTypes.string,
-
-        /** Whether the form is being submitted */
-        loading: PropTypes.bool,
-
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
-
-            /** Value of partner name */
-            partnerName: PropTypes.string,
-
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-
-            /** Date of when login was validated */
-            validatedDate: PropTypes.string,
-        })),
-    }),
+    user: userPropTypes,
 
     // Route object from navigation
     route: PropTypes.shape({
@@ -72,6 +52,7 @@ class AddSecondaryLoginPage extends Component {
         };
         this.formType = props.route.params.type;
         this.submitForm = this.submitForm.bind(this);
+        this.onSecondaryLoginChange = this.onSecondaryLoginChange.bind(this);
         this.validateForm = this.validateForm.bind(this);
 
         this.phoneNumberInputRef = null;
@@ -79,6 +60,15 @@ class AddSecondaryLoginPage extends Component {
 
     componentWillUnmount() {
         Onyx.merge(ONYXKEYS.USER, {error: ''});
+    }
+
+    onSecondaryLoginChange(login) {
+        if (this.formType === CONST.LOGIN_TYPE.EMAIL) {
+            this.setState({login});
+        } else if (this.formType === CONST.LOGIN_TYPE.PHONE
+            && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
+            this.setState({login});
+        }
     }
 
     /**
@@ -133,7 +123,7 @@ class AddSecondaryLoginPage extends Component {
                                     : 'profilePage.emailAddress')}
                                 ref={el => this.phoneNumberInputRef = el}
                                 value={this.state.login}
-                                onChangeText={login => this.setState({login})}
+                                onChangeText={this.onSecondaryLoginChange}
                                 keyboardType={this.formType === CONST.LOGIN_TYPE.PHONE
                                     ? CONST.KEYBOARD_TYPE.PHONE_PAD : undefined}
                                 returnKeyType="done"

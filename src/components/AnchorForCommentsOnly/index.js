@@ -29,7 +29,7 @@ const AnchorForCommentsOnly = (props) => {
     const propsToPass = _.omit(props, 'isAuthTokenRequired');
     if (props.isAuthTokenRequired) {
         propsToPass.href = addEncryptedAuthTokenToURL(props.href);
-        propsToPass.shouldDownloadFile = true;
+        propsToPass.isAttachment = true;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <BaseAnchorForCommentsOnly {...propsToPass} />;

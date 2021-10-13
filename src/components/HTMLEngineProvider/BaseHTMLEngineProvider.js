@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {TouchableOpacity} from 'react-native';
+import {TouchableOpacity, Linking} from 'react-native';
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
@@ -10,6 +10,7 @@ import {
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import Config from '../../CONFIG';
 import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
@@ -20,6 +21,9 @@ import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
 import Text from '../Text';
+import withLocalize from '../withLocalize';
+import Navigation from '../../libs/Navigation/Navigation';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Whether text elements should be selectable */
@@ -62,11 +66,62 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
     return contentWidth;
 }
 
+/**
+ * Check if there is an ancestor node with name 'comment'.
+ * Finding node with name 'comment' flags that we are rendering a comment.
+ * @param {TNode} tnode
+ * @returns {Boolean}
+ */
+function isInsideComment(tnode) {
+    let currentNode = tnode;
+    while (currentNode.parent) {
+        if (currentNode.domNode.name === 'comment') {
+            return true;
+        }
+        currentNode = currentNode.parent;
+    }
+    return false;
+}
+
 function AnchorRenderer({tnode, key, style}) {
     const htmlAttribs = tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
+    const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
+    const parentStyle = lodashGet(tnode, 'parent.styles.nativeTextRet', {});
+    const internalExpensifyPath = (htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, ''))
+        || (htmlAttribs.href.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
+
+    // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
+    // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
+    if (internalExpensifyPath) {
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => Navigation.navigate(internalExpensifyPath)}
+            >
+                <TNodeChildrenRenderer tnode={tnode} />
+            </Text>
+        );
+    }
+
+    if (!isInsideComment(tnode)) {
+        // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
+        // We don't have this behaviour in other links in NewDot
+        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => {
+                    Linking.openURL(htmlAttribs.href);
+                }}
+            >
+                <TNodeChildrenRenderer tnode={tnode} />
+            </Text>
+        );
+    }
+
     return (
         <AnchorForCommentsOnly
             href={htmlAttribs.href}
@@ -79,8 +134,9 @@ function AnchorRenderer({tnode, key, style}) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={style}
+            style={{...style, ...parentStyle}}
             key={key}
+            fileName={fileName}
         >
             <TNodeChildrenRenderer tnode={tnode} />
         </AnchorForCommentsOnly>
@@ -132,7 +188,7 @@ function EditedRenderer(props) {
         >
             {/* Native devices do not support margin between nested text */}
             <Text style={styles.w1}>{' '}</Text>
-            (edited)
+            {props.translate('reportActionCompose.edited')}
         </Text>
     );
 }
@@ -200,6 +256,13 @@ const customHTMLElementModels = {
     edited: defaultHTMLElementModels.span.extend({
         tagName: 'edited',
     }),
+    'muted-text': defaultHTMLElementModels.div.extend({
+        tagName: 'muted-text',
+        mixedUAStyles: styles.mutedTextLabel,
+    }),
+    comment: defaultHTMLElementModels.div.extend({
+        tagName: 'comment',
+    }),
 };
 
 // Define the custom renderer components
@@ -207,7 +270,7 @@ const renderers = {
     a: AnchorRenderer,
     code: CodeRenderer,
     img: ImgRenderer,
-    edited: EditedRenderer,
+    edited: withLocalize(EditedRenderer),
 };
 
 const renderersProps = {
@@ -229,6 +292,7 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 const BaseHTMLEngineProvider = ({children, textSelectable}) => {
     // We need to memoize this prop to make it referentially stable.
     const defaultTextProps = useMemo(() => ({selectable: textSelectable}), [textSelectable]);
+
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}

@@ -3,6 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import IOUAmountPage from './steps/IOUAmountPage';
 import IOUParticipantsPage from './steps/IOUParticipantsPage';
 import IOUConfirmPage from './steps/IOUConfirmPage';
@@ -17,9 +18,10 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import {addSMSDomainIfPhoneNumber, getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ScreenWrapper from '../../components/ScreenWrapper';
+import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
@@ -85,7 +87,7 @@ const defaultProps = {
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
-    iouType: '',
+    iouType: CONST.IOU.IOU_TYPE.REQUEST,
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -108,9 +110,11 @@ class IOUModal extends Component {
             .map(personalDetails => ({
                 login: personalDetails.login,
                 text: personalDetails.displayName,
-                alternateText: personalDetails.login,
+                alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
                 icons: [personalDetails.avatar],
                 keyForList: personalDetails.login,
+                payPalMeAddress: personalDetails.payPalMeAddress ?? '',
+                phoneNumber: personalDetails.phoneNumber ?? '',
             }));
 
         this.state = {
@@ -169,7 +173,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.props.iouType === 'send') {
+            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -181,7 +185,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.props.iouType === 'send') {
+            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -269,7 +273,7 @@ class IOUModal extends Component {
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: this.state.participants[0].login,
+            debtorEmail: addSMSDomainIfPhoneNumber(this.state.participants[0].login),
         });
     }
 
@@ -292,23 +296,27 @@ class IOUModal extends Component {
                             >
                                 {this.state.currentStepIndex > 0
                                     && (
-                                        <TouchableOpacity
-                                            onPress={this.navigateToPreviousStep}
-                                            style={[styles.touchableButtonImage]}
-                                        >
-                                            <Icon src={BackArrow} />
-                                        </TouchableOpacity>
+                                        <Tooltip text={this.props.translate('common.back')}>
+                                            <TouchableOpacity
+                                                onPress={this.navigateToPreviousStep}
+                                                style={[styles.touchableButtonImage]}
+                                            >
+                                                <Icon src={BackArrow} />
+                                            </TouchableOpacity>
+                                        </Tooltip>
                                     )}
                                 <Header title={this.getTitleForStep()} />
-                                <View style={[styles.reportOptions, styles.flexRow]}>
-                                    <TouchableOpacity
-                                        onPress={() => Navigation.dismissModal()}
-                                        style={[styles.touchableButtonImage]}
-                                        accessibilityRole="button"
-                                        accessibilityLabel={this.props.translate('common.close')}
-                                    >
-                                        <Icon src={Close} />
-                                    </TouchableOpacity>
+                                <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
+                                    <Tooltip text={this.props.translate('common.close')}>
+                                        <TouchableOpacity
+                                            onPress={() => Navigation.dismissModal()}
+                                            style={[styles.touchableButtonImage, styles.mr0]}
+                                            accessibilityRole="button"
+                                            accessibilityLabel={this.props.translate('common.close')}
+                                        >
+                                            <Icon src={Close} />
+                                        </TouchableOpacity>
+                                    </Tooltip>
                                 </View>
                             </View>
                         </View>
@@ -346,6 +354,8 @@ class IOUModal extends Component {
                                             iouAmount={this.state.amount}
                                             comment={this.state.comment}
                                             onUpdateComment={this.updateComment}
+                                            iouType={this.props.iouType}
+                                            localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
                                         />
                                     )}
                                 </>

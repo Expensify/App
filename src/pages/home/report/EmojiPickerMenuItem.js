@@ -18,11 +18,6 @@ const propTypes = {
 
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
-
-    /** Size of the emoji item */
-    emojiSize: PropTypes.shape({
-        fontSize: PropTypes.number,
-    }).isRequired,
 };
 
 const EmojiPickerMenuItem = props => (
@@ -31,14 +26,14 @@ const EmojiPickerMenuItem = props => (
         style={({
             pressed,
         }) => ([
-            styles.emojiItem,
             styles.pv1,
             getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted ? styles.emojiItemHighlighted : {},
+            styles.emojiItem,
         ])}
     >
         <Hoverable onHoverIn={props.onHover}>
-            <Text style={[styles.emojiText, props.emojiSize]}>
+            <Text style={[styles.emojiText]}>
                 {props.emoji}
             </Text>
         </Hoverable>
@@ -56,5 +51,6 @@ EmojiPickerMenuItem.defaultProps = {
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
 export default React.memo(
     EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted,
+    (prevProps, nextProps) => prevProps.isHighlighted === nextProps.isHighlighted
+                                && prevProps.emoji === nextProps.emoji,
 );

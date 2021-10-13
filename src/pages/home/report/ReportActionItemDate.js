@@ -23,6 +23,9 @@ ReportActionItemDate.displayName = 'ReportActionItemDate';
 
 export default compose(
     withLocalize,
+
+    /** This component is hooked to the current date so that relative times can update when necessary
+     * e.g. past midnight */
     withCurrentDate(),
     memo,
 )(ReportActionItemDate);

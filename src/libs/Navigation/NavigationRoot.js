@@ -6,6 +6,7 @@ import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
 import {setCurrentURL} from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import Log from '../Log';
 
 const propTypes = {
     /** Whether the current user is logged in with an authToken */
@@ -29,13 +30,20 @@ class NavigationRoot extends Component {
         }
 
         const path = getPathFromState(state, linkingConfig.config);
+
+        // Don't log the route transitions from OldDot because they contain authTokens
+        if (path.includes('/transition')) {
+            Log.info('Navigating from transition link from OldDot using short lived authToken');
+        } else {
+            Log.info('Navigating to route', false, {path});
+        }
         setCurrentURL(path);
     }
 
     render() {
         return (
             <NavigationContainer
-                fallback={<FullScreenLoadingIndicator visible />}
+                fallback={<FullScreenLoadingIndicator />}
                 onStateChange={this.parseAndStoreRoute}
                 ref={navigationRef}
                 linking={linkingConfig}

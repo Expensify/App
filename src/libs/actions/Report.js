@@ -1,3 +1,4 @@
+import {Linking} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -53,19 +54,6 @@ Onyx.connect({
 
 const allReports = {};
 let conciergeChatReportID;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (val) => {
-        if (val && val.reportID) {
-            allReports[val.reportID] = val;
-
-            if (isConciergeChatReport(val)) {
-                conciergeChatReportID = val.reportID;
-            }
-        }
-    },
-});
-
 const typingWatchTimers = {};
 
 /**
@@ -311,22 +299,22 @@ function fetchIOUReportID(debtorEmail) {
 
 /**
  * Fetches chat reports when provided a list of chat report IDs.
- * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
+ * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
  * when we find an inaccessible chat
  * @param {Array} chatList
- * @param {Boolean} shouldRedirectIfInacessible
- * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
+ * @param {Boolean} shouldRedirectIfInaccessible
+ * @returns {Promise<Object[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
         .then(({reportSummaryList, jsonCode}) => {
-            Log.info('[Report] successfully fetched report data', true);
+            Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
 
-            // If we receive a 404 response while fetching a single report, treat that report as inacessible.
-            if (jsonCode === 404 && shouldRedirectIfInacessible) {
+            // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
+            if (jsonCode === 404 && shouldRedirectIfInaccessible) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
             }
 
@@ -342,7 +330,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
                     return;
                 }
                 if (participants.length === 0) {
-                    Log.alert('[Report] Report with IOU action but does not have any participant.', true, {
+                    Log.alert('[Report] Report with IOU action but does not have any participant.', {
                         reportID: chatReport.reportID,
                         participants,
                     });
@@ -391,8 +379,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
-
-            return _.map(fetchedReports, report => report.reportID);
+            return fetchedReports;
         })
         .catch((err) => {
             if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
@@ -461,11 +448,17 @@ function removeOptimisticActions(reportID) {
  *
  * @param {Number} iouReportID - ID of the report we are fetching
  * @param {Number} chatReportID - associated chatReportID, set as an iouReport field
+ * @param {Boolean} [shouldRedirectIfEmpty=false] - Whether to redirect to Active Report Screen if IOUReport is empty
  * @returns {Promise}
  */
-function fetchIOUReportByID(iouReportID, chatReportID) {
+function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = false) {
     return fetchIOUReport(iouReportID, chatReportID)
         .then((iouReportObject) => {
+            if (!iouReportObject && shouldRedirectIfEmpty) {
+                Growl.error(translateLocal('notFound.iouReportNotFound'));
+                Navigation.navigate(ROUTES.REPORT);
+                return;
+            }
             setLocalIOUReportData(iouReportObject);
             return iouReportObject;
         });
@@ -542,9 +535,13 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
  *
  * @param {Number} reportID
  * @param {Object} reportAction
- * @param {String} notificationPreference On what cadence the user would like to be notified
+ * @param {String} [notificationPreference] On what cadence the user would like to be notified
  */
-function updateReportWithNewAction(reportID, reportAction, notificationPreference) {
+function updateReportWithNewAction(
+    reportID,
+    reportAction,
+    notificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+) {
     const newMaxSequenceNumber = reportAction.sequenceNumber;
     const isFromCurrentUser = reportAction.actorAccountID === currentUserAccountID;
     const initialLastReadSequenceNumber = lastReadSequenceNumbers[reportID] || 0;
@@ -581,8 +578,8 @@ function updateReportWithNewAction(reportID, reportAction, notificationPreferenc
 
     const reportActionsToMerge = {};
     if (reportAction.clientID) {
-        // Remove the optimistic action from the report since we are about to replace it with the real one (which has
-        // the true sequenceNumber)
+        // Remove the optimistic action from the report since we are about to replace it
+        // with the real one (which has the true sequenceNumber)
         reportActionsToMerge[reportAction.clientID] = null;
     }
 
@@ -689,7 +686,7 @@ function subscribeToUserEvents() {
     // Live-update a report's actions when a 'report comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT, (pushJSON) => {
         Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, true, {reportID: pushJSON.reportID},
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT} event sent by Pusher`, false, {reportID: pushJSON.reportID},
         );
         updateReportWithNewAction(pushJSON.reportID, pushJSON.reportAction, pushJSON.notificationPreference);
     }, false,
@@ -699,7 +696,7 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
             );
         });
@@ -707,7 +704,7 @@ function subscribeToUserEvents() {
     // Live-update a report's actions when an 'edit comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT, (pushJSON) => {
         Log.info(
-            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, true, {
+            `[Report] Handled ${Pusher.TYPE.REPORT_COMMENT_EDIT} event sent by Pusher`, false, {
                 reportActionID: pushJSON.reportActionID,
             },
         );
@@ -719,7 +716,7 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
             );
         });
@@ -728,7 +725,7 @@ function subscribeToUserEvents() {
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
         Log.info(
             `[Report] Handled ${Pusher.TYPE.REPORT_TOGGLE_PINNED} event sent by Pusher`,
-            true,
+            false,
             {reportID: pushJSON.reportID},
         );
         updateReportPinnedState(pushJSON.reportID, pushJSON.isPinned);
@@ -739,25 +736,31 @@ function subscribeToUserEvents() {
         .catch((error) => {
             Log.info(
                 '[Report] Failed to subscribe to Pusher channel',
-                true,
+                false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
             );
         });
+}
 
+/**
+ * Setup reportComment push notification callbacks.
+ */
+function subscribeToReportCommentPushNotifications() {
     PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, ({reportID, reportAction}) => {
-        Log.info('[Report] Handled event sent by Airship', true, {reportID});
+        Log.info('[Report] Handled event sent by Airship', false, {reportID});
         updateReportWithNewAction(reportID, reportAction);
     });
 
     // Open correct report when push notification is clicked
     PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, ({reportID}) => {
-        Navigation.navigate(ROUTES.getReportRoute(reportID));
+        Navigation.setDidTapNotification();
+        Linking.openURL(`${CONST.DEEPLINK_BASE_URL}${ROUTES.getReportRoute(reportID)}`);
     });
 }
 
 /**
  * There are 2 possibilities that we can receive via pusher for a user's typing status:
- * 1. The "new" way from e.cash is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
+ * 1. The "new" way from New Expensify is passed as {[login]: Boolean} (e.g. {yuwen@expensify.com: true}), where the value
  * is whether the user with that login is typing on the report or not.
  * 2. The "old" way from e.com which is passed as {userLogin: login} (e.g. {userLogin: bstites@expensify.com})
  *
@@ -817,7 +820,7 @@ function subscribeToReportTypingEvents(reportID) {
         }, 1500);
     })
         .catch((error) => {
-            Log.info('[Report] Failed to initially subscribe to Pusher channel', true, {error, pusherChannelName});
+            Log.info('[Report] Failed to initially subscribe to Pusher channel', false, {error, pusherChannelName});
         });
 }
 
@@ -842,7 +845,7 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise<Number[]>}
+ * @returns {Promise<Object[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
@@ -867,9 +870,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
 
-            // We are returning an array with the reportID here since fetchAllReports calls this method or
-            // fetchChatReportsByIDs which returns an array of reportIDs.
-            return [data.reportID];
+            // We are returning an array with a report object here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of report objects.
+            return [data];
         });
 }
 
@@ -884,7 +887,7 @@ function fetchActions(reportID, offset) {
     const reportActionsOffset = !_.isUndefined(offset) ? offset : -1;
 
     if (!_.isNumber(reportActionsOffset)) {
-        Log.alert('[Report] Offset provided is not a number', true, {
+        Log.alert('[Report] Offset provided is not a number', {
             offset,
             reportActionsOffset,
         });
@@ -902,13 +905,7 @@ function fetchActions(reportID, offset) {
             removeOptimisticActions(reportID);
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
 
@@ -943,8 +940,15 @@ function fetchAllReports(
 
             return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
-        .then((returnedReportIDs) => {
+        .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+
+            // If at this point the user still doesn't have a Concierge report, create it for them.
+            // This means they were a participant in reports before their account was created (e.g. default rooms)
+            const hasConciergeChat = _.some(returnedReports, report => isConciergeChatReport(report));
+            if (!hasConciergeChat) {
+                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+            }
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -958,9 +962,10 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsWithMissingActions = _.filter(returnedReportIDs, id => (
-                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
-                ));
+                const reportIDsWithMissingActions = _.chain(returnedReports)
+                    .map(report => report.reportID)
+                    .filter(reportID => isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .value();
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
                 // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
@@ -1227,6 +1232,14 @@ function handleReportChanged(report) {
         return;
     }
 
+    if (report && report.reportID) {
+        allReports[report.reportID] = report;
+
+        if (isConciergeChatReport(report)) {
+            conciergeChatReportID = report.reportID;
+        }
+    }
+
     // A report can be missing a name if a comment is received via pusher event
     // and the report does not yet exist in Onyx (eg. a new DM created with the logged in person)
     if (report.reportID && report.reportName === undefined) {
@@ -1265,6 +1278,12 @@ NetworkConnection.onReconnect(fetchAllReports);
 function editReportComment(reportID, originalReportAction, textForNewComment) {
     const parser = new ExpensiMark();
     const htmlForNewComment = parser.replace(textForNewComment);
+
+    //  Delete the comment if it's empty
+    if (_.isEmpty(htmlForNewComment)) {
+        deleteReportComment(reportID, originalReportAction);
+        return;
+    }
 
     // Skip the Edit if message is not changed
     if (originalReportAction.message[0].html === htmlForNewComment.trim()) {
@@ -1386,6 +1405,7 @@ export {
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     subscribeToUserEvents,
+    subscribeToReportCommentPushNotifications,
     unsubscribeFromReportChannel,
     saveReportComment,
     broadcastUserIsTyping,

@@ -1,12 +1,13 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
-import {Linking, StyleSheet} from 'react-native';
+import {Linking, StyleSheet, Pressable} from 'react-native';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
 import Text from '../../Text';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
+import AttachmentView from '../../AttachmentView';
 
 /*
  * This is a default anchor component for regular links.
@@ -15,13 +16,28 @@ const BaseAnchorForCommentsOnly = ({
     href,
     children,
     style,
-    shouldDownloadFile,
+    isAttachment,
+    fileName,
     ...props
 }) => {
     let linkRef;
     return (
-        <PressableWithSecondaryInteraction
-            onSecondaryInteraction={
+        isAttachment
+            ? (
+                <Pressable onPress={() => {
+                    fileDownload(href, fileName);
+                }}
+                >
+                    <AttachmentView
+                        sourceURL={href}
+                        file={{name: fileName}}
+                        shouldShowDownloadIcon
+                    />
+                </Pressable>
+            )
+            : (
+                <PressableWithSecondaryInteraction
+                    onSecondaryInteraction={
                 (event) => {
                     showContextMenu(
                         CONTEXT_MENU_TYPES.LINK,
@@ -31,17 +47,18 @@ const BaseAnchorForCommentsOnly = ({
                     );
                 }
             }
-            onPress={() => (shouldDownloadFile ? fileDownload(href) : Linking.openURL(href))}
-        >
-            <Text
-                ref={el => linkRef = el}
-                style={StyleSheet.flatten(style)}
+                    onPress={() => Linking.openURL(href)}
+                >
+                    <Text
+                        ref={el => linkRef = el}
+                        style={StyleSheet.flatten(style)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            >
-                {children}
-            </Text>
-        </PressableWithSecondaryInteraction>
+                        {...props}
+                    >
+                        {children}
+                    </Text>
+                </PressableWithSecondaryInteraction>
+            )
     );
 };
 

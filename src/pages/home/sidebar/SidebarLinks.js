@@ -16,6 +16,7 @@ import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
 import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
+import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
 import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
@@ -141,14 +142,16 @@ class SidebarLinks extends React.Component {
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
                     />
-                    <TouchableOpacity
-                        accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
-                        accessibilityRole="button"
-                        style={[styles.flexRow, styles.ph5]}
-                        onPress={this.showSearchPage}
-                    >
-                        <Icon src={MagnifyingGlass} />
-                    </TouchableOpacity>
+                    <Tooltip text={this.props.translate('common.search')}>
+                        <TouchableOpacity
+                            accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
+                            accessibilityRole="button"
+                            style={[styles.flexRow, styles.ph5]}
+                            onPress={this.showSearchPage}
+                        >
+                            <Icon src={MagnifyingGlass} />
+                        </TouchableOpacity>
+                    </Tooltip>
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"

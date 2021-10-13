@@ -33,6 +33,7 @@
 		DB77016704074197AB6633BB /* GTAmericaExpMono-RgIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5150E5D0D7F74DBA8D7C1914 /* GTAmericaExpMono-RgIt.otf */; };
 		E9DF872D2525201700607FDC /* AirshipConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = E9DF872C2525201700607FDC /* AirshipConfig.plist */; };
 		ED814D34526B415CAFA0451E /* GTAmericaExpMono-BdIt.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3981452A2C7340EBBA2B9BD1 /* GTAmericaExpMono-BdIt.otf */; };
+		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
 		F2C9290F276DB05EEF04D160 /* libPods-NewExpensify-NewExpensifyTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 820334EEB8DDED5217A15684 /* libPods-NewExpensify-NewExpensifyTests.a */; };
 /* End PBXBuildFile section */
 
@@ -86,6 +87,7 @@
 		EB3C4841B1DB1490EA09A324 /* Pods-NewExpensify.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.release.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		ED2971642150620600B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = Platforms/AppleTVOS.platform/Developer/SDKs/AppleTVOS12.0.sdk/System/Library/Frameworks/JavaScriptCore.framework; sourceTree = DEVELOPER_DIR; };
+		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -165,6 +167,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				F0C450E92705020500FD2970 /* colors.json */,
 				7041848326A8E40900E09F4D /* RCTStartupTimer.h */,
 				7041848426A8E47D00E09F4D /* RCTStartupTimer.m */,
 				18D050DF262400AF000D658B /* BridgingFile.swift */,
@@ -328,6 +331,7 @@
 				1E76D5222522316A005A268F /* GTAmericaExp-Light.otf in Resources */,
 				1E76D5232522316A005A268F /* GTAmericaExp-Medium.otf in Resources */,
 				1E76D5242522316A005A268F /* GTAmericaExp-Regular.otf in Resources */,
+				F0C450EA2705020500FD2970 /* colors.json in Resources */,
 				1E76D5252522316A005A268F /* GTAmericaExp-Thin.otf in Resources */,
 				425866037F4C482AAB46CB8B /* GTAmericaExp-BdIt.otf in Resources */,
 				6856B78873B64C44A92E51DB /* GTAmericaExp-MdIt.otf in Resources */,
@@ -879,7 +883,7 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 368M544MTT;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = arm64;
-				INFOPLIST_FILE = "NewExpensify/Info.plist";
+				INFOPLIST_FILE = NewExpensify/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.0;
