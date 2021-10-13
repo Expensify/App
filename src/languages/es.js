@@ -613,7 +613,7 @@ export default {
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
-    vbaLoadingAnimation: {
+    reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un Momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
