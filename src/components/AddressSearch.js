@@ -75,7 +75,6 @@ class AddressSearch extends React.Component {
             <GooglePlacesAutocomplete
                 ref={this.googlePlacesRef}
                 fetchDetails
-                keepResultsAfterBlur
                 suppressDefaultStyles
                 enablePoweredByContainer={false}
                 onPress={(data, details) => this.saveLocationDetails(details)}
