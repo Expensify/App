@@ -36,11 +36,9 @@ const defaultProps = {
 class AddressSearch extends React.Component {
     constructor(props) {
         super(props);
-        this.googlePlacesRef = React.createRef();
-    }
-
-    componentDidMount() {
-        this.googlePlacesRef.current?.setAddressText(this.props.value);
+        this.state = {
+            value: props.value,
+        };
     }
 
     getAddressComponent(object, field, nameType) {
@@ -73,12 +71,14 @@ class AddressSearch extends React.Component {
     render() {
         return (
             <GooglePlacesAutocomplete
-                ref={this.googlePlacesRef}
                 fetchDetails
                 keepResultsAfterBlur
                 suppressDefaultStyles
                 enablePoweredByContainer={false}
-                onPress={(data, details) => this.saveLocationDetails(details)}
+                onPress={(data, details) => {
+                    this.setState({value: data.description});
+                    this.saveLocationDetails(details);
+                }}
                 query={{
                     key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
                     language: this.props.preferredLocale,
@@ -91,6 +91,10 @@ class AddressSearch extends React.Component {
                     InputComp: ExpensiTextInput,
                     label: this.props.label,
                     containerStyles: this.props.containerStyles,
+                    value: this.state.value,
+                    onChangeText: (value) => {
+                        this.setState({value});
+                    },
                 }}
                 styles={{
                     textInputContainer: [styles.flexColumn],
