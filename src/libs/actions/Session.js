@@ -2,7 +2,6 @@ import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
 import * as API from '../API';
