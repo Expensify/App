@@ -35,7 +35,7 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
             {
                 title: translate('workspace.invoices.viewAllInvoices'),
                 // eslint-disable-next-line max-len
-                onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"invoice","showStates":"Open,Processing,Approved,Reimbursed,Archived","isAdvancedFilterMode":true}`),
                 icon: Invoice,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,

@@ -31,7 +31,7 @@ const WorkspaceReimburseNoVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => openOldDotLink(`expenses?policyIDList=${policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                    onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"expense","showStates":"Archived","isAdvancedFilterMode":"true"}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
