@@ -263,7 +263,9 @@ function payIOUReport({
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     const idempotencyKey = getIdempotencyKey();
-    const newIOUReportDetails = {
+
+    // If the report doesn't exist yet, then that means we're sending a payment and need to create a new report
+    const newIOUReportDetails = reportID > 0 ? {} : {
         amount,
         currency,
         requestorEmail,
