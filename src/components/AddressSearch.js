@@ -40,13 +40,13 @@ const AddressSearch = (props) => {
         googlePlacesRef.current?.setAddressText(props.value);
     }, []);
 
+    // eslint-disable-next-line
     const getAddressComponent = (object, field, nameType) => {
         return _.chain(object.address_components)
             .find(component => _.contains(component.types, field))
             .get(nameType)
             .value();
     };
-
 
     const saveLocationDetails = (details) => {
         if (details.address_components) {
