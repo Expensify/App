@@ -31,7 +31,6 @@ const WorkspaceReimburseNoVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
-                    // eslint-disable-next-line max-len
                     onPress: () => openOldDotLink(`expenses?policyIDList=${policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
