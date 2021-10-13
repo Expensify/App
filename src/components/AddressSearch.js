@@ -7,6 +7,7 @@ import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
+import InlineErrorText from './InlineErrorText';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
