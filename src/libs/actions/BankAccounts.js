@@ -9,6 +9,13 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
+import Navigation from '../Navigation/Navigation';
+import {
+    isValidAddress,
+    isValidDate,
+    isValidIndustryCode,
+    isValidZipCode,
+} from '../ValidationUtils';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -49,6 +56,23 @@ function fetchPlaidLinkToken() {
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
+
+// /**
+//  * Validate that we have the necessary data to advance beyond this step.
+//  *
+//  * @param {String} step
+//  * @param {Object} data
+//  */
+// function validateStepData(step, data) {
+//     switch (step) {
+//         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+//             return (
+//                 data.bankAccount
+//                 && !_.isEmpty(bankAccount.getMaskedAccountNumber())
+//                 && !_.isEmpty(bankAccount.getRoutingNumber()))
+//             )
+//     }
+// }
 
 /**
  * Navigate to a specific step in the VBA flow
@@ -350,6 +374,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     // and determine which step to navigate to.
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, initialData);
     let bankAccountID;
+    let failedValidationAttemptsName = '';
 
     API.Get({
         returnValueList: 'nameValuePairs',
@@ -357,7 +382,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     })
         .then((response) => {
             bankAccountID = lodashGet(response, ['nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID], '');
-            const failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
+            failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
 
             // Now that we have the bank account. Lets grab the rest of the bank info we need
             return API.Get({
@@ -467,6 +492,49 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
             // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
             // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
             // their achData.
+            if (_.contains(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen)) {
+                // First, validate that we can enter the VBA flow at all.
+                // If we already have an open withdrawal account, navigate home.
+                if (bankAccount && bankAccount.isOpen()) {
+                    Navigation.navigate();
+                    return;
+                }
+
+                // Validate all steps leading up to the one we are trying to jump to
+                const stepsToValidate = CONST.BANK_ACCOUNT.STEPS_ORDERED
+                    .slice(0, _.indexOf(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen));
+
+                // Function to validate data is bank account setup step
+                const isStepComplete = (step) => {
+                    switch (step) {
+                        case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
+                            return bankAccount
+                                && !_.isEmpty(bankAccount.getMaskedAccountNumber())
+                                && !_.isEmpty(bankAccount.getRoutingNumber());
+                        case CONST.BANK_ACCOUNT.STEP.COMPANY:
+                            return !_.isEmpty(lodashGet(achData, 'companyName'))
+                                && isValidAddress(lodashGet(achData, 'addressStreet'))
+                                && isValidZipCode(lodashGet(achData, 'addressZipCode'))
+                                && !_.isEmpty(lodashGet(achData, 'companyTaxID'))
+                                && isValidIndustryCode(lodashGet(achData, 'industryCode'))
+                                && isValidDate(lodashGet(achData, 'incorporationDate'))
+                                && Str.isValidPhone(lodashGet(achData, 'companyPhone'))
+                                && Str.isValidURL(lodashGet(achData, 'website'));
+                        case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
+                            return isValidDate(lodashGet(achData, 'dob'));
+                        case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
+                            return Boolean(lodashGet(achData, 'acceptTerms', false))
+                                && Boolean(lodashGet(achData, 'certifyTrueInformation', false));
+                        case CONST.BANK_ACCOUNT.STEP.VALIDATION:
+                            break;
+                        default:
+                            return true;
+                    }
+                };
+                const earliestIncompleteStep = _.find(stepsToValidate, step => !isStepComplete(step));
+                currentStep = _.isUndefined(earliestIncompleteStep) ? stepToOpen : earliestIncompleteStep;
+            }
+
             if (stepToOpen) {
                 currentStep = stepToOpen;
             }
