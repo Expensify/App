@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, { useEffect, useRef } from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -37,7 +37,7 @@ const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
     useEffect(() => {
         googlePlacesRef.current?.setAddressText(props.value);
-      }, []);
+    }, []);
 
     const getAddressComponent = (object, field, nameType) => {
         return _.chain(object.address_components)
