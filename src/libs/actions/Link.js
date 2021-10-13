@@ -35,9 +35,24 @@ function showGrowlIfOffline() {
  */
 function openOldDotLink(url) {
     if (!showGrowlIfOffline()) {
+        // Safari blocks opening new windows inside async calls.
+        // The workaround is to open a new window before the async call and then update its location to the correct url
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        let windowRef;
+
+        if (isSafari) {
+            windowRef = window.open();
+        }
+
         API.GetShortLivedAuthToken().then(({shortLivedAuthToken}) => {
             // eslint-disable-next-line max-len
-            Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`);
+            const oldDotURL = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+
+            if (isSafari) {
+                windowRef.location = oldDotURL;
+            } else {
+                Linking.openURL(oldDotURL);
+            }
         });
     }
 }
