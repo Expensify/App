@@ -9,7 +9,6 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import Navigation from '../Navigation/Navigation';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -574,7 +573,6 @@ function validateBankAccount(bankAccountID, validateCode) {
     API.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
                 Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
@@ -584,12 +582,7 @@ function validateBankAccount(bankAccountID, validateCode) {
                             achData: {state: BankAccount.STATE.OPEN},
                         };
 
-                        if (isUsingExpensifyCard) {
-                            Navigation.dismissModal();
-                        } else {
-                            reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
-                        }
-
+                        reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, reimbursementAccount);
                     });
