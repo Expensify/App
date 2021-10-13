@@ -86,10 +86,10 @@ class CompanyStep extends React.Component {
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
             companyName: 'bankAccount.error.companyName',
-            companyAddressStreet: 'bankAccount.error.addressStreet',
-            companyAddressCity: 'bankAccount.error.addressCity',
-            companyAddressState: 'bankAccount.error.addressState',
-            companyAddressZIP: 'bankAccount.error.zipCode',
+            addressStreet: 'bankAccount.error.addressStreet',
+            addressCity: 'bankAccount.error.addressCity',
+            addressState: 'bankAccount.error.addressState',
+            addressZipCode: 'bankAccount.error.zipCode',
             companyPhone: 'bankAccount.error.phoneNumber',
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
@@ -191,9 +191,9 @@ class CompanyStep extends React.Component {
                     <AddressSearch
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
-                        value={`${this.state.addressStreet}, ${this.state.addressCity}, ${this.state.addressState}, ${this.state.addressZipCode}`}
+                        value={`${this.state.addressStreet} ${this.state.addressCity} ${this.state.addressState} ${this.state.addressZipCode}`}
                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
-                        errorText={this.getErrorText('companyAddress')}
+                        errorText={this.getErrorText('addressStreet')}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
