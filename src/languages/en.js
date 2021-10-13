@@ -428,7 +428,7 @@ export default {
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
             addressCity: 'Please enter a valid city',
-            addressStreet: 'Please enter a valid address street that is not a PO Box',
+            addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
             incorporationState: 'Please enter a valid state',
