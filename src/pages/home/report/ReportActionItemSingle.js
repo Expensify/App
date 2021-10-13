@@ -64,7 +64,7 @@ const ReportActionItemSingle = ({
 
     return (
         <View style={wrapperStyles}>
-            <Pressable onPress={() => showUserDetails(action.actorEmail)}>
+            <Pressable style={styles.alignSelfStart} onPress={() => showUserDetails(action.actorEmail)}>
                 <Avatar
                     imageStyles={[styles.actionAvatar]}
                     source={avatarUrl}
