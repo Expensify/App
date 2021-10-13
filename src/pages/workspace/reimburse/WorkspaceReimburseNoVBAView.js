@@ -31,6 +31,7 @@ const WorkspaceReimburseNoVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.reimburse.viewAllReceipts'),
+                    // eslint-disable-next-line max-len
                     onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"expense","showStates":"Archived","isAdvancedFilterMode":"true"}`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
