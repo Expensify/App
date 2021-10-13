@@ -103,6 +103,23 @@ class CompanyStep extends React.Component {
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
+    getFormattedAddressValue() {
+        let addressString = '';
+        if (this.state.addressStreet) {
+            addressString += `${this.state.addressStreet}, `;
+        }
+        if (this.state.addressCity) {
+            addressString += `${this.state.addressCity}, `;
+        }
+        if (this.state.addressState) {
+            addressString += `${this.state.addressState}, `;
+        }
+        if (this.state.addressZipCode) {
+            addressString += `${this.state.addressZipCode}`;
+        }
+        return addressString;
+    }
+
     /**
      * @param {String} value
      */
@@ -151,23 +168,6 @@ class CompanyStep extends React.Component {
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
-    }
-
-    getFormattedAddressValue() {
-        let addressString = '';
-        if (this.state.addressStreet) {
-            addressString += `${this.state.addressStreet}, `;
-        }
-        if (this.state.addressCity) {
-            addressString += `${this.state.addressCity}, `;
-        }
-        if (this.state.addressState) {
-            addressString += `${this.state.addressState}, `;
-        }
-        if (this.state.addressZipCode) {
-            addressString += `${this.state.addressZipCode}`;
-        }
-        return addressString;
     }
 
     submit() {
