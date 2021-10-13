@@ -70,6 +70,10 @@ class CompanyStep extends React.Component {
         // These fields need to be filled out in order to submit the form
         this.requiredFields = [
             'companyName',
+            'addressStreet',
+            'addressCity',
+            'addressState',
+            'addressZipCode',
             'website',
             'companyTaxID',
             'incorporationDate',
@@ -82,6 +86,10 @@ class CompanyStep extends React.Component {
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
             companyName: 'bankAccount.error.companyName',
+            companyAddressStreet: 'bankAccount.error.addressStreet',
+            companyAddressCity: 'bankAccount.error.addressCity',
+            companyAddressState: 'bankAccount.error.addressState',
+            companyAddressZIP: 'bankAccount.error.zipCode',
             companyPhone: 'bankAccount.error.phoneNumber',
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
@@ -185,6 +193,7 @@ class CompanyStep extends React.Component {
                         containerStyles={[styles.mt4]}
                         value={`${this.state.addressStreet}, ${this.state.addressCity}, ${this.state.addressState}, ${this.state.addressZipCode}`}
                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                        errorText={this.getErrorText('companyAddress')}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
