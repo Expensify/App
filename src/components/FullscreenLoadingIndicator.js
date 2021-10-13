@@ -39,5 +39,6 @@ const FullScreenLoadingIndicator = ({visible, style}) => {
 
 FullScreenLoadingIndicator.propTypes = propTypes;
 FullScreenLoadingIndicator.defaultProps = defaultProps;
+FullScreenLoadingIndicator.displayName = 'FullScreenLoadingIndicator';
 
 export default FullScreenLoadingIndicator;

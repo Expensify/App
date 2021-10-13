@@ -44,5 +44,6 @@ const ReimbursementAccountLoadingIndicator = ({translate, isSubmittingVerificati
 );
 
 ReimbursementAccountLoadingIndicator.propTypes = propTypes;
+ReimbursementAccountLoadingIndicator.displayName = 'ReimbursementAccountLoadingIndicator';
 
 export default withLocalize(ReimbursementAccountLoadingIndicator);
