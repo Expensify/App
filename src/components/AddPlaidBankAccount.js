@@ -169,7 +169,7 @@ class AddPlaidBankAccount extends React.Component {
                             this.setState({institution: metadata.institution});
                         }}
                         onError={(error) => {
-                            Log.info('[PlaidLink] Error: ', false, error.message);
+                            Log.hmmm('[PlaidLink] Error: ', error.message);
                         }}
 
                         // User prematurely exited the Plaid flow

@@ -155,7 +155,7 @@ class OptionsList extends Component {
      * @param {Object} info
      */
     onScrollToIndexFailed(info) {
-        Log.info('[OptionsList] scrollToIndex failed', false, info);
+        Log.hmmm('[OptionsList] scrollToIndex failed', info);
     }
 
     /**
