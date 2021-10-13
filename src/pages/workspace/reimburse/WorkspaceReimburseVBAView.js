@@ -55,7 +55,7 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
                 {
                     title: translate('workspace.reimburse.reimburseReceipts'),
                     // eslint-disable-next-line max-len
-                    onPress: () => openOldDotLink(`/reports?param={"startDate":","endDate":","reportName":","policyID":"${policyID}","from":"all","type":"expense","states":{"Open":false,"Processing":false,"Approved":false,"Reimbursed":false,"Archived":true},"isAdvancedFilterMode":true}`),
+                    onPress: () => openOldDotLink(`reports?param={"startDate":","endDate":","reportName":","policyID":"${policyID}","from":"all","type":"expense","states":{"Open":false,"Processing":false,"Approved":false,"Reimbursed":false,"Archived":true},"isAdvancedFilterMode":true}`),
                     icon: Bank,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
