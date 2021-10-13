@@ -15,7 +15,7 @@ const propTypes = {
     hasError: PropTypes.bool,
 
     /** Should the picker be styled for focus state  */
-    focsued: PropTypes.bool,
+    focused: PropTypes.bool,
 
     /** The items to display in the list of selections */
     items: PropTypes.arrayOf(PropTypes.shape({
