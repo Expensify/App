@@ -70,6 +70,10 @@ class CompanyStep extends React.Component {
         // These fields need to be filled out in order to submit the form
         this.requiredFields = [
             'companyName',
+            'addressStreet',
+            'addressCity',
+            'addressState',
+            'addressZipCode',
             'website',
             'companyTaxID',
             'incorporationDate',
@@ -82,6 +86,10 @@ class CompanyStep extends React.Component {
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
             companyName: 'bankAccount.error.companyName',
+            addressStreet: 'bankAccount.error.addressStreet',
+            addressCity: 'bankAccount.error.addressCity',
+            addressState: 'bankAccount.error.addressState',
+            addressZipCode: 'bankAccount.error.zipCode',
             companyPhone: 'bankAccount.error.phoneNumber',
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
@@ -93,6 +101,23 @@ class CompanyStep extends React.Component {
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+    }
+
+    getFormattedAddressValue() {
+        let addressString = '';
+        if (this.state.addressStreet) {
+            addressString += `${this.state.addressStreet}, `;
+        }
+        if (this.state.addressCity) {
+            addressString += `${this.state.addressCity}, `;
+        }
+        if (this.state.addressState) {
+            addressString += `${this.state.addressState}, `;
+        }
+        if (this.state.addressZipCode) {
+            addressString += `${this.state.addressZipCode}`;
+        }
+        return addressString;
     }
 
     /**
@@ -183,8 +208,9 @@ class CompanyStep extends React.Component {
                     <AddressSearch
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
-                        value={`${this.state.addressStreet} ${this.state.addressCity} ${this.state.addressState} ${this.state.addressZipCode}`}
+                        value={this.getFormattedAddressValue()}
                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                        errorText={this.getErrorText('addressStreet')}
                     />
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
@@ -195,7 +221,6 @@ class CompanyStep extends React.Component {
                         placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
                         maxLength={CONST.PHONE_MAX_LENGTH}
-
                     />
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.companyWebsite')}
