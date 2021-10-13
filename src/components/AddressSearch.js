@@ -106,9 +106,9 @@ const AddressSearch = (props) => {
                     separator: [styles.googleSearchSeparator],
                 }}
             />
-            {!_.isEmpty(errorText) && (
+            {!_.isEmpty(props.errorText) && (
                 <InlineErrorText>
-                    {errorText}
+                    {props.errorText}
                 </InlineErrorText>
             )}
         </>
