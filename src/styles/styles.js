@@ -1812,7 +1812,7 @@ const styles = {
         zIndex: 10,
     },
 
-    reimbursementAccountFullScreenLoading: {
+    vbaFullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'flex-start',
