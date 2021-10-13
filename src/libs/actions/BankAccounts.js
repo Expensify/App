@@ -9,7 +9,6 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import Navigation from '../Navigation/Navigation';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
