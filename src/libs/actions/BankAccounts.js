@@ -335,14 +335,21 @@ function fetchUserWallet() {
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  *
  * @param {String} [stepToOpen]
+ * @param {String} [localBankAccountState]
  */
-function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     // Remember which account BankAccountStep subStep the user had before so we can set it later
     const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
+    const initialData = {loading: true, error: ''};
+
+    // Some UI needs to know the bank account state during the loading process, so we are keeping it in Onyx if passed
+    if (localBankAccountState) {
+        initialData.achData = {state: localBankAccountState};
+    }
 
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, initialData);
     let bankAccountID;
 
     API.Get({
