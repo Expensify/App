@@ -10,11 +10,11 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
 
-const ACTIVE_LABEL_TRANSLATE_Y = -12;
+const ACTIVE_LABEL_TRANSLATE_Y = 5;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
-const INACTIVE_LABEL_TRANSLATE_Y = 0;
+const INACTIVE_LABEL_TRANSLATE_Y = 16;
 const INACTIVE_LABEL_TRANSLATE_X = 0;
 const INACTIVE_LABEL_SCALE = 1;
 
