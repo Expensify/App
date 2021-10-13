@@ -204,7 +204,6 @@ class CompanyStep extends React.Component {
                         placeholder={this.props.translate('companyStep.companyPhonePlaceholder')}
                         errorText={this.getErrorText('companyPhone')}
                         maxLength={CONST.PHONE_MAX_LENGTH}
-
                     />
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.companyWebsite')}
