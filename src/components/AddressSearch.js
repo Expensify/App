@@ -86,6 +86,7 @@ const AddressSearch = (props) => {
                     InputComp: ExpensiTextInput,
                     label: props.label,
                     containerStyles: props.containerStyles,
+                    errorText: props.errorText,
                 }}
                 styles={{
                     textInputContainer: [styles.flexColumn],
