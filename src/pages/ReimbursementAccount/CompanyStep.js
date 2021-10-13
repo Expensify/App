@@ -183,7 +183,7 @@ class CompanyStep extends React.Component {
                     <AddressSearch
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
-                        value={`${this.state.addressStreet} ${this.state.addressCity} ${this.state.addressState} ${this.state.addressZipCode}`}
+                        value={`${this.state.addressStreet}, ${this.state.addressCity}, ${this.state.addressState}, ${this.state.addressZipCode}`}
                         onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                     />
                     <ExpensiTextInput
