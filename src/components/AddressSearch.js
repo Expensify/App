@@ -105,9 +105,14 @@ const AddressSearch = (props) => {
                     separator: [styles.googleSearchSeparator],
                 }}
             />
+            {!_.isEmpty(errorText) && (
+                <InlineErrorText>
+                    {errorText}
+                </InlineErrorText>
+            )}
         </>
     );
-}
+};
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
