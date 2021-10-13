@@ -76,6 +76,23 @@ const IdentityForm = ({
     const dobErrorText = (errors.dob ? translate('bankAccount.error.dob') : '')
         || (errors.dobAge ? translate('bankAccount.error.age') : '');
 
+    const getFormattedAddressValue = () => {
+        let addressString = '';
+        if (street) {
+            addressString += `${street}, `;
+        }
+        if (city) {
+            addressString += `${city}, `;
+        }
+        if (state) {
+            addressString += `${state}, `;
+        }
+        if (zipCode) {
+            addressString += `${zipCode}`;
+        }
+        return addressString;
+    };
+
     return (
         <View style={style}>
             <View style={[styles.flexRow]}>
@@ -118,8 +135,9 @@ const IdentityForm = ({
             <AddressSearch
                 label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
-                value={`${street} ${city} ${state} ${zipCode}`}
+                value={getFormattedAddressValue()}
                 onChangeText={(fieldName, value) => onFieldChange(fieldName, value)}
+                errorText={errors.street ? translate('bankAccount.error.addressStreet') : ''}
             />
         </View>
     );

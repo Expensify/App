@@ -92,7 +92,6 @@ class RequestorStep extends React.Component {
             city: 'requestorAddressCity',
             state: 'requestorAddressState',
             zipCode: 'requestorAddressZipCode',
-
             addressStreet: 'requestorAddressStreet',
             addressCity: 'requestorAddressCity',
             addressState: 'requestorAddressState',
