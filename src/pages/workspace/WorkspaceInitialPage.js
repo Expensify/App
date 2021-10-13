@@ -163,15 +163,17 @@ const WorkspaceInitialPage = ({
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Text
-                                    numberOfLines={1}
-                                    style={[
-                                        styles.displayName,
-                                        styles.alignSelfCenter,
-                                    ]}
-                                >
-                                    {policy.name}
-                                </Text>
+                                <Tooltip text={policy.name}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[
+                                            styles.displayName,
+                                            styles.alignSelfCenter,
+                                        ]}
+                                    >
+                                        {policy.name}
+                                    </Text>
+                                </Tooltip>
                             </Pressable>
                         </View>
                     </View>
