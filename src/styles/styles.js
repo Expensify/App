@@ -582,8 +582,8 @@ const styles = {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...expensiPicker,
-            ...(focused && {borderColor: themeColors.borderFocus}),
-            ...(error && {borderColor: themeColors.badgeDangerBG}),
+            ...(focused && addOutlineWidth({}, 1)),
+            ...(error && addOutlineWidth({}, 1, true)),
         },
         inputNative: {
             ...expensiPicker,
