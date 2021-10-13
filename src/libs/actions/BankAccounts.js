@@ -577,12 +577,7 @@ function validateBankAccount(bankAccountID, validateCode) {
                             achData: {state: BankAccount.STATE.OPEN},
                         };
 
-                        if (isUsingExpensifyCard) {
-                            Navigation.dismissModal();
-                        } else {
-                            reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
-                        }
-
+                        reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, reimbursementAccount);
                     });
