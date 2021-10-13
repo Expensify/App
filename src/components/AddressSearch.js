@@ -7,7 +7,6 @@ import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
-import InlineErrorText from './InlineErrorText';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -66,53 +65,46 @@ const AddressSearch = (props) => {
     };
 
     return (
-        <>
-            <GooglePlacesAutocomplete
-                ref={googlePlacesRef}
-                fetchDetails
-                keepResultsAfterBlur
-                suppressDefaultStyles
-                enablePoweredByContainer={false}
-                onPress={(data, details) => saveLocationDetails(details)}
-                query={{
-                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                    language: props.preferredLocale,
-                }}
-                requestUrl={{
-                    useOnPlatform: 'web',
-                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
-                }}
-                textInputProps={{
-                    InputComp: ExpensiTextInput,
-                    label: props.label,
-                    containerStyles: props.containerStyles,
-                    errorText: props.errorText,
-                }}
-                styles={{
-                    textInputContainer: [styles.flexColumn],
-                    listView: [
-                        styles.borderTopRounded,
-                        styles.borderBottomRounded,
-                        styles.mt1,
-                        styles.overflowAuto,
-                        styles.borderLeft,
-                        styles.borderRight,
-                    ],
-                    row: [
-                        styles.pv4,
-                        styles.ph3,
-                        styles.overflowAuto,
-                    ],
-                    description: [styles.googleSearchText],
-                    separator: [styles.googleSearchSeparator],
-                }}
-            />
-            {!_.isEmpty(props.errorText) && (
-                <InlineErrorText>
-                    {props.errorText}
-                </InlineErrorText>
-            )}
-        </>
+        <GooglePlacesAutocomplete
+            ref={googlePlacesRef}
+            fetchDetails
+            keepResultsAfterBlur
+            suppressDefaultStyles
+            enablePoweredByContainer={false}
+            onPress={(data, details) => saveLocationDetails(details)}
+            query={{
+                key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                language: props.preferredLocale,
+            }}
+            requestUrl={{
+                useOnPlatform: 'web',
+                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+            }}
+            textInputProps={{
+                InputComp: ExpensiTextInput,
+                label: props.label,
+                containerStyles: props.containerStyles,
+                errorText: props.errorText,
+            }}
+            styles={{
+                textInputContainer: [styles.flexColumn],
+                listView: [
+                    styles.borderTopRounded,
+                    styles.borderBottomRounded,
+                    styles.mt1,
+                    styles.overflowAuto,
+                    styles.borderLeft,
+                    styles.borderRight,
+                ],
+                row: [
+                    styles.pv4,
+                    styles.ph3,
+                    styles.overflowAuto,
+                ],
+                description: [styles.googleSearchText],
+                separator: [styles.googleSearchSeparator],
+            }}
+        />
     );
 };
 
