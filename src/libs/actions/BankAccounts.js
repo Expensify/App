@@ -36,6 +36,14 @@ Onyx.connect({
     },
 });
 
+let credentials;
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: (val) => {
+        credentials = val;
+    },
+});
+
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
@@ -820,6 +828,57 @@ function updateReimbursementAccountDraft(bankAccountData) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
 }
 
+/**
+ * Triggers a modal to open allowing the user to reset their bank account
+ */
+function requestResetFreePlanBankAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: true});
+}
+
+/**
+ * Hides modal allowing the user to reset their bank account
+ */
+function cancelResetFreePlanBankAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
+}
+
+/**
+ * Reset user's reimbursement account. This will delete the bank account.
+ *
+ * @param {String} password
+ */
+function resetFreePlanBankAccount(password = 'Password1') {
+    const bankAccountID = lodashGet(reimbursementAccountInSetup, 'bankAccountID');
+    if (!bankAccountID) {
+        throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
+    }
+    if (!credentials || !credentials.login) {
+        throw new Error('Missing credentials when attempting to reset free plan bank account');
+    }
+    if (!password) {
+        throw new Error('Must provide password to delete bank account');
+    }
+
+    const previousACHData = {...reimbursementAccountInSetup};
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
+    API.DeleteBankAccount({bankAccountID, ownerEmail: credentials.login, password})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Unable to delete bank account so we restore the bank account details
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: previousACHData});
+                Growl.error('Sorry we were unable to delete this bank account. Please try again later');
+                return;
+            }
+
+            // Clear both reimbursement account and drafts
+            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {});
+            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
+
+            // Clear the NVP for the bank account so the user can add a new one
+            API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});
+        });
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -839,4 +898,7 @@ export {
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
+    requestResetFreePlanBankAccount,
+    cancelResetFreePlanBankAccount,
+    resetFreePlanBankAccount,
 };

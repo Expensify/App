@@ -7,7 +7,7 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
+    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal, requestResetFreePlanBankAccount,
 } from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -23,7 +23,7 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import {ChatBubble} from '../../components/Icon/Expensicons';
+import {BackArrow, ChatBubble} from '../../components/Icon/Expensicons';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 
@@ -234,12 +234,20 @@ class ValidationStep extends React.Component {
                         <WorkspaceSection
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={ConciergeBlue}
-                            menuItems={[{
-                                title: this.props.translate('validationStep.letsChatCTA'),
-                                icon: ChatBubble,
-                                onPress: this.navigateToConcierge,
-                                shouldShowRightIcon: true,
-                            }]}
+                            menuItems={[
+                                {
+                                    title: this.props.translate('validationStep.letsChatCTA'),
+                                    icon: ChatBubble,
+                                    onPress: this.navigateToConcierge,
+                                    shouldShowRightIcon: true,
+                                },
+                                {
+                                    title: 'No, let\'s start over',
+                                    icon: BackArrow,
+                                    shouldShowRightIcon: true,
+                                    onPress: requestResetFreePlanBankAccount,
+                                },
+                            ]}
                         >
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}

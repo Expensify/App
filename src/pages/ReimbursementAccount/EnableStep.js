@@ -10,7 +10,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {ChatBubble} from '../../components/Icon/Expensicons';
+import {ChatBubble, Close} from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
@@ -21,6 +21,7 @@ import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
+import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -67,6 +68,23 @@ class EnableStep extends React.Component {
             }`
             : '';
         const bankName = account.addressName;
+        const menuItems = [{
+            title: 'Disconnect bank account',
+            icon: Close,
+            onPress: requestResetFreePlanBankAccount,
+        }];
+        if (!isUsingExpensifyCard) {
+            menuItems.unshift({
+                title: translate('workspace.bankAccount.chatWithConcierge'),
+                icon: ChatBubble,
+                onPress: () => {
+                    Navigation.dismissModal();
+                    navigateToConciergeChat();
+                },
+                shouldShowRightIcon: true,
+            });
+        }
+
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -79,15 +97,7 @@ class EnableStep extends React.Component {
                     <WorkspaceSection
                         title={!isUsingExpensifyCard ? translate('workspace.bankAccount.oneMoreThing') : translate('workspace.bankAccount.allSet')}
                         IconComponent={() => (!isUsingExpensifyCard ? <Icon src={ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
-                        menuItems={!isUsingExpensifyCard ? [{
-                            title: translate('workspace.bankAccount.chatWithConcierge'),
-                            icon: ChatBubble,
-                            onPress: () => {
-                                Navigation.dismissModal();
-                                navigateToConciergeChat();
-                            },
-                            shouldShowRightIcon: true,
-                        }] : []}
+                        menuItems={menuItems}
                     >
                         <MenuItem
                             title={bankName}
