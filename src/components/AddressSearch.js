@@ -68,7 +68,6 @@ const AddressSearch = (props) => {
         <GooglePlacesAutocomplete
             ref={googlePlacesRef}
             fetchDetails
-            keepResultsAfterBlur
             suppressDefaultStyles
             enablePoweredByContainer={false}
             onPress={(data, details) => saveLocationDetails(details)}
