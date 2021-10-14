@@ -163,7 +163,7 @@ function getPolicyList(shouldCreateNewPolicy = false) {
 
             if (shouldCreateNewPolicy) {
                 Navigation.dismissModal();
-                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceCardRoute(newPolicyID) : ROUTES.HOME);
+                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceInitialRoute(newPolicyID) : ROUTES.HOME);
             }
 
             return API.GetPolicyList();
