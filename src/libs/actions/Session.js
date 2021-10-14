@@ -143,7 +143,7 @@ function fetchAccountDetails(login) {
             } else if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     error: CONST.REGEX.DIGITS_AND_PLUS.test(login)
-                        ? translateLocal('messages.noPhoneNumber')
+                        ? translateLocal('messages.errorMessageInvalidPhone')
                         : translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
             } else {
