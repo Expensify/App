@@ -19,7 +19,7 @@ const ExpensiTextInputLabel = ({
                 labelScale,
             ),
         ]}
-        pointerEvents='none'
+        pointerEvents="none"
     >
         {label}
     </Animated.Text>
