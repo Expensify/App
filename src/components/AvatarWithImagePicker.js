@@ -103,6 +103,18 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     /**
+     *  Toggle max upload limit mModal visibility
+     * @param {Boolean} isVisible
+    */
+    setUploadLimitModalVisibility(isVisible) {
+        this.setState({isMaxUploadSizeModalOpen: isVisible});
+    }
+
+    isValidSize(image) {
+        return !image || lodashGet(image, 'size', 0) < (this.props.maxUploadSizeInMB * 1024 * 1024);
+    }
+
+    /**
      * Create menu items list for avatar menu
      *
      * @param {Function} openPicker
@@ -216,11 +228,11 @@ class AvatarWithImagePicker extends React.Component {
                     </View>
                 </Pressable>
                 <ConfirmModal
-                    title={this.props.translate('avatarImagePicker.imageToLarge')}
+                    title={this.props.translate('avatarImagePicker.imageUploadFailed')}
                     onConfirm={() => this.setUploadLimitModalVisibility(false)}
                     onCancel={() => this.setUploadLimitModalVisibility(false)}
                     isVisible={this.state.isMaxUploadSizeModalOpen}
-                    prompt={this.props.translate('avatarImagePicker.sizeExceeded')}
+                    prompt={this.props.translate('avatarImagePicker.sizeExceeded', {maxUploadSizeInMB: this.props.maxUploadSizeInMB})}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
