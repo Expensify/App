@@ -400,7 +400,7 @@ const styles = {
             opacity: 1,
         },
         iconContainer: {
-            top: 7,
+            top: 8,
             right: 9,
             pointerEvents: 'none',
         },
@@ -513,7 +513,7 @@ const styles = {
     },
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 12,
+        left: 11.5,
         top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
@@ -539,7 +539,7 @@ const styles = {
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 12,
+        paddingHorizontal: 11.5,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -570,7 +570,7 @@ const styles = {
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 12,
+        left: 11.5,
         top: 7,
     },
     expensiPicker: (disabled = false, error = false, focused = false) => ({
