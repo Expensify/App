@@ -23,7 +23,7 @@ const expensiPicker = {
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
     lineHeight: variables.fontSizeNormalHeight,
-    paddingHorizontal: 11.5,
+    paddingHorizontal: 11,
     paddingBottom: 8,
     paddingTop: 23,
     height: 52,
