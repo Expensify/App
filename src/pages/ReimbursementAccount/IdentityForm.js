@@ -137,7 +137,7 @@ const IdentityForm = ({
                 containerStyles={[styles.mt4]}
                 value={getFormattedAddressValue()}
                 onChangeText={(fieldName, value) => onFieldChange(fieldName, value)}
-                errorText={errors.street ? translate('bankAccount.error.addressStreet') : ''}
+                errorText={(errors.street || errors.city || errors.state || errors.zipCode) ? translate('bankAccount.error.addressStreet') : ''}
             />
         </View>
     );
