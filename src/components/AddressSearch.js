@@ -52,11 +52,11 @@ const AddressSearch = (props) => {
             return false;
         }
         if (!_.some(addressComponents, component => _.includes(component.types, 'street_number'))) {
-            // No Street number
+            // Missing Street number
             return false;
         }
         if (_.some(addressComponents, component => _.includes(component.types, 'post_box'))) {
-            // PO box
+            // Reject PO box
             return false;
         }
         return true;
