@@ -7,6 +7,9 @@ import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
+// eslint-disable-next-line import/no-cycle
+import LogUtil from './Log';
+
 let isAuthenticating;
 let credentials;
 Onyx.connect({
@@ -172,7 +175,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
-    console.debug('[API] Handled error when making request', error);
+    LogUtil.warn('[API] Handled error when making request', error);
 
     // Set an error state and signify we are done loading
     Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
