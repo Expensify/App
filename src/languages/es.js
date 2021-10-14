@@ -315,7 +315,7 @@ export default {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
-        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',
