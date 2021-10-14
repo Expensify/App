@@ -19,6 +19,10 @@ const ExpensiTextInputLabel = ({
                 labelScale,
             ),
         ]}
+<<<<<<< HEAD
+=======
+        pointerEvents="none"
+>>>>>>> 1ace10c8b (Merge pull request #5858 from AlfredoAlc/alfredo-fix-textinput-area)
     >
         {label}
     </Animated.Text>

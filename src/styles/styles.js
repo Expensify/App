@@ -526,7 +526,15 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
+<<<<<<< HEAD
         ...spacing.pv0,
+=======
+        height: '100%',
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 11.5,
+        borderRadius: variables.componentBorderRadiusNormal,
+>>>>>>> 1ace10c8b (Merge pull request #5858 from AlfredoAlc/alfredo-fix-textinput-area)
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
