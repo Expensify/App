@@ -28,7 +28,7 @@ const expensiPicker = {
     height: 52,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: themeColors.accentBorder,
+    borderColor: themeColors.componentBorder,
     borderRadius: variables.componentBorderRadiusNormal,
 };
 
@@ -448,7 +448,7 @@ const styles = {
     },
 
     borderColorFocus: {
-        borderColor: themeColors.accentBorderFocus,
+        borderColor: themeColors.borderFocus,
     },
 
     borderColorDanger: {
@@ -1119,7 +1119,7 @@ const styles = {
     },
 
     chatItemComposeBoxFocusedColor: {
-        borderColor: themeColors.accentBorderFocus,
+        borderColor: themeColors.borderFocus,
     },
 
     chatItemComposeBox: {
