@@ -1606,11 +1606,6 @@ const styles = {
         marginLeft: 8,
     },
 
-    roundButton1: {
-        overflow: 'hidden',
-        borderRadius: 99,
-    },
-
     unreadIndicatorContainer: {
         position: 'absolute',
         top: -10,

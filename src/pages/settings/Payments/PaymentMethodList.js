@@ -77,7 +77,7 @@ class PaymentMethodList extends Component {
                         bankAccount.accountNumber.slice(-4)
                     }`
                     : null;
-                const {icon, iconSize, iconStyles} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
+                const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
                 combinedPaymentMethods.push({
                     type: MENU_ITEM,
                     title: bankAccount.addressName,
@@ -86,7 +86,6 @@ class PaymentMethodList extends Component {
                     description: formattedBankAccountNumber,
                     icon,
                     iconSize,
-                    iconStyles,
                     onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
                     key: `bankAccount-${bankAccount.bankAccountID}`,
                 });

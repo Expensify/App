@@ -120,13 +120,9 @@ export default function getBankIcon(bankName, isCard) {
         bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
     }
 
-    // For default icons the icon size should not be set.
+    // For default Credit Card icon the icon size should not be set.
     if (![CreditCard].includes(bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
-    }
-
-    if (bankIcon.icon === GenericBank) {
-        bankIcon.iconStyles = [styles.roundButton1];
     }
 
     return bankIcon;

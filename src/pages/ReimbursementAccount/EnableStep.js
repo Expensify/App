@@ -52,7 +52,8 @@ class EnableStep extends React.Component {
             );
         }
 
-        const isUsingExpensifyCard = user.isUsingExpensifyCard;
+        // const isUsingExpensifyCard = user.isUsingExpensifyCard;
+        const isUsingExpensifyCard = true;
         const account = _.find(bankAccountList, bankAccount => bankAccount.bankAccountID === reimbursementAccount.achData.bankAccountID);
         if (!account) {
             // This shouldn't happen as we can only end up here if we have successfully added a bank account.
