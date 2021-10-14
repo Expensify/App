@@ -282,7 +282,7 @@ export default {
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
-        formatError: 'Invalid PayPa.me username',
+        formatError: 'Invalid PayPal.me username',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a Debit Card',
