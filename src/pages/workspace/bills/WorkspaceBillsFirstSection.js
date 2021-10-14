@@ -49,7 +49,7 @@ const WorkspaceBillsFirstSection = ({
             menuItems={[
                 {
                     title: translate('workspace.bills.viewAllBills'),
-                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
+                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
                     icon: Bill,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
