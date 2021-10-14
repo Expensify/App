@@ -1,4 +1,4 @@
-import {CreditCard, Bank} from './Expensicons';
+import {Bank, CreditCard} from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';

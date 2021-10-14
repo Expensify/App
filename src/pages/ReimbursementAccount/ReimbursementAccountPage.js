@@ -157,8 +157,7 @@ class ReimbursementAccountPage extends React.Component {
         // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         // next step.
         const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
-        // const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-        const currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (this.props.reimbursementAccount.loading) {
             const isSubmittingVerificationsData = _.contains([
                 CONST.BANK_ACCOUNT.STEP.COMPANY,
