@@ -672,7 +672,7 @@ export default {
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
-            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay',
+            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay.',
             viewAllBills: 'View all bills',
             unlockOnlineBillPayment: 'Unlock online bill payment',
             unlockNoVBACopy: 'Connect your bank account to pay bills online for free!',
