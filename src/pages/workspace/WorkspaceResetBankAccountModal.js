@@ -9,7 +9,6 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
@@ -38,17 +37,17 @@ const WorkspaceResetBankAccountModal = (props) => {
     return (
         <ConfirmModal
             title="Are you sure?"
-            confirmText={isInOpenState ? 'Yes, disconnect my bank account' : 'Yes, start over'}
-            cancelText="Cancel"
+            confirmText={isInOpenState ? props.translate('workspace.bankAccount.yesDisconnectMyBankAccount') : props.translate('workspace.bankAccount.yesStartOver')}
+            cancelText={props.translate('common.cancel')}
             prompt={isInOpenState ? (
                 <Text>
-                    <Text>Disconnect your </Text>
+                    <Text>{props.translate('workspace.bankAccount.disconnectYour')}</Text>
                     <Text style={styles.textStrong}>
                         {bankShortName}
                     </Text>
-                    <Text> bank account. Any outstanding transactions for this account will still complete.</Text>
+                    <Text>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
                 </Text>
-            ) : 'Starting over will clear the progress you have made so far.'}
+            ) : props.translate('workspace.bankAccount.clearProgress')}
             danger
             onCancel={cancelResetFreePlanBankAccount}
             onConfirm={() => resetFreePlanBankAccount()}

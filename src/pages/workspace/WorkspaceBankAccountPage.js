@@ -103,7 +103,7 @@ class WorkspaceBankAccountPage extends React.Component {
                             shouldShowRightIcon: true,
                         },
                         {
-                            title: 'Start over',
+                            title: this.props.translate('workspace.bankAccount.startOver'),
                             icon: RotateLeft,
                             onPress: requestResetFreePlanBankAccount,
                             shouldShowRightIcon: true,

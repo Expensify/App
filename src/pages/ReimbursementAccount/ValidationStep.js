@@ -23,7 +23,7 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import {BackArrow, ChatBubble, RotateLeft} from '../../components/Icon/Expensicons';
+import {ChatBubble, RotateLeft} from '../../components/Icon/Expensicons';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 
@@ -242,7 +242,7 @@ class ValidationStep extends React.Component {
                                     shouldShowRightIcon: true,
                                 },
                                 {
-                                    title: 'No, let\'s start over',
+                                    title: this.props.translate('workspace.bankAccount.noLetsStartOver'),
                                     icon: RotateLeft,
                                     shouldShowRightIcon: true,
                                     onPress: requestResetFreePlanBankAccount,

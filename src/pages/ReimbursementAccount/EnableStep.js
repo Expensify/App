@@ -69,7 +69,7 @@ class EnableStep extends React.Component {
             : '';
         const bankName = account.addressName;
         const menuItems = [{
-            title: 'Disconnect bank account',
+            title: this.props.translate('workspace.bankAccount.disconnectBankAccount'),
             icon: Close,
             onPress: requestResetFreePlanBankAccount,
         }];
