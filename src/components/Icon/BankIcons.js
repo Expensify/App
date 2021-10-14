@@ -18,6 +18,7 @@ import SunTrust from '../../../assets/images/bankicons/suntrust.svg';
 import TdBank from '../../../assets/images/bankicons/td-bank.svg';
 import USBank from '../../../assets/images/bankicons/us-bank.svg';
 import USAA from '../../../assets/images/bankicons/usaa.svg';
+import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 
 /**
@@ -122,6 +123,10 @@ export default function getBankIcon(bankName, isCard) {
     // For default icons the icon size should not be set.
     if (![CreditCard].includes(bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
+    }
+
+    if (bankIcon.icon === GenericBank) {
+        bankIcon.iconStyles = [styles.roundButton1];
     }
 
     return bankIcon;
