@@ -26,7 +26,6 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
-import variables from '../styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
