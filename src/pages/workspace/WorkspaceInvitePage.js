@@ -154,7 +154,7 @@ class WorkspaceInvitePage extends React.Component {
 
         if (this.state.userToInvite) {
             sections.push(({
-                undefined,
+                title: undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset: 0,
