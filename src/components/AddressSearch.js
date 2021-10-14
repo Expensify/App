@@ -74,6 +74,7 @@ const AddressSearch = (props) => {
             query={{
                 key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
                 language: props.preferredLocale,
+                types: 'address',
             }}
             requestUrl={{
                 useOnPlatform: 'web',
