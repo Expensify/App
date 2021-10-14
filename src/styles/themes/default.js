@@ -12,7 +12,7 @@ export default {
     sidebar: colors.gray1,
     sidebarHover: colors.white,
     borderFocus: colors.blue,
-    componentBorder: colors.gray5,
+    componentBorder: colors.gray4,
     accentBorder: colors.gray2,
     icon: colors.gray4,
     iconSuccessFill: colors.green,
