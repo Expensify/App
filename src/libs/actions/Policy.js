@@ -46,10 +46,7 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicy.name
  * @param {String} fullPolicy.role
  * @param {String} fullPolicy.type
-<<<<<<< HEAD
  * @param {String} fullPolicy.outputCurrency
-=======
->>>>>>> 30ce47c12 (Merge pull request #5706 from Expensify/Rory-FixLoadingSpinnerRaceCondition)
  * @param {Object} fullPolicy.value.employeeList
  * @param {String} [fullPolicy.value.avatarURL]
  * @returns {Object}
@@ -60,10 +57,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
-<<<<<<< HEAD
         outputCurrency: fullPolicy.outputCurrency,
-=======
->>>>>>> 30ce47c12 (Merge pull request #5706 from Expensify/Rory-FixLoadingSpinnerRaceCondition)
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
     };
@@ -283,41 +277,6 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
-<<<<<<< HEAD
- * Merges the passed in login into the specified policy
- *
- * @param {String} [name]
- */
-function create(name = '') {
-    let res = null;
-    API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
-            }
-            res = response;
-
-            // We are awaiting this merge so that we can guarantee our policy is available to any React components connected to the policies collection before we navigate to a new route.
-            return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, {
-                employeeList: getSimplifiedEmployeeList(response.policy.employeeList),
-                id: response.policyID,
-                type: response.policy.type,
-                name: response.policy.name,
-                role: CONST.POLICY.ROLE.ADMIN,
-                outputCurrency: response.policy.outputCurrency,
-            });
-        }).then(() => {
-            Navigation.dismissModal();
-            Navigation.navigate(ROUTES.getWorkspaceCardRoute(res.policyID));
-        });
-}
-
-/**
-=======
->>>>>>> 30ce47c12 (Merge pull request #5706 from Expensify/Rory-FixLoadingSpinnerRaceCondition)
  * @param {Object} file
  * @returns {Promise}
  */
