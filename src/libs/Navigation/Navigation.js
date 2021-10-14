@@ -40,7 +40,7 @@ function setDidTapNotification() {
  */
 function openDrawer() {
     if (!navigationRef.isReady()) {
-        Log.info('[Navigation] openDrawer failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] openDrawer failed because navigation ref was not yet ready');
         return;
     }
     navigationRef.current.dispatch(DrawerActions.openDrawer());
@@ -52,7 +52,7 @@ function openDrawer() {
  */
 function closeDrawer() {
     if (!navigationRef.isReady()) {
-        Log.info('[Navigation] closeDrawer failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] closeDrawer failed because navigation ref was not yet ready');
         return;
     }
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
@@ -75,12 +75,12 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  */
 function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.isReady()) {
-        Log.info('[Navigation] goBack failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] goBack failed because navigation ref was not yet ready');
         return;
     }
 
     if (!navigationRef.current.canGoBack()) {
-        Log.info('[Navigation] Unable to go back');
+        Log.hmmm('[Navigation] Unable to go back');
         if (shouldOpenDrawer) {
             openDrawer();
         }
@@ -96,7 +96,7 @@ function goBack(shouldOpenDrawer = true) {
  */
 function navigate(route = ROUTES.HOME) {
     if (!navigationRef.isReady()) {
-        Log.info('[Navigation] navigate failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] navigate failed because navigation ref was not yet ready', {route});
         return;
     }
 
@@ -130,7 +130,7 @@ function navigate(route = ROUTES.HOME) {
  */
 function dismissModal(shouldOpenDrawer = false) {
     if (!navigationRef.isReady()) {
-        Log.info('[Navigation] dismissModal failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] dismissModal failed because navigation ref was not yet ready');
         return;
     }
 

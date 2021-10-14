@@ -64,7 +64,7 @@ class ImageWithSizeCalculation extends PureComponent {
 
             this.props.onMeasure({width, height});
         }, (error) => {
-            Log.hmmm('Unable to fetch image to calculate size', {error});
+            Log.hmmm('Unable to fetch image to calculate size', {error, url: this.props.url});
         });
     }
 

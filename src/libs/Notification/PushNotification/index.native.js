@@ -22,11 +22,7 @@ function pushNotificationEventCallback(eventType, notification) {
         payload = JSON.parse(payload);
     }
 
-    Log.info(`[PUSH_NOTIFICATION] ${eventType}`, false, {
-        title: notification.title,
-        message: notification.alert,
-        payload,
-    });
+    Log.info(`[PUSH_NOTIFICATION] Callback triggered for ${eventType}`);
 
     if (!payload) {
         Log.warn('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');

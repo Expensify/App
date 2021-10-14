@@ -164,7 +164,7 @@ class AddPlaidBankAccount extends React.Component {
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
-                            Log.info('[PlaidLink] Success: ', false, {publicToken, metadata});
+                            Log.info('[PlaidLink] Success!');
                             getPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}

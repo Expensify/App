@@ -12,7 +12,7 @@ function listenToStorageEvents(callback) {
         try {
             newValue = JSON.parse(e.newValue);
         } catch (err) {
-            Log.hmmm('Could not parse the newValue of the storage event', {event: e, error: err});
+            Log.hmmm('Could not parse the newValue of the storage event', {event: e.key, error: err});
         }
         if (newValue !== undefined) {
             callback(e.key, newValue);
