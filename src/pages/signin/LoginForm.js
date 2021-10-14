@@ -15,6 +15,7 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import CONST from '../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -75,7 +76,12 @@ class LoginForm extends React.Component {
         }
 
         if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
-            this.setState({formError: 'loginForm.error.invalidFormatLogin'});
+            console.debug(CONST.REGEX.DIGITS_AND_PLUS.test(this.state.login));
+            if (CONST.REGEX.DIGITS_AND_PLUS.test(this.state.login)) {
+                this.setState({formError: 'messages.noPhoneNumber'});
+            } else {
+                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+            }
             return;
         }
 

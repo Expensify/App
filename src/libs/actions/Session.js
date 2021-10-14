@@ -141,7 +141,11 @@ function fetchAccountDetails(login) {
                     resendValidationLink(login);
                 }
             } else if (response.jsonCode === 402) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('loginForm.error.invalidFormatLogin')});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
+                    error: CONST.REGEX.DIGITS_AND_PLUS.test(login)
+                        ? translateLocal('messages.noPhoneNumber')
+                        : translateLocal('loginForm.error.invalidFormatEmailLogin'),
+                });
             } else {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
             }

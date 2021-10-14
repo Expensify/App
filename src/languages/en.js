@@ -373,7 +373,7 @@ export default {
     loginForm: {
         phoneOrEmail: 'Phone or email',
         error: {
-            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+            invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
     },
     resendValidationForm: {
@@ -465,7 +465,7 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
+        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907.',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
