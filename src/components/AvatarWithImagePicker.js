@@ -4,6 +4,7 @@ import {
     Pressable, View, Animated, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
@@ -13,6 +14,7 @@ import {
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import AttachmentPicker from './AttachmentPicker';
+import ConfirmModal from './ConfirmModal';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import variables from '../styles/variables';
 import CONST from '../CONST';
@@ -52,6 +54,9 @@ const propTypes = {
     /** Size of Indicator */
     size: PropTypes.string,
 
+    /** Max image size */
+    maxUploadSizeInMB: PropTypes.number,
+
     ...withLocalizePropTypes,
 };
 
@@ -64,14 +69,18 @@ const defaultProps = {
     isUsingDefaultAvatar: false,
     isUploading: false,
     size: CONST.AVATAR_SIZE.DEFAULT,
+    maxUploadSizeInMB: undefined,
 };
 
 class AvatarWithImagePicker extends React.Component {
     constructor(props) {
         super(props);
         this.animation = new SpinningIndicatorAnimation();
+        this.setUploadLimitModalVisibility = this.setUploadLimitModalVisibility.bind(this);
+        this.isValidSize = this.isValidSize.bind(this);
         this.state = {
             isMenuVisible: false,
+            isMaxUploadSizeModalOpen: false,
         };
     }
 
@@ -106,7 +115,13 @@ class AvatarWithImagePicker extends React.Component {
                 text: this.props.translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     openPicker({
-                        onPicked: this.props.onImageSelected,
+                        onPicked: (image) => {
+                            if (!this.isValidSize(image)) {
+                                this.setUploadLimitModalVisibility(true);
+                                return;
+                            }
+                            this.props.onImageSelected(image);
+                        },
                     });
                 },
             },
@@ -200,6 +215,15 @@ class AvatarWithImagePicker extends React.Component {
                         </AttachmentPicker>
                     </View>
                 </Pressable>
+                <ConfirmModal
+                    title={this.props.translate('avatarImagePicker.imageToLarge')}
+                    onConfirm={() => this.setUploadLimitModalVisibility(false)}
+                    onCancel={() => this.setUploadLimitModalVisibility(false)}
+                    isVisible={this.state.isMaxUploadSizeModalOpen}
+                    prompt={this.props.translate('avatarImagePicker.sizeExceeded')}
+                    confirmText={this.props.translate('common.close')}
+                    shouldShowCancelButton={false}
+                />
             </View>
         );
     }
