@@ -587,7 +587,6 @@ const styles = {
         },
         inputNative: {
             ...expensiPicker,
-            paddingHorizontal: 12,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
