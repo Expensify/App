@@ -30,6 +30,7 @@ const propTypes = {
     }).isRequired,
 
     /** From Onyx */
+    /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes,
 
     /** User Data from Onyx */
