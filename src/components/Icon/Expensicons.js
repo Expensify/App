@@ -2,7 +2,7 @@ import Android from '../../../assets/images/android.svg';
 import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
-import Bank from '../../../assets/images/generic-bank-account.svg';
+import Bank from '../../../assets/images/bank.svg';
 import Bill from '../../../assets/images/bill.svg';
 import Briefcase from '../../../assets/images/briefcase.svg';
 import Bug from '../../../assets/images/bug.svg';
