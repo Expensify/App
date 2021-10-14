@@ -19,6 +19,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import {isValidPaypalUsername} from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -40,7 +41,6 @@ class AddPayPalMePage extends React.Component {
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
-        this.validatePaypalMeUsername = this.validatePaypalMeUsername.bind(this);
         this.paypalUsernameInputRef = null;
     }
 
@@ -60,30 +60,16 @@ class AddPayPalMePage extends React.Component {
      * Sets the payPalMeUsername for the current user
      */
     setPayPalMeUsername() {
-        const isValid = this.validatePaypalMeUsername();
+        const isValid = isValidPaypalUsername(this.state.payPalMeUsername);
         if (!isValid) {
+            this.setState({payPalMeUsernameError: true});
             return;
         }
+        this.setState({payPalMeUsernameError: false});
         NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
         Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
     }
-
-    /**
-     * Validate the paypal username with regex
-     *
-     * @returns {Boolean}
-     */
-    validatePaypalMeUsername() {
-        const regex = CONST.REGEX.PAYPAL_ME_USERNAME;
-        if (this.state.payPalMeUsername && !regex.test(this.state.payPalMeUsername)) {
-            this.setState({payPalMeUsernameError: true});
-            return false;
-        }
-        this.setState({payPalMeUsernameError: false});
-        return true;
-    }
-
 
     render() {
         return (
@@ -112,11 +98,10 @@ class AddPayPalMePage extends React.Component {
                                 autoCorrect={false}
                                 value={this.state.payPalMeUsername}
                                 placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
-                                onChangeText={text => this.setState({payPalMeUsername: text})}
+                                onChangeText={text => this.setState({payPalMeUsername: text, payPalMeUsernameError: false})}
                                 returnKeyType="done"
                                 hasError={this.state.payPalMeUsernameError}
                                 errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
-
                             />
                         </View>
                     </View>
