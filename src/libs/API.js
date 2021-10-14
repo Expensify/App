@@ -175,7 +175,11 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
-    LogUtil.hmmm('[API] Handled error when making request', error);
+    if (queuedRequest.command !== 'Log') {
+        LogUtil.hmmm('[API] Handled error when making request', error);
+    } else {
+        console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
+    }
 
     // Set an error state and signify we are done loading
     Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
