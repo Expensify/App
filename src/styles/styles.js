@@ -141,13 +141,6 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
-    textXLarge: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeXLarge,
-        fontWeight: fontWeightBold,
-    },
-
     textXXXLarge: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -505,9 +498,6 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
-        paddingTop: 25,
-        paddingBottom: 8,
-        paddingHorizontal: 11.5,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
@@ -535,7 +525,11 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
-        ...spacing.pv0,
+        height: '100%',
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 11.5,
+        borderRadius: variables.componentBorderRadiusNormal,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -1812,7 +1806,7 @@ const styles = {
         zIndex: 10,
     },
 
-    vbaFullScreenLoading: {
+    reimbursementAccountFullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'flex-start',

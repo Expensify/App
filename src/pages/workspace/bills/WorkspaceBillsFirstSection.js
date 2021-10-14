@@ -49,8 +49,7 @@ const WorkspaceBillsFirstSection = ({
             menuItems={[
                 {
                     title: translate('workspace.bills.viewAllBills'),
-                    // eslint-disable-next-line max-len
-                    onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":true,"Processing":true,"Approved":true,"Reimbursed":true,"Archived":true},"isAdvancedFilterMode":true}`),
+                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
                     icon: Bill,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,

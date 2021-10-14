@@ -10,6 +10,7 @@ import Button from './Button';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextLink from './TextLink';
 import Text from './Text';
+import RenderHTML from './RenderHTML';
 
 const propTypes = {
     /** Whether to show the alert text */
@@ -30,12 +31,16 @@ const propTypes = {
     /** Error message to display above button */
     message: PropTypes.string,
 
+    /** Whether message is in html format */
+    isMessageHtml: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     message: '',
     isDisabled: false,
+    isMessageHtml: false,
 };
 
 const FormAlertWithSubmitButton = ({
@@ -46,6 +51,7 @@ const FormAlertWithSubmitButton = ({
     translate,
     onFixTheErrorsLinkPressed,
     message,
+    isMessageHtml,
 }) => {
     /**
      * @returns {React.Component}
@@ -54,9 +60,15 @@ const FormAlertWithSubmitButton = ({
         let error = '';
 
         if (!_.isEmpty(message)) {
-            error = (
-                <Text style={styles.mutedTextLabel}>{message}</Text>
-            );
+            if (isMessageHtml) {
+                error = (
+                    <RenderHTML html={`<muted-text>${message}</muted-text>`} />
+                );
+            } else {
+                error = (
+                    <Text style={styles.mutedTextLabel}>{message}</Text>
+                );
+            }
         } else {
             error = (
                 <>
