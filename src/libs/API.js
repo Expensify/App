@@ -60,7 +60,7 @@ function addDefaultValuesToParameters(command, parameters) {
         if (!authToken) {
             redirectToSignIn();
 
-            console.debug('A request was made without an authToken', {command, parameters});
+            LogUtil.info('A request was made without an authToken', false, {command, parameters});
             Network.pauseRequestQueue();
             Network.clearRequestQueue();
             Network.unpauseRequestQueue();
@@ -307,7 +307,7 @@ function reauthenticate(command = '') {
             // If we experience something other than a network error then redirect the user to sign in
             redirectToSignIn(error.message);
 
-            console.debug('Redirecting to Sign In because we failed to reauthenticate', {
+            LogUtil.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                 command,
                 error: error.message,
             });
