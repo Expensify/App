@@ -42,7 +42,7 @@ const WorkspaceSection = ({
         <View style={styles.pageWrapper}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                 <View style={[styles.flexShrink1]}>
-                    <Text style={[styles.textXLarge]}>{title}</Text>
+                    <Text style={[styles.h1]}>{title}</Text>
                 </View>
                 <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
                     {icon && <Icon src={icon} height={80} width={80} />}
