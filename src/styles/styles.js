@@ -513,7 +513,7 @@ const styles = {
     },
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 11.5,
+        left: 12,
         top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
@@ -539,12 +539,12 @@ const styles = {
         color: themeColors.text,
         paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 11.5,
+        paddingHorizontal: 12,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
         padding: 0,
-        left,
+        left: left + 1,
     }),
     textInput: {
         backgroundColor: themeColors.componentBG,
@@ -570,7 +570,7 @@ const styles = {
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 11.5,
+        left: 12,
         top: 7,
     },
     expensiPicker: (disabled = false, error = false, focused = false) => ({
@@ -587,6 +587,7 @@ const styles = {
         },
         inputNative: {
             ...expensiPicker,
+            paddingHorizontal: 12,
             ...(focused && {borderColor: themeColors.borderFocus}),
             ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
