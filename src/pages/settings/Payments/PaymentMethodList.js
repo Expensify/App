@@ -159,7 +159,6 @@ class PaymentMethodList extends Component {
                     disabled={item.disabled}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
-                    iconStyles={item.iconStyles}
                 />
             );
         }

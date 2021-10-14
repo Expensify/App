@@ -1,4 +1,4 @@
-import {CreditCard} from './Expensicons';
+import {CreditCard, Bank} from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -9,7 +9,6 @@ import CitiBank from '../../../assets/images/bankicons/citibank.svg';
 import CitizensBank from '../../../assets/images/bankicons/citizens-bank.svg';
 import Discover from '../../../assets/images/bankicons/discover.svg';
 import Fidelity from '../../../assets/images/bankicons/fidelity.svg';
-import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg';
 import HuntingtonBank from '../../../assets/images/bankicons/huntington-bank.svg';
 import NavyFederalCreditUnion from '../../../assets/images/bankicons/navy-federal-credit-union.svg';
 import PNC from '../../../assets/images/bankicons/pnc.svg';
@@ -18,7 +17,6 @@ import SunTrust from '../../../assets/images/bankicons/suntrust.svg';
 import TdBank from '../../../assets/images/bankicons/td-bank.svg';
 import USBank from '../../../assets/images/bankicons/us-bank.svg';
 import USAA from '../../../assets/images/bankicons/usaa.svg';
-import styles from '../../styles/styles';
 import variables from '../../styles/variables';
 
 /**
@@ -101,7 +99,7 @@ function getAssetIcon(bankName, isCard) {
         return USAA;
     }
 
-    return isCard ? CreditCard : GenericBank;
+    return isCard ? CreditCard : Bank;
 }
 
 /**
@@ -113,7 +111,7 @@ function getAssetIcon(bankName, isCard) {
 
 export default function getBankIcon(bankName, isCard) {
     const bankIcon = {
-        icon: isCard ? CreditCard : GenericBank,
+        icon: isCard ? CreditCard : Bank,
     };
 
     if (bankName) {
