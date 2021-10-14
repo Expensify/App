@@ -216,6 +216,8 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
+        imageUploadFailed: 'Error al cargar la imagen',
+        sizeExceeded: 'La imagen supera el tamaño máximo de 3 MB.',
     },
     profilePage: {
         profile: 'Perfil',
