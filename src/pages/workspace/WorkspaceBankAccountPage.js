@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {Bank} from '../../components/Icon/Expensicons';
+import {Bank, RotateLeft} from '../../components/Icon/Expensicons';
 import {BankArrowPink} from '../../components/Icon/Illustrations';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
@@ -104,7 +104,7 @@ class WorkspaceBankAccountPage extends React.Component {
                         },
                         {
                             title: 'Start over',
-                            icon: Bank,
+                            icon: RotateLeft,
                             onPress: requestResetFreePlanBankAccount,
                             shouldShowRightIcon: true,
                         },
