@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
@@ -64,6 +64,10 @@ class LoginForm extends React.Component {
             login: text,
             formError: null,
         });
+
+        if (this.props.account.error) {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
+        }
     }
 
     /**
@@ -76,7 +80,6 @@ class LoginForm extends React.Component {
         }
 
         if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
-            console.debug(CONST.REGEX.DIGITS_AND_PLUS.test(this.state.login));
             if (CONST.REGEX.DIGITS_AND_PLUS.test(this.state.login)) {
                 this.setState({formError: 'messages.errorMessageInvalidPhone'});
             } else {
