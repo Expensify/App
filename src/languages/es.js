@@ -738,7 +738,7 @@ export default {
             yesDisconnectMyBankAccount: 'Sí, desconecta mi cuenta de banco',
             yesStartOver: 'Sí, empezar de nuevo',
             disconnectYour: 'Desconecta tu ',
-            bankAccountAnyTransactions: ' cuenta de banco. Last transacciones pendientes serán importadas.',
+            bankAccountAnyTransactions: ' cuenta de banco. Lost reembolsos pendientes serán completados sin problemas.',
             clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
