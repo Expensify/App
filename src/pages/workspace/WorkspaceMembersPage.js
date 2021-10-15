@@ -46,7 +46,7 @@ const propTypes = {
     route: PropTypes.shape({
         /** Params from the URL path */
         params: PropTypes.shape({
-            /** policyID passed via route: /workspace/:policyID/people */
+            /** policyID passed via route: /workspace/:policyID/members */
             policyID: PropTypes.string,
         }),
     }).isRequired,
@@ -58,7 +58,7 @@ const defaultProps = {
     },
 };
 
-class WorkspacePeoplePage extends React.Component {
+class WorkspaceMembersPage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -218,14 +218,15 @@ class WorkspacePeoplePage extends React.Component {
             .filter()
             .sortBy(person => person.displayName.toLowerCase())
             .value();
+        const policyID = lodashGet(this.props.route, 'params.policyID');
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('common.people')}
+                    title={this.props.translate('workspace.common.members')}
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack()}
-                    shouldShowBackButton={this.props.isSmallScreenWidth}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policyID))}
+                    shouldShowBackButton
                 />
                 <ConfirmModal
                     danger
@@ -279,9 +280,9 @@ class WorkspacePeoplePage extends React.Component {
     }
 }
 
-WorkspacePeoplePage.propTypes = propTypes;
-WorkspacePeoplePage.defaultProps = defaultProps;
-WorkspacePeoplePage.displayName = 'WorkspacePeoplePage';
+WorkspaceMembersPage.propTypes = propTypes;
+WorkspaceMembersPage.defaultProps = defaultProps;
+WorkspaceMembersPage.displayName = 'WorkspacePeoplePage';
 
 export default compose(
     withLocalize,
@@ -300,4 +301,4 @@ export default compose(
             key: ONYXKEYS.BETAS,
         },
     }),
-)(WorkspacePeoplePage);
+)(WorkspaceMembersPage);
