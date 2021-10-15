@@ -7,6 +7,7 @@ import {translateLocal} from '../translate';
 import CONST from '../../CONST';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
+import asyncOpenURL from '../asyncOpenURL';
 
 let isNetworkOffline = false;
 Onyx.connect({
@@ -35,10 +36,9 @@ function showGrowlIfOffline() {
  */
 function openOldDotLink(url) {
     if (!showGrowlIfOffline()) {
-        API.GetShortLivedAuthToken().then(({shortLivedAuthToken}) => {
-            // eslint-disable-next-line max-len
-            Linking.openURL(`${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`);
-        });
+        // eslint-disable-next-line max-len
+        const buildOldDotURL = ({shortLivedAuthToken}) => `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+        asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
     }
 }
 

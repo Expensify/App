@@ -430,7 +430,7 @@ export default {
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
             addressCity: 'Please enter a valid city',
-            addressStreet: 'Please enter a valid address street that is not a PO Box',
+            addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
             incorporationState: 'Please enter a valid state',
@@ -613,7 +613,7 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
-    vbaLoadingAnimation: {
+    reimbursementAccountLoadingAnimation: {
         oneMoment: 'One Moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
@@ -646,6 +646,9 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
+            error: {
+                cannotRemove: 'You cannot remove yourself or the workspace owner.',
+            },
         },
         card: {
             header: 'Unlock free Expensify Cards',
@@ -726,7 +729,7 @@ export default {
             youreAlmostDone: 'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.',
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
-            allSet: 'All set!',
+            allSet: 'You\'re all set!',
             accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nConcierge can help you add a work email address to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
             chatWithConcierge: 'Chat with Concierge',
