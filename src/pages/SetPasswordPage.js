@@ -9,7 +9,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import {signIn} from '../libs/actions/Session';
+import {setPassword, signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -18,6 +18,7 @@ import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
 import * as API from '../libs/API';
+import CONST from '../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -93,6 +94,13 @@ class SetPasswordPage extends Component {
                         });
                     }
                 });
+            } else if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
+                // If the email is already validated, set the password using the validate code
+                setPassword(
+                    this.state.password,
+                    lodashGet(this.props.route, 'params.validateCode', ''),
+                    lodashGet(this.props.route, 'params.accountID', ''),
+                );
             } else {
                 this.setState({
                     error: this.props.translate('setPasswordPage.accountNotValidated'),
@@ -105,7 +113,10 @@ class SetPasswordPage extends Component {
         const error = this.state.error || this.props.account.error;
         return (
             <SafeAreaView style={[styles.signInPage]}>
-                <SignInPageLayout welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}>
+                <SignInPageLayout
+                    shouldShowWelcomeText
+                    welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
+                >
                     <View style={[styles.mb4]}>
                         <NewPasswordForm
                             password={this.state.password}
@@ -124,7 +135,6 @@ class SetPasswordPage extends Component {
                             isDisabled={!this.state.isFormValid}
                         />
                     </View>
-
                     {!_.isEmpty(error) && (
                         <Text style={[styles.formError]}>
                             {error}

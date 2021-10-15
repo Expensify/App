@@ -20,6 +20,9 @@ const propTypes = {
     /* Flag to check medium screen with device */
     isMediumScreenWidth: PropTypes.bool.isRequired,
 
+    /** Whether to show welcome text on a particular page */
+    shouldShowWelcomeText: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -46,9 +49,11 @@ const SignInPageLayoutWide = (props) => {
                                     height={variables.componentSizeLarge}
                                 />
                             </View>
-                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                                {props.welcomeText}
-                            </Text>
+                            {props.shouldShowWelcomeText && (
+                                <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                    {props.welcomeText}
+                                </Text>
+                            )}
                             <View>
                                 {props.children}
                             </View>
