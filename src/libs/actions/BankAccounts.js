@@ -10,11 +10,14 @@ import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
+import {getRequestorIdentity} from '../ReimbursementAccountUtils';
 import {
+    isRequiredFulfilled,
     isValidAddress,
     isValidDate,
     isValidIndustryCode,
     isValidZipCode,
+    validateIdentity,
 } from '../ValidationUtils';
 
 /**
@@ -33,6 +36,12 @@ Onyx.connect({
     callback: (val) => {
         reimbursementAccountInSetup = lodashGet(val, 'achData', {});
     },
+});
+
+let reimbursementAccountDraft = {};
+Onyx.connect({
+    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+    callback: val => reimbursementAccountDraft = val,
 });
 
 let reimbursementAccountWorkspaceID = null;
@@ -504,6 +513,8 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                 const stepsToValidate = CONST.BANK_ACCOUNT.STEPS_ORDERED
                     .slice(0, _.indexOf(CONST.BANK_ACCOUNT.STEPS_ORDERED, stepToOpen));
 
+                const requestorIdentity = getRequestorIdentity(reimbursementAccountDraft, achData);
+
                 // Function to validate data is bank account setup step
                 const isStepComplete = (step) => {
                     switch (step) {
@@ -521,7 +532,21 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                                 && Str.isValidPhone(lodashGet(achData, 'companyPhone'))
                                 && Str.isValidURL(lodashGet(achData, 'website'));
                         case CONST.BANK_ACCOUNT.STEP.REQUESTOR:
-                            return isValidDate(lodashGet(achData, 'dob'));
+                            return (
+                                validateIdentity({
+                                    firstName: requestorIdentity.firstName,
+                                    lastName: requestorIdentity.lastName,
+                                    street: requestorIdentity.requestorAddressStreet,
+                                    city: requestorIdentity.requestorAddressCity,
+                                    zipCode: requestorIdentity.requestorAddressZipCode,
+                                    state: requestorIdentity.requestorAddressState,
+                                    ssnLast4: requestorIdentity.ssnLast4,
+                                    dob: requestorIdentity.dob,
+                                })
+                            && _.every(
+                                CONST.BANK_ACCOUNT.REQUIRED_FIELDS_FOR_STEPS.REQUESTOR,
+                                key => isRequiredFulfilled(lodashGet(reimbursementAccountDraft, key)) || isRequiredFulfilled(lodashGet(achData, key)),
+                            ));
                         case CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT:
                             return Boolean(lodashGet(achData, 'acceptTerms', false))
                                 && Boolean(lodashGet(achData, 'certifyTrueInformation', false));

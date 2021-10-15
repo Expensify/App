@@ -40,6 +40,14 @@ const CONST = {
             ENABLE: 'EnableStep',
         },
 
+        REQUIRED_FIELDS_FOR_STEPS: {
+            REQUESTOR: [
+                'firstName',
+                'lastName',
+                'isControllingOfficer',
+            ],
+        },
+
         // This array is only necessary because plain JS objects are not ordered,
         // and we need to loop through these steps in order.
         STEPS_ORDERED: [

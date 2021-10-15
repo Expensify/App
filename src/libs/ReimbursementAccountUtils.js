@@ -4,17 +4,29 @@ import lodashCloneDeep from 'lodash/cloneDeep';
 import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
 
 /**
- * Get the default state for input fields in the VBA flow
- *
- * @param {Object} props
+ * @param {Object} reimbursementAccountDraft
+ * @param {Object} achData
  * @param {String} fieldName
  * @param {*} defaultValue
- *
  * @returns {*}
  */
-function getDefaultStateForField(props, fieldName, defaultValue = '') {
-    return lodashGet(props, ['reimbursementAccountDraft', fieldName])
-        || lodashGet(props, ['achData', fieldName], defaultValue);
+function getDefaultStateForField(reimbursementAccountDraft, achData, fieldName, defaultValue = '') {
+    return lodashGet(reimbursementAccountDraft, [fieldName])
+        || lodashGet(achData, [fieldName], defaultValue);
+}
+
+function getRequestorIdentity(reimbursementAccountDraft, achData) {
+    return {
+        firstName: getDefaultStateForField(reimbursementAccountDraft, achData, 'firstName'),
+        lastName: getDefaultStateForField(reimbursementAccountDraft, achData, 'lastName'),
+        requestorAddressStreet: getDefaultStateForField(reimbursementAccountDraft, achData, 'requestorAddressStreet'),
+        requestorAddressCity: getDefaultStateForField(reimbursementAccountDraft, achData, 'requestorAddressCity'),
+        requestorAddressState: getDefaultStateForField(reimbursementAccountDraft, achData, 'requestorAddressState'),
+        requestorAddressZipCode: getDefaultStateForField(reimbursementAccountDraft, achData, 'requestorAddressZipCode'),
+        dob: getDefaultStateForField(reimbursementAccountDraft, achData, 'dob'),
+        ssnLast4: getDefaultStateForField(reimbursementAccountDraft, achData, 'ssnLast4'),
+        isControllingOfficer: getDefaultStateForField(reimbursementAccountDraft, achData, 'isControllingOfficer', false),
+    };
 }
 
 /**
@@ -55,6 +67,7 @@ function getErrorText(props, errorTranslationKeys, inputKey) {
 
 export {
     getDefaultStateForField,
+    getRequestorIdentity,
     getErrors,
     clearError,
     getErrorText,

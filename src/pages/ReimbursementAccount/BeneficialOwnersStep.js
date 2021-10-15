@@ -48,12 +48,14 @@ class BeneficialOwnersStep extends React.Component {
         this.addBeneficialOwner = this.addBeneficialOwner.bind(this);
         this.submit = this.submit.bind(this);
 
+        const reimbursementAccountDraft = lodashGet(props, 'reimbursementAccountDraft', {});
+        const achData = lodashGet(props, 'achData', {});
         this.state = {
-            ownsMoreThan25Percent: getDefaultStateForField(props, 'ownsMoreThan25Percent', false),
-            hasOtherBeneficialOwners: getDefaultStateForField(props, 'hasOtherBeneficialOwners', false),
-            acceptTermsAndConditions: getDefaultStateForField(props, 'acceptTermsAndConditions', false),
-            certifyTrueInformation: getDefaultStateForField(props, 'certifyTrueInformation', false),
-            beneficialOwners: getDefaultStateForField(props, 'beneficialOwners', []),
+            ownsMoreThan25Percent: getDefaultStateForField(reimbursementAccountDraft, achData, 'ownsMoreThan25Percent', false),
+            hasOtherBeneficialOwners: getDefaultStateForField(reimbursementAccountDraft, achData, 'hasOtherBeneficialOwners', false),
+            acceptTermsAndConditions: getDefaultStateForField(reimbursementAccountDraft, achData, 'acceptTermsAndConditions', false),
+            certifyTrueInformation: getDefaultStateForField(reimbursementAccountDraft, achData, 'certifyTrueInformation', false),
+            beneficialOwners: getDefaultStateForField(reimbursementAccountDraft, achData, 'beneficialOwners', []),
         };
 
         // These fields need to be filled out in order to submit the form (doesn't include IdentityForm fields)

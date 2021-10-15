@@ -25,7 +25,7 @@ import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import {
-    getDefaultStateForField,
+    getRequestorIdentity,
     clearError,
     getErrors,
 } from '../../libs/ReimbursementAccountUtils';
@@ -49,26 +49,9 @@ class RequestorStep extends React.Component {
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
 
-        this.state = {
-            firstName: getDefaultStateForField(props, 'firstName'),
-            lastName: getDefaultStateForField(props, 'lastName'),
-            requestorAddressStreet: getDefaultStateForField(props, 'requestorAddressStreet'),
-            requestorAddressCity: getDefaultStateForField(props, 'requestorAddressCity'),
-            requestorAddressState: getDefaultStateForField(props, 'requestorAddressState'),
-            requestorAddressZipCode: getDefaultStateForField(props, 'requestorAddressZipCode'),
-            dob: getDefaultStateForField(props, 'dob'),
-            ssnLast4: getDefaultStateForField(props, 'ssnLast4'),
-            isControllingOfficer: getDefaultStateForField(props, 'isControllingOfficer', false),
-            onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
-            isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
-        };
-
-        // Required fields not validated by `validateIdentity`
-        this.requiredFields = [
-            'firstName',
-            'lastName',
-            'isControllingOfficer',
-        ];
+        this.state = getRequestorIdentity(lodashGet(props, 'reimbursementAccountDraft'), lodashGet(props, 'achData'));
+        this.state.onfidoData = lodashGet(props, ['achData', 'onfidoData'], '');
+        this.state.isOnfidoSetupComplete = lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false);
 
         // Map a field to the key of the error's translation
         this.errorTranslationKeys = {
@@ -121,7 +104,7 @@ class RequestorStep extends React.Component {
             ssnLast4: this.state.ssnLast4,
         });
 
-        _.each(this.requiredFields, (inputKey) => {
+        _.each(CONST.BANK_ACCOUNT.REQUIRED_FIELDS_FOR_STEPS.REQUESTOR, (inputKey) => {
             if (!isRequiredFulfilled(this.state[inputKey])) {
                 errors[inputKey] = true;
             }
