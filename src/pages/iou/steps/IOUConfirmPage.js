@@ -40,6 +40,9 @@ const propTypes = {
 
     /** IOU type */
     iouType: PropTypes.string,
+
+    /** Amount split belongs to group or not */
+    isGroupSplit: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -59,6 +62,7 @@ const IOUConfirmPage = props => (
         onConfirm={props.onConfirm}
         iouType={props.iouType}
         localCurrencyCode={props.localCurrencyCode}
+        isGroupSplit={props.isGroupSplit}
     />
 );
 

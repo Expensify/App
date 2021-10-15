@@ -65,6 +65,9 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
+    /** Amount split belongs to group or not */
+    isGroupSplit: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -411,7 +414,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
-                        disableRowInteractivity={!this.props.hasMultipleParticipants}
+                        disableRowInteractivity={!this.props.isGroupSplit}
                         optionHoveredStyle={hoverStyle}
                     />
                 </ScrollView>
