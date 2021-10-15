@@ -64,6 +64,10 @@ export default {
         alignSelf: 'flex-start',
     },
 
+    alignSelfEnd: {
+        alignSelf: 'flex-end',
+    },
+
     alignItemsStart: {
         alignItems: 'flex-start',
     },

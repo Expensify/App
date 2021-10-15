@@ -10,7 +10,6 @@ import {
     validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
-import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
@@ -24,7 +23,9 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import LetsChatImage from '../../../assets/images/lets-chat.svg';
+import {ChatBubble} from '../../components/Icon/Expensicons';
+import {ConciergeBlue} from '../../components/Icon/Illustrations';
+import WorkspaceSection from '../workspace/WorkspaceSection';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -150,9 +151,6 @@ class ValidationStep extends React.Component {
     }
 
     navigateToConcierge() {
-        // There are two modals that must be dismissed before we can reveal the Concierge
-        // chat underneath these screens
-        Navigation.dismissModal();
         Navigation.dismissModal();
         navigateToConciergeChat();
     }
@@ -171,9 +169,11 @@ class ValidationStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={isVerifying ? this.props.translate('validationStep.letsChatTitle') : this.props.translate('validationStep.headerTitle')}
+                    title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowBackButton
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
@@ -231,18 +231,20 @@ class ValidationStep extends React.Component {
                 )}
                 {isVerifying && (
                     <View style={[styles.flex1]}>
-                        <View style={[styles.alignItemsCenter, styles.mb5]}>
-                            <LetsChatImage />
-                        </View>
-                        <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
-                            {this.props.translate('validationStep.letsChatText')}
-                        </Text>
-                        <Button
-                            success
-                            text={this.props.translate('validationStep.letsChatCTA')}
-                            style={[styles.mh5, styles.mb5]}
-                            onPress={this.navigateToConcierge}
-                        />
+                        <WorkspaceSection
+                            title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
+                            icon={ConciergeBlue}
+                            menuItems={[{
+                                title: this.props.translate('validationStep.letsChatCTA'),
+                                icon: ChatBubble,
+                                onPress: this.navigateToConcierge,
+                                shouldShowRightIcon: true,
+                            }]}
+                        >
+                            <Text>
+                                {this.props.translate('validationStep.letsChatText')}
+                            </Text>
+                        </WorkspaceSection>
                     </View>
                 )}
             </View>
