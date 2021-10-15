@@ -170,10 +170,14 @@ class AuthScreens extends React.Component {
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
             .then((url) => {
-                const path = new URL(url).pathname;
-                const exitTo = new URLSearchParams(url).get('exitTo');
-                const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
-                getPolicyList(shouldCreateFreePolicy);
+                if (url) {
+                    const path = new URL(url).pathname;
+                    const exitTo = new URLSearchParams(url).get('exitTo');
+                    const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
+                    getPolicyList(shouldCreateFreePolicy);
+                } else {
+                    getPolicyList(false);
+                }
             });
 
         // Refresh the personal details, timezone and betas every 30 minutes
