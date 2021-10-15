@@ -17,10 +17,17 @@ Onyx.connect({
     callback: val => credentials = val,
 });
 
+let isOnyxReady = false;
 let authToken;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
+    callback: val => setTimeout(() => { // TODO: remove setTimeout
+    // callback: (val) => {
+        authToken = val ? val.authToken : null;
+        isOnyxReady = true;
+
+    // },
+    }, 1000),
 });
 
 /**
@@ -80,7 +87,14 @@ function addDefaultValuesToParameters(command, parameters) {
 }
 
 // Tie into the network layer to add auth token to the parameters of all requests
-Network.registerParameterEnhancer(addDefaultValuesToParameters);
+Network.registerParameterEnhancer((command, parameters) => {
+    if (isOnyxReady) {
+        return addDefaultValuesToParameters(command, parameters);
+    }
+
+    // TODO: log this to the server
+    console.debug(`Onyx is not ready in Network.registerParameterEnhancer with command '${command}'`);
+});
 
 /**
  * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
