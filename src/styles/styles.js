@@ -174,8 +174,28 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    background100: {
+        backgroundSize: '100% 100%',
+    },
+
+    backgroundGreen: {
+        backgroundColor: colors.green,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
+    },
+
+    backgroundOrange: {
+        backgroundColor: colors.orange,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
+    },
+
+    backgroundPink: {
+        backgroundColor: colors.pink,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
+    },
+
     backgroundBlue: {
         backgroundColor: colors.blue,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
     },
 
     colorReversed: {
@@ -641,19 +661,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    signinWelcomeScreenshot: {
-        height: 354,
-        width: 295,
-    },
-
-    signInWelcomeScreenshotWide: {
-        aspectRatio: 1,
-        width: '100%',
-        height: '100%',
-        maxHeight: 551,
-        minHeight: 300,
     },
 
     genericView: {
