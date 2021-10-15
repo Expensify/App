@@ -111,7 +111,7 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     isValidSize(image) {
-        return !image || lodashGet(image, 'size', 0) < (this.props.maxUploadSizeInMB * 1024 * 1024);
+        return !image || !this.props.maxUploadSizeInMB || lodashGet(image, 'size', 0) < (this.props.maxUploadSizeInMB * 1024 * 1024);
     }
 
     /**
