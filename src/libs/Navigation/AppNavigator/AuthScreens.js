@@ -170,6 +170,7 @@ class AuthScreens extends React.Component {
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
             .then((url) => {
+                // url is null on mobile unless the app was opened via a deeplink
                 if (url) {
                     const path = new URL(url).pathname;
                     const exitTo = new URLSearchParams(url).get('exitTo');
