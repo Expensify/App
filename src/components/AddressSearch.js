@@ -47,8 +47,23 @@ const AddressSearch = (props) => {
             .value();
     };
 
+    const validateAddressComponents = (addressComponents) => {
+        if (!addressComponents) {
+            return false;
+        }
+        if (!_.some(addressComponents, component => _.includes(component.types, 'street_number'))) {
+            // Missing Street number
+            return false;
+        }
+        if (_.some(addressComponents, component => _.includes(component.types, 'post_box'))) {
+            // Reject PO box
+            return false;
+        }
+        return true;
+    };
+
     const saveLocationDetails = (details) => {
-        if (details.address_components) {
+        if (validateAddressComponents(details.address_components)) {
             // Gather the values from the Google details
             const streetNumber = getAddressComponent(details, 'street_number', 'long_name');
             const streetName = getAddressComponent(details, 'route', 'long_name');
@@ -61,6 +76,12 @@ const AddressSearch = (props) => {
             props.onChangeText('addressCity', city);
             props.onChangeText('addressState', state);
             props.onChangeText('addressZipCode', zipCode);
+        } else {
+            // Clear the values associated to the address, so our validations catch the problem
+            props.onChangeText('addressStreet', null);
+            props.onChangeText('addressCity', null);
+            props.onChangeText('addressState', null);
+            props.onChangeText('addressZipCode', null);
         }
     };
 
@@ -74,6 +95,8 @@ const AddressSearch = (props) => {
             query={{
                 key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
                 language: props.preferredLocale,
+                types: 'address',
+                components: 'country:us',
             }}
             requestUrl={{
                 useOnPlatform: 'web',
