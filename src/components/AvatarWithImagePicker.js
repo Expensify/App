@@ -110,6 +110,11 @@ class AvatarWithImagePicker extends React.Component {
         this.setState({isMaxUploadSizeModalOpen: isVisible});
     }
 
+    /**
+     * Check if the attachment size is less than allowed size.
+     * @param {Object} image
+     * @returns {Boolean}
+     */
     isValidSize(image) {
         return !image || !this.props.maxUploadSizeInMB || lodashGet(image, 'size', 0) < (this.props.maxUploadSizeInMB * 1024 * 1024);
     }
