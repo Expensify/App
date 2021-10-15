@@ -57,6 +57,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
+        owner: fullPolicy.owner,
         outputCurrency: fullPolicy.outputCurrency,
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
@@ -120,6 +121,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 type: response.policy.type,
                 name: response.policy.name,
                 role: CONST.POLICY.ROLE.ADMIN,
+                outputCurrency: response.policy.outputCurrency,
             });
         }).then(() => {
             const policyID = lodashGet(res, 'policyID');

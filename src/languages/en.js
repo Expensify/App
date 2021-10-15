@@ -566,6 +566,7 @@ export default {
         taxIDNumberPlaceholder: '9 digits, no hyphens',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
+        incorporationState: 'Incorporation state',
         industryClassificationCode: 'Industry classification code',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
@@ -643,6 +644,9 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
+            error: {
+                cannotRemove: 'You cannot remove yourself or the workspace owner.',
+            },
         },
         card: {
             header: 'Unlock free Expensify Cards',
@@ -671,7 +675,7 @@ export default {
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
-            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay',
+            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay.',
             viewAllBills: 'View all bills',
             unlockOnlineBillPayment: 'Unlock online bill payment',
             unlockNoVBACopy: 'Connect your bank account to pay bills online for free!',
@@ -723,7 +727,7 @@ export default {
             youreAlmostDone: 'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.',
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
-            allSet: 'All set!',
+            allSet: 'You\'re all set!',
             accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nConcierge can help you add a work email address to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
             chatWithConcierge: 'Chat with Concierge',

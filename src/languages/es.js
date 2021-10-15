@@ -568,6 +568,7 @@ export default {
         taxIDNumberPlaceholder: '9 dígitos, sin guiones',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
+        incorporationState: 'Estado de incorporación',
         industryClassificationCode: 'Código de clasificación industrial',
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
@@ -645,6 +646,9 @@ export default {
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
+            error: {
+                cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
@@ -673,7 +677,7 @@ export default {
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
-            askYourVendorsAfterEmail: ' y las escanearemos para que las pagues',
+            askYourVendorsAfterEmail: ' y las escanearemos para que las pagues.',
             viewAllBills: 'Ver facturas recibidas',
             unlockOnlineBillPayment: 'Desbloquea el pago de facturas online',
             unlockNoVBACopy: '¡Conecta tu cuenta bancaria para pagar tus facturas online de manera gratuita!',
