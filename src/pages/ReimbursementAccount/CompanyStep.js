@@ -251,7 +251,7 @@ class CompanyStep extends React.Component {
                         />
                     </View>
                     <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
+                        <View style={[styles.flex1, styles.mr2]}>
                             <DatePicker
                                 label={this.props.translate('companyStep.incorporationDate')}
                                 onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
@@ -263,6 +263,7 @@ class CompanyStep extends React.Component {
                         </View>
                         <View style={[styles.flex1]}>
                             <StatePicker
+                                label={this.props.translate('companyStep.incorporationState')}
                                 onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
                                 value={this.state.incorporationState}
                                 hasError={this.getErrors().incorporationState}

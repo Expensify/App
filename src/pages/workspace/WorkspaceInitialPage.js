@@ -9,6 +9,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
+import Tooltip from '../../components/Tooltip';
 import Icon from '../../components/Icon';
 import {
     Bank,
