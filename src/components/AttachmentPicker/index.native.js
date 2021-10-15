@@ -5,6 +5,7 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
+import lodashGet from 'lodash/get';
 import {propTypes as basePropTypes, defaultProps} from './AttachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
@@ -65,7 +66,7 @@ function getDataForUpload(fileData) {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.uri,
-        size: fileData.size,
+        size: lodashGet(fileData, 'fileSize', lodashGet(fileData, 'size')),
     };
 }
 
