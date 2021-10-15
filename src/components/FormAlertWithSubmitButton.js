@@ -34,6 +34,9 @@ const propTypes = {
     /** Whether message is in html format */
     isMessageHtml: PropTypes.bool,
 
+    /** Styles for container element */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
@@ -41,6 +44,7 @@ const defaultProps = {
     message: '',
     isDisabled: false,
     isMessageHtml: false,
+    containerStyles: [],
 };
 
 const FormAlertWithSubmitButton = ({
@@ -52,6 +56,7 @@ const FormAlertWithSubmitButton = ({
     onFixTheErrorsLinkPressed,
     message,
     isMessageHtml,
+    containerStyles,
 }) => {
     /**
      * @returns {React.Component}
@@ -96,7 +101,7 @@ const FormAlertWithSubmitButton = ({
     }
 
     return (
-        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...containerStyles]}>
             {isAlertVisible && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Icon src={Exclamation} fill={colors.red} />

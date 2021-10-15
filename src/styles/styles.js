@@ -1958,7 +1958,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        height: 150,
+        minHeight: 100,
     },
 
     peopleRow: {

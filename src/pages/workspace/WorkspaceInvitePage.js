@@ -257,7 +257,7 @@ class WorkspaceInvitePage extends React.Component {
                             shouldShowBackButton
                             onBackButtonPress={() => Navigation.goBack()}
                         />
-                        <View style={styles.flex1}>
+                        <View style={[styles.flex1]}>
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
                                 <OptionsSelector
@@ -293,7 +293,7 @@ class WorkspaceInvitePage extends React.Component {
                             )}
                         </View>
                         <View style={[styles.flexShrink0]}>
-                            <View style={[styles.ph5, styles.pv3, styles.pb3, styles.flexGrow1, styles.flexShrink0]}>
+                            <View style={[styles.ph5, styles.pv3]}>
                                 <ExpensiTextInput
                                     label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                     autoCompleteType="off"
@@ -301,6 +301,7 @@ class WorkspaceInvitePage extends React.Component {
                                     numberOfLines={3}
                                     textAlignVertical="top"
                                     multiline
+                                    containerStyles={[styles.workspaceInviteWelcome]}
                                     value={this.state.welcomeNote}
                                     placeholder={this.getWelcomeNotePlaceholder()}
                                     onChangeText={text => this.setState({welcomeNote: text})}
@@ -313,6 +314,7 @@ class WorkspaceInvitePage extends React.Component {
                                 onSubmit={this.inviteUser}
                                 onFixTheErrorsLinkPressed={() => {}}
                                 message={this.props.policy.alertMessage}
+                                containerStyles={[styles.flex0, styles.flexShrink0, styles.flexBasisAuto]}
                             />
                         </View>
                     </KeyboardAvoidingView>
