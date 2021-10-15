@@ -315,7 +315,7 @@ export default {
         addPaymentMethod: 'Add payment method',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
-        addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app',
+        addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
     },
     preferencesPage: {
         mostRecent: 'Most recent',
