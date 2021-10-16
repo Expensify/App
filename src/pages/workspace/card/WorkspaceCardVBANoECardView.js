@@ -8,6 +8,7 @@ import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';
 import {navigateToConciergeChat} from '../../../libs/actions/Report';
+import Navigation from "../../../libs/Navigation/Navigation";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -20,7 +21,10 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
         menuItems={[
             {
                 title: translate('workspace.card.chatWithConcierge'),
-                onPress: navigateToConciergeChat,
+                onPress: () => {
+                    Navigation.dismissModal();
+                    navigateToConciergeChat();
+                },
                 icon: Concierge,
                 shouldShowRightIcon: true,
             },
