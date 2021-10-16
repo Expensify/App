@@ -41,7 +41,7 @@ const propTypes = {
     /** IOU type */
     iouType: PropTypes.string,
 
-    /** Amount split belongs to group or not */
+    /** Whether this is an IOU split and belongs to a group report */
     isGroupSplit: PropTypes.bool.isRequired,
 };
 
