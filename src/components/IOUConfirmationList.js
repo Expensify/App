@@ -65,7 +65,7 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
-    /** Amount split belongs to group or not */
+    /** Whether this is an IOU split and belongs to a group report */
     isGroupSplit: PropTypes.bool.isRequired,
 
     ...windowDimensionsPropTypes,
