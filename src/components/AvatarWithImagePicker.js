@@ -112,7 +112,7 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Boolean}
      */
     isValidSize(image) {
-        return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE_MB;
+        return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
     }
 
     /**
@@ -233,7 +233,7 @@ class AvatarWithImagePicker extends React.Component {
                     onConfirm={() => this.setUploadLimitModalVisibility(false)}
                     onCancel={() => this.setUploadLimitModalVisibility(false)}
                     isVisible={this.state.isMaxUploadSizeModalOpen}
-                    prompt={this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE_MB / (1024 * 1024)})}
+                    prompt={this.props.translate('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)})}
                     confirmText={this.props.translate('common.close')}
                     shouldShowCancelButton={false}
                 />
