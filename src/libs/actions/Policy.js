@@ -127,7 +127,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
             const policyID = lodashGet(res, 'policyID');
             if (shouldAutomaticallyReroute) {
                 Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
+                Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
             }
             return Promise.resolve(policyID);
         });
