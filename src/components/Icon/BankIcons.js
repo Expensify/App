@@ -10,7 +10,7 @@ import CitizensBank from '../../../assets/images/bankicons/citizens-bank.svg';
 import Discover from '../../../assets/images/bankicons/discover.svg';
 import Fidelity from '../../../assets/images/bankicons/fidelity.svg';
 import HuntingtonBank from '../../../assets/images/bankicons/huntington-bank.svg';
-import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg'
+import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg';
 import NavyFederalCreditUnion from '../../../assets/images/bankicons/navy-federal-credit-union.svg';
 import PNC from '../../../assets/images/bankicons/pnc.svg';
 import RegionsBank from '../../../assets/images/bankicons/regions-bank.svg';
