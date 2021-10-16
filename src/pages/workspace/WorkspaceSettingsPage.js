@@ -158,7 +158,6 @@ class WorkspaceSettingsPage extends React.Component {
                                     isUsingDefaultAvatar={!this.state.previewAvatarURL}
                                     onImageSelected={this.uploadAvatar}
                                     onImageRemoved={this.removeAvatar}
-                                    maxUploadSizeInMB={CONST.AVATAR_MAX_ATTACHMENT_SIZE_MB}
                                 />
 
                                 <ExpensiTextInput

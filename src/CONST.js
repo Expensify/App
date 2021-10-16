@@ -4,7 +4,7 @@ const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
-    AVATAR_MAX_ATTACHMENT_SIZE_MB: 3,
+    AVATAR_MAX_ATTACHMENT_SIZE_MB: 3145728,
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',

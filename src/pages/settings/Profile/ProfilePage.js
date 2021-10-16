@@ -211,7 +211,6 @@ class ProfilePage extends Component {
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
-                            maxUploadSizeInMB={CONST.AVATAR_MAX_ATTACHMENT_SIZE_MB}
                         />
                         <Text style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
