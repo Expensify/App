@@ -13,6 +13,7 @@ import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
+import PopupMenu from './PopupMenu';
 
 const propTypes = {
     /** Title of the Header */
@@ -146,6 +147,11 @@ const HeaderWithCloseButton = props => (
                     </TouchableOpacity>
                 </Tooltip>
                 )}
+
+                {
+                  props.shouldShowThreeDotsButton
+                    && <PopupMenu />
+                }
             </View>
         </View>
     </View>
