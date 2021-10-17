@@ -30,6 +30,7 @@ import Avatar from '../../components/Avatar';
 import Tooltip from '../../components/Tooltip';
 import variables from '../../styles/variables';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import {create} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Whether the current screen is focused. */
@@ -100,6 +101,7 @@ const WorkspaceSidebar = ({
                             {
                                 icon: Plus,
                                 text: translate('workspace.new.newWorkspace'),
+                                onPress: create(),
                             }, {
                                 icon: Trashcan,
                                 text: translate('workspace.common.delete'),
