@@ -84,6 +84,7 @@ export default {
         confirm: 'Confirm',
         reset: 'Reset',
         done: 'Done',
+        more: 'More',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',

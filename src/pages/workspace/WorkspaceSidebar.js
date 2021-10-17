@@ -93,7 +93,7 @@ const WorkspaceSidebar = ({
                         title={translate('workspace.common.workspace')}
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowCloseButton={isSmallScreenWidth}
-                        shouldShowMoreOptionsMenu
+                        shouldShowThreeDotsButton
                     />
 
                     <View style={styles.pageWrapper}>

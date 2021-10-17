@@ -7,7 +7,7 @@ import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
 import {
-    Close, Download, BackArrow, Paperclip,
+    Close, Download, BackArrow, ThreeDots,
 } from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -28,7 +28,7 @@ const propTypes = {
     onBackButtonPress: PropTypes.func,
 
     /** Method to trigger when pressing more options button of the header */
-    onMoreOptionsMenuPress: PropTypes.func,
+    onThreeDotsButtonPress: PropTypes.func,
 
     /** Whether we should show a back icon */
     shouldShowBackButton: PropTypes.bool,
@@ -43,7 +43,7 @@ const propTypes = {
     shouldShowInboxCallButton: PropTypes.bool,
 
     /** Whether we should show a more options (threedots) button */
-    shouldShowMoreOptionsMenu: PropTypes.bool,
+    shouldShowThreeDotsButton: PropTypes.bool,
 
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
@@ -65,12 +65,12 @@ const defaultProps = {
     onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
-    onMoreOptionsMenuPress: () => {},
+    onThreeDotsButtonPress: () => {},
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
     shouldShowInboxCallButton: false,
-    shouldShowMoreOptionsMenu: false,
+    shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
     inboxCallTaskID: '',
     stepCounter: null,
@@ -118,14 +118,17 @@ const HeaderWithCloseButton = props => (
 
                 {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
-                {props.shouldShowMoreOptionsMenu && (
+                {props.shouldShowThreeDotsButton && (
                     <Tooltip text={props.translate('common.more')}>
 
                         <TouchableOpacity
-                            onPress={props.onMoreOptionsMenuPress}
-                            style={[styles.touchableButtonImage]}
+                            onPress={props.onThreeDotsButtonPress}
+                            style={[
+                                styles.touchableButtonImage,
+                                !props.shouldShowCloseButton && styles.mr0,
+                            ]}
                         >
-                            <Icon src={Paperclip} />
+                            <Icon src={ThreeDots} />
                         </TouchableOpacity>
                     </Tooltip>
                 )}
