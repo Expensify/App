@@ -7,13 +7,13 @@ import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
 import {
-    Close, Download, BackArrow, ThreeDots,
+    Close, Download, BackArrow,
 } from './Icon/Expensicons';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
-import PopupMenu from './PopupMenu';
+import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 
 const propTypes = {
     /** Title of the Header */
@@ -46,6 +46,8 @@ const propTypes = {
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton: PropTypes.bool,
 
+    threeDotsMenuItems: ThreeDotsMenuItemPropTypes,
+
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
@@ -75,6 +77,7 @@ const defaultProps = {
     shouldShowCloseButton: true,
     inboxCallTaskID: '',
     stepCounter: null,
+    threeDotsMenuItems: [],
 };
 
 const HeaderWithCloseButton = props => (
@@ -120,18 +123,7 @@ const HeaderWithCloseButton = props => (
                 {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
                 {props.shouldShowThreeDotsButton && (
-                    <Tooltip text={props.translate('common.more')}>
-
-                        <TouchableOpacity
-                            onPress={props.onThreeDotsButtonPress}
-                            style={[
-                                styles.touchableButtonImage,
-                                !props.shouldShowCloseButton && styles.mr0,
-                            ]}
-                        >
-                            <Icon src={ThreeDots} />
-                        </TouchableOpacity>
-                    </Tooltip>
+                    <ThreeDotsMenu menuItems={props.threeDotsMenuItems} onIconPress={props.onThreeDotsButtonPress} />
                 )}
 
                 {props.shouldShowCloseButton
@@ -147,11 +139,6 @@ const HeaderWithCloseButton = props => (
                     </TouchableOpacity>
                 </Tooltip>
                 )}
-
-                {
-                  props.shouldShowThreeDotsButton
-                    && <PopupMenu />
-                }
             </View>
         </View>
     </View>

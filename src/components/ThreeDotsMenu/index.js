@@ -3,14 +3,15 @@ import {
     View, Pressable, Dimensions,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from './Icon';
-import Popover from './Popover';
-import MenuItem from './MenuItem';
-import styles from '../styles/styles';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import compose from '../libs/compose';
-import Tooltip from './Tooltip';
-import {ThreeDots} from './Icon/Expensicons';
+import Icon from '../Icon';
+import Popover from '../Popover';
+import MenuItem from '../MenuItem';
+import styles from '../../styles/styles';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import compose from '../../libs/compose';
+import Tooltip from '../Tooltip';
+import {ThreeDots} from '../Icon/Expensicons';
+import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,12 +28,11 @@ const propTypes = {
     /** The fill color to pass into the icon. */
     iconFill: PropTypes.string,
 
+    /** Function to call on icon press */
+    onIconPress: PropTypes.func,
+
     /** menuItems that'll show up on toggle of the popup menu */
-    menuItems: PropTypes.arrayOf(PropTypes.shape({
-        icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
-        text: PropTypes.string,
-        onPress: PropTypes.func,
-    })).isRequired,
+    menuItems: ThreeDotsMenuItemPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -40,6 +40,7 @@ const defaultProps = {
     iconFill: undefined,
     iconStyles: [],
     icon: ThreeDots,
+    onIconPress: () => {},
 };
 
 
@@ -96,6 +97,9 @@ class ThreeDotsMenu extends Component {
                             onPress={() => {
                                 // Add a prop here?
                                 this.togglePopupMenu();
+                                if (this.props.onIconPress) {
+                                    this.props.onIconPress();
+                                }
                             }}
                             style={[styles.touchableButtonImage, ...this.props.iconStyles]}
                         >
@@ -140,3 +144,5 @@ ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 export default compose(
     withLocalize,
 )(ThreeDotsMenu);
+
+export {ThreeDotsMenuItemPropTypes};

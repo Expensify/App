@@ -15,6 +15,8 @@ import {
     ExpensifyCard,
     Workspace,
     Pencil,
+    Plus,
+    Trashcan,
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -94,6 +96,15 @@ const WorkspaceSidebar = ({
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowCloseButton={isSmallScreenWidth}
                         shouldShowThreeDotsButton
+                        threeDotMenuItems={[
+                            {
+                                icon: Plus,
+                                text: 'Add Workspace',
+                            }, {
+                                icon: Trashcan,
+                                text: 'Delete Workspace',
+                            },
+                        ]}
                     />
 
                     <View style={styles.pageWrapper}>
