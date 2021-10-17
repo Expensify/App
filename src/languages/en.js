@@ -625,6 +625,7 @@ export default {
             card: 'Expensify Card',
             workspace: 'Workspace',
             edit: 'Edit workspace',
+            delete: 'Delete Workspace',
         },
         new: {
             newWorkspace: 'New workspace',

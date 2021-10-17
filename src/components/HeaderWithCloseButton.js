@@ -123,7 +123,13 @@ const HeaderWithCloseButton = props => (
                 {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
                 {props.shouldShowThreeDotsButton && (
-                    <ThreeDotsMenu menuItems={props.threeDotsMenuItems} onIconPress={props.onThreeDotsButtonPress} />
+                    <ThreeDotsMenu
+                        menuItems={props.threeDotsMenuItems}
+                        onIconPress={props.onThreeDotsButtonPress}
+                        iconStyles={
+                          props.shouldShowCloseButton ? [] : [styles.mr0]
+                        }
+                    />
                 )}
 
                 {props.shouldShowCloseButton

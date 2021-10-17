@@ -627,6 +627,7 @@ export default {
             card: 'Tarjeta Expensify',
             workspace: 'Espacio de trabajo',
             edit: 'Editar espacio de trabajo',
+            delete: 'Eliminar espacio de trabajo',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',

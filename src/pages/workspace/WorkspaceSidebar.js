@@ -96,13 +96,13 @@ const WorkspaceSidebar = ({
                         onCloseButtonPress={() => Navigation.dismissModal()}
                         shouldShowCloseButton={isSmallScreenWidth}
                         shouldShowThreeDotsButton
-                        threeDotMenuItems={[
+                        threeDotsMenuItems={[
                             {
                                 icon: Plus,
-                                text: 'Add Workspace',
+                                text: translate('workspace.new.newWorkspace'),
                             }, {
                                 icon: Trashcan,
-                                text: 'Delete Workspace',
+                                text: translate('workspace.common.delete'),
                             },
                         ]}
                     />
