@@ -101,10 +101,11 @@ const WorkspaceSidebar = ({
                             {
                                 icon: Plus,
                                 text: translate('workspace.new.newWorkspace'),
-                                onPress: create(),
+                                onPress: () => create(),
                             }, {
                                 icon: Trashcan,
                                 text: translate('workspace.common.delete'),
+                                onPress: () => {},
                             },
                         ]}
                     />
