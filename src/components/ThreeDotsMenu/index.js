@@ -33,6 +33,12 @@ const propTypes = {
 
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: ThreeDotsMenuItemPropTypes.isRequired,
+
+    /** Offset of x, y for popup alignment  */
+    popupOffset: PropTypes.shape({
+        x: PropTypes.number,
+        y: PropTypes.number,
+    }),
 };
 
 const defaultProps = {
@@ -41,6 +47,10 @@ const defaultProps = {
     iconStyles: [],
     icon: ThreeDots,
     onIconPress: () => {},
+    popupOffset: {
+        x: -200,
+        y: 40,
+    },
 };
 
 
@@ -114,8 +124,8 @@ class ThreeDotsMenu extends Component {
                     onClose={this.togglePopupMenu}
                     isVisible={this.state.isPopupMenuActive}
                     anchorPosition={{
-                        left: this.state.popupMenuIconPosition.x - 150,
-                        top: this.state.popupMenuIconPosition.y + 40,
+                        left: this.state.popupMenuIconPosition.x + this.props.popupOffset.x,
+                        top: this.state.popupMenuIconPosition.y + this.props.popupOffset.y,
                     }}
                     animationIn="fadeInDown"
                     animationOut="fadeOutUp"
