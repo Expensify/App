@@ -141,7 +141,7 @@ function isValidSSNLastFour(ssnLast4) {
  * @returns {Boolean}
  */
 function isValidPaypalUsername(paypalUsername) {
-    return paypalUsername && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
+    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
 }
 
 /**
