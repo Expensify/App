@@ -15,6 +15,7 @@ import {
     Plus,
 } from '../../../components/Icon/Expensicons';
 import getBankIcon from '../../../components/Icon/BankIcons';
+import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
 const MENU_ITEM = 'menuItem';
 
@@ -29,19 +30,7 @@ const propTypes = {
     payPalMeUsername: PropTypes.string,
 
     /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc */
-        addressName: PropTypes.string,
-
-        /** The masked bank account number */
-        accountNumber: PropTypes.string,
-
-        /** The bankAccountID in the bankAccounts db */
-        bankAccountID: PropTypes.number,
-
-        /** The bank account type */
-        type: PropTypes.string,
-    })),
+    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
 
     /** Array of card objects */
     cardList: PropTypes.arrayOf(PropTypes.shape({

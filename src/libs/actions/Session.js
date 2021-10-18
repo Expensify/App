@@ -343,6 +343,16 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
 }
 
 /**
+ * Clear the credentials and partial sign in session so the user can taken back to first Login step
+ */
+function clearSignInData() {
+    Onyx.multiSet({
+        [ONYXKEYS.ACCOUNT]: null,
+        [ONYXKEYS.CREDENTIALS]: null,
+    });
+}
+
+/**
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
  */
 function cleanupSession() {
@@ -365,5 +375,6 @@ export {
     reopenAccount,
     resendValidationLink,
     resetPassword,
+    clearSignInData,
     cleanupSession,
 };

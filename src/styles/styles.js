@@ -22,10 +22,13 @@ const expensiPicker = {
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
-    paddingHorizontal: 12,
+    paddingHorizontal: 11.5,
     paddingBottom: 8,
     paddingTop: 24,
     height: 52,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    borderColor: themeColors.border,
     borderRadius: variables.componentBorderRadiusNormal,
 };
 
@@ -163,12 +166,36 @@ const styles = {
         color: colors.white,
     },
 
+    textBlue: {
+        color: colors.blue,
+    },
+
     textUppercase: {
         textTransform: 'uppercase',
     },
 
+    background100: {
+        backgroundSize: '100% 100%',
+    },
+
+    backgroundGreen: {
+        backgroundColor: colors.green,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
+    },
+
+    backgroundOrange: {
+        backgroundColor: colors.orange,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
+    },
+
+    backgroundPink: {
+        backgroundColor: colors.pink,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
+    },
+
     backgroundBlue: {
         backgroundColor: colors.blue,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
     },
 
     colorReversed: {
@@ -343,7 +370,9 @@ const styles = {
             paddingTop: 6,
             paddingBottom: 6,
             borderRadius: variables.componentBorderRadius,
-            borderWidth: 0,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderStyle: 'solid',
             color: themeColors.text,
             height: variables.componentSizeSmall,
             opacity: 1,
@@ -356,7 +385,9 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 0,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderStyle: 'solid',
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             appearance: 'none',
@@ -372,7 +403,9 @@ const styles = {
             paddingRight: 25,
             paddingTop: 6,
             paddingBottom: 6,
-            borderWidth: 0,
+            borderWidth: 1,
+            borderColor: themeColors.border,
+            borderStyle: 'solid',
             borderRadius: variables.componentBorderRadius,
             color: themeColors.text,
             height: variables.componentSizeSmall,
@@ -485,16 +518,13 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
-        paddingTop: 25,
-        paddingBottom: 8,
-        paddingHorizontal: 12,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
     },
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 12,
+        left: 11.5,
         top: 16,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
@@ -515,7 +545,11 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
-        ...spacing.pv0,
+        height: '100%',
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 11.5,
+        borderRadius: variables.componentBorderRadiusNormal,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -539,15 +573,14 @@ const styles = {
     },
 
     expensiPickerContainer: {
-        borderWidth: 1,
+        borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
         justifyContent: 'center',
         backgroundColor: themeColors.componentBG,
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 12,
+        left: 11.5,
         top: 8,
     },
     expensiPicker: (disabled = false) => ({
@@ -558,7 +591,6 @@ const styles = {
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            border: 'none',
             ...expensiPicker,
         },
         inputNative: {
@@ -629,19 +661,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    signinWelcomeScreenshot: {
-        height: 354,
-        width: 295,
-    },
-
-    signInWelcomeScreenshotWide: {
-        aspectRatio: 1,
-        width: '100%',
-        height: '100%',
-        maxHeight: 551,
-        minHeight: 300,
     },
 
     genericView: {
@@ -1794,7 +1813,7 @@ const styles = {
         zIndex: 10,
     },
 
-    vbaFullScreenLoading: {
+    reimbursementAccountFullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'flex-start',
@@ -1859,6 +1878,10 @@ const styles = {
 
     cursorDisabled: {
         cursor: 'not-allowed',
+    },
+
+    cursorPointer: {
+        cursor: 'pointer',
     },
 
     fullscreenCard: {
@@ -2050,11 +2073,17 @@ const styles = {
         ],
     }),
 
+    confettiIcon: {
+        height: 100,
+        width: 100,
+        marginBottom: 20,
+    },
+
     googleSearchTextInputContainer: {
         flexDirection: 'column',
     },
 
-    googleSearchSeperator: {
+    googleSearchSeparator: {
         height: 1,
         backgroundColor: themeColors.border,
     },

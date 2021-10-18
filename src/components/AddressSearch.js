@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -33,87 +33,102 @@ const defaultProps = {
     containerStyles: null,
 };
 
-class AddressSearch extends React.Component {
-    constructor(props) {
-        super(props);
-        this.googlePlacesRef = React.createRef();
-    }
+const AddressSearch = (props) => {
+    const googlePlacesRef = useRef();
+    useEffect(() => {
+        googlePlacesRef.current?.setAddressText(props.value);
+    }, []);
 
-    componentDidMount() {
-        this.googlePlacesRef.current?.setAddressText(this.props.value);
-    }
-
-    getAddressComponent(object, field, nameType) {
+    // eslint-disable-next-line
+    const getAddressComponent = (object, field, nameType) => {
         return _.chain(object.address_components)
             .find(component => _.contains(component.types, field))
             .get(nameType)
             .value();
-    }
+    };
 
-    /**
-     * @param {Object} details See https://developers.google.com/maps/documentation/places/web-service/details#PlaceDetailsResponses
-     */
-    saveLocationDetails = (details) => {
-        if (details.address_components) {
+    const validateAddressComponents = (addressComponents) => {
+        if (!addressComponents) {
+            return false;
+        }
+        if (!_.some(addressComponents, component => _.includes(component.types, 'street_number'))) {
+            // Missing Street number
+            return false;
+        }
+        if (_.some(addressComponents, component => _.includes(component.types, 'post_box'))) {
+            // Reject PO box
+            return false;
+        }
+        return true;
+    };
+
+    const saveLocationDetails = (details) => {
+        if (validateAddressComponents(details.address_components)) {
             // Gather the values from the Google details
-            const streetNumber = this.getAddressComponent(details, 'street_number', 'long_name');
-            const streetName = this.getAddressComponent(details, 'route', 'long_name');
-            const city = this.getAddressComponent(details, 'locality', 'long_name');
-            const state = this.getAddressComponent(details, 'administrative_area_level_1', 'short_name');
-            const zipCode = this.getAddressComponent(details, 'postal_code', 'long_name');
+            const streetNumber = getAddressComponent(details, 'street_number', 'long_name');
+            const streetName = getAddressComponent(details, 'route', 'long_name');
+            const city = getAddressComponent(details, 'locality', 'long_name');
+            const state = getAddressComponent(details, 'administrative_area_level_1', 'short_name');
+            const zipCode = getAddressComponent(details, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
-            this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            this.props.onChangeText('addressCity', city);
-            this.props.onChangeText('addressState', state);
-            this.props.onChangeText('addressZipCode', zipCode);
+            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
+            props.onChangeText('addressCity', city);
+            props.onChangeText('addressState', state);
+            props.onChangeText('addressZipCode', zipCode);
+        } else {
+            // Clear the values associated to the address, so our validations catch the problem
+            props.onChangeText('addressStreet', null);
+            props.onChangeText('addressCity', null);
+            props.onChangeText('addressState', null);
+            props.onChangeText('addressZipCode', null);
         }
-    }
+    };
 
-    render() {
-        return (
-            <GooglePlacesAutocomplete
-                ref={this.googlePlacesRef}
-                fetchDetails
-                keepResultsAfterBlur
-                suppressDefaultStyles
-                enablePoweredByContainer={false}
-                onPress={(data, details) => this.saveLocationDetails(details)}
-                query={{
-                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                    language: this.props.preferredLocale,
-                }}
-                requestUrl={{
-                    useOnPlatform: 'web',
-                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
-                }}
-                textInputProps={{
-                    InputComp: ExpensiTextInput,
-                    label: this.props.label,
-                    containerStyles: this.props.containerStyles,
-                }}
-                styles={{
-                    textInputContainer: [styles.flexColumn],
-                    listView: [
-                        styles.borderTopRounded,
-                        styles.borderBottomRounded,
-                        styles.mt1,
-                        styles.overflowAuto,
-                        styles.borderLeft,
-                        styles.borderRight,
-                    ],
-                    row: [
-                        styles.pv4,
-                        styles.ph3,
-                        styles.overflowAuto,
-                    ],
-                    description: [styles.googleSearchText],
-                    separator: [styles.googleSearchSeperator],
-                }}
-            />
-        );
-    }
-}
+    return (
+        <GooglePlacesAutocomplete
+            ref={googlePlacesRef}
+            fetchDetails
+            suppressDefaultStyles
+            enablePoweredByContainer={false}
+            onPress={(data, details) => saveLocationDetails(details)}
+            query={{
+                key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                language: props.preferredLocale,
+                types: 'address',
+                components: 'country:us',
+            }}
+            requestUrl={{
+                useOnPlatform: 'web',
+                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+            }}
+            textInputProps={{
+                InputComp: ExpensiTextInput,
+                label: props.label,
+                containerStyles: props.containerStyles,
+                errorText: props.errorText,
+            }}
+            styles={{
+                textInputContainer: [styles.flexColumn],
+                listView: [
+                    styles.borderTopRounded,
+                    styles.borderBottomRounded,
+                    styles.mt1,
+                    styles.overflowAuto,
+                    styles.borderLeft,
+                    styles.borderRight,
+                ],
+                row: [
+                    styles.pv4,
+                    styles.ph3,
+                    styles.overflowAuto,
+                ],
+                description: [styles.googleSearchText],
+                separator: [styles.googleSearchSeparator],
+            }}
+        />
+    );
+};
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;

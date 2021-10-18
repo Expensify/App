@@ -32,7 +32,7 @@ const defaultProps = {
 const PDFView = props => (
     <View style={[styles.flex1, props.style]}>
         <PDF
-            activityIndicator={<FullScreenLoadingIndicator visible />}
+            activityIndicator={<FullScreenLoadingIndicator />}
             source={{uri: props.sourceURL}}
             style={[
                 styles.imageModalPDF,

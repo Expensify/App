@@ -12,14 +12,14 @@ const unreadActionCounts = {};
  * and Mac OS or iOS dock icon with an unread indicator.
  */
 const throttledUpdatePageTitleAndUnreadCount = _.throttle(() => {
-    // If all of our nonzero unread action counts show -1, update the unread count to be -1 as well so we don't show a
-    // number in the indicator badge.
-    if (_.every(unreadActionCounts, count => count < 1) && _.some(unreadActionCounts, count => count === -1)) {
-        updateUnread(-1);
+    const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + Math.max(reportCount, 0), 0);
+
+    // When we don't have an exact count we just let the user know there's something new
+    if (totalCount === 0 && _.some(unreadActionCounts, count => count === -1)) {
+        updateUnread(1);
         return;
     }
 
-    const totalCount = _.reduce(unreadActionCounts, (total, reportCount) => total + Math.max(reportCount, 0), 0);
     updateUnread(totalCount);
 }, 1000, {leading: false});
 
@@ -41,7 +41,7 @@ function listenForReportChanges() {
                 return;
             }
 
-            // An unreadActionCount of -1 signifies that we should show a badge icon with no number
+            // An unreadActionCount of -1 signifies that we're not interested in showing exact count
             if (report.notificationPreference === CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY
                 && report.unreadActionCount > 0) {
                 unreadActionCounts[report.reportID] = -1;
