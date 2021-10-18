@@ -704,7 +704,6 @@ export default {
         },
         invite: {
             invitePeople: 'Invitar nuevos miembros',
-            invitePeoplePrompt: 'Invita nuevos miembros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',

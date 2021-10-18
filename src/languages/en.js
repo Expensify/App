@@ -702,7 +702,6 @@ export default {
         },
         invite: {
             invitePeople: 'Invite new members',
-            invitePeoplePrompt: 'Invite new members to your workspace.',
             personalMessagePrompt: 'Add a personal message (optional)',
             pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
