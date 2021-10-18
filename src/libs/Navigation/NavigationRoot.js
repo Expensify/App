@@ -30,14 +30,20 @@ class NavigationRoot extends Component {
         }
 
         const path = getPathFromState(state, linkingConfig.config);
-        Log.info('Navigating to route', false, {path});
+
+        // Don't log the route transitions from OldDot because they contain authTokens
+        if (path.includes('/transition')) {
+            Log.info('Navigating from transition link from OldDot using short lived authToken');
+        } else {
+            Log.info('Navigating to route', false, {path});
+        }
         setCurrentURL(path);
     }
 
     render() {
         return (
             <NavigationContainer
-                fallback={<FullScreenLoadingIndicator visible />}
+                fallback={<FullScreenLoadingIndicator />}
                 onStateChange={this.parseAndStoreRoute}
                 ref={navigationRef}
                 linking={linkingConfig}

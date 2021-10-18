@@ -12,6 +12,8 @@ import ROUTES from '../../ROUTES';
 import * as Pusher from '../Pusher/pusher';
 import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
+import NameValuePair from './NameValuePair';
+import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -69,13 +71,17 @@ function getBetas() {
 function getUserDetails() {
     API.Get({
         returnValueList: 'account, loginList, nameValuePairs',
-        nvpNames: CONST.NVP.PAYPAL_ME_ADDRESS,
+        nvpNames: [
+            CONST.NVP.PAYPAL_ME_ADDRESS,
+            CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
+        ].join(','),
     })
         .then((response) => {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus});
+            const validatedStatus = lodashGet(response, 'account.validated', false);
+            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -84,6 +90,10 @@ function getUserDetails() {
             // Update the blockedFromConcierge NVP
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
+
+            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
+            Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+                getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
         });
 }
 
@@ -268,6 +278,22 @@ function subscribeToUserEvents() {
         });
 }
 
+/**
+ * Sync preferredSkinTone with Onyx and Server
+ * @param {String} skinTone
+ */
+
+function setPreferredSkinTone(skinTone) {
+    return NameValuePair.set(CONST.NVP.PREFERRED_EMOJI_SKIN_TONE, skinTone, ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
+}
+
+/**
+ * @param {Boolean} shouldUseSecureStaging
+ */
+function setShouldUseSecureStaging(shouldUseSecureStaging) {
+    Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
+}
+
 export {
     changePassword,
     getBetas,
@@ -279,4 +305,6 @@ export {
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
+    setPreferredSkinTone,
+    setShouldUseSecureStaging,
 };
