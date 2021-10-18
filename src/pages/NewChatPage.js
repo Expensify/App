@@ -22,7 +22,7 @@ const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
     
-    /** The personal details of the person who is logged in */
+    /** All of the personal details for everyone */
     personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
