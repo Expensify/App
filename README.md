@@ -55,9 +55,36 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
-2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
+2. If you are running into CORS errors like (in the browser dev console)
+   ```sh
+   Access to fetch at 'https://www.expensify.com/api?command=GetAccountStatus' from origin 'http://localhost:8080' has been blocked by CORS policy
+   ```
+   You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
 
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
+
+## Environment variables
+Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when 
+variables referenced here get updated since your local `.env` file is ignored.
+ 
+- `EXPENSIFY_URL_CASH` - The root URL used for the website
+- `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
+- `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
+- `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
+- `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public) 
+- `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
+- `SECURE_NGROK_URL` - Secure URL used for `ngrok` when testing
+- `NGROK_URL` - URL used for `ngrok` when testing
+- `USE_NGROK` - Flag to turn `ngrok` testing on or off
+- `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
+- `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
+   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.  
+   If you don't want to start the proxy server set this explicitly to `false`
+- `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
+   see [PERFORMANCE.md](PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
+- `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
+   see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
+
 
 ----
 

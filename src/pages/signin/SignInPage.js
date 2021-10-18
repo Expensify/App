@@ -85,7 +85,7 @@ class SignInPage extends Component {
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
                         welcomeText={welcomeText}
-                        shouldShowWelcomeText={showLoginForm}
+                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
                         shouldShowWelcomeScreenshot={showLoginForm}
                     >
                         {showLoginForm && <LoginForm />}
