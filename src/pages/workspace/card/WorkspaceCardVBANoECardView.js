@@ -8,7 +8,7 @@ import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';
 import {navigateToConciergeChat} from '../../../libs/actions/Report';
-import Navigation from "../../../libs/Navigation/Navigation";
+import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
