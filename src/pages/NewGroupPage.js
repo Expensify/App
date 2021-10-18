@@ -234,7 +234,6 @@ class NewGroupPage extends Component {
                                             disableArrowKeysActions
                                             hideAdditionalOptionStates
                                             forceTextUnreadStyle
-                                            shouldFocusOnSelectRow
                                         />
                                     </View>
                                     {this.state.selectedOptions?.length > 0 && (
