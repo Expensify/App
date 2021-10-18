@@ -189,8 +189,7 @@ class DebitCardPage extends Component {
                             onChangeText={cardNumber => this.clearErrorAndSetValue('cardNumber', cardNumber)}
                             value={this.state.cardNumber}
                             errorText={this.getErrorText('cardNumber')}
-                            // TODO add number pad const type and update usages
-                            keyboardType="number-pad"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                         />
                         <View style={[styles.flexRow, styles.mt4]}>
                             <View style={[styles.flex1, styles.mr2]}>
@@ -199,7 +198,7 @@ class DebitCardPage extends Component {
                                     onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
                                     value={this.state.expirationDate}
                                     errorText={this.getErrorText('expirationDate')}
-                                    keyboardType="number-pad"
+                                    keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
                                 />
                             </View>
                             <View style={[styles.flex1]}>

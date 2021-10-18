@@ -262,7 +262,7 @@ class BankAccountStep extends React.Component {
                         />
                         <ExpensiTextInput
                             label={this.props.translate('bankAccount.routingNumber')}
-                            keyboardType="number-pad"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.routingNumber}
                             onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
                             disabled={shouldDisableInputs}
@@ -271,7 +271,7 @@ class BankAccountStep extends React.Component {
                         <ExpensiTextInput
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
-                            keyboardType="number-pad"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.accountNumber}
                             onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                             disabled={shouldDisableInputs}
