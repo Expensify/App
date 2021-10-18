@@ -39,7 +39,7 @@ class BaseModal extends PureComponent {
      */
     hideModal(callHideCallback = true) {
         if (this.props.shouldSetModalVisibility) {
-            setModalVisibility(false);
+            setModalVisibility(false, true);
         }
         if (callHideCallback) {
             this.props.onModalHide();
@@ -79,7 +79,7 @@ class BaseModal extends PureComponent {
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     if (this.props.shouldSetModalVisibility) {
-                        setModalVisibility(true);
+                        setModalVisibility(true, true);
                     }
                     this.props.onModalShow();
                 }}

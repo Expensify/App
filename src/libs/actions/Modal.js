@@ -4,10 +4,11 @@ import ONYXKEYS from '../../ONYXKEYS';
 /**
  * Allows other parts of the app to know when a modal has been opened or closed
  *
- * @param {bool} isVisible
+ * @param {Boolean} isVisible
+ * @param {Boolean} isAlert
  */
-function setModalVisibility(isVisible) {
-    Onyx.merge(ONYXKEYS.MODAL, {isVisible});
+function setModalVisibility(isVisible, isAlert) {
+    Onyx.merge(ONYXKEYS.MODAL, {isVisible, isAlertModalVisible: isAlert ? isVisible : false});
 }
 
 export {
