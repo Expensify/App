@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
@@ -17,8 +17,13 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
 import {getNewGroupOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
-import {EXCLUDED_GROUP_EMAILS} from '../../CONST';
+import CONST, {EXCLUDED_GROUP_EMAILS} from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import Icon from '../../components/Icon';
+import {NewWindow} from '../../components/Icon/Expensicons';
+import variables from '../../styles/variables';
+import {openExternalLink} from '../../libs/actions/Link';
+import Text from '../../components/Text';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -314,8 +319,41 @@ class WorkspaceInvitePage extends React.Component {
                                 onSubmit={this.inviteUser}
                                 onFixTheErrorsLinkPressed={() => {}}
                                 message={this.props.policy.alertMessage}
-                                containerStyles={[styles.flex0, styles.flexShrink0, styles.flexBasisAuto]}
+
+                                // `Flex: 0 ` overrides the `flexbasis: 'auto'` on web. To overcome this use `flex: 'none' `.
+                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                                containerStyles={[styles.flex0, styles.flexNone, styles.mb1, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             />
+                            <Pressable
+                                onPress={(e) => {
+                                    e.preventDefault();
+                                    openExternalLink(CONST.PRIVACY_URL);
+                                }}
+                                accessibilityRole="link"
+                                href={CONST.PRIVACY_URL}
+                                style={[styles.mh5, styles.mv2, styles.alignSelfStart]}
+                            >
+                                {({hovered, pressed}) => (
+                                    <View style={[styles.flexRow]}>
+                                        <Text
+                                            style={[
+                                                styles.mr1,
+                                                styles.label,
+                                                (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted,
+                                            ]}
+                                        >
+                                            {this.props.translate('common.privacyPolicy')}
+                                        </Text>
+                                        <View style={styles.alignSelfCenter}>
+                                            <Icon
+                                                src={NewWindow}
+                                                width={variables.iconSizeSmall}
+                                                height={variables.iconSizeSmall}
+                                            />
+                                        </View>
+                                    </View>
+                                )}
+                            </Pressable>
                         </View>
                     </KeyboardAvoidingView>
                 )}
