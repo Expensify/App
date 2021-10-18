@@ -399,11 +399,13 @@ class ReportActionsView extends React.Component {
      * @param {Boolean} [shouldResetLocalCount=false] Whether count should increment or reset
      */
     updateLocalUnreadActionCount(shouldResetLocalCount = false) {
-        this.setState(prevState => ({
-            localUnreadActionCount: shouldResetLocalCount
+        this.setState((prevState) => {
+            const localUnreadActionCount = shouldResetLocalCount
                 ? this.props.report.unreadActionCount
-                : prevState.localUnreadActionCount + this.props.report.unreadActionCount,
-        }));
+                : prevState.localUnreadActionCount + this.props.report.unreadActionCount;
+            this.updateUnreadIndicatorPosition(localUnreadActionCount);
+            return {localUnreadActionCount};
+        });
     }
 
     /**

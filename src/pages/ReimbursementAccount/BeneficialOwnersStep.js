@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -12,18 +13,20 @@ import IdentityForm from './IdentityForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
-    hideBankAccountErrors,
+    setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
-    showBankAccountErrorModal,
-    showBankAccountFormValidationError,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import {isValidIdentity} from '../../libs/ValidationUtils';
+import {validateIdentity, isRequiredFulfilled} from '../../libs/ValidationUtils';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import {
+    getDefaultStateForField,
+    clearError,
+    getErrorText,
+} from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 
@@ -34,6 +37,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 
     /** Bank account currently in setup */
+    // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 };
 
@@ -51,35 +55,47 @@ class BeneficialOwnersStep extends React.Component {
             certifyTrueInformation: getDefaultStateForField(props, 'certifyTrueInformation', false),
             beneficialOwners: getDefaultStateForField(props, 'beneficialOwners', []),
         };
+
+        // These fields need to be filled out in order to submit the form (doesn't include IdentityForm fields)
+        this.requiredFields = [
+            'acceptTermsAndConditions',
+            'certifyTrueInformation',
+        ];
+
+        // Map a field to the key of the error's translation
+        this.errorTranslationKeys = {
+            acceptTermsAndConditions: 'beneficialOwnersStep.error.termsAndConditions',
+            certifyTrueInformation: 'beneficialOwnersStep.error.certify',
+        };
+
+        this.clearError = inputKey => clearError(this.props, inputKey);
+        this.getErrorText = inputKey => getErrorText(this.props, this.errorTranslationKeys, inputKey);
+    }
+
+    /**
+     * @returns {Object}
+     */
+    getErrors() {
+        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
     }
 
     /**
      * @returns {Boolean}
      */
     validate() {
+        let beneficialOwnersErrors = [];
         if (this.state.hasOtherBeneficialOwners) {
-            const invalidBeneficifialOwner = _.find(this.state.beneficialOwners, owner => (
-                !isValidIdentity(owner)
-            ));
+            beneficialOwnersErrors = _.map(this.state.beneficialOwners, validateIdentity);
+        }
 
-            if (invalidBeneficifialOwner) {
-                return false;
+        const errors = {};
+        _.each(this.requiredFields, (inputKey) => {
+            if (!isRequiredFulfilled(this.state[inputKey])) {
+                errors[inputKey] = true;
             }
-        }
-
-        if (!this.state.acceptTermsAndConditions) {
-            showBankAccountFormValidationError(this.props.translate('beneficialOwnersStep.error.termsAndConditions'));
-            showBankAccountErrorModal();
-            return false;
-        }
-
-        if (!this.state.certifyTrueInformation) {
-            showBankAccountFormValidationError(this.props.translate('beneficialOwnersStep.error.certify'));
-            showBankAccountErrorModal();
-            return false;
-        }
-
-        return true;
+        });
+        setBankAccountFormValidationErrors({...errors, beneficialOwnersErrors});
+        return _.every(beneficialOwnersErrors, _.isEmpty) && _.isEmpty(errors);
     }
 
     removeBeneficialOwner(beneficialOwner) {
@@ -90,6 +106,9 @@ class BeneficialOwnersStep extends React.Component {
             // We don't use the debounced function because we want to make both function calls.
             updateReimbursementAccountDraft({beneficialOwners: null});
             updateReimbursementAccountDraft({beneficialOwners});
+
+            // Clear errors
+            setBankAccountFormValidationErrors({});
             return {beneficialOwners};
         });
     }
@@ -104,6 +123,28 @@ class BeneficialOwnersStep extends React.Component {
     canAddMoreBeneficialOwners() {
         return _.size(this.state.beneficialOwners) < 3
             || (_.size(this.state.beneficialOwners) === 3 && !this.state.ownsMoreThan25Percent);
+    }
+
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {Integer} ownerIndex
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
+        this.setState((prevState) => {
+            const beneficialOwners = [...prevState.beneficialOwners];
+            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [inputKey]: value};
+            updateReimbursementAccountDraft({beneficialOwners});
+            return {beneficialOwners};
+        });
+
+        // dob field has multiple validations/errors, we are handling it temporarily like this.
+        if (inputKey === 'dob') {
+            this.clearError(`beneficialOwnersErrors.${ownerIndex}.dobAge`);
+        }
+        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${inputKey}`);
     }
 
     submit() {
@@ -130,7 +171,7 @@ class BeneficialOwnersStep extends React.Component {
             updateReimbursementAccountDraft(newState);
             return newState;
         });
-        hideBankAccountErrors();
+        this.clearError(fieldName);
     }
 
     render() {
@@ -138,6 +179,7 @@ class BeneficialOwnersStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('beneficialOwnersStep.additionalInformation')}
+                    stepCounter={{step: 4, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR)}
                     shouldShowBackButton
@@ -191,12 +233,7 @@ class BeneficialOwnersStep extends React.Component {
                                     </Text>
                                     <IdentityForm
                                         style={[styles.mb2]}
-                                        onFieldChange={(fieldName, value) => this.setState((prevState) => {
-                                            const beneficialOwners = [...prevState.beneficialOwners];
-                                            beneficialOwners[index][fieldName] = value;
-                                            updateReimbursementAccountDraft({beneficialOwners});
-                                            return {beneficialOwners};
-                                        })}
+                                        onFieldChange={(inputKey, value) => this.clearErrorAndSetBeneficialOwnerValue(index, inputKey, value)}
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',
@@ -207,7 +244,7 @@ class BeneficialOwnersStep extends React.Component {
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
-                                        error={this.props.reimbursementAccount.error}
+                                        errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
                                         <TextLink onPress={() => this.removeBeneficialOwner(owner)}>
@@ -228,7 +265,7 @@ class BeneficialOwnersStep extends React.Component {
                         {this.props.translate('beneficialOwnersStep.agreement')}
                     </Text>
                     <CheckboxWithLabel
-                        style={[styles.mb2]}
+                        style={[styles.mt4]}
                         isChecked={this.state.acceptTermsAndConditions}
                         onPress={() => this.toggleCheckbox('acceptTermsAndConditions')}
                         LabelComponent={() => (
@@ -239,20 +276,18 @@ class BeneficialOwnersStep extends React.Component {
                                 </TextLink>
                             </View>
                         )}
-                        hasError={this.props.reimbursementAccount.error === this.props.translate('beneficialOwnersStep.error.termsAndConditions')}
-                        errorText={this.props.reimbursementAccount.error === this.props.translate('beneficialOwnersStep.error.termsAndConditions')
-                            ? this.props.translate('beneficialOwnersStep.error.termsAndConditions') : ''}
+                        errorText={this.getErrorText('acceptTermsAndConditions')}
+                        hasError={this.getErrors().acceptTermsAndConditions}
                     />
                     <CheckboxWithLabel
-                        style={[styles.mb2]}
+                        style={[styles.mt4]}
                         isChecked={this.state.certifyTrueInformation}
                         onPress={() => this.toggleCheckbox('certifyTrueInformation')}
                         LabelComponent={() => (
                             <Text>{this.props.translate('beneficialOwnersStep.certifyTrueAndAccurate')}</Text>
                         )}
-                        hasError={this.props.reimbursementAccount.error === this.props.translate('beneficialOwnersStep.error.certify')}
-                        errorText={this.props.reimbursementAccount.error === this.props.translate('beneficialOwnersStep.error.certify')
-                            ? this.props.translate('beneficialOwnersStep.error.certify') : ''}
+                        errorText={this.getErrorText('certifyTrueInformation')}
+                        hasError={this.getErrors().certifyTrueInformation}
                     />
                 </ReimbursementAccountForm>
             </>

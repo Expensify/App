@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {TouchableOpacity} from 'react-native';
+import {TouchableOpacity, Linking} from 'react-native';
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
@@ -66,6 +66,23 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
     return contentWidth;
 }
 
+/**
+ * Check if there is an ancestor node with name 'comment'.
+ * Finding node with name 'comment' flags that we are rendering a comment.
+ * @param {TNode} tnode
+ * @returns {Boolean}
+ */
+function isInsideComment(tnode) {
+    let currentNode = tnode;
+    while (currentNode.parent) {
+        if (currentNode.domNode.name === 'comment') {
+            return true;
+        }
+        currentNode = currentNode.parent;
+    }
+    return false;
+}
+
 function AnchorRenderer({tnode, key, style}) {
     const htmlAttribs = tnode.attributes;
 
@@ -83,6 +100,22 @@ function AnchorRenderer({tnode, key, style}) {
             <Text
                 style={styles.link}
                 onPress={() => Navigation.navigate(internalExpensifyPath)}
+            >
+                <TNodeChildrenRenderer tnode={tnode} />
+            </Text>
+        );
+    }
+
+    if (!isInsideComment(tnode)) {
+        // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
+        // We don't have this behaviour in other links in NewDot
+        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => {
+                    Linking.openURL(htmlAttribs.href);
+                }}
             >
                 <TNodeChildrenRenderer tnode={tnode} />
             </Text>
@@ -222,6 +255,13 @@ function ImgRenderer({tnode}) {
 const customHTMLElementModels = {
     edited: defaultHTMLElementModels.span.extend({
         tagName: 'edited',
+    }),
+    'muted-text': defaultHTMLElementModels.div.extend({
+        tagName: 'muted-text',
+        mixedUAStyles: styles.mutedTextLabel,
+    }),
+    comment: defaultHTMLElementModels.div.extend({
+        tagName: 'comment',
     }),
 };
 

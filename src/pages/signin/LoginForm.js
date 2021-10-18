@@ -44,6 +44,7 @@ class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
+        this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -53,11 +54,23 @@ class LoginForm extends React.Component {
     }
 
     /**
+     * Handle text input and clear formError upon text change
+     *
+     * @param {String} text
+     */
+    onTextInput(text) {
+        this.setState({
+            login: text,
+            formError: null,
+        });
+    }
+
+    /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
+            this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
             return;
         }
 
@@ -83,7 +96,7 @@ class LoginForm extends React.Component {
                         value={this.state.login}
                         autoCompleteType="email"
                         textContentType="username"
-                        onChangeText={text => this.setState({login: text})}
+                        onChangeText={this.onTextInput}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}

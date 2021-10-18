@@ -64,6 +64,10 @@ export default {
         alignSelf: 'flex-start',
     },
 
+    alignSelfEnd: {
+        alignSelf: 'flex-end',
+    },
+
     alignItemsStart: {
         alignItems: 'flex-start',
     },
@@ -78,6 +82,10 @@ export default {
 
     alignItemsBaseline: {
         alignItems: 'baseline',
+    },
+
+    alignItemsStretch: {
+        alignItems: 'stretch',
     },
 
     flexWrap: {
