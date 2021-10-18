@@ -96,6 +96,10 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
 {
     Component: IOUCurrencySelection,
     name: 'IOU_Send_Currency',
+},
+{
+    Component: EnablePaymentsPage,
+    name: 'IOU_Send_Enable_Payments',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
