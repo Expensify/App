@@ -5,10 +5,10 @@ import {
     ScrollView,
 } from 'react-native';
 import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import TextInputWithLabel from '../../../components/TextInputWithLabel';
 import styles from '../../../styles/styles';
 import StatePicker from '../../../components/StatePicker';
 import Text from '../../../components/Text';
@@ -19,13 +19,13 @@ import {addBillingCard} from '../../../libs/actions/PaymentMethods';
 import Button from '../../../components/Button';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
-import _ from 'underscore';
 import {
     isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard, isValidSecurityCode,
 } from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import ROUTES from '../../../ROUTES';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import CONST from '../../../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -78,8 +78,6 @@ class DebitCardPage extends Component {
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
         };
 
-        this.toggleTermsOfService = this.toggleTermsOfService.bind(this);
-        this.handleExpirationInput = this.handleExpirationInput.bind(this);
         this.handleCardNumberInput = this.handleCardNumberInput.bind(this);
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
@@ -151,19 +149,6 @@ class DebitCardPage extends Component {
         addBillingCard(this.state);
     }
 
-    toggleTermsOfService() {
-        this.setState(prevState => ({acceptedTerms: !prevState.acceptedTerms}));
-    }
-
-    handleExpirationInput(expirationDate) {
-        let newExpirationDate = expirationDate;
-        const isErasing = expirationDate.length < this.state.expirationDate.length;
-        if (expirationDate.length === 2 && !isErasing) {
-            newExpirationDate = `${expirationDate}/`;
-        }
-        this.setState({expirationDate: newExpirationDate});
-    }
-
     handleCardNumberInput(newCardNumber) {
         if (/^[0-9]{0,16}$/.test(newCardNumber)) {
             this.setState({cardNumber: newCardNumber});
@@ -198,67 +183,74 @@ class DebitCardPage extends Component {
                             value={this.state.nameOnCard}
                             errorText={this.getErrorText('nameOnCard')}
                         />
-                        <TextInputWithLabel
+                        <ExpensiTextInput
                             label={this.props.translate('addDebitCardPage.debitCardNumber')}
-                            placeholder={this.props.translate('addDebitCardPage.debitCardNumber')}
-                            keyboardType="number-pad"
-                            containerStyles={[styles.flex1, styles.mb2]}
-                            onChangeText={cardNumber => this.handleCardNumberInput(cardNumber)}
+                            containerStyles={[styles.mt4]}
+                            onChangeText={cardNumber => this.clearErrorAndSetValue('cardNumber', cardNumber)}
                             value={this.state.cardNumber}
+                            errorText={this.getErrorText('cardNumber')}
+                            // TODO add number pad const type and update usages
+                            keyboardType="number-pad"
                         />
-                        <View style={[styles.flexRow, styles.mb2]}>
-                            <TextInputWithLabel
-                                label={this.props.translate('addDebitCardPage.expiration')}
-                                placeholder={this.props.translate('addDebitCardPage.expirationDate')}
-                                keyboardType="number-pad"
-                                containerStyles={[styles.flex2, styles.mr4]}
-                                onChangeText={expirationDate => this.handleExpirationInput(expirationDate)}
-                                value={this.state.expirationDate}
-                            />
-                            <TextInputWithLabel
-                                label={this.props.translate('addDebitCardPage.cvv')}
-                                placeholder="123"
-                                keyboardType="number-pad"
-                                containerStyles={[styles.flex2]}
-                                onChangeText={securityCode => this.setState({securityCode})}
-                                value={this.state.securityCode}
-                            />
-                        </View>
-                        <TextInputWithLabel
-                            label={this.props.translate('addDebitCardPage.billingAddress')}
-                            placeholder={this.props.translate('addDebitCardPage.streetAddress')}
-                            containerStyles={[styles.flex1, styles.mb2]}
-                            onChangeText={billingAddress => this.setState({billingAddress})}
-                            value={this.state.billingAddress}
-                        />
-                        <TextInputWithLabel
-                            label={this.props.translate('common.city')}
-                            placeholder={this.props.translate('addDebitCardPage.cityName')}
-                            containerStyles={[styles.flex1, styles.mb2]}
-                            onChangeText={city => this.setState({city})}
-                            value={this.state.city}
-                        />
-                        <View style={[styles.flexRow, styles.mb6]}>
-                            <View style={[styles.flex2, styles.mr4]}>
-                                <Text style={[styles.mb1, styles.formLabel]}>
-                                    {this.props.translate('common.state')}
-                                </Text>
-                                <StatePicker
-                                    onChange={state => this.setState({selectedState: state})}
-                                    value={this.state.selectedState}
+                        <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flex1, styles.mr2]}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('addDebitCardPage.expirationDate')}
+                                    onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
+                                    value={this.state.expirationDate}
+                                    errorText={this.getErrorText('expirationDate')}
+                                    keyboardType="number-pad"
                                 />
                             </View>
-                            <TextInputWithLabel
-                                label={this.props.translate('common.zip')}
-                                placeholder={this.props.translate('common.zip')}
-                                containerStyles={[styles.flex2]}
-                                onChangeText={zipCode => this.setState({zipCode})}
-                                value={this.state.zipCode}
-                            />
+                            <View style={[styles.flex1]}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('addDebitCardPage.cvv')}
+                                    onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
+                                    value={this.state.securityCode}
+                                    errorText={this.getErrorText('securityCode')}
+                                />
+                            </View>
+                        </View>
+                        <ExpensiTextInput
+                            label={this.props.translate('addDebitCardPage.billingAddress')}
+                            containerStyles={[styles.mt4]}
+                            onChangeText={billingAddress => this.clearErrorAndSetValue('billingAddress', billingAddress)}
+                            value={this.state.billingAddress}
+                            errorText={this.getErrorText('billingAddress')}
+                        />
+                        <ExpensiTextInput
+                            label={this.props.translate('common.city')}
+                            containerStyles={[styles.mt4]}
+                            onChangeText={city => this.clearErrorAndSetValue('city', city)}
+                            value={this.state.city}
+                            errorText={this.getErrorText('city')}
+                        />
+                        <View style={[styles.flexRow, styles.mt4]}>
+                            <View style={[styles.flex1, styles.mr2]}>
+                                <StatePicker
+                                    label={this.props.translate('common.state')}
+                                    onChange={selectedState => this.clearErrorAndSetValue('selectedState', selectedState)}
+                                    value={this.state.selectedState}
+                                    hasError={Boolean(this.state.errors.selectedState)}
+                                    errorText={this.getErrorText('selectedState')}
+                                />
+                            </View>
+                            <View style={[styles.flex1]}>
+                                <ExpensiTextInput
+                                    label={this.props.translate('common.zip')}
+                                    onChangeText={zipCode => this.clearErrorAndSetValue('zipCode', zipCode)}
+                                    value={this.state.zipCode}
+                                    errorText={this.getErrorText('zipCode')}
+                                    keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                                />
+                            </View>
                         </View>
                         <CheckboxWithLabel
                             isChecked={this.state.acceptedTerms}
-                            onPress={this.toggleTermsOfService}
+                            onPress={() => {
+                                this.setState(prevState => ({acceptedTerms: !prevState.acceptedTerms}));
+                                this.state.errors.acceptedTerms = false;
+                            }}
                             LabelComponent={() => (
                                 <Text>
                                     {`${this.props.translate('common.iAcceptThe')} `}
@@ -267,6 +259,9 @@ class DebitCardPage extends Component {
                                     </TextLink>
                                 </Text>
                             )}
+                            style={[styles.mt4]}
+                            errorText={this.getErrorText('acceptedTerms')}
+                            hasError={Boolean(this.state.errors.acceptedTerms)}
                         />
                     </ScrollView>
                     <FixedFooter>
