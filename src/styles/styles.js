@@ -2095,10 +2095,6 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
-
-    reportingTypingIndicatorText: {
-        maxWidth: 300,
-    },
 };
 
 const baseCodeTagStyles = {
@@ -2182,6 +2178,22 @@ const webViewStyles = {
         flex: 1,
     },
 };
+
+/**
+ * Return typing indicator text style
+ * @param {Boolean} isSmallScreenWidth
+ *
+ * @returns {Object}
+ */
+function getTypingIndicatorTextStyle(isSmallScreenWidth) {
+    return isSmallScreenWidth
+        ? {
+            maxWidth: 200,
+        }
+        : {
+            maxWidth: 500,
+        };
+}
 
 /**
  * Takes safe area insets and returns padding to use for a View
@@ -2465,4 +2477,5 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
+    getTypingIndicatorTextStyle,
 };

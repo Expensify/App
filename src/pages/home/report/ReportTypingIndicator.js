@@ -5,9 +5,10 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import styles from '../../../styles/styles';
+import styles, {getTypingIndicatorTextStyle} from '../../../styles/styles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Text from '../../../components/Text';
 
 const propTypes = {
@@ -15,6 +16,7 @@ const propTypes = {
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
 
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -58,7 +60,7 @@ class ReportTypingIndicator extends React.Component {
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
                                 styles.chatItemComposeSecondaryRowOffset,
-                                styles.reportingTypingIndicatorText,
+                                getTypingIndicatorTextStyle(this.props.isSmallScreenWidth),
                             ]}
                             numberOfLines={1}
                         >
@@ -100,6 +102,7 @@ ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
 export default compose(
     withLocalize,
+    withWindowDimensions,
     withOnyx({
         userTypingStatuses: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
