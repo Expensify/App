@@ -66,6 +66,7 @@ class WorkspaceSettingsPage extends React.Component {
         this.uploadAvatar = this.uploadAvatar.bind(this);
         this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
+        this.validate = this.validate.bind(this);
         this.uploadAvatarPromise = Promise.resolve();
     }
 
@@ -106,7 +107,7 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     submit() {
-        if (this.props.policy.isAvatarUploading) {
+        if (this.props.policy.isAvatarUploading || !this.validate()) {
             return;
         }
         const name = this.state.name.trim();
@@ -119,6 +120,14 @@ class WorkspaceSettingsPage extends React.Component {
             Policy.update(this.props.policy.id, {name, avatarURL, outputCurrency});
         });
         Growl.success(this.props.translate('workspace.common.growlMessageOnSave'));
+    }
+
+    validate() {
+        const errors = {};
+        if (!this.state.name.trim().length) {
+            errors.nameError = true;
+        }
+        return _.size(errors) === 0;
     }
 
     render() {
