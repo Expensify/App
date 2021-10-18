@@ -5,15 +5,15 @@ import lodashGet from 'lodash/get';
  * Go back to the Main Drawer
  * @param {Object} navigationRef
  */
-function navigateBackToDrawer(navigationRef) {
-    let isLeavingDrawerNavigator = false;
+function navigateBackToRootDrawer(navigationRef) {
+    let isLeavingNestedDrawerNavigator = false;
 
     // This should take us to the first view of the modal's stack navigator
     navigationRef.current.dispatch((state) => {
         // If this is a nested drawer navigator then we pop the screen and
         // prevent calling goBack() as it's default behavior is to toggle open the active drawer
         if (state.type === 'drawer') {
-            isLeavingDrawerNavigator = true;
+            isLeavingNestedDrawerNavigator = true;
             return StackActions.pop();
         }
 
@@ -27,7 +27,7 @@ function navigateBackToDrawer(navigationRef) {
         return StackActions.pop(0);
     });
 
-    if (isLeavingDrawerNavigator) {
+    if (isLeavingNestedDrawerNavigator) {
         return;
     }
 
@@ -60,7 +60,7 @@ function pushDrawerRoute(screenName, params, navigationRef) {
 
         if (activeReportID === params.reportID) {
             if (state.type !== 'drawer') {
-                navigateBackToDrawer(navigationRef);
+                navigateBackToRootDrawer(navigationRef);
             }
             return DrawerActions.closeDrawer();
         }
@@ -88,5 +88,5 @@ function pushDrawerRoute(screenName, params, navigationRef) {
 
 export default {
     pushDrawerRoute,
-    navigateBackToDrawer,
+    navigateBackToDrawer: navigateBackToRootDrawer,
 };
