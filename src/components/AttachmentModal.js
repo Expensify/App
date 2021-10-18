@@ -158,6 +158,7 @@ class AttachmentModal extends PureComponent {
                 <ConfirmModal
                     title={this.props.translate('attachmentPicker.attachmentTooLarge')}
                     onConfirm={this.closeConfirmModal}
+                    onCancel={this.closeConfirmModal}
                     isVisible={this.state.isConfirmModalOpen}
                     prompt={this.props.translate('attachmentPicker.sizeExceeded')}
                     confirmText={this.props.translate('common.close')}

@@ -232,7 +232,6 @@ class OptionsList extends Component {
                 ) : null}
                 <SectionList
                     ref={this.props.innerRef}
-                    bounces={false}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
                     contentContainerStyle={[...this.props.contentContainerStyles]}
