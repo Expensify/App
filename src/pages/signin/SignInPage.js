@@ -39,18 +39,11 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
     }),
 
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Error to display when there is a session error returned */
-        authToken: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     account: {},
-    session: {},
     credentials: {},
 };
 
@@ -72,7 +65,7 @@ class SignInPage extends Component {
 
         // Show the password form if
         // - A login has been entered
-        // - AND a GitHub username has been entered OR they already have access to expensify cash
+        // - AND a GitHub username has been entered OR they already have access to New Expensify
         // - AND an account exists and is validated for this login
         // - AND a password hasn't been entered yet
         const showPasswordForm = this.props.credentials.login
@@ -92,7 +85,7 @@ class SignInPage extends Component {
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
                         welcomeText={welcomeText}
-                        shouldShowWelcomeText={showLoginForm}
+                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
                         shouldShowWelcomeScreenshot={showLoginForm}
                     >
                         {showLoginForm && <LoginForm />}
@@ -115,6 +108,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
     }),
 )(SignInPage);

@@ -5,11 +5,11 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import {restartSignin} from '../../libs/actions/Session';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import {clearSignInData} from '../../libs/actions/Session';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -33,7 +33,7 @@ const ChangeExpensifyLoginLink = ({credentials, translate, toLocalPhone}) => (
         </Text>
         <TouchableOpacity
             style={[styles.link]}
-            onPress={restartSignin}
+            onPress={clearSignInData}
             underlayColor={themeColors.componentBG}
         >
             <Text style={[styles.link]}>

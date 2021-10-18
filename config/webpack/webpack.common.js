@@ -21,6 +21,7 @@ const includeModules = [
     'react-native-onyx',
     'react-native-gesture-handler',
     'react-native-flipper',
+    'react-native-google-places-autocomplete',
 ].join('|');
 
 const webpackConfig = {

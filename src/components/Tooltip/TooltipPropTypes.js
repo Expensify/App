@@ -2,6 +2,9 @@ import PropTypes from 'prop-types';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
+    /** Enable support for the absolute positioned native(View|Text) children. It will only work for single native child  */
+    absolute: PropTypes.bool,
+
     /** The text to display in the tooltip. */
     text: PropTypes.string.isRequired,
 
@@ -24,6 +27,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    absolute: false,
     shiftHorizontal: 0,
     shiftVertical: 0,
     containerStyles: [],
