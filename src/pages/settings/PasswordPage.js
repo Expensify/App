@@ -75,6 +75,12 @@ class PasswordPage extends Component {
         Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
     }
 
+    /**
+     * Return the error message for the field
+     *
+     * @param {String} field
+     * @returns {String}
+     */
     getErrorText(field) {
         if (this.state.errors[field]) {
             return this.props.translate(this.errorKeysMap[field]);
@@ -82,10 +88,21 @@ class PasswordPage extends Component {
         return null;
     }
 
+    /**
+     * Checks if the password matches regex
+     *
+     * @param {String} password
+     * @returns {Boolean}
+     */
     isValidPassword(password) {
         return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
+    /**
+     * Set value for the field in state and clear error flag
+     * @param {String} field
+     * @param {String} value
+     */
     clearErrorAndSetValue(field, value) {
         this.setState(prevState => ({
             [field]: value,
@@ -93,6 +110,9 @@ class PasswordPage extends Component {
         }));
     }
 
+    /**
+     * Validate all fields and submit the form if no errors
+     */
     validateAndSubmitForm() {
         const errors = {};
 
@@ -122,7 +142,9 @@ class PasswordPage extends Component {
         }
     }
 
-
+    /**
+     * API call to change password
+     */
     handleChangePassword() {
         changePassword(this.state.currentPassword, this.state.newPassword)
             .then((response) => {
@@ -132,6 +154,10 @@ class PasswordPage extends Component {
             });
     }
 
+    /**
+     * Check if new password matches confirm password field
+     * @returns {Boolean}
+     */
     doPasswordsMatch() {
         return this.state.newPassword === this.state.confirmNewPassword;
     }
