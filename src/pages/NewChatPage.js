@@ -8,18 +8,18 @@ import {getNewChatOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import KeyboardSpacer from '../components/KeyboardSpacer';
 import CONST, {EXCLUDED_GROUP_EMAILS} from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
+import ScreenWrapper from '../components/ScreenWrapper';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import Button from '../components/Button';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import FixedFooter from '../components/FixedFooter';
-import KeyboardSpacer from '../components/KeyboardSpacer';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
