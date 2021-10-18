@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import {getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
+import {getHeaderMessage, getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -115,6 +115,11 @@ class IOUParticipantsRequest extends Component {
 
     render() {
         const sections = this.getSections();
+        const headerMessage = getHeaderMessage(
+            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        );
         return (
             <OptionsSelector
                 sections={sections}
@@ -139,6 +144,7 @@ class IOUParticipantsRequest extends Component {
                         personalDetails,
                     });
                 }}
+                headerMessage={headerMessage}
                 disableArrowKeysActions
                 hideAdditionalOptionStates
                 forceTextUnreadStyle

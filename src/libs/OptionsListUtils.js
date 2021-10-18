@@ -721,7 +721,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return translate(preferredLocale, 'messages.noPhoneNumber');
     }
 
-    if (!hasSelectableOptions && !hasUserToInvite) {
+    // Without a search value, it would be very confusing to see a search validation message.
+    // Therefore, this skips the validation when there is no search value.
+    if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
             return translate(preferredLocale, 'messages.noPhoneNumber');
         }
