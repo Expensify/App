@@ -57,6 +57,23 @@ function isValidDate(date) {
 }
 
 /**
+ * Validate that date entered isn't a future date.
+ *
+ * @param {String|Date} date
+ * @returns {Boolean} true if valid
+ */
+function isValidPastDate(date) {
+    if (!date) {
+        return false;
+    }
+
+    const pastDate = moment().subtract(1000, 'years');
+    const currentDate = moment();
+    const testDate = moment(date).startOf('day');
+    return testDate.isValid() && testDate.isBetween(pastDate, currentDate);
+}
+
+/**
  * Used to validate a value that is "required".
  *
  * @param {*} value
@@ -216,6 +233,7 @@ export {
     meetsAgeRequirements,
     isValidAddress,
     isValidDate,
+    isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
     isValidDebitCard,

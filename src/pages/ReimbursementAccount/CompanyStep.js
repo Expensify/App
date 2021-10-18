@@ -24,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars,
+    isValidPastDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -153,7 +153,7 @@ class CompanyStep extends React.Component {
             errors.companyTaxID = true;
         }
 
-        if (!isValidDate(this.state.incorporationDate)) {
+        if (!isValidPastDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
         }
 
