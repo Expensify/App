@@ -105,19 +105,16 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     submit() {
-        Policy.updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: true});
+        const name = this.state.name.trim();
+        const avatarURL = this.state.avatarURL;
+        const outputCurrency = this.state.currency;
+        Policy.updateLocalPolicyValues(this.props.policy.id, {name, avatarURL, outputCurrency});
 
         // Wait for the upload avatar promise to finish before updating the policy
         this.uploadAvatarPromise.then(() => {
-            const name = this.state.name.trim();
-            const avatarURL = this.state.avatarURL;
-            const policyID = this.props.policy.id;
-            const currency = this.state.currency;
-
-            Policy.update(policyID, {name, avatarURL, outputCurrency: currency}, true);
-        }).catch(() => {
-            Policy.updateLocalPolicyValues(this.props.policy.id, {isPolicyUpdating: false});
+            Policy.update(this.props.policy.id, {name, avatarURL, outputCurrency});
         });
+        Growl.success(this.props.translate('workspace.common.growlMessageOnSave'));
     }
 
     render() {

@@ -267,7 +267,6 @@ class NewChatPage extends Component {
                                         disableArrowKeysActions
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
-                                        shouldFocusOnSelectRow={this.props.groupChat}
                                     />
                                     {!this.props.groupChat && <KeyboardSpacer />}
                                     {this.props.groupChat && this.state.selectedOptions?.length > 0 && (
