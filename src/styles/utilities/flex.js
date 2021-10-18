@@ -1,15 +1,12 @@
-import flexNone from './flexNone';
-
 /**
  * Flex layout utility styles with Bootstrap inspired naming.
  *
  * https://getbootstrap.com/docs/5.0/utilities/flex/
  */
 export default {
-    /**
-     * No effect on Native.
-     */
-    flexNone,
+    flexReset: {
+        flex: undefined,
+    },
 
     flex0: {
         flex: 0,

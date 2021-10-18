@@ -319,10 +319,7 @@ class WorkspaceInvitePage extends React.Component {
                                 onSubmit={this.inviteUser}
                                 onFixTheErrorsLinkPressed={() => {}}
                                 message={this.props.policy.alertMessage}
-
-                                // `Flex: 0 ` overrides the `flexbasis: 'auto'` on web. To overcome this use `flex: 'none' `.
-                                // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                containerStyles={[styles.flex0, styles.flexNone, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                containerStyles={[styles.flexReset, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             />
                             <Pressable
                                 onPress={(e) => {
