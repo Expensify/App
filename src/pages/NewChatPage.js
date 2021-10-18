@@ -21,7 +21,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-    
+
     /** All of the personal details for everyone */
     personalDetails: personalDetailsPropType.isRequired,
 
