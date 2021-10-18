@@ -160,7 +160,7 @@ export default {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
     },
     reportTypingIndicator: {
-        isTyping: 'está escribiendo...',
+        isTyping: 'está escribiendo',
         areTyping: 'están escribiendo...',
         multipleUsers: 'Varios usuarios',
     },

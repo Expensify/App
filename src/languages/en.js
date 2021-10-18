@@ -160,7 +160,7 @@ export default {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
     },
     reportTypingIndicator: {
-        isTyping: 'is typing...',
+        isTyping: 'is typing',
         areTyping: 'are typing...',
         multipleUsers: 'Multiple users',
     },

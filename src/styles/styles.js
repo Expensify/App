@@ -2095,6 +2095,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
+
+    reportingTypingIndicatorText: {
+        maxWidth: 300,
+    },
 };
 
 const baseCodeTagStyles = {

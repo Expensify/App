@@ -53,33 +53,25 @@ class ReportTypingIndicator extends React.Component {
                 return <View style={[styles.chatItemComposeSecondaryRow]} />;
             case 1:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                    <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow]}>
                         <Text
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
                                 styles.chatItemComposeSecondaryRowOffset,
+                                styles.reportingTypingIndicatorText,
                             ]}
                             numberOfLines={1}
                         >
                             {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         </Text>
-                    </View>
-                );
-            case 2:
-                return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
                         <Text
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
+                                styles.ml1,
                             ]}
                             numberOfLines={1}
                         >
-                            {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('common.and')} `}
-                            {getDisplayName(this.state.usersTyping[1])}
-                            {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
+                            {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         </Text>
                     </View>
                 );
