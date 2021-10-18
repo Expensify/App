@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
+import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
 
 // This migration changes the name of the Onyx key ACTIVE_CLIENTS from activeClients2 to activeClients
@@ -15,7 +16,7 @@ export default function () {
 
                 // Fail early here because there is nothing to migrate
                 if (_.isEmpty(oldActiveClients)) {
-                    console.debug('[Migrate Onyx] Skipped migration RenameActiveClientsKey');
+                    Log.info('[Migrate Onyx] Skipped migration RenameActiveClientsKey');
                     return resolve();
                 }
 
@@ -24,7 +25,7 @@ export default function () {
                     [ONYXKEYS.ACTIVE_CLIENTS]: oldActiveClients,
                 })
                     .then(() => {
-                        console.debug('[Migrate Onyx] Ran migration RenameActiveClientsKey');
+                        Log.info('[Migrate Onyx] Ran migration RenameActiveClientsKey');
                         resolve();
                     });
             },
