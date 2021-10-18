@@ -58,9 +58,9 @@ class PasswordPage extends Component {
             },
         };
 
-        this.handleChangePassword = this.handleChangePassword.bind(this);
+        this.submit = this.submit.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
-        this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
+        this.validate = this.validate.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.currentPasswordInputRef = null;
 
@@ -102,8 +102,9 @@ class PasswordPage extends Component {
 
     /**
      * Validate all fields and submit the form if no errors
+     * @returns {Boolean}
      */
-    validateAndSubmitForm() {
+    validate() {
         const errors = {};
 
         if (!this.state.currentPassword) {
@@ -127,15 +128,16 @@ class PasswordPage extends Component {
         }
 
         this.setState({errors});
-        if (_.isEmpty(errors)) {
-            this.handleChangePassword();
-        }
+        return _.size(errors) === 0;
     }
 
     /**
-     * API call to change password
+     * Submit the form
      */
-    handleChangePassword() {
+    submit() {
+        if (!this.validate()) {
+            return;
+        }
         changePassword(this.state.currentPassword, this.state.newPassword)
             .then((response) => {
                 if (response.jsonCode === 200) {
@@ -227,7 +229,7 @@ class PasswordPage extends Component {
                             style={[styles.mb2]}
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}
-                            onPress={this.validateAndSubmitForm}
+                            onPress={this.submit}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
