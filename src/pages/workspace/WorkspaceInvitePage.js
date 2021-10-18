@@ -322,7 +322,7 @@ class WorkspaceInvitePage extends React.Component {
 
                                 // `Flex: 0 ` overrides the `flexbasis: 'auto'` on web. To overcome this use `flex: 'none' `.
                                 // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                                containerStyles={[styles.flex0, styles.flexNone, styles.mb1, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                                containerStyles={[styles.flex0, styles.flexNone, styles.mb0, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                             />
                             <Pressable
                                 onPress={(e) => {
