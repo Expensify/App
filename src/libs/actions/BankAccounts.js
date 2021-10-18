@@ -320,7 +320,6 @@ function activateWallet(currentStep, parameters) {
  * @property {('SILVER'|'GOLD')} tierName - will be GOLD when fully activated. SILVER is able to recieve funds only.
  */
 function fetchUserWallet() {
-    Onyx.merge(ONYXKEYS.USER_WALLET, {isLoading: true});
     API.Get({returnValueList: 'userWallet'})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -328,8 +327,7 @@ function fetchUserWallet() {
             }
 
             Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
-        })
-        .finally(() => Onyx.merge(ONYXKEYS.USER_WALLET, {isLoading: false}));
+        });
 }
 
 /**
