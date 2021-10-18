@@ -61,7 +61,6 @@ class ButtonWithMenu extends PureComponent {
     }
 
     componentDidMount() {
-        console.log(">>>>", this.props);
         if (!this.props.userWallet.tierName || this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER) {
             Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
         }

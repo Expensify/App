@@ -327,8 +327,6 @@ function fetchUserWallet() {
                 return;
             }
 
-            console.log(">>>> fetched user wallet", response.userWallet);
-
             Onyx.merge(ONYXKEYS.USER_WALLET, response.userWallet);
         })
         .finally(() => Onyx.merge(ONYXKEYS.USER_WALLET, {isLoading: false}));
