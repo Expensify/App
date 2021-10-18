@@ -84,6 +84,10 @@ export default {
         alignItems: 'baseline',
     },
 
+    alignItemsStretch: {
+        alignItems: 'stretch',
+    },
+
     flexWrap: {
         flexWrap: 'wrap',
     },
