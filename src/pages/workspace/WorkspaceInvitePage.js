@@ -19,9 +19,6 @@ import OptionsSelector from '../../components/OptionsSelector';
 import {getNewGroupOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
 import CONST, {EXCLUDED_GROUP_EMAILS} from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import Icon from '../../components/Icon';
-import {NewWindow} from '../../components/Icon/Expensicons';
-import variables from '../../styles/variables';
 import {openExternalLink} from '../../libs/actions/Link';
 import Text from '../../components/Text';
 
@@ -333,21 +330,10 @@ class WorkspaceInvitePage extends React.Component {
                                 {({hovered, pressed}) => (
                                     <View style={[styles.flexRow]}>
                                         <Text
-                                            style={[
-                                                styles.mr1,
-                                                styles.label,
-                                                (hovered || pressed) ? styles.linkMutedHovered : styles.linkMuted,
-                                            ]}
+                                            style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
                                         >
                                             {this.props.translate('common.privacyPolicy')}
                                         </Text>
-                                        <View style={styles.alignSelfCenter}>
-                                            <Icon
-                                                src={NewWindow}
-                                                width={variables.iconSizeSmall}
-                                                height={variables.iconSizeSmall}
-                                            />
-                                        </View>
                                     </View>
                                 )}
                             </Pressable>
