@@ -525,7 +525,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html,
+            lastMessageText: message.text,
         });
     }
 }
@@ -905,13 +905,7 @@ function fetchActions(reportID, offset) {
             removeOptimisticActions(reportID);
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
 

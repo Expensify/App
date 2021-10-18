@@ -39,18 +39,11 @@ const propTypes = {
         twoFactorAuthCode: PropTypes.string,
     }),
 
-    /** The session of the logged in person */
-    session: PropTypes.shape({
-        /** Error to display when there is a session error returned */
-        authToken: PropTypes.string,
-    }),
-
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     account: {},
-    session: {},
     credentials: {},
 };
 
@@ -92,7 +85,7 @@ class SignInPage extends Component {
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
                         welcomeText={welcomeText}
-                        shouldShowWelcomeText={showLoginForm}
+                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
                         shouldShowWelcomeScreenshot={showLoginForm}
                     >
                         {showLoginForm && <LoginForm />}
@@ -115,6 +108,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
         credentials: {key: ONYXKEYS.CREDENTIALS},
-        session: {key: ONYXKEYS.SESSION},
     }),
 )(SignInPage);

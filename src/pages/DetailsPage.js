@@ -77,7 +77,7 @@ const DetailsPage = ({
             <HeaderWithCloseButton
                 title={translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
@@ -110,7 +110,7 @@ const DetailsPage = ({
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text numberOfLines={1}>
+                                        <Text numberOfLines={1} style={[styles.w100]}>
                                             {isSMSLogin
                                                 ? toLocalPhone(getPhoneNumber(details))
                                                 : details.login}

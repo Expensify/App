@@ -92,7 +92,7 @@ class ReportDetailsPage extends Component {
         this.menuItems = isArchivedRoom(this.props.report) ? []
             : [
                 {
-                    translationKey: 'reportDetailsPage.members',
+                    translationKey: 'common.members',
                     icon: Users,
                     subtitle: props.report.participants.length,
                     action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },

@@ -14,8 +14,11 @@ import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {translateLocal} from '../translate';
 import * as Network from '../Network';
+import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
+import Timers from '../Timers';
+import * as Pusher from '../Pusher/pusher';
+import NetworkConnection from '../NetworkConnection';
 import {getUserDetails} from './User';
-
 
 let credentials = {};
 Onyx.connect({
@@ -339,6 +342,29 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
     });
 }
 
+/**
+ * Clear the credentials and partial sign in session so the user can taken back to first Login step
+ */
+function clearSignInData() {
+    Onyx.multiSet({
+        [ONYXKEYS.ACCOUNT]: null,
+        [ONYXKEYS.CREDENTIALS]: null,
+    });
+}
+
+/**
+ * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
+ */
+function cleanupSession() {
+    // We got signed out in this tab or another so clean up any subscriptions and timers
+    NetworkConnection.stopListeningForReconnect();
+    UnreadIndicatorUpdater.stopListeningForReportChanges();
+    PushNotification.deregister();
+    PushNotification.clearNotifications();
+    Pusher.disconnect();
+    Timers.clearAll();
+}
+
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -349,4 +375,6 @@ export {
     reopenAccount,
     resendValidationLink,
     resetPassword,
+    clearSignInData,
+    cleanupSession,
 };

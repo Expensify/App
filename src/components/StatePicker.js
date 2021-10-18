@@ -11,6 +11,9 @@ const STATES = _.map(CONST.STATES, ({stateISO}) => ({
 }));
 
 const propTypes = {
+    /** The label for the field */
+    label: PropTypes.string,
+
     /** A callback method that is called when the value changes and it received the selected value as an argument */
     onChange: PropTypes.func.isRequired,
 
@@ -21,6 +24,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    label: '',
     value: '',
 };
 
@@ -30,7 +34,7 @@ const StatePicker = props => (
         items={STATES}
         onChange={props.onChange}
         value={props.value}
-        label={props.translate('common.state')}
+        label={props.label || props.translate('common.state')}
         hasError={props.hasError}
         errorText={props.errorText}
     />

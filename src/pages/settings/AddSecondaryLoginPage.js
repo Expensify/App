@@ -19,31 +19,11 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import userPropTypes from './userPropTypes';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** The details about the user that is signed in */
-    user: PropTypes.shape({
-        /** error associated with adding a secondary login */
-        error: PropTypes.string,
-
-        /** Whether the form is being submitted */
-        loading: PropTypes.bool,
-
-        /** Whether or not the user is subscribed to news updates */
-        loginList: PropTypes.arrayOf(PropTypes.shape({
-
-            /** Value of partner name */
-            partnerName: PropTypes.string,
-
-            /** Phone/Email associated with user */
-            partnerUserID: PropTypes.string,
-
-            /** Date of when login was validated */
-            validatedDate: PropTypes.string,
-        })),
-    }),
+    user: userPropTypes,
 
     // Route object from navigation
     route: PropTypes.shape({
