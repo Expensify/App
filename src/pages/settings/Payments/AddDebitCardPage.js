@@ -4,6 +4,7 @@ import {
     View,
     ScrollView,
 } from 'react-native';
+import lodashGet from 'lodash/get';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -25,7 +26,6 @@ import {
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import ROUTES from '../../../ROUTES';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /* Onyx Props */
@@ -87,6 +87,18 @@ class DebitCardPage extends Component {
     }
 
     /**
+     * @param {String} inputKey
+     * @returns {String}
+     */
+    getErrorText(inputKey) {
+        if (!lodashGet(this.state.errors, inputKey, false)) {
+            return '';
+        }
+
+        return this.props.translate(this.errorTranslationKeys[inputKey]);
+    }
+
+    /**
      * @returns {Boolean}
      */
     validate() {
@@ -127,7 +139,7 @@ class DebitCardPage extends Component {
             errors.acceptedTerms = true;
         }
 
-        this.setState({errors: errors});
+        this.setState({errors});
         return _.size(errors) === 0;
     }
 
@@ -167,14 +179,6 @@ class DebitCardPage extends Component {
     clearErrorAndSetValue(inputKey, value) {
         this.setState({[inputKey]: value});
         this.state.errors[inputKey] = false;
-    }
-
-    getErrorText(inputKey) {
-        if (!lodashGet(this.state.errors, inputKey, false)) {
-            return '';
-        }
-
-        return this.props.translate(this.errorTranslationKeys[inputKey]);
     }
 
     render() {
