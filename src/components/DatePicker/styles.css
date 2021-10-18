@@ -1,0 +1,15 @@
+/**
+ * Using a .css file is a special case here, because it's impossible to target
+ * pseudo-elements from js code (e.g. ::-webkit)
+ * It also helps in cases like using the Datepicker in Storybook - the styles are imported
+ * with the component
+ */
+
+.expensify-datepicker::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 12px;
+    top: 13px;
+}
+.expensify-datepicker::-webkit-date-and-time-value {
+    text-align: left;
+}

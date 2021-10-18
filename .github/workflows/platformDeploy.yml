@@ -425,6 +425,22 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
+      - name: 'Announces the deploy in the #deployer Slack room'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
         uses: 8398a7/action-slack@v3
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}

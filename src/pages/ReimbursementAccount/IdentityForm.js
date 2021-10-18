@@ -1,13 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import StatePicker from '../../components/StatePicker';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import AddressSearch from '../../components/AddressSearch';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {translateLocal} from '../../libs/translate';
-import {hideBankAccountErrors} from '../../libs/actions/BankAccounts';
-import Text from '../../components/Text';
+import CONST from '../../CONST';
+import DatePicker from '../../components/DatePicker';
+
 
 const propTypes = {
     /** Style for wrapping View */
@@ -37,14 +37,14 @@ const propTypes = {
         zipCode: PropTypes.string,
 
         /** Date of birth field */
-        dob: PropTypes.string,
+        dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
         /** Last 4 digits of SSN */
         ssnLast4: PropTypes.string,
     }),
 
     /** Any errors that can arise from form validation */
-    error: PropTypes.string,
+    errors: PropTypes.objectOf(PropTypes.bool),
 
     ...withLocalizePropTypes,
 };
@@ -61,15 +61,38 @@ const defaultProps = {
         dob: '',
         ssnLast4: '',
     },
-    error: '',
+    errors: {},
 };
 
+
 const IdentityForm = ({
-    translate, values, onFieldChange, style, error,
+    translate, values, onFieldChange, style, errors,
 }) => {
     const {
         firstName, lastName, street, city, state, zipCode, dob, ssnLast4,
     } = values;
+
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
+    const dobErrorText = (errors.dob ? translate('bankAccount.error.dob') : '')
+        || (errors.dobAge ? translate('bankAccount.error.age') : '');
+
+    const getFormattedAddressValue = () => {
+        let addressString = '';
+        if (street) {
+            addressString += `${street}, `;
+        }
+        if (city) {
+            addressString += `${city}, `;
+        }
+        if (state) {
+            addressString += `${state}, `;
+        }
+        if (zipCode) {
+            addressString += `${zipCode}`;
+        }
+        return addressString;
+    };
+
     return (
         <View style={style}>
             <View style={[styles.flexRow]}>
@@ -77,106 +100,44 @@ const IdentityForm = ({
                     <ExpensiTextInput
                         label={`${translate('common.firstName')}`}
                         value={firstName}
-                        onChangeText={(val) => {
-                            if (error === translateLocal('bankAccount.error.firstName')) {
-                                hideBankAccountErrors();
-                            }
-                            onFieldChange('firstName', val);
-                        }}
-                        errorText={error === translateLocal('bankAccount.error.firstName') ? error : ''}
+                        onChangeText={value => onFieldChange('firstName', value)}
+                        errorText={errors.firstName ? translate('bankAccount.error.firstName') : ''}
+                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
                     <ExpensiTextInput
                         label={`${translate('common.lastName')}`}
                         value={lastName}
-                        onChangeText={(val) => {
-                            if (error === translateLocal('bankAccount.error.lastName')) {
-                                hideBankAccountErrors();
-                            }
-                            onFieldChange('lastName', val);
-                        }}
-                        errorText={error === translateLocal('bankAccount.error.lastName') ? error : ''}
+                        onChangeText={value => onFieldChange('lastName', value)}
+                        errorText={errors.lastName ? translate('bankAccount.error.lastName') : ''}
+                        translateX={-10}
                     />
                 </View>
             </View>
-            <ExpensiTextInput
+            <DatePicker
                 label={`${translate('common.dob')}`}
                 containerStyles={[styles.mt4]}
                 placeholder={translate('common.dateFormat')}
                 value={dob}
-                onChangeText={(val) => {
-                    if (error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age')) {
-                        hideBankAccountErrors();
-                    }
-                    onFieldChange('dob', val);
-                }}
-                errorText={error === translateLocal('bankAccount.error.dob') || error === translateLocal('bankAccount.error.age') ? error : ''}
+                onChange={value => onFieldChange('dob', value)}
+                errorText={dobErrorText}
             />
             <ExpensiTextInput
                 label={`${translate('common.ssnLast4')}`}
                 containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                 value={ssnLast4}
-                onChangeText={(val) => {
-                    if (error === translateLocal('bankAccount.error.ssnLast4')) {
-                        hideBankAccountErrors();
-                    }
-                    onFieldChange('ssnLast4', val);
-                }}
-                errorText={error === translateLocal('bankAccount.error.ssnLast4') ? error : ''}
+                onChangeText={value => onFieldChange('ssnLast4', value)}
+                errorText={errors.ssnLast4 ? translate('bankAccount.error.ssnLast4') : ''}
+                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
-            <ExpensiTextInput
+            <AddressSearch
                 label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
-                value={street}
-                onChangeText={(val) => {
-                    if (error === translateLocal('bankAccount.error.address')) {
-                        hideBankAccountErrors();
-                    }
-                    onFieldChange('street', val);
-                }}
-                errorText={error === translateLocal('bankAccount.error.address') ? error : ''}
-            />
-            <Text style={[styles.mutedTextLabel, styles.mt1]}>{translate('common.noPO')}</Text>
-            <View style={[styles.flexRow, styles.mt4]}>
-                <View style={[styles.flex2, styles.mr2]}>
-                    <ExpensiTextInput
-                        label={translate('common.city')}
-                        value={city}
-                        onChangeText={(val) => {
-                            if (error === translateLocal('bankAccount.error.addressCity')) {
-                                hideBankAccountErrors();
-                            }
-                            onFieldChange('city', val);
-                        }}
-                        errorText={error === translateLocal('bankAccount.error.addressCity') ? error : ''}
-                    />
-                </View>
-                <View style={[styles.flex1]}>
-                    <StatePicker
-                        value={state}
-                        onChange={(val) => {
-                            if (error === translateLocal('bankAccount.error.addressState')) {
-                                hideBankAccountErrors();
-                            }
-                            onFieldChange('state', val);
-                        }}
-                        errorText={error === translateLocal('bankAccount.error.addressState') ? error : ''}
-                        hasError={error === translateLocal('bankAccount.error.addressState')}
-                    />
-                </View>
-            </View>
-            <ExpensiTextInput
-                label={translate('common.zip')}
-                containerStyles={[styles.mt4]}
-                value={zipCode}
-                onChangeText={(val) => {
-                    if (error === translateLocal('bankAccount.error.zipCode')) {
-                        hideBankAccountErrors();
-                    }
-                    onFieldChange('zipCode', val);
-                }}
-                errorText={error === translateLocal('bankAccount.error.zipCode') ? error : ''}
+                value={getFormattedAddressValue()}
+                onChangeText={(fieldName, value) => onFieldChange(fieldName, value)}
+                errorText={errors.street ? translate('bankAccount.error.addressStreet') : ''}
             />
         </View>
     );
