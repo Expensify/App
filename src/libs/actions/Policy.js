@@ -286,10 +286,8 @@ function uploadAvatar(file) {
     return API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
+                // Let the component handle the issue.
+                throw new Error();
             }
 
             return response.s3url;

@@ -100,6 +100,7 @@ class WorkspaceSettingsPage extends React.Component {
         this.uploadAvatarPromise = Policy.uploadAvatar(image).then(url => new Promise((resolve) => {
             this.setState({avatarURL: url}, resolve);
         })).catch(() => {
+            this.setState({previewAvatarURL: ''});
             Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
         }).finally(() => Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
     }
