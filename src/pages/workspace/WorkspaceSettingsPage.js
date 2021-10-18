@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -121,7 +122,7 @@ class WorkspaceSettingsPage extends React.Component {
         const {policy} = this.props;
 
         if (!Permissions.canUseFreePlan(this.props.betas)) {
-            console.debug('Not showing workspace editor page because user is not on free plan beta');
+            Log.info('Not showing workspace editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
 

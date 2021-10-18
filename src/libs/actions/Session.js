@@ -82,7 +82,7 @@ function signOut() {
     }
     Timing.clearData();
     redirectToSignIn();
-    console.debug('Redirecting to Sign In because signOut() was called');
+    Log.info('Redirecting to Sign In because signOut() was called');
 }
 
 /**
@@ -194,7 +194,7 @@ function createTemporaryLogin(authToken, encryptedAuthToken, email) {
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                     doNotRetry: true,
                 })
-                    .catch(console.debug);
+                    .catch(Log.info);
             }
 
             Onyx.merge(ONYXKEYS.CREDENTIALS, {
