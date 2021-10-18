@@ -212,6 +212,17 @@ function isValidUSPhone(phoneNumber) {
     return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
 }
 
+/**
+ * Checks if the password matches regex
+ *
+ * @param {String} password
+ * @returns {Boolean}
+ */
+function isValidPassword(password) {
+    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+}
+
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -226,4 +237,5 @@ export {
     isValidUSPhone,
     isValidURL,
     validateIdentity,
+    isValidPassword,
 };

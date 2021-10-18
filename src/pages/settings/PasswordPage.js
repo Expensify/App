@@ -11,9 +11,9 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import CONST from '../../CONST';
 import Button from '../../components/Button';
 import {changePassword} from '../../libs/actions/User';
+import {isValidPassword} from '../../libs/ValidationUtils';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -60,7 +60,6 @@ class PasswordPage extends Component {
 
         this.handleChangePassword = this.handleChangePassword.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
-        this.isValidPassword = this.isValidPassword.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.currentPasswordInputRef = null;
@@ -88,15 +87,6 @@ class PasswordPage extends Component {
         return null;
     }
 
-    /**
-     * Checks if the password matches regex
-     *
-     * @param {String} password
-     * @returns {Boolean}
-     */
-    isValidPassword(password) {
-        return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
-    }
 
     /**
      * Set value for the field in state and clear error flag
@@ -120,7 +110,7 @@ class PasswordPage extends Component {
             errors.currentPassword = true;
         }
 
-        if (!this.state.newPassword || !this.isValidPassword(this.state.newPassword)) {
+        if (!this.state.newPassword || !isValidPassword(this.state.newPassword)) {
             errors.newPassword = true;
         }
 
@@ -132,7 +122,7 @@ class PasswordPage extends Component {
             errors.newPassword = true;
         }
 
-        if (this.state.newPassword && this.state.confirmNewPassword && !this.doPasswordsMatch()) {
+        if (this.state.newPassword && this.state.confirmNewPassword && _.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
             errors.confirmPasswordMatch = true;
         }
 
@@ -152,14 +142,6 @@ class PasswordPage extends Component {
                     Navigation.navigate(ROUTES.SETTINGS);
                 }
             });
-    }
-
-    /**
-     * Check if new password matches confirm password field
-     * @returns {Boolean}
-     */
-    doPasswordsMatch() {
-        return this.state.newPassword === this.state.confirmNewPassword;
     }
 
     render() {
@@ -203,7 +185,6 @@ class PasswordPage extends Component {
                                 textContentType="password"
                                 value={this.state.newPassword}
                                 hasError={this.state.errors.newPassword}
-                                errorText=""
                                 onChangeText={text => this.clearErrorAndSetValue('newPassword', text)}
                             />
                             <Text
