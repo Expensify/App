@@ -154,7 +154,7 @@ function meetsAgeRequirements(date) {
  * @returns {Boolean}
  */
 function isValidPhoneWithSpecialChars(phoneNumber) {
-    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH;
+    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH && phoneNumber.length >= CONST.PHONE_MIN_LENGTH;
 }
 
 /**

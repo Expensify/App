@@ -426,6 +426,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     PHONE_MAX_LENGTH: 15,
+    PHONE_MIN_LENGTH: 5,
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
