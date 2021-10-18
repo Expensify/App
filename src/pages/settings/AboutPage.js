@@ -1,7 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -17,27 +15,17 @@ import {
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import Logo from '../../../assets/images/new-expensify.svg';
 import {version} from '../../../package.json';
-import {fetchOrCreateChatReport} from '../../libs/actions/Report';
-import ONYXKEYS from '../../ONYXKEYS';
+import {navigateToConciergeChat} from '../../libs/actions/Report';
 import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
-    /** Onyx Props */
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }).isRequired,
-
     ...withLocalizePropTypes,
 };
 
-const AboutPage = ({translate, session}) => {
+const AboutPage = ({translate}) => {
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -65,9 +53,7 @@ const AboutPage = ({translate, session}) => {
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Bug,
-            action: () => {
-                fetchOrCreateChatReport([session.email, CONST.EMAIL.CONCIERGE], true);
-            },
+            action: navigateToConciergeChat,
         },
     ];
 
@@ -159,11 +145,4 @@ const AboutPage = ({translate, session}) => {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: () => ONYXKEYS.SESSION,
-        },
-    }),
-)(AboutPage);
+export default withLocalize(AboutPage);
