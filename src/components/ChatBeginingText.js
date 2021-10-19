@@ -52,14 +52,14 @@ const ChatBeginingText = ({
         <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
             <Text>
                 {isDefaultChatRoom
-                    ? `${translate('reportActionsView.beginingOfChatHistroyPrivate')} `
-                    : `${translate('reportActionsView.beginingOfChatHistroy')} `}
+                    ? `${translate('reportActionsView.beginningOfChatHistoryPrivate')} `
+                    : `${translate('reportActionsView.beginningOfChatHistory')} `}
             </Text>
             {isDefaultChatRoom
             && (
                 <Text>
                     {`${lodashGet(chatUsers, 'chatUsers[0].displayName', '')} 
-                    ${translate('reportActionsView.beginingOfChatHistroyPrivateSectionPart')}`}
+                    ${translate('reportActionsView.beginningOfChatHistoryPrivateSectionPart')}`}
                 </Text>
             )}
             {!isDefaultChatRoom
