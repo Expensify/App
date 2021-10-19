@@ -77,7 +77,6 @@ class DebitCardPage extends Component {
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
         };
 
-        this.handleCardNumberInput = this.handleCardNumberInput.bind(this);
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
@@ -146,12 +145,6 @@ class DebitCardPage extends Component {
         }
         this.setState({isAddingCard: true});
         addBillingCard(this.state);
-    }
-
-    handleCardNumberInput(newCardNumber) {
-        if (/^[0-9]{0,16}$/.test(newCardNumber)) {
-            this.setState({cardNumber: newCardNumber});
-        }
     }
 
     /**
