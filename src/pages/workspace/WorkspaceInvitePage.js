@@ -17,7 +17,7 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
 import {getNewGroupOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
-import CONST, {EXCLUDED_GROUP_EMAILS} from '../../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import {openExternalLink} from '../../libs/actions/Link';
 import Text from '../../components/Text';
@@ -100,7 +100,7 @@ class WorkspaceInvitePage extends React.Component {
 
     getExcludedUsers() {
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...EXCLUDED_GROUP_EMAILS, ...policyEmployeeList];
+        return [...EXPENSIFY_EMAILS, ...policyEmployeeList];
     }
 
     /**
