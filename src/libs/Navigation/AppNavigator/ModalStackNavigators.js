@@ -99,7 +99,7 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
 },
 {
     Component: EnablePaymentsPage,
-    name: 'IOU_Send_Enable_Payments',
+    name: 'IOU_Enable_Payments',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
