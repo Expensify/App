@@ -1,7 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './cardUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -87,7 +87,13 @@ function isRequiredFulfilled(value) {
  * @returns {Boolean}
  */
 function isValidExpirationDate(string) {
-    return CONST.REGEX.CARD_EXPIRATION_DATE.test(string);
+    if (!CONST.REGEX.CARD_EXPIRATION_DATE.test(string)) {
+        return false;
+    }
+
+    // Use the first of the month to check if the expiration date is in the future or not
+    const expirationDate = `${getYearFromExpirationDateString(string)}/${getMonthFromExpirationDateString(string)}/01`;
+    return moment(expirationDate).isAfter(moment());
 }
 
 /**
