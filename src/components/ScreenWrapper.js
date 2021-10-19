@@ -41,7 +41,7 @@ const propTypes = {
     /** Details about any modals being used */
     modal: PropTypes.shape({
         /** Indicates if there is a Alert modal currently visible or not */
-        isAlertModalVisible: PropTypes.bool,
+        willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
 };
@@ -67,7 +67,7 @@ class ScreenWrapper extends React.Component {
 
     componentDidMount() {
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
-            if (!this.props.modal.isAlertModalVisible) {
+            if (!this.props.modal.willAlertModalBecomeVisible) {
                 Navigation.dismissModal();
             }
         }, [], true);
@@ -88,7 +88,7 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
-        console.debug('modal visibility', this.props.modal.isAlertModalVisible);
+        console.debug('modal visibility', this.props.modal.willAlertModalBecomeVisible);
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
