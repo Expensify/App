@@ -2180,22 +2180,6 @@ const webViewStyles = {
 };
 
 /**
- * Return typing indicator text style
- * @param {Boolean} isSmallScreenWidth
- *
- * @returns {Object}
- */
-function getTypingIndicatorTextStyle(isSmallScreenWidth) {
-    return isSmallScreenWidth
-        ? {
-            maxWidth: 200,
-        }
-        : {
-            maxWidth: 500,
-        };
-}
-
-/**
  * Takes safe area insets and returns padding to use for a View
  *
  * @param {Object} insets
@@ -2477,5 +2461,4 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
-    getTypingIndicatorTextStyle,
 };

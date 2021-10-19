@@ -5,7 +5,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
-import styles, {getTypingIndicatorTextStyle} from '../../../styles/styles';
+import styles from '../../../styles/styles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
@@ -60,7 +60,6 @@ class ReportTypingIndicator extends React.Component {
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
                                 styles.chatItemComposeSecondaryRowOffset,
-                                getTypingIndicatorTextStyle(this.props.isSmallScreenWidth),
                             ]}
                             numberOfLines={1}
                         >
