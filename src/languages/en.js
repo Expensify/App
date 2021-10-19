@@ -288,11 +288,9 @@ export default {
         nameOnCard: 'Name on Card',
         debitCardNumber: 'Debit Card Number',
         expiration: 'Expiration Date',
-        expirationDate: 'MM/YYYY',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
         billingAddress: 'Billing Address',
-        streetAddress: 'Street Address',
-        cityName: 'City Name',
         expensifyTermsOfService: 'Expensify Terms Of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
         error: {
