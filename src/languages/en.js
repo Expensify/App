@@ -216,6 +216,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        imageUploadFailed: 'Image upload failed',
+        sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
     },
     profilePage: {
         profile: 'Profile',
