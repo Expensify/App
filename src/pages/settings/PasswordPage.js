@@ -106,8 +106,6 @@ class PasswordPage extends Component {
             });
         }
 
-        console.log('Errors ', errorsToReset);
-
         this.setState(prevState => ({
             [field]: value,
             errors: {...prevState.errors, ...errorsToReset},
@@ -201,7 +199,7 @@ class PasswordPage extends Component {
                                 textContentType="password"
                                 value={this.state.newPassword}
                                 hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
-                                errorText={this.state.errors.newPasswordSameAsOld ? this.getErrorText('newPasswordSameAsOld') : ''}
+                                errorText={!this.state.errors.newPassword && this.state.errors.newPasswordSameAsOld ? this.getErrorText('newPasswordSameAsOld') : ''}
                                 onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
                             />
                             <Text
