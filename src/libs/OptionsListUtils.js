@@ -106,7 +106,7 @@ function getPersonalDetailsForLogins(logins, personalDetails) {
 
         if (!personalDetail) {
             personalDetail = {
-                login: addSMSDomainIfPhoneNumber(login),
+                login,
                 displayName: login,
                 avatar: getDefaultAvatar(login),
             };
@@ -233,15 +233,16 @@ function createOption(personalDetailList, report, draftComments, {
     return {
         text,
         alternateText,
-        icons: report ? report.icons : [personalDetail.avatar],
+        icons: lodashGet(report, 'icons', [personalDetail.avatar]),
         tooltipText,
         participantsList: personalDetailList,
 
         // It doesn't make sense to provide a login in the case of a report with multiple participants since
         // there isn't any one single login to refer to for a report.
-        // If single login is a mobile number, appending SMS domain
-        login: !hasMultipleParticipants ? addSMSDomainIfPhoneNumber(personalDetail.login) : null,
+        login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
+        phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
+        payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
@@ -289,7 +290,7 @@ function isCurrentUser(userDetails) {
         return false;
     }
 
-    // If user login is mobile number, append sms domain if not appended already just a fail safe.
+    // If user login is mobile number, append sms domain if not appended already.
     const userDetailsLogin = addSMSDomainIfPhoneNumber(userDetails.login);
 
     // Initial check with currentUserLogin
@@ -322,9 +323,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
-    excludeConcierge = false,
-    excludeChronos = false,
-    excludeReceipts = false,
+    excludeLogins = [],
     excludeDefaultRooms = false,
     includeMultipleParticipantReports = false,
     includePersonalDetails = false,
@@ -414,17 +413,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
     // Always exclude already selected options and the currently logged in user
     const loginOptionsToExclude = [...selectedOptions, {login: currentUserLogin}];
 
-    if (excludeConcierge) {
-        loginOptionsToExclude.push({login: CONST.EMAIL.CONCIERGE});
-    }
-
-    if (excludeChronos) {
-        loginOptionsToExclude.push({login: CONST.EMAIL.CHRONOS});
-    }
-
-    if (excludeReceipts) {
-        loginOptionsToExclude.push({login: CONST.EMAIL.RECEIPTS});
-    }
+    _.each(excludeLogins, (login) => {
+        loginOptionsToExclude.push({login});
+    });
 
     if (includeRecentReports) {
         for (let i = 0; i < allReportOptions.length; i++) {
@@ -521,7 +512,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         && !isCurrentUser({login: searchValue})
         && _.every(selectedOptions, option => option.login !== searchValue)
         && ((Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue)) || Str.isValidPhone(searchValue))
-        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue))
+        && (!_.find(loginOptionsToExclude, loginOptionToExclude => loginOptionToExclude.login === searchValue.toLowerCase()))
         && (searchValue !== CONST.EMAIL.CHRONOS || Permissions.canUseChronos(betas))
     ) {
         // If the phone number doesn't have an international code then let's prefix it with the
@@ -580,24 +571,18 @@ function getSearchOptions(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {String} searchValue
- * @param {Object} excludedOptions
- * @param {Boolean} excludedOptions.excludeConcierge
- * @param {Boolean} excludedOptions.excludeChronos
- * @param {Boolean} excludedOptions.excludeReceipts
  * @param {Array<String>} betas
+ * @param {String} searchValue
+ * @param {Array} excludeLogins
  * @returns {Object}
  */
 function getNewChatOptions(
     reports,
     personalDetails,
+    betas = [],
     searchValue = '',
-    {
-        excludeConcierge = false,
-        excludeChronos = false,
-        excludeReceipts = true,
-    } = {},
-    betas,
+    excludeLogins = [],
+
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
@@ -606,9 +591,7 @@ function getNewChatOptions(
         includePersonalDetails: true,
         includeRecentReports: true,
         maxRecentReportsToShow: 5,
-        excludeConcierge,
-        excludeChronos,
-        excludeReceipts,
+        excludeLogins,
     });
 }
 
@@ -649,26 +632,20 @@ function getIOUConfirmationOptionsFromParticipants(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
+ * @param {Array<String>} betas
  * @param {String} searchValue
  * @param {Array} selectedOptions
- * @param {Object} excludedOptions
- * @param {Boolean} excludedOptions.excludeConcierge
- * @param {Boolean} excludedOptions.excludeChronos
- * @param {Boolean} excludedOptions.excludeReceipts
- * @param {Array<String>} betas
+ * @param {Array} excludeLogins
  * @returns {Object}
  */
 function getNewGroupOptions(
     reports,
     personalDetails,
+    betas = [],
     searchValue = '',
     selectedOptions = [],
-    {
-        excludeConcierge = false,
-        excludeChronos = false,
-        excludeReceipts = true,
-    } = {},
-    betas,
+    excludeLogins = [],
+
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
@@ -679,9 +656,7 @@ function getNewGroupOptions(
         includePersonalDetails: true,
         includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
-        excludeConcierge,
-        excludeChronos,
-        excludeReceipts,
+        excludeLogins,
     });
 }
 
@@ -746,7 +721,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return translate(preferredLocale, 'messages.noPhoneNumber');
     }
 
-    if (!hasSelectableOptions && !hasUserToInvite) {
+    // Without a search value, it would be very confusing to see a search validation message.
+    // Therefore, this skips the validation when there is no search value.
+    if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
             return translate(preferredLocale, 'messages.noPhoneNumber');
         }

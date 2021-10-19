@@ -2,6 +2,7 @@ import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
+import Log from '../../Log';
 import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};
@@ -21,31 +22,54 @@ function pushNotificationEventCallback(eventType, notification) {
         payload = JSON.parse(payload);
     }
 
-    console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
-        title: notification.title,
-        message: notification.alert,
-        payload,
-    });
+    Log.info(`[PUSH_NOTIFICATION] Callback triggered for ${eventType}`);
 
     if (!payload) {
-        console.debug('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
+        Log.warn('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
         return;
     }
 
     if (!payload.type) {
-        console.debug('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
+        Log.warn('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
         return;
     }
 
     const action = actionMap[payload.type];
     if (!action) {
-        console.debug('[PUSH_NOTIFICATION] No callback set up: ', {
+        Log.warn('[PUSH_NOTIFICATION] No callback set up: ', {
             event: eventType,
             notificationType: payload.type,
         });
         return;
     }
     action(payload);
+}
+
+/**
+ * Register push notification callbacks. This is separate from namedUser registration because it needs to be executed
+ * from a headless JS process, outside of any react lifecycle.
+ *
+ * WARNING: Moving or changing this code could break Push Notification processing in non-obvious ways.
+ *          DO NOT ALTER UNLESS YOU KNOW WHAT YOU'RE DOING. See this PR for details: https://github.com/Expensify/App/pull/3877
+ */
+function init() {
+    // Setup event listeners
+    UrbanAirship.addListener(EventType.PushReceived, (notification) => {
+        // If a push notification is received while the app is in foreground,
+        // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
+        if (AppState.currentState === 'active') {
+            Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+            return;
+        }
+
+        pushNotificationEventCallback(EventType.PushReceived, notification);
+    });
+
+    // Note: the NotificationResponse event has a nested PushReceived event,
+    // so event.notification refers to the same thing as notification above ^
+    UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
+        pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
+    });
 }
 
 /**
@@ -63,39 +87,21 @@ function register(accountID) {
     UrbanAirship.enableUserPushNotifications()
         .then((isEnabled) => {
             if (!isEnabled) {
-                console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+                Log.info('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
             }
         });
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+    Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
     UrbanAirship.setNamedUser(accountID.toString());
-
-    // Setup event listeners
-    UrbanAirship.addListener(EventType.PushReceived, (notification) => {
-        // If a push notification is received while the app is in foreground,
-        // we'll assume pusher is connected so we'll ignore it and not write the same data twice.
-        if (AppState.currentState === 'active') {
-            console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
-            return;
-        }
-
-        pushNotificationEventCallback(EventType.PushReceived, notification);
-    });
-
-    // Note: the NotificationResponse event has a nested PushReceived event,
-    // so event.notification refers to the same thing as notification above ^
-    UrbanAirship.addListener(EventType.NotificationResponse, (event) => {
-        pushNotificationEventCallback(EventType.NotificationResponse, event.notification);
-    });
 }
 
 /**
  * Deregister this device from push notifications.
  */
 function deregister() {
-    console.debug('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
+    Log.info('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
     UrbanAirship.setNamedUser(null);
     UrbanAirship.removeAllListeners(EventType.PushReceived);
     UrbanAirship.removeAllListeners(EventType.NotificationResponse);
@@ -149,6 +155,7 @@ function clearNotifications() {
 }
 
 export default {
+    init,
     register,
     deregister,
     onReceived,

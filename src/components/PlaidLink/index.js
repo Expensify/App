@@ -1,6 +1,7 @@
 import {useCallback, useEffect} from 'react';
 import {usePlaidLink} from 'react-plaid-link';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
+import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
     const onSuccess = useCallback((publicToken, metadata) => {
@@ -10,7 +11,13 @@ const PlaidLink = (props) => {
     const {open, ready, error} = usePlaidLink({
         token: props.token,
         onSuccess,
-        onExit: props.onExit,
+        onExit: (exitError, metadata) => {
+            Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
+            props.onExit();
+        },
+        onEvent: (event, metadata) => {
+            Log.info('[PlaidLink] Event: ', false, {event, metadata});
+        },
     });
 
     useEffect(() => {

@@ -133,7 +133,7 @@ class AttachmentModal extends PureComponent {
                             ? this.props.translate('reportActionCompose.sendAttachment')
                             : this.props.translate('common.attachment')}
                         shouldShowBorderBottom
-                        shouldShowDownloadButton
+                        shouldShowDownloadButton={!this.props.isUploadingAttachment}
                         onDownloadButtonPress={() => fileDownload(sourceURL)}
                         onCloseButtonPress={() => this.setState({isModalOpen: false})}
                     />
@@ -158,6 +158,7 @@ class AttachmentModal extends PureComponent {
                 <ConfirmModal
                     title={this.props.translate('attachmentPicker.attachmentTooLarge')}
                     onConfirm={this.closeConfirmModal}
+                    onCancel={this.closeConfirmModal}
                     isVisible={this.state.isConfirmModalOpen}
                     prompt={this.props.translate('attachmentPicker.sizeExceeded')}
                     confirmText={this.props.translate('common.close')}

@@ -1,15 +1,6 @@
 import Onyx from 'react-native-onyx';
+import SignoutManager from '../SignoutManager';
 import ONYXKEYS from '../../ONYXKEYS';
-import * as Pusher from '../Pusher/pusher';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
-import PushNotification from '../Notification/PushNotification';
-import Timers from '../Timers';
-
-let currentURL;
-Onyx.connect({
-    key: ONYXKEYS.CURRENT_URL,
-    callback: val => currentURL = val,
-});
 
 let currentActiveClients;
 Onyx.connect({
@@ -26,22 +17,9 @@ Onyx.connect({
 });
 
 /**
- * Clears the Onyx store and redirects to the sign in page.
- * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
- *
- * @param {String} [errorMessage] error message to be displayed on the sign in page
+ * @param {String} errorMessage
  */
-function redirectToSignIn(errorMessage) {
-    UnreadIndicatorUpdater.stopListeningForReportChanges();
-    PushNotification.deregister();
-    PushNotification.clearNotifications();
-    Pusher.disconnect();
-    Timers.clearAll();
-
-    if (!currentURL) {
-        return;
-    }
-
+function clearStorageAndRedirect(errorMessage) {
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
@@ -51,13 +29,25 @@ function redirectToSignIn(errorMessage) {
             if (preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
-            if (errorMessage) {
-                Onyx.set(ONYXKEYS.SESSION, {error: errorMessage});
-            }
             if (activeClients && activeClients.length > 0) {
                 Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
             }
+
+            // `Onyx.clear` reinitialize the Onyx instance with initial values so use `Onyx.merge` instead of `Onyx.set`.
+            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
         });
+}
+
+SignoutManager.registerSignoutCallback(clearStorageAndRedirect);
+
+/**
+ * Clears the Onyx store and redirects to the sign in page.
+ * Normally this method would live in Session.js, but that would cause a circular dependency with Network.js.
+ *
+ * @param {String} [errorMessage] error message to be displayed on the sign in page
+ */
+function redirectToSignIn(errorMessage) {
+    SignoutManager.signOut(errorMessage);
 }
 
 export default redirectToSignIn;

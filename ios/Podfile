@@ -8,7 +8,7 @@ target 'NewExpensify' do
   use_unimodules!
   permissions_path = '../node_modules/react-native-permissions/ios'
 
-  pod 'Plaid', '~> 2.1.2'
+  pod 'Plaid', '~> 2.2.0'
   pod 'Permission-LocationAccuracy', :path => "#{permissions_path}/LocationAccuracy"
   pod 'Permission-LocationAlways', :path => "#{permissions_path}/LocationAlways"
   pod 'Permission-LocationWhenInUse', :path => "#{permissions_path}/LocationWhenInUse"

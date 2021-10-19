@@ -56,10 +56,18 @@ class PasswordForm extends React.Component {
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
-        if (!this.state.password.trim()
-            || (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim())
-        ) {
+        if (!this.state.password.trim() && this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
             this.setState({formError: 'passwordForm.pleaseFillOutAllFields'});
+            return;
+        }
+
+        if (!this.state.password.trim()) {
+            this.setState({formError: 'passwordForm.pleaseFillPassword'});
+            return;
+        }
+
+        if (this.props.account.requiresTwoFactorAuth && !this.state.twoFactorAuthCode.trim()) {
+            this.setState({formError: 'passwordForm.pleaseFillTwoFactorAuth'});
             return;
         }
 
@@ -84,16 +92,19 @@ class PasswordForm extends React.Component {
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoFocus
                         translateX={-18}
+                        blurOnSubmit={false}
                     />
-                    <TouchableOpacity
-                        style={[styles.mt2]}
-                        onPress={resetPassword}
-                        underlayColor={themeColors.componentBG}
-                    >
-                        <Text style={[styles.link]}>
-                            {this.props.translate('passwordForm.forgot')}
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                        <TouchableOpacity
+                            style={[styles.mt2]}
+                            onPress={resetPassword}
+                            underlayColor={themeColors.componentBG}
+                        >
+                            <Text style={[styles.link]}>
+                                {this.props.translate('passwordForm.forgot')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {this.props.account.requiresTwoFactorAuth && (
@@ -107,6 +118,7 @@ class PasswordForm extends React.Component {
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
                             translateX={-18}
+                            blurOnSubmit={false}
                         />
                     </View>
                 )}

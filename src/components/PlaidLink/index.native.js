@@ -1,6 +1,7 @@
 import React from 'react';
 import {NativeEventEmitter} from 'react-native';
 import {openLink} from 'react-native-plaid-link-sdk';
+import Log from '../../libs/Log';
 import CONST from '../../CONST';
 import nativeModule from './nativeModule';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
@@ -35,6 +36,7 @@ class PlaidLink extends React.Component {
      * @param {*} event
      */
     onEvent(event) {
+        Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
         if (event.eventName === CONST.PLAID.EVENT.ERROR) {
             this.props.onError(event.metadata);
         } else if (event.eventName === CONST.PLAID.EVENT.EXIT) {

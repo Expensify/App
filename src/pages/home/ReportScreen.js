@@ -10,6 +10,8 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {handleInaccessibleReport, updateCurrentlyViewedReportID, addAction} from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
+import Permissions from '../../libs/Permissions';
+import {isDefaultRoom} from '../../libs/reportUtils';
 
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
@@ -54,6 +56,9 @@ const propTypes = {
 
     /** Array of report actions for this report */
     reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -67,6 +72,7 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
+    betas: [],
 };
 
 /**
@@ -99,11 +105,12 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const reportChanged = this.props.route.params.reportID !== prevProps.route.params.reportID;
-        if (reportChanged) {
-            this.prepareTransition();
-            this.storeCurrentlyViewedReport();
+        if (this.props.route.params.reportID === prevProps.route.params.reportID) {
+            return;
         }
+
+        this.prepareTransition();
+        this.storeCurrentlyViewedReport();
     }
 
     componentWillUnmount() {
@@ -149,6 +156,10 @@ class ReportScreen extends React.Component {
 
     render() {
         if (!this.props.isSidebarLoaded) {
+            return null;
+        }
+
+        if (!Permissions.canUseDefaultRooms(this.props.betas) && isDefaultRoom(this.props.report)) {
             return null;
         }
 
@@ -206,5 +217,8 @@ export default withOnyx({
     },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 })(ReportScreen);

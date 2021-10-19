@@ -14,6 +14,9 @@ const currentUserPersonalDetailsPropsTypes = {
     /** Avatar URL of the current user from their personal details */
     avatar: PropTypes.string,
 
+    /** Flag to set when Avatar uploading */
+    avatarUploading: PropTypes.bool,
+
     /** Pronouns of the current user from their personal details */
     pronouns: PropTypes.string,
 

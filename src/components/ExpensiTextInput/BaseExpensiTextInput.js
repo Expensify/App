@@ -1,15 +1,16 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {
     Animated, TextInput, View, TouchableWithoutFeedback,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
-import Text from '../Text';
-import {propTypes, defaultProps} from './propTypes';
+import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import InlineErrorText from '../InlineErrorText';
 
-const ACTIVE_LABEL_TRANSLATE_Y = -10;
+const ACTIVE_LABEL_TRANSLATE_Y = -12;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
@@ -21,19 +22,20 @@ class BaseExpensiTextInput extends Component {
     constructor(props) {
         super(props);
 
-        const hasValue = props.value && props.value.length > 0;
+        this.value = props.value || props.defaultValue || '';
+        const activeLabel = props.forceActiveLabel || this.value.length > 0;
 
         this.state = {
             isFocused: false,
-            labelTranslateY: new Animated.Value(hasValue ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelTranslateX: new Animated.Value(hasValue
+            labelTranslateY: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
+            labelTranslateX: new Animated.Value(activeLabel
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
-            labelScale: new Animated.Value(hasValue ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
         };
 
         this.input = null;
-        this.value = hasValue ? props.value : '';
-        this.isLabelActive = false;
+        this.isLabelActive = activeLabel;
+        this.onPress = this.onPress.bind(this);
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
@@ -46,14 +48,41 @@ class BaseExpensiTextInput extends Component {
         }
     }
 
-    onFocus() {
-        if (this.props.onFocus) { this.props.onFocus(); }
+    componentDidUpdate(prevProps) {
+        // activate or deactivate the label when value is changed programmatically from outside
+        if (prevProps.value !== this.props.value) {
+            this.value = this.props.value;
+
+            if (this.props.value) {
+                this.activateLabel();
+            } else if (!this.state.isFocused) {
+                this.deactivateLabel();
+            }
+        }
+    }
+
+    onPress(event) {
+        if (this.props.disabled) {
+            return;
+        }
+
+        if (this.props.onPress) {
+            this.props.onPress(event);
+        }
+
+        if (!event.isDefaultPrevented()) {
+            this.input.focus();
+        }
+    }
+
+    onFocus(event) {
+        if (this.props.onFocus) { this.props.onFocus(event); }
         this.setState({isFocused: true});
         this.activateLabel();
     }
 
-    onBlur() {
-        if (this.props.onBlur) { this.props.onBlur(); }
+    onBlur(event) {
+        if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
         this.deactivateLabel();
     }
@@ -82,7 +111,7 @@ class BaseExpensiTextInput extends Component {
     }
 
     deactivateLabel() {
-        if (this.value.length === 0) {
+        if (!this.props.forceActiveLabel && this.value.length === 0) {
             this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
             this.isLabelActive = false;
         }
@@ -133,11 +162,10 @@ class BaseExpensiTextInput extends Component {
                         ...containerStyles,
                     ]}
                 >
-                    <TouchableWithoutFeedback onPress={() => this.input.focus()} focusable={false}>
+                    <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
                         <View
                             style={[
                                 styles.expensiTextInputContainer,
-                                !hasLabel && styles.pv0,
                                 this.state.isFocused && styles.borderColorFocus,
                                 (hasError || errorText) && styles.borderColorDanger,
                             ]}
@@ -165,17 +193,20 @@ class BaseExpensiTextInput extends Component {
                                 placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
-                                style={inputStyle}
+                                style={[inputStyle, !hasLabel && styles.pv0]}
                                 multiline={multiline}
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
+                                onPressOut={this.props.onPress}
                             />
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {Boolean(errorText) && (
-                    <Text style={[styles.formError, styles.mt1]}>{errorText}</Text>
+                {!_.isEmpty(errorText) && (
+                    <InlineErrorText>
+                        {errorText}
+                    </InlineErrorText>
                 )}
             </View>
         );

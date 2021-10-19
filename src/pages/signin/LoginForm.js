@@ -3,8 +3,8 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import {fetchAccountDetails} from '../../libs/actions/Session';
@@ -44,6 +44,7 @@ class LoginForm extends React.Component {
     constructor(props) {
         super(props);
 
+        this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -53,11 +54,28 @@ class LoginForm extends React.Component {
     }
 
     /**
+     * Handle text input and clear formError upon text change
+     *
+     * @param {String} text
+     */
+    onTextInput(text) {
+        this.setState({
+            login: text,
+            formError: null,
+        });
+    }
+
+    /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
     validateAndSubmitForm() {
         if (!this.state.login.trim()) {
-            this.setState({formError: 'loginForm.pleaseEnterEmailOrPhoneNumber'});
+            this.setState({formError: 'common.pleaseEnterEmailOrPhoneNumber'});
+            return;
+        }
+
+        if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
+            this.setState({formError: 'loginForm.error.invalidFormatLogin'});
             return;
         }
 
@@ -78,13 +96,11 @@ class LoginForm extends React.Component {
                         value={this.state.login}
                         autoCompleteType="email"
                         textContentType="username"
-                        onChangeText={text => this.setState({login: text})}
+                        onChangeText={this.onTextInput}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        placeholder={this.props.translate('loginForm.enterYourPhoneOrEmail')}
-                        placeholderTextColor={themeColors.placeholderText}
                         autoFocus={canFocusInputOnScreenFocus()}
                         translateX={-18}
                     />

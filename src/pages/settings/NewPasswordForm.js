@@ -8,6 +8,7 @@ import withLocalize, {
 import CONST from '../../CONST';
 import styles from '../../styles/styles';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import InlineErrorText from '../../components/InlineErrorText';
 
 const propTypes = {
     /** String to control the first password box in the form */
@@ -65,6 +66,14 @@ class NewPasswordForm extends React.Component {
         return this.props.password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
     }
 
+    /**
+     * checks if the password invalid
+     * @returns {Boolean}
+    */
+    isInvalidPassword() {
+        return this.state.passwordHintError && this.props.password && !this.isValidPassword();
+    }
+
     doPasswordsMatch() {
         return this.props.password === this.state.confirmNewPassword;
     }
@@ -82,14 +91,6 @@ class NewPasswordForm extends React.Component {
     }
 
     render() {
-        let passwordHintStyle;
-        if (this.state.passwordHintError && this.props.password && !this.isValidPassword()) {
-            passwordHintStyle = styles.formError;
-        }
-        if (this.isValidPassword()) {
-            passwordHintStyle = styles.formSuccess;
-        }
-
         return (
             <>
                 <View style={styles.mb6}>
@@ -102,7 +103,13 @@ class NewPasswordForm extends React.Component {
                         onChangeText={password => this.props.updatePassword(password)}
                         onBlur={() => this.onBlurNewPassword()}
                     />
-                    <Text style={[styles.textLabelSupporting, styles.mt1, passwordHintStyle]}>
+                    <Text
+                        style={[
+                            styles.textLabelSupporting,
+                            styles.mt1,
+                            this.isInvalidPassword() && styles.formError,
+                        ]}
+                    >
                         {this.props.translate('setPasswordPage.newPasswordPrompt')}
                     </Text>
                 </View>
@@ -118,9 +125,9 @@ class NewPasswordForm extends React.Component {
                         onBlur={() => this.onBlurConfirmPassword()}
                     />
                     {this.showPasswordMatchError() && (
-                    <Text style={[styles.formError, styles.mt1]}>
-                        {this.props.translate('setPasswordPage.passwordsDontMatch')}
-                    </Text>
+                        <InlineErrorText>
+                            {this.props.translate('setPasswordPage.passwordsDontMatch')}
+                        </InlineErrorText>
                     )}
                 </View>
             </>

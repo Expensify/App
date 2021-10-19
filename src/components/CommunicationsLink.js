@@ -36,6 +36,7 @@ const CommunicationsLink = props => (
         {props.isSmallScreenWidth
             ? (
                 <Pressable
+                    style={styles.mw100}
                     onPress={() => Linking.openURL(
                         props.type === CONST.LOGIN_TYPE.PHONE
                             ? `tel:${props.value}`

@@ -8,7 +8,7 @@ import {getNewGroupOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
-import CONST from '../CONST';
+import CONST, {EXCLUDED_GROUP_EMAILS} from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
@@ -19,25 +19,14 @@ import compose from '../libs/compose';
 import Button from '../components/Button';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import FixedFooter from '../components/FixedFooter';
-
-const personalDetailsPropTypes = PropTypes.shape({
-    /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
-
-    /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet) */
-    avatar: PropTypes.string.isRequired,
-
-    /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string.isRequired,
-});
+import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.shape({
@@ -68,12 +57,11 @@ class NewGroupPage extends Component {
         } = getNewGroupOptions(
             props.reports,
             props.personalDetails,
+            props.betas,
             '',
             [],
-            false,
-            props.betas,
+            EXCLUDED_GROUP_EMAILS,
         );
-
         this.state = {
             searchValue: '',
             recentReports,
@@ -167,10 +155,10 @@ class NewGroupPage extends Component {
             } = getNewGroupOptions(
                 this.props.reports,
                 this.props.personalDetails,
+                this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                false,
-                this.props.betas,
+                EXCLUDED_GROUP_EMAILS,
             );
 
             return {
@@ -219,10 +207,10 @@ class NewGroupPage extends Component {
                                                 } = getNewGroupOptions(
                                                     this.props.reports,
                                                     this.props.personalDetails,
+                                                    this.props.betas,
                                                     searchValue,
                                                     [],
-                                                    false,
-                                                    this.props.betas,
+                                                    EXCLUDED_GROUP_EMAILS,
                                                 );
                                                 this.setState({
                                                     searchValue,
@@ -235,7 +223,6 @@ class NewGroupPage extends Component {
                                             disableArrowKeysActions
                                             hideAdditionalOptionStates
                                             forceTextUnreadStyle
-                                            shouldFocusOnSelectRow
                                         />
                                     </View>
                                     {this.state.selectedOptions?.length > 0 && (

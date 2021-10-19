@@ -142,11 +142,13 @@ class ReportActionItemMessageEdit extends React.Component {
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
                     <Button
+                        small
                         style={[styles.mr2]}
                         onPress={this.deleteDraft}
                         text={this.props.translate('common.cancel')}
                     />
                     <Button
+                        small
                         success
                         style={[styles.mr2]}
                         onPress={this.publishDraft}
