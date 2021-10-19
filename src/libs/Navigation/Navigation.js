@@ -138,7 +138,7 @@ function dismissModal(shouldOpenDrawer = false) {
         ? shouldOpenDrawer
         : false;
 
-    CustomActions.navigateBackToDrawer(navigationRef);
+    CustomActions.navigateBackToRootDrawer(navigationRef);
     if (normalizedShouldOpenDrawer) {
         openDrawer();
     }
