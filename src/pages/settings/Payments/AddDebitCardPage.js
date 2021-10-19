@@ -154,8 +154,13 @@ class DebitCardPage extends Component {
      * @param {String} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        this.setState({[inputKey]: value});
-        this.state.errors[inputKey] = false;
+        this.setState(prevState => ({
+            [inputKey]: value,
+            errors: {
+                ...prevState.errors,
+                [inputKey]: false,
+            },
+        }));
     }
 
     render() {

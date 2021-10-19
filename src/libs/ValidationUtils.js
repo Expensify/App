@@ -77,7 +77,11 @@ function isRequiredFulfilled(value) {
 
 /**
  * Validates that this is a valid expiration date
- * in the MM/YY or MM/YYYY format
+ * in the following formats:
+ * 1. MM/YY
+ * 2. MM/YYYY
+ * 3. MMYY
+ * 4. MMYYYY
  *
  * @param {String} string
  * @returns {Boolean}

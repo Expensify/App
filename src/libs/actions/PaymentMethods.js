@@ -7,7 +7,7 @@ import ROUTES from '../../ROUTES';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
-import {maskCardNumber} from '../cardUtils';
+import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '../cardUtils';
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -41,8 +41,8 @@ function getPaymentMethods() {
  * @param {Object} params
  */
 function addBillingCard(params) {
-    const cardYear = params.expirationDate.substr(3);
-    const cardMonth = params.expirationDate.substr(0, 2);
+    const cardMonth = getMonthFromExpirationDateString(params.expirationDate);
+    const cardYear = getYearFromExpirationDateString(params.expirationDate);
 
     API.AddBillingCard({
         cardNumber: params.cardNumber,
