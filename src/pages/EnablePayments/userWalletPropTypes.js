@@ -8,8 +8,5 @@ export default {
 
         /** Status of wallet - e.g. SILVER or GOLD */
         tierName: PropTypes.string,
-
-        /** Whether we're still fetching the user's wallet information */
-        isLoading: PropTypes.bool,
     }),
 };
