@@ -82,7 +82,7 @@ function signOut() {
     }
     Timing.clearData();
     redirectToSignIn();
-    console.debug('Redirecting to Sign In because signOut() was called');
+    Log.info('Redirecting to Sign In because signOut() was called');
 }
 
 /**
@@ -198,7 +198,7 @@ function createTemporaryLogin(authToken, encryptedAuthToken, email) {
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                     doNotRetry: true,
                 })
-                    .catch(console.debug);
+                    .catch(Log.info);
             }
 
             Onyx.merge(ONYXKEYS.CREDENTIALS, {
@@ -347,6 +347,16 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
 }
 
 /**
+ * Clear the credentials and partial sign in session so the user can taken back to first Login step
+ */
+function clearSignInData() {
+    Onyx.multiSet({
+        [ONYXKEYS.ACCOUNT]: null,
+        [ONYXKEYS.CREDENTIALS]: null,
+    });
+}
+
+/**
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
  */
 function cleanupSession() {
@@ -369,5 +379,6 @@ export {
     reopenAccount,
     resendValidationLink,
     resetPassword,
+    clearSignInData,
     cleanupSession,
 };

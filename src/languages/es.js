@@ -315,7 +315,7 @@ export default {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
-        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',
@@ -655,7 +655,7 @@ export default {
             header: 'Desbloquea Tarjetas Expensify gratis',
             headerWithEcard: '¡Tus tarjetas están listas!',
             noVBACopy: 'Conecta una cuenta bancaria para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
-            VBANoECardCopy: 'Emite Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y accede a todas estas increíbles ventajas:',
+            VBANoECardCopy: 'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             conciergeCanHelp: 'Concierge te puede ayudar a añadir un correo electrónico de trabajo para activar la Tarjeta Expensify.',
             VBAWithECardCopy: 'Disfruta de todas estas increíbles ventajas:',
             benefit1: 'Hasta un 2% de devolución en tus gastos',
@@ -705,14 +705,9 @@ export default {
         },
         invite: {
             invitePeople: 'Invitar nuevos miembros',
-            invitePeoplePrompt: 'Invita nuevos miembros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
-            enterEmailOrPhone: 'Correos electrónicos o números de teléfono',
-            EmailOrPhonePlaceholder: 'Introduce una lista de correos electrónicos o números de teléfono separado por comas',
-            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
-            pleaseEnterUniqueLogin: 'Ese usuario ya es miembro de este espacio de trabajo.',
+            pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            systemUserError: ({email}) => `Lo sentimos, no puedes invitar a ${email} a un espacio de trabajo.`,
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         editor: {
