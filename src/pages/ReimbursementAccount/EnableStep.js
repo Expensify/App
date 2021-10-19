@@ -83,7 +83,6 @@ class EnableStep extends React.Component {
                             title: translate('workspace.bankAccount.chatWithConcierge'),
                             icon: ChatBubble,
                             onPress: () => {
-                                Navigation.dismissModal();
                                 navigateToConciergeChat();
                             },
                             shouldShowRightIcon: true,
