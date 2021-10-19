@@ -1,10 +1,12 @@
 import Logger from 'expensify-common/lib/Logger';
-import * as API from './API';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
 import NetworkConnection from './NetworkConnection';
 import HttpUtils from './HttpUtils';
+
+// eslint-disable-next-line import/no-cycle
+import * as API from './API';
 
 let timeout = null;
 

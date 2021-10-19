@@ -9,6 +9,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
+import Tooltip from '../../components/Tooltip';
 import Icon from '../../components/Icon';
 import {
     Bank,
@@ -162,15 +163,17 @@ const WorkspaceInitialPage = ({
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Text
-                                    numberOfLines={1}
-                                    style={[
-                                        styles.displayName,
-                                        styles.alignSelfCenter,
-                                    ]}
-                                >
-                                    {policy.name}
-                                </Text>
+                                <Tooltip text={policy.name}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[
+                                            styles.displayName,
+                                            styles.alignSelfCenter,
+                                        ]}
+                                    >
+                                        {policy.name}
+                                    </Text>
+                                </Tooltip>
                             </Pressable>
                         </View>
                     </View>

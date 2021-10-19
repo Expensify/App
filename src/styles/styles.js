@@ -141,13 +141,6 @@ const styles = {
         fontSize: variables.fontSizeLarge,
     },
 
-    textXLarge: {
-        color: themeColors.heading,
-        fontFamily: fontFamily.GTA_BOLD,
-        fontSize: variables.fontSizeXLarge,
-        fontWeight: fontWeightBold,
-    },
-
     textXXXLarge: {
         color: themeColors.heading,
         fontFamily: fontFamily.GTA_BOLD,
@@ -181,8 +174,28 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    background100: {
+        backgroundSize: '100% 100%',
+    },
+
+    backgroundGreen: {
+        backgroundColor: colors.green,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
+    },
+
+    backgroundOrange: {
+        backgroundColor: colors.orange,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
+    },
+
+    backgroundPink: {
+        backgroundColor: colors.pink,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
+    },
+
     backgroundBlue: {
         backgroundColor: colors.blue,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
     },
 
     colorReversed: {
@@ -505,9 +518,6 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
-        paddingTop: 25,
-        paddingBottom: 8,
-        paddingHorizontal: 11.5,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
@@ -535,7 +545,11 @@ const styles = {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
-        ...spacing.pv0,
+        height: '100%',
+        paddingTop: 25,
+        paddingBottom: 8,
+        paddingHorizontal: 11.5,
+        borderRadius: variables.componentBorderRadiusNormal,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -647,19 +661,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    signinWelcomeScreenshot: {
-        height: 354,
-        width: 295,
-    },
-
-    signInWelcomeScreenshotWide: {
-        aspectRatio: 1,
-        width: '100%',
-        height: '100%',
-        maxHeight: 551,
-        minHeight: 300,
     },
 
     genericView: {
@@ -1813,7 +1814,7 @@ const styles = {
         zIndex: 10,
     },
 
-    vbaFullScreenLoading: {
+    reimbursementAccountFullScreenLoading: {
         backgroundColor: themeColors.componentBG,
         opacity: 0.8,
         justifyContent: 'flex-start',
@@ -1965,7 +1966,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        height: 150,
+        minHeight: 100,
     },
 
     peopleRow: {
