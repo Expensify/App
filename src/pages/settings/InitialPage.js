@@ -157,7 +157,7 @@ const InitialSettingsPage = ({
             title: policy.name,
             icon: policy.avatarURL ? policy.avatarURL : Building,
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
@@ -173,7 +173,7 @@ const InitialSettingsPage = ({
                 title={translate('common.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
-            <ScrollView style={[styles.settingsPageBackground]} bounces={false}>
+            <ScrollView style={[styles.settingsPageBackground]}>
                 <View style={styles.w100}>
                     <View style={styles.pageWrapper}>
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>

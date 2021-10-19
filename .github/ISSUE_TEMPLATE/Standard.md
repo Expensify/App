@@ -32,6 +32,8 @@ Where is this issue occurring?
 - Mobile Web
 
 **Version Number:**
+**Reproducible in staging?:**
+**Reproducible in production?:**
 **Logs:** https://stackoverflow.com/c/expensify/questions/4856
 **Notes/Photos/Videos:** Any additional supporting documentation
 **Expensify/Expensify Issue URL:**
