@@ -245,7 +245,7 @@ function getDomainInfo() {
                     });
             } else {
                 // eslint-disable-next-line max-len
-                console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
+                Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
                 setTimeout(getDomainInfo, RETRY_TIMEOUT);
             }
         });

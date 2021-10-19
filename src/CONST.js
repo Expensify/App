@@ -214,6 +214,7 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        TOOLTIP_SENSE: 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -437,7 +438,7 @@ const CONST = {
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
-        SSN_LAST_FOUR: /[0-9]{4}/,
+        SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         NUMBER: /^[0-9]+$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
