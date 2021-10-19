@@ -50,6 +50,7 @@ class DebitCardPage extends Component {
             acceptedTerms: false,
             isAddingCard: false,
             errors: {},
+            shouldShowAlertPrompt: false,
         };
 
         this.requiredFields = [
@@ -135,8 +136,12 @@ class DebitCardPage extends Component {
             errors.acceptedTerms = true;
         }
 
-        this.setState({errors});
-        return _.size(errors) === 0;
+        const hasErrors = _.size(errors) > 0;
+        this.setState({
+            errors,
+            shouldShowAlertPrompt: hasErrors,
+        });
+        return !hasErrors;
     }
 
     submit() {
@@ -251,8 +256,13 @@ class DebitCardPage extends Component {
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
                                 onPress={() => {
-                                    this.setState(prevState => ({acceptedTerms: !prevState.acceptedTerms}));
-                                    this.state.errors.acceptedTerms = false;
+                                    this.setState(prevState => ({
+                                        acceptedTerms: !prevState.acceptedTerms,
+                                        errors: {
+                                            ...prevState.errors,
+                                            acceptedTerms: false,
+                                        },
+                                    }));
                                 }}
                                 LabelComponent={() => (
                                     <>
@@ -268,7 +278,7 @@ class DebitCardPage extends Component {
                             />
                         </View>
                         <FormAlertWithSubmitButton
-                            isAlertVisible={_.size(this.state.errors) > 0}
+                            isAlertVisible={this.state.shouldShowAlertPrompt}
                             buttonText={this.props.translate('common.save')}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
