@@ -85,7 +85,7 @@ const ReportParticipantsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate(isDefaultRoom(report) ? 'reportDetailsPage.members' : 'common.details')}
+                title={translate(isDefaultRoom(report) ? 'common.members' : 'common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={Navigation.dismissModal}
                 shouldShowBackButton={isDefaultRoom(report)}

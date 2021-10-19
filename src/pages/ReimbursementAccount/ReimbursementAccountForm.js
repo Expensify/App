@@ -11,6 +11,7 @@ import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -34,6 +35,12 @@ class ReimbursementAccountForm extends React.Component {
             // @TODO once all validation errors show in multiples we can remove this check
             || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
 
+        const currentStep = lodashGet(
+            this.props,
+            'reimbursementAccount.achData.currentStep',
+            CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+        );
+
         return (
             <ScrollView
                 style={[styles.w100, styles.flex1]}
@@ -47,12 +54,13 @@ class ReimbursementAccountForm extends React.Component {
                 </View>
                 <FormAlertWithSubmitButton
                     isAlertVisible={isErrorVisible}
-                    buttonText={this.props.translate('common.saveAndContinue')}
+                    buttonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
                     onSubmit={this.props.onSubmit}
                     onFixTheErrorsLinkPressed={() => {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
                     message={this.props.reimbursementAccount.errorModalMessage}
+                    isMessageHtml={this.props.reimbursementAccount.isErrorModalMessageHtml}
                 />
             </ScrollView>
         );

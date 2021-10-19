@@ -205,7 +205,6 @@ export default {
         always: 'Siempre',
         daily: 'Cada día',
         mute: 'Nunca',
-        members: 'Miembros',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Agrega tu número de teléfono para pagar usando Venmo.',
@@ -316,7 +315,7 @@ export default {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
-        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',
@@ -569,6 +568,7 @@ export default {
         taxIDNumberPlaceholder: '9 dígitos, sin guiones',
         companyType: 'Tipo de empresa',
         incorporationDate: 'Fecha de incorporación',
+        incorporationState: 'Estado de incorporación',
         industryClassificationCode: 'Código de clasificación industrial',
         confirmCompanyIsNot: 'Confirmo que esta empresa no está en el',
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
@@ -613,7 +613,7 @@ export default {
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
-    vbaLoadingAnimation: {
+    reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un Momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
@@ -625,7 +625,6 @@ export default {
         common: {
             card: 'Emitir tarjetas corporativas',
             workspace: 'Espacio de trabajo',
-            edit: 'Editar espacio de trabajo',
             settings: 'Configuración general',
             reimburse: 'Reembolsar recibos',
             bills: 'Pagar facturas',
@@ -635,6 +634,7 @@ export default {
             bankAccount: 'Conectar cuenta bancaria',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
+            growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -646,12 +646,15 @@ export default {
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
+            error: {
+                cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
             headerWithEcard: '¡Tus tarjetas están listas!',
             noVBACopy: 'Conecta una cuenta bancaria para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
-            VBANoECardCopy: 'Emite Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y accede a todas estas increíbles ventajas:',
+            VBANoECardCopy: 'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             conciergeCanHelp: 'Concierge te puede ayudar a añadir un correo electrónico de trabajo para activar la Tarjeta Expensify.',
             VBAWithECardCopy: 'Disfruta de todas estas increíbles ventajas:',
             benefit1: 'Hasta un 2% de devolución en tus gastos',
@@ -674,7 +677,7 @@ export default {
         bills: {
             manageYourBills: 'Gestiona tus facturas',
             askYourVendorsBeforeEmail: 'Pide a tus proveedores que envíen sus facturas a ',
-            askYourVendorsAfterEmail: ' y las escanearemos para que las pagues',
+            askYourVendorsAfterEmail: ' y las escanearemos para que las pagues.',
             viewAllBills: 'Ver facturas recibidas',
             unlockOnlineBillPayment: 'Desbloquea el pago de facturas online',
             unlockNoVBACopy: '¡Conecta tu cuenta bancaria para pagar tus facturas online de manera gratuita!',
@@ -685,11 +688,12 @@ export default {
             invoiceClientsAndCustomers: 'Emite facturas a tus clientes',
             invoiceFirstSectionCopy: 'Envía facturas detalladas y profesionales directamente a tus clientes desde la app de Expensify.',
             viewAllInvoices: 'Ver facturas emitidas',
-            unlockOnlineInvoicesCollection: 'Desbloquea el cobro de facturas online',
+            unlockOnlineInvoiceCollection: 'Desbloquea el cobro de facturas online',
             unlockNoVBACopy: 'Conecta tu cuenta bancaria para recibir pagos online de facturas - por transferencia o con tarjeta - directamente en tu cuenta.',
             moneyBackInAFlash: '¡Tu dinero de vuelta en un momento!',
             unlockVBACopy: '¡Todo listo para recibir pagos por transferencia o con tarjeta!',
             viewUnpaidInvoices: 'Ver facturas emitidas pendientes',
+            sendInvoice: 'Enviar factura',
         },
         travel: {
             unlockConciergeBookingTravel: 'Desbloquea la reserva de viajes con Concierge',

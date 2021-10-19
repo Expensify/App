@@ -57,6 +57,7 @@ function getSimplifiedPolicyObject(fullPolicy) {
         name: fullPolicy.name,
         role: fullPolicy.role,
         type: fullPolicy.type,
+        owner: fullPolicy.owner,
         outputCurrency: fullPolicy.outputCurrency,
         employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
         avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
@@ -126,7 +127,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
             const policyID = lodashGet(res, 'policyID');
             if (shouldAutomaticallyReroute) {
                 Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
+                Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
             }
             return Promise.resolve(policyID);
         });
@@ -300,8 +301,9 @@ function uploadAvatar(file) {
  *
  * @param {String} policyID
  * @param {Object} values
+ * @param {Boolean} [shouldGrowl]
  */
-function update(policyID, values) {
+function update(policyID, values, shouldGrowl = false) {
     API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
@@ -314,6 +316,9 @@ function update(policyID, values) {
 
             const updatedValues = {...values, ...{isPolicyUpdating: false}};
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
+            if (shouldGrowl) {
+                Growl.show(translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+            }
         }).catch(() => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
