@@ -40,7 +40,7 @@ const propTypes = {
 
     /** Details about any modals being used */
     modal: PropTypes.shape({
-        /** Indicates if there is a Alert modal currently visible or not */
+        /** Indicates when an Alert modal is about to be visible */
         willAlertModalBecomeVisible: PropTypes.bool,
     }),
 
@@ -88,7 +88,6 @@ class ScreenWrapper extends React.Component {
     }
 
     render() {
-        console.debug('modal visibility', this.props.modal.willAlertModalBecomeVisible);
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
