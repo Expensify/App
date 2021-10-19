@@ -287,7 +287,7 @@ export default {
         addADebitCard: 'Add a Debit Card',
         nameOnCard: 'Name on Card',
         debitCardNumber: 'Debit Card Number',
-        expiration: 'Expiration',
+        expiration: 'Expiration Date',
         expirationDate: 'MM/YYYY',
         cvv: 'CVV',
         billingAddress: 'Billing Address',

@@ -287,7 +287,7 @@ export default {
         addADebitCard: 'Agregar una tarjeta de débito',
         nameOnCard: 'Nombre en la tarjeta',
         debitCardNumber: 'Numero de la tarjeta de débito',
-        expiration: 'Vencimiento',
+        expiration: 'Fecha de vencimiento',
         expirationDate: 'MM/AA',
         cvv: 'CVV',
         billingAddress: 'Dirección de Envio',
