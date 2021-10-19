@@ -8,7 +8,6 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import {getDisplayName} from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Text from '../../../components/Text';
 
 const propTypes = {
@@ -16,7 +15,6 @@ const propTypes = {
     userTypingStatuses: PropTypes.objectOf(PropTypes.bool),
 
     ...withLocalizePropTypes,
-    ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
@@ -100,7 +98,6 @@ ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
     withOnyx({
         userTypingStatuses: {
             key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${reportID}`,
