@@ -163,7 +163,7 @@ function meetsAgeRequirements(date) {
  * @returns {Boolean}
  */
 function isValidPhoneWithSpecialChars(phoneNumber) {
-    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH;
+    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH && phoneNumber.length >= CONST.PHONE_MIN_LENGTH;
 }
 
 /**
@@ -221,6 +221,15 @@ function isValidUSPhone(phoneNumber) {
     return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
 }
 
+/**
+ * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
+ * @param {String} input
+ * @returns {Boolean}
+ */
+function isNumericWithSpecialChars(input) {
+    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -235,5 +244,6 @@ export {
     isValidUSPhone,
     isValidURL,
     validateIdentity,
+    isNumericWithSpecialChars,
     isValidPaypalUsername,
 };
