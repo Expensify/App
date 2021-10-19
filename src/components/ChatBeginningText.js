@@ -27,7 +27,7 @@ const defaultProps = {
     isDefaultChatRoom: false,
 };
 
-const ChatBeginingText = ({
+const ChatBeginningText = ({
     isDefaultChatRoom, report, translate, personalDetails, toLocalPhone,
 }) => {
     const participants = lodashGet(report, 'participants', []);
@@ -82,8 +82,8 @@ const ChatBeginingText = ({
     );
 };
 
-ChatBeginingText.defaultProps = defaultProps;
-ChatBeginingText.propTypes = propTypes;
+ChatBeginningText.defaultProps = defaultProps;
+ChatBeginningText.propTypes = propTypes;
 
 export default compose(
     withLocalize,
@@ -92,4 +92,4 @@ export default compose(
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
     }),
-)(ChatBeginingText);
+)(ChatBeginningText);

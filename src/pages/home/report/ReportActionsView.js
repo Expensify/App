@@ -38,7 +38,7 @@ import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
 import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
 import {isDefaultRoom} from '../../../libs/reportUtils';
-import ChatBeginingText from '../../../components/ChatBeginingText';
+import ChatBeginningText from '../../../components/ChatBeginningText';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -522,7 +522,7 @@ class ReportActionsView extends React.Component {
                             secondAvatarStyle={[styles.secondAvatarHovered]}
                             isCustomChatRoom={isDefaultChatRoom}
                         />
-                        <ChatBeginingText report={this.props.report} isDefaultChatRoom={isDefaultChatRoom} />
+                        <ChatBeginningText report={this.props.report} isDefaultChatRoom={isDefaultChatRoom} />
                     </View>
                 </View>
             );
