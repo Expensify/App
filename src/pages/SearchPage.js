@@ -19,18 +19,7 @@ import CONST from '../CONST';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-
-const personalDetailsPropTypes = PropTypes.shape({
-    /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
-
-    /** The URL of the person's avatar (there should already be a default avatar if
-    the person doesn't have their own avatar uploaded yet) */
-    avatar: PropTypes.string.isRequired,
-
-    /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string.isRequired,
-});
+import personalDetailsPropType from './personalDetailsPropType';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,7 +28,7 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: personalDetailsPropType.isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.shape({

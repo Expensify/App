@@ -8,18 +8,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
-
-const personalDetailsPropTypes = PropTypes.shape({
-    /** The login of the person (either email or phone number) */
-    login: PropTypes.string.isRequired,
-
-    /** The URL of the person's avatar (there should already be a default avatar if the person doesn't have
-     * their own avatar uploaded yet) */
-    avatar: PropTypes.string.isRequired,
-
-    /** This is either the user's full name, or their login if full name is an empty string */
-    displayName: PropTypes.string.isRequired,
-});
+import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const propTypes = {
     /** Beta features list */
@@ -32,7 +21,7 @@ const propTypes = {
     onAddParticipants: PropTypes.func.isRequired,
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.shape({
