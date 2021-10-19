@@ -375,7 +375,7 @@ export default {
     loginForm: {
         phoneOrEmail: 'Número de teléfono o email',
         error: {
-            invalidFormatLogin: 'El email o número de teléfono que has introducido no es válido. Corrígelo e inténtalo de nuevo.',
+            invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
     },
     resendValidationForm: {
@@ -467,7 +467,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
-        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907',
+        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907.',
+        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
@@ -740,7 +741,6 @@ export default {
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',
