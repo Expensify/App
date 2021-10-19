@@ -7,6 +7,7 @@ import {
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
 import {
     clearPlaidBankAccountsAndToken,
@@ -26,7 +27,6 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
-import variables from '../styles/variables';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -151,6 +151,7 @@ class AddPlaidBankAccount extends React.Component {
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
+        const {bankIcon, bankIconSize} = getBankIcon(this.state.institution.name);
         return (
             <>
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
@@ -163,12 +164,12 @@ class AddPlaidBankAccount extends React.Component {
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
-                            console.debug('[PlaidLink] Success: ', {publicToken, metadata});
+                            Log.info('[PlaidLink] Success!');
                             getPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}
                         onError={(error) => {
-                            console.debug(`Plaid Error: ${error.message}`);
+                            Log.hmmm('[PlaidLink] Error: ', error.message);
                         }}
 
                         // User prematurely exited the Plaid flow
@@ -185,9 +186,9 @@ class AddPlaidBankAccount extends React.Component {
                         )}
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                             <Icon
-                                src={getBankIcon(this.state.institution.name).icon}
-                                height={variables.avatarSizeNormal}
-                                width={variables.avatarSizeNormal}
+                                src={bankIcon}
+                                height={bankIconSize}
+                                width={bankIconSize}
                             />
                             <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
                         </View>
