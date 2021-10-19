@@ -21,10 +21,15 @@ export default async function initializeBackgroundFetch() { // eslint-disable-li
     // Setup BackgroundFetch task
     const onEvent = async (taskId) => { // eslint-disable-line
         console.log('[BackgroundFetch] task: ', taskId);
+        console.log('Fetching Data via BG');
 
         // TODO: retrieve network data, persist to Onyx
-        const x = 1 + 1;
-        console.log('[BackgroundFetch] x', x);
+        const response = await fetch('http://5361-103-93-193-198.ngrok.io/');
+        console.log('Hitting API ', response);
+
+        const responseJson = await response.json();
+        console.log('Fetching Data via BG');
+        console.log('[BackgroundFetch] response', responseJson);
 
         // Signal to OS that task is complete.
         BackgroundFetch.finish(taskId);
