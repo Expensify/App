@@ -8,7 +8,7 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        new: 'NEW',
+        new: 'New',
         search: 'Search',
         next: 'Next',
         goBack: 'Go back',

@@ -1639,6 +1639,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
         fontWeight: fontWeightBold,
+        textTransform: 'capitalize',
     },
 
     flipUpsideDown: {
