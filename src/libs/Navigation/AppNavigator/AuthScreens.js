@@ -63,6 +63,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
+import Permissions from '../../Permissions';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -142,17 +143,19 @@ class AuthScreens extends React.Component {
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
 
-        API.Get({
-            returnValueList: 'nameValuePairs',
-            nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        }).then((response) => {
-            const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-            if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
-                setLocale(currentPreferredLocale);
-            } else {
-                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-            }
-        });
+        if (Permissions.canUseInternationalization(this.props.betas)) {
+            API.Get({
+                returnValueList: 'nameValuePairs',
+                nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+            }).then((response) => {
+                const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
+                if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
+                    setLocale(currentPreferredLocale);
+                } else {
+                    Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+                }
+            });
+        }
 
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
@@ -384,6 +387,9 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
+        },
+        betas: {
+            key: ONYXKEYS.BETAS,
         },
     }),
 )(AuthScreens);

@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import SignoutManager from '../SignoutManager';
 import ONYXKEYS from '../../ONYXKEYS';
+import Permissions from '../Permissions';
 
 let currentActiveClients;
 Onyx.connect({
@@ -26,7 +27,8 @@ function clearStorageAndRedirect(errorMessage) {
     // Clearing storage discards the authToken. This causes a redirect to the SignIn screen
     Onyx.clear()
         .then(() => {
-            if (preferredLocale) {
+            // Betas are only present when user is Logined
+            if (Permissions.canUseInternationalization([]) && preferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
             if (activeClients && activeClients.length > 0) {
