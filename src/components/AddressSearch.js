@@ -55,6 +55,11 @@ const AddressSearch = (props) => {
             // Missing Street number
             return false;
         }
+        if (!_.some(addressComponents, component => _.includes(component.types, 'locality'))
+            && !_.some(addressComponents, component => _.includes(component.types, 'sublocality'))) {
+            // Missing city
+            return false;
+        }
         if (_.some(addressComponents, component => _.includes(component.types, 'post_box'))) {
             // Reject PO box
             return false;
@@ -67,7 +72,11 @@ const AddressSearch = (props) => {
             // Gather the values from the Google details
             const streetNumber = getAddressComponent(details, 'street_number', 'long_name');
             const streetName = getAddressComponent(details, 'route', 'long_name');
-            const city = getAddressComponent(details, 'locality', 'long_name');
+            let city = getAddressComponent(details, 'locality', 'long_name');
+            if (!city) {
+                city = getAddressComponent(details, 'sublocality', 'long_name');
+                console.debug('Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
+            }
             const state = getAddressComponent(details, 'administrative_area_level_1', 'short_name');
             const zipCode = getAddressComponent(details, 'postal_code', 'long_name');
 
