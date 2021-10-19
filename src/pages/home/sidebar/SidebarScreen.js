@@ -23,6 +23,7 @@ import {
     MoneyCircle,
     Receipt,
     NewWorkspace,
+    Send,
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -35,11 +36,14 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /* Flag for new users used to open the Global Create menu on first load */
-    isFirstTimeNewExpensifyUser: PropTypes.bool.isRequired,
+    isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+};
+const defaultProps = {
+    isFirstTimeNewExpensifyUser: false,
 };
 
 class SidebarScreen extends Component {
@@ -158,6 +162,13 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
+                                ...(Permissions.canUseIOUSend(this.props.betas) ? [
+                                    {
+                                        icon: Send,
+                                        text: this.props.translate('iou.sendMoney'),
+                                        onSelected: () => Navigation.navigate(ROUTES.IOU_SEND),
+                                    },
+                                ] : []),
                                 ...(Permissions.canUseIOU(this.props.betas) ? [
                                     {
                                         icon: MoneyCircle,
@@ -192,6 +203,8 @@ class SidebarScreen extends Component {
 }
 
 SidebarScreen.propTypes = propTypes;
+SidebarScreen.defaultProps = defaultProps;
+
 export default compose(
     withNavigation,
     withLocalize,

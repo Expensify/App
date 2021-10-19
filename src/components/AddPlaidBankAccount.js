@@ -24,6 +24,8 @@ import ExpensiPicker from './ExpensiPicker';
 import Text from './Text';
 import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
+import getBankIcon from './Icon/BankIcons';
+import Icon from './Icon';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -135,8 +137,11 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         const account = this.getAccounts()[this.state.selectedIndex];
+        const bankName = lodashGet(this.props.plaidBankAccounts, 'bankName');
         this.props.onSubmit({
-            account, plaidLinkToken: this.props.plaidLinkToken,
+            bankName,
+            account,
+            plaidLinkToken: this.props.plaidLinkToken,
         });
     }
 
@@ -145,6 +150,7 @@ class AddPlaidBankAccount extends React.Component {
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
+        const {bankIcon, bankIconSize} = getBankIcon(this.state.institution.name);
         return (
             <>
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
@@ -177,9 +183,14 @@ class AddPlaidBankAccount extends React.Component {
                         {!_.isEmpty(this.props.text) && (
                             <Text style={[styles.mb5]}>{this.props.text}</Text>
                         )}
-                        {/* @TODO there are a bunch of logos to incorporate here to replace this name
-                        https://d2k5nsl2zxldvw.cloudfront.net/images/plaid/bg_plaidLogos_12@2x.png */}
-                        <Text style={[styles.mb5, styles.h1]}>{this.state.institution.name}</Text>
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+                            <Icon
+                                src={bankIcon}
+                                height={bankIconSize}
+                                width={bankIconSize}
+                            />
+                            <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
+                        </View>
                         <View style={[styles.mb5]}>
                             <ExpensiPicker
                                 label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
