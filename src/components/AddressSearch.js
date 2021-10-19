@@ -55,6 +55,14 @@ const AddressSearch = (props) => {
             // Missing Street number
             return false;
         }
+        if (!_.some(addressComponents, component => _.includes(component.types, 'postal_code'))) {
+            // Missing zip code
+            return false;
+        }
+        if (!_.some(addressComponents, component => _.includes(component.types, 'administrative_area_level_1'))) {
+            // Missing state
+            return false;
+        }
         if (!_.some(addressComponents, component => _.includes(component.types, 'locality'))
             && !_.some(addressComponents, component => _.includes(component.types, 'sublocality'))) {
             // Missing city
