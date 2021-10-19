@@ -68,9 +68,8 @@ class ReportTypingIndicator extends React.Component {
                         <Text
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
-                                styles.ml1,
+                                styles.flexShrink0,
                             ]}
-                            numberOfLines={1}
                         >
                             {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                         </Text>
