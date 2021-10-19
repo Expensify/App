@@ -24,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidPastDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars,
+    isValidDate, isValidPastDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -94,6 +94,7 @@ class CompanyStep extends React.Component {
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
+            incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
@@ -101,6 +102,7 @@ class CompanyStep extends React.Component {
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.clearIncorporationDateErrorsAndSetValue = this.clearIncorporationDateErrorsAndSetValue.bind(this);
     }
 
     getFormattedAddressValue() {
@@ -140,6 +142,16 @@ class CompanyStep extends React.Component {
     }
 
     /**
+     * Clear errors associated with incorporation date.
+     *
+     * @param {String} value
+     */
+    clearIncorporationDateErrorsAndSetValue(value) {
+        this.clearErrorAndSetValue('incorporationDate', value);
+        this.clearError('incorporationDateFuture');
+    }
+
+    /**
      * @returns {Boolean}
      */
     validate() {
@@ -153,8 +165,12 @@ class CompanyStep extends React.Component {
             errors.companyTaxID = true;
         }
 
-        if (!isValidPastDate(this.state.incorporationDate)) {
+        if (!isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
+        }
+
+        if (!isValidPastDate(this.state.incorporationDate)) {
+            errors.incorporationDateFuture = true;
         }
 
         if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
@@ -254,10 +270,10 @@ class CompanyStep extends React.Component {
                         <View style={[styles.flex1, styles.mr2]}>
                             <DatePicker
                                 label={this.props.translate('companyStep.incorporationDate')}
-                                onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
+                                onChange={this.clearIncorporationDateErrorsAndSetValue}
                                 value={this.state.incorporationDate}
                                 placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                                errorText={this.getErrorText('incorporationDate')}
+                                errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
                                 translateX={-14}
                             />
                         </View>
