@@ -19,6 +19,7 @@ import Timers from '../Timers';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import {getUserDetails} from './User';
+import {isNumericWithSpecialChars} from '../ValidationUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -142,7 +143,7 @@ function fetchAccountDetails(login) {
                 }
             } else if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    error: CONST.REGEX.DIGITS_AND_PLUS.test(login)
+                    error: isNumericWithSpecialChars(login)
                         ? translateLocal('messages.errorMessageInvalidPhone')
                         : translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
