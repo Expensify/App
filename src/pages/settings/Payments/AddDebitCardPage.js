@@ -31,9 +31,6 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const defaultProps = {
-};
-
 class DebitCardPage extends Component {
     constructor(props) {
         super(props);
@@ -293,7 +290,6 @@ class DebitCardPage extends Component {
 }
 
 DebitCardPage.propTypes = propTypes;
-DebitCardPage.defaultProps = defaultProps;
 DebitCardPage.displayName = 'DebitCardPage';
 
 export default compose(

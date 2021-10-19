@@ -76,8 +76,7 @@ function isRequiredFulfilled(value) {
 }
 
 /**
- * Validates that this is a valid expiration date
- * in the following formats:
+ * Validates that this is a valid expiration date. Supports the following formats:
  * 1. MM/YY
  * 2. MM/YYYY
  * 3. MMYY
@@ -92,7 +91,7 @@ function isValidExpirationDate(string) {
     }
 
     // Use the first of the month to check if the expiration date is in the future or not
-    const expirationDate = `${getYearFromExpirationDateString(string)}/${getMonthFromExpirationDateString(string)}/01`;
+    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
     return moment(expirationDate).isAfter(moment());
 }
 
