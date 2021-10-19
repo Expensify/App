@@ -136,6 +136,15 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ *
+ * @param {String} paypalUsername
+ * @returns {Boolean}
+ */
+function isValidPaypalUsername(paypalUsername) {
+    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
+}
+
+/**
  * Validate that "date" is between 18 and 150 years in the past
  *
  * @param {String} date
@@ -236,4 +245,5 @@ export {
     isValidURL,
     validateIdentity,
     isNumericWithSpecialChars,
+    isValidPaypalUsername,
 };
