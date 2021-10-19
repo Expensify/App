@@ -179,6 +179,7 @@ class DebitCardPage extends Component {
                         style={[styles.w100, styles.flex1]}
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="handled"
+                        ref={el => this.form = el}
                     >
                         <View style={[styles.mh5, styles.mb5]}>
                             <ExpensiTextInput
@@ -256,12 +257,12 @@ class DebitCardPage extends Component {
                                     this.state.errors.acceptedTerms = false;
                                 }}
                                 LabelComponent={() => (
-                                    <Text>
-                                        {`${this.props.translate('common.iAcceptThe')} `}
+                                    <>
+                                        <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
                                         <TextLink href="https://use.expensify.com/terms">
                                             {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
                                         </TextLink>
-                                    </Text>
+                                    </>
                                 )}
                                 style={[styles.mt4, styles.mb4]}
                                 errorText={this.getErrorText('acceptedTerms')}
@@ -273,7 +274,7 @@ class DebitCardPage extends Component {
                             buttonText={this.props.translate('common.save')}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
-                                scrollTo({y: 0, animated: true});
+                                this.form.scrollTo({y: 0, animated: true});
                             }}
                         />
                     </ScrollView>
