@@ -84,6 +84,7 @@ const ChatBeginningText = ({
 
 ChatBeginningText.defaultProps = defaultProps;
 ChatBeginningText.propTypes = propTypes;
+ChatBeginningText.displayName = 'ChatBeginningText';
 
 export default compose(
     withLocalize,

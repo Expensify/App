@@ -50,7 +50,7 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
                             <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                                 <Image source={{uri: val}} style={[styles.emptyStateAvatar]} />
 
-                                {index === 3 && avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
+                                {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                                     <>
                                         <View
                                             style={[

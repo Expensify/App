@@ -151,7 +151,7 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
-        beginningOfChatHistory: 'This is the beginning of your chat history with',
+        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con',
         beginningOfChatHistoryPrivate: 'This is the beginning of the private',
         beginningOfChatHistoryPrivateSectionPart: 'room, invite others by @mentioning them.',
     },
