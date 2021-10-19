@@ -9,7 +9,7 @@ import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
-import {isSingleEmoji} from '../../../libs/ValidationUtils';
+import {isSingleEmoji} from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
@@ -66,7 +66,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <RenderHTML
-                            html={fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}
+                            html={`<comment>${fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
                         />
                     ) : (
                         <Text

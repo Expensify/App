@@ -233,7 +233,7 @@ function createOption(personalDetailList, report, draftComments, {
     return {
         text,
         alternateText,
-        icons: report ? report.icons : [personalDetail.avatar],
+        icons: lodashGet(report, 'icons', [personalDetail.avatar]),
         tooltipText,
         participantsList: personalDetailList,
 
@@ -241,6 +241,8 @@ function createOption(personalDetailList, report, draftComments, {
         // there isn't any one single login to refer to for a report.
         login: !hasMultipleParticipants ? personalDetail.login : null,
         reportID: report ? report.reportID : null,
+        phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
+        payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
         hasDraftComment: _.size(reportDraftComment) > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
@@ -719,7 +721,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return translate(preferredLocale, 'messages.noPhoneNumber');
     }
 
-    if (!hasSelectableOptions && !hasUserToInvite) {
+    // Without a search value, it would be very confusing to see a search validation message.
+    // Therefore, this skips the validation when there is no search value.
+    if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
             return translate(preferredLocale, 'messages.noPhoneNumber');
         }

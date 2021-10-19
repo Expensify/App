@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import PropTypes from 'prop-types';
+import Log from '../libs/Log';
 import styles from '../styles/styles';
 import OptionRow from '../pages/home/sidebar/OptionRow';
 import optionPropTypes from './optionPropTypes';
@@ -154,7 +155,7 @@ class OptionsList extends Component {
      * @param {Object} info
      */
     onScrollToIndexFailed(info) {
-        console.debug(info);
+        Log.hmmm('[OptionsList] scrollToIndex failed', info);
     }
 
     /**
@@ -232,9 +233,14 @@ class OptionsList extends Component {
                 ) : null}
                 <SectionList
                     ref={this.props.innerRef}
-                    bounces={false}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
+
+                    // Both `keyboardDismissMode` & `onScrollBeginDrag` props are needed to ensure that virtual keyboard is
+                    // dismissed on all platforms.
+                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                    keyboardDismissMode="on-drag"
+                    onScrollBeginDrag={() => Keyboard.dismiss()}
                     contentContainerStyle={[...this.props.contentContainerStyles]}
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
