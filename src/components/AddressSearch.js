@@ -95,6 +95,7 @@ const AddressSearch = (props) => {
             props.onChangeText('addressZipCode', zipCode);
         } else {
             // Clear the values associated to the address, so our validations catch the problem
+            console.debug('Address search result failed validation: ', {address: details.formatted_address, address_components: details.address_components});
             props.onChangeText('addressStreet', null);
             props.onChangeText('addressCity', null);
             props.onChangeText('addressState', null);
