@@ -1565,7 +1565,7 @@ const styles = {
     },
 
     chatTextStyle: {
-        fontWeight: fontWeightBold,
+        fontWeight: 'bold',
     },
 
     avatarInnerTextChat: {
