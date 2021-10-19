@@ -35,7 +35,7 @@ const personalDetailsPropTypes = PropTypes.shape({
 
 const propTypes = {
     /** Whether screen is used to create group chat */
-    groupChat: PropTypes.bool,
+    isGroupChat: PropTypes.bool,
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -60,7 +60,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-    groupChat: false,
+    isGroupChat: false,
 };
 
 class NewChatPage extends Component {
@@ -69,7 +69,7 @@ class NewChatPage extends Component {
 
         this.toggleOption = this.toggleOption.bind(this);
         this.createGroup = this.createGroup.bind(this);
-        this.whenOptionSelected = this.whenOptionSelected.bind(this);
+        this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
         this.createNewChat = this.createNewChat.bind(this);
 
         const {
@@ -82,7 +82,7 @@ class NewChatPage extends Component {
             props.betas,
             '',
             [],
-            this.props.groupChat ? EXCLUDED_GROUP_EMAILS : [],
+            this.props.isGroupChat ? EXCLUDED_GROUP_EMAILS : [],
         );
         this.state = {
             searchValue: '',
@@ -101,7 +101,7 @@ class NewChatPage extends Component {
      */
     getSections(maxParticipantsReached) {
         const sections = [];
-        if (this.props.groupChat) {
+        if (this.props.isGroupChat) {
             sections.push({
                 title: undefined,
                 data: this.state.selectedOptions,
@@ -130,7 +130,7 @@ class NewChatPage extends Component {
 
         if (this.state.userToInvite) {
             sections.push(({
-                undefined,
+                title: undefined,
                 data: [this.state.userToInvite],
                 shouldShow: true,
                 indexOffset: 0,
@@ -145,7 +145,7 @@ class NewChatPage extends Component {
      * and the currently logged in user
      */
     createGroup() {
-        const userLogins = _.map(this.state.selectedOptions, option => option.login);
+        const userLogins = _.pluck(this.state.selectedOptions, 'login');
         if (userLogins.length < 1) {
             return;
         }
@@ -206,8 +206,8 @@ class NewChatPage extends Component {
         ]);
     }
 
-    whenOptionSelected(option) {
-        if (this.props.groupChat) {
+    toggleGroupOptionOrCreateChat(option) {
+        if (this.props.isGroupChat) {
             return this.toggleOption(option);
         }
 
@@ -228,7 +228,7 @@ class NewChatPage extends Component {
                 {({didScreenTransitionEnd}) => (
                     <KeyboardAvoidingView>
                         <HeaderWithCloseButton
-                            title={this.props.groupChat
+                            title={this.props.isGroupChat
                                 ? this.props.translate('sidebarScreen.newGroup')
                                 : this.props.translate('sidebarScreen.newChat')}
                             onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -238,11 +238,11 @@ class NewChatPage extends Component {
                             {didScreenTransitionEnd && (
                                 <>
                                     <OptionsSelector
-                                        canSelectMultipleOptions={this.props.groupChat}
+                                        canSelectMultipleOptions={this.props.isGroupChat}
                                         sections={sections}
                                         selectedOptions={this.state.selectedOptions}
                                         value={this.state.searchValue}
-                                        onSelectRow={this.whenOptionSelected}
+                                        onSelectRow={this.toggleGroupOptionOrCreateChat}
                                         onChangeText={(searchValue = '') => {
                                             const {
                                                 recentReports,
@@ -254,7 +254,7 @@ class NewChatPage extends Component {
                                                 this.props.betas,
                                                 searchValue,
                                                 [],
-                                                this.props.groupChat ? EXCLUDED_GROUP_EMAILS : [],
+                                                this.props.isGroupChat ? EXCLUDED_GROUP_EMAILS : [],
                                             );
                                             this.setState({
                                                 searchValue,
@@ -268,8 +268,8 @@ class NewChatPage extends Component {
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
                                     />
-                                    {!this.props.groupChat && <KeyboardSpacer />}
-                                    {this.props.groupChat && this.state.selectedOptions?.length > 0 && (
+                                    {!this.props.isGroupChat && <KeyboardSpacer />}
+                                    {this.props.isGroupChat && this.state.selectedOptions?.length > 0 && (
                                         <FixedFooter>
                                             <Button
                                                 success
