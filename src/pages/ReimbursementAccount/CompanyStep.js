@@ -250,25 +250,23 @@ class CompanyStep extends React.Component {
                             hasError={this.getErrors().incorporationType}
                         />
                     </View>
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex1, styles.mr2]}>
-                            <DatePicker
-                                label={this.props.translate('companyStep.incorporationDate')}
-                                onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
-                                value={this.state.incorporationDate}
-                                placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                                errorText={this.getErrorText('incorporationDate')}
-                                translateX={-14}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                label={this.props.translate('companyStep.incorporationState')}
-                                onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
-                                value={this.state.incorporationState}
-                                hasError={this.getErrors().incorporationState}
-                            />
-                        </View>
+                    <View style={styles.mt4}>
+                        <DatePicker
+                            label={this.props.translate('companyStep.incorporationDate')}
+                            onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
+                            value={this.state.incorporationDate}
+                            placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
+                            errorText={this.getErrorText('incorporationDate')}
+                            translateX={-14}
+                        />
+                    </View>
+                    <View style={styles.mt4}>
+                        <StatePicker
+                            label={this.props.translate('companyStep.incorporationState')}
+                            onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
+                            value={this.state.incorporationState}
+                            hasError={this.getErrors().incorporationState}
+                        />
                     </View>
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
