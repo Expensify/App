@@ -7,6 +7,7 @@ import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
+import Log from '../libs/Log';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -83,7 +84,7 @@ const AddressSearch = (props) => {
             let city = getAddressComponent(details, 'locality', 'long_name');
             if (!city) {
                 city = getAddressComponent(details, 'sublocality', 'long_name');
-                console.debug('Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
+                Log.hmmm('Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
             }
             const state = getAddressComponent(details, 'administrative_area_level_1', 'short_name');
             const zipCode = getAddressComponent(details, 'postal_code', 'long_name');
@@ -95,7 +96,11 @@ const AddressSearch = (props) => {
             props.onChangeText('addressZipCode', zipCode);
         } else {
             // Clear the values associated to the address, so our validations catch the problem
-            console.debug('Address search result failed validation: ', {address: details.formatted_address, address_components: details.address_components});
+            Log.hmmm('[AddressSearch] Search result failed validation: ', {
+                address: details.formatted_address,
+                address_components: details.address_components,
+                place_id: details.place_id,
+            });
             props.onChangeText('addressStreet', null);
             props.onChangeText('addressCity', null);
             props.onChangeText('addressState', null);
