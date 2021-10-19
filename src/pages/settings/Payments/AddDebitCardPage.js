@@ -273,7 +273,7 @@ class DebitCardPage extends Component {
                             buttonText={this.props.translate('common.save')}
                             onSubmit={this.submit}
                             onFixTheErrorsLinkPressed={() => {
-                                this.form.scrollTo({y: 0, animated: true});
+                                scrollTo({y: 0, animated: true});
                             }}
                         />
                     </ScrollView>
