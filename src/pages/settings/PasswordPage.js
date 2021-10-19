@@ -19,7 +19,6 @@ import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import InlineErrorText from '../../components/InlineErrorText';
 
 const propTypes = {
     /* Onyx Props */
@@ -55,6 +54,7 @@ class PasswordPage extends Component {
                 newPassword: false,
                 confirmNewPassword: false,
                 confirmPasswordMatch: false,
+                newPasswordSameAsOld: false,
             },
         };
 
@@ -67,6 +67,8 @@ class PasswordPage extends Component {
         this.errorKeysMap = {
             currentPassword: 'passwordPage.errors.currentPassword',
             confirmNewPassword: 'passwordPage.errors.confirmNewPassword',
+            newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
+            confirmPasswordMatch: 'setPasswordPage.passwordsDontMatch',
         };
     }
 
@@ -92,11 +94,23 @@ class PasswordPage extends Component {
      * Set value for the field in state and clear error flag
      * @param {String} field
      * @param {String} value
+     * @param {Array} additionalErrorFlags
      */
-    clearErrorAndSetValue(field, value) {
+    clearErrorAndSetValue(field, value, additionalErrorFlags) {
+        const errorsToReset = {
+            [field]: false,
+        };
+        if (additionalErrorFlags) {
+            _.each(additionalErrorFlags, (errorFlag) => {
+                errorsToReset[errorFlag] = false;
+            });
+        }
+
+        console.log('Errors ', errorsToReset);
+
         this.setState(prevState => ({
             [field]: value,
-            errors: {...prevState.errors, [field]: false},
+            errors: {...prevState.errors, ...errorsToReset},
         }));
     }
 
@@ -119,11 +133,11 @@ class PasswordPage extends Component {
             errors.confirmNewPassword = true;
         }
 
-        if (this.state.currentPassword && this.state.newPassword && this.state.currentPassword === this.state.newPassword) {
-            errors.newPassword = true;
+        if (this.state.currentPassword && this.state.newPassword && _.isEqual(this.state.currentPassword, this.state.newPassword)) {
+            errors.newPasswordSameAsOld = true;
         }
 
-        if (this.state.newPassword && this.state.confirmNewPassword && _.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
+        if (isValidPassword(this.state.newPassword) && this.state.confirmNewPassword && !_.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
             errors.confirmPasswordMatch = true;
         }
 
@@ -186,8 +200,9 @@ class PasswordPage extends Component {
                                 autoCompleteType="password"
                                 textContentType="password"
                                 value={this.state.newPassword}
-                                hasError={this.state.errors.newPassword}
-                                onChangeText={text => this.clearErrorAndSetValue('newPassword', text)}
+                                hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
+                                errorText={this.state.errors.newPasswordSameAsOld ? this.getErrorText('newPasswordSameAsOld') : ''}
+                                onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
                             />
                             <Text
                                 style={[
@@ -206,9 +221,9 @@ class PasswordPage extends Component {
                                 autoCompleteType="password"
                                 textContentType="password"
                                 value={this.state.confirmNewPassword}
-                                onChangeText={text => this.clearErrorAndSetValue('confirmNewPassword', text)}
-                                hasError={this.state.errors.confirmNewPassword}
-                                errorText={this.getErrorText('confirmNewPassword')}
+                                onChangeText={text => this.clearErrorAndSetValue('confirmNewPassword', text, ['confirmPasswordMatch'])}
+                                hasError={this.state.errors.confirmNewPassword || this.state.errors.confirmPasswordMatch}
+                                errorText={this.getErrorText(this.state.errors.confirmNewPassword ? 'confirmNewPassword' : 'confirmPasswordMatch')}
                                 onSubmitEditing={this.validateAndSubmitForm}
                             />
                         </View>
@@ -216,11 +231,6 @@ class PasswordPage extends Component {
                             <Text style={styles.formError}>
                                 {this.props.account.error}
                             </Text>
-                        )}
-                        {this.state.errors.confirmPasswordMatch && (
-                            <InlineErrorText>
-                                {this.props.translate('setPasswordPage.passwordsDontMatch')}
-                            </InlineErrorText>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
