@@ -1,8 +1,6 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {showBankAccountFormValidationError, showBankAccountErrorModal} from './actions/BankAccounts';
-import {translateLocal} from './translate';
 
 
 /**
@@ -48,6 +46,10 @@ function isValidAddress(value) {
  * @returns {Boolean} true if valid
  */
 function isValidDate(date) {
+    if (!date) {
+        return false;
+    }
+
     const pastDate = moment().subtract(1000, 'years');
     const futureDate = moment().add(1000, 'years');
     const testDate = moment(date);
@@ -134,10 +136,21 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ *
+ * @param {String} paypalUsername
+ * @returns {Boolean}
+ */
+function isValidPaypalUsername(paypalUsername) {
+    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
+}
+
+/**
+ * Validate that "date" is between 18 and 150 years in the past
+ *
  * @param {String} date
  * @returns {Boolean}
  */
-function isValidAge(date) {
+function meetsAgeRequirements(date) {
     const eighteenYearsAgo = moment().subtract(18, 'years');
     const oneHundredFiftyYearsAgo = moment().subtract(150, 'years');
     const testDate = moment(date);
@@ -146,6 +159,14 @@ function isValidAge(date) {
 
 /**
  *
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidPhoneWithSpecialChars(phoneNumber) {
+    return CONST.REGEX.PHONE_WITH_SPECIAL_CHARS.test(phoneNumber) && phoneNumber.length <= CONST.PHONE_MAX_LENGTH && phoneNumber.length >= CONST.PHONE_MIN_LENGTH;
+}
+
+/**
  * @param {String} url
  * @returns {Boolean}
  */
@@ -155,57 +176,74 @@ function isValidURL(url) {
 
 /**
  * @param {Object} identity
- * @returns {Boolean}
+ * @returns {Object}
  */
-function isValidIdentity(identity) {
+function validateIdentity(identity) {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
+    const errors = {};
+
+    // Check that all required fields are filled
+    _.each(requiredFields, (fieldName) => {
+        if (isRequiredFulfilled(identity[fieldName])) {
+            return;
+        }
+        errors[fieldName] = true;
+    });
+
     if (!isValidAddress(identity.street)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.address'));
-        showBankAccountErrorModal();
-        return false;
-    }
-
-    if (identity.state === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressState'));
-        showBankAccountErrorModal();
-        return false;
-    }
-
-    if (identity.city === '') {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.addressCity'));
-        showBankAccountErrorModal();
-        return false;
+        errors.street = true;
     }
 
     if (!isValidZipCode(identity.zipCode)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.zipCode'));
-        showBankAccountErrorModal();
-        return false;
+        errors.zipCode = true;
     }
 
-    if (!isValidDate(identity.dob) || !isValidAge(identity.dob)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.dob'));
-        showBankAccountErrorModal();
-        return false;
+    // dob field has multiple validations/errors, we are handling it temporarily like this.
+    if (!isValidDate(identity.dob)) {
+        errors.dob = true;
+    } else if (!meetsAgeRequirements(identity.dob)) {
+        errors.dobAge = true;
     }
 
     if (!isValidSSNLastFour(identity.ssnLast4)) {
-        showBankAccountFormValidationError(translateLocal('bankAccount.error.ssnLast4'));
-        showBankAccountErrorModal();
-        return false;
+        errors.ssnLast4 = true;
     }
 
-    return true;
+    return errors;
+}
+
+/**
+ * @param {String} phoneNumber
+ * @returns {Boolean}
+ */
+function isValidUSPhone(phoneNumber) {
+    // Remove alphanumeric characters and validate that this is in fact a phone number
+    return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
+}
+
+/**
+ * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
+ * @param {String} input
+ * @returns {Boolean}
+ */
+function isNumericWithSpecialChars(input) {
+    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
 }
 
 export {
+    meetsAgeRequirements,
     isValidAddress,
     isValidDate,
     isValidSecurityCode,
     isValidExpirationDate,
     isValidDebitCard,
     isValidIndustryCode,
-    isValidIdentity,
     isValidZipCode,
     isRequiredFulfilled,
+    isValidPhoneWithSpecialChars,
+    isValidUSPhone,
     isValidURL,
+    validateIdentity,
+    isNumericWithSpecialChars,
+    isValidPaypalUsername,
 };

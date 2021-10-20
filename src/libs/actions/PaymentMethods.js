@@ -19,6 +19,7 @@ function deleteCard(cardID) {
  * @returns {Promise}
  */
 function getPaymentMethods() {
+    Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true);
     return API.Get({
         returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
         name: 'paypalMeAddress',
@@ -28,6 +29,7 @@ function getPaymentMethods() {
     })
         .then((response) => {
             Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
                 [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
                 [ONYXKEYS.CARD_LIST]: lodashGet(response, 'fundList', []),
