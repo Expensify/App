@@ -521,6 +521,7 @@ const styles = {
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
+        overflow: 'hidden',
     },
     expensiTextInputLabel: {
         position: 'absolute',
