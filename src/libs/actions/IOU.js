@@ -4,7 +4,7 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
+import {getSimplifiedIOUReport} from './Report';
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
@@ -188,10 +188,6 @@ function rejectTransaction({
             if (response.jsonCode !== 200) {
                 throw new Error(`${response.code} ${response.message}`);
             }
-
-            const chatReport = response.reports[chatReportID];
-            const iouReport = response.reports[reportID];
-            syncChatAndIOUReports(chatReport, iouReport);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
@@ -270,10 +266,6 @@ function payIOUReport({
             if (response.jsonCode !== 200) {
                 throw new Error(response.message);
             }
-
-            const chatReportStuff = response.reports[chatReportID];
-            const iouReportStuff = response.reports[reportID];
-            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
         .catch((error) => {
             switch (error.message) {
