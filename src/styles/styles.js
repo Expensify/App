@@ -525,11 +525,13 @@ const styles = {
     expensiTextInputLabel: {
         position: 'absolute',
         left: 11.5,
-        top: 16,
+        top: 10,
+        paddingTop: 6,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+        backgroundColor: themeColors.componentBG,
     },
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
