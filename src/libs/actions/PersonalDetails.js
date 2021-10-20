@@ -12,7 +12,7 @@ import {isDefaultRoom} from '../reportUtils';
 import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import {isValidFirstOrLastName} from '../ValidationUtils';
+import {isValidLengthForFirstOrLastName} from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -75,8 +75,8 @@ function getDisplayName(login, personalDetail) {
  */
 function getFirstAndLastNameErrors(firstName, lastName) {
     return {
-        firstName: isValidFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
-        lastName: isValidFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
+        firstName: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
+        lastName: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
     };
 }
 
