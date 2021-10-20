@@ -230,6 +230,15 @@ function isNumericWithSpecialChars(input) {
     return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
 }
 
+/**
+ * Checks weather a given first or last name is valid
+ * @param {String} name
+ * @returns {Boolean}
+ */
+function isValidFirstOrLastName(name) {
+    return name.length <= 50;
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -245,5 +254,6 @@ export {
     isValidURL,
     validateIdentity,
     isNumericWithSpecialChars,
+    isValidFirstOrLastName,
     isValidPaypalUsername,
 };
