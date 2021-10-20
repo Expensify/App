@@ -5,6 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Log from '../../libs/Log';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
     fetchFreePlanVerifiedBankAccount,
@@ -146,7 +147,7 @@ class ReimbursementAccountPage extends React.Component {
 
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
-            console.debug('Not showing new bank account page because user is not on free plan beta');
+            Log.info('Not showing new bank account page because user is not on free plan beta');
             Navigation.dismissModal();
             return null;
         }

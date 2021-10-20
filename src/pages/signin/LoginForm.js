@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
@@ -15,6 +15,7 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import {isNumericWithSpecialChars} from '../../libs/ValidationUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,6 +64,10 @@ class LoginForm extends React.Component {
             login: text,
             formError: null,
         });
+
+        if (this.props.account.error) {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
+        }
     }
 
     /**
@@ -75,7 +80,11 @@ class LoginForm extends React.Component {
         }
 
         if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
-            this.setState({formError: 'loginForm.error.invalidFormatLogin'});
+            if (isNumericWithSpecialChars(this.state.login)) {
+                this.setState({formError: 'messages.errorMessageInvalidPhone'});
+            } else {
+                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+            }
             return;
         }
 
