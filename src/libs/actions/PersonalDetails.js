@@ -12,7 +12,7 @@ import {isDefaultRoom} from '../reportUtils';
 import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import {isValidFirstOrLastName} from '../../libs/ValidationUtils';
+import {isValidFirstOrLastName} from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
