@@ -75,6 +75,10 @@ class WorkspaceSettingsPage extends React.Component {
         getCurrencyList();
     }
 
+    componentWillUnmount() {
+        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
+    }
+
     /**
      * @returns {Object[]}
      */
