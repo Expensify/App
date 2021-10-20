@@ -125,14 +125,13 @@ class RequestCallPage extends Component {
 
     /**
      * Gets proper phone number error message depending on phoneNumber input value.
-     * @param {String} phoneNumber
      * @returns {String}
      */
-    getPhoneNumberError(phoneNumber) {
-        if (_.isEmpty(phoneNumber.trim())) {
+    getPhoneNumberError() {
+        if (_.isEmpty(this.state.phoneNumber.trim())) {
             return this.props.translate('messages.noPhoneNumber');
         }
-        if (!Str.isValidPhone(phoneNumber)) {
+        if (!Str.isValidPhone(this.state.phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
         return '';
@@ -171,7 +170,7 @@ class RequestCallPage extends Component {
     }
 
     validatePhoneInput() {
-        this.setState((prevState) => ({phoneNumberError: this.getPhoneNumberError(prevState.phoneNumber)}));
+        this.setState({phoneNumberError: this.getPhoneNumberError()});
     }
 
     /**
@@ -184,17 +183,15 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
         }
 
-        this.setState((prevState) => {
-            const phoneNumberError = this.getPhoneNumberError(prevState.phoneNumber);
-            const nameErrors = getFirstAndLastNameErrors(prevState.firstName, prevState.lastName);
+        const phoneNumberError = this.getPhoneNumberError();
+        const {firstName, lastName} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
-            return {
-                firstNameError: nameErrors.firstName,
-                lastNameError: nameErrors.lastName,
-                phoneNumberError,
-            };
+        this.setState({
+            firstNameError: firstName,
+            lastNameError: lastName,
+            phoneNumberError,
         });
-        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(nameErrors.firstName) && _.isEmpty(nameErrors.lastName);
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(firstName) && _.isEmpty(lastName);
     }
 
     render() {
