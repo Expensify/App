@@ -1381,7 +1381,6 @@ export {
     saveReportActionDraft,
     deleteReportComment,
     getSimplifiedIOUReport,
-    syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
 };
