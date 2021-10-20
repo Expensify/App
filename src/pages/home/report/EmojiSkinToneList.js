@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import compose from '../../../libs/compose';
 import {skinTones} from '../../../../assets/emojis';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
@@ -45,14 +44,14 @@ class EmojiSkinToneList extends Component {
      * @param {object} skinToneEmoji
      */
     updateSelectedSkinTone(skinToneEmoji) {
-        this.setState(prev => ({isSkinToneListVisible: !prev.isSkinToneListVisible}));
+        this.setState(prev => ({isSkinToneListVisible: !prev.isSkinToneListVisible, highlightedIndex: skinToneEmoji.skinTone}));
         this.props.updatePreferredSkinTone(skinToneEmoji.skinTone);
     }
 
     render() {
         const selectedEmoji = getSkinToneEmojiFromIndex(this.props.preferredSkinTone);
         return (
-            <View style={[styles.flexRow, styles.p1, styles.ph3]}>
+            <View style={[styles.flexRow, styles.p1, styles.ph4]}>
                 {
                     !this.state.isSkinToneListVisible && (
                         <Pressable
@@ -68,7 +67,7 @@ class EmojiSkinToneList extends Component {
                                 styles.alignItemsCenter,
                             ]}
                         >
-                            <Text style={[styles.emojiText, styles.ph1]}>
+                            <Text style={[styles.emojiText, styles.ph2, styles.emojiItem]}>
                                 {selectedEmoji.code}
                             </Text>
                             <Text style={[styles.emojiSkinToneTitle]}>
@@ -79,21 +78,19 @@ class EmojiSkinToneList extends Component {
                 }
                 {
                     this.state.isSkinToneListVisible && (
-                        <View>
-                            <View style={[styles.flexRow]}>
-                                {
-                                    skinTones.map(skinToneEmoji => (
-                                        <EmojiPickerMenuItem
-                                            onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
-                                            onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
-                                            key={skinToneEmoji.code}
-                                            emojiItemStyle={styles.emojiSkinToneItem}
-                                            emoji={skinToneEmoji.code}
-                                            isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
-                                        />
-                                    ))
+
+                        <View style={[styles.flexRow, styles.flex1]}>
+                            {
+                                skinTones.map(skinToneEmoji => (
+                                    <EmojiPickerMenuItem
+                                        onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
+                                        onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}
+                                        key={skinToneEmoji.code}
+                                        emoji={skinToneEmoji.code}
+                                        isHighlighted={skinToneEmoji.skinTone === this.state.highlightedIndex}
+                                    />
+                                ))
                                 }
-                            </View>
                         </View>
                     )
                 }
@@ -104,6 +101,4 @@ class EmojiSkinToneList extends Component {
 
 EmojiSkinToneList.propTypes = propTypes;
 
-export default compose(
-    withLocalize,
-)(EmojiSkinToneList);
+export default withLocalize(EmojiSkinToneList);

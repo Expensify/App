@@ -467,6 +467,8 @@ class ReportActionCompose extends React.Component {
             && !hasMultipleParticipants
             && reportRecipient
             && reportRecipientTimezone
+            && currentUserTimezone.selected
+            && reportRecipientTimezone.selected
             && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
@@ -558,6 +560,19 @@ class ReportActionCompose extends React.Component {
                                                                     },
                                                                 },
                                                         ] : []),
+                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
+                                                        {
+                                                            icon: Send,
+                                                            text: this.props.translate('iou.sendMoney'),
+                                                            onSelected: () => {
+                                                                Navigation.navigate(
+                                                                    ROUTES.getIOUSendRoute(
+                                                                        this.props.reportID,
+                                                                    ),
+                                                                );
+                                                            },
+                                                        },
+                                                    ] : []),
                                                     {
                                                         icon: Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),

@@ -22,14 +22,14 @@ const defaultProps = {
 
 const InboxCallButton = props => (
     <Tooltip
-        text={props.translate('requestCallPage.needHelpTooltip')}
+        text={props.translate('requestCallPage.callButtonTooltip')}
         containerStyles={[styles.justifyContentCenter, styles.alignItemsCenter]}
     >
         <Button
             onPress={() => {
                 Navigation.navigate(ROUTES.getRequestCallRoute(props.taskID));
             }}
-            text={props.translate('requestCallPage.needHelp')}
+            text={props.translate('requestCallPage.callButton')}
             small
             icon={Phone}
         />

@@ -70,6 +70,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 #### Propose a solution for the job
 4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief technical explanation of the changes you will make.
     - Note: If you post a proposed solution in an issue that has not been tagged with the `External` label, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution.
+    - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
 5. Pause at this step until Expensify provides feedback on your proposal (do not begin coding or creating a pull request yet).
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you.
 
@@ -96,8 +97,9 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
-14. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
-15. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
+14. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use Github keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
+15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
+16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
