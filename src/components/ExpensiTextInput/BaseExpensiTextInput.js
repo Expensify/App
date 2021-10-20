@@ -46,7 +46,7 @@ class BaseExpensiTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
-        this.secureTextEntry = props.secureTextEntry;
+        this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
     }
 
     componentDidMount() {
@@ -220,10 +220,8 @@ class BaseExpensiTextInput extends Component {
                                 {secureTextEntry && (
                                     <Pressable
                                         accessibilityRole="button"
-                                        style={[
-                                            styles.secureInputEyeButton,
-                                        ]}
-                                        onPress={() => this.togglePasswordVisibility()}
+                                        style={styles.secureInputEyeButton}
+                                        onPress={this.togglePasswordVisibility}
                                     >
                                         {({hovered, pressed}) => (
                                             <Icon
