@@ -21,7 +21,6 @@ import {
     isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard, isValidSecurityCode,
 } from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
-import ROUTES from '../../../ROUTES';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
 import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
@@ -188,7 +187,7 @@ class DebitCardPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('addDebitCardPage.addADebitCard')}
                         shouldShowBackButton
-                        onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
+                        onBackButtonPress={() => Navigation.goBack()}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
                     <ScrollView
