@@ -284,6 +284,7 @@ export default {
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        formatError: 'Invalid PayPal.me username',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a Debit Card',
@@ -388,7 +389,7 @@ export default {
     detailsPage: {
         localTime: 'Local time',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Create group',
     },
     notFound: {
