@@ -172,6 +172,8 @@ class BaseExpensiTextInput extends Component {
                         >
                             {hasLabel ? (
                                 <>
+                                    {/* Adding this background to the label only for multiline text input, 
+                                    to prevent text overlaping with label when scrolling */}
                                     {multiline ? (
                                         <View
                                             style={styles.expensiTextInputLabelBackground}
