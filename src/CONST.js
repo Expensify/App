@@ -1,5 +1,3 @@
-import _ from 'underscore';
-
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 
@@ -472,14 +470,7 @@ const EXPENSIFY_EMAILS = [
     CONST.EMAIL.INTEGRATION_TESTING_CREDS,
 ];
 
-const EXCLUDED_GROUP_EMAILS = _.without(EXPENSIFY_EMAILS, [
-    CONST.EMAIL.CONCIERGE,
-    CONST.EMAIL.RECEIPTS,
-    CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-]);
-
 export {
     EXPENSIFY_EMAILS,
-    EXCLUDED_GROUP_EMAILS,
 };
 export default CONST;
