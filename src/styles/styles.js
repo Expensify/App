@@ -531,6 +531,15 @@ const styles = {
         fontFamily: fontFamily.GTA,
         width: '100%',
     },
+    expensiTextInputLabelBackground: {
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+        height: 28,
+        backgroundColor: themeColors.componentBG,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+    },
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
     },
@@ -550,6 +559,7 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11.5,
         borderRadius: variables.componentBorderRadiusNormal,
+        zIndex: -1,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({

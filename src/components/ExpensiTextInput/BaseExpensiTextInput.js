@@ -171,16 +171,22 @@ class BaseExpensiTextInput extends Component {
                             ]}
                         >
                             {hasLabel ? (
-                                <ExpensiTextInputLabel
-                                    label={label}
-                                    labelTranslateX={
-                                        ignoreLabelTranslateX
-                                            ? new Animated.Value(0)
-                                            : this.state.labelTranslateX
-                                    }
-                                    labelTranslateY={this.state.labelTranslateY}
-                                    labelScale={this.state.labelScale}
-                                />
+                                <>
+                                    {multiline ? (
+                                        <View 
+                                            style={styles.expensiTextInputLabelBackground}/>
+                                    ) : null}
+                                    <ExpensiTextInputLabel
+                                        label={label}
+                                        labelTranslateX={
+                                            ignoreLabelTranslateX
+                                                ? new Animated.Value(0)
+                                                : this.state.labelTranslateX
+                                        }
+                                        labelTranslateY={this.state.labelTranslateY}
+                                        labelScale={this.state.labelScale}
+                                    />
+                                </>
                             ) : null}
                             <TextInput
                                 ref={(ref) => {
