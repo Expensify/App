@@ -174,7 +174,7 @@ function createIOUSplitGroup(params) {
  * @param {String} params.comment
  */
 function rejectTransaction({
-    reportID, chatReportID, transactionID, comment,
+    reportID, transactionID, comment,
 }) {
     Onyx.merge(ONYXKEYS.TRANSACTIONS_BEING_REJECTED, {
         [transactionID]: true,
@@ -244,7 +244,7 @@ function buildPayPalPaymentUrl(amount, submitterPayPalMeAddress, currency) {
  * @param {String} [params.submitterPayPalMeAddress]
  */
 function payIOUReport({
-    chatReportID, reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
+    reportID, paymentMethodType, amount, currency, submitterPhoneNumber, submitterPayPalMeAddress,
 }) {
     Onyx.merge(ONYXKEYS.IOU, {loading: true, error: false});
     const payIOUPromise = paymentMethodType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY
