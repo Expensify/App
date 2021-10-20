@@ -178,9 +178,9 @@ class RequestCallPage extends Component {
      * @returns {Boolean}
      */
     validateInputs() {
-        if (_.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim())) {
+        let firstOrLastNameEmpty = _.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim());
+        if (firstOrLastNameEmpty) {
             Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
-            return false;
         }
 
         const phoneNumberError = this.getPhoneNumberError();
@@ -191,7 +191,7 @@ class RequestCallPage extends Component {
             lastNameError: nameErrors.lastName,
             phoneNumberError,
         });
-        return _.isEmpty(phoneNumberError) && _.isEmpty(nameErrors.firstName) && _.isEmpty(nameErrors.lastName);
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(nameErrors.firstName) && _.isEmpty(nameErrors.lastName);
     }
 
     render() {
