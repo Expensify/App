@@ -526,7 +526,7 @@ const styles = {
         position: 'absolute',
         left: 11.5,
         top: 10,
-        paddingTop: 6,
+        paddingVertical: 6,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
