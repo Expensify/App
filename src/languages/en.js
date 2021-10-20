@@ -8,7 +8,7 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        new: 'NEW',
+        new: 'New',
         search: 'Search',
         next: 'Next',
         goBack: 'Go back',
@@ -216,6 +216,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        imageUploadFailed: 'Image upload failed',
+        sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
     },
     profilePage: {
         profile: 'Profile',
@@ -272,7 +274,7 @@ export default {
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
         currentPassword: 'Current password',
         newPassword: 'New password',
-        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         confirmNewPassword: 'Confirm new password',
     },
     addPayPalMePage: {
@@ -282,6 +284,7 @@ export default {
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        formatError: 'Invalid PayPal.me username',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a Debit Card',
@@ -371,7 +374,7 @@ export default {
     loginForm: {
         phoneOrEmail: 'Phone or email',
         error: {
-            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+            invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
     },
     resendValidationForm: {
@@ -397,7 +400,7 @@ export default {
         confirmNewPassword: 'Confirm the password',
         setPassword: 'Set password',
         passwordsDontMatch: 'Passwords must match',
-        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
@@ -463,7 +466,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
+        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907.',
+        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
@@ -700,14 +704,9 @@ export default {
         },
         invite: {
             invitePeople: 'Invite new members',
-            invitePeoplePrompt: 'Invite new members to your workspace.',
             personalMessagePrompt: 'Add a personal message (optional)',
-            enterEmailOrPhone: 'Emails or phone numbers',
-            EmailOrPhonePlaceholder: 'Enter comma-separated list of emails or phone numbers',
-            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
-            pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
+            pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            systemUserError: ({email}) => `Sorry, you cannot invite ${email} to a workspace.`,
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName}! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
@@ -739,7 +738,6 @@ export default {
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',

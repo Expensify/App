@@ -88,5 +88,5 @@ function pushDrawerRoute(screenName, params, navigationRef) {
 
 export default {
     pushDrawerRoute,
-    navigateBackToDrawer: navigateBackToRootDrawer,
+    navigateBackToRootDrawer,
 };
