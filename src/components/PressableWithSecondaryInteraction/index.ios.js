@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
-import ReactNativeHapticFeedback from "react-native-haptic-feedback";
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {Pressable} from 'react-native';
 import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
 
