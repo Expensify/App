@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
-import * as Haptics from 'expo-haptics';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {Pressable} from 'react-native';
 import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
 
@@ -18,9 +18,8 @@ const PressableWithSecondaryInteraction = props => (
         delayLongPress={200}
         onLongPress={(e) => {
             e.preventDefault();
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(() => {
-                props.onSecondaryInteraction(e);
-            });
+            ReactNativeHapticFeedback.trigger('effectHeavyClick');
+            props.onSecondaryInteraction(e);
         }}
         onPressOut={props.onPressOut}
         // eslint-disable-next-line react/jsx-props-no-spreading
