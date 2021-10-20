@@ -45,7 +45,7 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
         <View pointerEvents="none">
             <View style={[styles.flexRow, styles.wAuto, styles.ml3]}>
                 {avatarImageURLs.map((val, index) => {
-                    if (index <= 3) {
+                    if (index <= CONST.REPORT.MAX_PREVIEW_AVATARS - 1) {
                         return (
                             <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                                 <Image source={{uri: val}} style={[styles.emptyStateAvatar]} />

@@ -181,11 +181,6 @@ class ReportActionCompose extends React.Component {
             if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
                 this.focus(false);
             }
-
-            // when size of reportActions it means a new chat and we have to focus the input on foucsable devices
-            if (_.size(this.props.reportActions) === 1) {
-                this.focus(false);
-            }
         });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
@@ -599,7 +594,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus={this.shouldFocusInputOnScreenFocus}
+                                    autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
                                     multiline
                                     ref={this.setTextInputRef}
                                     textAlignVertical="top"

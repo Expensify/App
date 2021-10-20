@@ -1564,10 +1564,6 @@ const styles = {
         opacity: 0.5,
     },
 
-    chatTextStyle: {
-        fontWeight: 'bold',
-    },
-
     avatarInnerTextChat: {
         color: themeColors.textReversed,
         fontSize: variables.fontSizeNormal,

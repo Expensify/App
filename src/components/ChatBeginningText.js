@@ -52,22 +52,15 @@ const ChatBeginningText = ({
         <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
             <Text>
                 {isDefaultChatRoom
-                    ? `${translate('reportActionsView.beginningOfChatHistoryPrivate')} `
+                    ? `${translate('reportActionsView.beginningOfChatHistoryPrivate', {name: lodashGet(chatUsers, '[0].displayName', '')})}`
                     : `${translate('reportActionsView.beginningOfChatHistory')} `}
             </Text>
-            {isDefaultChatRoom
-            && (
-                <Text>
-                    {`${lodashGet(chatUsers, 'chatUsers[0].displayName', '')} 
-                    ${translate('reportActionsView.beginningOfChatHistoryPrivateSectionPart')}`}
-                </Text>
-            )}
             {!isDefaultChatRoom
             && (
                 <>
                     {chatUsers.map(({displayName, pronouns}, index) => (
                         <Text key={displayName}>
-                            <Text style={[styles.chatTextStyle]}>
+                            <Text style={[styles.textStrong]}>
                                 {displayName}
                             </Text>
                             {Boolean(pronouns) && <Text>{` (${pronouns})`}</Text>}
