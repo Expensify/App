@@ -84,7 +84,7 @@ const DetailsPage = ({
             <HeaderWithCloseButton
                 title={translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View

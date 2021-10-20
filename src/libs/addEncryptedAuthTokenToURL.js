@@ -15,5 +15,5 @@ Onyx.connect({
  * @returns {String}
  */
 export default function (url) {
-    return `${url}?encryptedAuthToken=${encryptedAuthToken}`;
+    return `${url}?encryptedAuthToken=${encodeURIComponent(encryptedAuthToken)}`;
 }
