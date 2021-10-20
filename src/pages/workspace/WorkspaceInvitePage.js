@@ -16,7 +16,7 @@ import ExpensiTextInput from '../../components/ExpensiTextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
-import {getNewGroupOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
+import {getNewChatOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
 import CONST, {EXCLUDED_GROUP_EMAILS} from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import {openExternalLink} from '../../libs/actions/Link';
@@ -77,7 +77,7 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = getNewGroupOptions(
+        } = getNewChatOptions(
             [],
             props.personalDetails,
             props.betas,
@@ -196,7 +196,7 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = getNewGroupOptions(
+            } = getNewChatOptions(
                 [],
                 this.props.personalDetails,
                 this.props.betas,
@@ -272,7 +272,7 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = getNewGroupOptions(
+                                        } = getNewChatOptions(
                                             [],
                                             this.props.personalDetails,
                                             this.props.betas,
