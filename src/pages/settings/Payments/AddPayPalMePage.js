@@ -73,12 +73,7 @@ class AddPayPalMePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => {
-                if (this.paypalUsernameInputRef) {
-                    this.paypalUsernameInputRef.focus();
-                }
-            }}
-            >
+            <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title="PayPal.me"
