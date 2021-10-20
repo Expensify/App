@@ -560,7 +560,7 @@ class ReportActionCompose extends React.Component {
                                                                     },
                                                                 },
                                                         ] : []),
-                                                    ...(Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
+                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
                                                         {
                                                             icon: Send,
                                                             text: this.props.translate('iou.sendMoney'),

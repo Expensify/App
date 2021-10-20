@@ -5,6 +5,7 @@ import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
 import {propTypes, defaultProps} from './TooltipPropTypes';
+import TooltipSense from './TooltipSense';
 
 class Tooltip extends PureComponent {
     constructor(props) {
@@ -36,6 +37,9 @@ class Tooltip extends PureComponent {
         this.tooltip = null;
 
         this.isComponentMounted = false;
+
+        // Whether the tooltip is first tooltip to activate the TooltipSense
+        this.isTooltipSenseInitiator = false;
         this.shouldStartShowAnimation = false;
         this.animation = new Animated.Value(0);
 
@@ -131,12 +135,19 @@ class Tooltip extends PureComponent {
                 // We may need this check due to the reason that the animation start will fire async
                 // and hideTooltip could fire before it thus keeping the Tooltip visible
                 if (this.shouldStartShowAnimation) {
-                    Animated.timing(this.animation, {
-                        toValue: 1,
-                        duration: 140,
-                        delay: 500,
-                        useNativeDriver: false,
-                    }).start();
+                    // When TooltipSense is active, immediately show the tooltip
+                    if (TooltipSense.isActive()) {
+                        this.animation.setValue(1);
+                    } else {
+                        this.isTooltipSenseInitiator = true;
+                        Animated.timing(this.animation, {
+                            toValue: 1,
+                            duration: 140,
+                            delay: 500,
+                            useNativeDriver: false,
+                        }).start();
+                    }
+                    TooltipSense.activate();
                 }
             });
     }
@@ -147,11 +158,18 @@ class Tooltip extends PureComponent {
     hideTooltip() {
         this.animation.stopAnimation();
         this.shouldStartShowAnimation = false;
-        Animated.timing(this.animation, {
-            toValue: 0,
-            duration: 140,
-            useNativeDriver: false,
-        }).start();
+        if (TooltipSense.isActive() && !this.isTooltipSenseInitiator) {
+            this.animation.setValue(0);
+        } else {
+            // Hide the first tooltip which initiated the TooltipSense with animation
+            this.isTooltipSenseInitiator = false;
+            Animated.timing(this.animation, {
+                toValue: 0,
+                duration: 140,
+                useNativeDriver: false,
+            }).start();
+        }
+        TooltipSense.deactivate();
     }
 
     render() {

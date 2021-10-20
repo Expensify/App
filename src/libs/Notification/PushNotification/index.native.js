@@ -2,6 +2,7 @@ import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
 import lodashGet from 'lodash/get';
+import Log from '../../Log';
 import NotificationType from './NotificationType';
 
 const notificationEventActionMap = {};
@@ -21,25 +22,21 @@ function pushNotificationEventCallback(eventType, notification) {
         payload = JSON.parse(payload);
     }
 
-    console.debug(`[PUSH_NOTIFICATION] ${eventType}`, {
-        title: notification.title,
-        message: notification.alert,
-        payload,
-    });
+    Log.info(`[PUSH_NOTIFICATION] Callback triggered for ${eventType}`);
 
     if (!payload) {
-        console.debug('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
+        Log.warn('[PUSH_NOTIFICATION] Notification has null or undefined payload, not executing any callback.');
         return;
     }
 
     if (!payload.type) {
-        console.debug('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
+        Log.warn('[PUSH_NOTIFICATION] No type value provided in payload, not executing any callback.');
         return;
     }
 
     const action = actionMap[payload.type];
     if (!action) {
-        console.debug('[PUSH_NOTIFICATION] No callback set up: ', {
+        Log.warn('[PUSH_NOTIFICATION] No callback set up: ', {
             event: eventType,
             notificationType: payload.type,
         });
@@ -61,7 +58,7 @@ function init() {
         // If a push notification is received while the app is in foreground,
         // we'll assume pusher is connected so we'll ignore it and not fetch the same data twice.
         if (AppState.currentState === 'active') {
-            console.debug('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
+            Log.info('[PUSH_NOTIFICATION] Push received while app is in foreground, not executing any callback.');
             return;
         }
 
@@ -90,13 +87,13 @@ function register(accountID) {
     UrbanAirship.enableUserPushNotifications()
         .then((isEnabled) => {
             if (!isEnabled) {
-                console.debug('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+                Log.info('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
             }
         });
 
     // Register this device as a named user in AirshipAPI.
     // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-    console.debug(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
+    Log.info(`[PUSH_NOTIFICATIONS] Subscribing to notifications for account ID ${accountID}`);
     UrbanAirship.setNamedUser(accountID.toString());
 }
 
@@ -104,7 +101,7 @@ function register(accountID) {
  * Deregister this device from push notifications.
  */
 function deregister() {
-    console.debug('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
+    Log.info('[PUSH_NOTIFICATIONS] Unsubscribing from push notifications.');
     UrbanAirship.setNamedUser(null);
     UrbanAirship.removeAllListeners(EventType.PushReceived);
     UrbanAirship.removeAllListeners(EventType.NotificationResponse);

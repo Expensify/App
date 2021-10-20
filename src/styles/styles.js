@@ -1086,6 +1086,7 @@ const styles = {
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
+        maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1638,6 +1639,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
         fontWeight: fontWeightBold,
+        textTransform: 'capitalize',
     },
 
     flipUpsideDown: {
@@ -1965,7 +1967,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        height: 150,
+        minHeight: 100,
     },
 
     peopleRow: {
@@ -2127,6 +2129,16 @@ const webViewStyles = {
         },
 
         a: styles.link,
+
+        ul: {
+            maxWidth: '100%',
+            flex: 1,
+        },
+
+        ol: {
+            maxWidth: '100%',
+            flex: 1,
+        },
 
         li: {
             flexShrink: 1,
