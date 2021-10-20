@@ -13,7 +13,6 @@ import {RocketOrange} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import {openExternalLink, openOldDotLink} from '../../../libs/actions/Link';
 import {navigateToConciergeChat} from '../../../libs/actions/Report';
-import Navigation from '../../../libs/Navigation/Navigation';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -34,7 +33,6 @@ const WorkspaceTravelVBAView = ({translate}) => (
             {
                 title: translate('workspace.travel.bookTravelWithConcierge'),
                 onPress: () => {
-                    Navigation.dismissModal();
                     navigateToConciergeChat();
                 },
                 icon: Concierge,

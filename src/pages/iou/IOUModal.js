@@ -356,6 +356,7 @@ class IOUModal extends Component {
                                             onUpdateComment={this.updateComment}
                                             iouType={this.props.iouType}
                                             localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
+                                            isGroupSplit={this.steps.length === 2}
                                         />
                                     )}
                                 </>
