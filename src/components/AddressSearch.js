@@ -108,11 +108,11 @@ const AddressSearch = (props) => {
                 containerStyles: props.containerStyles,
                 errorText: props.errorText,
                 onChangeText: (text) => {
-                    // Ensure whether an address is selected already has address value initialized.
-                    if (!_.isEmpty(googlePlacesRef.current.getAddressText())) {
-                        if (_.isEmpty(text) || !_.isEqual(text, props.value)) {
-                            saveLocationDetails({});
-                        }
+                    const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
+
+                    // Ensure whether an address is selected already or has address value initialized.
+                    if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
+                        saveLocationDetails({});
                     }
                 },
             }}
