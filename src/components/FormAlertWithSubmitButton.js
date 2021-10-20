@@ -31,12 +31,16 @@ const propTypes = {
     /** Whether message is in html format */
     isMessageHtml: PropTypes.bool,
 
+    /** Is the button in a loading state */
+    isLoading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     message: '',
     isMessageHtml: false,
+    isLoading: false,
 };
 
 const FormAlertWithSubmitButton = ({
@@ -47,6 +51,7 @@ const FormAlertWithSubmitButton = ({
     onFixTheErrorsLinkPressed,
     message,
     isMessageHtml,
+    isLoading,
 }) => {
     /**
      * @returns {React.Component}
@@ -103,6 +108,7 @@ const FormAlertWithSubmitButton = ({
                 text={buttonText}
                 onPress={onSubmit}
                 pressOnEnter
+                isLoading={isLoading}
             />
         </View>
     );

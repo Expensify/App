@@ -97,7 +97,7 @@ class DebitCardPage extends Component {
      */
     validate() {
         const errors = {};
-        if (this.state.nameOnCard.length !== 4) {
+        if (_.isEmpty(this.state.nameOnCard.trim())) {
             errors.nameOnCard = true;
         }
 
@@ -117,11 +117,11 @@ class DebitCardPage extends Component {
             errors.billingAddress = true;
         }
 
-        if (this.state.city === '') {
+        if (_.isEmpty(this.state.city.trim())) {
             errors.city = true;
         }
 
-        if (this.state.selectedState === '') {
+        if (_.isEmpty(this.state.selectedState.trim())) {
             errors.selectedState = true;
         }
 
@@ -281,6 +281,7 @@ class DebitCardPage extends Component {
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
+                            isLoading={this.state.isAddingCard}
                         />
                     </ScrollView>
                 </KeyboardAvoidingView>

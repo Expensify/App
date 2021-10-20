@@ -73,9 +73,11 @@ function addBillingCard(params) {
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         } else {
-            Growl.error(translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
+            Growl.error(response.message ? response.message : translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
         }
-    }));
+    })).catch((error) => {
+        Growl.error(error.message ? error.message : translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
+    });
 }
 
 export {
