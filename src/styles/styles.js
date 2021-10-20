@@ -535,7 +535,7 @@ const styles = {
         position: 'absolute',
         top: 0,
         width: '100%',
-        height: 28,
+        height: 25,
         backgroundColor: themeColors.componentBG,
         borderTopRightRadius: variables.componentBorderRadiusNormal,
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
