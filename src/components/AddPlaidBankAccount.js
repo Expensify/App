@@ -7,6 +7,7 @@ import {
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
 import {
     clearPlaidBankAccountsAndToken,
@@ -163,12 +164,12 @@ class AddPlaidBankAccount extends React.Component {
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
-                            console.debug('[PlaidLink] Success: ', {publicToken, metadata});
+                            Log.info('[PlaidLink] Success!');
                             getPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}
                         onError={(error) => {
-                            console.debug(`Plaid Error: ${error.message}`);
+                            Log.hmmm('[PlaidLink] Error: ', error.message);
                         }}
 
                         // User prematurely exited the Plaid flow
