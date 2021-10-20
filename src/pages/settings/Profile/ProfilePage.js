@@ -8,7 +8,12 @@ import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import {getFirstAndLastNameErrors, setPersonalDetails, setAvatar, deleteAvatar} from '../../../libs/actions/PersonalDetails';
+import {
+    getFirstAndLastNameErrors,
+    setPersonalDetails,
+    setAvatar,
+    deleteAvatar,
+} from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -187,11 +192,13 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const nameErrors = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        this.setState((prevState) => {
+            const nameErrors = getFirstAndLastNameErrors(prevState.firstName, prevState.lastName);
 
-        this.setState({
-            firstNameError: nameErrors.firstName,
-            lastNameError: nameErrors.lastName,
+            return {
+                firstNameError: nameErrors.firstName,
+                lastNameError: nameErrors.lastName,
+            };
         });
         return _.isEmpty(nameErrors.firstName) && _.isEmpty(nameErrors.lastName);
     }

@@ -125,16 +125,17 @@ class RequestCallPage extends Component {
 
     /**
      * Gets proper phone number error message depending on phoneNumber input value.
+     * @param {String} phoneNumber
      * @returns {String}
      */
-    getPhoneNumberError() {
-        if (_.isEmpty(this.state.phoneNumber.trim())) {
+    getPhoneNumberError(phoneNumber) {
+        if (_.isEmpty(phoneNumber.trim())) {
             return this.props.translate('messages.noPhoneNumber');
-        } else if (!Str.isValidPhone(this.state.phoneNumber)) {
-            return this.props.translate('messages.errorMessageInvalidPhone');
-        } else {
-            return '';
         }
+        if (!Str.isValidPhone(phoneNumber)) {
+            return this.props.translate('messages.errorMessageInvalidPhone');
+        }
+        return '';
     }
 
     /**
@@ -170,7 +171,7 @@ class RequestCallPage extends Component {
     }
 
     validatePhoneInput() {
-        this.setState({phoneNumberError: this.getPhoneNumberError()});
+        this.setState((prevState) => ({phoneNumberError: this.getPhoneNumberError(prevState.phoneNumber)}));
     }
 
     /**
@@ -178,18 +179,20 @@ class RequestCallPage extends Component {
      * @returns {Boolean}
      */
     validateInputs() {
-        let firstOrLastNameEmpty = _.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim());
+        const firstOrLastNameEmpty = _.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim());
         if (firstOrLastNameEmpty) {
             Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
         }
 
-        const phoneNumberError = this.getPhoneNumberError();
-        const nameErrors = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        this.setState((prevState) => {
+            const phoneNumberError = this.getPhoneNumberError(prevState.phoneNumber);
+            const nameErrors = getFirstAndLastNameErrors(prevState.firstName, prevState.lastName);
 
-        this.setState({
-            firstNameError: nameErrors.firstName,
-            lastNameError: nameErrors.lastName,
-            phoneNumberError,
+            return {
+                firstNameError: nameErrors.firstName,
+                lastNameError: nameErrors.lastName,
+                phoneNumberError,
+            };
         });
         return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(nameErrors.firstName) && _.isEmpty(nameErrors.lastName);
     }
