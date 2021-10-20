@@ -169,7 +169,7 @@ class GithubUtils {
      * @returns {Array<Object>} - [{url: String, number: Number, isVerified: Boolean}]
      */
     static getStagingDeployCashPRList(issue) {
-        let PRListSection = issue.body.match(/pull requests:\*\*\r?\n((?:.*\r?\n)+)\r?\n/) || [];
+        let PRListSection = issue.body.match(/pull requests:\*\*(?:\r?\n)*((?:.*\r?\n(?:\s+-\s.*\r?\n)+\r?\n)+)/) || [];
         if (PRListSection.length !== 2) {
             // No PRs, return an empty array
             console.log('Hmmm...The open StagingDeployCash does not list any pull requests, continuing...');
@@ -177,7 +177,7 @@ class GithubUtils {
         }
         PRListSection = PRListSection[1];
         const unverifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- \\[ ] (${PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[ \\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
@@ -185,7 +185,7 @@ class GithubUtils {
             }),
         );
         const verifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- \\[x] (${PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[x\\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getPullRequestNumberFromURL(match[1]),
@@ -213,7 +213,7 @@ class GithubUtils {
         }
         deployBlockerSection = deployBlockerSection[1];
         const unresolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`- \\[ ] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...deployBlockerSection.matchAll(new RegExp(`- (${ISSUE_OR_PULL_REQUEST_REGEX.source})\\s+- \\[ \\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
@@ -221,7 +221,7 @@ class GithubUtils {
             }),
         );
         const resolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`- \\[x] (${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
+            [...deployBlockerSection.matchAll(new RegExp(`- (${ISSUE_OR_PULL_REQUEST_REGEX.source})\\s+- \\[x\\] QA`, 'g'))],
             match => ({
                 url: match[1],
                 number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
@@ -240,6 +240,7 @@ class GithubUtils {
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
      * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
+     * @param {Array} [accessablePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
      * @returns {Promise}
@@ -248,6 +249,7 @@ class GithubUtils {
         tag,
         PRList,
         verifiedPRList = [],
+        accessablePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
@@ -274,23 +276,24 @@ class GithubUtils {
 
                 // PR list
                 if (!_.isEmpty(sortedPRList)) {
-                    issueBody += '\r\n**This release contains changes from the following pull requests:**\r\n';
+                    issueBody += '\r\n**This release contains changes from the following pull requests:**';
                     _.each(sortedPRList, (URL) => {
-                        issueBody += _.contains(verifiedPRList, URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
+                        issueBody += `\r\n\r\n- ${URL}`;
+                        issueBody += _.contains(verifiedPRList, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
+                        issueBody += _.contains(accessablePRList, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
                     });
                 }
 
                 // Deploy blockers
                 if (!_.isEmpty(deployBlockers)) {
-                    issueBody += '\r\n**Deploy Blockers:**\r\n';
+                    issueBody += '\r\n\r\n\r\n**Deploy Blockers:**';
                     _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '- [x]' : '- [ ]';
-                        issueBody += ` ${URL}\r\n`;
+                        issueBody += `\r\n\r\n- ${URL}`;
+                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                     });
                 }
 
-                issueBody += '\r\ncc @Expensify/applauseleads\r\n';
+                issueBody += '\r\n\r\ncc @Expensify/applauseleads\r\n';
                 return issueBody;
             })
             .catch(err => console.warn(

@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.2-7",
+  "version": "1.1.8-5",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -41,6 +41,7 @@
     "@react-native-async-storage/async-storage": "^1.15.5",
     "@react-native-community/cli": "4.13.1",
     "@react-native-community/clipboard": "^1.5.1",
+    "@react-native-community/datetimepicker": "^3.5.2",
     "@react-native-community/netinfo": "^5.9.10",
     "@react-native-community/progress-bar-android": "^1.0.4",
     "@react-native-community/progress-view": "^1.2.3",
@@ -80,6 +81,7 @@
     "react-native-config": "^1.4.0",
     "react-native-document-picker": "^5.1.0",
     "react-native-gesture-handler": "1.9.0",
+    "react-native-google-places-autocomplete": "^2.4.1",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^4.0.3",
     "react-native-keyboard-spacer": "^0.4.1",
@@ -208,7 +210,7 @@
     "runnerConfig": "tests/e2e/config.json",
     "configurations": {
       "ios.sim.debug": {
-        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/expensify.cash.app",
+        "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/new expensify.app",
         "build": "xcodebuild -workspace ios/NewExpensify.xcworkspace -scheme NewExpensify -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build | xcpretty",
         "type": "ios.simulator",
         "name": "iPhone 11"

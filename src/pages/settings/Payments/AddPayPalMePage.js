@@ -9,7 +9,7 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import NameValuePair from '../../../libs/actions/NameValuePair';
-import getPaymentMethods from '../../../libs/actions/PaymentMethods';
+import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -19,6 +19,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import {isValidPaypalUsername} from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -37,6 +38,7 @@ class AddPayPalMePage extends React.Component {
 
         this.state = {
             payPalMeUsername: props.payPalMeUsername,
+            payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
         this.paypalUsernameInputRef = null;
@@ -58,6 +60,12 @@ class AddPayPalMePage extends React.Component {
      * Sets the payPalMeUsername for the current user
      */
     setPayPalMeUsername() {
+        const isValid = isValidPaypalUsername(this.state.payPalMeUsername);
+        if (!isValid) {
+            this.setState({payPalMeUsernameError: true});
+            return;
+        }
+        this.setState({payPalMeUsernameError: false});
         NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
         Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
@@ -90,8 +98,10 @@ class AddPayPalMePage extends React.Component {
                                 autoCorrect={false}
                                 value={this.state.payPalMeUsername}
                                 placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
-                                onChangeText={text => this.setState({payPalMeUsername: text})}
+                                onChangeText={text => this.setState({payPalMeUsername: text, payPalMeUsernameError: false})}
                                 returnKeyType="done"
+                                hasError={this.state.payPalMeUsernameError}
+                                errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
                             />
                         </View>
                     </View>

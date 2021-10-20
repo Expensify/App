@@ -10,7 +10,6 @@ import {
     validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
-import Button from '../../components/Button';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
@@ -24,6 +23,9 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import {ChatBubble} from '../../components/Icon/Expensicons';
+import {ConciergeBlue} from '../../components/Icon/Illustrations';
+import WorkspaceSection from '../workspace/WorkspaceSection';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -44,7 +46,6 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.navigateToConcierge = this.navigateToConcierge.bind(this);
 
         this.state = {
             amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
@@ -148,14 +149,6 @@ class ValidationStep extends React.Component {
         return value;
     }
 
-    navigateToConcierge() {
-        // There are two modals that must be dismissed before we can reveal the Concierge
-        // chat underneath these screens
-        Navigation.dismissModal();
-        Navigation.dismissModal();
-        navigateToConciergeChat();
-    }
-
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
 
@@ -165,12 +158,16 @@ class ValidationStep extends React.Component {
         }
 
         const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+        const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
+
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('validationStep.headerTitle')}
+                    title={this.props.translate('workspace.common.bankAccount')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
+                    onBackButtonPress={() => Navigation.goBack()}
+                    shouldShowBackButton
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
@@ -179,7 +176,7 @@ class ValidationStep extends React.Component {
                             {' '}
                             {this.props.translate('common.please')}
                             {' '}
-                            <TextLink onPress={this.navigateToConcierge}>
+                            <TextLink onPress={navigateToConciergeChat}>
                                 {this.props.translate('common.contactUs')}
                             </TextLink>
                             .
@@ -226,21 +223,22 @@ class ValidationStep extends React.Component {
                         </View>
                     </ReimbursementAccountForm>
                 )}
-                {!maxAttemptsReached && state === BankAccount.STATE.VERIFYING && (
+                {isVerifying && (
                     <View style={[styles.flex1]}>
-                        <Text style={[styles.mh5, styles.mb5, styles.flex1]}>
-                            {this.props.translate('validationStep.reviewingInfo')}
-                            <TextLink onPress={this.navigateToConcierge}>
-                                {this.props.translate('common.here')}
-                            </TextLink>
-                            {this.props.translate('validationStep.forNextSteps')}
-                        </Text>
-                        <Button
-                            success
-                            text={this.props.translate('bankAccount.buttonConfirm')}
-                            style={[styles.mh5, styles.mb5]}
-                            onPress={() => Navigation.dismissModal()}
-                        />
+                        <WorkspaceSection
+                            title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
+                            icon={ConciergeBlue}
+                            menuItems={[{
+                                title: this.props.translate('validationStep.letsChatCTA'),
+                                icon: ChatBubble,
+                                onPress: navigateToConciergeChat,
+                                shouldShowRightIcon: true,
+                            }]}
+                        >
+                            <Text>
+                                {this.props.translate('validationStep.letsChatText')}
+                            </Text>
+                        </WorkspaceSection>
                     </View>
                 )}
             </View>

@@ -33,20 +33,18 @@ const IOUQuote = ({
 }) => (
     <View style={[styles.chatItemMessage]}>
         {_.map(action.message, (fragment, index) => (
-            <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
-                <View style={[styles.blockquote]}>
-                    <Text style={[styles.chatItemMessage]}>
-                        {fragment.text}
+            <View key={`iouQuote-${action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
+                <Text style={[styles.chatItemMessage]}>
+                    {fragment.text}
+                </Text>
+                {shouldShowViewDetailsLink && (
+                    <Text
+                        style={[styles.chatItemMessageLink, styles.alignSelfStart]}
+                        onPress={onViewDetailsPressed}
+                    >
+                        {translate('iou.viewDetails')}
                     </Text>
-                    {shouldShowViewDetailsLink && (
-                        <Text
-                            style={[styles.chatItemMessageLink]}
-                            onPress={onViewDetailsPressed}
-                        >
-                            {translate('iou.viewDetails')}
-                        </Text>
-                    )}
-                </View>
+                )}
             </View>
         ))}
     </View>
