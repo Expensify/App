@@ -315,7 +315,7 @@ export default {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
-        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',
@@ -613,7 +613,7 @@ export default {
             certify: 'Debe certificar que la información es verdadera y precisa',
         },
     },
-    vbaLoadingAnimation: {
+    reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un Momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',
     },
@@ -646,12 +646,15 @@ export default {
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
+            error: {
+                cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
             headerWithEcard: '¡Tus tarjetas están listas!',
             noVBACopy: 'Conecta una cuenta bancaria para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
-            VBANoECardCopy: 'Emite Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y accede a todas estas increíbles ventajas:',
+            VBANoECardCopy: 'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             conciergeCanHelp: 'Concierge te puede ayudar a añadir un correo electrónico de trabajo para activar la Tarjeta Expensify.',
             VBAWithECardCopy: 'Disfruta de todas estas increíbles ventajas:',
             benefit1: 'Hasta un 2% de devolución en tus gastos',
