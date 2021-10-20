@@ -36,11 +36,14 @@ const propTypes = {
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /* Flag for new users used to open the Global Create menu on first load */
-    isFirstTimeNewExpensifyUser: PropTypes.bool.isRequired,
+    isFirstTimeNewExpensifyUser: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+};
+const defaultProps = {
+    isFirstTimeNewExpensifyUser: false,
 };
 
 class SidebarScreen extends Component {
@@ -200,6 +203,8 @@ class SidebarScreen extends Component {
 }
 
 SidebarScreen.propTypes = propTypes;
+SidebarScreen.defaultProps = defaultProps;
+
 export default compose(
     withNavigation,
     withLocalize,

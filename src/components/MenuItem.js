@@ -1,8 +1,8 @@
+import _ from 'underscore';
 import React from 'react';
 import {
     View, Pressable,
 } from 'react-native';
-import PropTypes from 'prop-types';
 import Text from './Text';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
 import Icon from './Icon';
@@ -11,65 +11,16 @@ import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
 import CONST from '../CONST';
+import menuItemPropTypes from './menuItemPropTypes';
 
 const propTypes = {
-    /** Text to be shown as badge near the right end. */
-    badgeText: PropTypes.string,
-
-    /** Any additional styles to apply */
-    // eslint-disable-next-line react/forbid-prop-types
-    wrapperStyle: PropTypes.object,
-
-    /** Function to fire when component is pressed */
-    onPress: PropTypes.func.isRequired,
-
-    /** Icon to display on the left side of component */
-    icon: PropTypes.oneOfType([PropTypes.elementType, PropTypes.string]),
-
-    /** Icon Height */
-    iconWidth: PropTypes.number,
-
-    /** Icon Height */
-    iconHeight: PropTypes.number,
-
-    /** Text to display for the item */
-    title: PropTypes.string.isRequired,
-
-    /** Boolean whether to display the right icon */
-    shouldShowRightIcon: PropTypes.bool,
-
-    /** A boolean flag that gives the icon a green fill if true */
-    success: PropTypes.bool,
-
-    /** Overrides the icon for shouldShowRightIcon */
-    iconRight: PropTypes.elementType,
-
-    /** A description text to show under the title */
-    description: PropTypes.string,
-
-    /** Any additional styles to pass to the icon container. */
-    iconStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** The fill color to pass into the icon. */
-    iconFill: PropTypes.string,
-
-    /** Whether item is focused or active */
-    focused: PropTypes.bool,
-
-    /** Should we disable this menu item? */
-    disabled: PropTypes.bool,
-
-    /** A right-aligned subtitle for this menu option */
-    subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-
-    /** Flag to choose between avatar image or an icon */
-    iconType: PropTypes.oneOf([CONST.ICON_TYPE_AVATAR, CONST.ICON_TYPE_ICON]),
+    ...menuItemPropTypes,
 };
 
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
-    wrapperStyle: {},
+    wrapperStyle: [],
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -82,6 +33,8 @@ const defaultProps = {
     disabled: false,
     subtitle: undefined,
     iconType: 'icon',
+    onPress: () => {},
+    interactive: true,
 };
 
 const MenuItem = ({
@@ -102,6 +55,7 @@ const MenuItem = ({
     disabled,
     subtitle,
     iconType,
+    interactive,
 }) => (
     <Pressable
         onPress={(e) => {
@@ -113,8 +67,8 @@ const MenuItem = ({
         }}
         style={({hovered, pressed}) => ([
             styles.popoverMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
-            wrapperStyle,
+            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled, interactive)),
+            ..._.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle],
         ])}
         disabled={disabled}
     >
@@ -133,7 +87,7 @@ const MenuItem = ({
                                 width={iconWidth}
                                 height={iconHeight}
                                 fill={iconFill || getIconFillColor(
-                                    getButtonState(focused || hovered, pressed, success, disabled),
+                                    getButtonState(focused || hovered, pressed, success, disabled, interactive),
                                 )}
                             />
                         </View>
@@ -156,7 +110,7 @@ const MenuItem = ({
                             style={[
                                 styles.popoverMenuText,
                                 styles.ml3,
-                                (disabled ? styles.disabledText : undefined),
+                                (interactive && disabled ? styles.disabledText : undefined),
                             ]}
                             numberOfLines={1}
                         >
@@ -184,7 +138,7 @@ const MenuItem = ({
                         <View style={styles.popoverMenuIcon}>
                             <Icon
                                 src={iconRight}
-                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
+                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled, interactive))}
                             />
                         </View>
                     )}
