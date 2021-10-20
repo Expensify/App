@@ -173,8 +173,9 @@ class BaseExpensiTextInput extends Component {
                             {hasLabel ? (
                                 <>
                                     {multiline ? (
-                                        <View 
-                                            style={styles.expensiTextInputLabelBackground}/>
+                                        <View
+                                            style={styles.expensiTextInputLabelBackground}
+                                        />
                                     ) : null}
                                     <ExpensiTextInputLabel
                                         label={label}
