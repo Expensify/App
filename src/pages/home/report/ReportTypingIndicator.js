@@ -58,6 +58,7 @@ class ReportTypingIndicator extends React.Component {
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
                                 styles.chatItemComposeSecondaryRowOffset,
+                                styles.flex1,
                             ]}
                             numberOfLines={1}
                         >
