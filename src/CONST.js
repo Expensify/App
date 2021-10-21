@@ -4,6 +4,7 @@ const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
+    AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
@@ -27,6 +28,8 @@ const CONST = {
             MAX_ROUTING_NUMBER: '402 Maximum Size Exceeded routingNumber',
             MISSING_INCORPORATION_STATE: '402 Missing incorporationState in additionalData',
             MISSING_INCORPORATION_TYPE: '402 Missing incorporationType in additionalData',
+            MAX_VALIDATION_ATTEMPTS_REACHED: 'Validation for this bank account has been disabled due to too many incorrect attempts. Please contact us.',
+            INCORRECT_VALIDATION_AMOUNTS: 'The validate code you entered is incorrect, please try again.',
         },
         STEP: {
             // In the order they appear in the VBA flow
@@ -71,6 +74,11 @@ const CONST = {
             VERIFYING: 'VERIFYING',
             PENDING: 'PENDING',
         },
+        MAX_LENGTH: {
+            TAX_ID_NUMBER: 9,
+            SSN: 4,
+            ZIP_CODE: 5,
+        },
     },
     INCORPORATION_TYPES: {
         LLC: 'LLC',
@@ -88,6 +96,8 @@ const CONST = {
         FREE_PLAN: 'freePlan',
         DEFAULT_ROOMS: 'defaultRooms',
         BETA_EXPENSIFY_WALLET: 'expensifyWallet',
+        INTERNATIONALIZATION: 'internationalization',
+        IOU_SEND: 'sendMoney',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -125,13 +135,14 @@ const CONST = {
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
-    ADD_SECONDARY_LOGIN_URL: '/settings?param={%22section%22:%22account%22}',
-    MANAGE_CARDS_URL: '/domain_companycards',
+    ADD_SECONDARY_LOGIN_URL: 'settings?param={%22section%22:%22account%22}',
+    MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
     STAGING_SECURE_URL: 'https://staging-secure.expensify.com/',
     NEWDOT: 'new.expensify.com',
     NEW_EXPENSIFY_URL,
+    STAGING_NEW_EXPENSIFY_URL: 'https://staging.new.expensify.com',
     OPTION_TYPE: {
         REPORT: 'report',
         PERSONAL_DETAIL: 'personalDetail',
@@ -203,6 +214,7 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        TOOLTIP_SENSE: 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -210,6 +222,7 @@ const CONST = {
     },
     ERROR: {
         API_OFFLINE: 'session.offlineMessageRetry',
+        UNKNOWN_ERROR: 'Unknown error',
     },
     NETWORK: {
         METHOD: {
@@ -240,6 +253,13 @@ const CONST = {
 
     // at least 8 characters, 1 capital letter, 1 lowercase number, 1 number
     PASSWORD_COMPLEXITY_REGEX_STRING: '^(?=.*[A-Z])(?=.*[0-9])(?=.*[a-z]).{8,}$',
+
+    PASSWORD_PAGE: {
+        ERROR: {
+            ALREADY_VALIDATED: 'Account already validated',
+            VALIDATE_CODE_FAILED: 'Validate code failed',
+        },
+    },
 
     EMOJI_SPACER: 'SPACER',
 
@@ -333,6 +353,7 @@ const CONST = {
         SMS_NUMBER_COUNTRY_CODE: 'US',
         ERROR: {
             USER_CANCELLED: 'User canceled flow',
+            USER_TAPPED_BACK: 'User exited by clicking the back button.',
         },
     },
 
@@ -364,7 +385,12 @@ const CONST = {
             PAYPAL_ME: 'PayPal.me',
             VENMO: 'Venmo',
         },
-        AMOUNT_MAX_LENGTH: 14,
+        IOU_TYPE: {
+            SEND: 'send',
+            SPLIT: 'split',
+            REQUEST: 'request',
+        },
+        AMOUNT_MAX_LENGTH: 10,
     },
 
     GROWL: {
@@ -401,18 +427,29 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
     },
-
+    PHONE_MAX_LENGTH: 15,
+    PHONE_MIN_LENGTH: 5,
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
+        PHONE_WITH_SPECIAL_CHARS: /^[+]*[(]{0,1}[0-9]{1,3}[)]{0,1}[-\s\\./0-9]{0,12}$/,
         NON_ALPHA_NUMERIC: /[^A-Za-z0-9+]/g,
         PO_BOX: /\b[P|p]?(OST|ost)?\.?\s*[O|o|0]?(ffice|FFICE)?\.?\s*[B|b][O|o|0]?[X|x]?\.?\s+[#]?(\d+)\b/,
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
-        SSN_LAST_FOUR: /[0-9]{4}/,
+        SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         NUMBER: /^[0-9]+$/,
+        CARD_NUMBER: /^[0-9]{15,16}$/,
+        CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
+        CARD_EXPIRATION_DATE: /(0[1-9]|10|11|12)\/20[0-9]{2}$/,
+        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
+
+        // Adapted from: https://gist.github.com/dperini/729294
+        // eslint-disable-next-line max-len
+        HYPERLINK: /^(?:(?:(?:https?|ftp):\/\/)?)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?$/i,
+
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
     },

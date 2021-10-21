@@ -267,7 +267,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
     }).catch((error) => {
-        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
     });
 }
 
@@ -290,7 +290,7 @@ function fetchIOUReportID(debtorEmail) {
             // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
             // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
             // been settled then there's nothing more to do.
-            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            Log.info('GetIOUReport returned a reportID of 0, not fetching IOU report data');
             return;
         }
         return iouReportID;
@@ -299,13 +299,13 @@ function fetchIOUReportID(debtorEmail) {
 
 /**
  * Fetches chat reports when provided a list of chat report IDs.
- * If the shouldRedirectIfInacessible flag is set, we redirect to the Concierge chat
+ * If the shouldRedirectIfInaccessible flag is set, we redirect to the Concierge chat
  * when we find an inaccessible chat
  * @param {Array} chatList
- * @param {Boolean} shouldRedirectIfInacessible
- * @returns {Promise<Number[]>} only used internally when fetchAllReports() is called
+ * @param {Boolean} shouldRedirectIfInaccessible
+ * @returns {Promise<Object[]>} only used internally when fetchAllReports() is called
  */
-function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
+function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
     let fetchedReports;
     const simplifiedReports = {};
     return API.GetReportSummaryList({reportIDList: chatList.join(',')})
@@ -313,8 +313,8 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
             Log.info('[Report] successfully fetched report data', false, {chatList});
             fetchedReports = reportSummaryList;
 
-            // If we receive a 404 response while fetching a single report, treat that report as inacessible.
-            if (jsonCode === 404 && shouldRedirectIfInacessible) {
+            // If we receive a 404 response while fetching a single report, treat that report as inaccessible.
+            if (jsonCode === 404 && shouldRedirectIfInaccessible) {
                 throw new Error(CONST.REPORT.ERROR.INACCESSIBLE_REPORT);
             }
 
@@ -379,8 +379,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInacessible = false) {
 
             // Fetch the personal details if there are any
             PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
-
-            return _.map(fetchedReports, report => report.reportID);
+            return fetchedReports;
         })
         .catch((err) => {
             if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
@@ -526,7 +525,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html,
+            lastMessageText: message.text,
         });
     }
 }
@@ -605,26 +604,26 @@ function updateReportWithNewAction(
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     if (notificationPreference === 'mute' || notificationPreference === 'daily') {
         // eslint-disable-next-line max-len
-        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
+        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (isFromCurrentUser) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
+        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
@@ -640,7 +639,7 @@ function updateReportWithNewAction(
         const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
         setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
-    console.debug('[LOCAL_NOTIFICATION] Creating notification');
+    Log.info('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction,
         onClick: () => {
@@ -658,15 +657,6 @@ function updateReportWithNewAction(
  */
 function updateReportPinnedState(reportID, isPinned) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {isPinned});
-}
-
-/**
- * Updates isFromPublicDomain in Onyx.
- *
- * @param {Boolean} isFromPublicDomain
- */
-function setIsFromPublicDomain(isFromPublicDomain) {
-    Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 }
 
 /**
@@ -748,26 +738,6 @@ function subscribeToUserEvents() {
                 '[Report] Failed to subscribe to Pusher channel',
                 false,
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_TOGGLE_PINNED},
-            );
-        });
-
-    // Live-update if a user has private domains listed as primary or secondary logins.
-    Pusher.subscribe(pusherChannelName, Pusher.TYPE.ACCOUNT_VALIDATED, (pushJSON) => {
-        Log.info(
-            `[Report] Handled ${Pusher.TYPE.ACCOUNT_VALIDATED} event sent by Pusher`,
-            false,
-            {isFromPublicDomain: pushJSON.isFromPublicDomain},
-        );
-        setIsFromPublicDomain(pushJSON.isFromPublicDomain);
-    }, false,
-    () => {
-        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
-    })
-        .catch((error) => {
-            Log.info(
-                '[Report] Failed to subscribe to Pusher channel',
-                false,
-                {error, pusherChannelName, eventName: Pusher.TYPE.ACCOUNT_VALIDATED},
             );
         });
 }
@@ -875,7 +845,7 @@ function unsubscribeFromReportChannel(reportID) {
  *
  * @param {String[]} participants
  * @param {Boolean} shouldNavigate
- * @returns {Promise<Number[]>}
+ * @returns {Promise<Object[]>}
  */
 function fetchOrCreateChatReport(participants, shouldNavigate = true) {
     if (participants.length < 2) {
@@ -900,9 +870,9 @@ function fetchOrCreateChatReport(participants, shouldNavigate = true) {
                 Navigation.navigate(ROUTES.getReportRoute(data.reportID));
             }
 
-            // We are returning an array with the reportID here since fetchAllReports calls this method or
-            // fetchChatReportsByIDs which returns an array of reportIDs.
-            return [data.reportID];
+            // We are returning an array with a report object here since fetchAllReports calls this method or
+            // fetchChatReportsByIDs which returns an array of report objects.
+            return [data];
         });
 }
 
@@ -935,13 +905,7 @@ function fetchActions(reportID, offset) {
             removeOptimisticActions(reportID);
 
             const indexedData = _.indexBy(data.history, 'sequenceNumber');
-            const maxSequenceNumber = _.chain(data.history)
-                .pluck('sequenceNumber')
-                .max()
-                .value();
-
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, indexedData);
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {maxSequenceNumber});
         });
 }
 
@@ -976,8 +940,15 @@ function fetchAllReports(
 
             return fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
         })
-        .then((returnedReportIDs) => {
+        .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+
+            // If at this point the user still doesn't have a Concierge report, create it for them.
+            // This means they were a participant in reports before their account was created (e.g. default rooms)
+            const hasConciergeChat = _.some(returnedReports, report => isConciergeChatReport(report));
+            if (!hasConciergeChat) {
+                fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
+            }
 
             if (shouldRecordHomePageTiming) {
                 Timing.end(CONST.TIMING.HOMEPAGE_REPORTS_LOADED);
@@ -991,9 +962,10 @@ function fetchAllReports(
                 // content and improve chat switching experience by only downloading content we don't have yet.
                 // This improves performance significantly when reconnecting by limiting API requests and unnecessary
                 // data processing by Onyx.
-                const reportIDsWithMissingActions = _.filter(returnedReportIDs, id => (
-                    isReportMissingActions(id, reportMaxSequenceNumbers[id])
-                ));
+                const reportIDsWithMissingActions = _.chain(returnedReports)
+                    .map(report => report.reportID)
+                    .filter(reportID => isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .value();
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
                 // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
@@ -1006,11 +978,11 @@ function fetchAllReports(
                     .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
-                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
                     return;
                 }
 
-                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
                     reportIDs: reportIDsToFetchActions,
                 });
                 _.each(reportIDsToFetchActions, (reportID) => {

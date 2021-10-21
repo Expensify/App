@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {Pressable, Linking} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -17,7 +18,7 @@ const propTypes = {
     ]).isRequired,
 
     /** Additional style props */
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+    style: stylePropTypes,
 
     /** Overwrites the default link behavior with a custom callback */
     onPress: PropTypes.func,

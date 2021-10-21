@@ -7,9 +7,14 @@ import CONST from '../CONST';
  * @param {Boolean} [isPressed]
  * @param {Boolean} [isComplete]
  * @param {Boolean} [isDisabled]
+ * @param {Boolean} [isInteractive]
  * @returns {String}
  */
-export default function (isActive = false, isPressed = false, isComplete = false, isDisabled = false) {
+export default function (isActive = false, isPressed = false, isComplete = false, isDisabled = false, isInteractive = true) {
+    if (!isInteractive) {
+        return CONST.BUTTON_STATES.DEFAULT;
+    }
+
     if (isDisabled) {
         return CONST.BUTTON_STATES.DISABLED;
     }
