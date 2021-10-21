@@ -1,4 +1,4 @@
-import lodashGet from 'lodashGet';
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
