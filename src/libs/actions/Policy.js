@@ -127,7 +127,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
             const policyID = lodashGet(res, 'policyID');
             if (shouldAutomaticallyReroute) {
                 Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceCardRoute(policyID) : ROUTES.HOME);
+                Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
             }
             return Promise.resolve(policyID);
         });
@@ -248,7 +248,7 @@ function invite(logins, welcomeNote, policyID) {
     policy.alertMessage = '';
 
     // Optimistically add the user to the policy
-    Onyx.set(key, policy);
+    Onyx.merge(key, policy);
 
     // Make the API call to merge the login into the policy
     API.Policy_Employees_Merge({

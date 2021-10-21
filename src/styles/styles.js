@@ -175,8 +175,28 @@ const styles = {
         textTransform: 'uppercase',
     },
 
+    background100: {
+        backgroundSize: '100% 100%',
+    },
+
+    backgroundGreen: {
+        backgroundColor: colors.green,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
+    },
+
+    backgroundOrange: {
+        backgroundColor: colors.orange,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
+    },
+
+    backgroundPink: {
+        backgroundColor: colors.pink,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
+    },
+
     backgroundBlue: {
         backgroundColor: colors.blue,
+        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
     },
 
     colorReversed: {
@@ -511,6 +531,15 @@ const styles = {
         fontFamily: fontFamily.GTA,
         width: '100%',
     },
+    expensiTextInputLabelBackground: {
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+        height: 25,
+        backgroundColor: themeColors.componentBG,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
+    },
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
     },
@@ -534,6 +563,7 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11.5,
         borderRadius: variables.componentBorderRadiusNormal,
+        zIndex: -1,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -649,19 +679,6 @@ const styles = {
     signInPageLogo: {
         height: variables.componentSizeLarge,
         marginBottom: 24,
-    },
-
-    signinWelcomeScreenshot: {
-        height: 354,
-        width: 295,
-    },
-
-    signInWelcomeScreenshotWide: {
-        aspectRatio: 1,
-        width: '100%',
-        height: '100%',
-        maxHeight: 551,
-        minHeight: 300,
     },
 
     genericView: {
@@ -1087,6 +1104,7 @@ const styles = {
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
+        maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1639,6 +1657,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
         fontWeight: fontWeightBold,
+        textTransform: 'capitalize',
     },
 
     flipUpsideDown: {
@@ -1966,7 +1985,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        height: 150,
+        minHeight: 100,
     },
 
     peopleRow: {
@@ -2128,6 +2147,16 @@ const webViewStyles = {
         },
 
         a: styles.link,
+
+        ul: {
+            maxWidth: '100%',
+            flex: 1,
+        },
+
+        ol: {
+            maxWidth: '100%',
+            flex: 1,
+        },
 
         li: {
             flexShrink: 1,

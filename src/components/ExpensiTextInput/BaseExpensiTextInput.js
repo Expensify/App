@@ -169,16 +169,21 @@ class BaseExpensiTextInput extends Component {
                             ]}
                         >
                             {hasLabel ? (
-                                <ExpensiTextInputLabel
-                                    label={label}
-                                    labelTranslateX={
-                                        ignoreLabelTranslateX
-                                            ? new Animated.Value(0)
-                                            : this.state.labelTranslateX
-                                    }
-                                    labelTranslateY={this.state.labelTranslateY}
-                                    labelScale={this.state.labelScale}
-                                />
+                                <>
+                                    {/* Adding this background to the label only for multiline text input,
+                                    to prevent text overlaping with label when scrolling */}
+                                    {multiline && <View style={styles.expensiTextInputLabelBackground} />}
+                                    <ExpensiTextInputLabel
+                                        label={label}
+                                        labelTranslateX={
+                                            ignoreLabelTranslateX
+                                                ? new Animated.Value(0)
+                                                : this.state.labelTranslateX
+                                        }
+                                        labelTranslateY={this.state.labelTranslateY}
+                                        labelScale={this.state.labelScale}
+                                    />
+                                </>
                             ) : null}
                             <TextInput
                                 ref={(ref) => {
