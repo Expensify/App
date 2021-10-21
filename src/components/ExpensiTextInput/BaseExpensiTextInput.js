@@ -166,6 +166,8 @@ class BaseExpensiTextInput extends Component {
                         <View
                             style={[
                                 styles.expensiTextInputContainer,
+                                this.state.isFocused && styles.borderColorFocus,
+                                (hasError || errorText) && styles.borderColorDanger,
                             ]}
                         >
                             {hasLabel ? (
@@ -198,8 +200,6 @@ class BaseExpensiTextInput extends Component {
                                 underlineColorAndroid="transparent"
                                 style={[
                                     inputStyle,
-                                    this.state.isFocused && styles.borderColorFocus,
-                                    (hasError || errorText) && styles.borderColorDanger,
                                     !hasLabel && styles.pv0,
                                 ]}
                                 multiline={multiline}

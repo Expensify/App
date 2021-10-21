@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
+import labelStyles from './overrideLabelStyles';
 import propTypes from './propTypes';
 
 const ExpensiTextInputLabel = ({
@@ -12,6 +13,7 @@ const ExpensiTextInputLabel = ({
     <Animated.Text
         style={[
             styles.expensiTextInputLabel,
+            labelStyles,
             styles.expensiTextInputLabelTransformation(
                 labelTranslateY,
                 labelTranslateX,
