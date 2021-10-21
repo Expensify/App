@@ -21,13 +21,10 @@ let isOnyxReady = false;
 let authToken;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => setTimeout(() => { // TODO: remove setTimeout
-    // callback: (val) => {
+    callback: (val) => {
         authToken = val ? val.authToken : null;
         isOnyxReady = true;
-
-    // },
-    }, 1000),
+    },
 });
 
 /**
@@ -88,12 +85,19 @@ function addDefaultValuesToParameters(command, parameters) {
 
 // Tie into the network layer to add auth token to the parameters of all requests
 Network.registerParameterEnhancer((command, parameters) => {
+    // - When the app is bootstrapping the auth token is first retrieved from Onyx (if exists),
+    //   after that the auth token variable is re-assigned from the response of the function
+    //   reauthenticate.
+    // - We wait until auth token is retrieved from Onyx (using isOnyxReady) because
+    //   calling addDefaultValuesToParameters before can force a log out when the auth
+    //   token is still valid (also we return nothing in this function if Onyx is not ready).
+    // - We want to force a log out when Onyx is ready and the auth token doesn't exist or is
+    //   not valid.
     if (isOnyxReady) {
         return addDefaultValuesToParameters(command, parameters);
     }
 
-    // TODO: log this to the server
-    console.debug(`Onyx is not ready in Network.registerParameterEnhancer with command '${command}'`);
+    LogUtil.hmmm('Onyx is not ready in Network.registerParameterEnhancer ', {command, parameters});
 });
 
 /**
