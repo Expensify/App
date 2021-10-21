@@ -1,5 +1,5 @@
 const path = require('path');
-const {IgnorePlugin} = require('webpack');
+const {IgnorePlugin, DefinePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -26,6 +26,7 @@ const includeModules = [
 
 const webpackConfig = {
     entry: {
+        polyfill: 'babel-polyfill',
         app: './index.js',
     },
     output: {
@@ -40,6 +41,7 @@ const webpackConfig = {
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
         }),
+        new DefinePlugin({process: {env: {}}}),
 
         // Copies favicons into the dist/ folder to use for unread status
         new CopyPlugin({

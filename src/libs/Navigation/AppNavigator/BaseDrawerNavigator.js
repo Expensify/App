@@ -39,6 +39,7 @@ const BaseDrawerNavigator = (props) => {
             defaultStatus={Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={props.drawerContent}
+            useLegacyImplementation={false}
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
