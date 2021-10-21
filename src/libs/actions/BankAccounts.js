@@ -816,10 +816,7 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
 function deleteBankAccount(bankAccountID) {
     API.DeleteBankAccount({
         bankAccountID,
-    })
-        .then((response) => {
-            console.log(response);
-        });
+    });
 }
 
 /**
