@@ -76,6 +76,37 @@ const LABELS = {
     },
 };
 
+const basePRList = [
+    'https://github.com/Expensify/App/pull/1',
+    'https://github.com/Expensify/App/pull/2',
+    'https://github.com/Expensify/App/pull/3',
+    'https://github.com/Expensify/App/pull/4',
+    'https://github.com/Expensify/App/pull/5',
+    'https://github.com/Expensify/App/pull/6',
+    'https://github.com/Expensify/App/pull/7',
+    'https://github.com/Expensify/App/pull/8',
+    'https://github.com/Expensify/App/pull/9',
+    'https://github.com/Expensify/App/pull/10',
+    'https://github.com/Expensify/App/issues/11',
+    'https://github.com/Expensify/App/issues/12',
+];
+
+const baseIssueList = [
+    'https://github.com/Expensify/App/issues/11',
+    'https://github.com/Expensify/App/issues/12',
+];
+// eslint-disable-next-line max-len
+const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
+const openCheckbox = '  - [ ]';
+const closedCheckbox = '  - [x]';
+const listStart = '- ';
+const QA = ' QA';
+const accessibility = ' Accessibility';
+const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
+const deployBlockerHeader = '\r\n**Deploy Blockers:**';
+const lineBreak = '\r\n';
+const lineBreakDouble = '\r\n\r\n';
+
 describe('createOrUpdateStagingDeployCash', () => {
     const closedStagingDeployCash = {
         url: 'https://api.github.com/repos/Expensify/App/issues/28',
@@ -84,8 +115,15 @@ describe('createOrUpdateStagingDeployCash', () => {
         labels: [LABELS.STAGING_DEPLOY_CASH],
         html_url: 'https://github.com/Expensify/App/issues/29',
         // eslint-disable-next-line max-len
-        body: '**Release Version:** `1.0.1-0`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [x] https://github.com/Expensify/App/pull/1\r\n- [x] https://github.com/Expensify/App/pull/2\r\n- [x] https://github.com/Expensify/App/pull/3\r\n\r\n**Deploy Blockers:**\r\n- [x] https://github.com/Expensify/App/pull/1\r\n- [x] https://github.com/Expensify/App/issues/4\r\n- [x] https://github.com/Expensify/App/issues/5\r\n\r\ncc @Expensify/applauseleads\r\n',
-        state: 'closed',
+        body: `${baseExpectedOutput('1.0.1-0')}`
+            + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${deployBlockerHeader}`
+            + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[3]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${listStart}${basePRList[4]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+            + `${lineBreakDouble}${ccApplauseLeads}`,
     };
 
     const baseNewPullRequests = ['6', '7', '8'];
@@ -126,8 +164,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                 labels: [GithubUtils.STAGING_DEPLOY_CASH_LABEL],
                 html_url: 'https://github.com/Expensify/App/issues/29',
                 assignees: [GithubUtils.APPLAUSE_BOT],
-                // eslint-disable-next-line max-len
-                body: '**Release Version:** `1.0.2-1`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n\r\ncc @Expensify/applauseleads\r\n',
+                body: `${baseExpectedOutput()}`
+                    + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                    + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                    + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                    + `${lineBreakDouble}${ccApplauseLeads}`,
             });
         });
     });
@@ -139,7 +180,15 @@ describe('createOrUpdateStagingDeployCash', () => {
             number: 29,
             labels: [LABELS.STAGING_DEPLOY_CASH],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.2-1`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n\r\ncc @Expensify/applauseleads\r\n',
+            body: `${baseExpectedOutput()}`
+                + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${deployBlockerHeader}`
+                + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
+                + `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
         };
 
@@ -223,7 +272,19 @@ describe('createOrUpdateStagingDeployCash', () => {
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: `**Release Version:** \`1.0.2-2\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n- [ ] https://github.com/Expensify/App/pull/${newPullRequests[0]}\r\n- [ ] https://github.com/Expensify/App/pull/${newPullRequests[1]}\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n- [ ] https://github.com/Expensify/App/issues/11\r\n- [ ] https://github.com/Expensify/App/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n`,
+                    body: `${baseExpectedOutput('1.0.2-2')}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[10]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[11]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
         });
@@ -273,7 +334,17 @@ describe('createOrUpdateStagingDeployCash', () => {
                     // eslint-disable-next-line max-len
                     html_url: `https://github.com/Expensify/App/issues/${openStagingDeployCashBefore.number}`,
                     // eslint-disable-next-line max-len
-                    body: '**Release Version:** `1.0.2-2`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [x] https://github.com/Expensify/App/pull/7\r\n- [ ] https://github.com/Expensify/App/pull/8\r\n\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/pull/6\r\n- [ ] https://github.com/Expensify/App/issues/9\r\n- [x] https://github.com/Expensify/App/issues/10\r\n- [ ] https://github.com/Expensify/App/issues/11\r\n- [ ] https://github.com/Expensify/App/issues/12\r\n\r\ncc @Expensify/applauseleads\r\n',
+                    body: `${baseExpectedOutput('1.0.2-2')}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${baseIssueList[0]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${baseIssueList[1]}${lineBreak}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
         });

@@ -2,6 +2,8 @@ import React from 'react';
 import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import moment from 'moment';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -11,23 +13,27 @@ import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
 import {
-    goToWithdrawalAccountSetupStep,
-    hideBankAccountErrors,
-    setupWithdrawalAccount,
     showBankAccountErrorModal,
-    showBankAccountFormValidationError,
+    goToWithdrawalAccountSetupStep,
+    setBankAccountFormValidationErrors,
+    setupWithdrawalAccount,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
-import {isRequiredFulfilled, isValidIdentity} from '../../libs/ValidationUtils';
+import {isRequiredFulfilled, validateIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {getDefaultStateForField} from '../../libs/ReimbursementAccountUtils';
+import {
+    getDefaultStateForField,
+    clearError,
+    getErrors,
+} from '../../libs/ReimbursementAccountUtils';
 import Log from '../../libs/Log';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -41,6 +47,7 @@ class RequestorStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
 
         this.state = {
             firstName: getDefaultStateForField(props, 'firstName'),
@@ -56,64 +63,78 @@ class RequestorStep extends React.Component {
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
+        // Required fields not validated by `validateIdentity`
         this.requiredFields = [
             'firstName',
             'lastName',
-            'requestorAddressStreet',
-            'requestorAddressCity',
-            'requestorAddressZipCode',
-            'dob',
-            'ssnLast4',
-            'requestorAddressState',
+            'isControllingOfficer',
         ];
+
+        // Map a field to the key of the error's translation
+        this.errorTranslationKeys = {
+            firstName: 'bankAccount.error.firstName',
+            lastName: 'bankAccount.error.lastName',
+            isControllingOfficer: 'requestorStep.isControllingOfficerError',
+        };
+
+        this.clearError = inputKey => clearError(this.props, inputKey);
+        this.getErrors = () => getErrors(this.props);
     }
 
-    onFieldChange(field, value) {
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetValue(inputKey, value) {
         const renamedFields = {
             street: 'requestorAddressStreet',
             city: 'requestorAddressCity',
             state: 'requestorAddressState',
             zipCode: 'requestorAddressZipCode',
+            addressStreet: 'requestorAddressStreet',
+            addressCity: 'requestorAddressCity',
+            addressState: 'requestorAddressState',
+            addressZipCode: 'requestorAddressZipCode',
         };
-        const fieldName = lodashGet(renamedFields, field, field);
-        const newState = {[fieldName]: value};
+        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+        const newState = {[renamedInputKey]: value};
         this.setState(newState);
         updateReimbursementAccountDraft(newState);
+
+        // dob field has multiple validations/errors, we are handling it temporarily like this.
+        if (inputKey === 'dob') {
+            this.clearError('dobAge');
+        }
+        this.clearError(inputKey);
     }
 
     /**
      * @returns {Boolean}
      */
     validate() {
-        if (!this.state.isControllingOfficer) {
-            showBankAccountFormValidationError(this.props.translate('requestorStep.isControllingOfficerError'));
-            showBankAccountErrorModal();
-            return false;
-        }
-
-        if (!isValidIdentity({
+        const errors = validateIdentity({
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
             street: this.state.requestorAddressStreet,
             state: this.state.requestorAddressState,
             city: this.state.requestorAddressCity,
             zipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
-        })) {
-            return false;
-        }
+        });
 
-        if (!isRequiredFulfilled(this.state.firstName)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.firstName'));
+        _.each(this.requiredFields, (inputKey) => {
+            if (!isRequiredFulfilled(this.state[inputKey])) {
+                errors[inputKey] = true;
+            }
+        });
+        if (_.size(errors)) {
+            setBankAccountFormValidationErrors(errors);
             showBankAccountErrorModal();
             return false;
         }
-
-        if (!isRequiredFulfilled(this.state.lastName)) {
-            showBankAccountFormValidationError(this.props.translate('bankAccount.error.lastName'));
-            showBankAccountErrorModal();
-            return false;
-        }
-
         return true;
     }
 
@@ -121,7 +142,13 @@ class RequestorStep extends React.Component {
         if (!this.validate()) {
             return;
         }
-        setupWithdrawalAccount({...this.state});
+
+        const payload = {
+            ...this.state,
+            dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
+        };
+
+        setupWithdrawalAccount(payload);
     }
 
     render() {
@@ -129,6 +156,7 @@ class RequestorStep extends React.Component {
             <>
                 <HeaderWithCloseButton
                     title={this.props.translate('requestorStep.headerTitle')}
+                    stepCounter={{step: 3, total: 5}}
                     shouldShowBackButton
                     onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
@@ -176,7 +204,7 @@ class RequestorStep extends React.Component {
                             </TextLink>
                         </View>
                         <IdentityForm
-                            onFieldChange={(field, value) => this.onFieldChange(field, value)}
+                            onFieldChange={this.clearErrorAndSetValue}
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,
@@ -187,20 +215,17 @@ class RequestorStep extends React.Component {
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
                             }}
-                            error={this.props.reimbursementAccount.error}
+                            errors={this.props.reimbursementAccount.errors}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.isControllingOfficer}
                             onPress={() => {
-                                if (this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')) {
-                                    hideBankAccountErrors();
-                                }
-
                                 this.setState((prevState) => {
                                     const newState = {isControllingOfficer: !prevState.isControllingOfficer};
                                     updateReimbursementAccountDraft(newState);
                                     return newState;
                                 });
+                                this.clearError('isControllingOfficer');
                             }}
                             LabelComponent={() => (
                                 <View style={[styles.flex1, styles.pr1]}>
@@ -210,35 +235,34 @@ class RequestorStep extends React.Component {
                                 </View>
                             )}
                             style={[styles.mt4]}
-                            hasError={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')}
-                            errorText={this.props.reimbursementAccount.error === this.props.translate('requestorStep.isControllingOfficerError')
-                                ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
+                            hasError={Boolean(this.getErrors().isControllingOfficer)}
+                            errorText={this.getErrors().isControllingOfficer ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
                         />
-                        <Text style={[styles.textMicroSupporting, styles.mt5]}>
-                            {this.props.translate('requestorStep.financialRegulations')}
-                        </Text>
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
-                            <TextLink
-                                style={styles.textMicro}
-                                href="https://onfido.com/facial-scan-policy-and-release/"
+                            <Text
+                                onPress={() => openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
-                            </TextLink>
+                            </Text>
                             {', '}
-                            <TextLink
-                                style={styles.textMicro}
-                                href="https://onfido.com/privacy/"
+                            <Text
+                                onPress={() => openExternalLink('https://onfido.com/privacy/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.privacyPolicy')}`}
-                            </TextLink>
+                            </Text>
                             {` ${this.props.translate('common.and')} `}
-                            <TextLink
-                                style={styles.textMicro}
-                                href="https://onfido.com/terms-of-service/"
+                            <Text
+                                onPress={() => openExternalLink('https://onfido.com/terms-of-service/')}
+                                style={[styles.textMicro, styles.link]}
+                                accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.termsOfService')}`}
-                            </TextLink>
+                            </Text>
                         </Text>
                     </ReimbursementAccountForm>
                 )}

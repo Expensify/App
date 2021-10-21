@@ -64,11 +64,11 @@ const AttachmentView = (props) => {
             </View>
             <Text style={[styles.textStrong]}>{props.file && props.file.name}</Text>
             {props.shouldShowDownloadIcon && (
-                <Tooltip text={props.translate('common.download')}>
-                    <View style={styles.ml2}>
+                <View style={styles.ml2}>
+                    <Tooltip text={props.translate('common.download')}>
                         <Icon src={Download} />
-                    </View>
-                </Tooltip>
+                    </Tooltip>
+                </View>
             )}
         </View>
     );

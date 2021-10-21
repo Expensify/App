@@ -7,6 +7,9 @@ import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
+// eslint-disable-next-line import/no-cycle
+import LogUtil from './Log';
+
 let isAuthenticating;
 let credentials;
 Onyx.connect({
@@ -57,9 +60,10 @@ function addDefaultValuesToParameters(command, parameters) {
         if (!authToken) {
             redirectToSignIn();
 
-            console.debug('A request was made without an authToken', {command, parameters});
+            LogUtil.info('A request was made without an authToken', false, {command, parameters});
             Network.pauseRequestQueue();
             Network.clearRequestQueue();
+            Network.unpauseRequestQueue();
             return;
         }
 
@@ -171,7 +175,11 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
-    console.debug('[API] Handled error when making request', error);
+    if (queuedRequest.command !== 'Log') {
+        LogUtil.hmmm('[API] Handled error when making request', error);
+    } else {
+        console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
+    }
 
     // Set an error state and signify we are done loading
     Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
@@ -302,7 +310,7 @@ function reauthenticate(command = '') {
             // If we experience something other than a network error then redirect the user to sign in
             redirectToSignIn(error.message);
 
-            console.debug('Redirecting to Sign In because we failed to reauthenticate', {
+            LogUtil.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                 command,
                 error: error.message,
             });
@@ -335,6 +343,16 @@ function AuthenticateWithAccountID(parameters) {
         doNotRetry: true,
     });
 }
+
+/**
+ * @param {Object} parameters
+ * @returns {Promise}
+ */
+function AddBillingCard(parameters) {
+    const commandName = 'User_AddBillingCard';
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
 
 /**
  * @param {Object} parameters
@@ -967,7 +985,7 @@ function BankAccount_SetupWithdrawal(parameters) {
 
     requireParameters(['currentStep'], parameters, commandName);
     return Network.post(
-        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        commandName, {additionalData: JSON.stringify(additionalData)},
         CONST.NETWORK.METHOD.POST,
         true,
     );
@@ -1078,6 +1096,7 @@ function UpdatePolicy(parameters) {
 export {
     Authenticate,
     AuthenticateWithAccountID,
+    AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,

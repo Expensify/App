@@ -79,6 +79,8 @@ function formatPersonalDetails(personalDetailsList) {
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
         const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
         const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
+        const payPalMeAddress = lodashGet(personalDetailsResponse, 'expensify_payPalMeAddress', '');
+        const phoneNumber = lodashGet(personalDetailsResponse, 'phoneNumber', '');
 
         return {
             ...finalObject,
@@ -90,6 +92,8 @@ function formatPersonalDetails(personalDetailsList) {
                 lastName,
                 pronouns,
                 timezone,
+                payPalMeAddress,
+                phoneNumber,
             },
         };
     }, {});
@@ -124,8 +128,7 @@ function fetchPersonalDetails() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-        })
-        .catch(error => console.debug('Error fetching personal details', error));
+        });
 }
 
 /**
@@ -257,7 +260,6 @@ function fetchLocalCurrency() {
         .then(() => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
         })
-        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {
                 isRetrievingCurrency: false,
