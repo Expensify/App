@@ -94,15 +94,17 @@ class PasswordForm extends React.Component {
                         translateX={-18}
                         blurOnSubmit={false}
                     />
-                    <TouchableOpacity
-                        style={[styles.mt2]}
-                        onPress={resetPassword}
-                        underlayColor={themeColors.componentBG}
-                    >
-                        <Text style={[styles.link]}>
-                            {this.props.translate('passwordForm.forgot')}
-                        </Text>
-                    </TouchableOpacity>
+                    <View style={[styles.changeExpensifyLoginLinkContainer]}>
+                        <TouchableOpacity
+                            style={[styles.mt2]}
+                            onPress={resetPassword}
+                            underlayColor={themeColors.componentBG}
+                        >
+                            <Text style={[styles.link]}>
+                                {this.props.translate('passwordForm.forgot')}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {this.props.account.requiresTwoFactorAuth && (

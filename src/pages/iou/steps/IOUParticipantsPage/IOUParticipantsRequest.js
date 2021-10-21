@@ -47,6 +47,7 @@ class IOUParticipantsRequest extends Component {
             props.personalDetails,
             props.betas,
             '',
+            [],
             EXCLUDED_IOU_EMAILS,
         );
 
@@ -124,6 +125,7 @@ class IOUParticipantsRequest extends Component {
                         this.props.personalDetails,
                         this.props.betas,
                         searchValue,
+                        [],
                         EXCLUDED_IOU_EMAILS,
                     );
                     this.setState({

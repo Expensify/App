@@ -284,6 +284,7 @@ export default {
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        formatError: 'Invalid PayPal.me username',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a Debit Card',
@@ -375,7 +376,7 @@ export default {
     loginForm: {
         phoneOrEmail: 'Phone or email',
         error: {
-            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+            invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
     },
     resendValidationForm: {
@@ -388,7 +389,7 @@ export default {
     detailsPage: {
         localTime: 'Local time',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Create group',
     },
     notFound: {
@@ -467,7 +468,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
+        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907.',
+        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
@@ -738,7 +740,6 @@ export default {
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',

@@ -136,6 +136,15 @@ function isValidSSNLastFour(ssnLast4) {
 }
 
 /**
+ *
+ * @param {String} paypalUsername
+ * @returns {Boolean}
+ */
+function isValidPaypalUsername(paypalUsername) {
+    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
+}
+
+/**
  * Validate that "date" is between 18 and 150 years in the past
  *
  * @param {String} date
@@ -212,6 +221,15 @@ function isValidUSPhone(phoneNumber) {
     return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
 }
 
+/**
+ * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
+ * @param {String} input
+ * @returns {Boolean}
+ */
+function isNumericWithSpecialChars(input) {
+    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -226,4 +244,6 @@ export {
     isValidUSPhone,
     isValidURL,
     validateIdentity,
+    isNumericWithSpecialChars,
+    isValidPaypalUsername,
 };
