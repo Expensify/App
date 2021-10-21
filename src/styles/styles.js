@@ -524,7 +524,7 @@ const styles = {
     },
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 11.5,
+        left: 11,
         top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
@@ -561,7 +561,7 @@ const styles = {
         borderColor: themeColors.border,
         paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 11.5,
+        paddingHorizontal: 11,
         borderRadius: variables.componentBorderRadiusNormal,
         zIndex: -1,
     },
@@ -594,13 +594,13 @@ const styles = {
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 11.5,
+        left: 11,
         top: 7,
     },
     expensiPicker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
             top: 16,
-            right: 12,
+            right: 11,
         },
         inputWeb: {
             appearance: 'none',
