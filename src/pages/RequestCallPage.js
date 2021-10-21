@@ -70,7 +70,7 @@ class RequestCallPage extends Component {
         this.state = {
             firstName,
             lastName,
-            phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
+            phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
             phoneNumberError: '',
             isLoading: false,
         };

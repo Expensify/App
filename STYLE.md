@@ -175,6 +175,23 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
     }
     ```
 
+## Accessing Object Properties and Default Values
+
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase.
+
+   ```javascript
+   // Bad
+   const value = somePossiblyNullThing ?? 'default';
+   // Good
+   const value = somePossiblyNullThing || 'default';
+   // Bad
+   const value = someObject.possiblyUndefinedProperty?.nestedProperty || 'default';
+   // Bad
+   const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
+   // Good
+   const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
+   ```
+
 ## JSDocs
 - Avoid docs that don't add any additional information.
 - Always document parameters and return values.
