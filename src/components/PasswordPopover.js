@@ -61,13 +61,14 @@ class PasswordPopover extends Component {
                         style={[
                             styles.h1,
                             styles.mv2,
+                            styles.alignSelfCenter,
                         ]}
                     >
                         {this.props.translate('passwordForm.pleaseFillPassword')}
                     </Text>
                     <TextInputFocusable
                         style={[
-                            styles.textInputCompose,
+                            styles.textInput,
                             styles.border,
                             styles.w100,
                         ]}
