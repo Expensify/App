@@ -46,7 +46,6 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.navigateToConcierge = this.navigateToConcierge.bind(this);
 
         this.state = {
             amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
@@ -150,11 +149,6 @@ class ValidationStep extends React.Component {
         return value;
     }
 
-    navigateToConcierge() {
-        Navigation.dismissModal();
-        navigateToConciergeChat();
-    }
-
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
 
@@ -182,7 +176,7 @@ class ValidationStep extends React.Component {
                             {' '}
                             {this.props.translate('common.please')}
                             {' '}
-                            <TextLink onPress={this.navigateToConcierge}>
+                            <TextLink onPress={navigateToConciergeChat}>
                                 {this.props.translate('common.contactUs')}
                             </TextLink>
                             .
@@ -238,7 +232,7 @@ class ValidationStep extends React.Component {
                                 {
                                     title: this.props.translate('validationStep.letsChatCTA'),
                                     icon: ChatBubble,
-                                    onPress: this.navigateToConcierge,
+                                    onPress: navigateToConciergeChat,
                                     shouldShowRightIcon: true,
                                 },
                                 {

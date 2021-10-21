@@ -4,6 +4,7 @@ const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
+    AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
@@ -213,6 +214,7 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        TOOLTIP_SENSE: 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -426,6 +428,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     PHONE_MAX_LENGTH: 15,
+    PHONE_MIN_LENGTH: 5,
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
@@ -436,11 +439,12 @@ const CONST = {
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
-        SSN_LAST_FOUR: /[0-9]{4}/,
+        SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         NUMBER: /^[0-9]+$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /(0[1-9]|10|11|12)\/20[0-9]{2}$/,
+        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len

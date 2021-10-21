@@ -267,7 +267,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
     }).catch((error) => {
-        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
     });
 }
 
@@ -290,7 +290,7 @@ function fetchIOUReportID(debtorEmail) {
             // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
             // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
             // been settled then there's nothing more to do.
-            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            Log.info('GetIOUReport returned a reportID of 0, not fetching IOU report data');
             return;
         }
         return iouReportID;
@@ -525,7 +525,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html,
+            lastMessageText: message.text,
         });
     }
 }
@@ -604,26 +604,26 @@ function updateReportWithNewAction(
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     if (notificationPreference === 'mute' || notificationPreference === 'daily') {
         // eslint-disable-next-line max-len
-        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
+        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (isFromCurrentUser) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
+        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
@@ -639,7 +639,7 @@ function updateReportWithNewAction(
         const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
         setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
-    console.debug('[LOCAL_NOTIFICATION] Creating notification');
+    Log.info('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction,
         onClick: () => {
@@ -978,11 +978,11 @@ function fetchAllReports(
                     .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
-                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
                     return;
                 }
 
-                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
                     reportIDs: reportIDsToFetchActions,
                 });
                 _.each(reportIDsToFetchActions, (reportID) => {

@@ -8,7 +8,7 @@ export default {
         attachment: 'Archivo adjunto',
         to: 'A',
         optional: 'Opcional',
-        new: 'NUEVO',
+        new: 'Nuevo',
         search: 'Buscar',
         next: 'Siguiente',
         goBack: 'Regresar',
@@ -216,6 +216,8 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
+        imageUploadFailed: 'Error al cargar la imagen',
+        sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
     },
     profilePage: {
         profile: 'Perfil',
@@ -272,7 +274,7 @@ export default {
         changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com\ncomo la de Nuevo Expensify.',
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
-        newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la nueva contraseña',
     },
     addPayPalMePage: {
@@ -282,6 +284,7 @@ export default {
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
         editPayPalAccount: 'Actualizar cuenta de PayPal',
+        formatError: 'Usuario PayPal.me no válido',
     },
     addDebitCardPage: {
         addADebitCard: 'Agregar una tarjeta de débito',
@@ -315,7 +318,7 @@ export default {
         addPaymentMethod: 'Agrega método de pago',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
-        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación',
+        addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
     },
     preferencesPage: {
         mostRecent: 'Más recientes',
@@ -373,7 +376,7 @@ export default {
     loginForm: {
         phoneOrEmail: 'Número de teléfono o email',
         error: {
-            invalidFormatLogin: 'El email o número de teléfono que has introducido no es válido. Corrígelo e inténtalo de nuevo.',
+            invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
     },
     resendValidationForm: {
@@ -386,7 +389,7 @@ export default {
     detailsPage: {
         localTime: 'Hora local',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Crear grupo',
     },
     notFound: {
@@ -399,7 +402,7 @@ export default {
         confirmNewPassword: 'Confirma la contraseña',
         setPassword: 'Configura tu contraseña',
         passwordsDontMatch: 'Las contraseñas deben coincidir',
-        newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
+        newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
         accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
@@ -465,7 +468,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
-        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907',
+        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907.',
+        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
@@ -646,12 +650,15 @@ export default {
             removeMembersPrompt: '¿Estás seguro que quieres eliminar a los miembros seleccionados de tu espacio de trabajo?',
             removeMembersTitle: 'Eliminar miembros',
             selectAll: 'Seleccionar todo',
+            error: {
+                cannotRemove: 'No puedes eliminarte ni a ti mismo ni al dueño del espacio de trabajo.',
+            },
         },
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
             headerWithEcard: '¡Tus tarjetas están listas!',
             noVBACopy: 'Conecta una cuenta bancaria para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
-            VBANoECardCopy: 'Emite Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y accede a todas estas increíbles ventajas:',
+            VBANoECardCopy: 'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
             conciergeCanHelp: 'Concierge te puede ayudar a añadir un correo electrónico de trabajo para activar la Tarjeta Expensify.',
             VBAWithECardCopy: 'Disfruta de todas estas increíbles ventajas:',
             benefit1: 'Hasta un 2% de devolución en tus gastos',
@@ -701,14 +708,9 @@ export default {
         },
         invite: {
             invitePeople: 'Invitar nuevos miembros',
-            invitePeoplePrompt: 'Invita nuevos miembros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
-            enterEmailOrPhone: 'Correos electrónicos o números de teléfono',
-            EmailOrPhonePlaceholder: 'Introduce una lista de correos electrónicos o números de teléfono separado por comas',
-            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
-            pleaseEnterUniqueLogin: 'Ese usuario ya es miembro de este espacio de trabajo.',
+            pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            systemUserError: ({email}) => `Lo sentimos, no puedes invitar a ${email} a un espacio de trabajo.`,
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         editor: {
@@ -748,7 +750,6 @@ export default {
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',

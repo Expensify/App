@@ -75,14 +75,14 @@ class BaseExpensiTextInput extends Component {
         }
     }
 
-    onFocus() {
-        if (this.props.onFocus) { this.props.onFocus(); }
+    onFocus(event) {
+        if (this.props.onFocus) { this.props.onFocus(event); }
         this.setState({isFocused: true});
         this.activateLabel();
     }
 
-    onBlur() {
-        if (this.props.onBlur) { this.props.onBlur(); }
+    onBlur(event) {
+        if (this.props.onBlur) { this.props.onBlur(event); }
         this.setState({isFocused: false});
         this.deactivateLabel();
     }
@@ -171,16 +171,21 @@ class BaseExpensiTextInput extends Component {
                             ]}
                         >
                             {hasLabel ? (
-                                <ExpensiTextInputLabel
-                                    label={label}
-                                    labelTranslateX={
-                                        ignoreLabelTranslateX
-                                            ? new Animated.Value(0)
-                                            : this.state.labelTranslateX
-                                    }
-                                    labelTranslateY={this.state.labelTranslateY}
-                                    labelScale={this.state.labelScale}
-                                />
+                                <>
+                                    {/* Adding this background to the label only for multiline text input,
+                                    to prevent text overlaping with label when scrolling */}
+                                    {multiline && <View style={styles.expensiTextInputLabelBackground} />}
+                                    <ExpensiTextInputLabel
+                                        label={label}
+                                        labelTranslateX={
+                                            ignoreLabelTranslateX
+                                                ? new Animated.Value(0)
+                                                : this.state.labelTranslateX
+                                        }
+                                        labelTranslateY={this.state.labelTranslateY}
+                                        labelScale={this.state.labelScale}
+                                    />
+                                </>
                             ) : null}
                             <TextInput
                                 ref={(ref) => {
