@@ -96,12 +96,16 @@ const defaultProps = {
 
 class SidebarLinks extends React.Component {
     shouldComponentUpdate(nextProps) {
+        // We do not want to re-order reports in the LHN if the only change is the draft comment in the
+        // current report.
+
         // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
         if (nextProps.isSmallScreenWidth) {
             return true;
         }
 
         const didActiveReportChange = this.props.currentlyViewedReportID !== nextProps.currentlyViewedReportID;
+        // Always re-order the list whenever the active report is changed
         if (didActiveReportChange) {
             return true;
         }
@@ -144,6 +148,7 @@ class SidebarLinks extends React.Component {
         const activeReportID = this.props.currentlyViewedReportID;
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${activeReportID}`;
 
+        // Do not re-order reports if draft comment changes are only in the current report.
         if (allReportsWithDraftCommentChanges.length === 1 && allReportsWithDraftCommentChanges.includes(reportKey)) {
             return false;
         }
