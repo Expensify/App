@@ -1,10 +1,11 @@
+import Log from './Log';
 import AddEncryptedAuthToken from './migrations/AddEncryptedAuthToken';
 import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
 import RenamePriorityModeKey from './migrations/RenamePriorityModeKey';
 
 export default function () {
     const startTime = Date.now();
-    console.debug('[Migrate Onyx] start');
+    Log.info('[Migrate Onyx] start');
 
     return new Promise((resolve) => {
         // Add all migrations to an array so they are executed in order
@@ -28,7 +29,7 @@ export default function () {
             // Once all migrations are done, resolve the main promise
             .then(() => {
                 const timeElapsed = Date.now() - startTime;
-                console.debug(`[Migrate Onyx] finished in ${timeElapsed}ms`);
+                Log.info(`[Migrate Onyx] finished in ${timeElapsed}ms`);
                 resolve();
             });
     });

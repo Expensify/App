@@ -10,7 +10,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import {MoneyMousePink} from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import {openSignedInLink} from '../../../libs/actions/App';
+import {openOldDotLink} from '../../../libs/actions/Link';
 import WorkspaceBillsFirstSection from './WorkspaceBillsFirstSection';
 
 const propTypes = {
@@ -30,8 +30,7 @@ const WorkspaceBillsVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.common.bills'),
-                    // eslint-disable-next-line max-len
-                    onPress: () => openSignedInLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":false,"Processing":true,"Approved":true,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
+                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
                     icon: Bill,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,

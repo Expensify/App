@@ -8,7 +8,7 @@ export default {
         attachment: 'Attachment',
         to: 'To',
         optional: 'Optional',
-        new: 'NEW',
+        new: 'New',
         search: 'Search',
         next: 'Next',
         goBack: 'Go back',
@@ -205,7 +205,6 @@ export default {
         always: 'Always',
         daily: 'Daily',
         mute: 'Mute',
-        members: 'Members',
     },
     loginField: {
         addYourPhoneToSettleViaVenmo: 'Add your phone number to settle up via Venmo.',
@@ -217,6 +216,8 @@ export default {
         uploadPhoto: 'Upload photo',
         removePhoto: 'Remove photo',
         editImage: 'Edit photo',
+        imageUploadFailed: 'Image upload failed',
+        sizeExceeded: ({maxUploadSizeInMB}) => `The selected image exceeds the maximum upload size of ${maxUploadSizeInMB}MB.`,
     },
     profilePage: {
         profile: 'Profile',
@@ -273,7 +274,7 @@ export default {
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com\nand New Expensify accounts.',
         currentPassword: 'Current password',
         newPassword: 'New password',
-        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         confirmNewPassword: 'Confirm new password',
     },
     addPayPalMePage: {
@@ -283,6 +284,7 @@ export default {
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        formatError: 'Invalid PayPal.me username',
     },
     addDebitCardPage: {
         addADebitCard: 'Add a Debit Card',
@@ -316,7 +318,7 @@ export default {
         addPaymentMethod: 'Add payment method',
         accountLastFour: 'Account ending in',
         cardLastFour: 'Card ending in',
-        addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app',
+        addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
     },
     preferencesPage: {
         mostRecent: 'Most recent',
@@ -374,7 +376,7 @@ export default {
     loginForm: {
         phoneOrEmail: 'Phone or email',
         error: {
-            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+            invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
     },
     resendValidationForm: {
@@ -387,7 +389,7 @@ export default {
     detailsPage: {
         localTime: 'Local time',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Create group',
     },
     notFound: {
@@ -400,7 +402,7 @@ export default {
         confirmNewPassword: 'Confirm the password',
         setPassword: 'Set password',
         passwordsDontMatch: 'Passwords must match',
-        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+        newPasswordPrompt: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
         accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
@@ -429,7 +431,7 @@ export default {
             phoneNumber: 'Please enter a valid phone number',
             companyName: 'Please enter a valid legal business name',
             addressCity: 'Please enter a valid city',
-            addressStreet: 'Please enter a valid address street that is not a PO Box',
+            addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
             incorporationState: 'Please enter a valid state',
@@ -466,7 +468,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
+        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907.',
+        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
@@ -567,6 +570,7 @@ export default {
         taxIDNumberPlaceholder: '9 digits, no hyphens',
         companyType: 'Company type',
         incorporationDate: 'Incorporation date',
+        incorporationState: 'Incorporation state',
         industryClassificationCode: 'Industry classification code',
         confirmCompanyIsNot: 'I confirm that this company is not on the',
         listOfRestrictedBusinesses: 'list of restricted businesses',
@@ -611,7 +615,7 @@ export default {
             certify: 'Must certify information is true and accurate',
         },
     },
-    vbaLoadingAnimation: {
+    reimbursementAccountLoadingAnimation: {
         oneMoment: 'One Moment',
         explanationLine: 'We’re taking a look at your information. You will be able to continue with next steps shortly.',
     },
@@ -623,7 +627,6 @@ export default {
         common: {
             card: 'Issue corporate cards',
             workspace: 'Workspace',
-            edit: 'Edit workspace',
             settings: 'General settings',
             reimburse: 'Reimburse receipts',
             bills: 'Pay bills',
@@ -633,6 +636,7 @@ export default {
             bankAccount: 'Connect bank account',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
+            growlMessageOnSave: 'Your workspace settings were successfully saved!',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -644,12 +648,15 @@ export default {
             removeMembersPrompt: 'Are you sure you want to remove the selected members from your workspace?',
             removeMembersTitle: 'Remove members',
             selectAll: 'Select all',
+            error: {
+                cannotRemove: 'You cannot remove yourself or the workspace owner.',
+            },
         },
         card: {
             header: 'Unlock free Expensify Cards',
             headerWithEcard: 'Cards are ready!',
             noVBACopy: 'Connect a bank account to issue unlimited Expensify Cards for your workspace members and access all of these incredible benefits:',
-            VBANoECardCopy: 'Issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
+            VBANoECardCopy: 'Add a work email address to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
             conciergeCanHelp: 'Concierge can help you add a work email address to enable the Expensify Card.',
             VBAWithECardCopy: 'Enjoy all these incredible benefits:',
             benefit1: 'Up to 2% cash back',
@@ -663,7 +670,7 @@ export default {
             fastReimbursementsHappyMembers: 'Fast reimbursements = happy members!',
             viewAllReceipts: 'View all receipts',
             reimburseReceipts: 'Reimburse receipts',
-            unlockNextDayReimbursements: 'Unlock next day reimbursements',
+            unlockNextDayReimbursements: 'Unlock next-day reimbursements',
             captureNoVBACopyBeforeEmail: 'Ask your workspace members to forward receipts to ',
             captureNoVBACopyAfterEmail: ' and download the Expensify App to track cash expenses on the go.',
             unlockNoVBACopy: 'Connect a bank account to reimburse your workspace members online.',
@@ -672,7 +679,7 @@ export default {
         bills: {
             manageYourBills: 'Manage your bills',
             askYourVendorsBeforeEmail: 'Ask your vendors to forward their invoices to ',
-            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay',
+            askYourVendorsAfterEmail: ' and we\'ll scan them for you to pay.',
             viewAllBills: 'View all bills',
             unlockOnlineBillPayment: 'Unlock online bill payment',
             unlockNoVBACopy: 'Connect your bank account to pay bills online for free!',
@@ -683,11 +690,12 @@ export default {
             invoiceClientsAndCustomers: 'Invoice clients and customers',
             invoiceFirstSectionCopy: 'Send beautiful, professional invoices directly to your clients and customers right from within the Expensify app.',
             viewAllInvoices: 'View all invoices',
-            unlockOnlineInvoicesCollection: 'Unlock online invoices collection',
+            unlockOnlineInvoiceCollection: 'Unlock online invoice collection',
             unlockNoVBACopy: 'Connect your bank account to accept online payments for invoices - by ACH or credit card - to be deposited straight into your account.',
             moneyBackInAFlash: 'Money back, in a flash!',
             unlockVBACopy: 'You\'re all set to accept payments by ACH or credit card!',
             viewUnpaidInvoices: 'View unpaid invoices',
+            sendInvoice: 'Send invoice',
         },
         travel: {
             unlockConciergeBookingTravel: 'Unlock Concierge travel booking',
@@ -698,21 +706,16 @@ export default {
         },
         invite: {
             invitePeople: 'Invite new members',
-            invitePeoplePrompt: 'Invite new members to your workspace.',
             personalMessagePrompt: 'Add a personal message (optional)',
-            enterEmailOrPhone: 'Emails or phone numbers',
-            EmailOrPhonePlaceholder: 'Enter comma-separated list of emails or phone numbers',
-            pleaseEnterValidLogin: 'Please ensure the email or phone number is valid (e.g. +15005550006).',
-            pleaseEnterUniqueLogin: 'That user is already a member of this workspace.',
+            pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            systemUserError: ({email}) => `Sorry, you cannot invite ${email} to a workspace.`,
             welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName}! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
             nameInputLabel: 'Name',
             nameInputHelpText: 'This is the name you will see on your workspace.',
             nameIsRequiredError: 'You need to define a name for your workspace',
-            currencyInputLabel: 'Default Currency',
+            currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             save: 'Save',
             genericFailureMessage: 'An error occurred updating the workspace, please try again.',
@@ -723,7 +726,7 @@ export default {
             youreAlmostDone: 'You\'re almost done setting up your bank account, which will let you issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same bank account.',
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
-            allSet: 'All set!',
+            allSet: 'You\'re all set!',
             accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nConcierge can help you add a work email address to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
             chatWithConcierge: 'Chat with Concierge',
@@ -737,7 +740,6 @@ export default {
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',

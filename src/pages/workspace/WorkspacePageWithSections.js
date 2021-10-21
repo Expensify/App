@@ -30,10 +30,17 @@ const propTypes = {
     }).isRequired,
 
     /** From Onyx */
+    /** Bank account currently in setup */
     reimbursementAccount: reimbursementAccountPropTypes,
+
+    /** User Data from Onyx */
     user: userPropTypes,
 
+    /** Main content of the page */
     children: PropTypes.func,
+
+    /** Content to be added as fixed footer */
+    footer: PropTypes.element,
 
     ...withLocalizePropTypes,
 };
@@ -42,11 +49,13 @@ const defaultProps = {
     children: () => {},
     user: {},
     reimbursementAccount: {},
+    footer: null,
 };
 
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
-        fetchFreePlanVerifiedBankAccount();
+        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        fetchFreePlanVerifiedBankAccount('', achState);
     }
 
     render() {
@@ -73,6 +82,7 @@ class WorkspacePageWithSections extends React.Component {
 
                     </View>
                 </ScrollView>
+                {this.props.footer}
             </ScreenWrapper>
         );
     }

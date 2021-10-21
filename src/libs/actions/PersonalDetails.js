@@ -128,8 +128,7 @@ function fetchPersonalDetails() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-        })
-        .catch(error => console.debug('Error fetching personal details', error));
+        });
 }
 
 /**
@@ -261,7 +260,6 @@ function fetchLocalCurrency() {
         .then(() => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
         })
-        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {
                 isRetrievingCurrency: false,

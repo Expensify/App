@@ -165,7 +165,7 @@ class RequestCallPage extends Component {
         if (_.isEmpty(this.state.phoneNumber.trim())) {
             this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
         } else if (!Str.isValidPhone(this.state.phoneNumber)) {
-            this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
+            this.setState({phoneNumberError: this.props.translate('messages.errorMessageInvalidPhone')});
         } else {
             this.setState({phoneNumberError: ''});
         }

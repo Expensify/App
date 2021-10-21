@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {
     View, Pressable,
@@ -19,7 +20,7 @@ const propTypes = {
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
-    wrapperStyle: {},
+    wrapperStyle: [],
     success: false,
     icon: undefined,
     iconWidth: undefined,
@@ -32,6 +33,8 @@ const defaultProps = {
     disabled: false,
     subtitle: undefined,
     iconType: 'icon',
+    onPress: () => {},
+    interactive: true,
 };
 
 const MenuItem = ({
@@ -52,6 +55,7 @@ const MenuItem = ({
     disabled,
     subtitle,
     iconType,
+    interactive,
 }) => (
     <Pressable
         onPress={(e) => {
@@ -63,8 +67,8 @@ const MenuItem = ({
         }}
         style={({hovered, pressed}) => ([
             styles.popoverMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled)),
-            wrapperStyle,
+            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled, interactive)),
+            ..._.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle],
         ])}
         disabled={disabled}
     >
@@ -83,7 +87,7 @@ const MenuItem = ({
                                 width={iconWidth}
                                 height={iconHeight}
                                 fill={iconFill || getIconFillColor(
-                                    getButtonState(focused || hovered, pressed, success, disabled),
+                                    getButtonState(focused || hovered, pressed, success, disabled, interactive),
                                 )}
                             />
                         </View>
@@ -106,7 +110,7 @@ const MenuItem = ({
                             style={[
                                 styles.popoverMenuText,
                                 styles.ml3,
-                                (disabled ? styles.disabledText : undefined),
+                                (interactive && disabled ? styles.disabledText : undefined),
                             ]}
                             numberOfLines={1}
                         >
@@ -134,7 +138,7 @@ const MenuItem = ({
                         <View style={styles.popoverMenuIcon}>
                             <Icon
                                 src={iconRight}
-                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled))}
+                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled, interactive))}
                             />
                         </View>
                     )}

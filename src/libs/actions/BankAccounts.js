@@ -9,7 +9,6 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import Navigation from '../Navigation/Navigation';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -335,14 +334,21 @@ function fetchUserWallet() {
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  *
  * @param {String} [stepToOpen]
+ * @param {String} [localBankAccountState]
  */
-function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     // Remember which account BankAccountStep subStep the user had before so we can set it later
     const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
+    const initialData = {loading: true, error: ''};
+
+    // Some UI needs to know the bank account state during the loading process, so we are keeping it in Onyx if passed
+    if (localBankAccountState) {
+        initialData.achData = {state: localBankAccountState};
+    }
 
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, error: ''});
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, initialData);
     let bankAccountID;
 
     API.Get({
@@ -552,9 +558,10 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * Show error modal and optionally a specific error message
  *
  * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ * @param {Boolean} isErrorModalMessageHtml if @errorModalMessage is in html format or not
  */
-function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorModalMessage});
+function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessageHtml = false) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorModalMessage, isErrorModalMessageHtml});
 }
 
 /**
@@ -567,7 +574,6 @@ function validateBankAccount(bankAccountID, validateCode) {
     API.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
                 Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
@@ -577,12 +583,7 @@ function validateBankAccount(bankAccountID, validateCode) {
                             achData: {state: BankAccount.STATE.OPEN},
                         };
 
-                        if (isUsingExpensifyCard) {
-                            Navigation.dismissModal();
-                        } else {
-                            reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
-                        }
-
+                        reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, reimbursementAccount);
                     });
@@ -681,6 +682,7 @@ function setupWithdrawalAccount(data) {
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            let isErrorHTML = false;
             const errors = {};
 
             if (response.jsonCode === 200 && !error) {
@@ -708,6 +710,7 @@ function setupWithdrawalAccount(data) {
                             // Requestor Step still needs to run Onfido
                             achData.sdkToken = sdkToken;
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                             return;
                         }
                     } else if (requestorResponse) {
@@ -725,6 +728,7 @@ function setupWithdrawalAccount(data) {
                         if (!_.isEmpty(questions)) {
                             achData.questions = questions;
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                             return;
                         }
                     }
@@ -760,7 +764,9 @@ function setupWithdrawalAccount(data) {
                 }
             } else {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
-                    error = response.message;
+                    // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
+                    error = response.htmlMessage || response.message;
+                    isErrorHTML = Boolean(response.htmlMessage);
                 }
 
                 if (response.jsonCode === 402) {
@@ -788,7 +794,7 @@ function setupWithdrawalAccount(data) {
             }
             if (error) {
                 showBankAccountFormValidationError(error);
-                showBankAccountErrorModal(error);
+                showBankAccountErrorModal(error, isErrorHTML);
             }
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
