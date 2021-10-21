@@ -177,7 +177,7 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
 
 ## Accessing Object Properties and Default Values
 
-Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase.
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. (`_.isBoolean(value)` or `_.isEqual(0)`).
 
    ```javascript
    // Bad
