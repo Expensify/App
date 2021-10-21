@@ -1,6 +1,7 @@
 /**
  * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
  */
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
@@ -284,7 +285,7 @@ class AttachmentPicker extends Component {
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
-                             this.menuItemData.map(item => (
+                             _.map(this.menuItemData, item => (
                                  <MenuItem
                                      key={item.textTranslationKey}
                                      icon={item.icon}

@@ -59,11 +59,10 @@ const defaultProps = {
     },
 };
 
-const timezones = moment.tz.names()
-    .map(timezone => ({
-        value: timezone,
-        label: timezone,
-    }));
+const timezones = _.map(moment.tz.names(), timezone => ({
+    value: timezone,
+    label: timezone,
+}));
 
 class ProfilePage extends Component {
     constructor(props) {
@@ -95,7 +94,7 @@ class ProfilePage extends Component {
             logins: this.getLogins(props.user.loginList),
         };
 
-        this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
+        this.pronounDropdownValues = _.map(pronounsList, pronoun => ({value: pronoun, label: pronoun}));
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.getLogins = this.getLogins.bind(this);

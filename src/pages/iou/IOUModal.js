@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
@@ -106,16 +107,15 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
-        const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
-            .map(personalDetails => ({
-                login: personalDetails.login,
-                text: personalDetails.displayName,
-                alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-                icons: [personalDetails.avatar],
-                keyForList: personalDetails.login,
-                payPalMeAddress: personalDetails.payPalMeAddress ?? '',
-                phoneNumber: personalDetails.phoneNumber ?? '',
-            }));
+        const participantsWithDetails = _.map(getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
+            login: personalDetails.login,
+            text: personalDetails.displayName,
+            alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
+            icons: [personalDetails.avatar],
+            keyForList: personalDetails.login,
+            payPalMeAddress: personalDetails.payPalMeAddress ?? '',
+            phoneNumber: personalDetails.phoneNumber ?? '',
+        }));
 
         this.state = {
             currentStepIndex: 0,

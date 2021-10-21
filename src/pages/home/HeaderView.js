@@ -90,7 +90,7 @@ const HeaderView = (props) => {
     const isDefaultChatRoom = isDefaultRoom(props.report);
     const title = isDefaultChatRoom
         ? props.report.reportName
-        : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+        : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
     const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);

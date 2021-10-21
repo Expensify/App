@@ -1,4 +1,5 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
+import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import focusApp from './focusApp';
@@ -107,7 +108,7 @@ export default {
      */
     pushReportCommentNotification({reportAction, onClick}) {
         const {person, message} = reportAction;
-        const plainTextPerson = Str.htmlDecode(person.map(f => f.text).join());
+        const plainTextPerson = Str.htmlDecode(_.map(person, f => f.text).join());
 
         // Specifically target the comment part of the message
         const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);

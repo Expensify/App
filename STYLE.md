@@ -175,6 +175,21 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
     }
     ```
 
+## Object / Array Methods
+
+We have settled on using underscore methods for objects and collections instead of the native Array methods. This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
+
+    ```javascript
+    // Bad
+    myArray.forEach(item => doSomething(item));
+    // Good
+    _.each(myArray, item => doSomething(item));
+    // Bad
+    const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
+    // Good
+    const myArray = _.map(someObject, (value, key) => doSomething(value));
+    ```
+
 ## JSDocs
 - Avoid docs that don't add any additional information.
 - Always document parameters and return values.

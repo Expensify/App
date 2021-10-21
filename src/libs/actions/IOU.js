@@ -108,7 +108,7 @@ function createIOUSplit(params) {
 
     let chatReportID;
     API.CreateChatReport({
-        emailList: params.splits.map(participant => participant.email).join(','),
+        emailList: _.map(params.splits, participant => participant.email).join(','),
     })
         .then((data) => {
             chatReportID = data.reportID;
