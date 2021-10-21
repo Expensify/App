@@ -73,8 +73,13 @@ function pushDrawerRoute(screenName, params, navigationRef) {
         }
 
         const screenRoute = {type: 'route', name: screenName};
-        const history = [...(state.history || [])].map(() => screenRoute);
-        history.push(screenRoute);
+        const history = [...(state.history || [screenRoute])].map(() => screenRoute);
+
+        // Force drawer to close and show the report screen
+        history.push({
+            type: 'drawer',
+            status: 'closed',
+        });
         return CommonActions.reset({
             ...state,
             routes: [{
