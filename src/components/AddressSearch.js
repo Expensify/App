@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
@@ -8,6 +7,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
+import {getAddressComponent, validateAddressComponents} from '../libs/GooglePlacesUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -34,60 +34,25 @@ const defaultProps = {
     containerStyles: null,
 };
 
-const AddressSearch = (props) => {
+export const AddressSearchComponent = (props) => {
     const googlePlacesRef = useRef();
     useEffect(() => {
         googlePlacesRef.current?.setAddressText(props.value);
     }, []);
 
-    // eslint-disable-next-line
-    const getAddressComponent = (object, field, nameType) => {
-        return _.chain(object.address_components)
-            .find(component => _.contains(component.types, field))
-            .get(nameType)
-            .value();
-    };
-
-    const validateAddressComponents = (addressComponents) => {
-        if (!addressComponents) {
-            return false;
-        }
-        if (!_.some(addressComponents, component => _.includes(component.types, 'street_number'))) {
-            // Missing Street number
-            return false;
-        }
-        if (!_.some(addressComponents, component => _.includes(component.types, 'postal_code'))) {
-            // Missing zip code
-            return false;
-        }
-        if (!_.some(addressComponents, component => _.includes(component.types, 'administrative_area_level_1'))) {
-            // Missing state
-            return false;
-        }
-        if (!_.some(addressComponents, component => _.includes(component.types, 'locality'))
-            && !_.some(addressComponents, component => _.includes(component.types, 'sublocality'))) {
-            // Missing city
-            return false;
-        }
-        if (_.some(addressComponents, component => _.includes(component.types, 'post_box'))) {
-            // Reject PO box
-            return false;
-        }
-        return true;
-    };
-
     const saveLocationDetails = (details) => {
-        if (validateAddressComponents(details.address_components)) {
+        const addressComponents = details.address_components;
+        if (validateAddressComponents(addressComponents)) {
             // Gather the values from the Google details
-            const streetNumber = getAddressComponent(details, 'street_number', 'long_name');
-            const streetName = getAddressComponent(details, 'route', 'long_name');
-            let city = getAddressComponent(details, 'locality', 'long_name');
+            const streetNumber = getAddressComponent(addressComponents, 'street_number', 'long_name');
+            const streetName = getAddressComponent(addressComponents, 'route', 'long_name');
+            let city = getAddressComponent(addressComponents, 'locality', 'long_name');
             if (!city) {
-                city = getAddressComponent(details, 'sublocality', 'long_name');
+                city = getAddressComponent(addressComponents, 'sublocality', 'long_name');
                 Log.hmmm('Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
             }
-            const state = getAddressComponent(details, 'administrative_area_level_1', 'short_name');
-            const zipCode = getAddressComponent(details, 'postal_code', 'long_name');
+            const state = getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+            const zipCode = getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
             props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
@@ -98,7 +63,7 @@ const AddressSearch = (props) => {
             // Clear the values associated to the address, so our validations catch the problem
             Log.hmmm('[AddressSearch] Search result failed validation: ', {
                 address: details.formatted_address,
-                address_components: details.address_components,
+                address_components: addressComponents,
                 place_id: details.place_id,
             });
             props.onChangeText('addressStreet', null);
@@ -153,7 +118,7 @@ const AddressSearch = (props) => {
     );
 };
 
-AddressSearch.propTypes = propTypes;
-AddressSearch.defaultProps = defaultProps;
+AddressSearchComponent.propTypes = propTypes;
+AddressSearchComponent.defaultProps = defaultProps;
 
-export default withLocalize(AddressSearch);
+export default withLocalize(AddressSearchComponent);
