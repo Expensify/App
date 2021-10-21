@@ -75,8 +75,8 @@ function getDisplayName(login, personalDetail) {
  */
 function getFirstAndLastNameErrors(firstName, lastName) {
     return {
-        firstName: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
-        lastName: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
+        firstNameError: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
+        lastNameError: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
     };
 }
 

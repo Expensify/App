@@ -192,13 +192,13 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const {firstName, lastName} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
-            firstNameError: firstName,
-            lastNameError: lastName,
+            firstNameError,
+            lastNameError,
         });
-        return _.isEmpty(firstName) && _.isEmpty(lastName);
+        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
     }
 
     render() {
