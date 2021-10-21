@@ -105,6 +105,7 @@ class SidebarLinks extends React.Component {
         }
 
         const didActiveReportChange = this.props.currentlyViewedReportID !== nextProps.currentlyViewedReportID;
+
         // Always re-order the list whenever the active report is changed
         if (didActiveReportChange) {
             return true;
