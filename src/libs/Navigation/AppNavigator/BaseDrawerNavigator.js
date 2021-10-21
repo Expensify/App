@@ -6,6 +6,7 @@ import {View} from 'react-native';
 import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Navigation from '../Navigation';
+import onlyWeb from '../../onlyWeb';
 
 const propTypes = {
     /** Screens to be passed in the Drawer */
@@ -33,13 +34,14 @@ const propTypes = {
 const Drawer = createDrawerNavigator();
 
 const BaseDrawerNavigator = (props) => {
+    const useLegacyImplementation = onlyWeb(() => props.isSmallScreenWidth);
     const content = (
         <Drawer.Navigator
             backBehavior="none"
             defaultStatus={Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={props.drawerContent}
-            useLegacyImplementation={false}
+            useLegacyImplementation={useLegacyImplementation}
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
