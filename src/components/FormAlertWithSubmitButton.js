@@ -16,6 +16,9 @@ const propTypes = {
     /** Whether to show the alert text */
     isAlertVisible: PropTypes.bool.isRequired,
 
+    /** Whether the button is disabled */
+    isDisabled: PropTypes.bool,
+
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
 
@@ -31,22 +34,29 @@ const propTypes = {
     /** Whether message is in html format */
     isMessageHtml: PropTypes.bool,
 
+    /** Styles for container element */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     message: '',
+    isDisabled: false,
     isMessageHtml: false,
+    containerStyles: [],
 };
 
 const FormAlertWithSubmitButton = ({
     isAlertVisible,
+    isDisabled,
     onSubmit,
     buttonText,
     translate,
     onFixTheErrorsLinkPressed,
     message,
     isMessageHtml,
+    containerStyles,
 }) => {
     /**
      * @returns {React.Component}
@@ -91,7 +101,7 @@ const FormAlertWithSubmitButton = ({
     }
 
     return (
-        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...containerStyles]}>
             {isAlertVisible && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Icon src={Exclamation} fill={colors.red} />
@@ -100,9 +110,10 @@ const FormAlertWithSubmitButton = ({
             )}
             <Button
                 success
+                pressOnEnter
                 text={buttonText}
                 onPress={onSubmit}
-                pressOnEnter
+                isDisabled={isDisabled}
             />
         </View>
     );

@@ -129,6 +129,10 @@ export default {
         marginTop: '40%',
     },
 
+    mb0: {
+        marginBottom: 0,
+    },
+
     mb1: {
         marginBottom: 4,
     },

@@ -19,6 +19,7 @@ import Timers from '../Timers';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
 import {getUserDetails} from './User';
+import {isNumericWithSpecialChars} from '../ValidationUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -82,7 +83,7 @@ function signOut() {
     }
     Timing.clearData();
     redirectToSignIn();
-    console.debug('Redirecting to Sign In because signOut() was called');
+    Log.info('Redirecting to Sign In because signOut() was called');
 }
 
 /**
@@ -141,7 +142,11 @@ function fetchAccountDetails(login) {
                     resendValidationLink(login);
                 }
             } else if (response.jsonCode === 402) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('loginForm.error.invalidFormatLogin')});
+                Onyx.merge(ONYXKEYS.ACCOUNT, {
+                    error: isNumericWithSpecialChars(login)
+                        ? translateLocal('messages.errorMessageInvalidPhone')
+                        : translateLocal('loginForm.error.invalidFormatEmailLogin'),
+                });
             } else {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
             }
@@ -194,7 +199,7 @@ function createTemporaryLogin(authToken, encryptedAuthToken, email) {
                     partnerPassword: CONFIG.EXPENSIFY.PARTNER_PASSWORD,
                     doNotRetry: true,
                 })
-                    .catch(console.debug);
+                    .catch(Log.info);
             }
 
             Onyx.merge(ONYXKEYS.CREDENTIALS, {
@@ -343,6 +348,16 @@ function continueSessionFromECom(accountID, validateCode, twoFactorAuthCode) {
 }
 
 /**
+ * Clear the credentials and partial sign in session so the user can taken back to first Login step
+ */
+function clearSignInData() {
+    Onyx.multiSet({
+        [ONYXKEYS.ACCOUNT]: null,
+        [ONYXKEYS.CREDENTIALS]: null,
+    });
+}
+
+/**
  * Put any logic that needs to run when we are signed out here. This can be triggered when the current tab or another tab signs out.
  */
 function cleanupSession() {
@@ -365,5 +380,6 @@ export {
     reopenAccount,
     resendValidationLink,
     resetPassword,
+    clearSignInData,
     cleanupSession,
 };
