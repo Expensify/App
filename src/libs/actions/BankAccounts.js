@@ -813,10 +813,9 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID, workspaceID);
 }
 
-function deleteBankAccount(bankAccountID, password) {
+function deleteBankAccount(bankAccountID) {
     API.DeleteBankAccount({
         bankAccountID,
-        password,
     })
         .then((response) => {
             console.log(response);

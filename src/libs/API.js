@@ -1019,9 +1019,9 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 function DeleteBankAccount(parameters) {
     const commandName = 'DeleteBankAccount';
-    requireParameters(['bankAccountID', 'password'], parameters, commandName);
+    requireParameters(['bankAccountID'], parameters, commandName);
     return Network.post(
-        commandName, {bankAccountID: parameters.bankAccountID, password: parameters.password},
+        commandName, {bankAccountID: parameters.bankAccountID},
     );
 }
 
