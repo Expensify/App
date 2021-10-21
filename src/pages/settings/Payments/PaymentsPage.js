@@ -169,11 +169,11 @@ class PaymentsPage extends React.Component {
         }
     }
 
-    deletePaymentMethod(password) {
+    deletePaymentMethod() {
         if (this.state.selectedPaymentMethodType === 'PayPal.me') {
             NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, null);
         } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
-            deleteBankAccount(password, this.state.selectedPaymentMethod.bankAccountID);
+            deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === 'card') {
             deleteCard(this.state.selectedPaymentMethod.cardID);
         }
@@ -258,12 +258,9 @@ class PaymentsPage extends React.Component {
                         <TouchableOpacity
                             onPress={() => {
                                 this.setState({
-                                    shouldShowPasswordPrompt: true,
                                     shouldShowDefaultDeleteMenu: false,
-                                    passwordButtonText: this.props.translate('common.delete'),
-                                    isDangerousAction: true,
-                                    passwordFormCallback: this.deletePaymentMethod,
                                 });
+                                this.deletePaymentMethod();
                             }}
                             style={[
                                 styles.button,
