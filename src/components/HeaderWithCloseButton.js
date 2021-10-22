@@ -123,4 +123,4 @@ HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
 HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
-export default compose(withLocalize)(HeaderWithCloseButton);
+export default withLocalize(HeaderWithCloseButton);

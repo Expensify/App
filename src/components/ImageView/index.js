@@ -223,6 +223,4 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
-export default compose(
-    withWindowDimensions,
-)(ImageView);
+export default withWindowDimensions(ImageView);

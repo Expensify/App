@@ -98,13 +98,11 @@ class LogInWithShortLivedTokenPage extends Component {
 LogInWithShortLivedTokenPage.propTypes = propTypes;
 LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(LogInWithShortLivedTokenPage);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(LogInWithShortLivedTokenPage);

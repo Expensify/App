@@ -39,4 +39,4 @@ const InboxCallButton = props => (
 InboxCallButton.propTypes = propTypes;
 InboxCallButton.defaultProps = defaultProps;
 InboxCallButton.displayName = 'InboxCallButton';
-export default compose(withLocalize)(InboxCallButton);
+export default withLocalize(InboxCallButton);
