@@ -7,7 +7,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
-import {getAddressComponent, validateAddressComponents} from '../libs/GooglePlacesUtils';
+import {getAddressComponent, isAddressValidForVBA} from '../libs/GooglePlacesUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -42,7 +42,7 @@ const AddressSearch = (props) => {
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
-        if (validateAddressComponents(addressComponents)) {
+        if (isAddressValidForVBA(addressComponents)) {
             // Gather the values from the Google details
             const streetNumber = getAddressComponent(addressComponents, 'street_number', 'long_name');
             const streetName = getAddressComponent(addressComponents, 'route', 'long_name');

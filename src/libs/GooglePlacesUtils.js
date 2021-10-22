@@ -27,7 +27,7 @@ function getAddressComponent(addressComponents, type, key) {
  * @param {Array} addressComponents
  * @returns {Boolean}
  */
-function validateAddressComponents(addressComponents) {
+function isAddressValidForVBA(addressComponents) {
     if (!addressComponents) {
         return false;
     }
@@ -57,5 +57,5 @@ function validateAddressComponents(addressComponents) {
 
 export {
     getAddressComponent,
-    validateAddressComponents,
+    isAddressValidForVBA,
 };

@@ -1,7 +1,7 @@
-import {getAddressComponent, validateAddressComponents} from '../../src/libs/GooglePlacesUtils';
+import {getAddressComponent, isAddressValidForVBA} from '../../src/libs/GooglePlacesUtils';
 
 describe('GooglePlacesUtilsTest', () => {
-    describe('validateAddressComponents', () => {
+    describe('isAddressValidForVBA', () => {
         it('should reject Google Places result with missing street number', () => {
             // This result appears when searching for "25220 Quail Ridge Road, Escondido, CA, 97027"
             const googlePlacesRouteResult = {
@@ -41,7 +41,7 @@ describe('GooglePlacesUtilsTest', () => {
                 place_id: 'EihRdWFpbCBSaWRnZSBSZCwgRXNjb25kaWRvLCBDQSA5MjAyNywgVVNBIi4qLAoUChIJIQBiT7Pz24ARmaXMgCMhqAUSFAoSCXtDwoFe89uAEd_FlncPyNEB',
                 types: ['route'],
             };
-            const isValid = validateAddressComponents(googlePlacesRouteResult.address_components);
+            const isValid = isAddressValidForVBA(googlePlacesRouteResult.address_components);
             expect(isValid).toStrictEqual(false);
         });
 
@@ -100,7 +100,7 @@ describe('GooglePlacesUtilsTest', () => {
                 place_id: 'EiM2NCBOb2xsIFN0LCBCcm9va2x5biwgTlkgMTEyMDYsIFVTQSJQEk4KNAoyCReOha8HXMKJETjOQzBxX7M3Gh4LEO7B7qEBGhQKEgmJzguI-VvCiRFYR8sAAcN5KAwQQCoUChIJH0FG4AZcwokRvrvwkhWA_6A',
                 types: ['street_address'],
             };
-            const isValid = validateAddressComponents(brooklynAddressResult.address_components);
+            const isValid = isAddressValidForVBA(brooklynAddressResult.address_components);
             expect(isValid).toStrictEqual(true);
         });
     });
