@@ -49,7 +49,7 @@ const AddressSearch = (props) => {
             let city = getAddressComponent(addressComponents, 'locality', 'long_name');
             if (!city) {
                 city = getAddressComponent(addressComponents, 'sublocality', 'long_name');
-                Log.hmmm('Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
+                Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
             }
             const state = getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
             const zipCode = getAddressComponent(addressComponents, 'postal_code', 'long_name');
