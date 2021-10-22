@@ -32,6 +32,7 @@ import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
     /** List of betas */
@@ -232,6 +233,7 @@ class ReimbursementAccountPage extends React.Component {
                             achData={this.props.reimbursementAccount.achData}
                         />
                     )}
+                    <WorkspaceResetBankAccountModal />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

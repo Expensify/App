@@ -151,7 +151,7 @@ class AddPlaidBankAccount extends React.Component {
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
-        const {bankIcon, bankIconSize} = getBankIcon(this.state.institution.name);
+        const {icon, iconSize} = getBankIcon(this.state.institution.name);
         return (
             <>
                 {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
@@ -186,9 +186,9 @@ class AddPlaidBankAccount extends React.Component {
                         )}
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
                             <Icon
-                                src={bankIcon}
-                                height={bankIconSize}
-                                width={bankIconSize}
+                                src={icon}
+                                height={iconSize}
+                                width={iconSize}
                             />
                             <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
                         </View>
