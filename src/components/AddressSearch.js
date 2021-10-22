@@ -36,7 +36,11 @@ const defaultProps = {
 const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
     useEffect(() => {
-        googlePlacesRef.current?.setAddressText(props.value);
+        if (!googlePlacesRef.current) {
+            return;
+        }
+
+        googlePlacesRef.current.setAddressText(props.value);
     }, []);
 
     // eslint-disable-next-line

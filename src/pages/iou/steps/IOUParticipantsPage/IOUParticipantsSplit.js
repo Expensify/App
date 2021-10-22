@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -230,7 +231,7 @@ class IOUParticipantsSplit extends Component {
                         forceTextUnreadStyle
                     />
                 </View>
-                {this.props.participants?.length > 0 && (
+                {lodashGet(this.props, 'participants', []).length > 0 && (
                     <FixedFooter>
                         {maxParticipantsReached && (
                             <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>

@@ -72,8 +72,8 @@ class RequestCallPage extends Component {
             firstName,
             firstNameError: '',
             lastName,
+            phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
             lastNameError: '',
-            phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
             phoneNumberError: '',
             isLoading: false,
         };
