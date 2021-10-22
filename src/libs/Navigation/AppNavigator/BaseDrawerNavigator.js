@@ -6,7 +6,7 @@ import {View} from 'react-native';
 import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import Navigation from '../Navigation';
-import ignoreNative from '../../ignoreNative';
+import disableOnNative from '../../disableOnNative';
 
 const propTypes = {
     /** Screens to be passed in the Drawer */
@@ -40,7 +40,7 @@ const BaseDrawerNavigator = (props) => {
             defaultStatus={Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={props.drawerContent}
-            useLegacyImplementation={ignoreNative(props.isSmallScreenWidth)}
+            useLegacyImplementation={disableOnNative(props.isSmallScreenWidth)}
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
