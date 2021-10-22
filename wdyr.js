@@ -2,9 +2,9 @@
 
 import React from 'react';
 import Config from 'react-native-config';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 
-const useWDYR = lodashGet(Config, 'USE_WDYR') === 'true';
+const useWDYR = _.get(Config, 'USE_WDYR') === 'true';
 
 if (useWDYR) {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');

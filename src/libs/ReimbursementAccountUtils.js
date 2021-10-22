@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import lodashUnset from 'lodash/unset';
 import lodashCloneDeep from 'lodash/cloneDeep';
 import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
@@ -13,8 +13,8 @@ import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
  * @returns {*}
  */
 function getDefaultStateForField(props, fieldName, defaultValue = '') {
-    return lodashGet(props, ['reimbursementAccountDraft', fieldName])
-        || lodashGet(props, ['achData', fieldName], defaultValue);
+    return _.get(props, ['reimbursementAccountDraft', fieldName])
+        || _.get(props, ['achData', fieldName], defaultValue);
 }
 
 /**
@@ -22,7 +22,7 @@ function getDefaultStateForField(props, fieldName, defaultValue = '') {
  * @returns {Object}
  */
 function getErrors(props) {
-    return lodashGet(props, ['reimbursementAccount', 'errors'], {});
+    return _.get(props, ['reimbursementAccount', 'errors'], {});
 }
 
 /**
@@ -31,7 +31,7 @@ function getErrors(props) {
  */
 function clearError(props, path) {
     const errors = getErrors(props);
-    if (!lodashGet(errors, path, false)) {
+    if (!_.get(errors, path, false)) {
         // No error found for this path
         return;
     }

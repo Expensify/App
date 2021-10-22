@@ -4,7 +4,6 @@ import {
     Pressable, View, Animated, StyleSheet,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import PopoverMenu from './PopoverMenu';
@@ -113,7 +112,7 @@ class AvatarWithImagePicker extends React.Component {
      * @returns {Boolean}
      */
     isValidSize(image) {
-        return image && lodashGet(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
+        return image && _.get(image, 'size', 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE;
     }
 
     /**

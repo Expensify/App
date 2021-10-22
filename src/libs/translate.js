@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
 import Log from './Log';
@@ -27,20 +27,20 @@ Onyx.connect({
  */
 function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
     const localeLanguage = locale.substring(0, 2);
-    const fullLocale = lodashGet(translations, locale, {});
-    const language = lodashGet(translations, localeLanguage, {});
-    const defaultLanguage = lodashGet(translations, 'en', {});
+    const fullLocale = _.get(translations, locale, {});
+    const language = _.get(translations, localeLanguage, {});
+    const defaultLanguage = _.get(translations, 'en', {});
 
     let translationValue;
 
     // Search phrase in full locale
-    translationValue = lodashGet(fullLocale, phrase);
+    translationValue = _.get(fullLocale, phrase);
     if (translationValue) {
         return Str.result(translationValue, variables);
     }
 
     // Phrase is not found in full locale, search it in language
-    translationValue = lodashGet(language, phrase);
+    translationValue = _.get(language, phrase);
     if (translationValue) {
         return Str.result(translationValue, variables);
     }
@@ -49,7 +49,7 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
     }
 
     // Phrase is not translated, search it in default language (en)
-    translationValue = lodashGet(defaultLanguage, phrase);
+    translationValue = _.get(defaultLanguage, phrase);
     if (translationValue) {
         return Str.result(translationValue, variables);
     }

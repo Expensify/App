@@ -1,5 +1,5 @@
 import {CommonActions, StackActions, DrawerActions} from '@react-navigation/native';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 
 /**
  * Go back to the Main Drawer
@@ -56,7 +56,7 @@ function pushDrawerRoute(screenName, params, navigationRef) {
         // We use our RootState as the dispatch's state is relative to the active navigator and might
         // not contain our active report.
         const rootState = navigationRef.current.getRootState();
-        const activeReportID = lodashGet(rootState, 'routes[0].state.routes[0].params.reportID', '');
+        const activeReportID = _.get(rootState, 'routes[0].state.routes[0].params.reportID', '');
 
         if (activeReportID === params.reportID) {
             if (state.type !== 'drawer') {

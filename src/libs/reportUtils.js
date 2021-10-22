@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST, {EXPENSIFY_EMAILS} from '../CONST';
@@ -59,7 +58,7 @@ function canEditReportAction(reportAction) {
     return reportAction.actorEmail === sessionEmail
         && reportAction.reportActionID
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT
-        && !isReportMessageAttachment(lodashGet(reportAction, ['message', 0, 'text'], ''));
+        && !isReportMessageAttachment(_.get(reportAction, ['message', 0, 'text'], ''));
 }
 
 /**
@@ -88,7 +87,7 @@ function isDefaultRoom(report) {
         CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
-    ], lodashGet(report, ['chatType'], ''));
+    ], _.get(report, ['chatType'], ''));
 }
 
 /**
@@ -140,7 +139,7 @@ function getDefaultRoomSubtitle(report, policiesMap) {
     if (isArchivedRoom(report)) {
         return report.oldPolicyName;
     }
-    return lodashGet(
+    return _.get(
         policiesMap,
         [`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, 'name'],
         'Unknown Policy',
@@ -154,7 +153,7 @@ function getDefaultRoomSubtitle(report, policiesMap) {
  * @returns {Boolean}
  */
 function isConciergeChatReport(report) {
-    return lodashGet(report, 'participants', []).length === 1
+    return _.get(report, 'participants', []).length === 1
         && report.participants[0] === CONST.EMAIL.CONCIERGE;
 }
 

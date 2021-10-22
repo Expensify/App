@@ -2,7 +2,6 @@ import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withNavigationFocus} from '@react-navigation/compat';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -209,9 +208,9 @@ export default compose(
     withOnyx({
         policy: {
             key: (props) => {
-                const routes = lodashGet(props.navigation.getState(), 'routes', []);
+                const routes = _.get(props.navigation.getState(), 'routes', []);
                 const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
-                const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
+                const policyID = _.get(routeWithPolicyIDParam, ['params', 'policyID']);
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
         },

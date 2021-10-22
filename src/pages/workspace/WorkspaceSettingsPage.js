@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -205,7 +204,7 @@ export default compose(
         },
         policy: {
             key: (props) => {
-                const policyID = lodashGet(props, 'route.params.policyID', '');
+                const policyID = _.get(props, 'route.params.policyID', '');
                 return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
             },
         },

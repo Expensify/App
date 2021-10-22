@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import {AppState} from 'react-native';
 import {UrbanAirship, EventType} from 'urbanairship-react-native';
-import lodashGet from 'lodash/get';
 import Log from '../../Log';
 import NotificationType from './NotificationType';
 
@@ -15,7 +14,7 @@ const notificationEventActionMap = {};
  */
 function pushNotificationEventCallback(eventType, notification) {
     const actionMap = notificationEventActionMap[eventType] || {};
-    let payload = lodashGet(notification, 'extras.payload');
+    let payload = _.get(notification, 'extras.payload');
 
     // On Android, some notification payloads are sent as a JSON string rather than an object
     if (_.isString(payload)) {

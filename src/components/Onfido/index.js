@@ -1,5 +1,5 @@
 import './index.css';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -85,7 +85,7 @@ class Onfido extends React.Component {
             showCountrySelection: false,
             onComplete: this.props.onSuccess,
             onError: (error) => {
-                const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
+                const errorMessage = _.get(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
                 this.props.onError(errorMessage);
             },
             onUserExit: this.props.onUserExit,

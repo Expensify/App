@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
@@ -76,7 +75,7 @@ class BeneficialOwnersStep extends React.Component {
      * @returns {Object}
      */
     getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+        return _.get(this.props, ['reimbursementAccount', 'errors'], {});
     }
 
     /**
@@ -244,7 +243,7 @@ class BeneficialOwnersStep extends React.Component {
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
-                                        errors={lodashGet(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
+                                        errors={_.get(this.getErrors(), `beneficialOwnersErrors[${index}]`, {})}
                                     />
                                     {this.state.beneficialOwners.length > 1 && (
                                         <TextLink onPress={() => this.removeBeneficialOwner(owner)}>

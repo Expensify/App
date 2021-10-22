@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import {withNavigationFocus} from '@react-navigation/compat';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
 import moment from 'moment';
@@ -457,12 +456,12 @@ class ReportActionCompose extends React.Component {
         }
 
         // eslint-disable-next-line no-unused-vars
-        const reportParticipants = lodashGet(this.props.report, 'participants', []);
+        const reportParticipants = _.get(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
-        const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const currentUserTimezone = _.get(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const reportRecipientTimezone = _.get(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const shouldShowReportRecipientLocalTime = !hasExpensifyEmails(reportParticipants)
             && !hasMultipleParticipants
             && reportRecipient
@@ -612,7 +611,7 @@ class ReportActionCompose extends React.Component {
                                     onDrop={(e) => {
                                         e.preventDefault();
 
-                                        const file = lodashGet(e, ['dataTransfer', 'files', 0]);
+                                        const file = _.get(e, ['dataTransfer', 'files', 0]);
                                         if (!file) {
                                             return;
                                         }

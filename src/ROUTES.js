@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import {addTrailingForwardSlash} from './libs/Url';
 
 /**
@@ -106,8 +106,8 @@ export default {
 
         const pathSegments = route.split('/');
         return {
-            reportID: lodashGet(pathSegments, 1),
-            isParticipantsRoute: Boolean(lodashGet(pathSegments, 2)),
+            reportID: _.get(pathSegments, 1),
+            isParticipantsRoute: Boolean(_.get(pathSegments, 2)),
         };
     },
 };

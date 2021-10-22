@@ -1,6 +1,6 @@
 import React from 'react';
 import {Pressable, StyleSheet} from 'react-native';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Text from '../../Text';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
@@ -46,7 +46,7 @@ const BaseAnchorForCommentsOnly = ({
                                     CONTEXT_MENU_TYPES.LINK,
                                     event,
                                     href,
-                                    lodashGet(linkRef, 'current'),
+                                    _.get(linkRef, 'current'),
                                 );
                             }
                         }

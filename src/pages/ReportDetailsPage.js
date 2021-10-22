@@ -4,7 +4,6 @@ import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import {View} from 'react-native';
-import lodashGet from 'lodash/get';
 import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
@@ -102,7 +101,7 @@ class ReportDetailsPage extends Component {
 
     render() {
         const defaultRoomSubtitle = getDefaultRoomSubtitle(this.props.report, this.props.policies);
-        const participants = lodashGet(this.props.report, 'participants', []);
+        const participants = _.get(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
             getPersonalDetailsForLogins(participants, this.props.personalDetails),

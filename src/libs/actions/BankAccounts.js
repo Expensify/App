@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
@@ -24,7 +23,7 @@ let reimbursementAccountInSetup = {};
 Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
     callback: (val) => {
-        reimbursementAccountInSetup = lodashGet(val, 'achData', {});
+        reimbursementAccountInSetup = _.get(val, 'achData', {});
     },
 });
 
@@ -195,7 +194,7 @@ function fetchOnfidoToken() {
     Onyx.set(ONYXKEYS.WALLET_ONFIDO, {loading: true});
     API.Wallet_GetOnfidoSDKToken()
         .then((response) => {
-            const apiResult = lodashGet(response, ['requestorIdentityOnfido', 'apiResult'], {});
+            const apiResult = _.get(response, ['requestorIdentityOnfido', 'apiResult'], {});
             Onyx.merge(ONYXKEYS.WALLET_ONFIDO, {
                 applicantID: apiResult.applicantID,
                 sdkToken: apiResult.sdkToken,
@@ -346,7 +345,7 @@ function fetchUserWallet() {
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     // Remember which account BankAccountStep subStep the user had before so we can set it later
-    const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
+    const subStep = _.get(reimbursementAccountInSetup, 'subStep', '');
     const initialData = {loading: true, error: ''};
 
     // Some UI needs to know the bank account state during the loading process, so we are keeping it in Onyx if passed
@@ -364,7 +363,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
         name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
     })
         .then((response) => {
-            bankAccountID = lodashGet(response, ['nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
+            bankAccountID = _.get(response, ['nameValuePairs', CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID,
             ], '');
             const failedValidationAttemptsName = CONST.NVP.FAILED_BANK_ACCOUNT_VALIDATIONS_PREFIX + bankAccountID;
 
@@ -381,16 +380,16 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                 .then(({bankAccountList, nameValuePairs}) => {
                     // Users have a limited amount of attempts to get the validations amounts correct.
                     // Once exceeded, we need to block them from attempting to validate.
-                    const failedValidationAttempts = lodashGet(nameValuePairs, failedValidationAttemptsName, 0);
+                    const failedValidationAttempts = _.get(nameValuePairs, failedValidationAttemptsName, 0);
                     const maxAttemptsReached = failedValidationAttempts > CONST.BANK_ACCOUNT.VERIFICATION_MAX_ATTEMPTS;
 
-                    const kycVerificationsMigration = lodashGet(nameValuePairs, CONST.NVP.KYC_MIGRATION, '');
-                    const throttledDate = lodashGet(nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
+                    const kycVerificationsMigration = _.get(nameValuePairs, CONST.NVP.KYC_MIGRATION, '');
+                    const throttledDate = _.get(nameValuePairs, CONST.NVP.ACH_DATA_THROTTLED, '');
                     const bankAccountJSON = _.find(bankAccountList, account => (
                         account.bankAccountID === bankAccountID
                     ));
                     const bankAccount = bankAccountJSON ? new BankAccount(bankAccountJSON) : null;
-                    const throttledHistoryCount = lodashGet(nameValuePairs, CONST.NVP.BANK_ACCOUNT_GET_THROTTLED, 0);
+                    const throttledHistoryCount = _.get(nameValuePairs, CONST.NVP.BANK_ACCOUNT_GET_THROTTLED, 0);
                     const isPlaidDisabled = throttledHistoryCount > CONST.BANK_ACCOUNT.PLAID.ALLOWED_THROTTLED_COUNT;
 
                     // Next we'll build the achData and save it to Onyx
@@ -429,11 +428,11 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                     // Temporary fix for Onfido flow. Can be removed by nkuoch after Sept 1 2020.
                     // @TODO not sure if we still need this or what this is about, but seems like maybe yes...
                     if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && achData.useOnfido) {
-                        const onfidoResponse = lodashGet(
+                        const onfidoResponse = _.get(
                             achData,
                             CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
                         );
-                        const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
+                        const sdkToken = _.get(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
                         if (sdkToken && !achData.isOnfidoSetupComplete
                             && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
                         ) {
@@ -539,7 +538,7 @@ function getNextStepID(stepID) {
         getIndexByStepID(stepID || reimbursementAccountInSetup.currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
-    return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+    return _.get(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
 }
 
 /**
@@ -688,8 +687,8 @@ function setupWithdrawalAccount(data) {
         .then((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
-            let achData = lodashGet(response, 'achData', {});
-            let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            let achData = _.get(response, 'achData', {});
+            let error = _.get(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
             let isErrorHTML = false;
             const errors = {};
 
@@ -702,16 +701,16 @@ function setupWithdrawalAccount(data) {
                 }
 
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-                    const requestorResponse = lodashGet(
+                    const requestorResponse = _.get(
                         achData,
                         CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ID,
                     );
                     if (newACHData.useOnfido) {
-                        const onfidoResponse = lodashGet(
+                        const onfidoResponse = _.get(
                             achData,
                             CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
                         );
-                        const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
+                        const sdkToken = _.get(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
                         if (sdkToken && !newACHData.isOnfidoSetupComplete
                                 && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
                         ) {
@@ -723,9 +722,9 @@ function setupWithdrawalAccount(data) {
                         }
                     } else if (requestorResponse) {
                         // Don't go to next step if Requestor Step needs to ask some questions
-                        let questions = lodashGet(requestorResponse, CONST.BANK_ACCOUNT.QUESTIONS.QUESTION) || [];
+                        let questions = _.get(requestorResponse, CONST.BANK_ACCOUNT.QUESTIONS.QUESTION) || [];
                         if (_.isEmpty(questions)) {
-                            const differentiatorQuestion = lodashGet(
+                            const differentiatorQuestion = _.get(
                                 requestorResponse,
                                 CONST.BANK_ACCOUNT.QUESTIONS.DIFFERENTIATOR_QUESTION,
                             );
@@ -846,7 +845,7 @@ function cancelResetFreePlanBankAccount() {
  * Reset user's reimbursement account. This will delete the bank account.
  */
 function resetFreePlanBankAccount() {
-    const bankAccountID = lodashGet(reimbursementAccountInSetup, 'bankAccountID');
+    const bankAccountID = _.get(reimbursementAccountInSetup, 'bankAccountID');
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }

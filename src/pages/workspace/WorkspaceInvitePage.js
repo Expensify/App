@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {Pressable, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -99,7 +98,7 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     getExcludedUsers() {
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
+        const policyEmployeeList = _.get(this.props, 'policy.employeeList', []);
         return [...EXPENSIFY_EMAILS, ...policyEmployeeList];
     }
 
@@ -118,7 +117,7 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {String}
      */
     getErrorText() {
-        const errors = lodashGet(this.props.policy, 'errors', {});
+        const errors = _.get(this.props.policy, 'errors', {});
 
         if (errors.noUserSelected) {
             return this.props.translate('workspace.invite.pleaseSelectUser');
@@ -131,7 +130,7 @@ class WorkspaceInvitePage extends React.Component {
      * @returns {Boolean}
      */
     getShouldShowAlertPrompt() {
-        return _.size(lodashGet(this.props.policy, 'errors', {})) > 0 || lodashGet(this.props.policy, 'alertMessage', '').length > 0;
+        return _.size(_.get(this.props.policy, 'errors', {})) > 0 || _.get(this.props.policy, 'alertMessage', '').length > 0;
     }
 
     /**

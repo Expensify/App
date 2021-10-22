@@ -3,7 +3,6 @@ import React from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -74,7 +73,7 @@ const HeaderView = (props) => {
         return null;
     }
 
-    const participants = lodashGet(props.report, 'participants', []);
+    const participants = _.get(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
         getPersonalDetailsForLogins(participants, props.personalDetails),

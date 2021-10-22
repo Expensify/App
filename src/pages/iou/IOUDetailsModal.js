@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import {View, ActivityIndicator, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -90,7 +89,7 @@ class IOUDetailsModal extends Component {
         const paymentOptions = [CONST.IOU.PAYMENT_TYPE.ELSEWHERE];
 
         // Only allow settling via PayPal.me if the submitter has a username set
-        if (lodashGet(props, 'iouReport.submitterPayPalMeAddress')) {
+        if (_.get(props, 'iouReport.submitterPayPalMeAddress')) {
             paymentOptions.push(CONST.IOU.PAYMENT_TYPE.PAYPAL_ME);
         }
 
@@ -142,11 +141,11 @@ class IOUDetailsModal extends Component {
      *
      */
     addVenmoPaymentOptionIfAvailable() {
-        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD) {
+        if (_.get(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD) {
             return;
         }
 
-        const submitterPhoneNumbers = lodashGet(this.props, 'iouReport.submitterPhoneNumbers', []);
+        const submitterPhoneNumbers = _.get(this.props, 'iouReport.submitterPhoneNumbers', []);
         if (_.isEmpty(submitterPhoneNumbers)) {
             return;
         }
@@ -175,7 +174,7 @@ class IOUDetailsModal extends Component {
      * The IOU report currency must be USD.
      */
     addExpensifyPaymentOptionIfAvailable() {
-        if (lodashGet(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD
+        if (_.get(this.props, 'iouReport.currency') !== CONST.CURRENCY.USD
             || !Permissions.canUsePayWithExpensify(this.props.betas)) {
             return;
         }
@@ -188,7 +187,7 @@ class IOUDetailsModal extends Component {
     }
 
     render() {
-        const sessionEmail = lodashGet(this.props.session, 'email', null);
+        const sessionEmail = _.get(this.props.session, 'email', null);
         const reportIsLoading = _.isUndefined(this.props.iouReport);
         const paymentTypeOptions = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {

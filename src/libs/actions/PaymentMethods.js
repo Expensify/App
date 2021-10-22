@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
@@ -26,11 +26,11 @@ function getPaymentMethods() {
         .then((response) => {
             Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
-                [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
-                [ONYXKEYS.CARD_LIST]: lodashGet(response, 'fundList', []),
+                [ONYXKEYS.USER_WALLET]: _.get(response, 'userWallet', {}),
+                [ONYXKEYS.BANK_ACCOUNT_LIST]: _.get(response, 'bankAccountList', []),
+                [ONYXKEYS.CARD_LIST]: _.get(response, 'fundList', []),
                 [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
-                    lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
+                    _.get(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
             });
         });
 }
@@ -67,7 +67,7 @@ function addBillingCard(params) {
                 cardNumber: maskCardNumber(params.cardNumber),
                 cardYear,
                 currency: 'USD',
-                fundID: lodashGet(response, 'fundID', ''),
+                fundID: _.get(response, 'fundID', ''),
             };
             Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);

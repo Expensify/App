@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import Str from 'expensify-common/lib/str';
@@ -48,7 +47,7 @@ class CompanyStep extends React.Component {
 
         this.submit = this.submit.bind(this);
 
-        this.defaultWebsite = lodashGet(props, 'user.isFromPublicDomain', false)
+        this.defaultWebsite = _.get(props, 'user.isFromPublicDomain', false)
             ? 'https://'
             : `https://www.${Str.extractEmailDomain(props.session.email, '')}`;
 

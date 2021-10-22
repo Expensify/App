@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -80,12 +79,12 @@ class ReimbursementAccountPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const currentStep = lodashGet(
+        const currentStep = _.get(
             this.props,
             'reimbursementAccount.achData.currentStep',
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
         );
-        const previousStep = lodashGet(
+        const previousStep = _.get(
             prevProps,
             'reimbursementAccount.achData.currentStep',
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
@@ -106,7 +105,7 @@ class ReimbursementAccountPage extends React.Component {
      * @returns {String}
      */
     getStepToOpenFromRouteParams() {
-        switch (lodashGet(this.props.route, ['params', 'stepToOpen'])) {
+        switch (_.get(this.props.route, ['params', 'stepToOpen'])) {
             case 'new':
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
@@ -158,7 +157,7 @@ class ReimbursementAccountPage extends React.Component {
         // display. We can also specify a specific route to navigate to via route params when the component first
         // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
         // next step.
-        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const achData = _.get(this.props, 'reimbursementAccount.achData', {});
         const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (this.props.reimbursementAccount.loading) {
             const isSubmittingVerificationsData = _.contains([
@@ -184,7 +183,7 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const throttledDate = lodashGet(this.props, 'reimbursementAccount.throttledDate');
+        const throttledDate = _.get(this.props, 'reimbursementAccount.throttledDate');
         if (throttledDate) {
             errorComponent = (
                 <View style={[styles.m5]}>

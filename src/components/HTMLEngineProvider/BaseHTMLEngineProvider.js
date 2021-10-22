@@ -10,7 +10,6 @@ import {
     splitBoxModelStyle,
 } from 'react-native-render-html';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import Config from '../../CONFIG';
 import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
 import fontFamily from '../../styles/fontFamily';
@@ -88,8 +87,8 @@ function AnchorRenderer({tnode, key, style}) {
 
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
-    const parentStyle = lodashGet(tnode, 'parent.styles.nativeTextRet', {});
+    const fileName = _.get(tnode, 'domNode.children[0].data', '');
+    const parentStyle = _.get(tnode, 'parent.styles.nativeTextRet', {});
     const internalExpensifyPath = (htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (htmlAttribs.href.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
 

@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -193,7 +192,7 @@ export default compose(
         transformValue: (drafts, props) => {
             const {reportID, action} = props;
             const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`;
-            return lodashGet(drafts, draftKey, '');
+            return _.get(drafts, draftKey, '');
         },
     }),
 )(ReportActionItem);

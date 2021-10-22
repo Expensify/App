@@ -6,7 +6,6 @@ import {
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import {setPassword, signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
@@ -86,8 +85,8 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
-        const accountID = lodashGet(this.props.route.params, 'accountID', '');
-        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
+        const accountID = _.get(this.props.route.params, 'accountID', '');
+        const validateCode = _.get(this.props.route.params, 'validateCode', '');
         if (!this.state.isFormValid) {
             return;
         }
@@ -112,8 +111,8 @@ class SetPasswordPage extends Component {
                 // If the email is already validated, set the password using the validate code
                 setPassword(
                     this.state.password,
-                    lodashGet(this.props.route, 'params.validateCode', ''),
-                    lodashGet(this.props.route, 'params.accountID', ''),
+                    _.get(this.props.route, 'params.validateCode', ''),
+                    _.get(this.props.route, 'params.accountID', ''),
                 );
             } else {
                 this.setState({

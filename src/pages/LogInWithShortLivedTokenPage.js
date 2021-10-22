@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../ROUTES';
@@ -54,10 +54,10 @@ const defaultProps = {
 
 class LogInWithShortLivedTokenPage extends Component {
     componentDidMount() {
-        const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
-        const email = lodashGet(this.props.route.params, 'email', '');
-        const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-        const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
+        const accountID = parseInt(_.get(this.props.route.params, 'accountID', ''), 10);
+        const email = _.get(this.props.route.params, 'email', '');
+        const shortLivedToken = _.get(this.props.route.params, 'shortLivedToken', '');
+        const encryptedAuthToken = _.get(this.props.route.params, 'encryptedAuthToken', '');
 
         // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
         if (this.props.session.authToken && email === this.props.session.email) {
@@ -68,13 +68,13 @@ class LogInWithShortLivedTokenPage extends Component {
     }
 
     componentDidUpdate() {
-        const email = lodashGet(this.props.route.params, 'email', '');
+        const email = _.get(this.props.route.params, 'email', '');
         if (!this.props.betas || !this.props.session.authToken || email !== this.props.session.email) {
             return;
         }
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
-        const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+        const exitTo = decodeURIComponent(_.get(this.props.route.params, 'exitTo', ''));
         if (exitTo === ROUTES.WORKSPACE_NEW) {
             // New workspace creation is handled in AuthScreens, not in its own screen
             return;

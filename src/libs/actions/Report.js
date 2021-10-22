@@ -1,7 +1,6 @@
 import {Linking} from 'react-native';
 import moment from 'moment';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
@@ -85,7 +84,7 @@ const optimisticReportActionIDs = {};
  * @returns {Boolean}
  */
 function getUnreadActionCount(report) {
-    const lastReadSequenceNumber = lodashGet(report, [
+    const lastReadSequenceNumber = _.get(report, [
         'reportNameValuePairs',
         `lastRead_${currentUserAccountID}`,
         'sequenceNumber',
@@ -155,11 +154,11 @@ function getChatReportName(fullReport, chatType) {
  * @returns {Object}
  */
 function getSimplifiedReportObject(report) {
-    const createTimestamp = lodashGet(report, 'lastActionCreated', 0);
+    const createTimestamp = _.get(report, 'lastActionCreated', 0);
     const lastMessageTimestamp = moment.utc(createTimestamp).unix();
-    const lastActionMessage = lodashGet(report, ['lastActionMessage', 'html'], '');
+    const lastActionMessage = _.get(report, ['lastActionMessage', 'html'], '');
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
-    const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
+    const chatType = _.get(report, ['reportNameValuePairs', 'chatType'], '');
 
     // We are removing any html tags from the message html since we cannot access the text version of any comments as
     // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
@@ -167,28 +166,28 @@ function getSimplifiedReportObject(report) {
     const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
         .replace(/(<([^>]+)>)/gi, '');
-    const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
+    const reportName = _.get(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
-    const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
+    const lastActorEmail = _.get(report, 'lastActionActorEmail', '');
     const notificationPreference = isDefaultRoom({chatType})
-        ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
+        ? _.get(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
     // Used for archived rooms, will store the policy name that the room used to belong to.
-    const oldPolicyName = lodashGet(report, ['reportNameValuePairs', 'oldPolicyName'], '');
+    const oldPolicyName = _.get(report, ['reportNameValuePairs', 'oldPolicyName'], '');
 
     return {
         reportID: report.reportID,
         reportName,
         chatType,
-        ownerEmail: lodashGet(report, ['ownerEmail'], ''),
-        policyID: lodashGet(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
+        ownerEmail: _.get(report, ['ownerEmail'], ''),
+        policyID: _.get(report, ['reportNameValuePairs', 'expensify_policyID'], ''),
         unreadActionCount: getUnreadActionCount(report),
-        maxSequenceNumber: lodashGet(report, 'reportActionCount', 0),
+        maxSequenceNumber: _.get(report, 'reportActionCount', 0),
         participants: getParticipantEmailsFromReport(report),
         isPinned: report.isPinned,
-        lastVisitedTimestamp: lodashGet(report, [
+        lastVisitedTimestamp: _.get(report, [
             'reportNameValuePairs',
             `lastRead_${currentUserAccountID}`,
             'timestamp',
@@ -553,7 +552,7 @@ function updateReportWithNewAction(
         setLocalLastRead(reportID, newMaxSequenceNumber);
     }
 
-    const messageText = lodashGet(reportAction, ['message', 0, 'text'], '');
+    const messageText = _.get(reportAction, ['message', 0, 'text'], '');
 
     // Always merge the reportID into Onyx
     // If the report doesn't exist in Onyx yet, then all the rest of the data will be filled out
@@ -628,13 +627,13 @@ function updateReportWithNewAction(
     }
 
     // If the comment came from Concierge let's not show a notification since we already show one for expensify.com
-    if (lodashGet(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
+    if (_.get(reportAction, 'actorEmail') === CONST.EMAIL.CONCIERGE) {
         return;
     }
 
     // When a new message comes in, if the New marker is not already set (newMarkerSequenceNumber === 0), set the
     // marker above the incoming message.
-    if (lodashGet(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
+    if (_.get(allReports, [reportID, 'newMarkerSequenceNumber'], 0) === 0
         && updatedReportObject.unreadActionCount > 0) {
         const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
         setNewMarkerPosition(reportID, oldestUnreadSeq);

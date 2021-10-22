@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
@@ -87,15 +87,15 @@ class Expensify extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        const previousAccountID = lodashGet(prevProps, 'session.accountID', null);
-        const currentAccountID = lodashGet(this.props, 'session.accountID', null);
+        const previousAccountID = _.get(prevProps, 'session.accountID', null);
+        const currentAccountID = _.get(this.props, 'session.accountID', null);
         if (currentAccountID && (currentAccountID !== previousAccountID)) {
             PushNotification.register(currentAccountID);
         }
 
         // If we previously had no authToken and now have an authToken we'll want to reshow the boot splash screen so
         // that we can remove it again once the content is ready
-        const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
+        const previousAuthToken = _.get(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
             BootSplash.show({fade: true});
         }
@@ -110,7 +110,7 @@ class Expensify extends PureComponent {
     }
 
     getAuthToken() {
-        return lodashGet(this.props, 'session.authToken', null);
+        return _.get(this.props, 'session.authToken', null);
     }
 
     initializeClient() {

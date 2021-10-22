@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Config from 'react-native-config';
 import betaChecker from '../betaChecker';
 import CONST from '../../../CONST';
@@ -17,7 +17,7 @@ function getEnvironment() {
             return resolve(environment);
         }
 
-        if (lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
+        if (_.get(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV) {
             environment = CONST.ENVIRONMENT.DEV;
             return resolve(environment);
         }

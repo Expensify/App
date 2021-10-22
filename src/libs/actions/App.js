@@ -1,6 +1,6 @@
 import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
@@ -12,7 +12,7 @@ let currentUserAccountID;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        currentUserAccountID = lodashGet(val, 'accountID', '');
+        currentUserAccountID = _.get(val, 'accountID', '');
     },
 });
 

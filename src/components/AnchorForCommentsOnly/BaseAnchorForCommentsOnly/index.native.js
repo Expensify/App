@@ -1,5 +1,5 @@
 import React from 'react';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import {Linking, StyleSheet, Pressable} from 'react-native';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
@@ -43,7 +43,7 @@ const BaseAnchorForCommentsOnly = ({
                         CONTEXT_MENU_TYPES.LINK,
                         event,
                         href,
-                        lodashGet(linkRef, 'current'),
+                        _.get(linkRef, 'current'),
                     );
                 }
             }

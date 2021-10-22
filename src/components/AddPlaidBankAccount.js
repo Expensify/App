@@ -5,7 +5,6 @@ import {
     View,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
@@ -116,7 +115,7 @@ class AddPlaidBankAccount extends React.Component {
      * @returns {Object[]}
      */
     getAccounts() {
-        return lodashGet(this.props.plaidBankAccounts, 'accounts', []);
+        return _.get(this.props.plaidBankAccounts, 'accounts', []);
     }
 
     /**
@@ -138,7 +137,7 @@ class AddPlaidBankAccount extends React.Component {
         }
 
         const account = this.getAccounts()[this.state.selectedIndex];
-        const bankName = lodashGet(this.props.plaidBankAccounts, 'bankName');
+        const bankName = _.get(this.props.plaidBankAccounts, 'bankName');
         this.props.onSubmit({
             bankName,
             account,

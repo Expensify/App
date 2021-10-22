@@ -1,4 +1,3 @@
-import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -122,7 +121,7 @@ class ValidationStep extends React.Component {
         const validateCode = [amount1, amount2, amount3].join(',');
 
         // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-        const bankaccountID = lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID');
+        const bankaccountID = _.get(this.props.reimbursementAccount, 'achData.bankAccountID');
         validateBankAccount(bankaccountID, validateCode);
     }
 
@@ -150,14 +149,14 @@ class ValidationStep extends React.Component {
     }
 
     render() {
-        const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
+        const state = _.get(this.props, 'reimbursementAccount.achData.state');
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
         if (state === BankAccount.STATE.OPEN) {
-            return <EnableStep achData={lodashGet(this.props, 'reimbursementAccount.achData')} />;
+            return <EnableStep achData={_.get(this.props, 'reimbursementAccount.achData')} />;
         }
 
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
+        const maxAttemptsReached = _.get(this.props, 'reimbursementAccount.maxAttemptsReached');
         const isVerifying = !maxAttemptsReached && state === BankAccount.STATE.VERIFYING;
 
         return (

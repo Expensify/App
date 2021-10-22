@@ -1,6 +1,5 @@
 import React from 'react';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {
     View, FlatList, TouchableOpacity,
 } from 'react-native';
@@ -251,14 +250,14 @@ class WorkspaceMembersPage extends React.Component {
             Log.info('Not showing workspace people page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
-        const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
+        const policyEmployeeList = _.get(this.props, 'policy.employeeList', []);
         const removableMembers = _.without(this.props.policy.employeeList, this.props.session.email, this.props.policy.owner);
         const data = _.chain(policyEmployeeList)
             .map(email => this.props.personalDetails[email])
             .filter()
             .sortBy(person => person.displayName.toLowerCase())
             .value();
-        const policyID = lodashGet(this.props.route, 'params.policyID');
+        const policyID = _.get(this.props.route, 'params.policyID');
 
         return (
             <ScreenWrapper style={[styles.defaultModalContainer]}>

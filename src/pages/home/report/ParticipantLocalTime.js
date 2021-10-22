@@ -2,7 +2,7 @@ import React, {PureComponent} from 'react';
 import {
     View,
 } from 'react-native';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import moment from 'moment';
 import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
@@ -41,7 +41,7 @@ class ParticipantLocalTime extends PureComponent {
     }
 
     getParticipantLocalTime() {
-        const reportRecipientTimezone = lodashGet(this.props.participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
+        const reportRecipientTimezone = _.get(this.props.participant, 'timezone', CONST.DEFAULT_TIME_ZONE);
         moment.locale(this.props.preferredLocale);
         const reportRecipientDay = moment().tz(reportRecipientTimezone.selected).format('dddd');
         const currentUserDay = moment().tz(this.props.currentUserTimezone.selected).format('dddd');

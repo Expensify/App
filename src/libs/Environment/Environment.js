@@ -1,5 +1,5 @@
 import Config from 'react-native-config';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import CONST from '../../CONST';
 import getEnvironment from './getEnvironment';
 
@@ -9,7 +9,7 @@ import getEnvironment from './getEnvironment';
  * @return {boolean}
  */
 function isDevelopment() {
-    return lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
+    return _.get(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV) === CONST.ENVIRONMENT.DEV;
 }
 
 export {

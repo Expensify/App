@@ -7,7 +7,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Text from '../../../components/Text';
 import {
     fetchActions,
@@ -180,8 +179,8 @@ class ReportActionsView extends React.Component {
 
     componentDidUpdate(prevProps) {
         // The last sequenceNumber of the same report has changed.
-        const previousLastSequenceNumber = lodashGet(lastItem(prevProps.reportActions), 'sequenceNumber');
-        const currentLastSequenceNumber = lodashGet(lastItem(this.props.reportActions), 'sequenceNumber');
+        const previousLastSequenceNumber = _.get(lastItem(prevProps.reportActions), 'sequenceNumber');
+        const currentLastSequenceNumber = _.get(lastItem(this.props.reportActions), 'sequenceNumber');
 
         // Record the max action when window is visible except when Drawer is open on small screen
         const shouldRecordMaxAction = Visibility.isVisible()
@@ -201,7 +200,7 @@ class ReportActionsView extends React.Component {
                 updateLastReadActionID(this.props.reportID);
             }
 
-            if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
+            if (_.get(lastAction, 'actorEmail', '') !== _.get(this.props.session, 'email', '')) {
                 // Only update the unread count when MarkerBadge is visible
                 // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
                 if (this.state.isMarkerActive) {
@@ -304,8 +303,8 @@ class ReportActionsView extends React.Component {
             .filter((action) => {
                 // Only show non-empty ADDCOMMENT actions or IOU actions
                 // Empty ADDCOMMENT actions typically mean they have been deleted and should not be shown
-                const message = _.first(lodashGet(action, 'message', null));
-                const html = lodashGet(message, 'html', '');
+                const message = _.first(_.get(action, 'message', null));
+                const html = _.get(message, 'html', '');
                 return action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU
                     || (action.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT && html !== '');
             })

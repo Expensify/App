@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
 import {formatPersonalDetails} from './PersonalDetails';
@@ -59,8 +58,8 @@ function getSimplifiedPolicyObject(fullPolicy) {
         type: fullPolicy.type,
         owner: fullPolicy.owner,
         outputCurrency: fullPolicy.outputCurrency,
-        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
-        avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
+        employeeList: getSimplifiedEmployeeList(_.get(fullPolicy, 'value.employeeList')),
+        avatarURL: _.get(fullPolicy, 'value.avatarURL', ''),
     };
 }
 
@@ -124,7 +123,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 outputCurrency: response.policy.outputCurrency,
             });
         }).then(() => {
-            const policyID = lodashGet(res, 'policyID');
+            const policyID = _.get(res, 'policyID');
             if (shouldAutomaticallyReroute) {
                 Navigation.dismissModal();
                 Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);

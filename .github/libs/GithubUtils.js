@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
@@ -308,7 +307,7 @@ class GithubUtils {
             repo: EXPENSIFY_CASH_REPO,
             workflow_id: workflow,
         })
-            .then(response => lodashGet(response, 'data.workflow_runs[0].id'));
+            .then(response => _.get(response, 'data.workflow_runs[0].id'));
     }
 
     /**
@@ -386,7 +385,7 @@ class GithubUtils {
      * @returns {Boolean}
      */
     static isAutomatedPullRequest(pullRequest) {
-        return _.isEqual(lodashGet(pullRequest, 'user.login', ''), 'OSBotify');
+        return _.isEqual(_.get(pullRequest, 'user.login', ''), 'OSBotify');
     }
 
     /**
@@ -403,7 +402,7 @@ class GithubUtils {
             per_page: 100,
         })
             .then(events => _.filter(events, event => event.event === 'closed'))
-            .then(closedEvents => lodashGet(_.last(closedEvents), 'actor.login', ''));
+            .then(closedEvents => _.get(_.last(closedEvents), 'actor.login', ''));
     }
 }
 

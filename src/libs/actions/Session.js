@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import redirectToSignIn from './SignInRedirect';
 import * as API from '../API';
@@ -267,7 +266,7 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedA
             getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
         } else {
-            const error = lodashGet(response, 'message', 'Unable to login.');
+            const error = _.get(response, 'message', 'Unable to login.');
             Onyx.merge(ONYXKEYS.ACCOUNT, {error});
         }
     }).finally(() => {

@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {ScrollView, View} from 'react-native';
@@ -29,13 +28,13 @@ const defaultProps = {
 
 class ReimbursementAccountForm extends React.Component {
     render() {
-        const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
-            || lodashGet(this.props, 'reimbursementAccount.errorModalMessage', '').length > 0
+        const isErrorVisible = _.size(_.get(this.props, 'reimbursementAccount.errors', {})) > 0
+            || _.get(this.props, 'reimbursementAccount.errorModalMessage', '').length > 0
 
             // @TODO once all validation errors show in multiples we can remove this check
-            || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
+            || _.get(this.props, 'reimbursementAccount.error', '').length > 0;
 
-        const currentStep = lodashGet(
+        const currentStep = _.get(
             this.props,
             'reimbursementAccount.achData.currentStep',
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,

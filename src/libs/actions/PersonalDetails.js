@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import lodashMerge from 'lodash/merge';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
@@ -52,7 +51,7 @@ function getDisplayName(login, personalDetail) {
     // If we have a number like +15857527441@expensify.sms then let's remove @expensify.sms
     // so that the option looks cleaner in our UI.
     const userLogin = Str.removeSMSDomain(login);
-    const userDetails = personalDetail || lodashGet(personalDetails, login);
+    const userDetails = personalDetail || _.get(personalDetails, login);
 
     if (!userDetails) {
         return userLogin;
@@ -91,12 +90,12 @@ function formatPersonalDetails(personalDetailsList) {
         // Form the details into something that has all the data in an easy to use format.
         const avatar = getAvatar(personalDetailsResponse, login);
         const displayName = getDisplayName(login, personalDetailsResponse);
-        const pronouns = lodashGet(personalDetailsResponse, 'pronouns', '');
-        const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
-        const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
-        const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
-        const payPalMeAddress = lodashGet(personalDetailsResponse, 'expensify_payPalMeAddress', '');
-        const phoneNumber = lodashGet(personalDetailsResponse, 'phoneNumber', '');
+        const pronouns = _.get(personalDetailsResponse, 'pronouns', '');
+        const timezone = _.get(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
+        const firstName = _.get(personalDetailsResponse, 'firstName', '');
+        const lastName = _.get(personalDetailsResponse, 'lastName', '');
+        const payPalMeAddress = _.get(personalDetailsResponse, 'expensify_payPalMeAddress', '');
+        const phoneNumber = _.get(personalDetailsResponse, 'phoneNumber', '');
 
         return {
             ...finalObject,
@@ -139,8 +138,8 @@ function fetchPersonalDetails() {
             myPersonalDetails = allPersonalDetails[currentUserEmail];
 
             // Add the first and last name to the current user's MY_PERSONAL_DETAILS key
-            myPersonalDetails.firstName = lodashGet(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
-            myPersonalDetails.lastName = lodashGet(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
+            myPersonalDetails.firstName = _.get(data.personalDetailsList, [currentUserEmail, 'firstName'], '');
+            myPersonalDetails.lastName = _.get(data.personalDetailsList, [currentUserEmail, 'lastName'], '');
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
@@ -189,7 +188,7 @@ function getFromReportParticipants(reports) {
                         ? report.reportName
                         : _.chain(report.participants)
                             .filter(participant => participant !== currentUserEmail)
-                            .map(participant => lodashGet(
+                            .map(participant => _.get(
                                 formattedPersonalDetails,
                                 [participant, 'displayName'],
                                 participant,

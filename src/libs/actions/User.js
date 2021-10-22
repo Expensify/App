@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {PUBLIC_DOMAINS as COMMON_PUBLIC_DOMAINS} from 'expensify-common/lib/CONST';
@@ -21,9 +20,9 @@ let currentUserAccountID = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
-        sessionAuthToken = lodashGet(val, 'authToken', '');
-        sessionEmail = lodashGet(val, 'email', '');
-        currentUserAccountID = lodashGet(val, 'accountID', '');
+        sessionAuthToken = _.get(val, 'authToken', '');
+        sessionEmail = _.get(val, 'email', '');
+        currentUserAccountID = _.get(val, 'accountID', '');
     },
 });
 
@@ -46,7 +45,7 @@ function changePassword(oldPassword, password) {
     return API.ChangePassword({oldPassword, password})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
+                const error = _.get(response, 'message', 'Unable to change password. Please try again.');
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error});
             }
             return response;
@@ -79,19 +78,19 @@ function getUserDetails() {
         .then((response) => {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
-            const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
-            const validatedStatus = lodashGet(response, 'account.validated', false);
+            const expensifyNewsStatus = _.get(response, 'account.subscribed', true);
+            const validatedStatus = _.get(response, 'account.validated', false);
             Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
 
             // Update the nvp_payPalMeAddress NVP
-            const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
+            const payPalMeAddress = _.get(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
             Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, payPalMeAddress);
 
             // Update the blockedFromConcierge NVP
-            const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
+            const blockedFromConcierge = _.get(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
 
-            const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
+            const preferredSkinTone = _.get(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
         });
@@ -143,7 +142,7 @@ function setSecondaryLogin(login, password) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
         } else {
-            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+            let error = _.get(response, 'message', 'Unable to add secondary login. Please try again.');
 
             // Replace error with a friendlier message
             if (error.includes('already belongs to an existing Expensify account.')) {
@@ -181,11 +180,11 @@ function validateLogin(accountID, validateCode) {
                 getUserDetails();
             } else {
                 // Let the user know we've successfully validated their login
-                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
+                const success = _.get(response, 'message', `Your secondary login ${email} has been validated.`);
                 Onyx.merge(ONYXKEYS.ACCOUNT, {success});
             }
         } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
+            const error = _.get(response, 'message', 'Unable to validate login.');
             Onyx.merge(ONYXKEYS.ACCOUNT, {error});
         }
     }).finally(() => {

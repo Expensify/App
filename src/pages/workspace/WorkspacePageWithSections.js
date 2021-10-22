@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import styles from '../../styles/styles';
 import Navigation from '../../libs/Navigation/Navigation';
 import compose from '../../libs/compose';
@@ -54,15 +54,15 @@ const defaultProps = {
 
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const achState = _.get(this.props.reimbursementAccount, 'achData.state', '');
         fetchFreePlanVerifiedBankAccount('', achState);
     }
 
     render() {
-        const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
+        const achState = _.get(this.props.reimbursementAccount, 'achData.state', '');
         const hasVBA = achState === BankAccount.STATE.OPEN;
-        const isUsingECard = lodashGet(this.props.user, 'isUsingExpensifyCard', false);
-        const policyID = lodashGet(this.props.route, 'params.policyID');
+        const isUsingECard = _.get(this.props.user, 'isUsingExpensifyCard', false);
+        const policyID = _.get(this.props.route, 'params.policyID');
 
         return (
             <ScreenWrapper>

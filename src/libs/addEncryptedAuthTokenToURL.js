@@ -1,11 +1,11 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 
 let encryptedAuthToken = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: session => encryptedAuthToken = lodashGet(session, 'encryptedAuthToken', ''),
+    callback: session => encryptedAuthToken = _.get(session, 'encryptedAuthToken', ''),
 });
 
 /**

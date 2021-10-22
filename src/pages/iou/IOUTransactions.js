@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
@@ -59,14 +58,14 @@ class IOUTransactions extends Component {
 
         const rejectedTransactionIDs = _.chain(actionsForIOUReport)
             .filter(action => _.contains(['cancel', 'decline'], action.originalMessage.type))
-            .map(rejectedAction => lodashGet(rejectedAction, 'originalMessage.IOUTransactionID', ''))
+            .map(rejectedAction => _.get(rejectedAction, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
 
         return _.chain(actionsForIOUReport)
             .filter(action => action.originalMessage.type === 'create')
             .filter(action => !_.contains(rejectedTransactionIDs, action.originalMessage.IOUTransactionID))
-            .map(action => lodashGet(action, 'originalMessage.IOUTransactionID', ''))
+            .map(action => _.get(action, 'originalMessage.IOUTransactionID', ''))
             .compact()
             .value();
     }

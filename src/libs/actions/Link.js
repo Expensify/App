@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import {Linking} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
@@ -12,13 +12,13 @@ import asyncOpenURL from '../asyncOpenURL';
 let isNetworkOffline = false;
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: val => isNetworkOffline = lodashGet(val, 'isOffline', false),
+    callback: val => isNetworkOffline = _.get(val, 'isOffline', false),
 });
 
 let currentUserEmail;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = lodashGet(val, 'email', ''),
+    callback: val => currentUserEmail = _.get(val, 'email', ''),
 });
 
 /**

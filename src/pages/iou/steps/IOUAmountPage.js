@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
 import BigNumberPad from '../../../components/BigNumberPad';
@@ -179,7 +179,7 @@ class IOUAmountPage extends React.Component {
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
                         <Text style={styles.iouAmountText}>
-                            {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
+                            {_.get(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
                         </Text>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth

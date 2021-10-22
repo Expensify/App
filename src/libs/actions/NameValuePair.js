@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import * as API from '../API';
 
 /**
@@ -16,7 +15,7 @@ function get(name, onyxKey, defaultValue) {
         name,
     })
         .then((response) => {
-            const value = lodashGet(response.nameValuePairs, [name], defaultValue || '');
+            const value = _.get(response.nameValuePairs, [name], defaultValue || '');
             Onyx.set(onyxKey, value);
         });
 }

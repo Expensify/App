@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 
 import FullScreenLoadingIndicator from '../../../components/FullscreenLoadingIndicator';
@@ -41,7 +41,7 @@ const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
     const last = findLastAccessedReport(reports, ignoreDefaultRooms);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
-    const reportID = lodashGet(last, 'reportID', '');
+    const reportID = _.get(last, 'reportID', '');
     return {reportID: String(reportID)};
 };
 

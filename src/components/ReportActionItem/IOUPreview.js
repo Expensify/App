@@ -8,7 +8,6 @@ import {
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
@@ -93,7 +92,7 @@ const IOUPreview = ({
         return null;
     }
 
-    const sessionEmail = lodashGet(session, 'email', null);
+    const sessionEmail = _.get(session, 'email', null);
     const managerEmail = iouReport.managerEmail || '';
     const ownerEmail = iouReport.ownerEmail || '';
 
@@ -105,11 +104,11 @@ const IOUPreview = ({
         fetchIOUReportByID(iouReportID, chatReportID);
     }
 
-    const managerName = lodashGet(personalDetails, [managerEmail, 'firstName'], '')
+    const managerName = _.get(personalDetails, [managerEmail, 'firstName'], '')
                         || Str.removeSMSDomain(managerEmail);
-    const ownerName = lodashGet(personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = lodashGet(personalDetails, [managerEmail, 'avatar'], '');
-    const ownerAvatar = lodashGet(personalDetails, [ownerEmail, 'avatar'], '');
+    const ownerName = _.get(personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
+    const managerAvatar = _.get(personalDetails, [managerEmail, 'avatar'], '');
+    const ownerAvatar = _.get(personalDetails, [ownerEmail, 'avatar'], '');
     const cachedTotal = iouReport.cachedTotal ? iouReport.cachedTotal.replace(/[()]/g, '') : '';
     return (
         <TouchableWithoutFeedback onPress={onPreviewPressed}>

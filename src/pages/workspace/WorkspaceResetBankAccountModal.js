@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
@@ -30,8 +29,8 @@ const defaultProps = {
 };
 
 const WorkspaceResetBankAccountModal = (props) => {
-    const isInOpenState = lodashGet(props.reimbursementAccount, 'achData.state') === BankAccount.STATE.OPEN;
-    const bankAccountID = lodashGet(props.reimbursementAccount, 'achData.bankAccountID');
+    const isInOpenState = _.get(props.reimbursementAccount, 'achData.state') === BankAccount.STATE.OPEN;
+    const bankAccountID = _.get(props.reimbursementAccount, 'achData.bankAccountID');
     const account = _.find(props.bankAccountList, bankAccount => bankAccount.bankAccountID === bankAccountID);
     const bankShortName = account ? `${account.addressName} ${account.accountNumber.slice(-4)}` : '';
     return (
@@ -52,7 +51,7 @@ const WorkspaceResetBankAccountModal = (props) => {
             onCancel={cancelResetFreePlanBankAccount}
             onConfirm={() => resetFreePlanBankAccount()}
             shouldShowCancelButton
-            isVisible={lodashGet(props.reimbursementAccount, 'shouldShowResetModal', false)}
+            isVisible={_.get(props.reimbursementAccount, 'shouldShowResetModal', false)}
         />
     );
 };

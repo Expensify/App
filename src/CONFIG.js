@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import {Platform} from 'react-native';
 import Config from 'react-native-config';
 import getPlatform from './libs/getPlatform/index';
@@ -6,16 +6,16 @@ import {addTrailingForwardSlash} from './libs/Url';
 import CONST from './CONST';
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
-const ENVIRONMENT = lodashGet(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const expensifyCashURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com/'));
-const expensifyURL = addTrailingForwardSlash(lodashGet(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
-const ngrokURL = addTrailingForwardSlash(lodashGet(Config, 'NGROK_URL', ''));
-const secureNgrokURL = addTrailingForwardSlash(lodashGet(Config, 'SECURE_NGROK_URL', ''));
-const expensifyURLSecure = addTrailingForwardSlash(lodashGet(
+const ENVIRONMENT = _.get(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
+const expensifyCashURL = addTrailingForwardSlash(_.get(Config, 'EXPENSIFY_URL_CASH', 'https://new.expensify.com/'));
+const expensifyURL = addTrailingForwardSlash(_.get(Config, 'EXPENSIFY_URL_COM', 'https://www.expensify.com/'));
+const ngrokURL = addTrailingForwardSlash(_.get(Config, 'NGROK_URL', ''));
+const secureNgrokURL = addTrailingForwardSlash(_.get(Config, 'SECURE_NGROK_URL', ''));
+const expensifyURLSecure = addTrailingForwardSlash(_.get(
     Config, 'EXPENSIFY_URL_SECURE', 'https://secure.expensify.com/',
 ));
-const useNgrok = lodashGet(Config, 'USE_NGROK', 'false') === 'true';
-const useWebProxy = lodashGet(Config, 'USE_WEB_PROXY', 'true') === 'true';
+const useNgrok = _.get(Config, 'USE_NGROK', 'false') === 'true';
+const useWebProxy = _.get(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
 
 // Throw errors on dev if config variables are not set correctly
@@ -45,13 +45,13 @@ export default {
         URL_EXPENSIFY_SECURE: secureURLRoot,
         URL_EXPENSIFY_CASH: expensifyCashURL,
         URL_API_ROOT: expensifyURLRoot,
-        PARTNER_NAME: lodashGet(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
-        PARTNER_PASSWORD: lodashGet(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
+        PARTNER_NAME: _.get(Config, 'EXPENSIFY_PARTNER_NAME', 'chat-expensify-com'),
+        PARTNER_PASSWORD: _.get(Config, 'EXPENSIFY_PARTNER_PASSWORD', 'e21965746fd75f82bb66'),
         EXPENSIFY_CASH_REFERER: 'ecash',
     },
     IS_IN_PRODUCTION: Platform.OS === 'web' ? process.env.NODE_ENV === 'production' : !__DEV__,
     PUSHER: {
-        APP_KEY: lodashGet(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
+        APP_KEY: _.get(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
         CLUSTER: 'mt1',
     },
     SITE_TITLE: 'New Expensify',
@@ -59,6 +59,6 @@ export default {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
     },
-    CAPTURE_METRICS: lodashGet(Config, 'CAPTURE_METRICS', 'false') === 'true',
-    ONYX_METRICS: lodashGet(Config, 'ONYX_METRICS', 'false') === 'true',
+    CAPTURE_METRICS: _.get(Config, 'CAPTURE_METRICS', 'false') === 'true',
+    ONYX_METRICS: _.get(Config, 'ONYX_METRICS', 'false') === 'true',
 };

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import IOUAmountPage from './steps/IOUAmountPage';
@@ -105,7 +105,7 @@ class IOUModal extends Component {
         this.addParticipants = this.addParticipants.bind(this);
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
-        const participants = lodashGet(props, 'report.participants', []);
+        const participants = _.get(props, 'report.participants', []);
         const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
             .map(personalDetails => ({
                 login: personalDetails.login,
@@ -239,7 +239,7 @@ class IOUModal extends Component {
      * @param {Array} [splits]
      */
     createTransaction(splits) {
-        const reportID = lodashGet(this.props, 'route.params.reportID', '');
+        const reportID = _.get(this.props, 'route.params.reportID', '');
 
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
@@ -279,7 +279,7 @@ class IOUModal extends Component {
 
     render() {
         const currentStep = this.steps[this.state.currentStepIndex];
-        const reportID = lodashGet(this.props, 'route.params.reportID', '');
+        const reportID = _.get(this.props, 'route.params.reportID', '');
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
@@ -377,7 +377,7 @@ export default compose(
     withLocalize,
     withOnyx({
         report: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${lodashGet(route, 'params.reportID', '')}`,
+            key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${_.get(route, 'params.reportID', '')}`,
         },
         iousReport: {
             key: ONYXKEYS.COLLECTION.REPORT_IOUS,

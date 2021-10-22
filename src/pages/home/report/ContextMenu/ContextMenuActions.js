@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import {
     Clipboard as ClipboardIcon, LinkCopy, Mail, Pencil, Trashcan, Checkmark,
@@ -18,8 +17,8 @@ import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
  * @return {String}
  */
 function getActionText(reportAction) {
-    const message = _.last(lodashGet(reportAction, 'message', null));
-    return lodashGet(message, 'html', '');
+    const message = _.last(_.get(reportAction, 'message', null));
+    return _.get(message, 'html', '');
 }
 
 export const CONTEXT_MENU_TYPES = {
@@ -51,9 +50,9 @@ export default [
         // `ContextMenuItem` with `successText` and `successIcon` which will fallback to
         // the `text` and `icon`
         onPress: (closePopover, {reportAction, selection}) => {
-            const message = _.last(lodashGet(reportAction, 'message', null));
-            const html = lodashGet(message, 'html', '');
-            const text = Str.htmlDecode(selection || lodashGet(message, 'text', ''));
+            const message = _.last(_.get(reportAction, 'message', null));
+            const html = _.get(message, 'html', '');
+            const text = Str.htmlDecode(selection || _.get(message, 'text', ''));
             const isAttachment = _.has(reportAction, 'isAttachment')
                 ? reportAction.isAttachment
                 : isReportMessageAttachment(text);

@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -70,8 +69,8 @@ class SidebarScreen extends Component {
             if (this.props.isFirstTimeNewExpensifyUser) {
                 // If we are rendering the SidebarScreen at the same time as a workspace route that means we've already created a workspace via workspace/new and should not open the global
                 // create menu right now.
-                const routes = lodashGet(this.props.navigation.getState(), 'routes', []);
-                const topRouteName = lodashGet(_.last(routes), 'name', '');
+                const routes = _.get(this.props.navigation.getState(), 'routes', []);
+                const topRouteName = _.get(_.last(routes), 'name', '');
                 const isDisplayingWorkspaceRoute = topRouteName.toLowerCase().includes('workspace');
 
                 // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does

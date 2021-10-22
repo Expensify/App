@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import lodashTrim from 'lodash/trim';
 import lodashIncludes from 'lodash/includes';
 import lodashStartsWith from 'lodash/startsWith';
@@ -15,7 +15,7 @@ import translations from '../languages/translations';
 function toLocalPhone(locale, number) {
     const numString = lodashTrim(number);
     const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
-    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
+    const country = _.get(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
         if (lodashStartsWith(withoutPlusNum, country)) {
@@ -36,7 +36,7 @@ function toLocalPhone(locale, number) {
 function fromLocalPhone(locale, number) {
     const numString = lodashTrim(number);
     const withoutPlusNum = lodashIncludes(numString, '+') ? Str.cutBefore(numString, '+') : numString;
-    const country = lodashGet(translations, [locale, 'phoneCountryCode']);
+    const country = _.get(translations, [locale, 'phoneCountryCode']);
 
     if (country) {
         if (lodashStartsWith(withoutPlusNum, country)) {

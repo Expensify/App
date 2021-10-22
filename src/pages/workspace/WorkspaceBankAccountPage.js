@@ -1,4 +1,4 @@
-import lodashGet from 'lodash/get';
+import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -67,8 +67,8 @@ class WorkspaceBankAccountPage extends React.Component {
      * @returns {Boolean}
      */
     getShouldShowPage() {
-        const state = lodashGet(this.props.reimbursementAccount, 'achData.state');
-        return lodashGet(this.props.reimbursementAccount, 'achData.bankAccountID') && state !== BankAccount.STATE.OPEN;
+        const state = _.get(this.props.reimbursementAccount, 'achData.state');
+        return _.get(this.props.reimbursementAccount, 'achData.bankAccountID') && state !== BankAccount.STATE.OPEN;
     }
 
     /**

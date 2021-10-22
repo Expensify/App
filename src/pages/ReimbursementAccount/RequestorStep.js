@@ -1,5 +1,4 @@
 import React from 'react';
-import lodashGet from 'lodash/get';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
@@ -59,8 +58,8 @@ class RequestorStep extends React.Component {
             dob: getDefaultStateForField(props, 'dob'),
             ssnLast4: getDefaultStateForField(props, 'ssnLast4'),
             isControllingOfficer: getDefaultStateForField(props, 'isControllingOfficer', false),
-            onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
-            isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
+            onfidoData: _.get(props, ['achData', 'onfidoData'], ''),
+            isOnfidoSetupComplete: _.get(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
         // Required fields not validated by `validateIdentity`
@@ -98,7 +97,7 @@ class RequestorStep extends React.Component {
             addressState: 'requestorAddressState',
             addressZipCode: 'requestorAddressZipCode',
         };
-        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+        const renamedInputKey = _.get(renamedFields, inputKey, inputKey);
         const newState = {[renamedInputKey]: value};
         this.setState(newState);
         updateReimbursementAccountDraft(newState);

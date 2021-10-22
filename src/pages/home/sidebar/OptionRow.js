@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import React, {memo} from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -127,7 +126,7 @@ const OptionRow = ({
         ? hoverStyle.backgroundColor
         : backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
+    const isMultipleParticipant = _.get(option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users causing

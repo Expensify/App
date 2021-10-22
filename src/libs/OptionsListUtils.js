@@ -1,7 +1,6 @@
 /* eslint-disable no-continue */
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
@@ -196,11 +195,11 @@ function createOption(personalDetailList, report, draftComments, {
     const personalDetail = personalDetailList[0];
     const reportDraftComment = report
         && draftComments
-        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
+        && _.get(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
 
-    const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
+    const hasOutstandingIOU = _.get(report, 'hasOutstandingIOU', false);
     const iouReport = hasOutstandingIOU
-        ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
+        ? _.get(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
         : {};
 
     const lastActorDetails = report ? _.find(personalDetailList, {login: report.lastActorEmail}) : null;
@@ -211,12 +210,12 @@ function createOption(personalDetailList, report, draftComments, {
         + Str.htmlDecode(report.lastMessageText)
         : '';
 
-    const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
+    const tooltipText = getReportParticipantsTitle(_.get(report, ['participants'], []));
 
     let text;
     let alternateText;
     if (isDefaultChatRoom) {
-        text = lodashGet(report, ['reportName'], '');
+        text = _.get(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
             : getDefaultRoomSubtitle(report, policies);
@@ -225,7 +224,7 @@ function createOption(personalDetailList, report, draftComments, {
             ? personalDetailList
                 .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
                 .join(', ')
-            : lodashGet(report, ['reportName'], personalDetail.displayName);
+            : _.get(report, ['reportName'], personalDetail.displayName);
         alternateText = (showChatPreviewLine && lastMessageText)
             ? lastMessageText
             : Str.removeSMSDomain(personalDetail.login);
@@ -233,7 +232,7 @@ function createOption(personalDetailList, report, draftComments, {
     return {
         text,
         alternateText,
-        icons: lodashGet(report, 'icons', [personalDetail.avatar]),
+        icons: _.get(report, 'icons', [personalDetail.avatar]),
         tooltipText,
         participantsList: personalDetailList,
 
@@ -247,11 +246,11 @@ function createOption(personalDetailList, report, draftComments, {
         hasDraftComment: _.size(reportDraftComment) > 0,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
-        isPinned: lodashGet(report, 'isPinned', false),
+        isPinned: _.get(report, 'isPinned', false),
         hasOutstandingIOU,
-        iouReportID: lodashGet(report, 'iouReportID'),
-        isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
-        iouReportAmount: lodashGet(iouReport, 'total', 0),
+        iouReportID: _.get(report, 'iouReportID'),
+        isIOUReportOwner: _.get(iouReport, 'ownerEmail', '') === currentUserLogin,
+        iouReportAmount: _.get(iouReport, 'total', 0),
         isDefaultChatRoom,
         isArchivedRoom: isArchivedRoom(report),
     };
@@ -359,7 +358,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
     const allReportOptions = [];
     _.each(orderedReports, (report) => {
-        const logins = lodashGet(report, ['participants'], []);
+        const logins = _.get(report, ['participants'], []);
 
         // Report data can sometimes be incomplete. If we have no logins or reportID then we will skip this entry.
         if (!report || !report.reportID || _.isEmpty(logins)) {
@@ -368,9 +367,9 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
 
         const reportDraftComment = report
             && draftComments
-            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
-        const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
-            ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
+            && _.get(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
+        const iouReportOwner = _.get(report, 'hasOutstandingIOU', false)
+            ? _.get(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
             : '';
 
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
@@ -733,8 +732,8 @@ function getReportIcons(report, personalDetails) {
         return [''];
     }
     return _.map(report.participants, dmParticipant => ({
-        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
-        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+        firstName: _.get(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: _.get(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
             || getDefaultAvatar(dmParticipant),
     }))
         .sort((first, second) => first.firstName - second.firstName)

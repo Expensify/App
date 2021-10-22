@@ -5,7 +5,6 @@ import Onyx, {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
@@ -71,7 +70,7 @@ Onyx.connect({
             return;
         }
 
-        const timezone = lodashGet(val, 'timezone', {});
+        const timezone = _.get(val, 'timezone', {});
         const currentTimezone = moment.tz.guess(true);
 
         // If the current timezone is different than the user's timezone, and their timezone is set to automatic
@@ -146,7 +145,7 @@ class AuthScreens extends React.Component {
             returnValueList: 'nameValuePairs',
             nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
         }).then((response) => {
-            const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
+            const preferredLocale = _.get(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
             if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
                 setLocale(currentPreferredLocale);
             } else {

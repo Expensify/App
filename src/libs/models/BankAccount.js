@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -169,7 +168,7 @@ class BankAccount {
      * @return {*|String}
      */
     getDateSigned() {
-        return lodashGet(this.json, ['additionalData', 'dateSigned']) || '';
+        return _.get(this.json, ['additionalData', 'dateSigned']) || '';
     }
 
     /**
@@ -220,7 +219,7 @@ class BankAccount {
      * @returns {string}
      */
     getCountry() {
-        return lodashGet(this.json, ['additionalData', 'country'], CONST.COUNTRY.US);
+        return _.get(this.json, ['additionalData', 'country'], CONST.COUNTRY.US);
     }
 
     /**
@@ -228,7 +227,7 @@ class BankAccount {
      * @returns {String}
      */
     getCurrency() {
-        return lodashGet(this.json, ['additionalData', 'currency'], 'USD');
+        return _.get(this.json, ['additionalData', 'currency'], 'USD');
     }
 
     /**
@@ -236,7 +235,7 @@ class BankAccount {
      * @returns {String}
      */
     getBankName() {
-        return lodashGet(this.json, ['additionalData', 'bankName'], lodashGet(this.json, 'bankName'));
+        return _.get(this.json, ['additionalData', 'bankName'], _.get(this.json, 'bankName'));
     }
 
     /**
@@ -244,7 +243,7 @@ class BankAccount {
      * @returns {Boolean}
      */
     hasInternationalWireDetails() {
-        return lodashGet(this.json, ['additionalData', 'fieldsType'], 'local') === 'international';
+        return _.get(this.json, ['additionalData', 'fieldsType'], 'local') === 'international';
     }
 
     /**
@@ -288,27 +287,27 @@ class BankAccount {
      * @return {Boolean}
      */
     needsToPassLatestChecks() {
-        if (!lodashGet(this.json, ['additionalData', 'hasFullSSN'])) {
+        if (!_.get(this.json, ['additionalData', 'hasFullSSN'])) {
             return true;
         }
 
-        const beneficialOwners = lodashGet(this.json, ['additionalData', 'beneficialOwners']);
+        const beneficialOwners = _.get(this.json, ['additionalData', 'beneficialOwners']);
         if (!beneficialOwners) {
             return true;
         }
 
-        const city = lodashGet(this.json, ['additionalData', 'requestorAddressCity']);
+        const city = _.get(this.json, ['additionalData', 'requestorAddressCity']);
         if (!city) {
             return true;
         }
 
         if (_.isArray(beneficialOwners)) {
             const hasBeneficialOwnerError = _.any(beneficialOwners, (beneficialOwner) => {
-                const hasFullSSN = lodashGet(beneficialOwner, 'hasFullSSN')
-                    || !_.isEmpty(lodashGet(beneficialOwner, 'ssn'));
-                return !lodashGet(beneficialOwner, 'isRequestor')
-                    && (lodashGet(beneficialOwner, ['expectIDPA', 'status']) !== 'pass'
-                        || !lodashGet(beneficialOwner, 'city') || !hasFullSSN
+                const hasFullSSN = _.get(beneficialOwner, 'hasFullSSN')
+                    || !_.isEmpty(_.get(beneficialOwner, 'ssn'));
+                return !_.get(beneficialOwner, 'isRequestor')
+                    && (_.get(beneficialOwner, ['expectIDPA', 'status']) !== 'pass'
+                        || !_.get(beneficialOwner, 'city') || !hasFullSSN
                     );
             });
             if (hasBeneficialOwnerError) {
@@ -317,7 +316,7 @@ class BankAccount {
         }
 
         return _.any(['realSearchResult', 'lexisNexisInstantIDResult', 'requestorIdentityID'], field => (
-            lodashGet(this.json, [
+            _.get(this.json, [
                 'additionalData', 'verifications', 'externalApiResponses', field, 'status',
             ]) !== 'pass'
         ));

@@ -1,5 +1,4 @@
 import _ from 'underscore';
-import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
@@ -126,9 +125,9 @@ function canMakeRequest(request) {
  * @return {Boolean}
  */
 function canRetryRequest(request) {
-    const doNotRetry = lodashGet(request, 'data.doNotRetry', false);
+    const doNotRetry = _.get(request, 'data.doNotRetry', false);
     const logParams = {command: request.command, doNotRetry, isQueuePaused};
-    const returnValueList = lodashGet(request, 'data.returnValueList');
+    const returnValueList = _.get(request, 'data.returnValueList');
     if (returnValueList) {
         logParams.returnValueList = returnValueList;
     }

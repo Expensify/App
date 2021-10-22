@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import {
     View, Pressable, ActivityIndicator,
 } from 'react-native';
@@ -67,8 +66,8 @@ class ReportTransaction extends Component {
      * @returns {boolean} Returns `true` if current IOUtransactionID is being rejected, else `false`.
      */
     isBeingRejected() {
-        const IOUTransactionID = lodashGet(this.props.action, 'originalMessage.IOUTransactionID', '');
-        const transactionsBeingRejected = lodashGet(this.props, 'transactionsBeingRejected', {});
+        const IOUTransactionID = _.get(this.props.action, 'originalMessage.IOUTransactionID', '');
+        const transactionsBeingRejected = _.get(this.props, 'transactionsBeingRejected', {});
         if (_.isEmpty(transactionsBeingRejected)) {
             return false;
         }
