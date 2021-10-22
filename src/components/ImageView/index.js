@@ -6,7 +6,6 @@ import {
 import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /** URL to full-sized image */

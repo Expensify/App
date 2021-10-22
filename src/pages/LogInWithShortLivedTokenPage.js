@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../ROUTES';
-import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
