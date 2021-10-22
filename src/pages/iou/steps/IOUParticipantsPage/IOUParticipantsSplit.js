@@ -7,7 +7,7 @@ import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
 import {getHeaderMessage, getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
-import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
@@ -72,7 +72,7 @@ class IOUParticipantsSplit extends Component {
             props.betas,
             '',
             props.participants,
-            EXCLUDED_IOU_EMAILS,
+            EXPENSIFY_EMAILS,
         );
 
         this.state = {
@@ -173,7 +173,7 @@ class IOUParticipantsSplit extends Component {
                 this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                EXCLUDED_IOU_EMAILS,
+                EXPENSIFY_EMAILS,
             );
             return {
                 recentReports,
@@ -215,7 +215,7 @@ class IOUParticipantsSplit extends Component {
                                 this.props.betas,
                                 searchValue,
                                 [],
-                                EXCLUDED_IOU_EMAILS,
+                                EXPENSIFY_EMAILS,
                             );
                             this.setState({
                                 searchValue,

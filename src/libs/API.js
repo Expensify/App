@@ -994,6 +994,18 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {Number} parameters.bankAccountID
+ * @param {String} parameters.ownerEmail
+ * @returns {Promise}
+ */
+function DeleteBankAccount(parameters) {
+    const commandName = 'DeleteBankAccount';
+    requireParameters(['bankAccountID', 'ownerEmail'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String[]} data
  * @returns {Promise}
  */
@@ -1106,6 +1118,7 @@ export {
     CreateChatReport,
     CreateLogin,
     DeleteLogin,
+    DeleteBankAccount,
     Get,
     GetAccountStatus,
     GetShortLivedAuthToken,
