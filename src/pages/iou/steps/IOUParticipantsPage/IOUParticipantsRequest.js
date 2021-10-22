@@ -7,7 +7,7 @@ import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
+import {EXPENSIFY_EMAILS} from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const propTypes = {
@@ -48,7 +48,7 @@ class IOUParticipantsRequest extends Component {
             props.betas,
             '',
             [],
-            EXCLUDED_IOU_EMAILS,
+            EXPENSIFY_EMAILS,
         );
 
         this.state = {
@@ -126,7 +126,7 @@ class IOUParticipantsRequest extends Component {
                         this.props.betas,
                         searchValue,
                         [],
-                        EXCLUDED_IOU_EMAILS,
+                        EXPENSIFY_EMAILS,
                     );
                     this.setState({
                         searchValue,

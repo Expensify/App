@@ -9,7 +9,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
 import KeyboardSpacer from '../components/KeyboardSpacer';
-import CONST, {EXCLUDED_GROUP_EMAILS} from '../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -60,6 +60,11 @@ class NewChatPage extends Component {
         this.createGroup = this.createGroup.bind(this);
         this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
         this.createNewChat = this.createNewChat.bind(this);
+        this.excludedGroupEmails = _.without(EXPENSIFY_EMAILS, [
+            CONST.EMAIL.CONCIERGE,
+            CONST.EMAIL.RECEIPTS,
+            CONST.EMAIL.INTEGRATION_TESTING_CREDS,
+        ]);
 
         const {
             recentReports,
@@ -71,7 +76,7 @@ class NewChatPage extends Component {
             props.betas,
             '',
             [],
-            this.props.isGroupChat ? EXCLUDED_GROUP_EMAILS : [],
+            this.props.isGroupChat ? this.excludedGroupEmails : [],
         );
         this.state = {
             searchValue: '',
@@ -171,7 +176,7 @@ class NewChatPage extends Component {
                 this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                EXCLUDED_GROUP_EMAILS,
+                this.excludedGroupEmails,
             );
 
             return {
@@ -243,7 +248,7 @@ class NewChatPage extends Component {
                                                 this.props.betas,
                                                 searchValue,
                                                 [],
-                                                this.props.isGroupChat ? EXCLUDED_GROUP_EMAILS : [],
+                                                this.props.isGroupChat ? this.excludedGroupEmails : [],
                                             );
                                             this.setState({
                                                 searchValue,
