@@ -264,7 +264,23 @@ ES6 provides two ways to export a module from a file: `named export` and `defaul
 - Files with multiple exports should always use named exports
 - Files with a single method or variable export are OK to use named exports
 - Mixing default and named exports in a single file is OK (e.g. in a self contained module), but should rarely be used
-- All exports should be declared at the bottom of the file
+- All exports (both default and named) should happen at the bottom of the file
+- Do **not** export individual features inline.
+
+```javascript
+// Bad
+export const something = 'nope';
+export const somethingElse = 'stop';
+
+// Good
+const something = 'yep';
+const somethingElse = 'go';
+
+export {
+    something,
+    somethingElse,
+}
+```
 
 ## Classes and constructors
 

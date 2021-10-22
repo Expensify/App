@@ -48,11 +48,14 @@ export default {
 const Template = args => <Button {...args} />;
 
 // Each story must be exported with a named export
-export const Default = Template.bind({});
+const Default = Template.bind({});
 Default.args = {
     text: 'Save & Continue',
     success: true,
 };
+export {
+    Default,
+}
 ```
 
 That will give us an interactive playground to test out various component attributes with the defaults we passed.
