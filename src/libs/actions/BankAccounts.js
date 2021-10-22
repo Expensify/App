@@ -829,7 +829,6 @@ function updateReimbursementAccountDraft(bankAccountData) {
 }
 
 /**
-<<<<<<< HEAD
  * Triggers a modal to open allowing the user to reset their bank account
  */
 function requestResetFreePlanBankAccount() {
@@ -845,10 +844,8 @@ function cancelResetFreePlanBankAccount() {
 
 /**
  * Reset user's reimbursement account. This will delete the bank account.
- *
- * @param {String} password
  */
-function resetFreePlanBankAccount(password = 'Password1') {
+function resetFreePlanBankAccount() {
     const bankAccountID = lodashGet(reimbursementAccountInSetup, 'bankAccountID');
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
@@ -856,13 +853,9 @@ function resetFreePlanBankAccount(password = 'Password1') {
     if (!credentials || !credentials.login) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
-    if (!password) {
-        throw new Error('Must provide password to delete bank account');
-    }
-
     const previousACHData = {...reimbursementAccountInSetup};
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
-    API.DeleteBankAccount({bankAccountID, ownerEmail: credentials.login, password})
+    API.DeleteBankAccount({bankAccountID, ownerEmail: credentials.login})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Unable to delete bank account so we restore the bank account details
