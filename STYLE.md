@@ -177,7 +177,7 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
 
 ## Object / Array Methods
 
-We have settled on using underscore methods for objects and collections instead of the native Array methods. This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
+We have standardized on using underscore methods for objects and collections instead of the native Array methods. This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
 
     ```javascript
     // Bad
