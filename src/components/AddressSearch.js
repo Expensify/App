@@ -34,7 +34,7 @@ const defaultProps = {
     containerStyles: null,
 };
 
-export const AddressSearchComponent = (props) => {
+const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
     useEffect(() => {
         googlePlacesRef.current?.setAddressText(props.value);
@@ -118,7 +118,7 @@ export const AddressSearchComponent = (props) => {
     );
 };
 
-AddressSearchComponent.propTypes = propTypes;
-AddressSearchComponent.defaultProps = defaultProps;
+AddressSearch.propTypes = propTypes;
+AddressSearch.defaultProps = defaultProps;
 
-export default withLocalize(AddressSearchComponent);
+export default withLocalize(AddressSearch);

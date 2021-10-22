@@ -1,13 +1,13 @@
 import _ from 'underscore';
 
-export const getAddressComponent = (addressComponents, type, field) => (
-    _.chain(addressComponents)
+function getAddressComponent(addressComponents, type, field) {
+    return _.chain(addressComponents)
         .find(component => _.contains(component.types, type))
         .get(field)
-        .value()
-);
+        .value();
+}
 
-export const validateAddressComponents = (addressComponents) => {
+function validateAddressComponents(addressComponents) {
     if (!addressComponents) {
         return false;
     }
@@ -33,4 +33,9 @@ export const validateAddressComponents = (addressComponents) => {
         return false;
     }
     return true;
+}
+
+export {
+    getAddressComponent,
+    validateAddressComponents,
 };
