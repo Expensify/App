@@ -121,7 +121,7 @@ const ReportParticipantsPage = ({
 };
 
 ReportParticipantsPage.propTypes = propTypes;
-ReportParticipantsPage.displayName = 'ParticipantsPage';
+ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,
