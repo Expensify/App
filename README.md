@@ -233,7 +233,7 @@ This application is built with the following principles.
     4. Brain pushes data into UI inputs (Device input -> React component).
     5. UI inputs push data to the server (React component -> Action -> XHR to server).
     6. Go to 1
-    <img src="./web/data_flow.png" alt="New Expensify Data Flow Chart">
+    ![New Expensify Data Flow Chart](/web/data_flow.png)
 1. **Offline first**
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
