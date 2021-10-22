@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import {fetchAccountDetails} from '../../libs/actions/Session';
+import {clearAccountMessages, fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
@@ -66,7 +66,7 @@ class LoginForm extends React.Component {
         });
 
         if (this.props.account.error) {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: ''});
+            clearAccountMessages();
         }
     }
 

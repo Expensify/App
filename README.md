@@ -64,21 +64,21 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
 
 ## Environment variables
-Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when 
+Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
- 
+
 - `EXPENSIFY_URL_CASH` - The root URL used for the website
 - `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
 - `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
-- `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public) 
+- `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
 - `SECURE_NGROK_URL` - Secure URL used for `ngrok` when testing
 - `NGROK_URL` - URL used for `ngrok` when testing
 - `USE_NGROK` - Flag to turn `ngrok` testing on or off
 - `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
 - `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
-   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.  
+   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
    see [PERFORMANCE.md](PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
@@ -152,6 +152,8 @@ This layer is solely responsible for:
 
 - Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Onyx data.
 - Taking user input and passing it to an action
+
+**Note:** As a convention, the UI layer should never interact with device storage directly or call `Onyx.set()` or `Onyx.merge()`. Use an action!
 
 ## Directory structure
 Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
@@ -250,6 +252,7 @@ This application is built with the following principles.
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
+    - Views should not call `Onyx.merge()` or `Onyx.set()` directly and should call an action instead.
     - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:

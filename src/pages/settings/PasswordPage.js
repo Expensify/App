@@ -20,6 +20,7 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import InlineErrorText from '../../components/InlineErrorText';
+import {clearAccountMessages} from '../../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -59,7 +60,7 @@ class PasswordPage extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+        clearAccountMessages();
     }
 
     onBlurNewPassword() {
