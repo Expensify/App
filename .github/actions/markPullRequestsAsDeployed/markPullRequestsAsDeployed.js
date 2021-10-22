@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {context} = require('@actions/github');
 const ActionUtils = require('../../libs/ActionUtils');
@@ -123,8 +122,8 @@ const run = function () {
                      *   3. For manual CPs (using the GH UI), the person who triggered the workflow
                      *      (reflected in the branch name).
                      */
-                    let deployer = lodashGet(response, 'data.merged_by.login', '');
-                    const issueTitle = lodashGet(response, 'data.title', '');
+                    let deployer = _.get(response, 'data.merged_by.login', '');
+                    const issueTitle = _.get(response, 'data.title', '');
                     const CPActorMatches = data.message
                         .match(/Merge pull request #\d+ from Expensify\/(.+)-cherry-pick-staging-\d+/);
                     if (_.isArray(CPActorMatches) && CPActorMatches.length === 2 && CPActorMatches[1] !== 'OSBotify') {
