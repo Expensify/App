@@ -594,7 +594,7 @@ const styles = {
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 11,
+        left: 12,
         top: 7,
     },
     expensiPicker: (disabled = false, error = false, focused = false) => ({
