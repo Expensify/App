@@ -598,7 +598,7 @@ export default {
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
         letsChatCTA: '¡Sí, vamos a chatear!',
-        letsChatText: '¡Gracias por hacer eso! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
+        letsChatText: '¡Gracias! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
         letsChatTitle: '¡Vamos a chatear!',
     },
     beneficialOwnersStep: {
@@ -732,7 +732,7 @@ export default {
             accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta. Concierge puede ayudarte a añadir tu correo de trabajo para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',
             chatWithConcierge: 'Chat con Concierge',
-            letsFinishInChat: '¡Acabemos en el chat!',
+            letsFinishInChat: '¡Continuemos en el chat!',
             almostDone: '¡Casi listo!',
         },
     },
