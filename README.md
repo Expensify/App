@@ -64,21 +64,21 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
 
 ## Environment variables
-Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when 
+Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
 variables referenced here get updated since your local `.env` file is ignored.
- 
+
 - `EXPENSIFY_URL_CASH` - The root URL used for the website
 - `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
 - `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
-- `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public) 
+- `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
 - `SECURE_NGROK_URL` - Secure URL used for `ngrok` when testing
 - `NGROK_URL` - URL used for `ngrok` when testing
 - `USE_NGROK` - Flag to turn `ngrok` testing on or off
 - `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
 - `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
-   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.  
+   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
    see [PERFORMANCE.md](PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
@@ -232,6 +232,7 @@ This application is built with the following principles.
     1. Brain pushes data into UI inputs (Device input -> React component).
     1. UI inputs push data to the server (React component -> Action -> XHR to server).
     1. Go to 1
+    <img src="https://raw.githubusercontent.com/Expensify/App/main/web/data_flow.png" alt="New Expensify Data Flow Chart">
 1. **Offline first**
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
