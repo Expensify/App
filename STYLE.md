@@ -184,10 +184,24 @@ We have settled on using underscore methods for objects and collections instead 
     myArray.forEach(item => doSomething(item));
     // Good
     _.each(myArray, item => doSomething(item));
+
     // Bad
     const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
     // Good
     const myArray = _.map(someObject, (value, key) => doSomething(value));
+
+    // Bad
+    myCollection.includes('item');
+    // Good
+    _.contains(myCollection, 'item');
+
+    // Bad
+    const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
+    // Good
+    const modifiedArray = _.chain(someArray)
+        .filter(filterFunc)
+        .map(mapFunc)
+        .value();
     ```
 
 ## JSDocs
