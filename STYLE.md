@@ -648,7 +648,7 @@ From React's documentation -
 >Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
 >If you want to reuse non-UI functionality between components, we suggest extracting it into a separate JavaScript module. The components may import it and use that function, object, or a class, without extending it.
 
-Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance. Some examples of useful HOC:
+Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
 
 If several HOC need to be combined there is a `compose()` utility. But we should not use this utility when there is only one HOC.
 
