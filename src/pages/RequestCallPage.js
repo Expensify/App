@@ -22,6 +22,8 @@ import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
+import RequestCallIcon from '../../assets/images/request-call.svg';
+import {getFirstAndLastNameErrors} from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -68,7 +70,9 @@ class RequestCallPage extends Component {
         const {firstName, lastName} = this.getFirstAndLastName(props.myPersonalDetails);
         this.state = {
             firstName,
+            firstNameError: '',
             lastName,
+            lastNameError: '',
             phoneNumber: this.getPhoneNumber(props.user.loginList) ?? '',
             phoneNumberError: '',
             isLoading: false,
@@ -76,31 +80,17 @@ class RequestCallPage extends Component {
 
         this.onSubmit = this.onSubmit.bind(this);
         this.getPhoneNumber = this.getPhoneNumber.bind(this);
+        this.getPhoneNumberError = this.getPhoneNumberError.bind(this);
         this.getFirstAndLastName = this.getFirstAndLastName.bind(this);
+        this.validateInputs = this.validateInputs.bind(this);
+        this.validatePhoneInput = this.validatePhoneInput.bind(this);
     }
 
     onSubmit() {
-        const shouldNotSubmit = _.isEmpty(this.state.firstName.trim())
-            || _.isEmpty(this.state.lastName.trim())
-            || _.isEmpty(this.state.phoneNumber.trim())
-            || !Str.isValidPhone(this.state.phoneNumber);
-
-        if (_.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim())) {
-            Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
+        if (!this.validateInputs()) {
             return;
         }
 
-        if (_.isEmpty(this.state.phoneNumber.trim())) {
-            this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
-        } else if (!Str.isValidPhone(this.state.phoneNumber)) {
-            this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
-        } else {
-            this.setState({phoneNumberError: ''});
-        }
-
-        if (shouldNotSubmit) {
-            return;
-        }
         const personalPolicy = _.find(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.PERSONAL);
         if (!personalPolicy) {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
@@ -131,6 +121,20 @@ class RequestCallPage extends Component {
     getPhoneNumber(loginList) {
         const secondaryLogin = _.find(loginList, login => Str.isSMSLogin(login.partnerUserID));
         return secondaryLogin ? Str.removeSMSDomain(secondaryLogin.partnerUserID) : null;
+    }
+
+    /**
+     * Gets proper phone number error message depending on phoneNumber input value.
+     * @returns {String}
+     */
+    getPhoneNumberError() {
+        if (_.isEmpty(this.state.phoneNumber.trim())) {
+            return this.props.translate('messages.noPhoneNumber');
+        }
+        if (!Str.isValidPhone(this.state.phoneNumber)) {
+            return this.props.translate('messages.errorMessageInvalidPhone');
+        }
+        return '';
     }
 
     /**
@@ -165,12 +169,37 @@ class RequestCallPage extends Component {
         return {firstName, lastName};
     }
 
+    validatePhoneInput() {
+        this.setState({phoneNumberError: this.getPhoneNumberError()});
+    }
+
+    /**
+     * Checks for input errors, returns true if everything is valid, false otherwise.
+     * @returns {Boolean}
+     */
+    validateInputs() {
+        const firstOrLastNameEmpty = _.isEmpty(this.state.firstName.trim()) || _.isEmpty(this.state.lastName.trim());
+        if (firstOrLastNameEmpty) {
+            Growl.error(this.props.translate('requestCallPage.growlMessageEmptyName'));
+        }
+
+        const phoneNumberError = this.getPhoneNumberError();
+        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+
+        this.setState({
+            firstNameError,
+            lastNameError,
+            phoneNumberError,
+        });
+        return !firstOrLastNameEmpty && _.isEmpty(phoneNumberError) && _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+    }
+
     render() {
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title={this.props.translate('requestCallPage.requestACall')}
+                        title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
                         onBackButtonPress={() => fetchOrCreateChatReport([
                             this.props.session.email,
@@ -178,19 +207,22 @@ class RequestCallPage extends Component {
                         ], true)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
+                    <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                            <Text style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</Text>
+                            <RequestCallIcon width={160} height={100} style={styles.flex1} />
+                        </View>
                         <Text style={[styles.mb4]}>
                             {this.props.translate('requestCallPage.description')}
                         </Text>
-                        <Text style={[styles.mt4, styles.mb4]}>
-                            {this.props.translate('requestCallPage.instructions')}
-                        </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
+                            firstNameError={this.state.firstNameError}
                             lastName={this.state.lastName}
+                            lastNameError={this.state.lastNameError}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
-                            style={[styles.mt4, styles.mb4]}
+                            style={[styles.mv4]}
                         />
                         <View style={styles.mt4}>
                             <ExpensiTextInput
@@ -200,21 +232,10 @@ class RequestCallPage extends Component {
                                 value={this.state.phoneNumber}
                                 placeholder="+14158675309"
                                 errorText={this.state.phoneNumberError}
-                                onBlur={() => {
-                                    if (_.isEmpty(this.state.phoneNumber.trim())) {
-                                        this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
-                                    } else if (!Str.isValidPhone(this.state.phoneNumber)) {
-                                        this.setState({phoneNumberError: this.props.translate('requestCallPage.errorMessageInvalidPhone')});
-                                    } else {
-                                        this.setState({phoneNumberError: ''});
-                                    }
-                                }}
+                                onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}
                             />
                         </View>
-                        <Text style={[styles.mt4, styles.textLabel, styles.colorMuted, styles.mb6]}>
-                            {this.props.translate('requestCallPage.availabilityText')}
-                        </Text>
                     </ScrollView>
                     <FixedFooter>
                         <Button

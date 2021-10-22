@@ -12,6 +12,7 @@ import {isDefaultRoom} from '../reportUtils';
 import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
+import {isValidLengthForFirstOrLastName} from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -65,6 +66,21 @@ function getDisplayName(login, personalDetail) {
 }
 
 /**
+ * Returns object with first and last name errors. If either are valid,
+ * those errors get returned as empty strings.
+ *
+ * @param {String} firstName
+ * @param {String} lastName
+ * @returns {Object}
+ */
+function getFirstAndLastNameErrors(firstName, lastName) {
+    return {
+        firstNameError: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
+        lastNameError: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
+    };
+}
+
+/**
  * Format personal details
  *
  * @param {Object} personalDetailsList
@@ -79,6 +95,8 @@ function formatPersonalDetails(personalDetailsList) {
         const timezone = lodashGet(personalDetailsResponse, 'timeZone', CONST.DEFAULT_TIME_ZONE);
         const firstName = lodashGet(personalDetailsResponse, 'firstName', '');
         const lastName = lodashGet(personalDetailsResponse, 'lastName', '');
+        const payPalMeAddress = lodashGet(personalDetailsResponse, 'expensify_payPalMeAddress', '');
+        const phoneNumber = lodashGet(personalDetailsResponse, 'phoneNumber', '');
 
         return {
             ...finalObject,
@@ -90,6 +108,8 @@ function formatPersonalDetails(personalDetailsList) {
                 lastName,
                 pronouns,
                 timezone,
+                payPalMeAddress,
+                phoneNumber,
             },
         };
     }, {});
@@ -124,8 +144,7 @@ function fetchPersonalDetails() {
 
             // Set my personal details so they can be easily accessed and subscribed to on their own key
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, myPersonalDetails);
-        })
-        .catch(error => console.debug('Error fetching personal details', error));
+        });
 }
 
 /**
@@ -268,7 +287,6 @@ function fetchLocalCurrency() {
         .then(() => {
             Onyx.merge(ONYXKEYS.MY_PERSONAL_DETAILS, {localCurrencyCode: currency});
         })
-        .catch(error => console.debug(`Error fetching currency preference: , ${error}`))
         .finally(() => {
             Onyx.merge(ONYXKEYS.IOU, {
                 isRetrievingCurrency: false,
@@ -313,6 +331,7 @@ export {
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
+    getFirstAndLastNameErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,

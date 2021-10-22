@@ -9,18 +9,28 @@ const propTypes = {
     /** Title of the Header */
     title: PropTypes.string.isRequired,
 
+    /** Subtitle of the header */
+    subtitle: PropTypes.string,
+
     /** Should we show the environment badge (dev/stg)?  */
     shouldShowEnvironmentBadge: PropTypes.bool,
 };
 
 const defaultProps = {
     shouldShowEnvironmentBadge: false,
+    subtitle: '',
 };
 const Header = props => (
+
+
     <View style={[styles.flex1, styles.flexRow]}>
-        <Text numberOfLines={2} style={[styles.headerText, styles.textLarge]}>
-            {props.title}
-        </Text>
+        <View style={[styles.flex1, styles.flexColumn]}>
+            <Text numberOfLines={2} style={[styles.headerText, styles.textLarge]}>
+                {props.title}
+            </Text>
+            {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
+            {props.subtitle ? <Text style={[styles.mutedTextLabel]}>{props.subtitle}</Text> : <></> }
+        </View>
         {props.shouldShowEnvironmentBadge && (
             <EnvironmentBadge />
         )}

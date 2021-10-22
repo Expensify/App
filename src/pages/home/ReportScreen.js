@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -12,7 +13,6 @@ import {handleInaccessibleReport, updateCurrentlyViewedReportID, addAction} from
 import ONYXKEYS from '../../ONYXKEYS';
 import Permissions from '../../libs/Permissions';
 import {isDefaultRoom} from '../../libs/reportUtils';
-
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
 import KeyboardSpacer from '../../components/KeyboardSpacer';
@@ -147,7 +147,7 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportID = getReportID(this.props.route);
-        if (_.isNaN(reportID)) {
+        if (_.isNaN(reportID) || !lodashGet(this.props.report, 'reportID', '')) {
             handleInaccessibleReport();
             return;
         }

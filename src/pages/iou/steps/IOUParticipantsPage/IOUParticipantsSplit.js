@@ -6,25 +6,14 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
-import {getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
-import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
+import {getHeaderMessage, getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
+import CONST, {EXPENSIFY_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
 import Text from '../../../../components/Text';
 import FixedFooter from '../../../../components/FixedFooter';
-
-const personalDetailsPropTypes = PropTypes.shape({
-    // The login of the person (either email or phone number)
-    login: PropTypes.string.isRequired,
-
-    // The URL of the person's avatar (there should already be a default avatar if
-    // the person doesn't have their own avatar uploaded yet)
-    avatar: PropTypes.string.isRequired,
-
-    // This is either the user's full name, or their login if full name is an empty string
-    displayName: PropTypes.string.isRequired,
-});
+import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const propTypes = {
     /** Beta features list */
@@ -51,7 +40,7 @@ const propTypes = {
     })),
 
     /** All of the personal details for everyone */
-    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+    personalDetails: PropTypes.objectOf(personalDetailsPropType).isRequired,
 
     /** All reports shared with the user */
     reports: PropTypes.shape({
@@ -77,13 +66,13 @@ class IOUParticipantsSplit extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getNewGroupOptions(
+        } = getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
             '',
             props.participants,
-            EXCLUDED_IOU_EMAILS,
+            EXPENSIFY_EMAILS,
         );
 
         this.state = {
@@ -178,13 +167,13 @@ class IOUParticipantsSplit extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-            } = getNewGroupOptions(
+            } = getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                EXCLUDED_IOU_EMAILS,
+                EXPENSIFY_EMAILS,
             );
             return {
                 recentReports,
@@ -198,6 +187,11 @@ class IOUParticipantsSplit extends Component {
     render() {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
+        const headerMessage = !maxParticipantsReached ? getHeaderMessage(
+            this.state.personalDetails.length + this.state.recentReports.length !== 0,
+            Boolean(this.state.userToInvite),
+            this.state.searchValue,
+        ) : '';
         return (
             <>
                 <View style={[styles.flex1, styles.w100]}>
@@ -215,13 +209,13 @@ class IOUParticipantsSplit extends Component {
                                 recentReports,
                                 personalDetails,
                                 userToInvite,
-                            } = getNewGroupOptions(
+                            } = getNewChatOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
                                 this.props.betas,
                                 searchValue,
                                 [],
-                                EXCLUDED_IOU_EMAILS,
+                                EXPENSIFY_EMAILS,
                             );
                             this.setState({
                                 searchValue,
@@ -230,6 +224,7 @@ class IOUParticipantsSplit extends Component {
                                 personalDetails,
                             });
                         }}
+                        headerMessage={headerMessage}
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle

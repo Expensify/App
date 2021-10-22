@@ -5,7 +5,7 @@ import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import {
-    Paycheck, Bank, Lock,
+    Paycheck, Bank, Lock, Exclamation,
 } from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
@@ -25,12 +25,15 @@ import {
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
+    validateRoutingNumber,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import WorkspaceSection from '../workspace/WorkspaceSection';
+import {BankMouseGreen} from '../../components/Icon/Illustrations';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -84,7 +87,7 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !validateRoutingNumber(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
         if (!this.state.hasAcceptedTerms) {
@@ -149,7 +152,7 @@ class BankAccountStep extends React.Component {
             plaidAccountID: params.account.plaidAccountID,
             ownershipType: params.account.ownershipType,
             isSavings: params.account.isSavings,
-            bankName: params.account.bankName,
+            bankName: params.bankName,
             addressName: params.account.addressName,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
@@ -167,22 +170,34 @@ class BankAccountStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('bankAccount.addBankAccount')}
+                    title={this.props.translate('workspace.common.bankAccount')}
+                    stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => setBankAccountSubStep(null)}
-                    shouldShowBackButton={Boolean(subStep)}
+                    onBackButtonPress={() => {
+                        // If we have a subStep then we will remove otherwise we will go back
+                        if (subStep) {
+                            setBankAccountSubStep(null);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton
                 />
                 {!subStep && (
                     <>
                         <View style={[styles.flex1]}>
+                            <WorkspaceSection
+                                icon={BankMouseGreen}
+                                title={this.props.translate('workspace.bankAccount.streamlinePayments')}
+                            />
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
                             </Text>
                             <MenuItem
                                 icon={Bank}
-                                title={this.props.translate('bankAccount.logIntoYourBank')}
+                                title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                                 onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
-                                disabled={this.props.isPlaidDisabled}
+                                disabled={this.props.isPlaidDisabled || !this.props.user.validated}
                                 shouldShowRightIcon
                             />
                             {this.props.isPlaidDisabled && (
@@ -193,9 +208,20 @@ class BankAccountStep extends React.Component {
                             <MenuItem
                                 icon={Paycheck}
                                 title={this.props.translate('bankAccount.connectManually')}
+                                disabled={!this.props.user.validated}
                                 onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                                 shouldShowRightIcon
                             />
+                            {!this.props.user.validated && (
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                                    <Text style={[styles.mutedTextLabel, styles.mr4]}>
+                                        <Icon src={Exclamation} fill={colors.red} />
+                                    </Text>
+                                    <Text style={styles.mutedTextLabel}>
+                                        {this.props.translate('bankAccount.validateAccountError')}
+                                    </Text>
+                                </View>
+                            )}
                             <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
                                 <TextLink href="https://use.expensify.com/privacy">
                                     {this.props.translate('common.privacy')}
@@ -284,6 +310,9 @@ export default compose(
         },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
+        },
+        user: {
+            key: ONYXKEYS.USER,
         },
     }),
 )(BankAccountStep);
