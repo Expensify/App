@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
