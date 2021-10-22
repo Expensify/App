@@ -379,6 +379,12 @@ export default {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
     },
+    personalDetails: {
+        error: {
+            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
+            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+        },
+    },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
