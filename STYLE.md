@@ -204,6 +204,23 @@ We have standardized on using underscore methods for objects and collections ins
         .value();
     ```
 
+## Accessing Object Properties and Default Values
+
+Use `_.get()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
+
+   ```javascript
+   // Bad
+   const value = somePossiblyNullThing ?? 'default';
+   // Good
+   const value = somePossiblyNullThing || 'default';
+   // Bad
+   const value = someObject.possiblyUndefinedProperty?.nestedProperty || 'default';
+   // Bad
+   const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
+   // Good
+   const value = _.get(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
+   ```
+
 ## JSDocs
 - Avoid docs that don't add any additional information.
 - Always document parameters and return values.
@@ -321,7 +338,8 @@ So, if a new language feature isn't something we have agreed to support it's off
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
 - **Async/Await** - Use the native `Promise` instead
-- **Optional Chaining** - Use `lodash/get` to fetch a nested value instead
+- **Optional Chaining** - Use `_.get()` to fetch a nested value instead
+- **Null Coalescing Operator** - Use `_.get()` or `||` to set a default value for a possibly `undefined` or `null` variable
 
 # React Coding Standards
 

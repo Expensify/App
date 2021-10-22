@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -96,8 +97,8 @@ class ProfilePage extends Component {
             lastNameError: '',
             pronouns: currentUserPronouns,
             selfSelectedPronouns: initialSelfSelectedPronouns,
-            selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
-            isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+            selectedTimezone: lodashGet(timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
         };
 

@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -78,7 +79,7 @@ const PreferencesPage = ({
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
-                                isOn={user.expensifyNewsStatus ?? true}
+                                isOn={lodashGet(user, 'expensifyNewsStatus', true)}
                                 onToggle={setExpensifyNewsStatus}
                             />
                         </View>

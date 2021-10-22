@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
@@ -263,7 +264,7 @@ class NewChatPage extends Component {
                                         forceTextUnreadStyle
                                     />
                                     {!this.props.isGroupChat && <KeyboardSpacer />}
-                                    {this.props.isGroupChat && this.state.selectedOptions?.length > 0 && (
+                                    {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
                                         <FixedFooter>
                                             <Button
                                                 success
