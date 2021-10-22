@@ -853,6 +853,8 @@ function resetFreePlanBankAccount() {
     if (!credentials || !credentials.login) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
+
+    // Create a copy of the reimbursementAccount data since we are going to optimistically wipe it so the UI changes quickly. If the API request fails we will set this data back into Onyx.
     const previousACHData = {...reimbursementAccountInSetup};
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
     API.DeleteBankAccount({bankAccountID, ownerEmail: credentials.login})
