@@ -46,9 +46,10 @@ class MarkerBadge extends PureComponent {
     componentDidUpdate() {
         if (this.props.active && this.props.count > 0) {
             this.show();
-        } else {
-            this.hide();
+            return;
         }
+
+        this.hide();
     }
 
     show() {

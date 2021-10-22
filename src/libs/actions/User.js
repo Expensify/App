@@ -142,16 +142,17 @@ function setSecondaryLogin(login, password) {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
-        } else {
-            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
-
-            // Replace error with a friendlier message
-            if (error.includes('already belongs to an existing Expensify account.')) {
-                error = 'This login already belongs to an existing Expensify account.';
-            }
-
-            Onyx.merge(ONYXKEYS.USER, {error});
+            return response;
         }
+
+        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+
+        // Replace error with a friendlier message
+        if (error.includes('already belongs to an existing Expensify account.')) {
+            error = 'This login already belongs to an existing Expensify account.';
+        }
+
+        Onyx.merge(ONYXKEYS.USER, {error});
         return response;
     }).finally((response) => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -179,15 +180,17 @@ function validateLogin(accountID, validateCode) {
 
             if (isLoggedIn) {
                 getUserDetails();
-            } else {
-                // Let the user know we've successfully validated their login
-                const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
-                Onyx.merge(ONYXKEYS.ACCOUNT, {success});
+                return;
             }
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to validate login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+
+            // Let the user know we've successfully validated their login
+            const success = lodashGet(response, 'message', `Your secondary login ${email} has been validated.`);
+            Onyx.merge(ONYXKEYS.ACCOUNT, {success});
+            return;
         }
+
+        const error = lodashGet(response, 'message', 'Unable to validate login.');
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error});
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         Navigation.navigate(redirectRoute);
@@ -243,11 +246,12 @@ function getDomainInfo() {
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                     });
-            } else {
-                // eslint-disable-next-line max-len
-                Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(getDomainInfo, RETRY_TIMEOUT);
+                return;
             }
+
+            // eslint-disable-next-line max-len
+            Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
+            setTimeout(getDomainInfo, RETRY_TIMEOUT);
         });
 }
 

@@ -31,7 +31,8 @@ export default function linkTo(navigation, path) {
 
     if (action !== undefined) {
         root.dispatch(action);
-    } else {
-        root.reset(state);
+        return;
     }
+
+    root.reset(state);
 }

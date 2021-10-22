@@ -63,9 +63,9 @@ describe('Translation Keys', () => {
         _.each(_.keys(source), (key) => {
             if (_.isObject(source[key]) && !_.isFunction(source[key])) {
                 traverseKeyPath(source[key], keyPath + key, pathArray);
-            } else {
-                pathArray.push(keyPath + key);
+                return;
             }
+            pathArray.push(keyPath + key);
         });
         return pathArray;
     }

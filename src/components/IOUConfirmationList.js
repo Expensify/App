@@ -183,9 +183,10 @@ class IOUConfirmationList extends Component {
     onPress() {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             this.props.onConfirm();
-        } else {
-            this.props.onConfirm(this.getSplits());
+            return;
         }
+
+        this.props.onConfirm(this.getSplits());
     }
 
     /**

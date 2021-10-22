@@ -164,11 +164,15 @@ class RequestCallPage extends Component {
     validatePhoneInput() {
         if (_.isEmpty(this.state.phoneNumber.trim())) {
             this.setState({phoneNumberError: this.props.translate('messages.noPhoneNumber')});
-        } else if (!Str.isValidPhone(this.state.phoneNumber)) {
-            this.setState({phoneNumberError: this.props.translate('messages.errorMessageInvalidPhone')});
-        } else {
-            this.setState({phoneNumberError: ''});
+            return;
         }
+
+        if (!Str.isValidPhone(this.state.phoneNumber)) {
+            this.setState({phoneNumberError: this.props.translate('messages.errorMessageInvalidPhone')});
+            return;
+        }
+
+        this.setState({phoneNumberError: ''});
     }
 
     render() {

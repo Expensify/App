@@ -143,12 +143,13 @@ class SearchPage extends Component {
             }, () => {
                 Navigation.navigate(ROUTES.getReportRoute(option.reportID));
             });
-        } else {
-            fetchOrCreateChatReport([
-                this.props.session.email,
-                option.login,
-            ]);
+            return;
         }
+
+        fetchOrCreateChatReport([
+            this.props.session.email,
+            option.login,
+        ]);
     }
 
     render() {

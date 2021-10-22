@@ -226,10 +226,11 @@ function subscribe(
 
                 reject(status);
             });
-        } else {
-            bindEventToChannel(channel, eventName, eventCallback, isChunked);
-            resolve();
+            return;
         }
+
+        bindEventToChannel(channel, eventName, eventCallback, isChunked);
+        resolve();
     });
 }
 
@@ -251,16 +252,17 @@ function unsubscribe(channelName, eventName = '') {
     if (eventName) {
         Log.info('[Pusher] Unbinding event', false, {eventName, channelName});
         channel.unbind(eventName);
-    } else {
-        if (!channel.subscribed) {
-            Log.info('Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', false, {channelName});
-            return;
-        }
-        Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
-
-        channel.unbind();
-        socket.unsubscribe(channelName);
+        return;
     }
+
+    if (!channel.subscribed) {
+        Log.info('Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', false, {channelName});
+        return;
+    }
+    Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
+
+    channel.unbind();
+    socket.unsubscribe(channelName);
 }
 
 /**

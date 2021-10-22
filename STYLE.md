@@ -21,6 +21,41 @@ There are a few things that we have customized for our tastes which will take pr
     })();
     ```
 
+  - Functions should prefer early returns when it is reasonable to do so e.g. if the `if` block contains all of the logic that will run in the function or the `else` block is the only other logic left to run.
+
+    ```javascript
+        // Bad
+        function doSomething(shouldDoOtherThing) {
+            if (shouldDoOtherThing) {
+                doOtherThing();
+            } else {
+                doThing();
+            }
+        }
+        // Good
+        function doSomething(shouldDoOtherThing) {
+            if (shouldDoOtherThing) {
+                doOtherThing();
+                return;
+            }
+            doThing();
+        }
+
+        // Bad
+        function doSomething(shouldDoThing) {
+            if (shouldDoSomething) {
+                doSomething();
+            }
+        }
+        // Good
+        function doSomething(shouldDoThing) {
+            if (!shouldDoSomething) {
+                return;
+            }
+            doSomething();
+        }
+    ```
+
 ## Whitespace
   - Use soft tabs set to 4 spaces.
 

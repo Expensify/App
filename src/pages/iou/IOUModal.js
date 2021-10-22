@@ -130,9 +130,10 @@ class IOUModal extends Component {
         if (participants.length) {
             // The steps to be shown within the create IOU flow.
             this.steps = [Steps.IOUAmount, Steps.IOUConfirm];
-        } else {
-            this.steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
+            return;
         }
+
+        this.steps = [Steps.IOUAmount, Steps.IOUParticipants, Steps.IOUConfirm];
     }
 
     componentDidMount() {

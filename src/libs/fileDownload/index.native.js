@@ -136,7 +136,8 @@ export default function fileDownload(url, fileName) {
         }).catch(() => {
             showAlert(permissionError);
         });
-    } else {
-        handleDownload(url, fileName);
+        return;
     }
+
+    handleDownload(url, fileName);
 }

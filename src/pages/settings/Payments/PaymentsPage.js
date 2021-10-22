@@ -65,20 +65,19 @@ class PaymentsPage extends React.Component {
      * @param {String} account
      */
     paymentMethodPressed(nativeEvent, account) {
-        if (account) {
-            if (account === PAYPAL) {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
-            }
-        } else {
-            const position = getClickedElementLocation(nativeEvent);
-            this.setState({
-                shouldShowAddPaymentMenu: true,
-                anchorPositionTop: position.bottom,
-
-                // We want the position to be 20px to the right of the left border
-                anchorPositionLeft: position.left + 20,
-            });
+        if (account && account === PAYPAL) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+            return;
         }
+
+        const position = getClickedElementLocation(nativeEvent);
+        this.setState({
+            shouldShowAddPaymentMenu: true,
+            anchorPositionTop: position.bottom,
+
+            // We want the position to be 20px to the right of the left border
+            anchorPositionLeft: position.left + 20,
+        });
     }
 
     /**

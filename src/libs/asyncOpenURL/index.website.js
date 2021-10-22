@@ -17,12 +17,13 @@ export default function asyncOpenURL(promise, url) {
         promise.then((params) => {
             Linking.openURL(typeof url === 'string' ? url : url(params));
         });
-    } else {
-        const windowRef = window.open();
-        promise
-            .then((params) => {
-                windowRef.location = typeof url === 'string' ? url : url(params);
-            })
-            .catch(() => windowRef.close());
+        return;
     }
+
+    const windowRef = window.open();
+    promise
+        .then((params) => {
+            windowRef.location = typeof url === 'string' ? url : url(params);
+        })
+        .catch(() => windowRef.close());
 }

@@ -43,9 +43,10 @@ export default function () {
     Onyx.registerLogger(({level, message}) => {
         if (level === 'alert') {
             Log.alert(message, 0, {}, false);
-        } else {
-            Log.client(message);
+            return;
         }
+
+        Log.client(message);
     });
 
     // Perform any other platform-specific setup

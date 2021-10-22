@@ -149,9 +149,10 @@ class AuthScreens extends React.Component {
             const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
             if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
                 setLocale(currentPreferredLocale);
-            } else {
-                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+                return;
             }
+
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
         });
 
         PersonalDetails.fetchPersonalDetails();
@@ -173,9 +174,10 @@ class AuthScreens extends React.Component {
                     const exitTo = new URLSearchParams(url).get('exitTo');
                     const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
                     getPolicyList(shouldCreateFreePolicy);
-                } else {
-                    getPolicyList(false);
+                    return;
                 }
+
+                getPolicyList(false);
             });
 
         // Refresh the personal details, timezone and betas every 30 minutes

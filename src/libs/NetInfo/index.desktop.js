@@ -21,10 +21,11 @@ function onStatusChange() {
 function unsubscribe() {
     if (connection) {
         connection.removeEventListener('change', onStatusChange);
-    } else {
-        window.removeEventListener('online', onStatusChange);
-        window.removeEventListener('offline', onStatusChange);
+        return;
     }
+
+    window.removeEventListener('online', onStatusChange);
+    window.removeEventListener('offline', onStatusChange);
 }
 
 /**

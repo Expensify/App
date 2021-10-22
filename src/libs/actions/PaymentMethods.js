@@ -72,9 +72,10 @@ function addBillingCard(params) {
             Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        } else {
-            Growl.error(translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
+            return;
         }
+
+        Growl.error(translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
     }));
 }
 

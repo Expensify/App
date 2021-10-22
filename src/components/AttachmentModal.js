@@ -173,9 +173,10 @@ class AttachmentModal extends PureComponent {
                         if (file instanceof File) {
                             const source = URL.createObjectURL(file);
                             this.setState({isModalOpen: true, sourceURL: source, file});
-                        } else {
-                            this.setState({isModalOpen: true, sourceURL: file.uri, file});
+                            return;
                         }
+
+                        this.setState({isModalOpen: true, sourceURL: file.uri, file});
                     },
                     show: () => {
                         this.setState({isModalOpen: true});

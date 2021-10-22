@@ -96,9 +96,10 @@ const electronUpdater = browserWindow => ({
             updateAppMenuItem.enabled = true;
             if (browserWindow.isVisible()) {
                 browserWindow.webContents.send('update-downloaded', info.version);
-            } else {
-                quitAndInstallWithUpdate();
+                return;
             }
+
+            quitAndInstallWithUpdate();
         });
 
         ipcMain.on('start-update', quitAndInstallWithUpdate);
@@ -243,9 +244,10 @@ const mainWindow = (() => {
                     // arguments." - Thus, setting to 1 instead.
                     // See: https://www.electronjs.org/docs/api/app#appsetbadgecountcount-linux-macos
                     app.setBadgeCount(1);
-                } else {
-                    app.setBadgeCount(totalCount);
+                    return;
                 }
+
+                app.setBadgeCount(totalCount);
             });
 
             return browserWindow;

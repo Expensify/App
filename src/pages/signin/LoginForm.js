@@ -82,9 +82,10 @@ class LoginForm extends React.Component {
         if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
             if (isNumericWithSpecialChars(this.state.login)) {
                 this.setState({formError: 'messages.errorMessageInvalidPhone'});
-            } else {
-                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+                return;
             }
+
+            this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
             return;
         }
 

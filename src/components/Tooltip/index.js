@@ -89,11 +89,12 @@ class Tooltip extends PureComponent {
                 this.wrapperView.measureInWindow((x, y, width, height) => resolve({
                     x, y, width, height,
                 }));
-            } else {
-                resolve({
-                    x: 0, y: 0, width: 0, height: 0,
-                });
+                return;
             }
+
+            resolve({
+                x: 0, y: 0, width: 0, height: 0,
+            });
         }));
     }
 

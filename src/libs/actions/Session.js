@@ -141,15 +141,19 @@ function fetchAccountDetails(login) {
                 } else if (!response.validated) {
                     resendValidationLink(login);
                 }
-            } else if (response.jsonCode === 402) {
+                return;
+            }
+
+            if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     error: isNumericWithSpecialChars(login)
                         ? translateLocal('messages.errorMessageInvalidPhone')
                         : translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
-            } else {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
+                return;
             }
+
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessageRetry')});
@@ -266,10 +270,11 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedA
         if (response.jsonCode === 200) {
             getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
-        } else {
-            const error = lodashGet(response, 'message', 'Unable to login.');
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+            return;
         }
+
+        const error = lodashGet(response, 'message', 'Unable to login.');
+        Onyx.merge(ONYXKEYS.ACCOUNT, {error});
     }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
     });

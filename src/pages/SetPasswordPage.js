@@ -102,24 +102,29 @@ class SetPasswordPage extends Component {
                 }).then((responsePassword) => {
                     if (responsePassword.jsonCode === 200) {
                         signIn(this.state.password);
-                    } else {
-                        this.setState({
-                            error: this.props.translate('setPasswordPage.passwordNotSet'),
-                        });
+                        return;
                     }
+
+                    this.setState({
+                        error: this.props.translate('setPasswordPage.passwordNotSet'),
+                    });
                 });
-            } else if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
+                return;
+            }
+
+            if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
                 // If the email is already validated, set the password using the validate code
                 setPassword(
                     this.state.password,
                     lodashGet(this.props.route, 'params.validateCode', ''),
                     lodashGet(this.props.route, 'params.accountID', ''),
                 );
-            } else {
-                this.setState({
-                    error: this.props.translate('setPasswordPage.accountNotValidated'),
-                });
+                return;
             }
+
+            this.setState({
+                error: this.props.translate('setPasswordPage.accountNotValidated'),
+            });
         });
     }
 

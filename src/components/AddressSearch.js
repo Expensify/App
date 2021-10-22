@@ -76,13 +76,14 @@ const AddressSearch = (props) => {
             props.onChangeText('addressCity', city);
             props.onChangeText('addressState', state);
             props.onChangeText('addressZipCode', zipCode);
-        } else {
-            // Clear the values associated to the address, so our validations catch the problem
-            props.onChangeText('addressStreet', null);
-            props.onChangeText('addressCity', null);
-            props.onChangeText('addressState', null);
-            props.onChangeText('addressZipCode', null);
+            return;
         }
+
+        // Clear the values associated to the address, so our validations catch the problem
+        props.onChangeText('addressStreet', null);
+        props.onChangeText('addressCity', null);
+        props.onChangeText('addressState', null);
+        props.onChangeText('addressZipCode', null);
     };
 
     return (
