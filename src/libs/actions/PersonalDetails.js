@@ -12,6 +12,7 @@ import {isDefaultRoom} from '../reportUtils';
 import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
+import {isValidLengthForFirstOrLastName} from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -62,6 +63,21 @@ function getDisplayName(login, personalDetail) {
     const fullName = (`${firstName} ${lastName}`).trim();
 
     return fullName || userLogin;
+}
+
+/**
+ * Returns object with first and last name errors. If either are valid,
+ * those errors get returned as empty strings.
+ *
+ * @param {String} firstName
+ * @param {String} lastName
+ * @returns {Object}
+ */
+function getFirstAndLastNameErrors(firstName, lastName) {
+    return {
+        firstNameError: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
+        lastNameError: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
+    };
 }
 
 /**
@@ -304,6 +320,7 @@ export {
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
+    getFirstAndLastNameErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,
