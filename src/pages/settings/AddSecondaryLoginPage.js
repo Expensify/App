@@ -164,7 +164,6 @@ class AddSecondaryLoginPage extends Component {
 
 AddSecondaryLoginPage.propTypes = propTypes;
 AddSecondaryLoginPage.defaultProps = defaultProps;
-AddSecondaryLoginPage.displayName = 'AddSecondaryLoginPage';
 
 export default compose(
     withLocalize,

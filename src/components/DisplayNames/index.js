@@ -123,6 +123,5 @@ class DisplayNames extends PureComponent {
 }
 DisplayNames.propTypes = propTypes;
 DisplayNames.defaultProps = defaultProps;
-DisplayNames.displayName = 'DisplayNames';
 
 export default DisplayNames;
