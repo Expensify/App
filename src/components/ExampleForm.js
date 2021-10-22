@@ -14,12 +14,14 @@ class ExampleForm extends React.Component {
                     formName='bankAccount'
                 >
                     <View>
+                        <View>
                         <FormInput 
                             label={'First name'}
                             value={''}
                             placeholder={'Name'}
                             translateX={-10}
                         />
+                        </View>
                     </View>
                     <FormInput 
                         label={'Last name'}

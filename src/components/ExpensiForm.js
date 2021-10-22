@@ -22,17 +22,27 @@ class ExpensiForm extends React.Component {
     }
 
     render() {
-        const childrenWrapperWithProps = React.Children.map(this.props.children, child => {
-            if (React.isValidElement(child)) {
+        const childrenWrapperWithProps = (children) => {
+            return React.Children.map(children, child => {
+                if (!React.isValidElement(child)) {
+                    return child;
+                }
+
+                if (child.props.children) {
+                    child = React.cloneElement(child, {
+                        children: childrenWrapperWithProps(child.props.children)
+                    })
+                }
+                console.log(child.displayName)
                 return React.cloneElement(child, {
                     onChange: this.onChange,
                 })
-            }
-        });
+            })
+        };
 
         return (
             <>
-               {childrenWrapperWithProps} 
+               {childrenWrapperWithProps(this.props.children)} 
             </>
         );
     }

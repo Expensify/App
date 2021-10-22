@@ -25,4 +25,5 @@ class FormInput extends Component {
 // FormInput.propTypes = propTypes;
 // FormInput.defaultProps = defaultProps;
 
+FormInput.displayName = 'FormInput';
 export default FormInput;
