@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import {propTypes, defaultProps} from './HoverablePropTypes';
+import {propTypes, defaultProps} from './hoverablePropTypes';
 
 /**
  * On mobile, there is no concept of hovering, so we return a plain wrapper around the component's children,

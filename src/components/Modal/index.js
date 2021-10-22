@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import withWindowDimensions from '../withWindowDimensions';
 import BaseModal from './BaseModal';
-import {propTypes, defaultProps} from './ModalPropTypes';
+import {propTypes, defaultProps} from './modalPropTypes';
 
 class Modal extends Component {
     constructor(props) {
