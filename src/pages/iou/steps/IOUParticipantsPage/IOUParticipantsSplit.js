@@ -109,7 +109,7 @@ class IOUParticipantsSplit extends Component {
 
             // takes the sum off the length of all data
             // (this.state.selectedOptions) in previous sections
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
@@ -119,7 +119,7 @@ class IOUParticipantsSplit extends Component {
 
             // takes the sum off the length of all data
             // (this.state.selectedOptions, this.state.recentReports) in previous sections
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         if (this.state.userToInvite && !isCurrentUser(this.state.userToInvite)) {

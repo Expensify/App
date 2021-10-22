@@ -129,7 +129,7 @@ class ProfilePage extends Component {
      * @returns {Object}
      */
     getLogins(loginList) {
-        return loginList.reduce((logins, currentLogin) => {
+        return _.reduce(loginList, (logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
