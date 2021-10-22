@@ -820,6 +820,28 @@ function updateReimbursementAccountDraft(bankAccountData) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
 }
 
+/**
+ * Checks the given number is a valid US Routing Number
+ * using ABA routingNumber checksum algorithm: http://www.brainjar.com/js/validation/
+ * @param {String} number
+ * @returns {Boolean}
+ */
+function validateRoutingNumber(number) {
+    let n = 0;
+    for (let i = 0; i < number.length; i += 3) {
+        n += (parseInt(number.charAt(i), 10) * 3)
+            + (parseInt(number.charAt(i + 1), 10) * 7)
+            + parseInt(number.charAt(i + 2), 10);
+    }
+
+    // If the resulting sum is an even multiple of ten (but not zero),
+    // the ABA routing number is valid.
+    if (n !== 0 && n % 10 === 0) {
+        return true;
+    }
+    return false;
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -839,4 +861,5 @@ export {
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
+    validateRoutingNumber,
 };
