@@ -286,7 +286,7 @@ function activateWallet(currentStep, parameters) {
                         CONST.WALLET.ERROR.UNABLE_TO_VERIFY,
                     ];
 
-                    if (errorTitles.includes(response.title)) {
+                    if (_.contains(errorTitles, response.title)) {
                         setAdditionalDetailsStep(false, null, response.message);
                         return;
                     }

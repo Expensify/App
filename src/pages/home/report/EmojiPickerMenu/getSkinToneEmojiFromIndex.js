@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import {skinTones} from '../../../../../assets/emojis';
 
 /**
@@ -5,7 +6,8 @@ import {skinTones} from '../../../../../assets/emojis';
  * @param {Number} skinToneIndex
  * @returns {String}
  */
-const getSkinToneEmojiFromIndex = skinToneIndex => skinTones.find(
+const getSkinToneEmojiFromIndex = skinToneIndex => _.find(
+    skinTones,
     emoji => emoji.skinTone === skinToneIndex,
 ) ?? skinTones[0];
 

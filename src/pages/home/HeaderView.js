@@ -93,7 +93,7 @@ const HeaderView = (props) => {
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
     const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
-    const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
+    const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
     const isAutomatedExpensifyAccount = (participants.length === 1 && hasExpensifyEmails(participants));
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact

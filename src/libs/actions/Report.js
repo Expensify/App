@@ -378,7 +378,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
+            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return fetchedReports;
         })
         .catch((err) => {

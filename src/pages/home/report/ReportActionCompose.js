@@ -271,7 +271,7 @@ class ReportActionCompose extends React.Component {
         }
 
         if (this.props.report.participants
-            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE)
+            && _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE)
             && !_.isEmpty(this.props.blockedFromConcierge)
             && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
@@ -356,7 +356,7 @@ class ReportActionCompose extends React.Component {
                 e.preventDefault();
 
                 const reportActionKey = _.find(
-                    Object.keys(this.props.reportActions).reverse(),
+                    _.keys(this.props.reportActions).reverse(),
                     key => canEditReportAction(this.props.reportActions[key]),
                 );
 
@@ -474,7 +474,7 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isConciergeChat = this.props.report.participants
-            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
+            && _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
         let isBlockedFromConcierge = false;
         if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);

@@ -111,7 +111,7 @@ export default {
         const plainTextPerson = Str.htmlDecode(_.map(person, f => f.text).join());
 
         // Specifically target the comment part of the message
-        const plainTextMessage = Str.htmlDecode((message.find(f => f.type === 'COMMENT') || {}).text);
+        const plainTextMessage = Str.htmlDecode((_.find(message, f => f.type === 'COMMENT') || {}).text);
 
         push({
             title: `New message from ${plainTextPerson}`,

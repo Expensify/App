@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CreditCard from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
@@ -120,7 +121,7 @@ export default function getBankIcon(bankName, isCard) {
     }
 
     // For default Credit Card icon the icon size should not be set.
-    if (![CreditCard].includes(bankIcon.icon)) {
+    if (!_.contains([CreditCard], bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 

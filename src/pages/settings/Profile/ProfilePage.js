@@ -73,13 +73,13 @@ class ProfilePage extends Component {
             pronouns,
             timezone = {},
         } = props.myPersonalDetails;
-        const pronounsList = Object.values(this.props.translate('pronouns'));
+        const pronounsList = _.values(this.props.translate('pronouns'));
 
         let currentUserPronouns = pronouns;
         let initialSelfSelectedPronouns = '';
 
         // This handles populating the self-selected pronouns in the form
-        if (pronouns && !pronounsList.includes(pronouns)) {
+        if (pronouns && !_.contains(pronounsList, pronouns)) {
             currentUserPronouns = this.props.translate('pronouns.selfSelect');
             initialSelfSelectedPronouns = pronouns;
         }

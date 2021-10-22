@@ -175,7 +175,7 @@ class ReportDetailsPage extends Component {
                                                     notificationPreference,
                                                 );
                                             }}
-                                            items={Object.values(this.notificationPreferencesOptions)}
+                                            items={_.values(this.notificationPreferencesOptions)}
                                             value={this.props.report.notificationPreference}
                                         />
                                     </View>

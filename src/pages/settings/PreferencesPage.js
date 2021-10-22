@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -88,7 +89,7 @@ const PreferencesPage = ({
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                             }
-                            items={Object.values(priorityModes)}
+                            items={_.values(priorityModes)}
                             value={priorityMode}
                         />
                     </View>
