@@ -41,6 +41,9 @@ const webpackConfig = {
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
         }),
+
+        // Configure the React Native Reanimated web support
+        // https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/web-support
         new DefinePlugin({process: {env: {}}}),
 
         // Copies favicons into the dist/ folder to use for unread status
