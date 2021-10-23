@@ -43,7 +43,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST, {EXCLUDED_IOU_EMAILS} from '../../../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -459,7 +459,7 @@ class ReportActionCompose extends React.Component {
         // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXCLUDED_IOU_EMAILS).length > 0;
+        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
@@ -560,7 +560,7 @@ class ReportActionCompose extends React.Component {
                                                                     },
                                                                 },
                                                         ] : []),
-                                                    ...(Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
+                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
                                                         {
                                                             icon: Send,
                                                             text: this.props.translate('iou.sendMoney'),
