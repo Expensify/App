@@ -112,9 +112,11 @@ class ResendValidationForm extends React.Component {
                         source={getDefaultAvatar(this.props.credentials.login)}
                         imageStyles={[styles.mr2]}
                     />
-                    <Text style={[styles.textStrong]}>
-                        {login}
-                    </Text>
+                    <View style={[styles.flex1]}>
+                        <Text style={[styles.textStrong]}>
+                            {login}
+                        </Text>
+                    </View>
                 </View>
                 <View style={[styles.mv5]}>
                     <Text>
