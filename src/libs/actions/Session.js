@@ -370,6 +370,10 @@ function cleanupSession() {
     Timers.clearAll();
 }
 
+function clearAccountMessages() {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+}
+
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -382,4 +386,5 @@ export {
     resetPassword,
     clearSignInData,
     cleanupSession,
+    clearAccountMessages,
 };
