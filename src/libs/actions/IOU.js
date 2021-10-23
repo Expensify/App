@@ -63,7 +63,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 function getIOUErrorMessage(error) {
     if (error && error.jsonCode) {
         if (error.jsonCode === 405) {
-            return translateLocal('iou.error.invalidAmount');
+            return translateLocal('common.error.invalidAmount');
         } if (error.jsonCode === 404) {
             return translateLocal('iou.error.invalidSplit');
         }
@@ -85,7 +85,8 @@ function createIOUTransaction(params) {
         .then((data) => {
             getIOUReportsForNewTransaction([data]);
             Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
-        })?.catch((error) => {
+        })
+        .catch((error) => {
             Onyx.merge(ONYXKEYS.IOU, {
                 loading: false,
                 creatingIOUTransaction: false,
@@ -134,7 +135,8 @@ function createIOUSplit(params) {
             }
             getIOUReportsForNewTransaction(reportParams);
             Navigation.navigate(ROUTES.getReportRoute(chatReportID));
-        })?.catch((error) => {
+        })
+        .catch((error) => {
             Onyx.merge(ONYXKEYS.IOU, {
                 loading: false,
                 creatingIOUTransaction: false,
