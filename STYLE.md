@@ -279,7 +279,7 @@ const somethingElse = 'go';
 export {
     something,
     somethingElse,
-}
+};
 ```
 
 ## Classes and constructors
