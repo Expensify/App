@@ -6,7 +6,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/HeaderWithCloseButton',
     component: HeaderWithCloseButton,
 };
@@ -16,9 +16,9 @@ const Template = args => <HeaderWithCloseButton {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-export const Default = Template.bind({});
-export const Attachment = Template.bind({});
-export const Profile = Template.bind({});
+const Default = Template.bind({});
+const Attachment = Template.bind({});
+const Profile = Template.bind({});
 Default.args = {
     title: 'Settings',
 };
@@ -29,4 +29,11 @@ Attachment.args = {
 Profile.args = {
     title: 'Profile',
     shouldShowBackButton: true,
+};
+
+export default story;
+export {
+    Default,
+    Attachment,
+    Profile,
 };

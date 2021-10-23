@@ -21,7 +21,7 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
-export const navigationRef = createNavigationContainerRef();
+const navigationRef = createNavigationContainerRef();
 
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
 // If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens)
@@ -203,4 +203,8 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+};
+
+export {
+    navigationRef,
 };
