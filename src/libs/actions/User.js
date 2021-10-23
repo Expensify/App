@@ -294,6 +294,10 @@ function setShouldUseSecureStaging(shouldUseSecureStaging) {
     Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
 }
 
+function clearUserErrorMessage() {
+    Onyx.merge(ONYXKEYS.USER, {error: ''});
+}
+
 export {
     changePassword,
     getBetas,
@@ -307,4 +311,5 @@ export {
     subscribeToUserEvents,
     setPreferredSkinTone,
     setShouldUseSecureStaging,
+    clearUserErrorMessage,
 };
