@@ -60,6 +60,7 @@ class ReimbursementAccountForm extends React.Component {
                         this.form.scrollTo({y: 0, animated: true});
                     }}
                     message={this.props.reimbursementAccount.errorModalMessage}
+                    isMessageHtml={this.props.reimbursementAccount.isErrorModalMessageHtml}
                 />
             </ScrollView>
         );
