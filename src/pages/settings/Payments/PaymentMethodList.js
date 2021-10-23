@@ -26,7 +26,7 @@ const propTypes = {
     /** Are we loading payments from the server? */
     isLoadingPayments: PropTypes.bool,
 
-    /** Is payment options in menu visible to user? */
+    /** Is the payment options menu open / active? */
     isAddPaymentMenuActive: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
@@ -138,8 +138,8 @@ class PaymentMethodList extends Component {
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
-            wrapperStyle: this.props.isAddPaymentMenuActive ? [getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE)] : [],
-            iconFill: this.props.isAddPaymentMenuActive ? getIconFillColor(CONST.BUTTON_STATES.ACTIVE) : null,
+            iconFill: this.props.isAddPaymentMenuActive ? getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.props.isAddPaymentMenuActive ? [getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;
@@ -163,9 +163,9 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
+                    iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
-                    iconFill={item.iconFill}
                     wrapperStyle={item.wrapperStyle}
                 />
             );
