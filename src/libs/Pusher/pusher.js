@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Pusher from './library';
 import TYPE from './EventType';
+import Log from '../Log';
 
 let socket;
 const socketEventCallbacks = [];
@@ -118,7 +119,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             try {
                 data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
             } catch (err) {
-                console.debug('Unable to parse JSON response from Pusher', 0, {error: err, eventData});
+                Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
                 return;
             }
 
@@ -151,7 +152,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             } catch (err) {
-                console.debug('[Pusher] Unable to parse chunked JSON response from Pusher', 0, {
+                Log.alert('[Pusher] Unable to parse chunked JSON response from Pusher', {
                     error: err,
                     eventData: chunkedEvent.chunks.join(''),
                 });
@@ -193,7 +194,7 @@ function subscribe(
             most likely has been called before Pusher.init()`);
         }
 
-        console.debug('[Pusher] Attempting to subscribe to channel', true, {channelName, eventName});
+        Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
         let channel = getChannel(channelName);
 
         if (!channel || !channel.subscribed) {
@@ -217,7 +218,7 @@ function subscribe(
 
             channel.bind('pusher:subscription_error', (status) => {
                 if (status === 403) {
-                    console.debug('[Pusher] Issue authenticating with Pusher during subscribe attempt.', 0, {
+                    Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                         channelName,
                         status,
                     });
@@ -243,21 +244,19 @@ function unsubscribe(channelName, eventName = '') {
     const channel = getChannel(channelName);
 
     if (!channel) {
-        console.debug(`[Pusher] Attempted to unsubscribe or unbind from a channel,
-        but Pusher-JS has no knowledge of it`, 0, {channelName, eventName});
+        Log.hmmm('[Pusher] Attempted to unsubscribe or unbind from a channel, but Pusher-JS has no knowledge of it', {channelName, eventName});
         return;
     }
 
     if (eventName) {
-        console.debug('[Pusher] Unbinding event', true, {eventName, channelName});
+        Log.info('[Pusher] Unbinding event', false, {eventName, channelName});
         channel.unbind(eventName);
     } else {
         if (!channel.subscribed) {
-            console.debug(`[Pusher] Attempted to unsubscribe from channel,
-            but we are not subscribed to begin with`, 0, {channelName});
+            Log.info('Pusher] Attempted to unsubscribe from channel, but we are not subscribed to begin with', false, {channelName});
             return;
         }
-        console.debug('[Pusher] Unsubscribing from channel', true, {channelName});
+        Log.info('[Pusher] Unsubscribing from channel', false, {channelName});
 
         channel.unbind();
         socket.unsubscribe(channelName);
@@ -339,7 +338,7 @@ function registerCustomAuthorizer(authorizer) {
  */
 function disconnect() {
     if (!socket) {
-        console.debug('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
+        Log.info('[Pusher] Attempting to disconnect from Pusher before initialisation has occurred, ignoring.');
         return;
     }
 
@@ -352,11 +351,11 @@ function disconnect() {
  */
 function reconnect() {
     if (!socket) {
-        console.debug('[Pusher] Unable to reconnect since Pusher instance does not yet exist.');
+        Log.info('[Pusher] Unable to reconnect since Pusher instance does not yet exist.');
         return;
     }
 
-    console.debug('[Pusher] Reconnecting to Pusher');
+    Log.info('[Pusher] Reconnecting to Pusher');
     socket.disconnect();
     socket.connect();
 }

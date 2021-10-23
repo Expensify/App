@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import validateLinkPropTypes from './validateLinkPropTypes';
 import styles from '../styles/styles';
 import {setPassword, signIn} from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
@@ -42,7 +41,22 @@ const propTypes = {
     }),
 
     /** The accountID and validateCode are passed via the URL */
-    route: validateLinkPropTypes,
+    route: PropTypes.shape({
+        // The name of the route
+        name: PropTypes.string,
+
+        // Unique key associated with the route
+        key: PropTypes.string,
+
+        // Each parameter passed via the URL
+        params: PropTypes.shape({
+            // AccountID associated with the validation link
+            accountID: PropTypes.string,
+
+            // Validation code associated with the validation link
+            validateCode: PropTypes.string,
+        }),
+    }),
 
     ...withLocalizePropTypes,
 };
