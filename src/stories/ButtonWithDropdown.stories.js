@@ -6,7 +6,7 @@ import ButtonWithDropdown from '../components/ButtonWithDropdown';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/ButtonWithDropdown',
     component: ButtonWithDropdown,
 };
@@ -21,6 +21,7 @@ Default.args = {
     buttonText: 'Pay with Venmo',
 };
 
+export default story;
 export {
     Default,
 };

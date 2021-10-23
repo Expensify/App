@@ -6,7 +6,7 @@ import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/HeaderWithCloseButton',
     component: HeaderWithCloseButton,
 };
@@ -31,6 +31,7 @@ Profile.args = {
     shouldShowBackButton: true,
 };
 
+export default story;
 export {
     Default,
     Attachment,

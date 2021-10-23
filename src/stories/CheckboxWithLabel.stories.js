@@ -8,7 +8,7 @@ import styles from '../styles/styles';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/CheckboxWithLabel',
     component: CheckboxWithLabel,
 };
@@ -47,6 +47,7 @@ WithErrors.args = {
     label: 'I accept the Terms & Conditions',
 };
 
+export default story;
 export {
     Default,
     WithLabelComponent,

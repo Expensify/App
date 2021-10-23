@@ -6,7 +6,7 @@ import Button from '../components/Button';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/Button',
     component: Button,
 };
@@ -28,6 +28,7 @@ Loading.args = {
     success: true,
 };
 
+export default story;
 export {
     Default,
     Loading,

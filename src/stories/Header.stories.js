@@ -6,7 +6,7 @@ import Header from '../components/Header';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/Header',
     component: Header,
 };
@@ -22,6 +22,7 @@ Default.args = {
     shouldShowEnvironmentBadge: true,
 };
 
+export default story;
 export {
     Default,
 };
