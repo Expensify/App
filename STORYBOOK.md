@@ -38,7 +38,7 @@ Here's an example story:
 import React from 'react';
 import Button from '../components/Button';
 
-export default {
+const story = {
 	// Title field will determine how the story displays in the sidebar
     title: 'Components/Button',
     component: Button,
@@ -53,6 +53,8 @@ Default.args = {
     text: 'Save & Continue',
     success: true,
 };
+
+export default story;
 export {
     Default,
 };
