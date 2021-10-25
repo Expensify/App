@@ -18,7 +18,6 @@ import Icon from '../../components/Icon';
 import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
-import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import {getCurrencyList} from '../../libs/actions/PersonalDetails';
