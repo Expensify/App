@@ -2,10 +2,16 @@ import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
 import styles from '../styles/styles';
 import Button from './Button';
 import ButtonWithDropdown from './ButtonWithDropdown';
 import PopoverMenu from './PopoverMenu';
+import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
+import userWalletPropTypes from '../pages/EnablePayments/userWalletPropTypes';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Text to display for the menu header */
@@ -32,6 +38,9 @@ const propTypes = {
         iconHeight: PropTypes.number,
         iconDescription: PropTypes.string,
     })).isRequired,
+
+    /** The user's current wallet status and step */
+    userWallet: userWalletPropTypes.isRequired,
 };
 
 const defaultProps = {
@@ -49,6 +58,12 @@ class ButtonWithMenu extends PureComponent {
             selectedItem: props.options[0],
             isMenuVisible: false,
         };
+    }
+
+    componentDidMount() {
+        if (!this.props.userWallet.tierName || this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER) {
+            Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
+        }
     }
 
     setMenuVisibility(isMenuVisible) {
@@ -105,4 +120,8 @@ class ButtonWithMenu extends PureComponent {
 ButtonWithMenu.propTypes = propTypes;
 ButtonWithMenu.defaultProps = defaultProps;
 
-export default ButtonWithMenu;
+export default withOnyx({
+    userWallet: {
+        key: ONYXKEYS.USER_WALLET,
+    },
+})(ButtonWithMenu);
