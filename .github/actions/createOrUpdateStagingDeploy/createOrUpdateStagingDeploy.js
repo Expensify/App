@@ -103,7 +103,7 @@ const run = function () {
                         // Since it is later in the array, it will be truncated by _.unique,
                         // and the original value of isVerified and isAccessible will be preserved.
                         isVerified: false,
-                        isAccessiblityVerified: false,
+                        isAccessible: false,
                     }))),
                     false,
                     item => item.number,
