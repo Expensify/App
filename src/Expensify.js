@@ -26,9 +26,6 @@ Onyx.registerLogger(({level, message}) => {
     }
 });
 
-Onyx.merge('test', 'derp');
-Onyx.set('test', 'derp');
-
 const propTypes = {
     /* Onyx Props */
 
