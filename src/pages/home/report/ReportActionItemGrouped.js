@@ -17,4 +17,5 @@ const ReportActionItemGrouped = ({children}) => (
 );
 
 ReportActionItemGrouped.propTypes = propTypes;
+ReportActionItemGrouped.displayName = 'ReportActionItemGrouped';
 export default ReportActionItemGrouped;

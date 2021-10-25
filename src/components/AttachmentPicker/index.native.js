@@ -304,7 +304,7 @@ class AttachmentPicker extends Component {
 
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.defaultProps = defaultProps;
-AttachmentPicker.displayName = 'AttachmentPicker';
+
 export default compose(
     withWindowDimensions,
     withLocalize,

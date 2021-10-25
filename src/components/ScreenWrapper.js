@@ -128,7 +128,7 @@ class ScreenWrapper extends React.Component {
 
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
-ScreenWrapper.displayName = 'ScreenWrapper';
+
 export default compose(
     withNavigation,
     withOnyx({

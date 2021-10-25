@@ -36,5 +36,5 @@ const WorkspaceBillsPage = ({translate, route}) => (
 );
 
 WorkspaceBillsPage.propTypes = propTypes;
-
+WorkspaceBillsPage.displayName = 'WorkspaceBillsPage';
 export default withLocalize(WorkspaceBillsPage);

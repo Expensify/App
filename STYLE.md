@@ -206,7 +206,7 @@ We have standardized on using underscore methods for objects and collections ins
 
 ## Accessing Object Properties and Default Values
 
-Use `_.get()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
 
    ```javascript
    // Bad
@@ -218,7 +218,7 @@ Use `_.get()` to safely access object properties and `||` to short circuit null 
    // Bad
    const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
    // Good
-   const value = _.get(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
+   const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
    ```
 
 ## JSDocs
@@ -293,7 +293,23 @@ ES6 provides two ways to export a module from a file: `named export` and `defaul
 - Files with multiple exports should always use named exports
 - Files with a single method or variable export are OK to use named exports
 - Mixing default and named exports in a single file is OK (e.g. in a self contained module), but should rarely be used
-- All exports should be declared at the bottom of the file
+- All exports (both default and named) should happen at the bottom of the file
+- Do **not** export individual features inline.
+
+```javascript
+// Bad
+export const something = 'nope';
+export const somethingElse = 'stop';
+
+// Good
+const something = 'yep';
+const somethingElse = 'go';
+
+export {
+    something,
+    somethingElse,
+};
+```
 
 ## Classes and constructors
 
@@ -338,8 +354,8 @@ So, if a new language feature isn't something we have agreed to support it's off
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
 - **Async/Await** - Use the native `Promise` instead
-- **Optional Chaining** - Use `_.get()` to fetch a nested value instead
-- **Null Coalescing Operator** - Use `_.get()` or `||` to set a default value for a possibly `undefined` or `null` variable
+- **Optional Chaining** - Use `lodashGet()` to fetch a nested value instead
+- **Null Coalescing Operator** - Use `lodashGet()` or `||` to set a default value for a possibly `undefined` or `null` variable
 
 # React Coding Standards
 
@@ -695,7 +711,25 @@ From React's documentation -
 >Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
 >If you want to reuse non-UI functionality between components, we suggest extracting it into a separate JavaScript module. The components may import it and use that function, object, or a class, without extending it.
 
-Use *[Higher order components](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+
+If several HOC need to be combined there is a `compose()` utility. But we should not use this utility when there is only one HOC.
+
+```javascript
+// Bad
+export default compose(
+    withLocalize,
+)(MyComponent);
+
+// Good
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(MyComponent);
+
+// Good
+export default withLocalize(MyComponent)
+```
 
 **Note:** If you find that none of these approaches work for you, please ask an Expensify engineer for guidance via Slack or GitHub.
 

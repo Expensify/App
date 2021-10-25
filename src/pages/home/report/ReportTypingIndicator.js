@@ -102,7 +102,6 @@ class ReportTypingIndicator extends React.Component {
 
 ReportTypingIndicator.propTypes = propTypes;
 ReportTypingIndicator.defaultProps = defaultProps;
-ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
 export default compose(
     withLocalize,

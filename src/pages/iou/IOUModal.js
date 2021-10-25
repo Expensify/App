@@ -371,7 +371,6 @@ class IOUModal extends Component {
 
 IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
-IOUModal.displayName = 'IOUModal';
 
 export default compose(
     withLocalize,
