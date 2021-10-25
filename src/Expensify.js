@@ -21,6 +21,7 @@ import Log from './libs/Log';
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
         Log.alert(message);
+        console.error(message);
     } else {
         Log.info(message);
     }
