@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import styles from '../../../styles/styles';
@@ -57,7 +58,7 @@ const termsData = [
     },
 ];
 
-const getLongTermsSections = () => termsData.map((section, index) => (
+const getLongTermsSections = () => _.map(termsData, (section, index) => (
     // eslint-disable-next-line react/no-array-index-key
     <View key={section.title + index}>
         <View style={[styles.longTermsRow]}>

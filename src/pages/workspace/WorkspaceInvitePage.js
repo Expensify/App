@@ -16,8 +16,8 @@ import ExpensiTextInput from '../../components/ExpensiTextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
-import {getNewGroupOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
-import CONST, {EXCLUDED_GROUP_EMAILS} from '../../CONST';
+import {getNewChatOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
+import CONST, {EXPENSIFY_EMAILS} from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import {openExternalLink} from '../../libs/actions/Link';
 import Text from '../../components/Text';
@@ -77,7 +77,7 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = getNewGroupOptions(
+        } = getNewChatOptions(
             [],
             props.personalDetails,
             props.betas,
@@ -100,7 +100,7 @@ class WorkspaceInvitePage extends React.Component {
 
     getExcludedUsers() {
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...EXCLUDED_GROUP_EMAILS, ...policyEmployeeList];
+        return [...EXPENSIFY_EMAILS, ...policyEmployeeList];
     }
 
     /**
@@ -151,7 +151,7 @@ class WorkspaceInvitePage extends React.Component {
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         if (this.state.userToInvite) {
@@ -196,7 +196,7 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = getNewGroupOptions(
+            } = getNewChatOptions(
                 [],
                 this.props.personalDetails,
                 this.props.betas,
@@ -272,7 +272,7 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = getNewGroupOptions(
+                                        } = getNewChatOptions(
                                             [],
                                             this.props.personalDetails,
                                             this.props.betas,

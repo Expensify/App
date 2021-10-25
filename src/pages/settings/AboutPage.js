@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -93,7 +94,7 @@ const AboutPage = ({translate}) => {
                             </Text>
                         </View>
                     </View>
-                    {menuItems.map(item => (
+                    {_.map(menuItems, item => (
                         <MenuItem
                             key={item.translationKey}
                             title={translate(item.translationKey)}

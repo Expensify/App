@@ -379,6 +379,12 @@ export default {
             invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
         },
     },
+    personalDetails: {
+        error: {
+            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
+            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
+        },
+    },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
         weSentYouMagicSignInLink: ({login}) => `Hemos enviado un enlace mágico de inicio de sesión a ${login}. Verifica tu bandeja de entrada y tu carpeta de correo no deseado y espera de 5 a 10 minutos antes de intentarlo de nuevo.`,
@@ -389,7 +395,7 @@ export default {
     detailsPage: {
         localTime: 'Hora local',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Crear grupo',
     },
     notFound: {
@@ -598,7 +604,7 @@ export default {
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
         letsChatCTA: '¡Sí, vamos a chatear!',
-        letsChatText: '¡Gracias por hacer eso! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
+        letsChatText: '¡Gracias! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
         letsChatTitle: '¡Vamos a chatear!',
     },
     beneficialOwnersStep: {
@@ -732,8 +738,16 @@ export default {
             accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta. Concierge puede ayudarte a añadir tu correo de trabajo para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',
             chatWithConcierge: 'Chat con Concierge',
-            letsFinishInChat: '¡Acabemos en el chat!',
+            letsFinishInChat: '¡Continuemos en el chat!',
             almostDone: '¡Casi listo!',
+            disconnectBankAccount: 'Desconectar cuenta bancaria',
+            noLetsStartOver: 'No, empecemos de nuevo',
+            startOver: 'Empezar de nuevo',
+            yesDisconnectMyBankAccount: 'Sí, desconecta mi cuenta bancaria',
+            yesStartOver: 'Sí, empezar de nuevo',
+            disconnectYour: 'Desconecta tu cuenta bancaria de ',
+            bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
+            clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
     requestCallPage: {

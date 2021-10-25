@@ -245,8 +245,7 @@ class EmojiPickerMenu extends Component {
         // If there are headers in the emoji array, so we need to offset by their heights as well
         let numHeaders = 0;
         if (this.state.filteredEmojis.length === this.emojis.length) {
-            numHeaders = this.unfilteredHeaderIndices
-                .filter(i => this.state.highlightedIndex > i * this.numColumns).length;
+            numHeaders = _.filter(this.unfilteredHeaderIndices, i => this.state.highlightedIndex > i * this.numColumns).length;
         }
 
         // Calculate the scroll offset at the bottom of the currently highlighted emoji

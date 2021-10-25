@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -11,7 +12,7 @@ const propTypes = {
 
 const ComposeProviders = props => (
     <>
-        {props.components.reduceRight((memo, Component) => (
+        {_.reduceRight(props.components, (memo, Component) => (
             <Component>{memo}</Component>
         ), props.children)}
     </>

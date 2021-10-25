@@ -33,7 +33,7 @@ import {getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import getOperatingSystem from '../../getOperatingSystem';
-import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
+import {fetchFreePlanVerifiedBankAccount, fetchUserWallet} from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
@@ -163,6 +163,7 @@ class AuthScreens extends React.Component {
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         fetchFreePlanVerifiedBankAccount();
+        fetchUserWallet();
 
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()

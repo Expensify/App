@@ -84,7 +84,6 @@ class TextInputFocusable extends React.Component {
     }
 }
 
-TextInputFocusable.displayName = 'TextInputFocusable';
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
 
