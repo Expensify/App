@@ -279,7 +279,7 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
- * Uploads the image of Avatar to S3 bucket and sets the url locally
+ * Uploads the avatar image to S3 bucket and sets the url locally
  *
  * @param {String} policyID
  * @param {Object} file
