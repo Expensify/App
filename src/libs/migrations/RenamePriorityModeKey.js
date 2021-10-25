@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import ONYXKEYS from '../../ONYXKEYS';
+import Log from '../Log';
 
 // This migration changes the name of the Onyx key NVP_PRIORITY_MODE from priorityMode to nvp_priorityMode
 export default function () {
@@ -15,7 +16,7 @@ export default function () {
 
                 // Fail early here because there is nothing to migrate
                 if (_.isEmpty(oldPriorityMode)) {
-                    console.debug('[Migrate Onyx] Skipped migration RenamePriorityModeKey');
+                    Log.info('[Migrate Onyx] Skipped migration RenamePriorityModeKey');
                     return resolve();
                 }
 
@@ -24,7 +25,7 @@ export default function () {
                     [ONYXKEYS.NVP_PRIORITY_MODE]: oldPriorityMode,
                 })
                     .then(() => {
-                        console.debug('[Migrate Onyx] Ran migration RenamePriorityModeKey');
+                        Log.info('[Migrate Onyx] Ran migration RenamePriorityModeKey');
                         resolve();
                     });
             },

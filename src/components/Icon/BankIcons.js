@@ -1,4 +1,4 @@
-import {Bank, CreditCard} from './Expensicons';
+import {CreditCard} from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -10,6 +10,7 @@ import CitizensBank from '../../../assets/images/bankicons/citizens-bank.svg';
 import Discover from '../../../assets/images/bankicons/discover.svg';
 import Fidelity from '../../../assets/images/bankicons/fidelity.svg';
 import HuntingtonBank from '../../../assets/images/bankicons/huntington-bank.svg';
+import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg';
 import NavyFederalCreditUnion from '../../../assets/images/bankicons/navy-federal-credit-union.svg';
 import PNC from '../../../assets/images/bankicons/pnc.svg';
 import RegionsBank from '../../../assets/images/bankicons/regions-bank.svg';
@@ -99,7 +100,7 @@ function getAssetIcon(bankName, isCard) {
         return USAA;
     }
 
-    return isCard ? CreditCard : Bank;
+    return isCard ? CreditCard : GenericBank;
 }
 
 /**
@@ -111,15 +112,15 @@ function getAssetIcon(bankName, isCard) {
 
 export default function getBankIcon(bankName, isCard) {
     const bankIcon = {
-        icon: isCard ? CreditCard : Bank,
+        icon: isCard ? CreditCard : GenericBank,
     };
 
     if (bankName) {
         bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
     }
 
-    // For default icons the icon size should not be set.
-    if (![CreditCard, Bank].includes(bankIcon.icon)) {
+    // For default Credit Card icon the icon size should not be set.
+    if (![CreditCard].includes(bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 

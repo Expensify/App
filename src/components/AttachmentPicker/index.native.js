@@ -65,7 +65,7 @@ function getDataForUpload(fileData) {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.uri,
-        size: fileData.size,
+        size: fileData.fileSize || fileData.size,
     };
 }
 
@@ -303,7 +303,7 @@ class AttachmentPicker extends Component {
 
 AttachmentPicker.propTypes = propTypes;
 AttachmentPicker.defaultProps = defaultProps;
-AttachmentPicker.displayName = 'AttachmentPicker';
+
 export default compose(
     withWindowDimensions,
     withLocalize,

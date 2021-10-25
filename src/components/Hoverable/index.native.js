@@ -19,5 +19,6 @@ const Hoverable = (props) => {
 
 Hoverable.propTypes = propTypes;
 Hoverable.defaultProps = defaultProps;
+Hoverable.displayName = 'Hoverable';
 
 export default Hoverable;

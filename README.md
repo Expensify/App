@@ -55,9 +55,36 @@ You can use any IDE or code editing tool for developing on any platform. Use you
 
 ## Troubleshooting
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
-2. If you are running into issues communicating with the API please verify your `.env` file is [set up correctly](#getting-started) for the platform you are trying to run.
+2. If you are running into CORS errors like (in the browser dev console)
+   ```sh
+   Access to fetch at 'https://www.expensify.com/api?command=GetAccountStatus' from origin 'http://localhost:8080' has been blocked by CORS policy
+   ```
+   You probably have a misconfigured `.env` file - remove it (`rm .env`) and try again
 
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).
+
+## Environment variables
+Creating an `.env` file is not necessary. We advise external contributors against it. It can lead to errors when
+variables referenced here get updated since your local `.env` file is ignored.
+
+- `EXPENSIFY_URL_CASH` - The root URL used for the website
+- `EXPENSIFY_URL_SECURE` - The URL used to hit the Expensify secure API
+- `EXPENSIFY_URL_COM` - The URL used to hit the Expensify API
+- `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
+- `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
+- `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
+- `SECURE_NGROK_URL` - Secure URL used for `ngrok` when testing
+- `NGROK_URL` - URL used for `ngrok` when testing
+- `USE_NGROK` - Flag to turn `ngrok` testing on or off
+- `USE_WDYR` - Flag to turn [`Why Did You Render`](https://github.com/welldone-software/why-did-you-render) testing on or off
+- `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy
+   requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
+   If you don't want to start the proxy server set this explicitly to `false`
+- `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
+   see [PERFORMANCE.md](PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
+- `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
+   see [React-Native-Onyx#benchmarks](https://github.com/Expensify/react-native-onyx#benchmarks) for more information
+
 
 ----
 
@@ -125,6 +152,8 @@ This layer is solely responsible for:
 
 - Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Onyx data.
 - Taking user input and passing it to an action
+
+**Note:** As a convention, the UI layer should never interact with device storage directly or call `Onyx.set()` or `Onyx.merge()`. Use an action! For example, check out this action that is signing in the user [here](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/pages/signin/PasswordForm.js#L78-L78). That action will then call `Onyx.merge()` to [set default data and a loading state, then make an API request, and set the response with another `Onyx.merge()`](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/libs/actions/Session.js#L228-L247). Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place.
 
 ## Directory structure
 Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
@@ -199,12 +228,14 @@ export default withOnyx({
 # Philosophy
 This application is built with the following principles.
 1. **Data Flow** - Ideally, this is how data flows through the app:
-    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx). Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
-    1. Disk pushes data to the UI (Onyx -> withOnyx()/connect() -> React component).
-    1. UI pushes data to people's brains (React component -> device screen).
-    1. Brain pushes data into UI inputs (Device input -> React component).
-    1. UI inputs push data to the server (React component -> Action -> XHR to server).
-    1. Go to 1
+    1. Server pushes data to the disk of any client (Server -> Pusher event -> Action listening to pusher event -> Onyx).
+    >**Note:** Currently the code only does this with report comments. Until we make more server changes, this steps is actually done by the client requesting data from the server via XHR and then storing the response in Onyx.
+    2. Disk pushes data to the UI (Onyx -> withOnyx() -> React component).
+    3. UI pushes data to people's brains (React component -> device screen).
+    4. Brain pushes data into UI inputs (Device input -> React component).
+    5. UI inputs push data to the server (React component -> Action -> XHR to server).
+    6. Go to 1
+    ![New Expensify Data Flow Chart](/web/data_flow.png)
 1. **Offline first**
     - All data that is brought into the app and is necessary to display the app when offline should be stored on disk in persistent storage (eg. localStorage on browser platforms). [AsyncStorage](https://reactnative.dev/docs/asyncstorage) is a cross-platform abstraction layer that is used to access persistent storage.
     - All data that is displayed, comes from persistent storage.
@@ -223,6 +254,7 @@ This application is built with the following principles.
     - When data needs to be written to or read from the server, this is done through Actions only.
     - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
+    - Views should not call `Onyx.merge()` or `Onyx.set()` directly and should call an action instead.
     - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
     - If an Action needs to access data stored on disk, use a local variable and `Onyx.connect()`
     - Data should be optimistically stored on disk whenever possible without waiting for a server response. Example of creating a new optimistic comment:

@@ -7,7 +7,7 @@ import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/st
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './ModalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
-import {setModalVisibility} from '../../libs/actions/Modal';
+import {setModalVisibility, willAlertModalBecomeVisible} from '../../libs/actions/Modal';
 
 const propTypes = {
     ...modalPropTypes,
@@ -26,6 +26,12 @@ class BaseModal extends PureComponent {
         super(props);
 
         this.hideModal = this.hideModal.bind(this);
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isVisible !== this.props.isVisible) {
+            willAlertModalBecomeVisible(this.props.isVisible);
+        }
     }
 
     componentWillUnmount() {
@@ -140,7 +146,7 @@ class BaseModal extends PureComponent {
 
 BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
-BaseModal.displayName = 'BaseModal';
+
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <BaseModal {...props} forwardedRef={ref} />

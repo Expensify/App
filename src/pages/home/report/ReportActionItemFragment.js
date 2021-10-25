@@ -66,7 +66,7 @@ class ReportActionItemFragment extends React.PureComponent {
                 return fragment.html !== fragment.text
                     ? (
                         <RenderHTML
-                            html={fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}
+                            html={`<comment>${fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
                         />
                     ) : (
                         <Text
@@ -120,7 +120,6 @@ class ReportActionItemFragment extends React.PureComponent {
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
-ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
 export default compose(
     withWindowDimensions,
