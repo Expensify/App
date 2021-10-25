@@ -65,11 +65,10 @@ const defaultProps = {
     },
 };
 
-const timezones = moment.tz.names()
-    .map(timezone => ({
-        value: timezone,
-        label: timezone,
-    }));
+const timezones = _.map(moment.tz.names(), timezone => ({
+    value: timezone,
+    label: timezone,
+}));
 
 class ProfilePage extends Component {
     constructor(props) {
@@ -80,13 +79,13 @@ class ProfilePage extends Component {
             pronouns,
             timezone = {},
         } = props.myPersonalDetails;
-        const pronounsList = Object.values(this.props.translate('pronouns'));
+        const pronounsList = _.values(this.props.translate('pronouns'));
 
         let currentUserPronouns = pronouns;
         let initialSelfSelectedPronouns = '';
 
         // This handles populating the self-selected pronouns in the form
-        if (pronouns && !pronounsList.includes(pronouns)) {
+        if (pronouns && !_.contains(pronounsList, pronouns)) {
             currentUserPronouns = this.props.translate('pronouns.selfSelect');
             initialSelfSelectedPronouns = pronouns;
         }
@@ -104,7 +103,7 @@ class ProfilePage extends Component {
         };
 
         this.getLogins = this.getLogins.bind(this);
-        this.pronounDropdownValues = pronounsList.map(pronoun => ({value: pronoun, label: pronoun}));
+        this.pronounDropdownValues = _.map(pronounsList, pronoun => ({value: pronoun, label: pronoun}));
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.validateInputs = this.validateInputs.bind(this);
@@ -139,7 +138,7 @@ class ProfilePage extends Component {
      * @returns {Object}
      */
     getLogins(loginList) {
-        return loginList.reduce((logins, currentLogin) => {
+        return _.reduce(loginList, (logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
