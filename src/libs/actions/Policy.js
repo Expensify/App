@@ -296,7 +296,10 @@ function uploadAvatar(policyID, file) {
 
             return response.s3url;
         })
-        .then(avatarURL => updateLocalPolicyValues(policyID, {avatarURL, isAvatarUploading: false}))
+        .then((avatarURL) => {
+            updateLocalPolicyValues(policyID, {avatarURL, isAvatarUploading: false})
+            update(policyID, {avatarURL});
+        })
         .catch(() => {
             updateLocalPolicyValues(policyID, {isAvatarUploading: false});
             const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
