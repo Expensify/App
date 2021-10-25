@@ -106,7 +106,6 @@ class WorkspaceSettingsPage extends React.Component {
 
         // Send the API call with new settings values, the avatar has been updated when uploaded
         Policy.update(this.props.policy.id, {name, outputCurrency}, true);
-        Growl.success(this.props.translate('workspace.common.growlMessageOnSave'));
     }
 
     render() {
