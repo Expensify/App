@@ -45,5 +45,5 @@ class Modal extends Component {
 
 Modal.propTypes = propTypes;
 Modal.defaultProps = defaultProps;
-Modal.displayName = 'Modal';
+
 export default withWindowDimensions(Modal);

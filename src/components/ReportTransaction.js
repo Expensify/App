@@ -119,7 +119,6 @@ class ReportTransaction extends Component {
     }
 }
 
-ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
 export default withOnyx({

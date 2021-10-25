@@ -127,6 +127,5 @@ class LoginField extends Component {
 }
 
 LoginField.propTypes = propTypes;
-LoginField.displayName = 'LoginField';
 
 export default withLocalize(LoginField);

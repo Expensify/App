@@ -104,6 +104,5 @@ class ButtonWithMenu extends PureComponent {
 
 ButtonWithMenu.propTypes = propTypes;
 ButtonWithMenu.defaultProps = defaultProps;
-ButtonWithMenu.displayName = 'ButtonWithMenu';
 
 export default ButtonWithMenu;
