@@ -682,7 +682,25 @@ From React's documentation -
 >Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
 >If you want to reuse non-UI functionality between components, we suggest extracting it into a separate JavaScript module. The components may import it and use that function, object, or a class, without extending it.
 
-Use *[Higher order components](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+
+If several HOC need to be combined there is a `compose()` utility. But we should not use this utility when there is only one HOC.
+
+```javascript
+// Bad
+export default compose(
+    withLocalize,
+)(MyComponent);
+
+// Good
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(MyComponent);
+
+// Good
+export default withLocalize(MyComponent)
+```
 
 **Note:** If you find that none of these approaches work for you, please ask an Expensify engineer for guidance via Slack or GitHub.
 
