@@ -197,7 +197,6 @@ class PasswordPage extends Component {
     }
 }
 
-PasswordPage.displayName = 'PasswordPage';
 PasswordPage.propTypes = propTypes;
 PasswordPage.defaultProps = defaultProps;
 

@@ -146,7 +146,7 @@ class BaseModal extends PureComponent {
 
 BaseModal.propTypes = propTypes;
 BaseModal.defaultProps = defaultProps;
-BaseModal.displayName = 'BaseModal';
+
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <BaseModal {...props} forwardedRef={ref} />

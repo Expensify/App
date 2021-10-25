@@ -144,7 +144,7 @@ class VideoChatButtonAndMenu extends Component {
 
 VideoChatButtonAndMenu.propTypes = propTypes;
 VideoChatButtonAndMenu.defaultProps = defaultProps;
-VideoChatButtonAndMenu.displayName = 'VideoChatButtonAndMenu';
+
 export default compose(
     withWindowDimensions,
     withLocalize,

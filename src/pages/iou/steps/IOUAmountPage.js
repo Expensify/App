@@ -222,7 +222,6 @@ class IOUAmountPage extends React.Component {
     }
 }
 
-IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 

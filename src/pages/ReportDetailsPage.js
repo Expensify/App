@@ -204,7 +204,6 @@ class ReportDetailsPage extends Component {
     }
 }
 
-ReportDetailsPage.displayName = 'ReportDetailsPage';
 ReportDetailsPage.propTypes = propTypes;
 
 export default compose(

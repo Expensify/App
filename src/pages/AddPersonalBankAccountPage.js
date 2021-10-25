@@ -28,4 +28,5 @@ const AddPersonalBankAccountPage = props => (
 );
 
 AddPersonalBankAccountPage.propTypes = propTypes;
+AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
 export default withLocalize(AddPersonalBankAccountPage);
