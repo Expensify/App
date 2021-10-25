@@ -297,6 +297,7 @@ function uploadAvatar(policyID, file) {
             return response.s3url;
         })
         .then((avatarURL) => {
+            // Update the policy with the new avatarURL as soon as we get it 
             updateLocalPolicyValues(policyID, {avatarURL, isAvatarUploading: false})
             update(policyID, {avatarURL});
         })
