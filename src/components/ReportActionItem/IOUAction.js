@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import IOUQuote from './IOUQuote';
-import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,

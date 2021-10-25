@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import CheckboxWithTooltipForMobileWebAndNative from './CheckboxWithTooltipForMobileWebAndNative';
 import Checkbox from '../Checkbox';
-import {propTypes, defaultProps} from './CheckboxWithTooltipPropTypes';
+import {propTypes, defaultProps} from './checkboxWithTooltipPropTypes';
 import Tooltip from '../Tooltip';
 import withWindowDimensions from '../withWindowDimensions';
 
