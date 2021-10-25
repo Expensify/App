@@ -168,12 +168,13 @@ function getFromReportParticipants(reports) {
             const existingDetails = _.pick(data, participantEmails);
 
             // Fallback to add logins that don't appear in the response
-            const details = participantEmails
+            const details = _.chain(participantEmails)
                 .filter(login => !data[login])
                 .reduce((previousDetails, login) => ({
                     ...previousDetails,
                     [login]: {}, // Simply just need the key to exist
-                }), existingDetails);
+                }), existingDetails)
+                .value();
 
             const formattedPersonalDetails = formatPersonalDetails(details);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
