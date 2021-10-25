@@ -4,7 +4,6 @@ import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
 import ChatCustomAvatar from './ChatCustomAvatar';
-import ActiveRoomAvatar from '../../assets/images/avatars/room.svg';
 import CONST from '../CONST';
 
 const propTypes = {
@@ -13,19 +12,14 @@ const propTypes = {
 
     /** Whether this avatar is for an custom room */
     isCustomChatRoom: PropTypes.bool,
-
-    /** Whether this avatar is for an custom room */
-    CustomChatRoomIcon: PropTypes.func,
-
 };
 
 const defaultProps = {
     avatarImageURLs: [],
     isCustomChatRoom: false,
-    CustomChatRoomIcon: ActiveRoomAvatar,
 };
 
-const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIcon}) => {
+const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom}) => {
     if (!avatarImageURLs.length) {
         return null;
     }
@@ -36,7 +30,6 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom, CustomChatRoomIco
                 source={avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
                 isCustomChatRoom={isCustomChatRoom}
-                CustomChatRoomIcon={CustomChatRoomIcon}
             />
         );
     }

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, View} from 'react-native';
+import {Image, View, StyleSheet} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import ActiveRoomAvatar from '../../assets/images/avatars/room.svg';
@@ -19,10 +19,6 @@ const propTypes = {
 
     /** Whether this avatar is for an custom room */
     isCustomChatRoom: PropTypes.bool,
-
-    /** Whether this avatar is for an custom room */
-    CustomChatRoomIcon: PropTypes.func,
-
 };
 
 const defaultProps = {
@@ -31,11 +27,10 @@ const defaultProps = {
     containerStyles: [],
     size: 'default',
     isCustomChatRoom: false,
-    CustomChatRoomIcon: ActiveRoomAvatar,
 };
 
 const ChatCustomAvatar = (props) => {
-    const {CustomChatRoomIcon} = props;
+    const {isCustomChatRoom} = props;
     if (!props.source && !props.isCustomChatRoom) {
         return null;
     }
@@ -45,8 +40,8 @@ const ChatCustomAvatar = (props) => {
     ];
     return (
         <View pointerEvents="none" style={props.containerStyles}>
-            {props.isCustomChatRoom
-                ? <CustomChatRoomIcon style={imageStyle} />
+            {isCustomChatRoom
+                ? <ActiveRoomAvatar style={StyleSheet.flatten(imageStyle)} />
                 : <Image source={{uri: props.source}} style={imageStyle} />}
         </View>
     );
