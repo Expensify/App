@@ -137,4 +137,7 @@ export default {
 
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
+
+    // Stores values for the add debit card page
+    ADD_DEBIT_CARD_PAGE: 'addDebitCardPage',
 };

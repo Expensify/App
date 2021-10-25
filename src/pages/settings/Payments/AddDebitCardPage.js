@@ -5,6 +5,8 @@ import {
 } from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -22,10 +24,27 @@ import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
 import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
+import ONYXKEYS from '../../../ONYXKEYS';
+import compose from '../../../libs/compose';
 
 const propTypes = {
+    addDebitCardForm: PropTypes.shape({
+        /** Error message from API call */
+        error: PropTypes.string,
+
+        /** Whether or not the form is submitting */
+        submitting: PropTypes.bool,
+    }),
+
     /* Onyx Props */
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    addDebitCardForm: {
+        error: '',
+        submitting: false,
+    },
 };
 
 class DebitCardPage extends Component {
@@ -306,4 +325,11 @@ class DebitCardPage extends Component {
 DebitCardPage.propTypes = propTypes;
 DebitCardPage.defaultProps = defaultProps;
 
-export default withLocalize(DebitCardPage);
+export default compose(
+    withOnyx({
+        addDebitCardForm: {
+            key: ONYXKEYS.ADD_DEBIT_CARD_PAGE,
+        },
+    }),
+    withLocalize,
+)(DebitCardPage);
