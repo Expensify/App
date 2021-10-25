@@ -519,13 +519,15 @@ const styles = {
         borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
         borderColor: themeColors.border,
-        paddingTop: 12,
-        paddingBottom: 8,
-        paddingHorizontal: 12,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
         overflow: 'hidden',
+    },
+    expensiTextInputIconWrapper: {
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingHorizontal: 11.5,
     },
 
     expensiTextInputLabel: {
@@ -565,9 +567,8 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
         height: '100%',
-        paddingTop: 12,
+        paddingTop: 25,
         paddingBottom: 8,
-        paddingHorizontal: 11.5,
         borderRadius: variables.componentBorderRadiusNormal,
         zIndex: -1,
     },
@@ -580,7 +581,6 @@ const styles = {
     }),
 
     secureInputEyeButton: {
-        height: 32,
         margin: 3,
         justifyContent: 'center',
     },

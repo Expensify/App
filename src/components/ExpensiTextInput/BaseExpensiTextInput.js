@@ -201,7 +201,7 @@ class BaseExpensiTextInput extends Component {
                                     />
                                 </>
                             ) : null}
-                            <View style={styles.flexRow}>
+                            <View style={[styles.flexRow, styles.expensiTextInputIconWrapper]}>
                                 <TextInput
                                     ref={(ref) => {
                                         if (typeof innerRef === 'function') { innerRef(ref); }
@@ -213,7 +213,7 @@ class BaseExpensiTextInput extends Component {
                                     placeholder={(this.state.isFocused || !label) ? placeholder : null}
                                     placeholderTextColor={themeColors.placeholderText}
                                     underlineColorAndroid="transparent"
-                                    style={[...inputStyle, styles.flex1, styles.pt3, !hasLabel && styles.pv0]}
+                                    style={[...inputStyle, styles.flex1, !hasLabel && styles.pv0]}
                                     multiline={multiline}
                                     onFocus={this.onFocus}
                                     onBlur={this.onBlur}
