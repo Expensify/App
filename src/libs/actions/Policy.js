@@ -280,11 +280,11 @@ function invite(logins, welcomeNote, policyID) {
 
 /**
  * Uploads the image of Avatar to S3 bucket and sets the url locally
- * 
+ *
  * @param {String} policyID
  * @param {Object} file
  */
-function uploadAvatar(poliycID, file) {
+function uploadAvatar(policyID, file) {
     return API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
