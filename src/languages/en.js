@@ -84,6 +84,8 @@ export default {
         confirm: 'Confirm',
         reset: 'Reset',
         done: 'Done',
+        debitCard: 'Debit card',
+        payPalMe: 'PayPal.me/',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -279,7 +281,6 @@ export default {
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
-        payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',

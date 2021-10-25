@@ -139,12 +139,12 @@ class PaymentsPage extends React.Component {
                         }}
                     >
                         <MenuItem
-                            title="PayPal.me"
+                            title={this.props.translate('common.payPalMe')}
                             icon={PayPal}
                             onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
                         />
                         <MenuItem
-                            title="Debit Card"
+                            title={this.props.translate('common.debitCard')}
                             icon={CreditCard}
                             onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                         />
