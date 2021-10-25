@@ -95,7 +95,7 @@ const run = function () {
             const PRList = _.sortBy(
                 _.unique(
                     _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, number => ({
-                        number,
+                        number: Number.parseInt(number, 10),
                         url: GithubUtils.getPullRequestURLFromNumber(number),
 
                         // Since this is the second argument to _.union,
@@ -103,7 +103,7 @@ const run = function () {
                         // Since it is later in the array, it will be truncated by _.unique,
                         // and the original value of isVerified and isAccessible will be preserved.
                         isVerified: false,
-                        isAccessible: false,
+                        isAccessiblityVerified: false,
                     }))),
                     false,
                     item => item.number,
