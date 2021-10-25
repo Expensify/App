@@ -184,26 +184,16 @@ class GithubUtils {
             return [];
         }
         PRListSection = PRListSection[1];
-        const unverifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[ \\] QA`, 'g'))],
+        const PRList = _.map(
+            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[([ x])] QA\\s+- \\[([ x])] Accessibility`, 'g'))],
             match => ({
                 url: match[1],
-                number: GithubUtils.getPullRequestNumberFromURL(match[1]),
-                isVerified: false,
+                number: Number.parseInt(match[2], 10),
+                isVerified: match[3] === 'x',
+                isAccessible: match[4] === 'x',
             }),
         );
-        const verifiedPRs = _.map(
-            [...PRListSection.matchAll(new RegExp(`- (${PULL_REQUEST_REGEX.source})\\s+- \\[x\\] QA`, 'g'))],
-            match => ({
-                url: match[1],
-                number: GithubUtils.getPullRequestNumberFromURL(match[1]),
-                isVerified: true,
-            }),
-        );
-        return _.sortBy(
-            _.union(unverifiedPRs, verifiedPRs),
-            'number',
-        );
+        return _.sortBy(PRList, 'number');
     }
 
     /**
@@ -220,26 +210,15 @@ class GithubUtils {
             return [];
         }
         deployBlockerSection = deployBlockerSection[1];
-        const unresolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`- (${ISSUE_OR_PULL_REQUEST_REGEX.source})\\s+- \\[ \\] QA`, 'g'))],
+        const deployBlockers = _.map(
+            [...deployBlockerSection.matchAll(new RegExp(`- \\[([ x])]\\s(${ISSUE_OR_PULL_REQUEST_REGEX.source})`, 'g'))],
             match => ({
-                url: match[1],
-                number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
-                isResolved: false,
+                url: match[2],
+                number: Number.parseInt(match[3], 10),
+                isResolved: match[1] === 'x',
             }),
         );
-        const resolvedDeployBlockers = _.map(
-            [...deployBlockerSection.matchAll(new RegExp(`- (${ISSUE_OR_PULL_REQUEST_REGEX.source})\\s+- \\[x\\] QA`, 'g'))],
-            match => ({
-                url: match[1],
-                number: GithubUtils.getIssueOrPullRequestNumberFromURL(match[1]),
-                isResolved: true,
-            }),
-        );
-        return _.sortBy(
-            _.union(unresolvedDeployBlockers, resolvedDeployBlockers),
-            'number',
-        );
+        return _.sortBy(deployBlockers, 'number');
     }
 
     /**
@@ -296,8 +275,8 @@ class GithubUtils {
                 if (!_.isEmpty(deployBlockers)) {
                     issueBody += '\r\n\r\n\r\n**Deploy Blockers:**';
                     _.each(sortedDeployBlockers, (URL) => {
-                        issueBody += `\r\n\r\n- ${URL}`;
-                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
+                        issueBody += _.contains(resolvedDeployBlockers, URL) ? '\r\n- [x] ' : '\r\n- [ ] ';
+                        issueBody += URL;
                     });
                 }
 
