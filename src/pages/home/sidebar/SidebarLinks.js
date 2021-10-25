@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
-import SafeAreaInsetPropTypes from '../../SafeAreaInsetPropTypes';
+import safeAreaInsetPropTypes from '../../safeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -31,7 +31,7 @@ const propTypes = {
     onAvatarClick: PropTypes.func.isRequired,
 
     /** Safe area insets required for mobile devices margins */
-    insets: SafeAreaInsetPropTypes.isRequired,
+    insets: safeAreaInsetPropTypes.isRequired,
 
     /* Onyx Props */
     /** List of reports */

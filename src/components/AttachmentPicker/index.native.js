@@ -5,7 +5,7 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import {propTypes as basePropTypes, defaultProps} from './AttachmentPickerPropTypes';
+import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
