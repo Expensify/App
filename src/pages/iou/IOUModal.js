@@ -113,8 +113,8 @@ class IOUModal extends Component {
                 alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
                 icons: [personalDetails.avatar],
                 keyForList: personalDetails.login,
-                payPalMeAddress: personalDetails.payPalMeAddress ?? '',
-                phoneNumber: personalDetails.phoneNumber ?? '',
+                payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
+                phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
             }));
 
         this.state = {

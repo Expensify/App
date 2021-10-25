@@ -3,12 +3,12 @@ const {RESULTS} = require('react-native-permissions/dist/commonjs/results');
 
 export {PERMISSIONS, RESULTS};
 
-export const openLimitedPhotoLibraryPicker = jest.fn((() => {}));
-export const openSettings = jest.fn(() => {});
-export const check = jest.fn(() => RESULTS.GRANTED);
-export const request = jest.fn(() => RESULTS.GRANTED);
-export const checkLocationAccuracy = jest.fn(() => 'full');
-export const requestLocationAccuracy = jest.fn(() => 'full');
+const openLimitedPhotoLibraryPicker = jest.fn((() => {}));
+const openSettings = jest.fn(() => {});
+const check = jest.fn(() => RESULTS.GRANTED);
+const request = jest.fn(() => RESULTS.GRANTED);
+const checkLocationAccuracy = jest.fn(() => 'full');
+const requestLocationAccuracy = jest.fn(() => 'full');
 
 const notificationOptions = ['alert', 'badge', 'sound', 'carPlay', 'criticalAlert', 'provisional'];
 
@@ -23,12 +23,12 @@ const notificationSettings = {
     notificationCenter: true,
 };
 
-export const checkNotifications = jest.fn(() => ({
+const checkNotifications = jest.fn(() => ({
     status: RESULTS.GRANTED,
     settings: notificationSettings,
 }));
 
-export const requestNotifications = jest.fn(options => ({
+const requestNotifications = jest.fn(options => ({
     status: RESULTS.GRANTED,
     settings: options
         .filter(option => notificationOptions.includes(option))
@@ -38,12 +38,12 @@ export const requestNotifications = jest.fn(options => ({
         }),
 }));
 
-export const checkMultiple = jest.fn(permissions => permissions.reduce((acc, permission) => ({
+const checkMultiple = jest.fn(permissions => permissions.reduce((acc, permission) => ({
     ...acc,
     [permission]: RESULTS.GRANTED,
 })));
 
-export const requestMultiple = jest.fn(permissions => permissions.reduce((acc, permission) => ({
+const requestMultiple = jest.fn(permissions => permissions.reduce((acc, permission) => ({
     ...acc,
     [permission]: RESULTS.GRANTED,
 })));
@@ -62,4 +62,17 @@ export default {
     requestLocationAccuracy,
     requestMultiple,
     requestNotifications,
+};
+
+export {
+    openLimitedPhotoLibraryPicker,
+    openSettings,
+    check,
+    request,
+    checkLocationAccuracy,
+    requestLocationAccuracy,
+    checkNotifications,
+    requestNotifications,
+    checkMultiple,
+    requestMultiple,
 };

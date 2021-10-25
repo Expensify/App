@@ -5,8 +5,8 @@ import {skinTones} from '../../../../../assets/emojis';
  * @param {Number} skinToneIndex
  * @returns {String}
  */
-const getSkinToneEmojiFromIndex = skinToneIndex => skinTones.find(
-    emoji => emoji.skinTone === skinToneIndex,
-) ?? skinTones[0];
+function getSkinToneEmojiFromIndex(skinToneIndex) {
+    return skinTones.find(emoji => emoji.skinTone === skinToneIndex) || skinTones[0];
+}
 
 export default getSkinToneEmojiFromIndex;

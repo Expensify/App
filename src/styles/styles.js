@@ -525,6 +525,7 @@ const styles = {
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
+        overflow: 'hidden',
     },
 
     expensiTextInputLabel: {
@@ -535,6 +536,16 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+    },
+
+    expensiTextInputLabelBackground: {
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+        height: 25,
+        backgroundColor: themeColors.componentBG,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
 
     expensiTextInputLabelDesktop: {
@@ -558,6 +569,7 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11.5,
         borderRadius: variables.componentBorderRadiusNormal,
+        zIndex: -1,
     },
 
     expensiTextInputDesktop: addOutlineWidth({}, 0),
