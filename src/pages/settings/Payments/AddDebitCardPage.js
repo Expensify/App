@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -61,7 +61,6 @@ class DebitCardPage extends Component {
             selectedState: '',
             zipCode: '',
             acceptedTerms: false,
-            isAddingCard: false,
             errors: {},
             shouldShowAlertPrompt: false,
         };
@@ -177,7 +176,7 @@ class DebitCardPage extends Component {
         if (!this.validate()) {
             return;
         }
-        this.setState({isAddingCard: true});
+        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {submitting: true});
         addBillingCard(this.state);
     }
 
@@ -313,7 +312,7 @@ class DebitCardPage extends Component {
                             onFixTheErrorsLinkPressed={() => {
                                 this.form.scrollTo({y: 0, animated: true});
                             }}
-                            isLoading={this.state.isAddingCard}
+                            isLoading={this.props.addDebitCardForm.submitting}
                         />
                     </ScrollView>
                 </KeyboardAvoidingView>

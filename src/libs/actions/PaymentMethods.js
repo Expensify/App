@@ -70,13 +70,20 @@ function addBillingCard(params) {
                 fundID: lodashGet(response, 'fundID', ''),
             };
             Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
+            Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {submitting: false});
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         } else {
-            Growl.error(response.message ? response.message : translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
+            Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
+                submitting: false,
+                error: response.message ? response.message : translateLocal('addDebitCardPage.error.genericFailureMessage'),
+            });
         }
     })).catch((error) => {
-        Growl.error(error.message ? error.message : translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
+        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
+            submitting: false,
+            error: error.message ? error.message : translateLocal('addDebitCardPage.error.genericFailureMessage'),
+        });
     });
 }
 
