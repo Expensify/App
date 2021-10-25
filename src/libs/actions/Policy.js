@@ -297,12 +297,12 @@ function uploadAvatar(policyID, file) {
             return response.s3url;
         })
         .then((avatarURL) => {
-            // Update the policy with the new avatarURL as soon as we get it 
-            updateLocalPolicyValues(policyID, {avatarURL, isAvatarUploading: false})
+            // Update the policy with the new avatarURL as soon as we get it
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL, isAvatarUploading: false});
             update(policyID, {avatarURL});
         })
         .catch(() => {
-            updateLocalPolicyValues(policyID, {isAvatarUploading: false});
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
             const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
             Growl.error(errorMessage, 5000);
         })
