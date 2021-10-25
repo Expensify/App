@@ -102,8 +102,6 @@ class ProfilePage extends Component {
             logins: this.getLogins(props.user.loginList),
         };
 
-        this.pronounDropdownValues = _.map(pronounsList, pronoun => ({value: pronoun, label: pronoun}));
-        this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
         this.getLogins = this.getLogins.bind(this);
         this.pronounDropdownValues = _.map(pronounsList, pronoun => ({value: pronoun, label: pronoun}));
         this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
