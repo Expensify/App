@@ -279,6 +279,36 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
+ * Sets the name of the policy
+ *
+ * @param {String} policyID
+ * @param {Object} values
+ * @param {Boolean} [shouldGrowl]
+ */
+function update(policyID, values, shouldGrowl = false) {
+    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
+    .then((policyResponse) => {
+        if (policyResponse.jsonCode !== 200) {
+            // Show the user feedback
+            const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+            Growl.error(errorMessage, 5000);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
+            return;
+        }
+
+        const updatedValues = {...values, ...{isPolicyUpdating: false}};
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
+        if (shouldGrowl) {
+            Growl.show(translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+        }
+    }).catch(() => {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
+        const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+        Growl.error(errorMessage, 5000);
+    });
+}
+
+/**
  * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
  *
  * @param {String} policyID
@@ -304,36 +334,6 @@ function uploadAvatar(policyID, file) {
         .catch(() => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
             const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
-            Growl.error(errorMessage, 5000);
-        })
-}
-
-/**
- * Sets the name of the policy
- *
- * @param {String} policyID
- * @param {Object} values
- * @param {Boolean} [shouldGrowl]
- */
-function update(policyID, values, shouldGrowl = false) {
-    API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
-        .then((policyResponse) => {
-            if (policyResponse.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
-                return;
-            }
-
-            const updatedValues = {...values, ...{isPolicyUpdating: false}};
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
-            if (shouldGrowl) {
-                Growl.show(translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-            }
-        }).catch(() => {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
-            const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });
 }
