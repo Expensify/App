@@ -94,8 +94,8 @@ class WorkspaceSettingsPage extends React.Component {
      * @param {String} image.uri
      */
     uploadAvatar(image) {
-        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
         this.setState({previewAvatarURL: image.uri});
+        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
         Policy.uploadAvatar(this.props.policy.id, image);
     }
 
@@ -104,7 +104,7 @@ class WorkspaceSettingsPage extends React.Component {
         const outputCurrency = this.state.currency;
         Policy.updateLocalPolicyValues(this.props.policy.id, {name, outputCurrency});
 
-        // Wait for the upload avatar promise to finish before updating the policy
+        // Send the API call with new settings values, the avatar has been updated when uploaded
         Policy.update(this.props.policy.id, {name, outputCurrency});
         Growl.success(this.props.translate('workspace.common.growlMessageOnSave'));
     }
