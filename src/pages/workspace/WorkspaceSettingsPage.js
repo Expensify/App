@@ -86,7 +86,7 @@ class WorkspaceSettingsPage extends React.Component {
     removeAvatar() {
         this.setState({previewAvatarURL: ''});
         Policy.updateLocalPolicyValues(this.props.policy.id, {avatarURL: ''});
-        Policy.update(this.props.policy.id, {avatarURL: ''});
+        Policy.update(this.props.policy.id, {avatarURL: ''}, true);
     }
 
     /**
