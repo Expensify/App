@@ -95,7 +95,7 @@ const run = function () {
             const PRList = _.sortBy(
                 _.unique(
                     _.union(currentStagingDeployCashData.PRList, _.map(mergedPRs, number => ({
-                        number,
+                        number: Number.parseInt(number, 10),
                         url: GithubUtils.getPullRequestURLFromNumber(number),
 
                         // Since this is the second argument to _.union,
