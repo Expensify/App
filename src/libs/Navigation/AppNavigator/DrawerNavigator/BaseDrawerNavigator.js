@@ -1,36 +1,11 @@
 import React from 'react';
 import _ from 'underscore';
-import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
-import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import Navigation from '../Navigation';
-import disableOnNative from '../../disableOnNative';
+import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../../styles/styles';
+import Navigation from '../../Navigation';
+import {propTypes, defaultProps} from './drawerNavigatorPropTypes';
 
-const propTypes = {
-    /** Screens to be passed in the Drawer */
-    screens: PropTypes.arrayOf(PropTypes.shape({
-        /** Name of the Screen */
-        name: PropTypes.string.isRequired,
-
-        /** Component for the Screen */
-        component: PropTypes.elementType.isRequired,
-
-        /** Optional params to be passed to the Screen */
-        // eslint-disable-next-line react/forbid-prop-types
-        initialParams: PropTypes.object,
-    })).isRequired,
-
-    /** Drawer content Component */
-    drawerContent: PropTypes.elementType.isRequired,
-
-    /** If it's the main screen, don't wrap the content even if it's a full screen modal. */
-    isMainScreen: PropTypes.bool,
-
-    /** Window Dimensions props */
-    ...windowDimensionsPropTypes,
-};
 const Drawer = createDrawerNavigator();
 
 const BaseDrawerNavigator = (props) => {
@@ -40,7 +15,7 @@ const BaseDrawerNavigator = (props) => {
             defaultStatus={Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={props.drawerContent}
-            useLegacyImplementation={disableOnNative(props.isSmallScreenWidth)}
+            useLegacyImplementation={props.useLegacyImplementation}
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
@@ -74,5 +49,6 @@ const BaseDrawerNavigator = (props) => {
 };
 
 BaseDrawerNavigator.propTypes = propTypes;
+BaseDrawerNavigator.defaultProps = defaultProps;
 BaseDrawerNavigator.displayName = 'BaseDrawerNavigator';
-export default withWindowDimensions(BaseDrawerNavigator);
+export default BaseDrawerNavigator;
