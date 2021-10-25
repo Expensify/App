@@ -66,7 +66,6 @@ class WorkspaceSettingsPage extends React.Component {
         this.uploadAvatar = this.uploadAvatar.bind(this);
         this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
-        this.uploadAvatarPromise = Promise.resolve();
     }
 
     componentDidMount() {
