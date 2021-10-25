@@ -29,24 +29,27 @@ describe('GithubUtils', () => {
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
-        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- https://github.com/Expensify/App/issues/1\r\n  - [ ] QA\r\n  - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/issues/2\r\n  - [x] QA\r\n  - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/1234\r\n  - [ ] QA\r\n  - [ ] Accessibility\r\n\r\n';
+        issueWithDeployBlockers.body += '\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/Expensify/App/issues/1\r\n- [x] https://github.com/Expensify/App/issues/2\r\n- [ ] https://github.com/Expensify/App/pull/1234\r\n';
 
         const baseExpectedResponse = {
             PRList: [
                 {
                     url: 'https://github.com/Expensify/App/pull/21',
                     number: 21,
-                    isVerified: false,
+                    isQAVerified: false,
+                    isAccessibilityVerified: false,
                 },
                 {
                     url: 'https://github.com/Expensify/App/pull/22',
                     number: 22,
-                    isVerified: true,
+                    isQAVerified: false,
+                    isAccessibilityVerified: false,
                 },
                 {
                     url: 'https://github.com/Expensify/App/pull/23',
                     number: 23,
-                    isVerified: false,
+                    isQAVerified: false,
+                    isAccessibilityVerified: false,
                 },
             ],
             labels: [
@@ -325,6 +328,19 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    );
+                })
+        ));
+
+        test('Test some accessibility verified PRs', () => (
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]], [basePRList[1]])
+                .then((issueBody) => {
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}`
+                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${openCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${closedCheckbox}${QA}${lineBreak}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${openCheckbox}${QA}${lineBreak}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
