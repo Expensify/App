@@ -97,11 +97,11 @@ const baseIssueList = [
 ];
 // eslint-disable-next-line max-len
 const baseExpectedOutput = (tag = '1.0.2-1') => `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
-const openCheckbox = '- [ ]';
-const closedCheckbox = '- [x]';
+const openCheckbox = '- [ ] ';
+const closedCheckbox = '- [x] ';
 const listStart = '- ';
-const QA = ' QA';
-const accessibility = ' Accessibility';
+const QA = 'QA';
+const accessibility = 'Accessibility';
 const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
 const deployBlockerHeader = '\r\n**Deploy Blockers:**';
 const lineBreak = '\r\n';
@@ -186,9 +186,9 @@ describe('createOrUpdateStagingDeployCash', () => {
                 + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                 + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
                 + `${lineBreakDouble}${deployBlockerHeader}`
-                + `${lineBreak}${openCheckbox} ${basePRList[5]}`
-                + `${lineBreak}${openCheckbox} ${basePRList[8]}`
-                + `${lineBreak}${closedCheckbox} ${basePRList[9]}`
+                + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                + `${lineBreak}${openCheckbox}${basePRList[8]}`
+                + `${lineBreak}${closedCheckbox}${basePRList[9]}`
                 + `${lineBreakDouble}${ccApplauseLeads}`,
             state: 'open',
         };
@@ -280,11 +280,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[8]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[9]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreak}${openCheckbox} ${basePRList[5]}`
-                        + `${lineBreak}${openCheckbox} ${basePRList[8]}`
-                        + `${lineBreak}${closedCheckbox} ${basePRList[9]}`
-                        + `${lineBreak}${openCheckbox} ${basePRList[10]}`
-                        + `${lineBreak}${openCheckbox} ${basePRList[11]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[8]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[9]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[10]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[11]}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
@@ -340,11 +340,11 @@ describe('createOrUpdateStagingDeployCash', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[7]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
                         + `${lineBreakDouble}${deployBlockerHeader}`
-                        + `${lineBreak}${openCheckbox} ${basePRList[5]}`
-                        + `${lineBreak}${openCheckbox} ${basePRList[8]}`
-                        + `${lineBreak}${closedCheckbox} ${basePRList[9]}`
-                        + `${lineBreak}${openCheckbox} ${baseIssueList[0]}`
-                        + `${lineBreak}${openCheckbox} ${baseIssueList[1]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[5]}`
+                        + `${lineBreak}${openCheckbox}${basePRList[8]}`
+                        + `${lineBreak}${closedCheckbox}${basePRList[9]}`
+                        + `${lineBreak}${openCheckbox}${baseIssueList[0]}`
+                        + `${lineBreak}${openCheckbox}${baseIssueList[1]}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                 });
             });
