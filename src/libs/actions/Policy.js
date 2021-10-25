@@ -318,9 +318,8 @@ function uploadAvatar(policyID, file) {
     API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
-                throw new Error(`${errorMessage}`);
+                // Show the user error feedback
+                throw new Error();
             }
 
             return response.s3url;
@@ -330,9 +329,10 @@ function uploadAvatar(policyID, file) {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL, isAvatarUploading: false});
             update(policyID, {avatarURL}, true);
         })
-        .catch((error) => {
+        .catch(() => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            Growl.error(error, 5000);
+            const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
+            Growl.error(errorMessage, 5000);
         });
 }
 
