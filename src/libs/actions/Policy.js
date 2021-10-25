@@ -329,6 +329,7 @@ function uploadAvatar(policyID, file) {
             // Update the policy with the new avatarURL as soon as we get it
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL, isAvatarUploading: false});
             update(policyID, {avatarURL});
+            Growl.success(translateLocal('workspace.common.growlMessageOnSave'));
         })
         .catch((error) => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
