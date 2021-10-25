@@ -3,7 +3,6 @@ import withWindowDimensions from '../../../../components/withWindowDimensions';
 import BaseDrawerNavigator from './BaseDrawerNavigator';
 import {propTypes, defaultProps} from './drawerNavigatorPropTypes';
 
-
 const DrawerNavigator = props => (
     <BaseDrawerNavigator
         // eslint-disable-next-line react/jsx-props-no-spreading
