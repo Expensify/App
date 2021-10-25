@@ -377,6 +377,12 @@ export default {
             invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
         },
     },
+    personalDetails: {
+        error: {
+            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
+            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
+        },
+    },
     resendValidationForm: {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
@@ -387,7 +393,7 @@ export default {
     detailsPage: {
         localTime: 'Local time',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Create group',
     },
     notFound: {
@@ -730,6 +736,14 @@ export default {
             chatWithConcierge: 'Chat with Concierge',
             letsFinishInChat: 'Let\'s finish in chat!',
             almostDone: 'Almost done!',
+            disconnectBankAccount: 'Disconnect bank account',
+            noLetsStartOver: 'No, let\'s start over',
+            startOver: 'Start over',
+            yesDisconnectMyBankAccount: 'Yes, disconnect my bank account',
+            yesStartOver: 'Yes, start over',
+            disconnectYour: 'Disconnect your ',
+            bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
+            clearProgress: 'Starting over will clear the progress you have made so far.',
         },
     },
     requestCallPage: {

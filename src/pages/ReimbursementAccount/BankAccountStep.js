@@ -25,6 +25,7 @@ import {
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
+    validateRoutingNumber,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -86,7 +87,7 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !validateRoutingNumber(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
         if (!this.state.hasAcceptedTerms) {

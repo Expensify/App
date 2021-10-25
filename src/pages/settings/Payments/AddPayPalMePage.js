@@ -41,7 +41,6 @@ class AddPayPalMePage extends React.Component {
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
-        this.paypalUsernameInputRef = null;
     }
 
     componentDidMount() {
@@ -73,12 +72,7 @@ class AddPayPalMePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => {
-                if (this.paypalUsernameInputRef) {
-                    this.paypalUsernameInputRef.focus();
-                }
-            }}
-            >
+            <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
                         title="PayPal.me"
@@ -93,7 +87,6 @@ class AddPayPalMePage extends React.Component {
                             </Text>
                             <ExpensiTextInput
                                 label={this.props.translate('addPayPalMePage.payPalMe')}
-                                ref={el => this.paypalUsernameInputRef = el}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.payPalMeUsername}

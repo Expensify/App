@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import {withOnyx} from 'react-native-onyx';
 import {
     View,
     ScrollView,
@@ -14,7 +13,6 @@ import StatePicker from '../../../components/StatePicker';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import compose from '../../../libs/compose';
 import {addBillingCard} from '../../../libs/actions/PaymentMethods';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import {
@@ -306,10 +304,6 @@ class DebitCardPage extends Component {
 }
 
 DebitCardPage.propTypes = propTypes;
-DebitCardPage.displayName = 'DebitCardPage';
+DebitCardPage.defaultProps = defaultProps;
 
-export default compose(
-    withLocalize,
-    withOnyx({
-    }),
-)(DebitCardPage);
+export default withLocalize(DebitCardPage);

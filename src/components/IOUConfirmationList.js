@@ -447,7 +447,6 @@ class IOUConfirmationList extends Component {
     }
 }
 
-IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 

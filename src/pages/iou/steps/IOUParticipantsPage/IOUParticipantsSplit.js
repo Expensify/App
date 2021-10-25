@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -6,8 +7,8 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
-import {getHeaderMessage, getNewGroupOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
-import CONST, {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
+import {getHeaderMessage, getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
+import CONST, {EXPENSIFY_EMAILS} from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
@@ -66,13 +67,13 @@ class IOUParticipantsSplit extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getNewGroupOptions(
+        } = getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
             '',
             props.participants,
-            EXCLUDED_IOU_EMAILS,
+            EXPENSIFY_EMAILS,
         );
 
         this.state = {
@@ -167,13 +168,13 @@ class IOUParticipantsSplit extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-            } = getNewGroupOptions(
+            } = getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                EXCLUDED_IOU_EMAILS,
+                EXPENSIFY_EMAILS,
             );
             return {
                 recentReports,
@@ -209,13 +210,13 @@ class IOUParticipantsSplit extends Component {
                                 recentReports,
                                 personalDetails,
                                 userToInvite,
-                            } = getNewGroupOptions(
+                            } = getNewChatOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
                                 this.props.betas,
                                 searchValue,
                                 [],
-                                EXCLUDED_IOU_EMAILS,
+                                EXPENSIFY_EMAILS,
                             );
                             this.setState({
                                 searchValue,
@@ -230,7 +231,7 @@ class IOUParticipantsSplit extends Component {
                         forceTextUnreadStyle
                     />
                 </View>
-                {this.props.participants?.length > 0 && (
+                {lodashGet(this.props, 'participants', []).length > 0 && (
                     <FixedFooter>
                         {maxParticipantsReached && (
                             <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
