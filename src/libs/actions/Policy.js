@@ -279,10 +279,12 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
+ * Uploads the image of Avatar to S3 bucket and sets the url locally
+ * 
+ * @param {String} policyID
  * @param {Object} file
- * @returns {Promise}
  */
-function uploadAvatar(file) {
+function uploadAvatar(poliycID, file) {
     return API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -293,7 +295,13 @@ function uploadAvatar(file) {
             }
 
             return response.s3url;
-        });
+        })
+        .then(avatarURL => updateLocalPolicyValues(policyID, {avatarURL, isAvatarUploading: false}))
+        .catch(() => {
+            updateLocalPolicyValues(policyID, {isAvatarUploading: false});
+            const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
+            Growl.error(errorMessage, 5000);
+        })
 }
 
 /**

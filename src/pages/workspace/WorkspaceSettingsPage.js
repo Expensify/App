@@ -96,25 +96,17 @@ class WorkspaceSettingsPage extends React.Component {
     uploadAvatar(image) {
         Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
         this.setState({previewAvatarURL: image.uri});
-
-        // Store the upload avatar promise so we can wait for it to finish before updating the policy
-        this.uploadAvatarPromise = Policy.uploadAvatar(image).then(url => new Promise((resolve) => {
-            this.setState({avatarURL: url}, resolve);
-        })).catch(() => {
-            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
-        }).finally(() => Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
+        Policy.uploadAvatar(this.props.policy.id, image);
     }
 
     submit() {
         const name = this.state.name.trim();
         const avatarURL = this.state.avatarURL;
         const outputCurrency = this.state.currency;
-        Policy.updateLocalPolicyValues(this.props.policy.id, {name, avatarURL, outputCurrency});
+        Policy.updateLocalPolicyValues(this.props.policy.id, {name, outputCurrency});
 
         // Wait for the upload avatar promise to finish before updating the policy
-        this.uploadAvatarPromise.then(() => {
-            Policy.update(this.props.policy.id, {name, avatarURL, outputCurrency});
-        });
+        Policy.update(this.props.policy.id, {name, avatarURL, outputCurrency});
         Growl.success(this.props.translate('workspace.common.growlMessageOnSave'));
     }
 
