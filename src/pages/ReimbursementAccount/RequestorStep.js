@@ -268,7 +268,6 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.displayName = 'RequestorStep';
 
 export default compose(
     withLocalize,

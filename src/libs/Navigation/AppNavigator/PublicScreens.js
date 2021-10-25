@@ -8,7 +8,7 @@ import defaultScreenOptions from './defaultScreenOptions';
 
 const RootStack = createStackNavigator();
 
-export default () => (
+const PublicScreens = () => (
     <RootStack.Navigator>
         <RootStack.Screen
             name={SCREENS.HOME}
@@ -27,3 +27,6 @@ export default () => (
         />
     </RootStack.Navigator>
 );
+
+PublicScreens.displayName = 'PublicScreens';
+export default PublicScreens;

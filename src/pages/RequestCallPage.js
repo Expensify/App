@@ -252,8 +252,8 @@ class RequestCallPage extends Component {
     }
 }
 
-RequestCallPage.displayName = 'RequestCallPage';
 RequestCallPage.propTypes = propTypes;
+
 export default compose(
     withLocalize,
     withOnyx({

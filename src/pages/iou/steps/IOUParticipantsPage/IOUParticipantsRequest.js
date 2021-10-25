@@ -144,7 +144,6 @@ class IOUParticipantsRequest extends Component {
     }
 }
 
-IOUParticipantsRequest.displayName = 'IOUParticipantsRequest';
 IOUParticipantsRequest.propTypes = propTypes;
 
 export default compose(

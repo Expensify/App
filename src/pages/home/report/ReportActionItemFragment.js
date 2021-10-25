@@ -120,7 +120,6 @@ class ReportActionItemFragment extends React.PureComponent {
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
-ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
 export default compose(
     withWindowDimensions,
