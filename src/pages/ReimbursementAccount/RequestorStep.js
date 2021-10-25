@@ -89,10 +89,6 @@ class RequestorStep extends React.Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         const renamedFields = {
-            street: 'requestorAddressStreet',
-            city: 'requestorAddressCity',
-            state: 'requestorAddressState',
-            zipCode: 'requestorAddressZipCode',
             addressStreet: 'requestorAddressStreet',
             addressCity: 'requestorAddressCity',
             addressState: 'requestorAddressState',
