@@ -6,6 +6,9 @@ import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
 
+// eslint-disable-next-line import/no-cycle
+import LogUtil from './Log';
+
 let isQueuePaused = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -93,6 +96,12 @@ let email;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => email = val ? val.email : null,
+});
+
+let authToken;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => authToken = lodashGet(val, 'authToken', null),
 });
 
 /**
@@ -204,6 +213,15 @@ function processNetworkRequestQueue() {
         // has paused the queue and if this is the case we must return. We don't retry these requests
         // since if a request is made without an authToken we sign out the user.
         if (!canMakeRequest(queuedRequest)) {
+            return;
+        }
+
+        // When the app is bootstrapping, we ensure the network request is made until the auth token
+        // value is obtained from Onyx. If the token doesn't exist when Onyx is ready, then the 'authToken'
+        // value should be null.
+        if (authToken === undefined) {
+            LogUtil.hmmm('Trying to make a request when Onyx is not ready; authToken is undefined.');
+            requestsToProcessOnNextRun.push(queuedRequest);
             return;
         }
 

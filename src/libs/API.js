@@ -4,6 +4,7 @@ import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
+// eslint-disable-next-line import/no-cycle
 import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
