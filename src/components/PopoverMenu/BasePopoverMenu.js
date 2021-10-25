@@ -8,7 +8,7 @@ import MenuItem from '../MenuItem';
 import {
     propTypes as createMenuPropTypes,
     defaultProps as defaultCreateMenuPropTypes,
-} from './PopoverMenuPropTypes';
+} from './popoverMenuPropTypes';
 import Text from '../Text';
 
 const propTypes = {
