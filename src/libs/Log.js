@@ -21,6 +21,7 @@ let timeout = null;
  */
 function serverLoggingCallback(logger, params) {
     const requestParams = params;
+    requestParams.shouldProcessImmediately = false;
     requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${version}`;
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
