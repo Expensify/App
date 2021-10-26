@@ -7,7 +7,7 @@ import ROUTES from '../../ROUTES';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
-import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '../cardUtils';
+import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '../CardUtils';
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe

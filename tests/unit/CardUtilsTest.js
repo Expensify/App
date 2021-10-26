@@ -1,4 +1,4 @@
-const cardUtils = require('../../src/libs/cardUtils');
+const cardUtils = require('../../src/libs/CardUtils');
 
 const shortDate = '0924';
 const shortDateSlashed = '09/24';
@@ -7,7 +7,7 @@ const longDateSlashed = '09/2024';
 const expectedMonth = '09';
 const expectedYear = '2024';
 
-describe('cardUtils', () => {
+describe('CardUtils', () => {
     it('Test MM/YYYY format for getting expirationDate month and year', () => {
         expect(cardUtils.getMonthFromExpirationDateString(longDateSlashed)).toBe(expectedMonth);
         expect(cardUtils.getYearFromExpirationDateString(longDateSlashed)).toBe(expectedYear);

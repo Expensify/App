@@ -1,7 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './cardUtils';
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
