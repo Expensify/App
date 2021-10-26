@@ -299,11 +299,11 @@ export default {
         growlMessageOnSave: 'Your debit card was successfully added',
         error: {
             invalidName: 'Please enter a valid name',
-            zipCode: 'Please enter a valid zip code',
+            addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please enter a valid expiration date',
             securityCode: 'Please enter a valid security code',
-            address: 'Please enter a valid billing address that is not a PO Box',
+            addressStreet: 'Please enter a valid billing address that is not a PO Box',
             addressState: 'Please select a state',
             addressCity: 'Please enter a city',
             acceptedTerms: 'You must accept the Terms of Service to continue',

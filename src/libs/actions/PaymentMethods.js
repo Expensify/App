@@ -51,7 +51,7 @@ function addBillingCard(params) {
         cardMonth,
         cardCVV: params.securityCode,
         addressName: params.nameOnCard,
-        addressZip: params.zipCode,
+        addressZip: params.addressZipCode,
         currency: CONST.CURRENCY.USD,
     }).then(((response) => {
         let errorMessage = '';
@@ -62,9 +62,9 @@ function addBillingCard(params) {
                     isP2PDebitCard: true,
                 },
                 addressName: params.nameOnCard,
-                addressState: params.selectedState,
-                addressStreet: params.billingAddress,
-                addressZip: params.zipCode,
+                addressState: params.addressState,
+                addressStreet: params.addressStreet,
+                addressZip: params.addressZipCode,
                 cardMonth,
                 cardNumber: maskCardNumber(params.cardNumber),
                 cardYear,

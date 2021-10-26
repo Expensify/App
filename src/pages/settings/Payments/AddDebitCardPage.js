@@ -11,7 +11,6 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
-import StatePicker from '../../../components/StatePicker';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -26,6 +25,7 @@ import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
+import AddressSearch from '../../../components/AddressSearch';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -56,10 +56,9 @@ class DebitCardPage extends Component {
             cardNumber: '',
             expirationDate: '',
             securityCode: '',
-            billingAddress: '',
-            city: '',
-            selectedState: '',
-            zipCode: '',
+            addressStreet: '',
+            addressState: '',
+            addressZipCode: '',
             acceptedTerms: false,
             errors: {},
             shouldShowAlertPrompt: false,
@@ -70,10 +69,9 @@ class DebitCardPage extends Component {
             'cardNumber',
             'expirationDate',
             'securityCode',
-            'billingAddress',
-            'city',
-            'selectedState',
-            'zipCode',
+            'addressStreet',
+            'addressState',
+            'addressZipCode',
             'acceptedTerms',
         ];
 
@@ -83,10 +81,9 @@ class DebitCardPage extends Component {
             cardNumber: 'addDebitCardPage.error.debitCardNumber',
             expirationDate: 'addDebitCardPage.error.expirationDate',
             securityCode: 'addDebitCardPage.error.securityCode',
-            billingAddress: 'addDebitCardPage.error.address',
-            city: 'addDebitCardPage.error.addressCity',
-            selectedState: 'addDebitCardPage.error.addressState',
-            zipCode: 'addDebitCardPage.error.zipCode',
+            addressStreet: 'addDebitCardPage.error.addressStreet',
+            addressState: 'addDebitCardPage.error.addressState',
+            addressZipCode: 'addDebitCardPage.error.addressZipCode',
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
         };
 
@@ -151,20 +148,10 @@ class DebitCardPage extends Component {
             errors.securityCode = true;
         }
 
-        if (!isValidAddress(this.state.billingAddress)) {
-            errors.billingAddress = true;
-        }
-
-        if (_.isEmpty(this.state.city.trim())) {
-            errors.city = true;
-        }
-
-        if (_.isEmpty(this.state.selectedState.trim())) {
-            errors.selectedState = true;
-        }
-
-        if (!isValidZipCode(this.state.zipCode)) {
-            errors.zipCode = true;
+        if (!isValidAddress(this.state.addressStreet)
+            || !this.state.addressState
+            || !isValidZipCode(this.state.addressZipCode)) {
+            errors.addressStreet = true;
         }
 
         if (!this.state.acceptedTerms) {
@@ -255,41 +242,13 @@ class DebitCardPage extends Component {
                                     />
                                 </View>
                             </View>
-                            <ExpensiTextInput
+                            <AddressSearch
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
-                                onChangeText={billingAddress => this.clearErrorAndSetValue('billingAddress', billingAddress)}
-                                value={this.state.billingAddress}
-                                errorText={this.getErrorText('billingAddress')}
+                                value={this.state.addressStreet}
+                                onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                errorText={this.getErrorText('addressStreet')}
                             />
-                            <ExpensiTextInput
-                                label={this.props.translate('common.city')}
-                                containerStyles={[styles.mt4]}
-                                onChangeText={city => this.clearErrorAndSetValue('city', city)}
-                                value={this.state.city}
-                                errorText={this.getErrorText('city')}
-                            />
-                            <View style={[styles.flexRow, styles.mt4]}>
-                                <View style={[styles.flex1, styles.mr2]}>
-                                    <StatePicker
-                                        label={this.props.translate('common.state')}
-                                        onChange={selectedState => this.clearErrorAndSetValue('selectedState', selectedState)}
-                                        value={this.state.selectedState}
-                                        hasError={Boolean(this.state.errors.selectedState)}
-                                        errorText={this.getErrorText('selectedState')}
-                                    />
-                                </View>
-                                <View style={[styles.flex1]}>
-                                    <ExpensiTextInput
-                                        label={this.props.translate('common.zip')}
-                                        onChangeText={zipCode => this.clearErrorAndSetValue('zipCode', zipCode)}
-                                        value={this.state.zipCode}
-                                        errorText={this.getErrorText('zipCode')}
-                                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                                        translateX={-10}
-                                    />
-                                </View>
-                            </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
                                 onPress={() => {

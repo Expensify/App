@@ -299,11 +299,11 @@ export default {
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         error: {
             invalidName: 'Por favor ingrese un nombre válido',
-            zipCode: 'Por favor ingrese un código postal válido',
+            addressZipCode: 'Por favor ingrese un código postal válido',
             debitCardNumber: 'Ingrese un número de tarjeta de débito válido',
             expirationDate: 'Por favor introduzca una fecha de vencimiento válida',
             securityCode: 'Ingrese un código de seguridad válido',
-            address: 'Ingrese una dirección de facturación válida que no sea un apartado postal',
+            addressStreet: 'Ingrese una dirección de facturación válida que no sea un apartado postal',
             addressState: 'Por favor seleccione un estado',
             addressCity: 'Por favor ingrese una ciudad',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
