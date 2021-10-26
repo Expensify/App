@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Text from './Text';
-import ChatCustomAvatar from './ChatCustomAvatar';
 import CONST from '../CONST';
+import Avatar from './Avatar';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -26,10 +26,10 @@ const EmptyStateAvatars = ({avatarImageURLs, isCustomChatRoom}) => {
 
     if (avatarImageURLs.length === 1 || isCustomChatRoom) {
         return (
-            <ChatCustomAvatar
+            <Avatar
                 source={avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
-                isCustomChatRoom={isCustomChatRoom}
+                isDefaultChatRoom={isCustomChatRoom}
             />
         );
     }
