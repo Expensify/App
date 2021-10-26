@@ -72,10 +72,6 @@ class WorkspaceSettingsPage extends React.Component {
         getCurrencyList();
     }
 
-    componentWillUnmount() {
-        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
-    }
-
     /**
      * @returns {Object[]}
      */
@@ -97,12 +93,15 @@ class WorkspaceSettingsPage extends React.Component {
      * @param {String} image.uri
      */
     uploadAvatar(image) {
+        if (this.props.policy.isAvatarUploading) {
+            return;
+        }
         this.setState({previewAvatarURL: image.uri});
         Policy.uploadAvatar(this.props.policy.id, image);
     }
 
     submit() {
-        if (this.props.policy.isAvatarUploading || !this.validate()) {
+        if (this.props.policy.isPolicyUpdating || !this.validate()) {
             return;
         }
         const name = this.state.name.trim();

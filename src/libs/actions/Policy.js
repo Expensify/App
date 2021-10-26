@@ -286,6 +286,7 @@ function invite(logins, welcomeNote, policyID) {
  * @param {Boolean} [shouldGrowl]
  */
 function update(policyID, values, shouldGrowl = false) {
+    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
     API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
@@ -312,7 +313,7 @@ function update(policyID, values, shouldGrowl = false) {
  * @param {Object} file
  */
 function uploadAvatar(policyID, file) {
-    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
+    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
     API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode === 200) {
