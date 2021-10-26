@@ -23,6 +23,7 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -31,6 +32,7 @@
         android:exported="true"
         android:windowSoftInputMode="adjustResize">
       </activity>
+
       <activity
         android:name="com.zoontek.rnbootsplash.RNBootSplashActivity"
         android:theme="@style/BootTheme"
@@ -44,26 +46,12 @@
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="expensify-cash"/>
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="new-expensify"/>
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="https" android:host="new.expensify.com" />
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="https" android:host="staging.new.expensify.com" />
         </intent-filter>
       </activity>
+
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
 
       <meta-data android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
