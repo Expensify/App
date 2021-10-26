@@ -294,7 +294,7 @@ export default {
         expiration: 'Fecha de vencimiento',
         expirationDate: 'MM/AA',
         cvv: 'CVV',
-        billingAddress: 'Dirección de Envio',
+        billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         error: {
