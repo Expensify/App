@@ -314,19 +314,13 @@ function update(policyID, values, shouldGrowl = false) {
 function uploadAvatar(policyID, file) {
     API.User_UploadAvatar({file})
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Show the user error feedback
-                throw new Error();
+            if (response.jsonCode === 200) {
+                // Update the policy with the new avatarURL as soon as we get it
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
+                update(policyID, {avatarURL: response.s3url}, true);
+                return;
             }
 
-            return response.s3url;
-        })
-        .then((avatarURL) => {
-            // Update the policy with the new avatarURL as soon as we get it
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL, isAvatarUploading: false});
-            update(policyID, {avatarURL}, true);
-        })
-        .catch(() => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
             const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
             Growl.error(errorMessage, 5000);
