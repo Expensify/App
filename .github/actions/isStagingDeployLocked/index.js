@@ -208,7 +208,7 @@ class GithubUtils {
      * @param {String} tag
      * @param {Array} PRList - The list of PR URLs which are included in this StagingDeployCash
      * @param {Array} [verifiedPRList] - The list of PR URLs which have passed QA.
-     * @param {Array} [accessablePRList] - The list of PR URLs which have passed the accessability check.
+     * @param {Array} [accessiblePRList] - The list of PR URLs which have passed the accessability check.
      * @param {Array} [deployBlockers] - The list of DeployBlocker URLs.
      * @param {Array} [resolvedDeployBlockers] - The list of DeployBlockers URLs which have been resolved.
      * @returns {Promise}
@@ -217,7 +217,7 @@ class GithubUtils {
         tag,
         PRList,
         verifiedPRList = [],
-        accessablePRList = [],
+        accessiblePRList = [],
         deployBlockers = [],
         resolvedDeployBlockers = [],
     ) {
@@ -228,6 +228,15 @@ class GithubUtils {
                     'html_url',
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
+
+                const noQAPRs = _.pluck(
+                    _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
+                    'html_url',
+                );
+                console.log('Found the following NO QA PRs:', noQAPRs);
+                const verifiedOrNoQAPRs = _.union(verifiedPRList, noQAPRs);
+                const accessibleOrNoQAPRs = _.union(accessiblePRList, noQAPRs);
+
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
                     .unique()
@@ -247,8 +256,8 @@ class GithubUtils {
                     issueBody += '\r\n**This release contains changes from the following pull requests:**';
                     _.each(sortedPRList, (URL) => {
                         issueBody += `\r\n\r\n- ${URL}`;
-                        issueBody += _.contains(verifiedPRList, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
-                        issueBody += _.contains(accessablePRList, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
+                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
+                        issueBody += _.contains(accessibleOrNoQAPRs, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
                     });
                 }
 
