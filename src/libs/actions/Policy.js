@@ -312,6 +312,7 @@ function update(policyID, values, shouldGrowl = false) {
  * @param {Object} file
  */
 function uploadAvatar(policyID, file) {
+    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
     API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode === 200) {

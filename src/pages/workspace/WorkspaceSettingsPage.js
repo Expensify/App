@@ -89,7 +89,6 @@ class WorkspaceSettingsPage extends React.Component {
 
     removeAvatar() {
         this.setState({previewAvatarURL: ''});
-        Policy.updateLocalPolicyValues(this.props.policy.id, {avatarURL: ''});
         Policy.update(this.props.policy.id, {avatarURL: ''}, true);
     }
 
@@ -99,7 +98,6 @@ class WorkspaceSettingsPage extends React.Component {
      */
     uploadAvatar(image) {
         this.setState({previewAvatarURL: image.uri});
-        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
         Policy.uploadAvatar(this.props.policy.id, image);
     }
 
@@ -109,7 +107,6 @@ class WorkspaceSettingsPage extends React.Component {
         }
         const name = this.state.name.trim();
         const outputCurrency = this.state.currency;
-        Policy.updateLocalPolicyValues(this.props.policy.id, {name, outputCurrency});
 
         // Send the API call with new settings values, the avatar has been updated when uploaded
         Policy.update(this.props.policy.id, {name, outputCurrency}, true);
