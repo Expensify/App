@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
 import styles from '../../../styles/styles';
@@ -41,7 +42,7 @@ const termsData = [
     },
 ];
 
-const getShortTermsSections = () => termsData.map(section => (
+const getShortTermsSections = () => _.map(termsData, section => (
     <View style={styles.shortTermsRow} key={section.title}>
         <View style={[styles.flex4]}>
             <Text>{section.title}</Text>

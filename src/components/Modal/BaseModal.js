@@ -5,7 +5,7 @@ import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
-import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './ModalPropTypes';
+import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
 import {setModalVisibility, willAlertModalBecomeVisible} from '../../libs/actions/Modal';
 

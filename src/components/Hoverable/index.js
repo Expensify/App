@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
-import {propTypes, defaultProps} from './HoverablePropTypes';
+import {propTypes, defaultProps} from './hoverablePropTypes';
 
 /**
  * It is necessary to create a Hoverable component instead of relying solely on Pressable support for hover state,

@@ -134,7 +134,7 @@ class AdditionalDetailsStep extends React.Component {
                                         label={field.label}
                                         onChangeText={val => this.setState({[field.fieldName]: val})}
                                         value={this.state[field.fieldName]}
-                                        errorText={errorFields.includes(field.fieldName)
+                                        errorText={_.contains(errorFields, field.fieldName)
                                             ? `${field.label} ${this.requiredText}`
                                             : ''}
                                         // eslint-disable-next-line react/jsx-props-no-spreading

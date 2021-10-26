@@ -19,7 +19,7 @@ import KeyboardSpacer from '../../components/KeyboardSpacer';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ReportActionPropTypes from './report/ReportActionPropTypes';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -55,7 +55,7 @@ const propTypes = {
     }),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string),

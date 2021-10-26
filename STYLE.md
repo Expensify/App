@@ -175,6 +175,35 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
     }
     ```
 
+## Object / Array Methods
+
+We have standardized on using [underscore.js](https://underscorejs.org/) methods for objects and collections instead of the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods). This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
+
+    ```javascript
+    // Bad
+    myArray.forEach(item => doSomething(item));
+    // Good
+    _.each(myArray, item => doSomething(item));
+
+    // Bad
+    const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
+    // Good
+    const myArray = _.map(someObject, (value, key) => doSomething(value));
+
+    // Bad
+    myCollection.includes('item');
+    // Good
+    _.contains(myCollection, 'item');
+
+    // Bad
+    const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
+    // Good
+    const modifiedArray = _.chain(someArray)
+        .filter(filterFunc)
+        .map(mapFunc)
+        .value();
+    ```
+
 ## Accessing Object Properties and Default Values
 
 Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
@@ -682,7 +711,25 @@ From React's documentation -
 >Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
 >If you want to reuse non-UI functionality between components, we suggest extracting it into a separate JavaScript module. The components may import it and use that function, object, or a class, without extending it.
 
-Use *[Higher order components](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+
+If several HOC need to be combined there is a `compose()` utility. But we should not use this utility when there is only one HOC.
+
+```javascript
+// Bad
+export default compose(
+    withLocalize,
+)(MyComponent);
+
+// Good
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(MyComponent);
+
+// Good
+export default withLocalize(MyComponent)
+```
 
 **Note:** If you find that none of these approaches work for you, please ask an Expensify engineer for guidance via Slack or GitHub.
 
