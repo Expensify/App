@@ -113,14 +113,14 @@ class NewChatPage extends Component {
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         if (this.state.userToInvite) {

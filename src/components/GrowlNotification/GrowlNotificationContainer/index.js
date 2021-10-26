@@ -2,10 +2,10 @@ import React from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../withWindowDimensions';
-import GrowlNotificationContainerPropTypes from './GrowlNotificationContainerPropTypes';
+import growlNotificationContainerPropTypes from './growlNotificationContainerPropTypes';
 
 const propTypes = {
-    ...GrowlNotificationContainerPropTypes,
+    ...growlNotificationContainerPropTypes,
     ...windowDimensionsPropTypes,
 };
 

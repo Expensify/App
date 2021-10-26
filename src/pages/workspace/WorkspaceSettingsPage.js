@@ -65,10 +65,15 @@ class WorkspaceSettingsPage extends React.Component {
         this.uploadAvatar = this.uploadAvatar.bind(this);
         this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
+        this.validate = this.validate.bind(this);
     }
 
     componentDidMount() {
         getCurrencyList();
+    }
+
+    componentWillUnmount() {
+        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
     }
 
     /**
@@ -99,12 +104,23 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     submit() {
+        if (this.props.policy.isAvatarUploading || !this.validate()) {
+            return;
+        }
         const name = this.state.name.trim();
         const outputCurrency = this.state.currency;
         Policy.updateLocalPolicyValues(this.props.policy.id, {name, outputCurrency});
 
         // Send the API call with new settings values, the avatar has been updated when uploaded
         Policy.update(this.props.policy.id, {name, outputCurrency}, true);
+    }
+
+    validate() {
+        const errors = {};
+        if (!this.state.name.trim().length) {
+            errors.nameError = true;
+        }
+        return _.size(errors) === 0;
     }
 
     render() {

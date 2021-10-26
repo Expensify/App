@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
 import ReportActionItemFragment from './ReportActionItemFragment';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import {withNetwork} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** The report action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Information about the network */
     network: PropTypes.shape({
