@@ -1,8 +1,25 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
-import {Pressable} from 'react-native';
+import {Pressable, Platform} from 'react-native';
 import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
+
+/**
+ * Triggers haptic feedback, and calls onSecondaryInteraction
+ * 
+ * @param {Object} event
+ * @param {Object} props 
+ */
+function handleLongPress(event, props) {
+    event.preventDefault();
+    props.onSecondaryInteraction(event);
+
+    if(Platform.Version >= 29) {
+        ReactNativeHapticFeedback.trigger('effectHeavyClick');
+    } else {
+        ReactNativeHapticFeedback.trigger('keyboardTap');
+    }
+} 
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
@@ -16,11 +33,7 @@ const PressableWithSecondaryInteraction = props => (
         onPress={props.onPress}
         onPressIn={props.onPressIn}
         delayLongPress={200}
-        onLongPress={(e) => {
-            e.preventDefault();
-            ReactNativeHapticFeedback.trigger('effectHeavyClick');
-            props.onSecondaryInteraction(e);
-        }}
+        onLongPress={event => handleLongPress(event, props)}
         onPressOut={props.onPressOut}
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...(_.omit(props, 'onLongPress'))}
