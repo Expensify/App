@@ -53,6 +53,7 @@ function addBillingCard(params) {
         addressZip: params.zipCode,
         currency: CONST.CURRENCY.USD,
     }).then(((response) => {
+        let errorMessage = '';
         if (response.jsonCode === 200) {
             const cardObject = {
                 additionalData: {
@@ -70,15 +71,16 @@ function addBillingCard(params) {
                 fundID: lodashGet(response, 'fundID', ''),
             };
             Onyx.merge(ONYXKEYS.CARD_LIST, [cardObject]);
-            Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {submitting: false});
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         } else {
-            Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
-                submitting: false,
-                error: response.message ? response.message : translateLocal('addDebitCardPage.error.genericFailureMessage'),
-            });
+            errorMessage = response.message ? response.message : translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
+
+        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
+            submitting: false,
+            error: errorMessage,
+        });
     })).catch((error) => {
         Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
             submitting: false,

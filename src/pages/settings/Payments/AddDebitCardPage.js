@@ -97,6 +97,16 @@ class DebitCardPage extends Component {
     }
 
     /**
+     * Make sure we reset the onyx values so old errors don't show if this form is displayed later
+     */
+    componentWillUnmount() {
+        Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
+            submitting: false,
+            error: '',
+        });
+    }
+
+    /**
      * @param {String} inputKey
      * @returns {String}
      */
@@ -305,6 +315,13 @@ class DebitCardPage extends Component {
                                 hasError={Boolean(this.state.errors.acceptedTerms)}
                             />
                         </View>
+                        {!_.isEmpty(this.props.addDebitCardForm.error) && (
+                            <View style={[styles.mh5, styles.mb5]}>
+                                <Text style={[styles.formError]}>
+                                    {this.props.addDebitCardForm.error}
+                                </Text>
+                            </View>
+                        )}
                         <FormAlertWithSubmitButton
                             isAlertVisible={this.state.shouldShowAlertPrompt}
                             buttonText={this.props.translate('common.save')}
