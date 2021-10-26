@@ -29,7 +29,6 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import DateUtils from '../../libs/DateUtils';
 import Permissions from '../../libs/Permissions';
-import Tooltip from '../../components/Tooltip';
 
 const propTypes = {
     /* Onyx Props */
