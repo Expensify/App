@@ -90,9 +90,10 @@ function isValidExpirationDate(string) {
         return false;
     }
 
-    // Use the first of the month to check if the expiration date is in the future or not
+
+    // Use the last of the month to check if the expiration date is in the future or not
     const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
-    return moment(expirationDate).isAfter(moment());
+    return moment(expirationDate).endOf('month').isAfter(moment());
 }
 
 /**
