@@ -233,7 +233,7 @@ export default {
         growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
         online: 'Online',
         offline: 'Offline',
-        syncing: 'Syncing',
+        syncing: 'Sincronizando',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
