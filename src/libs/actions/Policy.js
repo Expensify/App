@@ -283,7 +283,7 @@ function invite(logins, welcomeNote, policyID) {
  * @param {String} policyID
  * @param {Object} values
  */
- function updateLocalPolicyValues(policyID, values) {
+function updateLocalPolicyValues(policyID, values) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
