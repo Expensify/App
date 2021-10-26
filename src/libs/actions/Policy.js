@@ -102,7 +102,7 @@ function updateAllPolicies(policyCollection) {
  * @param {Boolean} [shouldAutomaticallyReroute]
  * @returns {Promise}
  */
-function create(name = '', shouldAutomaticallyReroute = true) {
+function create(name = '') {
     let res = null;
     return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
@@ -123,13 +123,17 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 role: CONST.POLICY.ROLE.ADMIN,
                 outputCurrency: response.policy.outputCurrency,
             });
-        }).then(() => {
-            const policyID = lodashGet(res, 'policyID');
-            if (shouldAutomaticallyReroute) {
-                Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-            }
-            return Promise.resolve(policyID);
+        }).then(() => Promise.resolve(lodashGet(res, 'policyID')));
+}
+
+/**
+ * @param {String} [name]
+ */
+function createAndNavigate(name = '') {
+    create(name)
+        .then((policyID) => {
+            Navigation.dismissModal();
+            Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
         });
 }
 
@@ -150,7 +154,7 @@ function create(name = '', shouldAutomaticallyReroute = true) {
 function getPolicyList(shouldCreateNewPolicy = false) {
     let newPolicyID;
     const createPolicyPromise = shouldCreateNewPolicy
-        ? create('', false)
+        ? create()
         : Promise.resolve();
     createPolicyPromise
         .then((policyID) => {
@@ -364,4 +368,5 @@ export {
     update,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
+    createAndNavigate,
 };
