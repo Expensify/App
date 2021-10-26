@@ -9,6 +9,7 @@ import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/lib
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import PushNotification from '../../src/libs/Notification/PushNotification';
 import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
+import Log from '../../src/libs/Log';
 
 PushNotification.register = () => {};
 PushNotification.deregister = () => {};
@@ -163,6 +164,47 @@ describe('actions/Report', () => {
             .then(() => {
                 // Make sure the pin state gets from the Pusher callback into Onyx.
                 expect(reportIsPinned).toEqual(true);
+            });
+    });
+
+    it('Should not leave duplicate comments when logger sends packet because of calling process queue while processing the queue', () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@test.com';
+        const REPORT_ID = 1;
+        const LOGGER_MAX_LOG_LINES = 50;
+
+        // GIVEN a test user with initial data
+        return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() => fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
+                [TEST_USER_LOGIN]: {
+                    accountID: TEST_USER_ACCOUNT_ID,
+                    email: TEST_USER_LOGIN,
+                    firstName: 'Test',
+                    lastName: 'User',
+                },
+            }))
+            .then(() => {
+                global.fetch = jest.fn()
+                    .mockImplementation(() => Promise.resolve({
+                        json: () => Promise.resolve({
+                            jsonCode: 200,
+                        }),
+                    }));
+
+                // WHEN we add 1 less than the max before a log packet is sent
+                for (let i = 0; i < LOGGER_MAX_LOG_LINES; i++) {
+                    Log.info('Test log info');
+                }
+
+                // And leave a comment on a report which will trigger the log packet to be sent in the same call
+                addAction(REPORT_ID, 'Testing a comment');
+                return waitForPromisesToResolve();
+            })
+            .then(() => {
+                // THEN only ONE call to Report_AddComment will happen
+                const URL_ARGUMENT_INDEX = 0;
+                const reportAddCommentCalls = _.filter(global.fetch.mock.calls, callArguments => callArguments[URL_ARGUMENT_INDEX].includes('Report_AddComment'));
+                expect(reportAddCommentCalls.length).toBe(1);
             });
     });
 });
