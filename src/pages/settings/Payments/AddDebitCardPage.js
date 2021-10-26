@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
@@ -15,7 +15,7 @@ import StatePicker from '../../../components/StatePicker';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {addBillingCard} from '../../../libs/actions/PaymentMethods';
+import {addBillingCard, clearDebitCardFormErrorAndSubmit} from '../../../libs/actions/PaymentMethods';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import {
     isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard, isValidSecurityCode,
@@ -100,10 +100,7 @@ class DebitCardPage extends Component {
      * Make sure we reset the onyx values so old errors don't show if this form is displayed later
      */
     componentWillUnmount() {
-        Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
-            submitting: false,
-            error: '',
-        });
+        clearDebitCardFormErrorAndSubmit();
     }
 
     /**
@@ -186,7 +183,6 @@ class DebitCardPage extends Component {
         if (!this.validate()) {
             return;
         }
-        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
         addBillingCard(this.state);
     }
 

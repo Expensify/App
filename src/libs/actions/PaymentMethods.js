@@ -44,6 +44,7 @@ function addBillingCard(params) {
     const cardMonth = getMonthFromExpirationDateString(params.expirationDate);
     const cardYear = getYearFromExpirationDateString(params.expirationDate);
 
+    Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
     API.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
@@ -84,7 +85,18 @@ function addBillingCard(params) {
     }));
 }
 
+/**
+ * Resets the values for the add debit card form back to their initial states
+ */
+function clearDebitCardFormErrorAndSubmit() {
+    Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
+        submitting: false,
+        error: '',
+    });
+}
+
 export {
     getPaymentMethods,
     addBillingCard,
+    clearDebitCardFormErrorAndSubmit,
 };
