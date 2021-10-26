@@ -20,13 +20,14 @@ function getMonthFromExpirationDateString(expirationDateString) {
 }
 
 /**
- * @param {String} expirationDateString - string in MM/YYYY, MM/YY, MMYY, or MMYYYY format
+ * @param {String} expirationDateString - string in MMYY or MMYYYY format, with any non-number separator
  * @returns {String}
  */
 function getYearFromExpirationDateString(expirationDateString) {
-    const cardYear = expirationDateString.includes('/')
-        ? expirationDateString.substr(3)
-        : expirationDateString.substr(2);
+    const stringContainsNumbersOnly = /^\d+$/.test(expirationDateString);
+    const cardYear = stringContainsNumbersOnly
+        ? expirationDateString.substr(2)
+        : expirationDateString.substr(3);
 
     return cardYear.length === 2 ? `20${cardYear}` : cardYear;
 }
