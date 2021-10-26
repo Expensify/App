@@ -119,5 +119,4 @@ class AvatarWithIndicator extends PureComponent {
 
 AvatarWithIndicator.defaultProps = defaultProps;
 AvatarWithIndicator.propTypes = propTypes;
-AvatarWithIndicator.displayName = 'AvatarWithIndicator';
 export default withLocalize(AvatarWithIndicator);

@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 /**
  * This is a utility function taken directly from Redux. (We don't want to add Redux as a dependency)
  * It enables functional composition, useful for the chaining/composition of HOCs.
@@ -25,5 +27,5 @@ export default function compose(...funcs) {
         return funcs[0];
     }
 
-    return funcs.reduce((a, b) => (...args) => a(b(...args)));
+    return _.reduce(funcs, (a, b) => (...args) => a(b(...args)));
 }

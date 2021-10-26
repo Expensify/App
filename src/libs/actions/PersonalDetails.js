@@ -12,6 +12,7 @@ import {isDefaultRoom} from '../reportUtils';
 import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
+import {isValidLengthForFirstOrLastName} from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -62,6 +63,21 @@ function getDisplayName(login, personalDetail) {
     const fullName = (`${firstName} ${lastName}`).trim();
 
     return fullName || userLogin;
+}
+
+/**
+ * Returns object with first and last name errors. If either are valid,
+ * those errors get returned as empty strings.
+ *
+ * @param {String} firstName
+ * @param {String} lastName
+ * @returns {Object}
+ */
+function getFirstAndLastNameErrors(firstName, lastName) {
+    return {
+        firstNameError: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
+        lastNameError: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
+    };
 }
 
 /**
@@ -152,12 +168,13 @@ function getFromReportParticipants(reports) {
             const existingDetails = _.pick(data, participantEmails);
 
             // Fallback to add logins that don't appear in the response
-            const details = participantEmails
+            const details = _.chain(participantEmails)
                 .filter(login => !data[login])
                 .reduce((previousDetails, login) => ({
                     ...previousDetails,
                     [login]: {}, // Simply just need the key to exist
-                }), existingDetails);
+                }), existingDetails)
+                .value();
 
             const formattedPersonalDetails = formatPersonalDetails(details);
             Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formattedPersonalDetails);
@@ -218,14 +235,25 @@ function mergeLocalPersonalDetails(details) {
  * @param {boolean} shouldGrowl
  */
 function setPersonalDetails(details, shouldGrowl) {
-    API.PersonalDetails_Update({details: JSON.stringify(details)});
-    if (details.timezone) {
-        NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
-    }
-    mergeLocalPersonalDetails(details);
-    if (shouldGrowl) {
-        Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
-    }
+    API.PersonalDetails_Update({details: JSON.stringify(details)})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                if (details.timezone) {
+                    NameValuePair.set(CONST.NVP.TIMEZONE, details.timezone);
+                }
+                mergeLocalPersonalDetails(details);
+
+                if (shouldGrowl) {
+                    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                }
+            } else if (response.jsonCode === 400) {
+                Growl.error(translateLocal('personalDetails.error.firstNameLength'), 3000);
+            } else if (response.jsonCode === 401) {
+                Growl.error(translateLocal('personalDetails.error.lastNameLength'), 3000);
+            }
+        }).catch((error) => {
+            console.debug('Error while setting personal details', error);
+        });
 }
 
 /**
@@ -304,6 +332,7 @@ export {
     getFromReportParticipants,
     getDisplayName,
     getDefaultAvatar,
+    getFirstAndLastNameErrors,
     setPersonalDetails,
     setAvatar,
     deleteAvatar,

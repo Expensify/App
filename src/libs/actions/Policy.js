@@ -286,14 +286,21 @@ function uploadAvatar(file) {
     return API.User_UploadAvatar({file})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
-                Growl.error(errorMessage, 5000);
-                return;
+                // Let the component handle the issue.
+                throw new Error();
             }
 
             return response.s3url;
         });
+}
+
+/**
+ * Sets local values for the policy
+ * @param {String} policyID
+ * @param {Object} values
+ */
+function updateLocalPolicyValues(policyID, values) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
 /**
@@ -307,32 +314,20 @@ function update(policyID, values, shouldGrowl = false) {
     API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
-                // Show the user feedback
-                const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
-                Growl.error(errorMessage, 5000);
-                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
-                return;
+                throw new Error();
             }
 
-            const updatedValues = {...values, ...{isPolicyUpdating: false}};
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, updatedValues);
+            updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
             if (shouldGrowl) {
                 Growl.show(translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             }
         }).catch(() => {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isPolicyUpdating: false});
+            updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
+
+            // Show the user feedback
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });
-}
-
-/**
- * Sets local values for the policy
- * @param {String} policyID
- * @param {Object} values
- */
-function updateLocalPolicyValues(policyID, values) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
 /**

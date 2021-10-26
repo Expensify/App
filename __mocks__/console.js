@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 function format(entry) {
     if (typeof entry === 'object') {
         try {
@@ -10,7 +12,7 @@ function format(entry) {
 }
 
 function log(...msgs) {
-    process.stdout.write(`${msgs.map(format).join(' ')}\n`);
+    process.stdout.write(`${_.map(msgs, format).join(' ')}\n`);
 }
 
 module.exports = {

@@ -67,11 +67,16 @@ class WorkspaceSettingsPage extends React.Component {
         this.uploadAvatar = this.uploadAvatar.bind(this);
         this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
+        this.validate = this.validate.bind(this);
         this.uploadAvatarPromise = Promise.resolve();
     }
 
     componentDidMount() {
         getCurrencyList();
+    }
+
+    componentWillUnmount() {
+        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false});
     }
 
     /**
@@ -101,11 +106,15 @@ class WorkspaceSettingsPage extends React.Component {
         this.uploadAvatarPromise = Policy.uploadAvatar(image).then(url => new Promise((resolve) => {
             this.setState({avatarURL: url}, resolve);
         })).catch(() => {
+            this.setState({previewAvatarURL: ''});
             Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
         }).finally(() => Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
     }
 
     submit() {
+        if (this.props.policy.isAvatarUploading || !this.validate()) {
+            return;
+        }
         const name = this.state.name.trim();
         const avatarURL = this.state.avatarURL;
         const outputCurrency = this.state.currency;
@@ -116,6 +125,14 @@ class WorkspaceSettingsPage extends React.Component {
             Policy.update(this.props.policy.id, {name, avatarURL, outputCurrency});
         });
         Growl.success(this.props.translate('workspace.common.growlMessageOnSave'));
+    }
+
+    validate() {
+        const errors = {};
+        if (!this.state.name.trim().length) {
+            errors.nameError = true;
+        }
+        return _.size(errors) === 0;
     }
 
     render() {

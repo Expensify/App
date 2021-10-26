@@ -139,6 +139,5 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
-ImageView.displayName = 'ImageView';
 
 export default withWindowDimensions(ImageView);

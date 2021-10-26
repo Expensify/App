@@ -52,6 +52,5 @@ class Switch extends Component {
 }
 
 Switch.propTypes = propTypes;
-Switch.displayName = 'Switch';
 
 export default Switch;
