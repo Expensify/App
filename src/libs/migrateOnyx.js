@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import Log from './Log';
 import AddEncryptedAuthToken from './migrations/AddEncryptedAuthToken';
 import RenameActiveClientsKey from './migrations/RenameActiveClientsKey';
@@ -17,16 +18,14 @@ export default function () {
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the
         // previous promise to finish before moving onto the next one.
-        migrationPromises
-            /* eslint-disable arrow-body-style */
-            .reduce((previousPromise, migrationPromise) => {
-                return previousPromise.then(() => {
-                    return migrationPromise();
-                });
-            }, Promise.resolve())
-            /* eslint-enable arrow-body-style */
+        /* eslint-disable arrow-body-style */
+        _.reduce(migrationPromises, (previousPromise, migrationPromise) => {
+            return previousPromise.then(() => {
+                return migrationPromise();
+            });
+        }, Promise.resolve())
 
-            // Once all migrations are done, resolve the main promise
+        // Once all migrations are done, resolve the main promise
             .then(() => {
                 const timeElapsed = Date.now() - startTime;
                 Log.info(`[Migrate Onyx] finished in ${timeElapsed}ms`);

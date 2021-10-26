@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {propTypes as popoverPropTypes, defaultProps} from './PopoverPropTypes';
+import {propTypes as popoverPropTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';

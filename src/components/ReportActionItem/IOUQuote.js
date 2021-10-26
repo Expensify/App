@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Should the View Details link be displayed? */
     shouldShowViewDetailsLink: PropTypes.bool,

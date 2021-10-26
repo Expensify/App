@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -8,7 +9,12 @@ import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import {setPersonalDetails, setAvatar, deleteAvatar} from '../../../libs/actions/PersonalDetails';
+import {
+    getFirstAndLastNameErrors,
+    setPersonalDetails,
+    setAvatar,
+    deleteAvatar,
+} from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -59,11 +65,10 @@ const defaultProps = {
     },
 };
 
-const timezones = moment.tz.names()
-    .map(timezone => ({
-        value: timezone,
-        label: timezone,
-    }));
+const timezones = _.map(moment.tz.names(), timezone => ({
+    value: timezone,
+    label: timezone,
+}));
 
 class ProfilePage extends Component {
     constructor(props) {
@@ -77,17 +82,19 @@ class ProfilePage extends Component {
 
         this.state = {
             firstName,
+            firstNameError: '',
             lastName,
+            lastNameError: '',
             pronouns,
             hasSelfSelectedPronouns: pronouns && !pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: timezone.selected || CONST.DEFAULT_TIME_ZONE.selected,
-            isAutomaticTimezone: timezone.automatic ?? CONST.DEFAULT_TIME_ZONE.automatic,
+            selectedTimezone: lodashGet(timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
         };
-
-        this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
-        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
         this.getLogins = this.getLogins.bind(this);
+        this.setAutomaticTimezone = this.setAutomaticTimezone.bind(this);
+        this.updatePersonalDetails = this.updatePersonalDetails.bind(this);
+        this.validateInputs = this.validateInputs.bind(this);
     }
 
     componentDidUpdate(prevProps) {
@@ -119,7 +126,7 @@ class ProfilePage extends Component {
      * @returns {Object}
      */
     getLogins(loginList) {
-        return loginList.reduce((logins, currentLogin) => {
+        return _.reduce(loginList, (logins, currentLogin) => {
             const type = Str.isSMSLogin(currentLogin.partnerUserID) ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL;
             const login = Str.removeSMSDomain(currentLogin.partnerUserID);
 
@@ -154,6 +161,10 @@ class ProfilePage extends Component {
             isAutomaticTimezone,
         } = this.state;
 
+        if (!this.validateInputs()) {
+            return;
+        }
+
         setPersonalDetails({
             firstName: firstName.trim(),
             lastName: lastName.trim(),
@@ -163,6 +174,16 @@ class ProfilePage extends Component {
                 selected: selectedTimezone,
             },
         }, true);
+    }
+
+    validateInputs() {
+        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+
+        this.setState({
+            firstNameError,
+            lastNameError,
+        });
+        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
     }
 
     render() {
@@ -209,7 +230,9 @@ class ProfilePage extends Component {
                         </Text>
                         <FullNameInputRow
                             firstName={this.state.firstName}
+                            firstNameError={this.state.firstNameError}
                             lastName={this.state.lastName}
+                            lastNameError={this.state.lastNameError}
                             onChangeFirstName={firstName => this.setState({firstName})}
                             onChangeLastName={lastName => this.setState({lastName})}
                             style={[styles.mt4, styles.mb4]}

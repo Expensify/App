@@ -121,4 +121,6 @@ const FormAlertWithSubmitButton = ({
 
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
+FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
+
 export default withLocalize(FormAlertWithSubmitButton);
