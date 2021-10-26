@@ -279,6 +279,15 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
+ * Sets local values for the policy
+ * @param {String} policyID
+ * @param {Object} values
+ */
+ function updateLocalPolicyValues(policyID, values) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
+}
+
+/**
  * Sets the name of the policy
  *
  * @param {String} policyID
@@ -327,15 +336,6 @@ function uploadAvatar(policyID, file) {
             const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
             Growl.error(errorMessage, 5000);
         });
-}
-
-/**
- * Sets local values for the policy
- * @param {String} policyID
- * @param {Object} values
- */
-function updateLocalPolicyValues(policyID, values) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, values);
 }
 
 /**
