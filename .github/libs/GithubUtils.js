@@ -3,7 +3,6 @@ const lodashGet = require('lodash/get');
 const core = require('@actions/core');
 const {GitHub, getOctokitOptions} = require('@actions/github/lib/utils');
 const {throttling} = require('@octokit/plugin-throttling');
-const Str = require('expensify-common/lib/str');
 
 const GITHUB_OWNER = 'Expensify';
 const EXPENSIFY_CASH_REPO = 'App';
