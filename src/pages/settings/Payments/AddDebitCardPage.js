@@ -87,7 +87,6 @@ class DebitCardPage extends Component {
             acceptedTerms: 'addDebitCardPage.error.acceptedTerms',
         };
 
-        this.updateExpirationDate = this.updateExpirationDate.bind(this);
         this.submit = this.submit.bind(this);
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
         this.getErrorText = this.getErrorText.bind(this);
@@ -110,21 +109,6 @@ class DebitCardPage extends Component {
         }
 
         return this.props.translate(this.errorTranslationKeys[inputKey]);
-    }
-
-    /**
-     * Automatically adds the / character while the user is typing expiration date
-     *
-     * @param {String} expirationDate
-     */
-    updateExpirationDate(expirationDate) {
-        let newExpirationDate = expirationDate;
-        const isErasing = expirationDate.length < this.state.expirationDate.length;
-        if (expirationDate.length === 2 && !isErasing) {
-            newExpirationDate = `${expirationDate}/`;
-        }
-
-        this.clearErrorAndSetValue('expirationDate', newExpirationDate);
     }
 
     /**
@@ -225,7 +209,7 @@ class DebitCardPage extends Component {
                                     <ExpensiTextInput
                                         label={this.props.translate('addDebitCardPage.expiration')}
                                         placeholder={this.props.translate('addDebitCardPage.expirationDate')}
-                                        onChangeText={expirationDate => this.updateExpirationDate(expirationDate)}
+                                        onChangeText={expirationDate => this.clearErrorAndSetValue('expirationDate', expirationDate)}
                                         value={this.state.expirationDate}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
