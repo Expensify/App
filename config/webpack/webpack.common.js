@@ -1,5 +1,5 @@
 const path = require('path');
-const {IgnorePlugin, DefinePlugin} = require('webpack');
+const {IgnorePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -41,10 +41,6 @@ const webpackConfig = {
             filename: 'index.html',
             usePolyfillIO: platform === 'web',
         }),
-
-        // Configure the React Native Reanimated web support
-        // https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/web-support
-        new DefinePlugin({process: {env: {}}}),
 
         // Copies favicons into the dist/ folder to use for unread status
         new CopyPlugin({

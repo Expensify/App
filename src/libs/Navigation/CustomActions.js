@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import {CommonActions, StackActions, DrawerActions} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
 
@@ -73,7 +74,7 @@ function pushDrawerRoute(screenName, params, navigationRef) {
         }
 
         const screenRoute = {type: 'route', name: screenName};
-        const history = [...(state.history || [screenRoute])].map(() => screenRoute);
+        const history = _.map([...(state.history || [screenRoute])], () => screenRoute);
 
         // Force drawer to close and show the report screen
         history.push({
