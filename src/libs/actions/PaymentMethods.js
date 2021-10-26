@@ -77,12 +77,12 @@ function addBillingCard(params) {
             errorMessage = response.message ? response.message : translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
 
-        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
+        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
             submitting: false,
             error: errorMessage,
         });
     })).catch((error) => {
-        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
+        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
             submitting: false,
             error: error.message ? error.message : translateLocal('addDebitCardPage.error.genericFailureMessage'),
         });

@@ -100,7 +100,7 @@ class DebitCardPage extends Component {
      * Make sure we reset the onyx values so old errors don't show if this form is displayed later
      */
     componentWillUnmount() {
-        Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {
+        Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
             submitting: false,
             error: '',
         });
@@ -186,7 +186,7 @@ class DebitCardPage extends Component {
         if (!this.validate()) {
             return;
         }
-        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_PAGE, {submitting: true});
+        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
         addBillingCard(this.state);
     }
 
@@ -347,7 +347,7 @@ DebitCardPage.defaultProps = defaultProps;
 export default compose(
     withOnyx({
         addDebitCardForm: {
-            key: ONYXKEYS.ADD_DEBIT_CARD_PAGE,
+            key: ONYXKEYS.ADD_DEBIT_CARD_FORM,
         },
     }),
     withLocalize,
