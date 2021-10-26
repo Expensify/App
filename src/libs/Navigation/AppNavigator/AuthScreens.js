@@ -29,7 +29,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicyList} from '../../actions/Policy';
+import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import getOperatingSystem from '../../getOperatingSystem';
@@ -173,10 +173,13 @@ class AuthScreens extends React.Component {
                     const path = new URL(url).pathname;
                     const exitTo = new URLSearchParams(url).get('exitTo');
                     const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
-                    getPolicyList(shouldCreateFreePolicy);
-                } else {
-                    getPolicyList(false);
+                    if (shouldCreateFreePolicy) {
+                        Policy.createAndGetPolicyList();
+                        return;
+                    }
                 }
+
+                Policy.getPolicyList();
             });
 
         // Refresh the personal details, timezone and betas every 30 minutes

@@ -126,15 +126,17 @@ function create(name = '') {
         }).then(() => Promise.resolve(lodashGet(res, 'policyID')));
 }
 
+function navigateToPolicy(policyID) {
+    Navigation.dismissModal();
+    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
+}
+
 /**
  * @param {String} [name]
  */
 function createAndNavigate(name = '') {
     create(name)
-        .then((policyID) => {
-            Navigation.dismissModal();
-            Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-        });
+        .then(navigateToPolicy);
 }
 
 /**
@@ -148,28 +150,13 @@ function createAndNavigate(name = '') {
  *
  * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
  * and we also don't have to wait for full policies to load before navigating to the new policy.
- *
- * @param {Boolean} [shouldCreateNewPolicy]
  */
-function getPolicyList(shouldCreateNewPolicy = false) {
-    let newPolicyID;
-    const createPolicyPromise = shouldCreateNewPolicy
-        ? create()
-        : Promise.resolve();
-    createPolicyPromise
-        .then((policyID) => {
-            newPolicyID = policyID;
-            return API.GetPolicySummaryList();
-        })
+function getPolicyList() {
+    API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policyDataToStore = transformPolicyListToOnyxCollection(data.policySummaryList || []);
                 updateAllPolicies(policyDataToStore);
-            }
-
-            if (shouldCreateNewPolicy) {
-                Navigation.dismissModal();
-                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceInitialRoute(newPolicyID) : ROUTES.HOME);
             }
 
             return API.GetPolicyList();
@@ -179,6 +166,18 @@ function getPolicyList(shouldCreateNewPolicy = false) {
                 const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
                 updateAllPolicies(policyDataToStore);
             }
+        });
+}
+
+function createAndGetPolicyList() {
+    let newPolicyID;
+    create()
+        .then((policyID) => {
+            newPolicyID = policyID;
+            return getPolicyList();
+        })
+        .then(() => {
+            navigateToPolicy(newPolicyID);
         });
 }
 
@@ -369,4 +368,5 @@ export {
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
     createAndNavigate,
+    createAndGetPolicyList,
 };
