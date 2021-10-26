@@ -250,7 +250,7 @@ class GithubUtils {
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
                 const noQAPRs = _.pluck(
-                    _.filter(data, PR => Str.startsWith((PR.title || '').toUpperCase(), '[No QA]')),
+                    _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
                     'html_url',
                 );
                 console.log('Found the following NO QA PRs:', noQAPRs);
