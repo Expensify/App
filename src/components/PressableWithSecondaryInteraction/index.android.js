@@ -6,20 +6,20 @@ import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTy
 
 /**
  * Triggers haptic feedback, and calls onSecondaryInteraction
- * 
+ *
  * @param {Object} event
- * @param {Object} props 
+ * @param {Object} props
  */
 function handleLongPress(event, props) {
     event.preventDefault();
     props.onSecondaryInteraction(event);
 
-    if(Platform.Version >= 29) {
+    if (Platform.Version >= 29) {
         ReactNativeHapticFeedback.trigger('effectHeavyClick');
-    } else {
-        ReactNativeHapticFeedback.trigger('keyboardTap');
+        return;
     }
-} 
+    ReactNativeHapticFeedback.trigger('keyboardTap');
+}
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
