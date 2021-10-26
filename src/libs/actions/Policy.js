@@ -362,7 +362,6 @@ export {
     create,
     uploadAvatar,
     update,
-    updateLocalPolicyValues,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
 };
