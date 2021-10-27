@@ -80,7 +80,7 @@ const propTypes = {
     }).isRequired,
 
     /** The user's current wallet status and step */
-    userWallet: userWalletPropTypes.isRequired,
+    ...userWalletPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -94,6 +94,7 @@ const defaultProps = {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    userWallet: {},
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
