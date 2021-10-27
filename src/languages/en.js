@@ -761,4 +761,9 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
     },
+    welcomeScreen: {
+        title: 'Welcome',
+        subtitle: 'Welcome to Expensify! Tell us a little bit about yourself before getting started',
+        getStartedButton: 'Get Started',
+    },
 };
