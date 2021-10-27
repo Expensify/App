@@ -1,6 +1,6 @@
 import React from 'react';
 import {createPortal} from 'react-dom';
-import {propTypes, defaultProps} from './PopoverPropTypes';
+import {propTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
 import withWindowDimensions from '../withWindowDimensions';

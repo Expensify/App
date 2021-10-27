@@ -164,12 +164,12 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
     }
     if (report) {
         searchTerms.push(...report.reportName);
-        searchTerms.push(...report.reportName.split(',').map(name => name.trim()));
+        searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
 
         if (isDefaultChatRoom) {
             const defaultRoomSubtitle = getDefaultRoomSubtitle(report, policies);
             searchTerms.push(...defaultRoomSubtitle);
-            searchTerms.push(...defaultRoomSubtitle.split(',').map(name => name.trim()));
+            searchTerms.push(..._.map(defaultRoomSubtitle.split(','), name => name.trim()));
         } else {
             searchTerms.push(...report.participants);
         }
@@ -222,8 +222,7 @@ function createOption(personalDetailList, report, draftComments, {
             : getDefaultRoomSubtitle(report, policies);
     } else {
         text = hasMultipleParticipants
-            ? personalDetailList
-                .map(({firstName, login}) => firstName || Str.removeSMSDomain(login))
+            ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
                 .join(', ')
             : lodashGet(report, ['reportName'], personalDetail.displayName);
         alternateText = (showChatPreviewLine && lastMessageText)
@@ -267,10 +266,12 @@ function createOption(personalDetailList, report, draftComments, {
  * @returns {Boolean}
  */
 function isSearchStringMatch(searchValue, searchText, participantNames = new Set(), isDefaultChatRoom = false) {
-    const searchWords = searchValue
-        .replace(/,/g, ' ')
-        .split(' ')
-        .map(word => word.trim());
+    const searchWords = _.map(
+        searchValue
+            .replace(/,/g, ' ')
+            .split(' '),
+        word => word.trim(),
+    );
     return _.every(searchWords, (word) => {
         const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
         const valueToSearch = searchText && searchText.replace(new RegExp(/&nbsp;/g), '');
@@ -567,35 +568,6 @@ function getSearchOptions(
 }
 
 /**
- * Build the options for the New Chat view
- *
- * @param {Object} reports
- * @param {Object} personalDetails
- * @param {Array<String>} betas
- * @param {String} searchValue
- * @param {Array} excludeLogins
- * @returns {Object}
- */
-function getNewChatOptions(
-    reports,
-    personalDetails,
-    betas = [],
-    searchValue = '',
-    excludeLogins = [],
-
-) {
-    return getOptions(reports, personalDetails, {}, 0, {
-        betas,
-        searchValue,
-        excludeDefaultRooms: true,
-        includePersonalDetails: true,
-        includeRecentReports: true,
-        maxRecentReportsToShow: 5,
-        excludeLogins,
-    });
-}
-
-/**
  * Build the IOUConfirmation options for showing MyPersonalDetail
  *
  * @param {Object} myPersonalDetail
@@ -622,7 +594,7 @@ function getIOUConfirmationOptionsFromMyPersonalDetail(myPersonalDetail, amountT
 function getIOUConfirmationOptionsFromParticipants(
     participants, amountText,
 ) {
-    return participants.map(participant => ({
+    return _.map(participants, participant => ({
         ...participant, descriptiveText: amountText,
     }));
 }
@@ -638,14 +610,13 @@ function getIOUConfirmationOptionsFromParticipants(
  * @param {Array} excludeLogins
  * @returns {Object}
  */
-function getNewGroupOptions(
+function getNewChatOptions(
     reports,
     personalDetails,
     betas = [],
     searchValue = '',
     selectedOptions = [],
     excludeLogins = [],
-
 ) {
     return getOptions(reports, personalDetails, {}, 0, {
         betas,
@@ -654,7 +625,6 @@ function getNewGroupOptions(
         excludeDefaultRooms: true,
         includeRecentReports: true,
         includePersonalDetails: true,
-        includeMultipleParticipantReports: false,
         maxRecentReportsToShow: 5,
         excludeLogins,
     });
@@ -721,7 +691,9 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
         return translate(preferredLocale, 'messages.noPhoneNumber');
     }
 
-    if (!hasSelectableOptions && !hasUserToInvite) {
+    // Without a search value, it would be very confusing to see a search validation message.
+    // Therefore, this skips the validation when there is no search value.
+    if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
             return translate(preferredLocale, 'messages.noPhoneNumber');
         }
@@ -740,7 +712,7 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
  * @returns {Array}
  */
 function getCurrencyListForSections(currencyOptions, searchValue) {
-    const filteredOptions = currencyOptions.filter(currencyOption => (
+    const filteredOptions = _.filter(currencyOptions, currencyOption => (
         isSearchStringMatch(searchValue, currencyOption.searchText)));
 
     return {
@@ -761,13 +733,13 @@ function getReportIcons(report, personalDetails) {
     if (isDefaultRoom(report)) {
         return [''];
     }
-    return _.map(report.participants, dmParticipant => ({
+    const sortedParticipants = _.map(report.participants, dmParticipant => ({
         firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
         avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
             || getDefaultAvatar(dmParticipant),
     }))
-        .sort((first, second) => first.firstName - second.firstName)
-        .map(item => item.avatar);
+        .sort((first, second) => first.firstName - second.firstName);
+    return _.map(sortedParticipants, item => item.avatar);
 }
 
 export {
@@ -775,7 +747,6 @@ export {
     isCurrentUser,
     getSearchOptions,
     getNewChatOptions,
-    getNewGroupOptions,
     getSidebarOptions,
     getHeaderMessage,
     getPersonalDetailsForLogins,

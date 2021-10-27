@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import BasePopoverMenu from './BasePopoverMenu';
-import {propTypes, defaultProps} from './PopoverMenuPropTypes';
+import {propTypes, defaultProps} from './popoverMenuPropTypes';
 
 /**
  * The mobile native implementation of the PopoverMenu needs to trigger actions after the popup closes

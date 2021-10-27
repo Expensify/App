@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import propTypes from './propTypes';
+import propTypes from './expensiTextInputLabelPropTypes';
 
 const ExpensiTextInputLabel = ({
     label,
@@ -19,6 +19,7 @@ const ExpensiTextInputLabel = ({
                 labelScale,
             ),
         ]}
+        pointerEvents="none"
     >
         {label}
     </Animated.Text>

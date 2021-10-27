@@ -62,6 +62,9 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
+    /** Whether this is an IOU split and belongs to a group report */
+    isGroupSplit: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -361,7 +364,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
-                        disableRowInteractivity={!this.props.hasMultipleParticipants}
+                        disableRowInteractivity={!this.props.isGroupSplit}
                         optionHoveredStyle={hoverStyle}
                     />
                 </ScrollView>
@@ -395,7 +398,6 @@ class IOUConfirmationList extends Component {
     }
 }
 
-IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 

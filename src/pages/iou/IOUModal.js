@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
@@ -115,16 +116,15 @@ class IOUModal extends Component {
         this.getPaymentOptions = this.getPaymentOptions.bind(this);
         this.addVenmoPaymentOptionToMenu = this.addVenmoPaymentOptionToMenu.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
-        const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
-            .map(personalDetails => ({
-                login: personalDetails.login,
-                text: personalDetails.displayName,
-                alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-                icons: [personalDetails.avatar],
-                keyForList: personalDetails.login,
-                payPalMeAddress: personalDetails.payPalMeAddress ?? '',
-                phoneNumber: personalDetails.phoneNumber ?? '',
-            }));
+        const participantsWithDetails = _.map(getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
+            login: personalDetails.login,
+            text: personalDetails.displayName,
+            alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
+            icons: [personalDetails.avatar],
+            keyForList: personalDetails.login,
+            payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
+            phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
+        }));
 
         this.checkVenmoAvailabilityPromise = null;
 
@@ -458,6 +458,7 @@ class IOUModal extends Component {
                                             confirmationButtonOptions={this.state.confirmationButtonOptions}
                                             iouType={this.props.iouType}
                                             localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
+                                            isGroupSplit={this.steps.length === 2}
                                         />
                                     )}
                                 </>
@@ -472,7 +473,6 @@ class IOUModal extends Component {
 
 IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
-IOUModal.displayName = 'IOUModal';
 
 export default compose(
     withLocalize,

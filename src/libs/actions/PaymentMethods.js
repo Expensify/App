@@ -7,7 +7,7 @@ import ROUTES from '../../ROUTES';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
-import {maskCardNumber} from '../cardUtils';
+import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '../CardUtils';
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -15,6 +15,7 @@ import {maskCardNumber} from '../cardUtils';
  * @returns {Promise}
  */
 function getPaymentMethods() {
+    Onyx.set(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, true);
     return API.Get({
         returnValueList: 'bankAccountList, fundList, userWallet, nameValuePairs',
         name: 'paypalMeAddress',
@@ -24,6 +25,7 @@ function getPaymentMethods() {
     })
         .then((response) => {
             Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
                 [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
                 [ONYXKEYS.CARD_LIST]: lodashGet(response, 'fundList', []),
@@ -39,18 +41,20 @@ function getPaymentMethods() {
  * @param {Object} params
  */
 function addBillingCard(params) {
-    const cardYear = params.expirationDate.substr(3);
-    const cardMonth = params.expirationDate.substr(0, 2);
+    const cardMonth = getMonthFromExpirationDateString(params.expirationDate);
+    const cardYear = getYearFromExpirationDateString(params.expirationDate);
 
+    Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
     API.AddBillingCard({
         cardNumber: params.cardNumber,
         cardYear,
         cardMonth,
         cardCVV: params.securityCode,
         addressName: params.nameOnCard,
-        addressZip: params.zipCode,
+        addressZip: params.addressZipCode,
         currency: CONST.CURRENCY.USD,
     }).then(((response) => {
+        let errorMessage = '';
         if (response.jsonCode === 200) {
             const cardObject = {
                 additionalData: {
@@ -58,9 +62,9 @@ function addBillingCard(params) {
                     isP2PDebitCard: true,
                 },
                 addressName: params.nameOnCard,
-                addressState: params.selectedState,
-                addressStreet: params.billingAddress,
-                addressZip: params.zipCode,
+                addressState: params.addressState,
+                addressStreet: params.addressStreet,
+                addressZip: params.addressZipCode,
                 cardMonth,
                 cardNumber: maskCardNumber(params.cardNumber),
                 cardYear,
@@ -71,12 +75,28 @@ function addBillingCard(params) {
             Growl.show(translateLocal('addDebitCardPage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         } else {
-            Growl.error(translateLocal('addDebitCardPage.error.genericFailureMessage', 3000));
+            errorMessage = response.message ? response.message : translateLocal('addDebitCardPage.error.genericFailureMessage');
         }
+
+        Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
+            submitting: false,
+            error: errorMessage,
+        });
     }));
+}
+
+/**
+ * Resets the values for the add debit card form back to their initial states
+ */
+function clearDebitCardFormErrorAndSubmit() {
+    Onyx.set(ONYXKEYS.ADD_DEBIT_CARD_FORM, {
+        submitting: false,
+        error: '',
+    });
 }
 
 export {
     getPaymentMethods,
     addBillingCard,
+    clearDebitCardFormErrorAndSubmit,
 };

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import IOUConfirmationList from '../../../components/IOUConfirmationList';
@@ -61,6 +62,9 @@ const propTypes = {
 
     /** IOU type */
     iouType: PropTypes.string,
+
+    /** Whether this is an IOU split and belongs to a group report */
+    isGroupSplit: PropTypes.bool.isRequired,
 };
 
 const defaultProps = {
@@ -82,6 +86,7 @@ const IOUConfirmPage = props => (
         localCurrencyCode={props.localCurrencyCode}
         onUpdatePaymentType={props.onUpdatePaymentType}
         confirmationButtonOptions={props.confirmationButtonOptions}
+        isGroupSplit={props.isGroupSplit}
     />
 );
 

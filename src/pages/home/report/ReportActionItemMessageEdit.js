@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import ExpensiMark from 'expensify-common/lib/ExpensiMark';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
@@ -17,7 +17,7 @@ import compose from '../../../libs/compose';
 
 const propTypes = {
     /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Draft message */
     draftMessage: PropTypes.string.isRequired,
