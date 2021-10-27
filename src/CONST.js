@@ -271,6 +271,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
+        NUMBER_PAD: 'number-pad',
     },
 
     ATTACHMENT_PICKER_TYPE: {
@@ -443,7 +444,7 @@ const CONST = {
         NUMBER: /^[0-9]+$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
-        CARD_EXPIRATION_DATE: /(0[1-9]|10|11|12)\/20[0-9]{2}$/,
+        CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
         PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
