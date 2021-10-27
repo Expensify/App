@@ -122,6 +122,8 @@ class IOUModal extends Component {
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
         }));
+        this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
 
         this.state = {
             currentStepIndex: 0,
@@ -179,7 +181,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (this.isSendRequest) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -191,7 +193,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (this.isSendRequest) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -247,8 +249,8 @@ class IOUModal extends Component {
     createTransaction(splits) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
 
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND
-            && (!this.props.userWallet.tierName || this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER)) {
+        // If the user is trying to send money, then they need to upgrade to a GOLD wallet
+        if (this.isSendRequest && !this.hasGoldWallet) {
             Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
             return;
         }
