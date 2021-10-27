@@ -474,11 +474,17 @@ function GetIOUReport(parameters) {
 
 /**
  * @returns {Promise}
+ * @param {Array<Number>} policyIDList
  */
-function GetPolicyList() {
+function GetPolicyList(policyIDList = []) {
+    if (!policyIDList || policyIDList.length > 1) {
+        LogUtil.warn('[API] Attempting to load multiple full policies at once', {policyIDList});
+    }
+
     const commandName = 'Get';
     const parameters = {
         returnValueList: 'policyList',
+        policyIDList,
     };
     return Network.post(commandName, parameters);
 }
