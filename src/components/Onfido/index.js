@@ -1,5 +1,4 @@
 import './index.css';
-import lodashGet from 'lodash/get';
 import React from 'react';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
