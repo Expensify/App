@@ -80,7 +80,7 @@ const propTypes = {
     }).isRequired,
 
     /** The user's current wallet status and step */
-    ...userWalletPropTypes,
+    userWallet: userWalletPropTypes.userWallet,
 
     ...withLocalizePropTypes,
 };
