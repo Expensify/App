@@ -30,8 +30,7 @@ const WorkspaceBillsVBAView = ({translate, policyID}) => (
             menuItems={[
                 {
                     title: translate('workspace.common.bills'),
-                    // eslint-disable-next-line max-len
-                    onPress: () => openOldDotLink(`reports?param={"startDate":"","endDate":"","reportName":"","policyID":"${policyID}","from":"all","type":"bill","states":{"Open":false,"Processing":true,"Approved":true,"Reimbursed":false,"Archived":false},"isAdvancedFilterMode":true}`),
+                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
                     icon: Bill,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,

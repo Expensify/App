@@ -72,10 +72,10 @@ class RequestorStep extends React.Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         const renamedFields = {
-            street: 'requestorAddressStreet',
-            city: 'requestorAddressCity',
-            state: 'requestorAddressState',
-            zipCode: 'requestorAddressZipCode',
+            addressStreet: 'requestorAddressStreet',
+            addressCity: 'requestorAddressCity',
+            addressState: 'requestorAddressState',
+            addressZipCode: 'requestorAddressZipCode',
         };
         const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
         const newState = {[renamedInputKey]: value};
@@ -251,7 +251,6 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.displayName = 'RequestorStep';
 
 export default compose(
     withLocalize,

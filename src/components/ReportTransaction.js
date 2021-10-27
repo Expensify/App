@@ -10,7 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import {rejectTransaction} from '../libs/actions/IOU';
-import ReportActionPropTypes from '../pages/home/report/ReportActionPropTypes';
+import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
 import Text from './Text';
 
@@ -24,7 +24,7 @@ const propTypes = {
     iouReportID: PropTypes.number.isRequired,
 
     /** The report action which we are displaying */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Can this transaction be rejected? */
     canBeRejected: PropTypes.bool,
@@ -119,7 +119,6 @@ class ReportTransaction extends Component {
     }
 }
 
-ReportTransaction.displayName = 'ReportTransaction';
 ReportTransaction.defaultProps = defaultProps;
 ReportTransaction.propTypes = propTypes;
 export default withOnyx({

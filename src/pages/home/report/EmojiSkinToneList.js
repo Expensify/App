@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
@@ -81,7 +82,7 @@ class EmojiSkinToneList extends Component {
 
                         <View style={[styles.flexRow, styles.flex1]}>
                             {
-                                skinTones.map(skinToneEmoji => (
+                                _.map(skinTones, skinToneEmoji => (
                                     <EmojiPickerMenuItem
                                         onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
                                         onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}

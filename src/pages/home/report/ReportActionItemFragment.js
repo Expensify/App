@@ -2,7 +2,7 @@ import React from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
+import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 import styles from '../../../styles/styles';
 import variables from '../../../styles/variables';
 import themeColors from '../../../styles/themes/default';
@@ -17,7 +17,7 @@ import compose from '../../../libs/compose';
 
 const propTypes = {
     /** The message fragment needing to be displayed */
-    fragment: ReportActionFragmentPropTypes.isRequired,
+    fragment: reportActionFragmentPropTypes.isRequired,
 
     /** Text to be shown for tooltip When Fragment is report Actor */
     tooltipText: PropTypes.string,
@@ -120,7 +120,6 @@ class ReportActionItemFragment extends React.PureComponent {
 
 ReportActionItemFragment.propTypes = propTypes;
 ReportActionItemFragment.defaultProps = defaultProps;
-ReportActionItemFragment.displayName = 'ReportActionItemFragment';
 
 export default compose(
     withWindowDimensions,

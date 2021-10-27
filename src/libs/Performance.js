@@ -106,14 +106,15 @@ if (canCapturePerformanceMetrics()) {
      * Outputs performance stats. We alert these so that they are easy to access in release builds.
      */
     Performance.printPerformanceMetrics = () => {
-        const stats = [
+        const stats = _.chain([
             ...rnPerformance.getEntriesByName('nativeLaunch'),
             ...rnPerformance.getEntriesByName('runJsBundle'),
             ...rnPerformance.getEntriesByName('jsBundleDownload'),
             ...rnPerformance.getEntriesByName('TTI'),
-        ]
+        ])
             .filter(entry => entry.duration > 0)
-            .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`);
+            .map(entry => `\u2022 ${entry.name}: ${entry.duration.toFixed(1)}ms`)
+            .value();
 
         Alert.alert('Performance', stats.join('\n'));
     };

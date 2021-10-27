@@ -6,7 +6,7 @@ import Button from '../components/Button';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/Button',
     component: Button,
 };
@@ -16,8 +16,8 @@ const Template = args => <Button {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-export const Default = Template.bind({});
-export const Loading = Template.bind({});
+const Default = Template.bind({});
+const Loading = Template.bind({});
 Default.args = {
     text: 'Save & Continue',
     success: true,
@@ -26,4 +26,10 @@ Loading.args = {
     text: 'Save & Continue',
     isLoading: true,
     success: true,
+};
+
+export default story;
+export {
+    Default,
+    Loading,
 };

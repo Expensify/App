@@ -1,6 +1,6 @@
 import React from 'react';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
-import {propTypes} from './UpdateAppModalPropTypes';
+import {propTypes} from './updateAppModalPropTypes';
 
 const UpdateAppModal = props => (
     <BaseUpdateAppModal

@@ -3,7 +3,6 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../ROUTES';
-import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
@@ -57,14 +56,13 @@ class LogInWithShortLivedTokenPage extends Component {
         const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-        const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
 
         // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
         if (this.props.session.authToken && email === this.props.session.email) {
             return;
         }
 
-        signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
+        signInWithShortLivedToken(accountID, email, shortLivedToken);
     }
 
     componentDidUpdate() {
@@ -98,13 +96,11 @@ class LogInWithShortLivedTokenPage extends Component {
 LogInWithShortLivedTokenPage.propTypes = propTypes;
 LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(LogInWithShortLivedTokenPage);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(LogInWithShortLivedTokenPage);
