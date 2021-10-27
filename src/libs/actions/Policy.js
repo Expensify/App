@@ -163,7 +163,7 @@ function getPolicyList(shouldCreateNewPolicy = false) {
 }
 
 /**
- * @param {Number} policyID
+ * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
     API.GetPolicyList([policyID])

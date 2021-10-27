@@ -474,7 +474,7 @@ function GetIOUReport(parameters) {
 
 /**
  * @returns {Promise}
- * @param {Array<Number>} policyIDList
+ * @param {Array<String>} policyIDList
  */
 function GetPolicyList(policyIDList = []) {
     if (!policyIDList || policyIDList.length > 1) {
