@@ -65,6 +65,7 @@ class AvatarWithIndicator extends PureComponent {
 
     /**
      * Returns user status as text
+     *
      * @returns {String}
      */
     userStatus() {
