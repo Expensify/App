@@ -73,12 +73,11 @@ class ReportTypingIndicator extends React.Component {
                                 {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
                             </Text>
                         </View>
-
                     </View>
                 );
             default:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow, styles.dFlex]}>
+                    <View style={[styles.chatItemComposeSecondaryRow]}>
                         <Text
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
