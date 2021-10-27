@@ -3,6 +3,7 @@ import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
@@ -38,8 +39,8 @@ const propTypes = {
         accountExists: PropTypes.bool,
     }),
 
-    /** Title to be shown in the form */
-    titleMessage: PropTypes.string.isRequired,
+    /** Flag to see if validation code expired */
+    validationCodeExpired: PropTypes.bool.isRequired,
 
     ...withLocalizePropTypes,
 };
@@ -101,6 +102,8 @@ class ResendValidationForm extends React.Component {
             });
         } else if (isOldUnvalidatedAccount) {
             message = this.props.translate('resendValidationForm.unvalidatedAccount');
+        } else if (this.props.validationCodeExpired) {
+            message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {loginType});
         } else {
             message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
                 login,

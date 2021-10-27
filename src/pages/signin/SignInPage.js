@@ -87,18 +87,6 @@ class SignInPage extends Component {
             ? ''
             : this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
-
-        let resendLinkTitleMessage = '';
-        if (validateCodeExpired) {
-            resendLinkTitleMessage = this.props.translate('resendValidationForm.validationCodeFailedMessage');
-        } else if (showResendValidationLinkForm) {
-            resendLinkTitleMessage = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
-                loginType: (Str.isSMSLogin(this.props.credentials.login)
-                    ? this.props.translate('common.phoneNumber').toLowerCase()
-                    : this.props.translate('common.email')).toLowerCase(),
-            });
-        }
-
         return (
             <>
                 <SafeAreaView style={[styles.signInPage]}>
@@ -111,7 +99,7 @@ class SignInPage extends Component {
 
                         {showPasswordForm && <PasswordForm />}
 
-                        {showResendValidationLinkForm && <ResendValidationForm titleMessage={resendLinkTitleMessage} />}
+                        {showResendValidationLinkForm && <ResendValidationForm validateCodeExpired={validateCodeExpired} />}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
