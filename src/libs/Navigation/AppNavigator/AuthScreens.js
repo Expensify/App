@@ -168,15 +168,9 @@ class AuthScreens extends React.Component {
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
             .then((url) => {
-                // url is null on mobile unless the app was opened via a deeplink
-                if (url) {
-                    const path = new URL(url).pathname;
-                    const exitTo = new URLSearchParams(url).get('exitTo');
-                    const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
-                    if (shouldCreateFreePolicy) {
-                        Policy.createAndGetPolicyList();
-                        return;
-                    }
+                if (this.shouldCreateFreePolicy(url)) {
+                    Policy.createAndGetPolicyList();
+                    return;
                 }
 
                 Policy.getPolicyList();
@@ -229,6 +223,17 @@ class AuthScreens extends React.Component {
         cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
+    }
+
+    /**
+     * @param {String} url
+     * @returns {Boolean}
+     */
+    shouldCreateFreePolicy(url) {
+        const path = new URL(url).pathname;
+        const exitTo = new URLSearchParams(url).get('exitTo');
+        return Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
+            && exitTo === ROUTES.WORKSPACE_NEW;
     }
 
     render() {
