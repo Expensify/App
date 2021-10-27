@@ -567,6 +567,7 @@ const styles = {
         fontSize: variables.fontSizeNormal,
         color: themeColors.text,
         height: '100%',
+        width: '90%',
         paddingTop: 25,
         paddingBottom: 8,
         borderRadius: variables.componentBorderRadiusNormal,

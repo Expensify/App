@@ -149,7 +149,6 @@ class BaseExpensiTextInput extends Component {
         this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
     }
 
-
     render() {
         const {
             label,
