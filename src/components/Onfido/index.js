@@ -85,8 +85,7 @@ class Onfido extends React.Component {
             showCountrySelection: false,
             onComplete: this.props.onSuccess,
             onError: (error) => {
-                const errorMessage = lodashGet(error, 'message', CONST.ERROR.UNKNOWN_ERROR);
-                this.props.onError(errorMessage);
+                this.props.onError(error);
             },
             onUserExit: this.props.onUserExit,
             onModalRequestClose: () => {},
