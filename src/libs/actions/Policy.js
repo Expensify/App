@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import lodashMerge from 'lodash/merge';
 import lodashGet from 'lodash/get';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -154,20 +155,26 @@ function createAndNavigate(name = '') {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
+    const policyCollection = {};
     API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policyDataToStore = transformPolicyListToOnyxCollection(data.policySummaryList || []);
-                updateAllPolicies(policyDataToStore);
+                lodashMerge(policyCollection, transformPolicyListToOnyxCollection(data.policySummaryList || []));
             }
 
             return API.GetPolicyList();
         })
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
-                updateAllPolicies(policyDataToStore);
+                lodashMerge(policyCollection, transformPolicyListToOnyxCollection(data.policyList || []));
             }
+        })
+        .finally(() => {
+            if (_.isEmpty(policyCollection)) {
+                return;
+            }
+
+            updateAllPolicies(policyCollection);
         });
 }
 
