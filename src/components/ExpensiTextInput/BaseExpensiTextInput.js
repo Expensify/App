@@ -228,7 +228,7 @@ class BaseExpensiTextInput extends Component {
                                     >
                                         {({hovered, pressed}) => (
                                             <Icon
-                                                src={this.state.passwordHidden ? EyeDisabled : Eye}
+                                                src={this.state.passwordHidden ? Eye : EyeDisabled}
                                                 fill={getIconFillColor(getButtonState(hovered, pressed))}
                                             />
                                         )}
