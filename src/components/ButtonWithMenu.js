@@ -6,9 +6,6 @@ import styles from '../styles/styles';
 import Button from './Button';
 import ButtonWithDropdown from './ButtonWithDropdown';
 import PopoverMenu from './PopoverMenu';
-import CONST from '../CONST';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 
 const propTypes = {
     /** Text to display for the menu header */
