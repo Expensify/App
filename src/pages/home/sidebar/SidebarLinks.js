@@ -22,6 +22,7 @@ import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
+import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -43,6 +44,9 @@ const propTypes = {
 
     /** List of draft comments. We don't know the shape, since the keys include the report numbers */
     draftComments: PropTypes.objectOf(PropTypes.string),
+
+    /** List of reports that have a draft comment. */
+    reportsWithDraft: PropTypes.objectOf(PropTypes.bool),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -83,6 +87,7 @@ const propTypes = {
 const defaultProps = {
     reports: {},
     draftComments: {},
+    reportsWithDraft: {},
     personalDetails: {},
     myPersonalDetails: {
         avatar: getDefaultAvatar(),
@@ -95,7 +100,46 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
-    shouldComponentUpdate(nextProps) {
+    constructor(props) {
+        super(props);
+        this.state = {
+            orderedReports: []
+        };
+    }
+
+    getRecentReports(props) {
+        const activeReportID = parseInt(props.currentlyViewedReportID, 10);
+        const {recentReports} = getSidebarOptions(
+            props.reports,
+            props.personalDetails,
+            props.draftComments,
+            activeReportID,
+            props.priorityMode,
+            props.betas,
+        );
+        return recentReports
+    }
+
+    componentDidMount() {
+        this.setState({
+            orderedReports: this.getRecentReports(this.props)
+        });
+    }
+
+    componentWillReceiveProps(nextProps) {
+        const shouldReorder = this.shouldReorder(nextProps);
+        const recentReports = this.getRecentReports(nextProps);
+        const orderedReports = shouldReorder
+            ? recentReports
+            : this.state.orderedReports.map(ordRep => 
+                recentReports.filter(recRep => ordRep.reportID == recRep.reportID)[0]);
+        
+        this.setState({        
+            orderedReports: orderedReports
+        });
+    }
+
+    shouldReorder(nextProps) {
         // We do not want to re-order reports in the LHN if the only change is the draft comment in the
         // current report.
 
@@ -111,48 +155,12 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        const previousDraftComments = this.props.draftComments;
-        const nextDraftComments = nextProps.draftComments;
-
-        const previousDraftReports = Object.keys(previousDraftComments);
-        const nextDraftReports = Object.keys(nextDraftComments);
-
-        const reportsWithNewDraftComments = nextDraftReports.filter((report) => {
-            const isNewDraftComment = !previousDraftReports.includes(report);
-            const wasNonEmptyDraftComment = previousDraftComments[report] === '';
-            const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
-
-            return isNewDraftComment || (hasDraftCommentChanged && wasNonEmptyDraftComment);
-        });
-        const reportsWithRemovedDraftComments = previousDraftReports.filter((report) => {
-            const isRemovedDraftComment = !nextDraftReports.includes(report);
-            const isEmptyDraftComment = nextDraftComments[report] === '';
-            const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
-
-            return isRemovedDraftComment || (hasDraftCommentChanged && isEmptyDraftComment);
-        });
-        const reportsWithEditedDraftComments = nextDraftReports.filter((report) => {
-            const didDraftCommentExistPreviously = previousDraftReports.includes(report);
-            const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
-            const isNotANewDraftComment = !reportsWithNewDraftComments.includes(report);
-            const isNotARemovedDraftComment = !reportsWithRemovedDraftComments.includes(report);
-
-            return didDraftCommentExistPreviously && hasDraftCommentChanged && isNotANewDraftComment && isNotARemovedDraftComment;
-        });
-
-        const allReportsWithDraftCommentChanges = [
-            ...reportsWithNewDraftComments,
-            ...reportsWithRemovedDraftComments,
-            ...reportsWithEditedDraftComments,
-        ];
-
-        const activeReportID = this.props.currentlyViewedReportID;
-        const reportKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${activeReportID}`;
-
-        // Do not re-order reports if draft comment changes are only in the current report.
-        if (allReportsWithDraftCommentChanges.length === 1 && allReportsWithDraftCommentChanges.includes(reportKey)) {
-            return false;
+        // Never re-order if the active report has a draft and vice versa
+        if (nextProps.currentlyViewedReportID) {
+            const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false)
+            return !hasActiveReportDraft;
         }
+
         return true;
     }
 
@@ -161,26 +169,17 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
+        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
+
         // Wait until the reports and personalDetails are actually loaded before displaying the LHN
         if (!this.props.initialReportDataLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-
-        const {recentReports} = getSidebarOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.props.draftComments,
-            activeReportID,
-            this.props.priorityMode,
-            this.props.betas,
-        );
-
         const sections = [{
             title: '',
             indexOffset: 0,
-            data: recentReports,
+            data: this.state.orderedReports ?? [],
             shouldShow: true,
         }];
 
@@ -233,7 +232,7 @@ class SidebarLinks extends React.Component {
                         {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
                     sections={sections}
-                    focusedIndex={_.findIndex(recentReports, (
+                    focusedIndex={_.findIndex(this.state.orderedReports, (
                         option => option.reportID === activeReportID
                     ))}
                     onSelectRow={(option) => {
@@ -289,5 +288,8 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
+        reportsWithDraft: {
+            key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
+        }
     }),
 )(SidebarLinks);

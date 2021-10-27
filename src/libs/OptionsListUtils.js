@@ -43,6 +43,16 @@ Onyx.connect({
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
+const reportsWithDraft = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
+    callback: (hasDraft, key) => {
+        if (key) {
+            reportsWithDraft[key] = hasDraft
+        }
+    },
+});
+
 const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -188,16 +198,16 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
  * @param {Boolean} forcePolicyNamePreview
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, {
+function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isDefaultChatRoom = isDefaultRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
-    const reportDraftComment = report
-        && draftComments
-        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
-
+    const hasDraft = report
+        && reportsWithDraft
+        && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
+    
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const iouReport = hasOutstandingIOU
         ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
@@ -243,7 +253,7 @@ function createOption(personalDetailList, report, draftComments, {
         phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
         payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment: _.size(reportDraftComment) > 0,
+        hasDraftComment: hasDraft,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
@@ -398,14 +408,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
+        allReportOptions.push(createOption(reportPersonalDetails, report, {
             showChatPreviewLine,
             forcePolicyNamePreview,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         })
@@ -522,7 +532,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
+        userToInvite = createOption(userInvitePersonalDetails, null, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
