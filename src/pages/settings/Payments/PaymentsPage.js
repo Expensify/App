@@ -132,6 +132,7 @@ class PaymentsPage extends React.Component {
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
+                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                         />
                     </ScrollView>
                     <Popover
@@ -144,13 +145,13 @@ class PaymentsPage extends React.Component {
                     >
                         {!this.props.payPalMeUsername && (
                             <MenuItem
-                                title="PayPal.me"
+                                title={this.props.translate('common.payPalMe')}
                                 icon={PayPal}
                                 onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
                             />
                         )}
                         <MenuItem
-                            title="Debit Card"
+                            title={this.props.translate('common.debitCard')}
                             icon={CreditCard}
                             onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                         />

@@ -22,7 +22,7 @@ function getActionText(reportAction) {
     return lodashGet(message, 'html', '');
 }
 
-export const CONTEXT_MENU_TYPES = {
+const CONTEXT_MENU_TYPES = {
     LINK: 'LINK',
     REPORT_ACTION: 'REPORT_ACTION',
 };
@@ -132,3 +132,7 @@ export default [
         },
     },
 ];
+
+export {
+    CONTEXT_MENU_TYPES,
+};

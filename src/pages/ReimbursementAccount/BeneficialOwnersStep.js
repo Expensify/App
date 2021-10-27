@@ -134,8 +134,15 @@ class BeneficialOwnersStep extends React.Component {
      */
     clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
         this.setState((prevState) => {
+            const renamedFields = {
+                addressStreet: 'street',
+                addressCity: 'city',
+                addressState: 'state',
+                addressZipCode: 'zipCode',
+            };
+            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             const beneficialOwners = [...prevState.beneficialOwners];
-            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [inputKey]: value};
+            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
             updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });

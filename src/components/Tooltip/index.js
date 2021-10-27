@@ -4,7 +4,7 @@ import {Animated, View} from 'react-native';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
-import {propTypes, defaultProps} from './TooltipPropTypes';
+import {propTypes, defaultProps} from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 
 class Tooltip extends PureComponent {

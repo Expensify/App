@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import styles from '../../../styles/styles';
+import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -25,6 +25,9 @@ const propTypes = {
 
     /** Are we loading payments from the server? */
     isLoadingPayments: PropTypes.bool,
+
+    /** Is the payment options menu open / active? */
+    isAddPaymentMenuActive: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
@@ -52,6 +55,7 @@ const defaultProps = {
     bankAccountList: [],
     cardList: [],
     isLoadingPayments: false,
+    isAddPaymentMenuActive: false,
 };
 
 class PaymentMethodList extends Component {
@@ -134,6 +138,8 @@ class PaymentMethodList extends Component {
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
+            iconFill: this.props.isAddPaymentMenuActive ? getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.props.isAddPaymentMenuActive ? [getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;
@@ -157,8 +163,10 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
+                    iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
+                    wrapperStyle={item.wrapperStyle}
                 />
             );
         }

@@ -86,7 +86,7 @@ class AddPayPalMePage extends React.Component {
                                 {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                             </Text>
                             <ExpensiTextInput
-                                label={this.props.translate('addPayPalMePage.payPalMe')}
+                                label={this.props.translate('common.payPalMe')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.payPalMeUsername}

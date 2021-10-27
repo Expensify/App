@@ -1,5 +1,5 @@
 import React, {PureComponent} from 'react';
-import {propTypes, defaultProps} from './UpdateAppModalPropTypes';
+import {propTypes, defaultProps} from './updateAppModalPropTypes';
 import ConfirmModal from '../ConfirmModal';
 import withLocalize from '../withLocalize';
 
