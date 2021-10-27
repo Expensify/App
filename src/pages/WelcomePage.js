@@ -1,9 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
-
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
+import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 
-class WelcomeScreen extends React.Component {
+
+const propTypes = {
+    ...withLocalizePropTypes,
+};
+
+class WelcomePage extends React.Component {
     constructor(props) {
         super(props);
 
@@ -17,7 +22,6 @@ class WelcomeScreen extends React.Component {
             	firstName: false,
             	lastName: false,
             	secondaryLogin: false,
-
             },
         };
     }
@@ -26,11 +30,13 @@ class WelcomeScreen extends React.Component {
         return (
             <>
                 <View>
-                    <HeaderWithCloseButton />
+                    <HeaderWithCloseButton title={this.props.translate('welcomeScreen.title')} />
                 </View>
             </>
         );
     }
 }
 
-export default WelcomeScreen;
+WelcomePage.propTypes = propTypes;
+
+export default withLocalize(WelcomePage);

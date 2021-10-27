@@ -95,6 +95,7 @@ export default {
     getWorkspaceBankAccountRoute: policyID => `workspace/${policyID}/bank-account`,
     getRequestCallRoute: taskID => `request-call/${taskID}`,
     REQUEST_CALL: 'request-call/:taskID',
+    WELCOME_SCREEN: 'welcome',
 
     /**
      * @param {String} route
