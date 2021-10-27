@@ -26,6 +26,8 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import userWalletPropTypes from "../EnablePayments/userWalletPropTypes";
+import ROUTES from "../../ROUTES";
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -77,6 +79,9 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
+    /** The user's current wallet status and step */
+    userWallet: userWalletPropTypes.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -120,6 +125,9 @@ class IOUModal extends Component {
         this.state = {
             currentStepIndex: 0,
             participants: participantsWithDetails,
+
+            // Set default payment type to "Elsewhere"
+            paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
 
             // amount is currency in decimal format
             amount: '',
@@ -240,6 +248,11 @@ class IOUModal extends Component {
      */
     createTransaction(splits) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
+
+        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND && this.state.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY &&
+            (!this.props.userWallet.tierName || this.props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER)) {
+            Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
+        }
 
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
@@ -389,6 +402,9 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IOUModal);
