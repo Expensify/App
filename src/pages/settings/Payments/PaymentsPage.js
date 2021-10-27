@@ -128,6 +128,7 @@ class PaymentsPage extends React.Component {
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
+                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                         />
                     </ScrollView>
                     <Popover
