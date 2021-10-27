@@ -85,7 +85,7 @@ export default {
         reset: 'Restablecer',
         done: 'Listo',
         debitCard: 'Tarjeta de débito',
-        payPalMe: 'PayPal.me/',
+        payPalMe: 'PayPal.me',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -281,6 +281,7 @@ export default {
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
+        payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
