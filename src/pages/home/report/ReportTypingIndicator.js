@@ -54,29 +54,31 @@ class ReportTypingIndicator extends React.Component {
             case 1:
                 return (
                     <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                                styles.flex1,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {getDisplayName(this.state.usersTyping[0])}
-                        </Text>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.flexShrink0,
-                            ]}
-                        >
-                            {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                        </Text>
+                        <View style={[styles.chatItemComposeSecondaryRowOffset, styles.flexShrink1]}>
+                            <Text
+                                style={[
+                                    styles.chatItemComposeSecondaryRowSubText,
+                                ]}
+                                numberOfLines={1}
+                            >
+                                {getDisplayName(this.state.usersTyping[0])}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <Text
+                                style={[
+                                    styles.chatItemComposeSecondaryRowSubText,
+                                ]}
+                            >
+                                {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                            </Text>
+                        </View>
+
                     </View>
                 );
             default:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
+                    <View style={[styles.chatItemComposeSecondaryRow, styles.dFlex]}>
                         <Text
                             style={[
                                 styles.chatItemComposeSecondaryRowSubText,
