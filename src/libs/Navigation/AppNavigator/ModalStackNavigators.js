@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
-import lodashGet from 'lodash/get';
 import * as Policy from '../../actions/Policy';
 import styles from '../../../styles/styles';
 import NewChatPage from '../../../pages/NewChatPage';
@@ -145,51 +144,7 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
     name: 'NewChat_Root',
 }]);
 
-const WorkspaceStackNavigator = createModalStackNavigator([
-    {
-        Component: WorkspaceInitialPage,
-        name: 'Workspace_Initial',
-    },
-    {
-        Component: WorkspaceSettingsPage,
-        name: 'Workspace_Settings',
-    },
-    {
-        Component: WorkspaceCardPage,
-        name: 'Workspace_Card',
-    },
-    {
-        Component: WorkspaceReimbursePage,
-        name: 'Workspace_Reimburse',
-    },
-    {
-        Component: WorkspaceBillsPage,
-        name: 'Workspace_Bills',
-    },
-    {
-        Component: WorkspaceInvoicesPage,
-        name: 'Workspace_Invoices',
-    },
-    {
-        Component: WorkspaceTravelPage,
-        name: 'Workspace_Travel',
-    },
-    {
-        Component: WorkspaceMembersPage,
-        name: 'Workspace_Members',
-    },
-    {
-        Component: WorkspaceBankAccountPage,
-        name: 'Workspace_BankAccount',
-    },
-], ({route}) => ({
-    focus: () => {
-        const policyID = lodashGet(route, 'params.policyID');
-        Policy.loadFullPolicy(policyID);
-    },
-}));
-
-
+let previousRoute = '';
 const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsInitialPage,
@@ -232,15 +187,66 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Add_Debit_Card',
     },
     {
-        Component: WorkspaceStackNavigator,
-        name: 'Workspace',
+        Component: WorkspaceInitialPage,
+        name: 'Workspace_Initial',
+    },
+    {
+        Component: WorkspaceSettingsPage,
+        name: 'Workspace_Settings',
+    },
+    {
+        Component: WorkspaceCardPage,
+        name: 'Workspace_Card',
+    },
+    {
+        Component: WorkspaceReimbursePage,
+        name: 'Workspace_Reimburse',
+    },
+    {
+        Component: WorkspaceBillsPage,
+        name: 'Workspace_Bills',
+    },
+    {
+        Component: WorkspaceInvoicesPage,
+        name: 'Workspace_Invoices',
+    },
+    {
+        Component: WorkspaceTravelPage,
+        name: 'Workspace_Travel',
+    },
+    {
+        Component: WorkspaceMembersPage,
+        name: 'Workspace_Members',
+    },
+    {
+        Component: WorkspaceBankAccountPage,
+        name: 'Workspace_BankAccount',
     },
     {
         Component: ReimbursementAccountPage,
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
     },
-]);
+], {
+    state: ({data}) => {
+        // If current route is workspace route, and previous route was not, full-load the policy
+        const policyID = _.chain(data)
+            .get(['state', 'routes'], [])
+            .pluck('params')
+            .last()
+            .get('policyID', '')
+            .value();
+        if (policyID && !previousRoute.includes(policyID)) {
+            Policy.loadFullPolicy(policyID);
+        }
+
+        previousRoute = _.chain(data)
+            .get(['state', 'routes'], [])
+            .last()
+            .get('path', '')
+            .value();
+    },
+});
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
     Component: EnablePaymentsPage,
