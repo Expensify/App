@@ -126,6 +126,9 @@ function create(name = '') {
         }).then(() => Promise.resolve(lodashGet(res, 'policyID')));
 }
 
+/**
+ * @param {String} policyID
+ */
 function navigateToPolicy(policyID) {
     Navigation.dismissModal();
     Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
@@ -135,8 +138,7 @@ function navigateToPolicy(policyID) {
  * @param {String} [name]
  */
 function createAndNavigate(name = '') {
-    create(name)
-        .then(navigateToPolicy);
+    create(name).then(navigateToPolicy);
 }
 
 /**
@@ -176,9 +178,7 @@ function createAndGetPolicyList() {
             newPolicyID = policyID;
             return getPolicyList();
         })
-        .then(() => {
-            navigateToPolicy(newPolicyID);
-        });
+        .then(() => navigateToPolicy(newPolicyID));
 }
 
 /**
