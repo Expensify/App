@@ -16,8 +16,12 @@ const Template = args => <Checkbox {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-export const Default = Template.bind({});
+const Default = Template.bind({});
 Default.args = {
     onPress: () => {},
     isChecked: true,
+};
+
+export {
+    Default,
 };

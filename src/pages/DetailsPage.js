@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
 import CONST from '../CONST';
+import {hasExpensifyEmails} from '../libs/reportUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -69,13 +70,21 @@ const DetailsPage = ({
     const timezone = moment().tz(details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
+    const shouldShowLocalTime = !hasExpensifyEmails([details.login]);
+
+    let pronouns = details.pronouns;
+
+    if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+        const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+        pronouns = translate(`pronouns.${localeKey}`);
+    }
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
@@ -116,17 +125,17 @@ const DetailsPage = ({
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
-                            {details.pronouns ? (
+                            {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('profilePage.preferredPronouns')}
                                     </Text>
                                     <Text numberOfLines={1}>
-                                        {details.pronouns}
+                                        {pronouns}
                                     </Text>
                                 </View>
                             ) : null}
-                            {details.timezone ? (
+                            {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('detailsPage.localTime')}

@@ -10,7 +10,7 @@ on:
 
 env:
   SHOULD_DEPLOY_PRODUCTION: ${{ github.event_name == 'release' }}
-  DEVELOPER_DIR: /Applications/Xcode_12.5.app/Contents/Developer
+  DEVELOPER_DIR: /Applications/Xcode_12.5.1.app/Contents/Developer
 
 jobs:
   validateActor:
@@ -416,6 +416,22 @@ jobs:
           custom_payload: |
             {
               channel: '#announce',
+              attachments: [{
+                color: 'good',
+                text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: 'Announces the deploy in the #deployer Slack room'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
               attachments: [{
                 color: 'good',
                 text: `🎉️ Successfully deployed ${process.env.AS_REPO} v${{ env.VERSION }} to ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'production' || 'staging' }} 🎉️`,

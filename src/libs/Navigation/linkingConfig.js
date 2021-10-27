@@ -10,7 +10,7 @@ export default {
         'https://staging.expensify.cash',
         'http://localhost',
         CONST.NEW_EXPENSIFY_URL,
-        'https://staging.new.expensify.com',
+        CONST.STAGING_NEW_EXPENSIFY_URL,
     ],
     config: {
         initialRouteName: SCREENS.HOME,
@@ -25,13 +25,9 @@ export default {
                 },
             },
 
-            // Public Routes
+            // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
-            ValidateLogin: ROUTES.VALIDATE_LOGIN_WITH_VALIDATE_CODE,
-            [SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE,
-            [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE,
-            [SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD,
-            [SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD]: ROUTES.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD,
+            [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
 
             // Modal Screens
             Settings: {
@@ -55,6 +51,10 @@ export default {
                         path: ROUTES.SETTINGS_ADD_PAYPAL_ME,
                         exact: true,
                     },
+                    Settings_Add_Debit_Card: {
+                        path: ROUTES.SETTINGS_ADD_DEBIT_CARD,
+                        exact: true,
+                    },
                     Settings_Profile: {
                         path: ROUTES.SETTINGS_PROFILE,
                         exact: true,
@@ -69,6 +69,38 @@ export default {
                     },
                     Settings_Add_Secondary_Login: {
                         path: ROUTES.SETTINGS_ADD_LOGIN,
+                    },
+                    Workspace_Initial: {
+                        path: ROUTES.WORKSPACE_INITIAL,
+                    },
+                    Workspace_Settings: {
+                        path: ROUTES.WORKSPACE_SETTINGS,
+                    },
+                    Workspace_Card: {
+                        path: ROUTES.WORKSPACE_CARD,
+                    },
+                    Workspace_Reimburse: {
+                        path: ROUTES.WORKSPACE_REIMBURSE,
+                    },
+                    Workspace_Bills: {
+                        path: ROUTES.WORKSPACE_BILLS,
+                    },
+                    Workspace_Invoices: {
+                        path: ROUTES.WORKSPACE_INVOICES,
+                    },
+                    Workspace_Travel: {
+                        path: ROUTES.WORKSPACE_TRAVEL,
+                    },
+                    Workspace_Members: {
+                        path: ROUTES.WORKSPACE_MEMBERS,
+                    },
+                    Workspace_BankAccount: {
+                        path: ROUTES.WORKSPACE_BANK_ACCOUNT,
+                        exact: true,
+                    },
+                    ReimbursementAccount: {
+                        path: ROUTES.BANK_ACCOUNT,
+                        exact: true,
                     },
                 },
             },
@@ -134,11 +166,7 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
-                },
-            },
-            ReimbursementAccount: {
-                screens: {
-                    ReimbursementAccount_Root: ROUTES.BANK_ACCOUNT,
+                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             WorkspaceInvite: {
@@ -146,21 +174,6 @@ export default {
                     WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
-
-            WorkspaceSettings: {
-                path: ROUTES.WORKSPACE,
-                screens: {
-                    WorkspaceCard: ROUTES.WORKSPACE_CARD,
-                    WorkspacePeople: ROUTES.WORKSPACE_PEOPLE,
-                },
-            },
-
-            WorkspaceEditor: {
-                screens: {
-                    WorkspaceEditor_Root: ROUTES.WORKSPACE_EDITOR,
-                },
-            },
-
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,

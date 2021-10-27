@@ -19,7 +19,7 @@ import {
 } from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
@@ -60,7 +60,7 @@ const propTypes = {
     }),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The session of the logged in person */
     session: PropTypes.shape({
@@ -129,7 +129,12 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
         });
-        updateLastReadActionID(this.props.reportID);
+
+        // Only mark as read if the report is open
+        if (!this.props.isDrawerOpen) {
+            updateLastReadActionID(this.props.reportID);
+        }
+
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
         fetchActions(this.props.reportID);
     }
@@ -229,7 +234,8 @@ class ReportActionsView extends React.Component {
      * Records the max action on app visibility change event.
      */
     onVisibilityChange() {
-        if (Visibility.isVisible()) {
+        // only mark as read if visible AND report is open.
+        if (Visibility.isVisible() && !this.props.isDrawerOpen) {
             updateLastReadActionID(this.props.reportID);
         }
     }
@@ -393,11 +399,13 @@ class ReportActionsView extends React.Component {
      * @param {Boolean} [shouldResetLocalCount=false] Whether count should increment or reset
      */
     updateLocalUnreadActionCount(shouldResetLocalCount = false) {
-        this.setState(prevState => ({
-            localUnreadActionCount: shouldResetLocalCount
+        this.setState((prevState) => {
+            const localUnreadActionCount = shouldResetLocalCount
                 ? this.props.report.unreadActionCount
-                : prevState.localUnreadActionCount + this.props.report.unreadActionCount,
-        }));
+                : prevState.localUnreadActionCount + this.props.report.unreadActionCount;
+            this.updateUnreadIndicatorPosition(localUnreadActionCount);
+            return {localUnreadActionCount};
+        });
     }
 
     /**

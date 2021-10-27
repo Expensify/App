@@ -1,7 +1,6 @@
+import _ from 'underscore';
 import React from 'react';
-import PropTypes from 'prop-types';
-import {View, ScrollView, Linking} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import {View, ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
@@ -17,26 +16,17 @@ import {
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import Logo from '../../../assets/images/new-expensify.svg';
 import {version} from '../../../package.json';
-import {fetchOrCreateChatReport} from '../../libs/actions/Report';
-import ONYXKEYS from '../../ONYXKEYS';
+import {navigateToConciergeChat} from '../../libs/actions/Report';
+import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
-    /** Onyx Props */
-
-    /** Session info for the currently logged in user. */
-    session: PropTypes.shape({
-        /** Currently logged in user email */
-        email: PropTypes.string,
-    }).isRequired,
-
     ...withLocalizePropTypes,
 };
 
-const AboutPage = ({translate, session}) => {
+const AboutPage = ({translate}) => {
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -50,7 +40,7 @@ const AboutPage = ({translate, session}) => {
             icon: Eye,
             iconRight: NewWindow,
             action: () => {
-                Linking.openURL(CONST.GITHUB_URL);
+                openExternalLink(CONST.GITHUB_URL);
             },
         },
         {
@@ -58,15 +48,13 @@ const AboutPage = ({translate, session}) => {
             icon: MoneyBag,
             iconRight: NewWindow,
             action: () => {
-                Linking.openURL(CONST.UPWORK_URL);
+                openExternalLink(CONST.UPWORK_URL);
             },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
             icon: Bug,
-            action: () => {
-                fetchOrCreateChatReport([session.email, CONST.EMAIL.CONCIERGE], true);
-            },
+            action: navigateToConciergeChat,
         },
     ];
 
@@ -79,7 +67,6 @@ const AboutPage = ({translate, session}) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView
-                bounces={false}
                 contentContainerStyle={[
                     styles.flexGrow1,
                     styles.flexColumn,
@@ -107,7 +94,7 @@ const AboutPage = ({translate, session}) => {
                             </Text>
                         </View>
                     </View>
-                    {menuItems.map(item => (
+                    {_.map(menuItems, item => (
                         <MenuItem
                             key={item.translationKey}
                             title={translate(item.translationKey)}
@@ -129,7 +116,7 @@ const AboutPage = ({translate, session}) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => Linking.openURL(CONST.TERMS_URL)}
+                            onPress={() => openExternalLink(CONST.TERMS_URL)}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
@@ -142,7 +129,7 @@ const AboutPage = ({translate, session}) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => Linking.openURL(CONST.PRIVACY_URL)}
+                            onPress={() => openExternalLink(CONST.PRIVACY_URL)}
                         >
                             {translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
@@ -159,11 +146,4 @@ const AboutPage = ({translate, session}) => {
 AboutPage.propTypes = propTypes;
 AboutPage.displayName = 'AboutPage';
 
-export default compose(
-    withLocalize,
-    withOnyx({
-        session: {
-            key: () => ONYXKEYS.SESSION,
-        },
-    }),
-)(AboutPage);
+export default withLocalize(AboutPage);

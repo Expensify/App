@@ -80,7 +80,8 @@ function getUserDetails() {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus});
+            const validatedStatus = lodashGet(response, 'account.validated', false);
+            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -244,7 +245,7 @@ function getDomainInfo() {
                     });
             } else {
                 // eslint-disable-next-line max-len
-                console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
+                Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
                 setTimeout(getDomainInfo, RETRY_TIMEOUT);
             }
         });
@@ -293,6 +294,10 @@ function setShouldUseSecureStaging(shouldUseSecureStaging) {
     Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
 }
 
+function clearUserErrorMessage() {
+    Onyx.merge(ONYXKEYS.USER, {error: ''});
+}
+
 export {
     changePassword,
     getBetas,
@@ -306,4 +311,5 @@ export {
     subscribeToUserEvents,
     setPreferredSkinTone,
     setShouldUseSecureStaging,
+    clearUserErrorMessage,
 };

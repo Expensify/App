@@ -8,7 +8,7 @@ import styles from '../styles/styles';
  *
  * https://storybook.js.org/docs/react/writing-stories/introduction#component-story-format
  */
-export default {
+const story = {
     title: 'Components/CheckboxWithLabel',
     component: CheckboxWithLabel,
 };
@@ -18,8 +18,9 @@ const Template = args => <CheckboxWithLabel {...args} />;
 
 // Arguments can be passed to the component by binding
 // See: https://storybook.js.org/docs/react/writing-stories/introduction#using-args
-export const Default = Template.bind({});
-export const WithLabelComponent = Template.bind({});
+const Default = Template.bind({});
+const WithLabelComponent = Template.bind({});
+const WithErrors = Template.bind({});
 Default.args = {
     isChecked: true,
     label: 'Plain text label',
@@ -36,4 +37,19 @@ WithLabelComponent.args = {
             <Text style={[styles.textMicroSupporting]}>Test</Text>
         </>
     ),
+};
+
+WithErrors.args = {
+    isChecked: false,
+    hasError: true,
+    errorText: 'Please accept Terms before continuing.',
+    onPress: () => {},
+    label: 'I accept the Terms & Conditions',
+};
+
+export default story;
+export {
+    Default,
+    WithLabelComponent,
+    WithErrors,
 };

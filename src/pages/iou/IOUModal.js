@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
@@ -87,7 +88,7 @@ const defaultProps = {
     myPersonalDetails: {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
-    iouType: '',
+    iouType: CONST.IOU.IOU_TYPE.REQUEST,
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -106,14 +107,15 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
-        const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
-            .map(personalDetails => ({
-                login: personalDetails.login,
-                text: personalDetails.displayName,
-                alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-                icons: [personalDetails.avatar],
-                keyForList: personalDetails.login,
-            }));
+        const participantsWithDetails = _.map(getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
+            login: personalDetails.login,
+            text: personalDetails.displayName,
+            alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
+            icons: [personalDetails.avatar],
+            keyForList: personalDetails.login,
+            payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
+            phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
+        }));
 
         this.state = {
             currentStepIndex: 0,
@@ -171,7 +173,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.props.iouType === 'send') {
+            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -183,7 +185,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.props.iouType === 'send') {
+            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -352,6 +354,9 @@ class IOUModal extends Component {
                                             iouAmount={this.state.amount}
                                             comment={this.state.comment}
                                             onUpdateComment={this.updateComment}
+                                            iouType={this.props.iouType}
+                                            localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
+                                            isGroupSplit={this.steps.length === 2}
                                         />
                                     )}
                                 </>
@@ -366,7 +371,6 @@ class IOUModal extends Component {
 
 IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
-IOUModal.displayName = 'IOUModal';
 
 export default compose(
     withLocalize,

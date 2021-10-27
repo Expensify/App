@@ -1,5 +1,6 @@
+import _ from 'underscore';
 import React from 'react';
-import {View, Linking} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import CollapsibleSection from '../../../components/CollapsibleSection';
@@ -7,6 +8,7 @@ import {translateLocal} from '../../../libs/translate';
 import CONST from '../../../CONST';
 import Icon from '../../../components/Icon';
 import {Printer} from '../../../components/Icon/Expensicons';
+import {openExternalLink} from '../../../libs/actions/Link';
 
 const termsData = [
     {
@@ -56,7 +58,7 @@ const termsData = [
     },
 ];
 
-const getLongTermsSections = () => termsData.map((section, index) => (
+const getLongTermsSections = () => _.map(termsData, (section, index) => (
     // eslint-disable-next-line react/no-array-index-key
     <View key={section.title + index}>
         <View style={[styles.longTermsRow]}>
@@ -132,7 +134,7 @@ const LongTermsForm = () => (
             <Icon style={styles.flex1} src={Printer} />
             <Text
                 style={[styles.link, styles.ml1]}
-                onPress={() => Linking.openURL(CONST.FEES_URL)}
+                onPress={() => openExternalLink(CONST.FEES_URL)}
             >
                 {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
             </Text>

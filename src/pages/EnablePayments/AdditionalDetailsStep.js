@@ -89,7 +89,7 @@ class AdditionalDetailsStep extends React.Component {
                 label: props.translate('common.ssnLast4'),
                 fieldName: 'ssn',
                 maxLength: 4,
-                keyboardType: 'number-pad',
+                keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
             },
         ];
 
@@ -134,7 +134,7 @@ class AdditionalDetailsStep extends React.Component {
                                         label={field.label}
                                         onChangeText={val => this.setState({[field.fieldName]: val})}
                                         value={this.state[field.fieldName]}
-                                        errorText={errorFields.includes(field.fieldName)
+                                        errorText={_.contains(errorFields, field.fieldName)
                                             ? `${field.label} ${this.requiredText}`
                                             : ''}
                                         // eslint-disable-next-line react/jsx-props-no-spreading

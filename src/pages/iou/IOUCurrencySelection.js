@@ -184,7 +184,6 @@ class IOUCurrencySelection extends Component {
                             </View>
                             <View style={[styles.flex1]}>
                                 <SectionList
-                                    bounces={false}
                                     indicatorStyle="white"
                                     keyboardShouldPersistTaps="always"
                                     showsVerticalScrollIndicator={false}
@@ -233,7 +232,6 @@ class IOUCurrencySelection extends Component {
 
 IOUCurrencySelection.propTypes = propTypes;
 IOUCurrencySelection.defaultProps = defaultProps;
-IOUCurrencySelection.displayName = 'IOUCurrencySelection';
 
 export default compose(
     withLocalize,

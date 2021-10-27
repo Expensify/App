@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
@@ -8,9 +8,11 @@ import Button from '../../components/Button';
 import Text from '../../components/Text';
 import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
-import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import redirectToSignIn from '../../libs/actions/SignInRedirect';
+import Avatar from '../../components/Avatar';
+import {getDefaultAvatar} from '../../libs/OptionsListUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -31,6 +33,9 @@ const propTypes = {
 
         /** Whether or not the account is closed */
         closed: PropTypes.bool,
+
+        /** Whether or not the account already exists */
+        accountExists: PropTypes.bool,
     }),
 
     /** Title to be shown in the form */
@@ -82,11 +87,42 @@ class ResendValidationForm extends React.Component {
     }
 
     render() {
+        const isNewAccount = !this.props.account.accountExists;
+        const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated;
+        const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
+        const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
+        const loginType = (isSMSLogin ? this.props.translate('common.phone') : this.props.translate('common.email')).toLowerCase();
+        let message = '';
+
+        if (isNewAccount) {
+            message = this.props.translate('resendValidationForm.newAccount', {
+                login,
+                loginType,
+            });
+        } else if (isOldUnvalidatedAccount) {
+            message = this.props.translate('resendValidationForm.unvalidatedAccount');
+        } else {
+            message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {
+                login,
+            });
+        }
+
         return (
             <>
-                <View>
+                <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+                    <Avatar
+                        source={getDefaultAvatar(this.props.credentials.login)}
+                        imageStyles={[styles.mr2]}
+                    />
+                    <View style={[styles.flex1]}>
+                        <Text style={[styles.textStrong]}>
+                            {login}
+                        </Text>
+                    </View>
+                </View>
+                <View style={[styles.mv5]}>
                     <Text>
-                        {this.props.titleMessage}
+                        {message}
                     </Text>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (
@@ -94,15 +130,18 @@ class ResendValidationForm extends React.Component {
                         {this.state.formSuccess}
                     </Text>
                 )}
-                <View style={[styles.mt4]}>
+                <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
+                    <TouchableOpacity onPress={() => redirectToSignIn()}>
+                        <Text>
+                            {this.props.translate('common.back')}
+                        </Text>
+                    </TouchableOpacity>
                     <Button
                         success
-                        style={[styles.mb2]}
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
                 </View>
             </>
         );
