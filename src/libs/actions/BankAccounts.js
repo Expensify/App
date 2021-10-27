@@ -10,6 +10,7 @@ import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
+// eslint-disable-next-line import/no-cycle
 import {getRequestorIdentity} from '../ReimbursementAccountUtils';
 import {
     isRequiredFulfilled,
@@ -19,6 +20,7 @@ import {
     isValidZipCode,
     validateIdentity,
 } from '../ValidationUtils';
+import Log from '../Log';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -73,23 +75,6 @@ function fetchPlaidLinkToken() {
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
-
-// /**
-//  * Validate that we have the necessary data to advance beyond this step.
-//  *
-//  * @param {String} step
-//  * @param {Object} data
-//  */
-// function validateStepData(step, data) {
-//     switch (step) {
-//         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
-//             return (
-//                 data.bankAccount
-//                 && !_.isEmpty(bankAccount.getMaskedAccountNumber())
-//                 && !_.isEmpty(bankAccount.getRoutingNumber()))
-//             )
-//     }
-// }
 
 /**
  * Navigate to a specific step in the VBA flow
@@ -559,17 +544,19 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                             return Boolean(lodashGet(achData, 'acceptTerms', false))
                                 && Boolean(lodashGet(achData, 'certifyTrueInformation', false));
                         case CONST.BANK_ACCOUNT.STEP.VALIDATION:
-                            break;
+                            // If we are trying to jump to the validation step and all of the previous steps are complete, then the validation step must be incomplete.
+                            // If it was complete then we should have broken out above when we checked if we already had an open bank account.
+                            if (bankAccount && bankAccount.isOpen()) {
+                                Log.warn('Attempting to re-validate an open bank account. This should never happen.', bankAccount);
+                            }
+                            return false;
                         default:
                             return true;
                     }
                 };
+
                 const earliestIncompleteStep = _.find(stepsToValidate, step => !isStepComplete(step));
                 currentStep = _.isUndefined(earliestIncompleteStep) ? stepToOpen : earliestIncompleteStep;
-            }
-
-            if (stepToOpen) {
-                currentStep = stepToOpen;
             }
 
             // 'error' displays any string set as an error encountered during the add Verified BBA flow.

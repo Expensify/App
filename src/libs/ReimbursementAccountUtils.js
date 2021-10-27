@@ -1,6 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashUnset from 'lodash/unset';
 import lodashCloneDeep from 'lodash/cloneDeep';
+// eslint-disable-next-line import/no-cycle
 import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
 
 /**
