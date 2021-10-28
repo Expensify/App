@@ -9,8 +9,8 @@ import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import {maskCardNumber} from '../cardUtils';
 
-function deleteCard(cardID) {
-    return API.DeleteCard(cardID);
+function deleteDebitCard(fundID) {
+    return API.DeleteFund({fundID});
 }
 
 /**
@@ -99,7 +99,7 @@ function addBillingCard(params) {
 }
 
 export {
-    deleteCard,
+    deleteDebitCard,
     getPaymentMethods,
     setWalletLinkedAccount,
     addBillingCard,

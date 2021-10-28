@@ -14,7 +14,7 @@ import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
 import {deleteBankAccount} from '../../../libs/actions/BankAccounts';
-import {deleteCard, getPaymentMethods, setWalletLinkedAccount} from '../../../libs/actions/PaymentMethods';
+import {deleteDebitCard, getPaymentMethods, setWalletLinkedAccount} from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import {PayPal, Bank, CreditCard} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
@@ -175,7 +175,7 @@ class PaymentsPage extends React.Component {
         } else if (this.state.selectedPaymentMethodType === 'bankAccount') {
             deleteBankAccount(this.state.selectedPaymentMethod.bankAccountID);
         } else if (this.state.selectedPaymentMethodType === 'card') {
-            deleteCard(this.state.selectedPaymentMethod.cardID);
+            deleteDebitCard(this.state.selectedPaymentMethod.fundID);
         }
     }
 
