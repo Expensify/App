@@ -78,6 +78,9 @@ const lastReadSequenceNumbers = {};
 // since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
 const optimisticReportActionIDs = {};
 
+// Boolean to indicate if reports data comes from the API request or from local cache.
+let latestReportsData = false;
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -940,6 +943,7 @@ function fetchAllReports(
         })
         .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+            latestReportsData = true;
 
             // If at this point the user still doesn't have a Concierge report, create it for them.
             // This means they were a participant in reports before their account was created (e.g. default rooms)
@@ -1390,6 +1394,14 @@ function handleInaccessibleReport() {
     navigateToConciergeChat();
 }
 
+/**
+ * Check if report data is up to date or it comes from local cache
+ * @returns {Boolean}
+ */
+function isReportsDataUptoDate() {
+    return latestReportsData;
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1416,4 +1428,5 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
+    isReportsDataUptoDate,
 };

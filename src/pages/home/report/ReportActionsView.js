@@ -16,6 +16,7 @@ import {
     setNewMarkerPosition,
     subscribeToReportTypingEvents,
     unsubscribeFromReportChannel,
+    isReportsDataUptoDate,
 } from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
@@ -132,7 +133,9 @@ class ReportActionsView extends React.Component {
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
-            updateLastReadActionID(this.props.reportID);
+            if (isReportsDataUptoDate()) {
+                updateLastReadActionID(this.props.reportID);
+            }
         }
 
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
