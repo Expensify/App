@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -115,7 +115,7 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View>
+                    <ScrollView style={styles.flex1}>
                         {
                             Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
                         }
@@ -129,7 +129,7 @@ class PaymentsPage extends React.Component {
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
                         />
-                    </View>
+                    </ScrollView>
                     <Popover
                         isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}

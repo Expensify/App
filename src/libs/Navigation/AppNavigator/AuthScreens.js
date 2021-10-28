@@ -33,13 +33,10 @@ import {getPolicyList} from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import getOperatingSystem from '../../getOperatingSystem';
-import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
+import {fetchFreePlanVerifiedBankAccount, fetchUserWallet} from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
-
-// Validate login page
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 
 // Modal Stack Navigators
 import {
@@ -166,6 +163,7 @@ class AuthScreens extends React.Component {
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         fetchFreePlanVerifiedBankAccount();
+        fetchUserWallet();
 
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
@@ -275,14 +273,6 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     component={MainDrawerNavigator}
-                />
-                <RootStack.Screen
-                    name="ValidateLogin"
-                    options={{
-                        headerShown: false,
-                        title: 'New Expensify',
-                    }}
-                    component={ValidateLoginPage}
                 />
                 <RootStack.Screen
                     name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}

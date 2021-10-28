@@ -2,11 +2,12 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {Bank} from '../../components/Icon/Expensicons';
+import {Bank, RotateLeft} from '../../components/Icon/Expensicons';
 import {BankArrowPink} from '../../components/Icon/Illustrations';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
+import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
 import compose from '../../libs/compose';
 import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -14,6 +15,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import WorkspaceSection from './WorkspaceSection';
+import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -93,17 +95,26 @@ class WorkspaceBankAccountPage extends React.Component {
                 <WorkspaceSection
                     title={this.props.translate('workspace.bankAccount.almostDone')}
                     icon={BankArrowPink}
-                    menuItems={[{
-                        title: this.props.translate('workspace.bankAccount.continueWithSetup'),
-                        icon: Bank,
-                        onPress: this.navigateToBankAccountRoute,
-                        shouldShowRightIcon: true,
-                    }]}
+                    menuItems={[
+                        {
+                            title: this.props.translate('workspace.bankAccount.continueWithSetup'),
+                            icon: Bank,
+                            onPress: this.navigateToBankAccountRoute,
+                            shouldShowRightIcon: true,
+                        },
+                        {
+                            title: this.props.translate('workspace.bankAccount.startOver'),
+                            icon: RotateLeft,
+                            onPress: requestResetFreePlanBankAccount,
+                            shouldShowRightIcon: true,
+                        },
+                    ]}
                 >
                     <Text>
                         {this.props.translate('workspace.bankAccount.youreAlmostDone')}
                     </Text>
                 </WorkspaceSection>
+                <WorkspaceResetBankAccountModal />
             </ScreenWrapper>
         );
     }

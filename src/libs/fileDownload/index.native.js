@@ -60,7 +60,7 @@ function handleDownload(url, fileName) {
     // android files will download to Download directory
     // ios files will download to documents directory
     const path = getPlatform() === 'android' ? dirs.DownloadDir : dirs.DocumentDir;
-    const attachmentName = fileName ?? getAttachmentName(url);
+    const attachmentName = fileName || getAttachmentName(url);
 
     // fetching the attachment
     const fetchedAttachment = RNFetchBlob.config({
@@ -75,18 +75,20 @@ function handleDownload(url, fileName) {
 
     // resolving the fetched attachment
     fetchedAttachment.then((attachment) => {
-        if (attachment?.info()) {
-            showAlert({
-                title: 'Downloaded!',
-                message: 'Attachment successfully downloaded',
-                options: [
-                    {
-                        text: 'OK',
-                        style: 'cancel',
-                    },
-                ],
-            });
+        if (!attachment || !attachment.info()) {
+            return;
         }
+
+        showAlert({
+            title: 'Downloaded!',
+            message: 'Attachment successfully downloaded',
+            options: [
+                {
+                    text: 'OK',
+                    style: 'cancel',
+                },
+            ],
+        });
     }).catch(() => {
         showAlert({
             title: 'Attachment Error',

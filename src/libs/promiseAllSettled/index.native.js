@@ -1,3 +1,5 @@
+import _ from 'underscore';
+
 /**
  * This file implements the idea of Promise.allSettled which isn't supported on native devices. Read more about it here:
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
@@ -10,7 +12,7 @@
  * @returns {Promise}
  */
 const promiseAllSettled = (arrayOfPromises) => {
-    const wrappedPromises = arrayOfPromises.map(p => Promise.resolve(p)
+    const wrappedPromises = _.map(arrayOfPromises, p => Promise.resolve(p)
         .then(
             val => ({status: 'fulfilled', value: val}),
             err => ({status: 'rejected', reason: err}),
