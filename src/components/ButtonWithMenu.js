@@ -24,7 +24,7 @@ const propTypes = {
     isDisabled: PropTypes.bool,
 
     /** Menu options to display */
-    /** [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}, {text: 'Venmo', icon: Venmo}] */
+    /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}, {text: 'Venmo', icon: Venmo}] */
     options: PropTypes.arrayOf(PropTypes.shape({
         text: PropTypes.string.isRequired,
         icon: PropTypes.elementType,
@@ -104,6 +104,5 @@ class ButtonWithMenu extends PureComponent {
 
 ButtonWithMenu.propTypes = propTypes;
 ButtonWithMenu.defaultProps = defaultProps;
-ButtonWithMenu.displayName = 'ButtonWithMenu';
 
 export default ButtonWithMenu;

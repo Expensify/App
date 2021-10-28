@@ -29,7 +29,6 @@ const defaultProps = {
     betas: [],
 };
 
-
 /**
  * Get the most recently accessed report for the user
  *

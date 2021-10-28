@@ -1,3 +1,4 @@
+import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {View} from 'react-native';
@@ -8,8 +9,7 @@ import {getNewChatOptions, getHeaderMessage} from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import {fetchOrCreateChatReport} from '../libs/actions/Report';
-import KeyboardSpacer from '../components/KeyboardSpacer';
-import CONST, {EXCLUDED_GROUP_EMAILS} from '../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
@@ -60,6 +60,11 @@ class NewChatPage extends Component {
         this.createGroup = this.createGroup.bind(this);
         this.toggleGroupOptionOrCreateChat = this.toggleGroupOptionOrCreateChat.bind(this);
         this.createNewChat = this.createNewChat.bind(this);
+        this.excludedGroupEmails = _.without(EXPENSIFY_EMAILS, [
+            CONST.EMAIL.CONCIERGE,
+            CONST.EMAIL.RECEIPTS,
+            CONST.EMAIL.INTEGRATION_TESTING_CREDS,
+        ]);
 
         const {
             recentReports,
@@ -71,7 +76,7 @@ class NewChatPage extends Component {
             props.betas,
             '',
             [],
-            this.props.isGroupChat ? EXCLUDED_GROUP_EMAILS : [],
+            this.props.isGroupChat ? this.excludedGroupEmails : [],
         );
         this.state = {
             searchValue: '',
@@ -107,14 +112,14 @@ class NewChatPage extends Component {
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
             title: this.props.translate('common.contacts'),
             data: this.state.personalDetails,
             shouldShow: !_.isEmpty(this.state.personalDetails),
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         if (this.state.userToInvite) {
@@ -171,7 +176,7 @@ class NewChatPage extends Component {
                 this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                EXCLUDED_GROUP_EMAILS,
+                this.excludedGroupEmails,
             );
 
             return {
@@ -243,7 +248,7 @@ class NewChatPage extends Component {
                                                 this.props.betas,
                                                 searchValue,
                                                 [],
-                                                this.props.isGroupChat ? EXCLUDED_GROUP_EMAILS : [],
+                                                this.props.isGroupChat ? this.excludedGroupEmails : [],
                                             );
                                             this.setState({
                                                 searchValue,
@@ -257,8 +262,7 @@ class NewChatPage extends Component {
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
                                     />
-                                    {!this.props.isGroupChat && <KeyboardSpacer />}
-                                    {this.props.isGroupChat && this.state.selectedOptions?.length > 0 && (
+                                    {this.props.isGroupChat && lodashGet(this.state, 'selectedOptions', []).length > 0 && (
                                         <FixedFooter>
                                             <Button
                                                 success

@@ -573,7 +573,7 @@ describe('OptionsListUtils', () => {
         // unpinned report that has no lastMessageTimestamp
         expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
 
-        const numberOfPinnedReports = results.recentReports.filter(report => report.isPinned).length;
+        const numberOfPinnedReports = _.filter(results.recentReports, report => report.isPinned).length;
         expect(numberOfPinnedReports).toBe(2);
 
         // That no personalDetails are shown

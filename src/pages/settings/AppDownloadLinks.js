@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -47,7 +48,7 @@ const AppDownloadLinksPage = ({translate}) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.mt5]}>
-                {menuItems.map(item => (
+                {_.map(menuItems, item => (
                     <MenuItem
                         key={item.translationKey}
                         title={translate(item.translationKey)}
