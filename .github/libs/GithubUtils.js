@@ -16,6 +16,7 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
 const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
+const INTERNAL_QA_LABEL = 'InternalQA';
 
 class GithubUtils {
     /**
@@ -189,6 +190,12 @@ class GithubUtils {
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
+                const internalQAPRs = _.pluck(
+                    _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
+                    'html_url',
+                );
+                console.log('Found the following Internal QA PRs:', internalQAPRs);
+
                 const noQAPRs = _.pluck(
                     _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
                     'html_url',
@@ -199,6 +206,7 @@ class GithubUtils {
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
+                    .difference(internalQAPRs)
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
@@ -218,6 +226,14 @@ class GithubUtils {
                         issueBody += `\r\n\r\n- ${URL}`;
                         issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                         issueBody += _.contains(accessibleOrNoQAPRs, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
+                    });
+                }
+
+                if (!_.isEmpty(internalQAPRs)) {
+                    issueBody += '\r\n\r\n\r\n**Internal QA:**';
+                    _.each(internalQAPRs, (URL) => {
+                        issueBody += `\r\n\r\n- ${URL}`;
+                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                     });
                 }
 
