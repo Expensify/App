@@ -23,6 +23,7 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
+
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
@@ -31,45 +32,54 @@
         android:exported="true"
         android:windowSoftInputMode="adjustResize">
       </activity>
+
       <activity
         android:name="com.zoontek.rnbootsplash.RNBootSplashActivity"
         android:theme="@style/BootTheme"
         android:launchMode="singleTask">
+
         <intent-filter>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+
+        <!-- Custom URI handlers. Used to intercept Urban Airship deep links. -->
         <intent-filter>
             <action android:name="android.intent.action.VIEW"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="expensify-cash"/>
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
             <data android:scheme="new-expensify"/>
         </intent-filter>
+
+        <!-- Web URL handlers. Used to intercept web links. -->
         <intent-filter>
             <action android:name="android.intent.action.VIEW"/>
             <category android:name="android.intent.category.DEFAULT"/>
             <category android:name="android.intent.category.BROWSABLE"/>
-            <data android:scheme="https" android:host="new.expensify.com" />
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" />
-        </intent-filter>
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW"/>
-            <category android:name="android.intent.category.DEFAULT"/>
-            <category android:name="android.intent.category.BROWSABLE"/>
-            <data android:scheme="https" android:host="staging.new.expensify.com" />
+
+            <!-- Production URLs -->
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/r"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/settings"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/setpassword"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/details"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/v"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/bank-account"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/iou"/>
+            <data android:scheme="https" android:host="new.expensify.com" android:pathPrefix="/enable-payments"/>
+
+            <!-- Staging URLs -->
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/r"/>
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/settings"/>
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/setpassword"/>
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/details"/>
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/v"/>
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/bank-account"/>
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/iou"/>
+            <data android:scheme="https" android:host="staging.new.expensify.com" android:pathPrefix="/enable-payments"/>
         </intent-filter>
       </activity>
+
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
 
       <meta-data android:name="com.urbanairship.reactnative.AIRSHIP_EXTENDER"
