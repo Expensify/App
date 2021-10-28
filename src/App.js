@@ -6,6 +6,7 @@ import CustomStatusBar from './components/CustomStatusBar';
 import ErrorBoundary from './components/ErrorBoundary';
 import Expensify from './Expensify';
 import {LocaleContextProvider} from './components/withLocalize';
+import {FormContextProvider} from './components/withForm';
 import OnyxProvider from './components/OnyxProvider';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import ComposeProviders from './components/ComposeProviders';
@@ -27,6 +28,7 @@ const App = () => (
             SafeAreaProvider,
             LocaleContextProvider,
             HTMLEngineProvider,
+            FormContextProvider,
         ]}
     >
         <CustomStatusBar />

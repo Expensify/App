@@ -7,16 +7,10 @@ class FormInput extends Component {
     }
 
     render() {
-        const {
-            validate,
-            clearErrors,
-            onChange,
-        } = this.props;
-
         return (
             <TextInput
                 placeholder={'test'}
-                onChangeText={onChange}
+                onChangeText={this.props.onChange}
             />
         );
     }
