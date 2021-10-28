@@ -32,6 +32,8 @@ import makeCancellablePromise from '../../libs/MakeCancellablePromise';
 import Permissions from '../../libs/Permissions';
 import isAppInstalled from '../../libs/isAppInstalled';
 import {isValidUSPhone} from '../../libs/ValidationUtils';
+import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
+import ROUTES from '../../ROUTES';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -83,6 +85,9 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
+    /** The user's current wallet status and step */
+    userWallet: userWalletPropTypes.userWallet,
+
     ...withLocalizePropTypes,
 };
 
@@ -95,6 +100,7 @@ const defaultProps = {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    userWallet: {},
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -125,6 +131,8 @@ class IOUModal extends Component {
             payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
         }));
+        this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
 
         this.checkVenmoAvailabilityPromise = null;
 
@@ -195,7 +203,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (this.isSendRequest) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -207,7 +215,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (this.isSendRequest) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -308,7 +316,15 @@ class IOUModal extends Component {
      * @param {Array} [splits]
      */
     confirm(splits) {
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+        const reportID = lodashGet(this.props, 'route.params.reportID', '');
+
+        // If the user is trying to send money, then they need to upgrade to a GOLD wallet
+        if (this.isSendRequest && !this.hasGoldWallet) {
+            Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
+            return;
+        }
+
+        if (this.isSendRequest) {
             payIOUReport({
                 chatReportID: this.props.route.params.reportID,
                 reportID: 0,
@@ -491,6 +507,9 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IOUModal);
