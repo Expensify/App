@@ -15,7 +15,6 @@ const PressableWithSecondaryInteraction = props => (
         ref={props.forwardedRef}
         onPress={props.onPress}
         onPressIn={props.onPressIn}
-        delayLongPress={500}
         onLongPress={(e) => {
             e.preventDefault();
             ReactNativeHapticFeedback.trigger('selection', {
