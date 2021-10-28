@@ -147,6 +147,9 @@ export default compose(
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},
-        session: {key: ONYXKEYS.SESSION},
+        session: {
+            key: ONYXKEYS.SESSION,
+            initWithStoredValues: false,
+        },
     }),
 )(SetPasswordPage);

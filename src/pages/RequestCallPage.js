@@ -62,6 +62,16 @@ const propTypes = {
             taskID: PropTypes.string,
         }),
     }).isRequired,
+
+    requestCallForm: PropTypes.shape({
+        loading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    requestCallForm: {
+        loading: false,
+    },
 };
 
 class RequestCallPage extends Component {
@@ -75,7 +85,6 @@ class RequestCallPage extends Component {
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
             lastNameError: '',
             phoneNumberError: '',
-            isLoading: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
@@ -96,19 +105,15 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-        this.setState({isLoading: true});
-        requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
-            .then((result) => {
-                this.setState({isLoading: false});
-                if (result.jsonCode === 200) {
-                    Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
-                    fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
-                    return;
-                }
 
-                // Phone number validation is handled by the API
-                Growl.error(result.message, 3000);
-            });
+        requestInboxCall({
+            taskID: this.props.route.params.taskID,
+            policyID: personalPolicy.id,
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            phoneNumber: this.state.phoneNumber,
+            email: this.props.session.email,
+        });
     }
 
     /**
@@ -243,7 +248,7 @@ class RequestCallPage extends Component {
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
-                            isLoading={this.state.isLoading}
+                            isLoading={this.props.requestCallForm.loading}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -253,6 +258,7 @@ class RequestCallPage extends Component {
 }
 
 RequestCallPage.propTypes = propTypes;
+RequestCallPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -268,6 +274,10 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        requestCallForm: {
+            key: ONYXKEYS.REQUEST_CALL_FORM,
+            initWithStoredValues: false,
         },
     }),
 )(RequestCallPage);

@@ -371,9 +371,13 @@ function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
 }
 
-function changePasswordAndSignIn(responseValidate, password) {
+/**
+ * @param {String} authToken
+ * @param {String} password
+ */
+function changePasswordAndSignIn(authToken, password) {
     API.ChangePassword({
-        authToken: responseValidate.authToken,
+        authToken,
         password,
     })
         .then((responsePassword) => {
@@ -398,7 +402,8 @@ function validateEmail(accountID, validateCode, password) {
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
-                return changePasswordAndSignIn(responseValidate, password);
+                changePasswordAndSignIn(responseValidate.authToken, password);
+                return;
             }
 
             if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {

@@ -140,4 +140,7 @@ export default {
 
     // Stores values for the add debit card form
     ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+
+    // Stores values for the request call form
+    REQUEST_CALL_FORM: 'requestCallForm',
 };
