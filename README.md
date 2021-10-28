@@ -124,8 +124,7 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 
 ---
 
-# Structure of the app
-These are the main pieces of the application.
+# App structure and conventions
 
 ## Onyx
 This is a persistent storage solution wrapped in a Pub/Sub library. In general that means:
@@ -153,7 +152,35 @@ This layer is solely responsible for:
 - Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Onyx data.
 - Taking user input and passing it to an action
 
-**Note:** As a convention, the UI layer should never interact with device storage directly or call `Onyx.set()` or `Onyx.merge()`. Use an action! For example, check out this action that is signing in the user [here](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/pages/signin/PasswordForm.js#L78-L78). That action will then call `Onyx.merge()` to [set default data and a loading state, then make an API request, and set the response with another `Onyx.merge()`](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/libs/actions/Session.js#L228-L247). Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place.
+As a convention, the UI layer should never interact with device storage directly or call `Onyx.set()` or `Onyx.merge()`. Use an action! For example, check out this action that is signing in the user [here](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/pages/signin/PasswordForm.js#L78-L78). That action will then call `Onyx.merge()` to [set default data and a loading state, then make an API request, and set the response with another `Onyx.merge()`](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/libs/actions/Session.js#L228-L247). Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place.
+
+In addition, actions that are called from inside views should not ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff should ideally go into `Onyx` and be fed back to the component via `withOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
+
+```javascript
+// Bad
+fetchData() {
+    this.setState({loading: true});
+    fetchSomeData()
+        .then((response) => {
+            if (result.jsonCode !== 200) {
+                this.setState({error: response.message});
+                return;
+            }
+
+            Navigation.navigate(ROUTES.SOMEWHERE);
+        })
+        .finally(() => {
+            this.setState({loading: false});
+        });
+}
+
+// Good
+fetchData() {
+    fetchDataAndNavigateSomewhere();
+}
+```
+
+Within our `fetchDataAndNavigateSomewhere()` action we will set our loading and error states and navigation logic.
 
 ## Directory structure
 Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
@@ -219,9 +246,9 @@ export default withOnyx({
 ```
 
 ## Things to know or brush up on before jumping into the code
-1. The major difference between React-Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
-1. The application uses [React-Router](https://reactrouter.com/native/guides/quick-start) for navigating between parts of the app.
-1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via Onyx.
+1. The major difference between React Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
+1. The application uses [`react-navigation`](https://reactnavigation.org/) for navigating between parts of the app.
+1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via [`react-native-onyx`](https://github.com/Expensify/react-native-onyx).
 
 ----
 
@@ -252,7 +279,7 @@ This application is built with the following principles.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
 1. **Actions manage Onyx Data**
     - When data needs to be written to or read from the server, this is done through Actions only.
-    - Public action methods should never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
+    - Public action methods should ideally never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
     - Views should not call `Onyx.merge()` or `Onyx.set()` directly and should call an action instead.
     - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
