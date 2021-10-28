@@ -40,7 +40,7 @@ Onyx.connect({
  * @param {String} password
  * @returns {Promise}
  */
-function changePassword(oldPassword, password) {
+function changePasswordAndNavigate(oldPassword, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.ChangePassword({oldPassword, password})
@@ -48,12 +48,13 @@ function changePassword(oldPassword, password) {
             if (response.jsonCode !== 200) {
                 const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+                return;
             }
-            return response;
+
+            Navigation.navigate(ROUTES.SETTINGS);
         })
-        .finally((response) => {
+        .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-            return response;
         });
 }
 
