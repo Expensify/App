@@ -33,10 +33,10 @@ const propTypes = {
     payPalMeUsername: PropTypes.string,
 
     /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
+    bankAccountList: PropTypes.objectOf(bankAccountPropTypes),
 
     /** Array of card objects */
-    cardList: PropTypes.arrayOf(PropTypes.shape({
+    cardList: PropTypes.objectOf(PropTypes.shape({
         /** The name of the institution (bank of america, etc */
         cardName: PropTypes.string,
 

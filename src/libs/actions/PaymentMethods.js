@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -28,11 +29,14 @@ function getPaymentMethods() {
         excludeNotActivated: true,
     })
         .then((response) => {
+            // Convert bank accounts/cards from an array of objects, to a map with the bankAccountID as the key
+            const bankAccounts = _.object(_.map(lodashGet(response, 'bankAccountList', []), bankAccount => [bankAccount.bankAccountID, bankAccount]));
+            const debitCards = _.object(_.map(lodashGet(response, 'fundList', []), fund => [fund.fundID, fund]));
             Onyx.multiSet({
                 [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
                 [ONYXKEYS.USER_WALLET]: lodashGet(response, 'userWallet', {}),
-                [ONYXKEYS.BANK_ACCOUNT_LIST]: lodashGet(response, 'bankAccountList', []),
-                [ONYXKEYS.CARD_LIST]: lodashGet(response, 'fundList', []),
+                [ONYXKEYS.BANK_ACCOUNT_LIST]: bankAccounts,
+                [ONYXKEYS.CARD_LIST]: debitCards,
                 [ONYXKEYS.NVP_PAYPAL_ME_ADDRESS]:
                     lodashGet(response, ['nameValuePairs', CONST.NVP.PAYPAL_ME_ADDRESS], ''),
             });
