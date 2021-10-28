@@ -50,7 +50,8 @@ const defaultSubRouteOptions = {
  * Create a modal stack navigator with an array of sub-screens.
  *
  * @param {Object[]} screens array of screen config objects
- * @param {Object|Function} [screenListeners]
+ * @param {Object|Function} [screenListeners] – event listeners applied to all screens in this navigator.
+ *                                              See docs: https://reactnavigation.org/docs/navigation-events/#screenlisteners-prop-on-the-navigator
  * @returns {Function}
  */
 function createModalStackNavigator(screens, screenListeners) {
