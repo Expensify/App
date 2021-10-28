@@ -1194,5 +1194,4 @@ export {
     Policy_Create,
     Policy_Employees_Remove,
     PreferredLocale_Update,
-    DeleteBankAccount,
 };
