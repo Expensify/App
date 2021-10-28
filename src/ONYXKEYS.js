@@ -143,4 +143,7 @@ export default {
 
     // Stores values for the request call form
     REQUEST_CALL_FORM: 'requestCallForm',
+
+    // Are report actions loading?
+    IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
 };
