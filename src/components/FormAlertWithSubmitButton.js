@@ -37,6 +37,9 @@ const propTypes = {
     /** Styles for container element */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Is the button in a loading state */
+    isLoading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -45,6 +48,7 @@ const defaultProps = {
     isDisabled: false,
     isMessageHtml: false,
     containerStyles: [],
+    isLoading: false,
 };
 
 const FormAlertWithSubmitButton = ({
@@ -57,6 +61,7 @@ const FormAlertWithSubmitButton = ({
     message,
     isMessageHtml,
     containerStyles,
+    isLoading,
 }) => {
     /**
      * @returns {React.Component}
@@ -114,6 +119,7 @@ const FormAlertWithSubmitButton = ({
                 text={buttonText}
                 onPress={onSubmit}
                 isDisabled={isDisabled}
+                isLoading={isLoading}
             />
         </View>
     );
