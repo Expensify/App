@@ -110,7 +110,7 @@ const DetailsPage = ({
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text numberOfLines={1} style={[styles.w100]}>
+                                        <Text numberOfLines={1}>
                                             {isSMSLogin
                                                 ? toLocalPhone(getPhoneNumber(details))
                                                 : details.login}

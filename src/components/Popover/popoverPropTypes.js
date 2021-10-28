@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import PropTypes from 'prop-types';
-import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '../Modal/ModalPropTypes';
+import {propTypes as modalPropTypes, defaultProps as defaultModalProps} from '../Modal/modalPropTypes';
 
 const propTypes = {
     ...(_.omit(modalPropTypes, ['type', 'popoverAnchorPosition'])),

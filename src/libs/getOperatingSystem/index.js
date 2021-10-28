@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import CONST from '../../CONST';
 
 /**
@@ -11,11 +12,11 @@ export default () => {
     const iosPlatforms = ['iPhone', 'iPad', 'iPod'];
 
     let os = null;
-    if (macosPlatforms.includes(platform)) {
+    if (_.contains(macosPlatforms, platform)) {
         os = CONST.OS.MAC_OS;
-    } else if (iosPlatforms.includes(platform)) {
+    } else if (_.contains(iosPlatforms, platform)) {
         os = CONST.OS.IOS;
-    } else if (windowsPlatforms.includes(platform)) {
+    } else if (_.contains(windowsPlatforms, platform)) {
         os = CONST.OS.WINDOWS;
     } else if (/Android/.test(userAgent)) {
         os = CONST.OS.ANDROID;

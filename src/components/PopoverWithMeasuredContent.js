@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import Popover from './Popover';
-import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/PopoverPropTypes';
+import {propTypes as popoverPropTypes, defaultProps as defaultPopoverProps} from './Popover/popoverPropTypes';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
 import styles from '../styles/styles';

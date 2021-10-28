@@ -7,7 +7,7 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
+    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal, requestResetFreePlanBankAccount,
 } from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -23,7 +23,7 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import {ChatBubble} from '../../components/Icon/Expensicons';
+import {ChatBubble, RotateLeft} from '../../components/Icon/Expensicons';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 
@@ -46,7 +46,6 @@ class ValidationStep extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-        this.navigateToConcierge = this.navigateToConcierge.bind(this);
 
         this.state = {
             amount1: ReimbursementAccountUtils.getDefaultStateForField(props, 'amount1', ''),
@@ -150,11 +149,6 @@ class ValidationStep extends React.Component {
         return value;
     }
 
-    navigateToConcierge() {
-        Navigation.dismissModal();
-        navigateToConciergeChat();
-    }
-
     render() {
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
 
@@ -182,7 +176,7 @@ class ValidationStep extends React.Component {
                             {' '}
                             {this.props.translate('common.please')}
                             {' '}
-                            <TextLink onPress={this.navigateToConcierge}>
+                            <TextLink onPress={navigateToConciergeChat}>
                                 {this.props.translate('common.contactUs')}
                             </TextLink>
                             .
@@ -234,12 +228,20 @@ class ValidationStep extends React.Component {
                         <WorkspaceSection
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={ConciergeBlue}
-                            menuItems={[{
-                                title: this.props.translate('validationStep.letsChatCTA'),
-                                icon: ChatBubble,
-                                onPress: this.navigateToConcierge,
-                                shouldShowRightIcon: true,
-                            }]}
+                            menuItems={[
+                                {
+                                    title: this.props.translate('validationStep.letsChatCTA'),
+                                    icon: ChatBubble,
+                                    onPress: navigateToConciergeChat,
+                                    shouldShowRightIcon: true,
+                                },
+                                {
+                                    title: this.props.translate('workspace.bankAccount.noLetsStartOver'),
+                                    icon: RotateLeft,
+                                    shouldShowRightIcon: true,
+                                    onPress: requestResetFreePlanBankAccount,
+                                },
+                            ]}
                         >
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}
