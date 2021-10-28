@@ -32,7 +32,6 @@ const PressableWithSecondaryInteraction = props => (
         ref={props.forwardedRef}
         onPress={props.onPress}
         onPressIn={props.onPressIn}
-        delayLongPress={200}
         onLongPress={event => handleLongPress(event, props)}
         onPressOut={props.onPressOut}
         // eslint-disable-next-line react/jsx-props-no-spreading
