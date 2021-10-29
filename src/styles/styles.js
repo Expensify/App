@@ -2113,8 +2113,8 @@ const styles = {
         display: 'flex',
         width: '100%',
         borderColor: colors.gray3,
-        borderWidth: 1,
         height: 'auto',
+        borderBottomWidth: 1,
     },
 
     keyboardShortcutTableRow: {
