@@ -44,9 +44,14 @@ class WelcomePage extends React.Component {
     constructor(props) {
         super(props);
 
+        const {
+            firstName,
+            lastName,
+        } = props.myPersonalDetails;
+
         this.state = {
-            firstName: '',
-            lastName: '',
+            firstName,
+            lastName,
             errors: {
                 firstName: '',
                 lastName: '',
