@@ -8,6 +8,7 @@ import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInter
 import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
+import styles from '../../../styles/styles';
 
 /*
  * This is a default anchor component for regular links.
@@ -24,9 +25,11 @@ const BaseAnchorForCommentsOnly = ({
     return (
         isAttachment
             ? (
-                <Pressable onPress={() => {
-                    fileDownload(href, fileName);
-                }}
+                <Pressable
+                    style={styles.mw100}
+                    onPress={() => {
+                        fileDownload(href, fileName);
+                    }}
                 >
                     <AttachmentView
                         sourceURL={href}
