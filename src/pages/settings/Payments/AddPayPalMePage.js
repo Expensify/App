@@ -75,7 +75,7 @@ class AddPayPalMePage extends React.Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title="PayPal.me"
+                        title={this.props.translate('common.payPalMe')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}

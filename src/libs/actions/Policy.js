@@ -279,22 +279,6 @@ function invite(logins, welcomeNote, policyID) {
 }
 
 /**
- * @param {Object} file
- * @returns {Promise}
- */
-function uploadAvatar(file) {
-    return API.User_UploadAvatar({file})
-        .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Let the component handle the issue.
-                throw new Error();
-            }
-
-            return response.s3url;
-        });
-}
-
-/**
  * Sets local values for the policy
  * @param {String} policyID
  * @param {Object} values
@@ -311,6 +295,7 @@ function updateLocalPolicyValues(policyID, values) {
  * @param {Boolean} [shouldGrowl]
  */
 function update(policyID, values, shouldGrowl = false) {
+    updateLocalPolicyValues(policyID, {isPolicyUpdating: true});
     API.UpdatePolicy({policyID, value: JSON.stringify(values), lastModified: null})
         .then((policyResponse) => {
             if (policyResponse.jsonCode !== 200) {
@@ -326,6 +311,29 @@ function update(policyID, values, shouldGrowl = false) {
 
             // Show the user feedback
             const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+            Growl.error(errorMessage, 5000);
+        });
+}
+
+/**
+ * Uploads the avatar image to S3 bucket and updates the policy with new avatarURL
+ *
+ * @param {String} policyID
+ * @param {Object} file
+ */
+function uploadAvatar(policyID, file) {
+    updateLocalPolicyValues(policyID, {isAvatarUploading: true});
+    API.User_UploadAvatar({file})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                // Update the policy with the new avatarURL as soon as we get it
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {avatarURL: response.s3url, isAvatarUploading: false});
+                update(policyID, {avatarURL: response.s3url}, true);
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
+            const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
             Growl.error(errorMessage, 5000);
         });
 }
@@ -354,7 +362,6 @@ export {
     create,
     uploadAvatar,
     update,
-    updateLocalPolicyValues,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
 };
