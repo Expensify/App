@@ -1,7 +1,7 @@
 import _ from 'underscore';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox} from 'react-native';
+import {LogBox, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -37,6 +37,7 @@ const defaultProps = {
 
 const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
+    const [display, setDisplay] = useState(false);
     useEffect(() => {
         if (!googlePlacesRef.current) {
             return;
@@ -79,55 +80,64 @@ const AddressSearch = (props) => {
     };
 
     return (
-        <GooglePlacesAutocomplete
-            ref={googlePlacesRef}
-            fetchDetails
-            suppressDefaultStyles
-            enablePoweredByContainer={false}
-            onPress={(data, details) => saveLocationDetails(details)}
-            query={{
-                key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                language: props.preferredLocale,
-                types: 'address',
-                components: 'country:us',
+        <View 
+            // We use the View height to determine if we should hide the border and margin of the listView dropdown
+            // to prevent a lingering border when there are no address suggestions
+            onLayout={(event) => {
+                const {height} = event.nativeEvent.layout;
+                height > 74 ? setDisplay(true) : setDisplay(false);s
             }}
-            requestUrl={{
-                useOnPlatform: 'web',
-                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
-            }}
-            textInputProps={{
-                InputComp: ExpensiTextInput,
-                label: props.label,
-                containerStyles: props.containerStyles,
-                errorText: props.errorText,
-                onChangeText: (text) => {
-                    const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
-
-                    // Ensure whether an address is selected already or has address value initialized.
-                    if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
-                        saveLocationDetails({});
-                    }
-                },
-            }}
-            styles={{
-                textInputContainer: [styles.flexColumn],
-                listView: [
-                    styles.borderTopRounded,
-                    styles.borderBottomRounded,
-                    styles.mt1,
-                    styles.overflowAuto,
-                    styles.borderLeft,
-                    styles.borderRight,
-                ],
-                row: [
-                    styles.pv4,
-                    styles.ph3,
-                    styles.overflowAuto,
-                ],
-                description: [styles.googleSearchText],
-                separator: [styles.googleSearchSeparator],
-            }}
-        />
+        >
+            <GooglePlacesAutocomplete
+                ref={googlePlacesRef}
+                fetchDetails
+                suppressDefaultStyles
+                enablePoweredByContainer={false}
+                onPress={(data, details) => saveLocationDetails(details)}
+                query={{
+                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                    language: props.preferredLocale,
+                    types: 'address',
+                    components: 'country:us',
+                }}
+                requestUrl={{
+                    useOnPlatform: 'web',
+                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                }}
+                textInputProps={{
+                    InputComp: ExpensiTextInput,
+                    label: props.label,
+                    containerStyles: props.containerStyles,
+                    errorText: props.errorText,
+                    onChangeText: (text) => {
+                        const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
+    
+                        // Ensure whether an address is selected already or has address value initialized.
+                        if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
+                            saveLocationDetails({});
+                        }
+                    },
+                }}
+                styles={{
+                    textInputContainer: [styles.flexColumn],
+                    listView: [
+                        display && styles.borderTopRounded,
+                        display && styles.borderBottomRounded,
+                        display && styles.mt1,
+                        styles.overflowAuto,
+                        styles.borderLeft,
+                        styles.borderRight,
+                    ],
+                    row: [
+                        styles.pv4,
+                        styles.ph3,
+                        styles.overflowAuto,
+                    ],
+                    description: [styles.googleSearchText],
+                    separator: [styles.googleSearchSeparator],
+                }}
+            />
+        </View>
     );
 };
 
