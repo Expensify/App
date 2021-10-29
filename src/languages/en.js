@@ -761,4 +761,8 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
     },
+    keyboardShortCutModal: {
+        title: 'Keyboard Shortcuts',
+        subtitle: 'Do you expense reports faster with these handy keyboard shortcuts',
+    },
 };
