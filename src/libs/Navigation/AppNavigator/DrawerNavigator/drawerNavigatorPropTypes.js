@@ -18,9 +18,6 @@ const propTypes = {
     /** Drawer content Component */
     drawerContent: PropTypes.elementType.isRequired,
 
-    /** Whether use the legacy implementation of Drawer */
-    useLegacyImplementation: PropTypes.bool,
-
     /** If it's the main screen, don't wrap the content even if it's a full screen modal. */
     isMainScreen: PropTypes.bool,
 
@@ -28,11 +25,4 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    useLegacyImplementation: false,
-};
-
-export {
-    propTypes,
-    defaultProps,
-};
+export default propTypes;

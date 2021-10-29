@@ -1,10 +1,18 @@
 import React from 'react';
 import _ from 'underscore';
+import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
 import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../../styles/styles';
 import Navigation from '../../Navigation';
-import {propTypes, defaultProps} from './drawerNavigatorPropTypes';
+import drawerNavigatorPropTypes from './drawerNavigatorPropTypes';
+
+const propTypes = {
+    ...drawerNavigatorPropTypes,
+
+    /** Whether use the legacy implementation of Drawer */
+    useLegacyImplementation: PropTypes.bool.isRequired,
+};
 
 const Drawer = createDrawerNavigator();
 
@@ -49,6 +57,5 @@ const BaseDrawerNavigator = (props) => {
 };
 
 BaseDrawerNavigator.propTypes = propTypes;
-BaseDrawerNavigator.defaultProps = defaultProps;
 BaseDrawerNavigator.displayName = 'BaseDrawerNavigator';
 export default BaseDrawerNavigator;
