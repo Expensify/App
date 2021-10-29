@@ -9,7 +9,6 @@ import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
 import {getAddressComponent, isAddressValidForVBA} from '../libs/GooglePlacesUtils';
-import display from '../styles/utilities/display';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -83,7 +82,7 @@ const AddressSearch = (props) => {
     return (
 
         // We use the View height to determine if we should hide the border and margin of the listView dropdown
-        // to prevent a lingering border when there are no address suggestions. 
+        // to prevent a lingering border when there are no address suggestions.
         // The height of the input + error message is 94 pixels
         <View
             onLayout={(event) => {
