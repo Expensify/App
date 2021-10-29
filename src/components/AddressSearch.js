@@ -85,7 +85,7 @@ const AddressSearch = (props) => {
             // to prevent a lingering border when there are no address suggestions
             onLayout={(event) => {
                 const {height} = event.nativeEvent.layout;
-                height > 74 ? setDisplay(true) : setDisplay(false);s
+                height > 74 ? setDisplay(true) : setDisplay(false);
             }}
         >
             <GooglePlacesAutocomplete
