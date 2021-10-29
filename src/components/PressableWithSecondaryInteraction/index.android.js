@@ -7,7 +7,7 @@ import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTy
 /**
  * Triggers haptic feedback, and calls onSecondaryInteraction
  *
- * @param {Object} event
+ * @param {GestureResponderEvent} event
  * @param {Object} props
  */
 function handleLongPress(event, props) {
