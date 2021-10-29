@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import {fetchAccountDetails} from '../../libs/actions/Session';
+import {clearAccountMessages, fetchAccountDetails} from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
@@ -15,6 +15,7 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import {isNumericWithSpecialChars} from '../../libs/ValidationUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,6 +64,10 @@ class LoginForm extends React.Component {
             login: text,
             formError: null,
         });
+
+        if (this.props.account.error) {
+            clearAccountMessages();
+        }
     }
 
     /**
@@ -75,7 +80,11 @@ class LoginForm extends React.Component {
         }
 
         if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
-            this.setState({formError: 'loginForm.error.invalidFormatLogin'});
+            if (isNumericWithSpecialChars(this.state.login)) {
+                this.setState({formError: 'messages.errorMessageInvalidPhone'});
+            } else {
+                this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
+            }
             return;
         }
 

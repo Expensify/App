@@ -324,7 +324,6 @@ class WorkspaceMembersPage extends React.Component {
 
 WorkspaceMembersPage.propTypes = propTypes;
 WorkspaceMembersPage.defaultProps = defaultProps;
-WorkspaceMembersPage.displayName = 'WorkspacePeoplePage';
 
 export default compose(
     withLocalize,

@@ -521,6 +521,7 @@ const styles = {
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
+        overflow: 'hidden',
     },
     expensiTextInputLabel: {
         position: 'absolute',
@@ -530,6 +531,15 @@ const styles = {
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
+    },
+    expensiTextInputLabelBackground: {
+        position: 'absolute',
+        top: 0,
+        width: '100%',
+        height: 25,
+        backgroundColor: themeColors.componentBG,
+        borderTopRightRadius: variables.componentBorderRadiusNormal,
+        borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
@@ -550,6 +560,7 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11.5,
         borderRadius: variables.componentBorderRadiusNormal,
+        zIndex: -1,
     },
     expensiTextInputDesktop: addOutlineWidth({}, 0),
     expensiTextInputAndroid: left => ({
@@ -1086,6 +1097,7 @@ const styles = {
         lineHeight: 20,
         marginTop: -2,
         marginBottom: -2,
+        maxWidth: '100%',
         ...whiteSpace.preWrap,
         ...wordBreak.breakWord,
     },
@@ -1638,6 +1650,7 @@ const styles = {
         fontFamily: fontFamily.GTA_BOLD,
         fontSize: variables.fontSizeSmall,
         fontWeight: fontWeightBold,
+        textTransform: 'capitalize',
     },
 
     flipUpsideDown: {
@@ -1965,7 +1978,7 @@ const styles = {
     },
 
     workspaceInviteWelcome: {
-        height: 150,
+        minHeight: 100,
     },
 
     peopleRow: {
@@ -2127,6 +2140,16 @@ const webViewStyles = {
         },
 
         a: styles.link,
+
+        ul: {
+            maxWidth: '100%',
+            flex: 1,
+        },
+
+        ol: {
+            maxWidth: '100%',
+            flex: 1,
+        },
 
         li: {
             flexShrink: 1,
