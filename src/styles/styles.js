@@ -2108,6 +2108,18 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
+
+    addressSearchContainer: {
+        zIndex: 100,
+        elevation: 100,
+    },
+
+    googleSearchContainer: {
+        position: 'absolute',
+        backgroundColor: colors.white,
+        width: '100%',
+        maxWidth: '100%',
+    }
 };
 
 const baseCodeTagStyles = {
