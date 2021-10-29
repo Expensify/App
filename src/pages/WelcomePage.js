@@ -19,6 +19,7 @@ import {
 } from '../libs/actions/PersonalDetails';
 import currentUserPersonalDetailsPropsTypes from './settings/Profile/currentUserPersonalDetailsPropsTypes';
 import compose from '../libs/compose';
+import Navigation from '../libs/Navigation/Navigation';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 
@@ -64,7 +65,10 @@ class WelcomePage extends React.Component {
                 {({didScreenTransitionEnd}) => (
                     <KeyboardAvoidingView>
                         <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                        <HeaderWithCloseButton title={this.props.translate('welcomeScreen.title')} />
+                        <HeaderWithCloseButton
+                            title={this.props.translate('welcomeScreen.title')}
+                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+                        />
 
                         <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
 
