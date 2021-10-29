@@ -129,6 +129,19 @@ function addKeyToMap(key, modifiers, descriptionKey) {
         shortcutKey = [...modifiers, ...shortcutKey];
     }
 
+    shortcutKey = shortcutKey.map((modifierKey) => {
+        switch (modifierKey) {
+            case 'control':
+                return 'Ctrl';
+            case 'meta':
+                return 'Cmd';
+            case 'shift':
+                return 'Shift';
+            default:
+                return modifierKey;
+        }
+    });
+
     shortcutKey = shortcutKey.join(' + ');
     keyboardShortcutMap[shortcutKey] = descriptionKey;
 }
