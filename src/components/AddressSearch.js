@@ -9,6 +9,7 @@ import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
 import {getAddressComponent, isAddressValidForVBA} from '../libs/GooglePlacesUtils';
+import display from '../styles/utilities/display';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -37,7 +38,7 @@ const defaultProps = {
 
 const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
-    const [display, setDisplay] = useState(false);
+    const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
     useEffect(() => {
         if (!googlePlacesRef.current) {
             return;
@@ -82,11 +83,12 @@ const AddressSearch = (props) => {
     return (
 
         // We use the View height to determine if we should hide the border and margin of the listView dropdown
-        // to prevent a lingering border when there are no address suggestions
+        // to prevent a lingering border when there are no address suggestions. 
+        // The height of the input + error message is 94 pixels
         <View
             onLayout={(event) => {
                 const {height} = event.nativeEvent.layout;
-                return height > 74 ? setDisplay(true) : setDisplay(false);
+                return height > 94 ? setDisplayListViewBorder(true) : setDisplayListViewBorder(false);
             }}
         >
             <GooglePlacesAutocomplete
@@ -122,9 +124,9 @@ const AddressSearch = (props) => {
                 styles={{
                     textInputContainer: [styles.flexColumn],
                     listView: [
-                        display && styles.borderTopRounded,
-                        display && styles.borderBottomRounded,
-                        display && styles.mt1,
+                        displayListViewBorder && styles.borderTopRounded,
+                        displayListViewBorder && styles.borderBottomRounded,
+                        displayListViewBorder && styles.mt1,
                         styles.overflowAuto,
                         styles.borderLeft,
                         styles.borderRight,
