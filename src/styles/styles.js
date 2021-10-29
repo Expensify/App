@@ -2108,6 +2108,13 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
+
+    keyboardShortcutTableContainer: {
+        width: '100%',
+        borderColor: 'grey',
+        borderRadius: 8,
+        borderWidth: 1,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -2201,6 +2208,21 @@ const webViewStyles = {
         flex: 1,
     },
 };
+
+/**
+ * Styles for the keyboard shortcut modal container based on screen size
+ *
+ * @param {Boolean} isSmallScreenWidth
+ * @returns {Object}
+ */
+function getKeyboardShortcutModalStyle(isSmallScreenWidth) {
+    return {
+        width: isSmallScreenWidth ? '100%' : '90%',
+        alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+    };
+}
 
 /**
  * Takes safe area insets and returns padding to use for a View
@@ -2484,4 +2506,5 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
+    getKeyboardShortcutModalStyle,
 };
