@@ -2119,7 +2119,7 @@ const styles = {
         backgroundColor: colors.white,
         width: '100%',
         maxWidth: '100%',
-    }
+    },
 };
 
 const baseCodeTagStyles = {
