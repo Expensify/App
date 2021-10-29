@@ -1,6 +1,11 @@
 import _ from 'underscore';
 
 const events = {};
+const keyboardShortcutMap = {};
+
+function getKeyboardShortcutMap() {
+    return keyboardShortcutMap;
+}
 
 /**
  * Checks if an event for that key is configured and if so, runs it.
@@ -108,19 +113,42 @@ function unsubscribe(key) {
 }
 
 /**
+ * Add key to the shortcut map
+ *
+ * @param {String} key The key to watch, i.e. 'K' or 'Escape'
+ * @param {String|String[]} modifiers Can either be shift or control
+ * @param {String} descriptionKey Translation key for shortcut description
+ */
+function addKeyToMap(key, modifiers, descriptionKey) {
+    let shortcutKey = [key];
+    if (typeof modifiers === 'string') {
+        shortcutKey.unshift(modifiers);
+    } else if (Array.isArray(modifiers)) {
+        shortcutKey = [...modifiers, ...shortcutKey];
+    }
+
+    shortcutKey = shortcutKey.join(' + ');
+    keyboardShortcutMap[shortcutKey] = descriptionKey;
+}
+
+
+/**
  * Subscribes to a keyboard event.
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
  * @param {String|Array} modifiers Can either be shift or control
  * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
+ * @param {String} descriptionKey Translation key for shortcut description
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) {
+function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false, descriptionKey) {
     const keyCode = getKeyCode(key);
     if (events[keyCode] === undefined) {
         events[keyCode] = [];
     }
     events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
+
+    addKeyToMap(key, modifiers, descriptionKey);
     return () => unsubscribe(key);
 }
 
@@ -137,6 +165,7 @@ function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) 
  */
 const KeyboardShortcut = {
     subscribe,
+    getKeyboardShortcutMap,
 };
 
 export default KeyboardShortcut;
