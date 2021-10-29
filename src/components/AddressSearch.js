@@ -41,7 +41,7 @@ class AddressSearch extends React.Component {
 
         this.state = {
             displayDropdownBorder: false,
-        }
+        };
         this.googlePlacesRef = React.createRef();
     }
 
@@ -84,11 +84,11 @@ class AddressSearch extends React.Component {
             this.props.onChangeText('addressState', null);
             this.props.onChangeText('addressZipCode', null);
         }
-    };
+    }
 
     render() {
         return (
-    
+
             // We use the View height to determine if we should hide the border and margin of the listView dropdown
             // to prevent a lingering border when there are no address suggestions
             <View
@@ -120,7 +120,7 @@ class AddressSearch extends React.Component {
                         errorText: this.props.errorText,
                         onChangeText: (text) => {
                             const isTextValid = !_.isEmpty(text) && _.isEqual(text, this.props.value);
-    
+
                             // Ensure whether an address is selected already or has address value initialized.
                             if (!_.isEmpty(this.googlePlacesRef.current.getAddressText()) && !isTextValid) {
                                 this.saveLocationDetails({});
@@ -149,7 +149,7 @@ class AddressSearch extends React.Component {
             </View>
         );
     }
-};
+}
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;
