@@ -824,6 +824,8 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
 function deleteBankAccount(bankAccountID) {
     API.DeleteBankAccount({
         bankAccountID,
+    }).then(() => {
+        Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: null});
     });
 }
 
