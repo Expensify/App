@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState, useRef} from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import {LogBox, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -35,18 +35,25 @@ const defaultProps = {
     containerStyles: null,
 };
 
-const AddressSearch = (props) => {
-    const googlePlacesRef = useRef();
-    const [display, setDisplay] = useState(false);
-    useEffect(() => {
-        if (!googlePlacesRef.current) {
+class AddressSearch extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            displayDropdownBorder: false,
+        }
+        this.googlePlacesRef = React.createRef();
+    }
+
+    componentDidMount() {
+        if (!this.googlePlacesRef.current) {
             return;
         }
 
-        googlePlacesRef.current.setAddressText(props.value);
-    }, []);
+        this.googlePlacesRef.current.setAddressText(this.props.value);
+    }
 
-    const saveLocationDetails = (details) => {
+    saveLocationDetails(details) {
         const addressComponents = details.address_components;
         if (isAddressValidForVBA(addressComponents)) {
             // Gather the values from the Google details
@@ -61,10 +68,10 @@ const AddressSearch = (props) => {
             const zipCode = getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
-            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            props.onChangeText('addressCity', city);
-            props.onChangeText('addressState', state);
-            props.onChangeText('addressZipCode', zipCode);
+            this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
+            this.props.onChangeText('addressCity', city);
+            this.props.onChangeText('addressState', state);
+            this.props.onChangeText('addressZipCode', zipCode);
         } else {
             // Clear the values associated to the address, so our validations catch the problem
             Log.hmmm('[AddressSearch] Search result failed validation: ', {
@@ -72,74 +79,76 @@ const AddressSearch = (props) => {
                 address_components: addressComponents,
                 place_id: details.place_id,
             });
-            props.onChangeText('addressStreet', null);
-            props.onChangeText('addressCity', null);
-            props.onChangeText('addressState', null);
-            props.onChangeText('addressZipCode', null);
+            this.props.onChangeText('addressStreet', null);
+            this.props.onChangeText('addressCity', null);
+            this.props.onChangeText('addressState', null);
+            this.props.onChangeText('addressZipCode', null);
         }
     };
 
-    return (
-
-        // We use the View height to determine if we should hide the border and margin of the listView dropdown
-        // to prevent a lingering border when there are no address suggestions
-        <View
-            onLayout={(event) => {
-                const {height} = event.nativeEvent.layout;
-                return height > 74 ? setDisplay(true) : setDisplay(false);
-            }}
-        >
-            <GooglePlacesAutocomplete
-                ref={googlePlacesRef}
-                fetchDetails
-                suppressDefaultStyles
-                enablePoweredByContainer={false}
-                onPress={(data, details) => saveLocationDetails(details)}
-                query={{
-                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                    language: props.preferredLocale,
-                    types: 'address',
-                    components: 'country:us',
+    render() {
+        return (
+    
+            // We use the View height to determine if we should hide the border and margin of the listView dropdown
+            // to prevent a lingering border when there are no address suggestions
+            <View
+                onLayout={(event) => {
+                    const {height} = event.nativeEvent.layout;
+                    return height > 74 ? this.setState({displayDropdownBorder: true}) : this.setState({displayDropdownBorder: false});
                 }}
-                requestUrl={{
-                    useOnPlatform: 'web',
-                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
-                }}
-                textInputProps={{
-                    InputComp: ExpensiTextInput,
-                    label: props.label,
-                    containerStyles: props.containerStyles,
-                    errorText: props.errorText,
-                    onChangeText: (text) => {
-                        const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
-
-                        // Ensure whether an address is selected already or has address value initialized.
-                        if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
-                            saveLocationDetails({});
-                        }
-                    },
-                }}
-                styles={{
-                    textInputContainer: [styles.flexColumn],
-                    listView: [
-                        display && styles.borderTopRounded,
-                        display && styles.borderBottomRounded,
-                        display && styles.mt1,
-                        styles.overflowAuto,
-                        styles.borderLeft,
-                        styles.borderRight,
-                    ],
-                    row: [
-                        styles.pv4,
-                        styles.ph3,
-                        styles.overflowAuto,
-                    ],
-                    description: [styles.googleSearchText],
-                    separator: [styles.googleSearchSeparator],
-                }}
-            />
-        </View>
-    );
+            >
+                <GooglePlacesAutocomplete
+                    ref={this.googlePlacesRef}
+                    fetchDetails
+                    suppressDefaultStyles
+                    enablePoweredByContainer={false}
+                    onPress={(data, details) => this.saveLocationDetails(details)}
+                    query={{
+                        key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                        language: this.props.preferredLocale,
+                        types: 'address',
+                        components: 'country:us',
+                    }}
+                    requestUrl={{
+                        useOnPlatform: 'web',
+                        url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                    }}
+                    textInputProps={{
+                        InputComp: ExpensiTextInput,
+                        label: this.props.label,
+                        containerStyles: this.props.containerStyles,
+                        errorText: this.props.errorText,
+                        onChangeText: (text) => {
+                            const isTextValid = !_.isEmpty(text) && _.isEqual(text, this.props.value);
+    
+                            // Ensure whether an address is selected already or has address value initialized.
+                            if (!_.isEmpty(this.googlePlacesRef.current.getAddressText()) && !isTextValid) {
+                                this.saveLocationDetails({});
+                            }
+                        },
+                    }}
+                    styles={{
+                        textInputContainer: [styles.flexColumn],
+                        listView: [
+                            this.state.displayDropdownBorder && styles.borderTopRounded,
+                            this.state.displayDropdownBorder && styles.borderBottomRounded,
+                            this.state.displayDropdownBorder && styles.mt1,
+                            styles.overflowAuto,
+                            styles.borderLeft,
+                            styles.borderRight,
+                        ],
+                        row: [
+                            styles.pv4,
+                            styles.ph3,
+                            styles.overflowAuto,
+                        ],
+                        description: [styles.googleSearchText],
+                        separator: [styles.googleSearchSeparator],
+                    }}
+                />
+            </View>
+        );
+    }
 };
 
 AddressSearch.propTypes = propTypes;
