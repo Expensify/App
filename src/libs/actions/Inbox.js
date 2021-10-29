@@ -18,6 +18,7 @@ import * as Report from './Report';
 function requestInboxCall({
     taskID, policyID, firstName, lastName, phoneNumber, email,
 }) {
+    Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
     Inbox_CallUser({
         policyID,
         firstName,
@@ -26,7 +27,6 @@ function requestInboxCall({
         taskID,
     })
         .then((result) => {
-            Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
             if (result.jsonCode === 200) {
                 Growl.success(translateLocal('requestCallPage.growlMessageOnSave'));
                 Report.fetchOrCreateChatReport([email, CONST.EMAIL.CONCIERGE], true);
