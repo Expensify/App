@@ -80,12 +80,13 @@ const AddressSearch = (props) => {
     };
 
     return (
-        <View 
-            // We use the View height to determine if we should hide the border and margin of the listView dropdown
-            // to prevent a lingering border when there are no address suggestions
+
+        // We use the View height to determine if we should hide the border and margin of the listView dropdown
+        // to prevent a lingering border when there are no address suggestions
+        <View
             onLayout={(event) => {
                 const {height} = event.nativeEvent.layout;
-                height > 74 ? setDisplay(true) : setDisplay(false);
+                return height > 74 ? setDisplay(true) : setDisplay(false);
             }}
         >
             <GooglePlacesAutocomplete
@@ -111,7 +112,7 @@ const AddressSearch = (props) => {
                     errorText: props.errorText,
                     onChangeText: (text) => {
                         const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
-    
+
                         // Ensure whether an address is selected already or has address value initialized.
                         if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
                             saveLocationDetails({});
