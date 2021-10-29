@@ -97,6 +97,8 @@ function getKeyCode(key) {
             return 13;
         case 'Escape':
             return 27;
+        case '?':
+            return 191;
         default:
             return key.charCodeAt(0);
     }
