@@ -37,7 +37,6 @@ const defaultProps = {
 
 // Do not convert to class component! setAddressText only works in functional components!
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
-
 const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
