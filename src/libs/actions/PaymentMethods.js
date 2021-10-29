@@ -11,8 +11,10 @@ import Navigation from '../Navigation/Navigation';
 import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '../CardUtils';
 
 function deleteDebitCard(fundID) {
-    return API.DeleteFund({fundID}).then(() => {
-        Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
+    return API.DeleteFund({fundID}).then((response) => {
+        if (response.jsonCode === 200) {
+            Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
+        }
     });
 }
 
