@@ -102,7 +102,7 @@ class SetPasswordPage extends Component {
     }
 
     render() {
-        const sessionError = this.props.translate(this.props.session.error);
+        const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
         const error = sessionError || this.props.account.error;
         return (
             <SafeAreaView style={[styles.signInPage]}>

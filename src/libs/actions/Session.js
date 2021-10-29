@@ -293,8 +293,6 @@ function resetPassword() {
  * @param {String} accountID
  */
 function setPassword(password, validateCode, accountID) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
-
     API.SetPassword({
         password,
         validateCode,
@@ -313,9 +311,6 @@ function setPassword(password, validateCode, accountID) {
             if (response.title === CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
             }
-        })
-        .finally(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
         });
 }
 
@@ -396,14 +391,15 @@ function changePasswordAndSignIn(authToken, password) {
  * @param {String} password
  */
 function validateEmail(accountID, validateCode, password) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+
     API.ValidateEmail({
         accountID,
         validateCode,
     })
         .then((responseValidate) => {
             if (responseValidate.jsonCode === 200) {
-                changePasswordAndSignIn(responseValidate.authToken, password);
-                return;
+                return changePasswordAndSignIn(responseValidate.authToken, password);
             }
 
             if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
