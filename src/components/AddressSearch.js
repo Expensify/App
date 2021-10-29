@@ -45,7 +45,7 @@ class AddressSearch extends React.Component {
         this.googlePlacesRef = React.createRef();
     }
 
-    componentDidMount() {
+    componentDidUpdate() {
         if (!this.googlePlacesRef.current) {
             return;
         }
