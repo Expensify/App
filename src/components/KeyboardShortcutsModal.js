@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import {View, Text} from 'react-native';
 import _ from 'underscore';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
@@ -13,12 +12,6 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
 
-    /** Flag to visibility of shortcuts modal */
-    isOpen: PropTypes.bool.isRequired,
-
-    /** function to send the updated visibility flag to parent */
-    toggleKeyboardShortcutModal: PropTypes.func.isRequired,
-
     /** prop to fetch screen width */
     ...windowDimensionsPropTypes,
 
@@ -27,49 +20,72 @@ const propTypes = {
 
 };
 
-const KeyboardShortcutsModal = ({
-    isOpen, toggleKeyboardShortcutModal, isSmallScreenWidth, translate,
-}) => {
-    const viewStyles = isSmallScreenWidth
-        ? [styles.imageModalImageCenterContainer]
-        : [styles.imageModalImageCenterContainer, {width: 650}];
-    const shortcutMap = KeyboardShortcut.getKeyboardShortcutMap();
+class KeyboardShortcutsModal extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const shortcuts = [];
-    _.each(shortcutMap, (descriptionKey, key) => {
-        shortcuts.push({key, descriptionKey});
-    });
+        this.state = {
+            isOpen: false,
+        };
+    }
 
+    componentDidMount() {
+        this.unsubscribeShortCutModal = KeyboardShortcut.subscribe('?', () => {
+            this.toggleKeyboardShortcutModal(true);
+        }, [], false, 'openShortcutDialog');
+    }
 
-    const renderRow = shortcut => (
-        <View style={[styles.flex1, styles.alignSelfStretch, styles.flexRow, {borderColor: 'grey', borderWidth: 1}]} key={shortcut.key}>
-            <View style={[styles.flex1, styles.p2, {width: '30%', backgroundColor: '#efefef'}]}>
-                <Text>{shortcut.key}</Text>
-            </View>
-            <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
-                <Text>{translate(`keyboardShortCutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
-            </View>
-        </View>
-    );
+    /**
+     * Set flag for model visibility
+     * @param {Boolean} flag
+     */
+    toggleKeyboardShortcutModal(flag) {
+        this.setState({isOpen: flag});
+    }
 
-
-    return (
-        <Modal isVisible={isOpen} modalType={CONST.MODAL.MODAL_TYPE.CENTERED} onClose={() => toggleKeyboardShortcutModal(false)}>
-            <View style={viewStyles}>
-                <HeaderWithCloseButton title="Keyboard Shortcuts" onCloseButtonPress={() => toggleKeyboardShortcutModal(false)} />
-                <Text>Sub title</Text>
-
-                <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, {
-                    width: '100%', borderColor: 'grey', borderRadius: 8, borderWidth: 1,
-                }]}
-                >
-                    {shortcuts.map(shortcut => (renderRow(shortcut)))}
+    renderRow(shortcut) {
+        return (
+            <View style={[styles.flex1, styles.alignSelfStretch, styles.flexRow, {borderColor: 'grey', borderWidth: 1}]} key={shortcut.key}>
+                <View style={[styles.flex1, styles.p2, {width: '30%', backgroundColor: '#efefef'}]}>
+                    <Text>{shortcut.key}</Text>
                 </View>
-
+                <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
+                    <Text>{this.props.translate(`keyboardShortCutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
+                </View>
             </View>
-        </Modal>
-    );
-};
+        );
+    }
+
+
+    render() {
+        const viewStyles = this.props.isSmallScreenWidth
+            ? [styles.imageModalImageCenterContainer]
+            : [styles.imageModalImageCenterContainer, {width: 650}];
+        const shortcutMap = KeyboardShortcut.getKeyboardShortcutMap();
+
+        const shortcuts = [];
+        _.each(shortcutMap, (descriptionKey, key) => {
+            shortcuts.push({key, descriptionKey});
+        });
+
+        return (
+            <Modal isVisible={this.state.isOpen} modalType={CONST.MODAL.MODAL_TYPE.CENTERED} onClose={() => this.toggleKeyboardShortcutModal(false)}>
+                <View style={viewStyles}>
+                    <HeaderWithCloseButton title={this.props.translate('keyboardShortCutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
+                    <Text>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
+
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, {
+                        width: '100%', borderColor: 'grey', borderRadius: 8, borderWidth: 1,
+                    }]}
+                    >
+                        {shortcuts.map(shortcut => (this.renderRow(shortcut)))}
+                    </View>
+
+                </View>
+            </Modal>
+        );
+    }
+}
 
 KeyboardShortcutsModal.propTypes = propTypes;
 

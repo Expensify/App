@@ -7,6 +7,7 @@ import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import HeaderGap from './HeaderGap';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
 import Navigation from '../libs/Navigation/Navigation';
@@ -60,8 +61,10 @@ const defaultProps = {
 class ScreenWrapper extends React.Component {
     constructor(props) {
         super(props);
+
         this.state = {
             didScreenTransitionEnd: false,
+            isKeyboardShortcutsModalOpen: false,
         };
     }
 
@@ -85,6 +88,14 @@ class ScreenWrapper extends React.Component {
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
         }
+        if (this.unsubscribeShortCutModal) {
+            this.unsubscribeShortCutModal();
+        }
+    }
+
+
+    toggleKeyboardShortcutModal(flag) {
+        this.setState({isKeyboardShortcutsModalOpen: flag});
     }
 
     render() {
@@ -118,6 +129,8 @@ class ScreenWrapper extends React.Component {
                                     })
                                     : this.props.children
                             }
+                            <KeyboardShortcutsModal toggleKeyboardShortcutModal={this.toggleKeyboardShortcutModal} isOpen={this.state.isKeyboardShortcutsModalOpen} />
+
                         </View>
                     );
                 }}
