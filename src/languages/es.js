@@ -764,13 +764,13 @@ export default {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
     },
     keyboardShortCutModal: {
-        title: 'Keyboard Shortcuts',
-        subtitle: 'Do you expense reports faster with these handy keyboard shortcuts',
+        title: 'Atajos de teclado',
+        subtitle: '¿Realiza informes de gastos más rápido con estos prácticos atajos de teclado?',
         shortcuts: {
-            openShortcutDialog: 'Opens the keyboard shortcuts dialog',
-            escape: 'Escape Dialogs',
-            search: 'Open search dialog',
-            newGroup: 'New group screen',
+            openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            escape: 'Diálogos de escape',
+            search: 'Abrir diálogo de búsqueda',
+            newGroup: 'Nueva pantalla de grupo',
         },
     },
 };
