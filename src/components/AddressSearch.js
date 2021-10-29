@@ -40,7 +40,7 @@ class AddressSearch extends React.Component {
         super(props);
 
         this.state = {
-            displayDropdownBorder: false,
+            displayListViewBorder: false,
         };
         this.googlePlacesRef = React.createRef();
     }
@@ -94,7 +94,7 @@ class AddressSearch extends React.Component {
             <View
                 onLayout={(event) => {
                     const {height} = event.nativeEvent.layout;
-                    return height > 74 ? this.setState({displayDropdownBorder: true}) : this.setState({displayDropdownBorder: false});
+                    return height > 74 ? this.setState({displayListViewBorder: true}) : this.setState({displayListViewBorder: false});
                 }}
             >
                 <GooglePlacesAutocomplete
@@ -130,9 +130,9 @@ class AddressSearch extends React.Component {
                     styles={{
                         textInputContainer: [styles.flexColumn],
                         listView: [
-                            this.state.displayDropdownBorder && styles.borderTopRounded,
-                            this.state.displayDropdownBorder && styles.borderBottomRounded,
-                            this.state.displayDropdownBorder && styles.mt1,
+                            this.state.displayListViewBorder && styles.borderTopRounded,
+                            this.state.displayListViewBorder && styles.borderBottomRounded,
+                            this.state.displayListViewBorder && styles.mt1,
                             styles.overflowAuto,
                             styles.borderLeft,
                             styles.borderRight,
