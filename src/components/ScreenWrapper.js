@@ -64,7 +64,6 @@ class ScreenWrapper extends React.Component {
 
         this.state = {
             didScreenTransitionEnd: false,
-            isKeyboardShortcutsModalOpen: false,
         };
     }
 
@@ -88,14 +87,6 @@ class ScreenWrapper extends React.Component {
         if (this.unsubscribeTransitionEnd) {
             this.unsubscribeTransitionEnd();
         }
-        if (this.unsubscribeShortCutModal) {
-            this.unsubscribeShortCutModal();
-        }
-    }
-
-
-    toggleKeyboardShortcutModal(flag) {
-        this.setState({isKeyboardShortcutsModalOpen: flag});
     }
 
     render() {
@@ -129,7 +120,7 @@ class ScreenWrapper extends React.Component {
                                     })
                                     : this.props.children
                             }
-                            <KeyboardShortcutsModal toggleKeyboardShortcutModal={this.toggleKeyboardShortcutModal} isOpen={this.state.isKeyboardShortcutsModalOpen} />
+                            <KeyboardShortcutsModal />
 
                         </View>
                     );
