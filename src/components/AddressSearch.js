@@ -86,7 +86,7 @@ const AddressSearch = (props) => {
 
         // We use the View height to determine if we should hide the border and margin of the listView dropdown
         // to prevent a lingering border when there are no address suggestions.
-        // The height of the input + error message is 94 pixels
+        // The height of the input + wrapped error message is 112 pixels
         <View
             onLayout={(event) => {
                 const {height} = event.nativeEvent.layout;
