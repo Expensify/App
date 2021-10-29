@@ -13,6 +13,7 @@ import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import {isValidLengthForFirstOrLastName} from '../ValidationUtils';
+import Navigation from '../Navigation/Navigation';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -233,8 +234,9 @@ function mergeLocalPersonalDetails(details) {
  *
  * @param {Object} details
  * @param {boolean} shouldGrowl
+ * @param {boolean} closeModal
  */
-function setPersonalDetails(details, shouldGrowl) {
+function setPersonalDetails(details, shouldGrowl, closeModal = false) {
     API.PersonalDetails_Update({details: JSON.stringify(details)})
         .then((response) => {
             if (response.jsonCode === 200) {
@@ -245,6 +247,10 @@ function setPersonalDetails(details, shouldGrowl) {
 
                 if (shouldGrowl) {
                     Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                }
+
+                if (closeModal) {
+                    Navigation.dismissModal();
                 }
             } else if (response.jsonCode === 400) {
                 Growl.error(translateLocal('personalDetails.error.firstNameLength'), 3000);

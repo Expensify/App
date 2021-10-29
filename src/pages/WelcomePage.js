@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Text from '../components/Text';
@@ -16,6 +17,8 @@ import AvatarWithImagePicker from '../components/AvatarWithImagePicker';
 import {
     setAvatar,
     deleteAvatar,
+    getFirstAndLastNameErrors,
+    setPersonalDetails,
 } from '../libs/actions/PersonalDetails';
 import currentUserPersonalDetailsPropsTypes from './settings/Profile/currentUserPersonalDetailsPropsTypes';
 import compose from '../libs/compose';
@@ -47,16 +50,38 @@ class WelcomePage extends React.Component {
             // avatar: '',
             firstName: '',
             lastName: '',
-
-            // secondaryLogin: '',
             errors: {
             //     avatar: false,
-                firstName: false,
-                lastName: false,
-
-            //     secondaryLogin: false,
+                firstName: '',
+                lastName: '',
             },
         };
+
+        this.submit = this.submit.bind(this);
+        this.validate = this.validate.bind(this);
+    }
+
+    validate() {
+        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+
+        const errors = this.state.errors;
+        errors.firstName = firstNameError;
+        errors.lastName = lastNameError;
+
+        return _.isEmpty(firstNameError) && _.isEmpty(lastNameError);
+    }
+
+    submit() {
+        if (!this.validate()) {
+            return;
+        }
+
+        const {firstName, lastName} = this.state;
+
+        setPersonalDetails({
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+        }, true, true);
     }
 
     render() {
@@ -93,26 +118,25 @@ class WelcomePage extends React.Component {
                                 <ExpensiTextInput
                                     label={this.props.translate('common.firstName')}
                                     value={this.state.firstName}
-                                    hasError={this.state.errors.firstName}
+                                    hasError={Boolean(this.state.errors.firstName)}
+                                    errorText={this.state.errors.firstName}
                                 />
                             </View>
                             <View style={[styles.mb5]}>
                                 <ExpensiTextInput
                                     label={this.props.translate('common.lastName')}
                                     value={this.state.lastName}
-                                    hasError={this.state.errors.lastName}
+                                    hasError={Boolean(this.state.errors.lastName)}
+                                    errorText={this.state.errors.lastName}
                                 />
                             </View>
-                            <View style={[styles.mb5]}>
-                                <ExpensiTextInput value={this.state.firstName} />
-                            </View>
-
                         </ScrollView>
                         <FixedFooter>
                             <Button
                                 success
                                 style={[styles.w100]}
                                 text={this.props.translate('welcomeScreen.getStarted')}
+                                onPress={this.submit}
                             />
                         </FixedFooter>
                     </KeyboardAvoidingView>
