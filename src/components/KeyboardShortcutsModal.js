@@ -57,8 +57,8 @@ class KeyboardShortcutsModal extends React.PureComponent {
 
     renderRow(shortcut) {
         return (
-            <View style={[styles.flex1, styles.alignSelfStretch, styles.flexRow, {borderColor: 'grey', borderWidth: 1}]} key={shortcut.key}>
-                <View style={[styles.flex1, styles.p2, {width: '30%', backgroundColor: '#efefef'}]}>
+            <View style={[styles.keyboardShortcutTableRow]} key={shortcut.key}>
+                <View style={[styles.dFlex, styles.p2, styles.keyboardShortcutTablePrefix]}>
                     <Text>{shortcut.key}</Text>
                 </View>
                 <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
@@ -83,12 +83,14 @@ class KeyboardShortcutsModal extends React.PureComponent {
                 onClose={() => this.toggleKeyboardShortcutModal(false)}
             >
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortCutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
-                <Text style={styles.p5}>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
-                <View style={[getKeyboardShortcutModalStyle(this.props.isSmallScreenWidth), styles.p5]}>
-                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.keyboardShortcutTableContainer]}>
-                        {shortcuts.map(shortcut => (this.renderRow(shortcut)))}
-                    </View>
+                <View style={styles.p5}>
+                    <Text style={styles.mb5}>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
+                    <View style={[getKeyboardShortcutModalStyle(this.props.isSmallScreenWidth)]}>
+                        <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
+                            {shortcuts.map(shortcut => (this.renderRow(shortcut)))}
+                        </View>
 
+                    </View>
                 </View>
             </Modal>
         );

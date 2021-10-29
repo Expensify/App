@@ -2110,10 +2110,26 @@ const styles = {
     },
 
     keyboardShortcutTableContainer: {
+        display: 'flex',
         width: '100%',
-        borderColor: 'grey',
-        borderRadius: 8,
+        borderColor: colors.gray3,
         borderWidth: 1,
+        height: 'auto',
+    },
+
+    keyboardShortcutTableRow: {
+        flex: 1,
+        flexDirection: 'row',
+        borderColor: colors.gray3,
+        borderWidth: 1,
+        maxHeight: 40,
+        alignSelf: 'stretch',
+        borderBottomWidth: 0,
+    },
+
+    keyboardShortcutTablePrefix: {
+        width: '30%',
+        backgroundColor: colors.gray2,
     },
 };
 
@@ -2220,7 +2236,6 @@ function getKeyboardShortcutModalStyle(isSmallScreenWidth) {
         width: isSmallScreenWidth ? '100%' : '90%',
         alignItems: 'center',
         flex: 1,
-        justifyContent: 'center',
     };
 }
 
