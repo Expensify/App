@@ -45,13 +45,9 @@ class WelcomePage extends React.Component {
         super(props);
 
         this.state = {
-            isAvatarUploading: false,
-
-            // avatar: '',
             firstName: '',
             lastName: '',
             errors: {
-            //     avatar: false,
                 firstName: '',
                 lastName: '',
             },
