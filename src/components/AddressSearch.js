@@ -35,6 +35,9 @@ const defaultProps = {
     containerStyles: null,
 };
 
+// Do not convert to class component! setAddressText only works in functional components!
+// Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
+
 const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
@@ -87,7 +90,7 @@ const AddressSearch = (props) => {
         <View
             onLayout={(event) => {
                 const {height} = event.nativeEvent.layout;
-                return height > 94 ? setDisplayListViewBorder(true) : setDisplayListViewBorder(false);
+                return height > 112 ? setDisplayListViewBorder(true) : setDisplayListViewBorder(false);
             }}
         >
             <GooglePlacesAutocomplete
