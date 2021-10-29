@@ -89,7 +89,7 @@ class AdditionalDetailsStep extends React.Component {
                 label: props.translate('common.ssnLast4'),
                 fieldName: 'ssn',
                 maxLength: 4,
-                keyboardType: 'number-pad',
+                keyboardType: CONST.KEYBOARD_TYPE.NUMBER_PAD,
             },
         ];
 
