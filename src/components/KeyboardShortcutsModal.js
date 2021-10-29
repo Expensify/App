@@ -9,6 +9,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
+import getOperatingSystem from '../libs/getOperatingSystem';
 
 const propTypes = {
 
@@ -20,7 +21,7 @@ const propTypes = {
 
 };
 
-class KeyboardShortcutsModal extends React.Component {
+class KeyboardShortcutsModal extends React.PureComponent {
     constructor(props) {
         super(props);
 
@@ -30,10 +31,21 @@ class KeyboardShortcutsModal extends React.Component {
     }
 
     componentDidMount() {
+        let shortcutModifiers = ['control'];
+        if (getOperatingSystem() === CONST.OS.MAC_OS) {
+            shortcutModifiers = ['meta'];
+        }
         this.unsubscribeShortCutModal = KeyboardShortcut.subscribe('?', () => {
             this.toggleKeyboardShortcutModal(true);
-        }, [], false, 'openShortcutDialog');
+        }, shortcutModifiers, false, 'openShortcutDialog');
     }
+
+    componentWillUnmount() {
+        if (this.unsubscribeShortCutModal) {
+            this.unsubscribeShortCutModal();
+        }
+    }
+
 
     /**
      * Set flag for model visibility
@@ -69,7 +81,7 @@ class KeyboardShortcutsModal extends React.Component {
         });
 
         return (
-            <Modal isVisible={this.state.isOpen} modalType={CONST.MODAL.MODAL_TYPE.CENTERED} onClose={() => this.toggleKeyboardShortcutModal(false)}>
+            <Modal isVisible={this.state.isOpen} type={CONST.MODAL.MODAL_TYPE.CENTERED} onClose={() => this.toggleKeyboardShortcutModal(false)}>
                 <View style={viewStyles}>
                     <HeaderWithCloseButton title={this.props.translate('keyboardShortCutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
                     <Text>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
