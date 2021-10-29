@@ -103,7 +103,7 @@ class WelcomePage extends React.Component {
 
                             <View style={[styles.m5]}>
                                 <AvatarWithImagePicker
-                                    isUploading={this.state.isAvatarUploading}
+                                    isUploading={this.props.myPersonalDetails.avatarUploading}
                                     avatarURL={this.props.myPersonalDetails.avatar}
                                     onImageSelected={setAvatar}
                                     onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
@@ -118,6 +118,7 @@ class WelcomePage extends React.Component {
                                 <ExpensiTextInput
                                     label={this.props.translate('common.firstName')}
                                     value={this.state.firstName}
+                                    onChangeText={firstName => this.setState({firstName})}
                                     hasError={Boolean(this.state.errors.firstName)}
                                     errorText={this.state.errors.firstName}
                                 />
@@ -126,6 +127,7 @@ class WelcomePage extends React.Component {
                                 <ExpensiTextInput
                                     label={this.props.translate('common.lastName')}
                                     value={this.state.lastName}
+                                    onChangeText={lastName => this.setState({lastName})}
                                     hasError={Boolean(this.state.errors.lastName)}
                                     errorText={this.state.errors.lastName}
                                 />
@@ -154,9 +156,6 @@ export default compose(
     withOnyx({
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        user: {
-            key: ONYXKEYS.USER,
         },
     }),
 )(WelcomePage);
