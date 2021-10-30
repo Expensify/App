@@ -3,6 +3,7 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import styles, {getSafeAreaMargins} from '../../../styles/styles';
 import ONYXKEYS from '../../../ONYXKEYS';
 import safeAreaInsetPropTypes from '../../safeAreaInsetPropTypes';
@@ -22,7 +23,6 @@ import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
-import lodashGet from 'lodash/get';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -41,12 +41,6 @@ const propTypes = {
         reportName: PropTypes.string,
         unreadActionCount: PropTypes.number,
     })),
-
-    /** List of draft comments. We don't know the shape, since the keys include the report numbers */
-    draftComments: PropTypes.objectOf(PropTypes.string),
-
-    /** List of reports that have a draft comment. */
-    reportsWithDraft: PropTypes.objectOf(PropTypes.bool),
 
     /** List of users' personal details */
     personalDetails: PropTypes.objectOf(participantPropTypes),
@@ -86,8 +80,6 @@ const propTypes = {
 
 const defaultProps = {
     reports: {},
-    draftComments: {},
-    reportsWithDraft: {},
     personalDetails: {},
     myPersonalDetails: {
         avatar: getDefaultAvatar(),
@@ -100,14 +92,13 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            orderedReports: []
-        };
+    static getUnreadReports(props) {
+        return Object.entries(props.reports)
+            .map(x => x[1])
+            .filter(x => x.unreadActionCount > 0);
     }
 
-    getRecentReports(props) {
+    static getRecentReports(props) {
         const activeReportID = parseInt(props.currentlyViewedReportID, 10);
         const {recentReports} = getSidebarOptions(
             props.reports,
@@ -117,29 +108,10 @@ class SidebarLinks extends React.Component {
             props.priorityMode,
             props.betas,
         );
-        return recentReports
+        return recentReports;
     }
 
-    componentDidMount() {
-        this.setState({
-            orderedReports: this.getRecentReports(this.props)
-        });
-    }
-
-    componentWillReceiveProps(nextProps) {
-        const shouldReorder = this.shouldReorder(nextProps);
-        const recentReports = this.getRecentReports(nextProps);
-        const orderedReports = shouldReorder
-            ? recentReports
-            : this.state.orderedReports.map(ordRep => 
-                recentReports.filter(recRep => ordRep.reportID == recRep.reportID)[0]);
-        
-        this.setState({        
-            orderedReports: orderedReports
-        });
-    }
-
-    shouldReorder(nextProps) {
+    static shouldReorder(nextProps, currentlyViewedReportID, unreadReports) {
         // We do not want to re-order reports in the LHN if the only change is the draft comment in the
         // current report.
 
@@ -148,20 +120,51 @@ class SidebarLinks extends React.Component {
             return true;
         }
 
-        const didActiveReportChange = this.props.currentlyViewedReportID !== nextProps.currentlyViewedReportID;
+        const didActiveReportChange = currentlyViewedReportID !== nextProps.currentlyViewedReportID;
 
         // Always re-order the list whenever the active report is changed
         if (didActiveReportChange) {
             return true;
         }
 
+        // If any reports have new unread messages, re-order the list
+        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps);
+        if (nextUnreadReports.length > 0 && nextUnreadReports.some(x => !unreadReports.some(y => x.reportID === y.reportID))) {
+            return true;
+        }
+
         // Never re-order if the active report has a draft and vice versa
         if (nextProps.currentlyViewedReportID) {
-            const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false)
+            const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
             return !hasActiveReportDraft;
         }
 
         return true;
+    }
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            orderedReports: [],
+            currentlyViewedReportID: props.currentlyViewedReportID,
+            unreadReports: props?.reports?.length > 0 ? SidebarLinks.getUnreadReports(props) : [],
+        };
+    }
+
+    static getDerivedStateFromProps(nextProps, prevState) {
+        const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const recentReports = SidebarLinks.getRecentReports(nextProps);
+        const orderedReports = shouldReorder
+            ? recentReports
+            : prevState.orderedReports.map(
+                ordRep => recentReports.filter(recRep => ordRep.reportID === recRep.reportID)[0],
+            );
+
+        return {
+            orderedReports,
+            currentlyViewedReportID: nextProps.currentlyViewedReportID,
+            unreadReports: SidebarLinks.getUnreadReports(nextProps),
+        };
     }
 
     showSearchPage() {
@@ -290,6 +293,6 @@ export default compose(
         },
         reportsWithDraft: {
             key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
-        }
+        },
     }),
 )(SidebarLinks);
