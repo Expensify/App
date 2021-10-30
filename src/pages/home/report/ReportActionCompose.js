@@ -332,8 +332,18 @@ class ReportActionCompose extends React.Component {
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
+
+        // Indicate that draft has been created.
+        if (this.comment.length === 0 && newComment.length !== 0) {
+            setReportWithDraft(this.props.reportID.toString(), true);
+        }
+
+        // The draft has been deleted.
+        if (newComment.length === 0) {
+            setReportWithDraft(this.props.reportID.toString(), false);
+        }
+
         this.comment = newComment;
-        setReportWithDraft(this.props.reportID.toString(), newComment.length !== 0);
         this.debouncedSaveReportComment(newComment);
         if (newComment) {
             this.debouncedBroadcastUserIsTyping();
