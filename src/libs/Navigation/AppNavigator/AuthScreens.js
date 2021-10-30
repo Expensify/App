@@ -109,12 +109,17 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
+
+    /** Whether betas are loading */
+    isLoadingBetas: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
-    isLoadingBetas: true,
 };
 
 class AuthScreens extends React.Component {
@@ -199,7 +204,7 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
+        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth || nextProps.isLoadingBetas !== this.props.isLoadingBetas;
     }
 
     componentDidUpdate(prevProps) {
