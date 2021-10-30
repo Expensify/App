@@ -246,7 +246,7 @@ export default withOnyx({
 ```
 
 ## Things to know or brush up on before jumping into the code
-1. The major difference between React Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. If you learn React, you've already learned 98% of React-Native.
+1. The major difference between React Native and React are the [components](https://reactnative.dev/docs/components-and-apis) that are used in the `render()` method. Everything else is exactly the same. Any React skills you have can be applied to React Native.
 1. The application uses [`react-navigation`](https://reactnavigation.org/) for navigating between parts of the app.
 1. [Higher Order Components](https://reactjs.org/docs/higher-order-components.html) are used to connect React components to persistent storage via [`react-native-onyx`](https://github.com/Expensify/react-native-onyx).
 
