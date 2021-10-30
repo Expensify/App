@@ -14,6 +14,9 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import Permissions from '../Permissions';
+import {setLocale} from './App';
+
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -58,9 +61,36 @@ function changePassword(oldPassword, password) {
 }
 
 function getBetas() {
+    Onyx.set(ONYXKEYS.IS_LOADING_BETAS, true);
     API.User_GetBetas().then((response) => {
         if (response.jsonCode === 200) {
-            Onyx.set(ONYXKEYS.BETAS, response.betas);
+            Onyx.multiSet({
+                [ONYXKEYS.BETAS]: response.betas,
+                [ONYXKEYS.IS_LOADING_BETAS]: null,
+            });
+        }
+    });
+}
+
+/**
+ * Fetches the User's preferred Locale and set the app locale if not same.
+ *
+ * @param {Array<String>} betas
+ * @param {String} currentPreferredLocale
+ */
+function fetchAndSetPreferredLocale(betas, currentPreferredLocale) {
+    if (!Permissions.canUseInternationalization(betas)) {
+        return;
+    }
+    API.Get({
+        returnValueList: 'nameValuePairs',
+        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    }).then((response) => {
+        const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
+        if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
+            setLocale(currentPreferredLocale);
+        } else {
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
         }
     });
 }
@@ -312,4 +342,5 @@ export {
     setPreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
+    fetchAndSetPreferredLocale,
 };

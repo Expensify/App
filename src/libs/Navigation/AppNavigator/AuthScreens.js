@@ -60,10 +60,7 @@ import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import defaultScreenOptions from './defaultScreenOptions';
-import * as API from '../../API';
-import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
-import Permissions from '../../Permissions';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -117,6 +114,7 @@ const propTypes = {
 
 const defaultProps = {
     network: {isOffline: true},
+    isLoadingBetas: true,
 };
 
 class AuthScreens extends React.Component {
@@ -142,21 +140,6 @@ class AuthScreens extends React.Component {
         // Fetch some data we need on initialization
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
-
-        if (Permissions.canUseInternationalization(this.props.betas)) {
-            API.Get({
-                returnValueList: 'nameValuePairs',
-                nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-            }).then((response) => {
-                const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-                if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
-                    setLocale(currentPreferredLocale);
-                } else {
-                    Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-                }
-            });
-        }
-
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
@@ -217,6 +200,12 @@ class AuthScreens extends React.Component {
 
     shouldComponentUpdate(nextProps) {
         return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isLoadingBetas && !this.props.isLoadingBetas) {
+            User.fetchAndSetPreferredLocale(this.props.betas, currentPreferredLocale);
+        }
     }
 
     componentWillUnmount() {
@@ -391,6 +380,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingBetas: {
+            key: ONYXKEYS.IS_LOADING_BETAS,
         },
     }),
 )(AuthScreens);

@@ -69,6 +69,9 @@ export default {
     SESSION: 'session',
     BETAS: 'betas',
 
+    // Set when we are loading payment methods
+    IS_LOADING_BETAS: 'isLoadingBetas',
+
     // NVP keys
     // Contains the user's payPalMe address
     NVP_PAYPAL_ME_ADDRESS: 'nvp_paypalMeAddress',
