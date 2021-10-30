@@ -63,6 +63,7 @@ const propTypes = {
         }),
     }).isRequired,
 
+    /** Used to track state for the request call form */
     requestCallForm: PropTypes.shape({
         loading: PropTypes.bool,
     }),
