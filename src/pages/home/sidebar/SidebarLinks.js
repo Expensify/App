@@ -12,13 +12,13 @@ import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
 import OptionsList from '../../../components/OptionsList';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
-import {participantPropTypes} from './optionPropTypes';
+import * as optionPropTypes from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
@@ -45,7 +45,7 @@ const propTypes = {
     draftComments: PropTypes.objectOf(PropTypes.string),
 
     /** List of users' personal details */
-    personalDetails: PropTypes.objectOf(participantPropTypes),
+    personalDetails: PropTypes.objectOf(optionPropTypes.participantPropTypes),
 
     /** The personal details of the person who is logged in */
     myPersonalDetails: PropTypes.shape({
@@ -85,7 +85,7 @@ const defaultProps = {
     draftComments: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatar: getDefaultAvatar(),
+        avatar: OptionsListUtils.getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
@@ -114,28 +114,28 @@ class SidebarLinks extends React.Component {
         const previousDraftComments = this.props.draftComments;
         const nextDraftComments = nextProps.draftComments;
 
-        const previousDraftReports = Object.keys(previousDraftComments);
-        const nextDraftReports = Object.keys(nextDraftComments);
+        const previousDraftReports = _.keys(previousDraftComments);
+        const nextDraftReports = _.keys(nextDraftComments);
 
-        const reportsWithNewDraftComments = nextDraftReports.filter((report) => {
-            const isNewDraftComment = !previousDraftReports.includes(report);
+        const reportsWithNewDraftComments = _.filter(nextDraftReports, (report) => {
+            const isNewDraftComment = !_.includes(previousDraftReports, report);
             const wasNonEmptyDraftComment = previousDraftComments[report] === '';
             const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
 
             return isNewDraftComment || (hasDraftCommentChanged && wasNonEmptyDraftComment);
         });
-        const reportsWithRemovedDraftComments = previousDraftReports.filter((report) => {
-            const isRemovedDraftComment = !nextDraftReports.includes(report);
+        const reportsWithRemovedDraftComments = _.filter(previousDraftReports, (report) => {
+            const isRemovedDraftComment = !_.includes(nextDraftReports, report);
             const isEmptyDraftComment = nextDraftComments[report] === '';
             const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
 
             return isRemovedDraftComment || (hasDraftCommentChanged && isEmptyDraftComment);
         });
-        const reportsWithEditedDraftComments = nextDraftReports.filter((report) => {
-            const didDraftCommentExistPreviously = previousDraftReports.includes(report);
+        const reportsWithEditedDraftComments = _.filter(nextDraftReports, (report) => {
+            const didDraftCommentExistPreviously = _.includes(previousDraftReports, report);
             const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
-            const isNotANewDraftComment = !reportsWithNewDraftComments.includes(report);
-            const isNotARemovedDraftComment = !reportsWithRemovedDraftComments.includes(report);
+            const isNotANewDraftComment = !_.includes(reportsWithNewDraftComments, report);
+            const isNotARemovedDraftComment = !_.includes(reportsWithRemovedDraftComments, report);
 
             return didDraftCommentExistPreviously && hasDraftCommentChanged && isNotANewDraftComment && isNotARemovedDraftComment;
         });
@@ -150,13 +150,14 @@ class SidebarLinks extends React.Component {
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${activeReportID}`;
 
         // Do not re-order reports if draft comment changes are only in the current report.
-        if (allReportsWithDraftCommentChanges.length === 1 && allReportsWithDraftCommentChanges.includes(reportKey)) {
+        if (allReportsWithDraftCommentChanges.length === 1 && _.includes(allReportsWithDraftCommentChanges, reportKey)) {
             return false;
         }
         return true;
     }
 
     showSearchPage() {
+        const test = ''.includes('test');
         Navigation.navigate(ROUTES.SEARCH);
     }
 
@@ -168,7 +169,7 @@ class SidebarLinks extends React.Component {
 
         const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
 
-        const {recentReports} = getSidebarOptions(
+        const {recentReports} = OptionsListUtils.getSidebarOptions(
             this.props.reports,
             this.props.personalDetails,
             this.props.draftComments,
@@ -210,7 +211,7 @@ class SidebarLinks extends React.Component {
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
                         >
-                            <Icon src={MagnifyingGlass} />
+                            <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
                     </Tooltip>
                     <TouchableOpacity

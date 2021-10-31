@@ -11,6 +11,5 @@ function addTrailingForwardSlash(url) {
 }
 
 export {
-    // eslint-disable-next-line import/prefer-default-export
     addTrailingForwardSlash,
 };

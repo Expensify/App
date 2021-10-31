@@ -16,14 +16,14 @@ import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestInboxCall} from '../libs/actions/Inbox';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import * as Inbox from '../libs/actions/Inbox';
+import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
-import {getFirstAndLastNameErrors} from '../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -97,12 +97,12 @@ class RequestCallPage extends Component {
             return;
         }
         this.setState({isLoading: true});
-        requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
+        Inbox.requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
             .then((result) => {
                 this.setState({isLoading: false});
                 if (result.jsonCode === 200) {
                     Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
-                    fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
+                    Report.fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
                     return;
                 }
 
@@ -184,7 +184,7 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
@@ -201,7 +201,7 @@ class RequestCallPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
-                        onBackButtonPress={() => fetchOrCreateChatReport([
+                        onBackButtonPress={() => Report.fetchOrCreateChatReport([
                             this.props.session.email,
                             CONST.EMAIL.CONCIERGE,
                         ], true)}

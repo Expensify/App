@@ -1,4 +1,3 @@
-/* eslint-disable  import/prefer-default-export  */
 import Onyx from 'react-native-onyx';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';

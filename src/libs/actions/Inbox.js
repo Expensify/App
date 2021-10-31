@@ -1,7 +1,7 @@
-import {Inbox_CallUser} from '../API';
+import * as API from '../API';
 
 function requestInboxCall(taskID, policyID, firstName, lastName, phoneNumber) {
-    return Inbox_CallUser({
+    return API.Inbox_CallUser({
         policyID,
         firstName,
         lastName,
@@ -10,5 +10,6 @@ function requestInboxCall(taskID, policyID, firstName, lastName, phoneNumber) {
     });
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {requestInboxCall};
+export {
+    requestInboxCall,
+};
