@@ -61,28 +61,27 @@ function changePassword(oldPassword, password) {
 }
 
 function getBetas() {
-    Onyx.set(ONYXKEYS.IS_LOADING_BETAS, true);
-    API.User_GetBetas().then((response) => {
+    return API.User_GetBetas().then((response) => {
         if (response.jsonCode === 200) {
-            Onyx.multiSet({
-                [ONYXKEYS.BETAS]: response.betas,
-                [ONYXKEYS.IS_LOADING_BETAS]: null,
-            });
+            Onyx.set(ONYXKEYS.BETAS, response.betas);
+            return response.betas;
         }
+        return [];
     });
 }
 
 /**
- * Fetches the User's preferred Locale and set the app locale.
- *
- * @param {Array<String>} betas
+ * Fetches betas and User's preferred Locale, then set the app locale.
  * @param {String} currentPreferredLocale
  */
-function fetchAndSetPreferredLocale(betas, currentPreferredLocale) {
-    API.Get({
-        returnValueList: 'nameValuePairs',
-        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    }).then((response) => {
+function fetchBetasAndSetPreferredLocale(currentPreferredLocale) {
+    Promise.all([
+        getBetas(),
+        API.Get({
+            returnValueList: 'nameValuePairs',
+            nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+        }),
+    ]).then((betas, response) => {
         const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
         if (currentPreferredLocale !== CONST.DEFAULT_LOCALE
             && preferredLocale !== currentPreferredLocale
@@ -342,5 +341,5 @@ export {
     setPreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
-    fetchAndSetPreferredLocale,
+    fetchBetasAndSetPreferredLocale,
 };

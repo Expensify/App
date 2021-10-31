@@ -61,6 +61,7 @@ import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import {cleanupSession} from '../../actions/Session';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -79,12 +80,6 @@ Onyx.connect({
             PersonalDetails.setPersonalDetails({timezone});
         }
     },
-});
-
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 const RootStack = createCustomModalStackNavigator();
@@ -109,12 +104,7 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /** Whether betas are loading */
-    isLoadingBetas: PropTypes.bool.isRequired,
-
+    ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
@@ -147,7 +137,7 @@ class AuthScreens extends React.Component {
         NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
-        User.getBetas();
+        User.fetchBetasAndSetPreferredLocale(this.props.preferredLocale);
         User.getDomainInfo();
         PersonalDetails.fetchLocalCurrency();
         fetchAllReports(true, true);
@@ -204,13 +194,7 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth || nextProps.isLoadingBetas !== this.props.isLoadingBetas;
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.isLoadingBetas && !this.props.isLoadingBetas) {
-            User.fetchAndSetPreferredLocale(this.props.betas, currentPreferredLocale);
-        }
+        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
     componentWillUnmount() {
@@ -379,15 +363,10 @@ AuthScreens.propTypes = propTypes;
 AuthScreens.defaultProps = defaultProps;
 export default compose(
     withWindowDimensions,
+    withLocalize,
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-        isLoadingBetas: {
-            key: ONYXKEYS.IS_LOADING_BETAS,
         },
     }),
 )(AuthScreens);

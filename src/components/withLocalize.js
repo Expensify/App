@@ -29,6 +29,9 @@ const withLocalizePropTypes = {
 
     /** Returns an internationally converted phone number with the country code */
     fromLocalPhone: PropTypes.func.isRequired,
+
+    /** The user's preferred locale e.g. 'en', 'es-ES' */
+    preferredLocale: PropTypes.string.isRequired,
 };
 
 const localeProviderPropTypes = {
