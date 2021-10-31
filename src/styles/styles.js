@@ -715,6 +715,7 @@ const styles = {
 
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
     },
 
     signInPageWideHeroContent: {

@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {KeyboardAvoidingView, ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../../../styles/styles';
@@ -31,41 +31,42 @@ const backgroundStyle = backgroundStyles[_.random(0, 3)];
 
 const SignInPageLayoutWide = props => (
     <View style={[styles.flex1, styles.signInPageInner]}>
-        <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
-            <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
-                <View style={[
-                    styles.flex1,
-                    styles.dFlex,
-                    styles.flexColumn,
-                    styles.mt40Percentage,
-                    styles.signInPageFormContainer,
-                    styles.alignSelfCenter,
-                ]}
+        <View style={[styles.flex1, styles.flexRow, styles.flexGrow1]}>
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                style={styles.signInPageWideLeftContainer}
+                contentContainerStyle={[styles.ph6, styles.flexColumn]}
+            >
+                <KeyboardAvoidingView
+                    behavior="position"
+                    style={[
+                        styles.flex1,
+                        styles.mt40Percentage,
+                        styles.alignSelfCenter,
+                        styles.w100,
+                        styles.ph4,
+                    ]}
                 >
-                    <View style={[styles.flex1]}>
-                        <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
-                            <ExpensifyCashLogo
-                                width={variables.componentSizeLarge}
-                                height={variables.componentSizeLarge}
-                            />
-                        </View>
-                        {props.shouldShowWelcomeText && (
+                    <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
+                        <ExpensifyCashLogo
+                            width={variables.componentSizeLarge}
+                            height={variables.componentSizeLarge}
+                        />
+                    </View>
+                    {props.shouldShowWelcomeText && (
                         <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
                             {props.welcomeText}
                         </Text>
-                        )}
-                        <View>
-                            {props.children}
-                        </View>
-                    </View>
-                    <View style={[styles.mv5]}>
-                        <TermsAndLicenses />
-                    </View>
+                    )}
+                    {props.children}
+                </KeyboardAvoidingView>
+                <View style={[styles.mv5, styles.ph4, styles.w100, styles.alignSelfCenter]}>
+                    <TermsAndLicenses />
                 </View>
-            </View>
+            </ScrollView>
             <View style={[
                 styles.flexGrow1,
-                styles.dFlex,
                 styles.flexRow,
                 styles.background100,
                 backgroundStyle,
