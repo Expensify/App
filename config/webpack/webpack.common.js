@@ -26,6 +26,7 @@ const includeModules = [
 
 const webpackConfig = {
     entry: {
+        polyfill: 'babel-polyfill',
         app: './index.js',
     },
     output: {
