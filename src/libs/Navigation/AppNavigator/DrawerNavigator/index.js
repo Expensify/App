@@ -8,8 +8,8 @@ const DrawerNavigator = props => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
 
-        // On mobile web, the non legacy version of the DrawerNavigator breaks the layout on Desktop while resizing
-        // and the drawer gets stuck in an open state when navigating.
+        // On mobile web, the non-legacy (modern) version of the DrawerNavigator has issues opening and closing,
+        // and the legacy version breaks the layout while resizing on desktop and web.
         // eslint-disable-next-line react/jsx-props-no-multi-spaces
         useLegacyImplementation={props.isSmallScreenWidth}
     />
