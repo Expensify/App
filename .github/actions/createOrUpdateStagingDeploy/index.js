@@ -195,12 +195,14 @@ const {execSync} = __nccwpck_require__(3129);
  * @returns {Array}
  */
 function getPullRequestsMergedBetween(fromRef, toRef) {
-    const command = `git log --format="%s" ${fromRef}...${toRef}`;
+    const command = `git log --format="{[%B]}" ${fromRef}...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     const localGitLogs = execSync(command).toString();
+
+    // Remove the PRs which are duplicated by cherry pick
     return _.map(
-        [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
+        [...localGitLogs.matchAll(/{\[Merge pull request #(\d{1,6}) from (?!(?:Expensify\/(?:master|main|version-))|(?:[^(\]})]*\(cherry picked from commit .*\)\s*\]}))/g)],
         match => match[1],
     );
 }
