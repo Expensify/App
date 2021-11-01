@@ -16,7 +16,7 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
 
     // Remove the PRs which are duplicated by cherry pick
     return _.map(
-        [...localGitLogs.matchAll(/{\[Merge pull request #(\d{1,6}) from (?!(?:Expensify\/(?:master|main|version-))|(?:[\s\S]*\(cherry picked from commit .*\)\s\]}))/g)],
+        [...localGitLogs.matchAll(/{\[Merge pull request #(\d{1,6}) from (?!(?:Expensify\/(?:master|main|version-))|(?:[^(\]})]*\(cherry picked from commit .*\)\s*\]}))/g)],
         match => match[1],
     );
 }

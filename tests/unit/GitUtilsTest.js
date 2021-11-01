@@ -71,22 +71,31 @@ const data = [
 
         (cherry picked from commit a77d468)
         ]}
-        {[Merge pull request #5813 from akshayasalvi/tooltip-workspace-name …
+        {[Merge pull request #5813 from Expensify/master …
         42b5016
         Added tooltip for workspace name
 
         (cherry picked from commit a77d468)
         ]}
+        {[Merge pull request #1111 from akshayasalvi/tooltip-workspace-name …
+        42b5016
+        Added tooltip for workspace name
+
+        (something else than cherry pick commit a77d468)
+        ]}
         {[Merge pull request #9 from Expensify/main
         ]}
         {[fix: set pdf width on large screens
         ]}`,
-        result: ['1521', '1557', '1515', '1555'],
+        result: ['1521', '1557', '1515', '1555', '1111'],
     },
     {
-        gitLog: `Return to old hash-based deploy instrcutions
-        Remove DEFAULT_START_DATE & DEFAULT_END_DATE altogether
-        refactor`,
+        gitLog: `{[Return to old hash-based deploy instrcutions
+        ]}
+        {[Remove DEFAULT_START_DATE & DEFAULT_END_DATE altogether
+        ]}
+        {[refactor
+        ]}`,
         result: [],
     },
 ];
