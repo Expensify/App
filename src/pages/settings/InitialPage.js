@@ -181,6 +181,7 @@ const InitialSettingsPage = ({
                                 size="large"
                                 source={myPersonalDetails.avatar}
                                 isActive={network.isOffline === false}
+                                tooltipText={myPersonalDetails.displayName}
                             />
                         </Pressable>
 
