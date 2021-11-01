@@ -2052,6 +2052,10 @@ const styles = {
         height: 20,
     },
 
+    communicationsLinkText: {
+        width: 320,
+    },
+
     reportMarkerBadgeWrapper: {
         position: 'absolute',
         left: '50%',
