@@ -2109,16 +2109,26 @@ const styles = {
         flex: 1,
     },
 
-    addressSearchContainer: {
-        zIndex: 100,
-        elevation: 100,
+    googleContainer: {
+        zIndex: 10,
+        elevation: 10,
     },
 
-    googleSearchContainer: {
+    googleListView: {
         position: 'absolute',
+        top: 68,
         backgroundColor: colors.white,
         width: '100%',
         maxWidth: '100%',
+
+        // Shadow Styles
+        shadowColor: colors.black,
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
     },
 };
 

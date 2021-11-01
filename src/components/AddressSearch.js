@@ -110,8 +110,10 @@ const AddressSearch = (props) => {
                 },
             }}
             styles={{
+                container: [styles.googleContainer],
                 textInputContainer: [styles.flexColumn],
                 listView: [
+                    styles.googleListView,
                     styles.borderTopRounded,
                     styles.borderBottomRounded,
                     styles.mt1,
