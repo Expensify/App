@@ -1002,7 +1002,7 @@ function fetchAllReports(
  *
  * @param {Number} reportID
  * @param {String} text
- * @param {Object} [file]
+ * @param {File} [file]
  */
 function addAction(reportID, text, file) {
     // Convert the comment from MD into HTML because that's how it is stored in the database

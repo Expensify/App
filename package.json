@@ -88,7 +88,7 @@
     "react-native-image-picker": "^4.0.3",
     "react-native-keyboard-spacer": "^0.4.1",
     "react-native-modal": "^11.10.0",
-    "react-native-onyx": "git+https://github.com/kidroca/react-native-onyx.git#b6ad24440fe0b07b314373c1a4cfdf7914febc3f",
+    "react-native-onyx": "git+https://github.com/kidroca/react-native-onyx.git#029a7a9da448f5b8a582055eda034e187a57d80a",
     "react-native-pdf": "^6.2.2",
     "react-native-performance": "^2.0.0",
     "react-native-permissions": "^3.0.1",
