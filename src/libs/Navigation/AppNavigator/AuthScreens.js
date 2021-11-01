@@ -226,10 +226,14 @@ class AuthScreens extends React.Component {
     }
 
     /**
-     * @param {String} url
+     * @param {String} [url]
      * @returns {Boolean}
      */
-    shouldCreateFreePolicy(url) {
+    shouldCreateFreePolicy(url = '') {
+        if (!url) {
+            return false;
+        }
+
         const path = new URL(url).pathname;
         const exitTo = new URLSearchParams(url).get('exitTo');
         return Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
