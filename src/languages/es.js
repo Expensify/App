@@ -233,6 +233,9 @@ export default {
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
         growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
+        online: 'En línea',
+        offline: 'Desconectado',
+        syncing: 'Sincronizando',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
