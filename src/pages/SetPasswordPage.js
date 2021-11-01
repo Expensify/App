@@ -53,7 +53,7 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    route: validateLinkPropTypes,
+    route: validateLinkDefaultProps,
 };
 
 class SetPasswordPage extends Component {
