@@ -194,7 +194,6 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
-        choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
