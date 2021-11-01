@@ -2111,7 +2111,7 @@ const styles = {
 
     googleListView: {
         transform: [{scale: 0}],
-    }
+    },
 };
 
 const baseCodeTagStyles = {
