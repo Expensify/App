@@ -145,8 +145,7 @@ const AddressSearch = (props) => {
                 // We use the height of the element to determine if we should hide the border of the listView dropdown
                 // to prevent a lingering border when there are no address suggestions.
                 // The height of the empty element is 2px (1px height for each top and bottom borders)
-                const {height} = event.nativeEvent.layout;
-                setDisplayListViewBorder(height > 2);
+                setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
             }}
         />
     );
