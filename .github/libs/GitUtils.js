@@ -14,7 +14,10 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
     console.log('Running command: ', command);
     const localGitLogs = execSync(command).toString();
     return _.map(
-        [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
+        _.filter(
+            [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
+            commitMessage => !commitMessage.match(/\(cherry picked from commit/g)
+        ),
         match => match[1],
     );
 }
