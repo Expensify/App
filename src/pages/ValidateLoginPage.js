@@ -1,4 +1,4 @@
-import {Component} from 'react';
+import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import {
     propTypes as validateLinkPropTypes,
