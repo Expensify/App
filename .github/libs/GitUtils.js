@@ -13,6 +13,8 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     const localGitLogs = execSync(command).toString();
+
+    // Filter out merge commits which are introduced by cherry-picking
     return _.map(
         _.filter(
             [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
