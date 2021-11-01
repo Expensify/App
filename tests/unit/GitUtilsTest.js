@@ -22,21 +22,45 @@ const data = [
         result: ['337', '336', '331', '330', '333', '332'],
     },
     {
-        gitLog: `Merge pull request #1521 from parasharrajat/parasharrajat/pdf-render
-        Merge pull request #1563 from Expensify/version-bump-e6498075e301df3e9c8d7866ea391a23c19ed9b0
+        gitLog: `{[Merge pull request #1521 from parasharrajat/parasharrajat/pdf-render
+        ]}
+        {[Merge pull request #1563 from Expensify/version-bump-e6498075e301df3e9c8d7866ea391a23c19ed9b0
         Update version to 1.0.1-470
-        Merge pull request #1557 from aliabbasmalik8/IS-1500-compose-field-alignment-issue
-        Merge pull request #1562 from Expensify/version-bump-b9c85aa97dfb656b01a83871b4bbaed5e287c8b7
+        ]}
+        {[Merge pull request #1557 from aliabbasmalik8/IS-1500-compose-field-alignment-issue
+        ]}
+        {[Merge pull request #1562 from Expensify/version-bump-b9c85aa97dfb656b01a83871b4bbaed5e287c8b7
         Update version to 1.0.1-469
-        Merge pull request #1515 from anthony-hull/typos
+        ]}
+        {[Merge pull request #1515 from anthony-hull/typos
         [IS-1500] Updated textalignInput utility
-        Merge pull request #1560 from Expensify/version-bump-b742a55d18e761cd7adb0849a29cfb48b3a04f99
+        ]}
+        {[Merge pull request #1560 from Expensify/version-bump-b742a55d18e761cd7adb0849a29cfb48b3a04f99
         Update version to 1.0.1-468
-        Merge pull request #1555 from SameeraMadushan/sameera-IsAppInstalledLogic
-        Merge pull request #1 from Expensify/master
-        Merge pull request #2 from Expensify/main
+        ]}
+        {[Merge pull request #1555 from SameeraMadushan/sameera-IsAppInstalledLogic
+        ]}
+        {[Merge pull request #1 from Expensify/master
+        ]}
+        {[Merge pull request #2 from Expensify/main
         fix: set pdf width on large screens
-        [IS-1500] Fixed compose field alignment issue`,
+        [IS-1500] Fixed compose field alignment issue
+        ]}
+        {[Merge pull request #5812 from akshayasalvi/tooltip-workspace-name …
+        42b5016
+        Added tooltip for workspace name
+
+        (cherry picked from commit a77d468)
+        ]}
+        {[Merge pull request #5813 from akshayasalvi/tooltip-workspace-name …
+        42b5016
+        Added tooltip for workspace name
+
+        (cherry picked from commit a77d468)
+        ]}
+        {[Merge pull request #9 from Expensify/main
+        fix: set pdf width on large screens
+        ]}`,
         result: ['1521', '1557', '1515', '1555'],
     },
     {
