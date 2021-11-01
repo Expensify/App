@@ -59,6 +59,7 @@ import {
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
@@ -273,6 +274,14 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     component={MainDrawerNavigator}
+                />
+                <RootStack.Screen
+                    name="ValidateLogin"
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
+                    }}
+                    component={ValidateLoginPage}
                 />
                 <RootStack.Screen
                     name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
