@@ -152,22 +152,51 @@ This layer is solely responsible for:
 - Reflecting exactly the data that is in persistent storage by using `withOnyx()` to bind to Onyx data.
 - Taking user input and passing it to an action
 
-As a convention, the UI layer should never interact with device storage directly or call `Onyx.set()` or `Onyx.merge()`. Use an action! For example, check out this action that is signing in the user [here](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/pages/signin/PasswordForm.js#L78-L78). That action will then call `Onyx.merge()` to [set default data and a loading state, then make an API request, and set the response with another `Onyx.merge()`](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/libs/actions/Session.js#L228-L247). Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place.
+As a convention, the UI layer should never interact with device storage directly or call `Onyx.set()` or `Onyx.merge()`. Use an action! For example, check out this action that is signing in the user [here](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/pages/signin/PasswordForm.js#L78-L78).
 
-In addition, actions that are called from inside views should not ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff should ideally go into `Onyx` and be fed back to the component via `withOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
+```js
+validateAndSubmitForm() {
+    // validate...
+    signIn(this.state.password, this.state.twoFactorAuthCode);
+}
+```
+
+That action will then call `Onyx.merge()` to [set default data and a loading state, then make an API request, and set the response with another `Onyx.merge()`](https://github.com/Expensify/App/blob/919c890cc391ad38b670ca1b266c114c8b3c3285/src/libs/actions/Session.js#L228-L247).
+
+```js
+function signIn(password, twoFactorAuthCode) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {loading: true});
+    API.Authenticate({
+        ...defaultParams,
+        password,
+        twoFactorAuthCode,
+    })
+        .then((response) => {
+            Onyx.merge(ONYXKEYS.SESSION, {authToken: response.authToken});
+        })
+        .catch((error) => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: error.message});
+        })
+        .finally(() => {
+            Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
+        });
+}
+```
+
+Keeping our `Onyx.merge()` out of the view layer and in actions helps organize things as all interactions with device storage and API handling happen in the same place. In addition, actions that are called from inside views should not ever use the `.then()` method to set loading/error states, navigate or do any additional data processing. All of this stuff should ideally go into `Onyx` and be fed back to the component via `withOnyx()`. Design your actions so they clearly describe what they will do and encapsulate all their logic in that action.
 
 ```javascript
 // Bad
-fetchData() {
+validateAndSubmitForm() {
+    // validate...
     this.setState({loading: true});
-    fetchSomeData()
+    signIn()
         .then((response) => {
-            if (result.jsonCode !== 200) {
-                this.setState({error: response.message});
+            if (result.jsonCode === 200) {
                 return;
             }
 
-            Navigation.navigate(ROUTES.SOMEWHERE);
+            this.setState({error: response.message});
         })
         .finally(() => {
             this.setState({loading: false});
@@ -175,12 +204,11 @@ fetchData() {
 }
 
 // Good
-fetchData() {
-    fetchDataAndNavigateSomewhere();
+validateAndSubmitForm() {
+    // validate...
+    signIn();
 }
 ```
-
-Within our `fetchDataAndNavigateSomewhere()` action we will set our loading and error states and navigation logic.
 
 ## Directory structure
 Almost all the code is located in the `src` folder, inside it there's some organization, we chose to name directories that are
