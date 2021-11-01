@@ -438,7 +438,6 @@ class IOUConfirmationList extends Component {
                         options={this.state.confirmationButtonOptions}
                         isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                        menuHeaderText={this.props.translate('iou.choosePaymentMethod')}
                         onPress={this.onPress}
                     />
                 </FixedFooter>
