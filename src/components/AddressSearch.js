@@ -126,6 +126,7 @@ const AddressSearch = (props) => {
             styles={{
                 textInputContainer: [styles.flexColumn],
                 listView: [
+                    !displayListViewBorder && styles.googleListView,
                     displayListViewBorder && styles.borderTopRounded,
                     displayListViewBorder && styles.borderBottomRounded,
                     displayListViewBorder && styles.mt1,

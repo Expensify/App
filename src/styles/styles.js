@@ -2108,6 +2108,10 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
+
+    googleListView: {
+        transform: [{scale: 0}],
+    }
 };
 
 const baseCodeTagStyles = {
