@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {PureComponent} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
@@ -8,7 +9,7 @@ import MenuItem from '../MenuItem';
 import {
     propTypes as createMenuPropTypes,
     defaultProps as defaultCreateMenuPropTypes,
-} from './PopoverMenuPropTypes';
+} from './popoverMenuPropTypes';
 import Text from '../Text';
 
 const propTypes = {
@@ -45,7 +46,7 @@ class BasePopoverMenu extends PureComponent {
                             </Text>
                         </View>
                     )}
-                    {this.props.menuItems.map(item => (
+                    {_.map(this.props.menuItems, item => (
                         <MenuItem
                             key={item.text}
                             icon={item.icon}

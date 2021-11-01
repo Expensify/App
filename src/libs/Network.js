@@ -192,7 +192,7 @@ function processNetworkRequestQueue() {
         }
 
         const requestData = queuedRequest.data;
-        const requestEmail = requestData.email ?? '';
+        const requestEmail = lodashGet(requestData, 'email', '');
 
         // If we haven't passed an email in the request data, set it to the current user's email
         if (email && _.isEmpty(requestEmail)) {
@@ -236,6 +236,14 @@ function processNetworkRequestQueue() {
 setInterval(processNetworkRequestQueue, 1000);
 
 /**
+ * @param {Object} request
+ * @returns {Boolean}
+ */
+function canProcessRequestImmediately(request) {
+    return lodashGet(request, 'data.shouldProcessImmediately', true);
+}
+
+/**
  * Perform a queued post request
  *
  * @param {String} command
@@ -246,15 +254,21 @@ setInterval(processNetworkRequestQueue, 1000);
  */
 function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     return new Promise((resolve, reject) => {
-        // Add the write request to a queue of actions to perform
-        networkRequestQueue.push({
+        const request = {
             command,
             data,
             type,
             resolve,
             reject,
             shouldUseSecure,
-        });
+        };
+
+        // Add the request to a queue of actions to perform
+        networkRequestQueue.push(request);
+
+        if (!canProcessRequestImmediately(request)) {
+            return;
+        }
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
         processNetworkRequestQueue();

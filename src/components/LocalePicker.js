@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -56,7 +57,7 @@ const LocalePicker = ({
                     setLocale(locale);
                 }
             }}
-            items={Object.values(localesToLanguages)}
+            items={_.values(localesToLanguages)}
             size={size}
             value={preferredLocale}
         />

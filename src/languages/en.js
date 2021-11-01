@@ -84,6 +84,8 @@ export default {
         confirm: 'Confirm',
         reset: 'Reset',
         done: 'Done',
+        debitCard: 'Debit card',
+        payPalMe: 'PayPal.me',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -192,7 +194,6 @@ export default {
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
-        choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
@@ -231,6 +232,9 @@ export default {
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
         growlMessageOnSave: 'Your profile was successfully saved',
+        online: 'Online',
+        offline: 'Offline',
+        syncing: 'Syncing',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
@@ -284,26 +288,25 @@ export default {
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
         growlMessageOnSave: 'Your PayPal username was successfully added',
+        formatError: 'Invalid PayPal.me username',
     },
     addDebitCardPage: {
-        addADebitCard: 'Add a Debit Card',
-        nameOnCard: 'Name on Card',
-        debitCardNumber: 'Debit Card Number',
-        expiration: 'Expiration',
-        expirationDate: 'MM/YYYY',
+        addADebitCard: 'Add a debit card',
+        nameOnCard: 'Name on card',
+        debitCardNumber: 'Debit card number',
+        expiration: 'Expiration date',
+        expirationDate: 'MM/YY',
         cvv: 'CVV',
-        billingAddress: 'Billing Address',
-        streetAddress: 'Street Address',
-        cityName: 'City Name',
-        expensifyTermsOfService: 'Expensify Terms Of Service',
+        billingAddress: 'Billing address',
+        expensifyTermsOfService: 'Expensify Terms of Service',
         growlMessageOnSave: 'Your debit card was successfully added',
         error: {
-            invalidName: 'Please add a valid name',
-            zipCode: 'Please enter a valid zip code',
+            invalidName: 'Please enter a valid name',
+            addressZipCode: 'Please enter a valid zip code',
             debitCardNumber: 'Please enter a valid debit card number',
             expirationDate: 'Please enter a valid expiration date',
             securityCode: 'Please enter a valid security code',
-            address: 'Please enter a valid billing address',
+            addressStreet: 'Please enter a valid billing address that is not a PO Box',
             addressState: 'Please select a state',
             addressCity: 'Please enter a city',
             acceptedTerms: 'You must accept the Terms of Service to continue',
@@ -375,7 +378,13 @@ export default {
     loginForm: {
         phoneOrEmail: 'Phone or email',
         error: {
-            invalidFormatLogin: 'The email or phone number entered is invalid. Please fix the format and try again.',
+            invalidFormatEmailLogin: 'The email entered is invalid. Please fix the format and try again.',
+        },
+    },
+    personalDetails: {
+        error: {
+            firstNameLength: 'First name shouldn\'t be longer than 50 characters',
+            lastNameLength: 'Last name shouldn\'t be longer than 50 characters',
         },
     },
     resendValidationForm: {
@@ -388,7 +397,7 @@ export default {
     detailsPage: {
         localTime: 'Local time',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Create group',
     },
     notFound: {
@@ -467,7 +476,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907',
+        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907.',
+        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
@@ -730,6 +740,14 @@ export default {
             chatWithConcierge: 'Chat with Concierge',
             letsFinishInChat: 'Let\'s finish in chat!',
             almostDone: 'Almost done!',
+            disconnectBankAccount: 'Disconnect bank account',
+            noLetsStartOver: 'No, let\'s start over',
+            startOver: 'Start over',
+            yesDisconnectMyBankAccount: 'Yes, disconnect my bank account',
+            yesStartOver: 'Yes, start over',
+            disconnectYour: 'Disconnect your ',
+            bankAccountAnyTransactions: ' bank account. Any outstanding transactions for this account will still complete.',
+            clearProgress: 'Starting over will clear the progress you have made so far.',
         },
     },
     requestCallPage: {
@@ -738,7 +756,6 @@ export default {
         description: 'Our team of guides are on hand to help you each step of the way. Type in your name and phone number, and we’ll give you a call back.',
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
-        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
         growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',

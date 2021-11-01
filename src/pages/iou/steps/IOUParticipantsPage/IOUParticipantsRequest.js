@@ -7,7 +7,7 @@ import OptionsSelector from '../../../../components/OptionsSelector';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
-import {EXCLUDED_IOU_EMAILS} from '../../../../CONST';
+import {EXPENSIFY_EMAILS} from '../../../../CONST';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 
 const propTypes = {
@@ -47,7 +47,8 @@ class IOUParticipantsRequest extends Component {
             props.personalDetails,
             props.betas,
             '',
-            EXCLUDED_IOU_EMAILS,
+            [],
+            EXPENSIFY_EMAILS,
         );
 
         this.state = {
@@ -70,7 +71,7 @@ class IOUParticipantsRequest extends Component {
             title: this.props.translate('common.recents'),
             data: this.state.recentReports,
             shouldShow: !_.isEmpty(this.state.recentReports),
-            indexOffset: sections.reduce((prev, {data}) => prev + data.length, 0),
+            indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
         sections.push({
@@ -124,7 +125,8 @@ class IOUParticipantsRequest extends Component {
                         this.props.personalDetails,
                         this.props.betas,
                         searchValue,
-                        EXCLUDED_IOU_EMAILS,
+                        [],
+                        EXPENSIFY_EMAILS,
                     );
                     this.setState({
                         searchValue,
@@ -142,7 +144,6 @@ class IOUParticipantsRequest extends Component {
     }
 }
 
-IOUParticipantsRequest.displayName = 'IOUParticipantsRequest';
 IOUParticipantsRequest.propTypes = propTypes;
 
 export default compose(

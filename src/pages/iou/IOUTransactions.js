@@ -8,12 +8,12 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
-import ReportActionPropTypes from '../home/report/ReportActionPropTypes';
+import reportActionPropTypes from '../home/report/reportActionPropTypes';
 import ReportTransaction from '../../components/ReportTransaction';
 
 const propTypes = {
     /** Actions from the ChatReport */
-    reportActions: PropTypes.shape(ReportActionPropTypes),
+    reportActions: PropTypes.shape(reportActionPropTypes),
 
     /** ReportID for the associated chat report */
     chatReportID: PropTypes.number.isRequired,

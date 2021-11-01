@@ -1,7 +1,7 @@
 import React from 'react';
 import {ipcRenderer} from 'electron';
 import BaseUpdateAppModal from './BaseUpdateAppModal';
-import {propTypes} from './UpdateAppModalPropTypes';
+import {propTypes} from './updateAppModalPropTypes';
 
 const UpdateAppModal = (props) => {
     const updateApp = () => {

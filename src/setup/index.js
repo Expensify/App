@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import Log from '../libs/Log';
 import platformSetup from './platformSetup';
 import {canCaptureOnyxMetrics} from '../libs/canCaptureMetrics';
 
@@ -34,14 +33,6 @@ export default function () {
             },
             [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
         },
-    });
-
-    Onyx.registerLogger(({level, message}) => {
-        if (level === 'alert') {
-            Log.alert(message, 0, {}, false);
-        } else {
-            Log.client(message);
-        }
     });
 
     // Perform any other platform-specific setup

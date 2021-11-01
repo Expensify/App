@@ -1,7 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -76,14 +76,23 @@ function isRequiredFulfilled(value) {
 }
 
 /**
- * Validates that this is a valid expiration date
- * in the MM/YY or MM/YYYY format
+ * Validates that this is a valid expiration date. Supports the following formats:
+ * 1. MM/YY
+ * 2. MM/YYYY
+ * 3. MMYY
+ * 4. MMYYYY
  *
  * @param {String} string
  * @returns {Boolean}
  */
 function isValidExpirationDate(string) {
-    return CONST.REGEX.CARD_EXPIRATION_DATE.test(string);
+    if (!CONST.REGEX.CARD_EXPIRATION_DATE.test(string)) {
+        return false;
+    }
+
+    // Use the last of the month to check if the expiration date is in the future or not
+    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
+    return moment(expirationDate).endOf('month').isAfter(moment());
 }
 
 /**
@@ -133,6 +142,15 @@ function isValidZipCode(zipCode) {
  */
 function isValidSSNLastFour(ssnLast4) {
     return CONST.REGEX.SSN_LAST_FOUR.test(ssnLast4);
+}
+
+/**
+ *
+ * @param {String} paypalUsername
+ * @returns {Boolean}
+ */
+function isValidPaypalUsername(paypalUsername) {
+    return Boolean(paypalUsername) && CONST.REGEX.PAYPAL_ME_USERNAME.test(paypalUsername);
 }
 
 /**
@@ -212,6 +230,24 @@ function isValidUSPhone(phoneNumber) {
     return CONST.REGEX.PHONE_E164_PLUS.test(phoneNumber.replace(CONST.REGEX.NON_ALPHA_NUMERIC, '')) && CONST.REGEX.US_PHONE.test(phoneNumber);
 }
 
+/**
+ * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
+ * @param {String} input
+ * @returns {Boolean}
+ */
+function isNumericWithSpecialChars(input) {
+    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
+}
+
+/**
+ * Checks whether a given first or last name is valid length
+ * @param {String} name
+ * @returns {Boolean}
+ */
+function isValidLengthForFirstOrLastName(name) {
+    return name.length <= 50;
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -226,4 +262,7 @@ export {
     isValidUSPhone,
     isValidURL,
     validateIdentity,
+    isNumericWithSpecialChars,
+    isValidLengthForFirstOrLastName,
+    isValidPaypalUsername,
 };

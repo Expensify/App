@@ -1,6 +1,6 @@
 import React from 'react';
 import CONST from '../../CONST';
-import * as attachmentPickerPropTypes from './AttachmentPickerPropTypes';
+import * as attachmentPickerPropTypes from './attachmentPickerPropTypes';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE

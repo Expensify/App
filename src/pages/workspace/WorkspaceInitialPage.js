@@ -177,7 +177,7 @@ const WorkspaceInitialPage = ({
                             </Pressable>
                         </View>
                     </View>
-                    {menuItems.map((item) => {
+                    {_.map(menuItems, (item) => {
                         const shouldFocus = isSmallScreenWidth ? !isFocused && item.isActive : item.isActive;
                         return (
                             <MenuItem
