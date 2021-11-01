@@ -11,7 +11,8 @@ function isNegatedVariableName(name) {
       || name.includes('isNot')
       || name.includes('cannot')
       || name.includes('shouldNot')
-      || name.includes('cant');
+      || name.includes('cant')
+      || name.includes('dont');
 }
 
 const message = 'Do not use negated variable names';

@@ -157,7 +157,6 @@ class SidebarLinks extends React.Component {
     }
 
     showSearchPage() {
-        const test = ''.includes('test');
         Navigation.navigate(ROUTES.SEARCH);
     }
 

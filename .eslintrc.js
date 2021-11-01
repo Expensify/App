@@ -14,7 +14,9 @@ module.exports = {
          * Custom rules from the eslint-local-rules directory
          */
         'local-rules/no-negated-variables': 'error',
-        'local-rules/no-onyx-in-views': 'error',
+        'local-rules/no-api-in-views': 'error',
+        'prefer-actions-set-data': 'error',
+        'prefer-onyx-connect-in-libs': 'error',
         'local-rules/no-thenable-actions-in-views': 'error',
         'local-rules/prefer-early-return': 'error',
         'local-rules/no-inline-named-export': 'error',

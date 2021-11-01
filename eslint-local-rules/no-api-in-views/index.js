@@ -1,16 +1,17 @@
-const message = 'Do not update Onyx values from inside React components. Only actions should update Onyx data.';
-const isReactViewFile = require('../utils').isReactViewFile;
+const {isInActionFile} = require('../utils');
+
+const message = 'Do not call API directly outside of actions methods. Only actions should make API requests.';
 
 module.exports = {
     message,
     rule: {
         create: context => ({
             Identifier(node) {
-                if (!isReactViewFile(context.getFilename())) {
+                if (isInActionFile(context.getFilename())) {
                     return;
                 }
 
-                if (node.name !== 'Onyx') {
+                if (node.name !== 'API') {
                     return;
                 }
 

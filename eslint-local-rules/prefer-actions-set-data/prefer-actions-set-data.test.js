@@ -9,10 +9,9 @@ const ruleTester = new RuleTester({
 });
 
 const goodExample = `
-let testValue;
-Onyx.connect('test', (val) => {
-    testValue = val;
-});
+function setData() {
+    Onyx.set('key', {value: 'test'});
+}
 `;
 
 const badExample = `
@@ -27,7 +26,7 @@ class MyComponent extends React.Component {
 }
 `;
 
-ruleTester.run('no-onyx-in-views', rule, {
+ruleTester.run('prefer-actions-set-data', rule, {
     valid: [
         {
             code: goodExample,

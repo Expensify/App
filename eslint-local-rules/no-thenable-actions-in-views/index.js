@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const lodashGet = require('lodash/get');
 const path = require('path');
 const isReactViewFile = require('../utils').isReactViewFile;
 
@@ -12,8 +13,8 @@ module.exports = {
             return {
                 // Using import declaration to create a map of all the imports for this file and which ones are "actions"
                 ImportDeclaration(node) {
-                    const pathName = path.resolve(node.source.value);
-                    if (!pathName.includes('/actions/')) {
+                    const pathName = path.resolve(lodashGet(node, 'source.value'));
+                    if (!pathName || !pathName.includes('/actions/')) {
                         return;
                     }
 
@@ -24,16 +25,16 @@ module.exports = {
                         return;
                     }
 
-                    if (node.property.name !== 'then') {
+                    if (lodashGet(node, 'property.name') !== 'then') {
                         return;
                     }
 
-                    const actionModuleName = node.object.callee.object.name;
+                    const actionModuleName = lodashGet(node, 'object.callee.object.name');
                     if (!_.includes(actionsNamespaces, actionModuleName)) {
                         return;
                     }
 
-                    const actionMethodName = node.object.callee.property.name;
+                    const actionMethodName = lodashGet(node, 'object.callee.property.name');
                     context.report({
                         node,
                         message,
