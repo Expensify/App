@@ -61,7 +61,6 @@ import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
-import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
 
 Onyx.connect({
