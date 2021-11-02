@@ -39,7 +39,7 @@ Onyx.connect({
 
         currentUserEmail = val.email;
         currentUserAccountID = val.accountID;
-},
+    },
 });
 
 let lastViewedReportID;
