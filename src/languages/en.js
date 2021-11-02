@@ -604,7 +604,7 @@ export default {
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
         forNextSteps: ' for next steps to finish setting up your bank account.',
         letsChatCTA: 'Yes, let\'s chat!',
-        letsChatText: 'Thanks for doing that! We have a couple more things to work out, but it’ll be easier over chat. Ready to chat?',
+        letsChatText: 'Thanks for doing that! We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
     },
     beneficialOwnersStep: {
