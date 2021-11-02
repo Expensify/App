@@ -32,7 +32,7 @@ function init() {
             API.Push_Authenticate({
                 socket_id: socketID,
                 channel_name: channel.name,
-                doNotRetry: true,
+                shouldRetry: false,
                 forceNetworkRequest: true,
             })
                 .then((data) => {

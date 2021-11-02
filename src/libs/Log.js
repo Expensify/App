@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/no-api-in-views */
 import Logger from 'expensify-common/lib/Logger';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';

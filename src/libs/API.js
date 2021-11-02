@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
@@ -157,7 +158,8 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        if (queuedRequest.data.doNotRetry || unableToReauthenticate) {
+        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry', true);
+        if (!shouldRetry || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;
         }
@@ -225,7 +227,7 @@ function Authenticate(parameters) {
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         authToken: parameters.authToken,
-        doNotRetry: true,
+        shouldRetry: false,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
@@ -341,7 +343,7 @@ function AuthenticateWithAccountID(parameters) {
         accountID: parameters.accountID,
         validateCode: parameters.validateCode,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
-        doNotRetry: true,
+        shouldRetry: false,
     });
 }
 
@@ -399,7 +401,7 @@ function User_SignUp(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
- * @param {Boolean} [parameters.doNotRetry]
+ * @param {Boolean} [parameters.shouldRetry]
  * @param {String} [parameters.email]
  * @returns {Promise}
  */
@@ -420,12 +422,12 @@ function CreateLogin(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
- * @param {Boolean} parameters.doNotRetry
+ * @param {Boolean} parameters.shouldRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
-    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'doNotRetry'],
+    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
