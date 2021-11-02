@@ -133,6 +133,36 @@ function create(name = '', shouldAutomaticallyReroute = true) {
         });
 }
 
+
+/**
+ * Delete the policy
+ *
+ * @param {String} [policyID]
+ * @param {Boolean} [shouldAutomaticallyReroute]
+ * @returns {Promise}
+ */
+function deletePolicy(policyID = '', shouldAutomaticallyReroute = true) {
+    return API.Policy_Delete({policyID})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
+
+            // Removing the workspace data from Onyx as well
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, null);
+        }).then(() => {
+            if (shouldAutomaticallyReroute) {
+                Navigation.dismissModal();
+                Navigation.navigate(ROUTES.HOME);
+            }
+            return Promise.resolve();
+        });
+}
+
+
 /**
  * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
  *
@@ -364,4 +394,5 @@ export {
     update,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
+    deletePolicy,
 };
