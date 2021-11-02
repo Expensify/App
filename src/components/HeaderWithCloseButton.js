@@ -36,6 +36,9 @@ const propTypes = {
     /** Whether we should show a inbox call button */
     shouldShowInboxCallButton: PropTypes.bool,
 
+    /** Whether we should show the step counter */
+    shouldShowStepCounter: PropTypes.bool,
+
     /** The task ID to associate with the call button, if we show it */
     inboxCallTaskID: PropTypes.string,
 
