@@ -665,7 +665,6 @@ export default {
             headerWithEcard: 'Cards are ready!',
             noVBACopy: 'Connect a bank account to issue unlimited Expensify Cards for your workspace members and access all of these incredible benefits:',
             VBANoECardCopy: 'Add a work email address to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
-            conciergeCanHelp: 'Concierge can help you add a work email address to enable the Expensify Card.',
             VBAWithECardCopy: 'Enjoy all these incredible benefits:',
             benefit1: 'Up to 2% cash back',
             benefit2: 'Digital and physical cards',

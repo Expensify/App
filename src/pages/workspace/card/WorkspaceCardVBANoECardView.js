@@ -42,10 +42,6 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
                 translate('workspace.card.benefit4'),
             ]}
         />
-
-        <View style={[styles.mv4]}>
-            <Text>{translate('workspace.card.conciergeCanHelp')}</Text>
-        </View>
     </WorkspaceSection>
 );
 
