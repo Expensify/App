@@ -23,7 +23,7 @@ export default function fileDownload(url, fileName) {
             link.style.display = 'none';
             link.setAttribute(
                 'download',
-                fileName ?? getAttachmentName(url), // generating the file name
+                fileName || getAttachmentName(url), // generating the file name
             );
 
             // Append to html link element page

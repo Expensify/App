@@ -378,7 +378,7 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
+            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return fetchedReports;
         })
         .catch((err) => {
@@ -929,9 +929,7 @@ function fetchAllReports(
             }
 
             // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            const reportIDs = String(response.chatList)
-                .split(',')
-                .filter(_.identity);
+            const reportIDs = _.filter(String(response.chatList).split(','), _.identity);
 
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (reportIDs.length > 0) {

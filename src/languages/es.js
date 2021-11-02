@@ -8,7 +8,7 @@ export default {
         attachment: 'Archivo adjunto',
         to: 'A',
         optional: 'Opcional',
-        new: 'NUEVO',
+        new: 'Nuevo',
         search: 'Buscar',
         next: 'Siguiente',
         goBack: 'Regresar',
@@ -84,6 +84,8 @@ export default {
         confirm: 'Confirmar',
         reset: 'Restablecer',
         done: 'Listo',
+        debitCard: 'Tarjeta de débito',
+        payPalMe: 'PayPal.me',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -192,7 +194,6 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
-        choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
@@ -216,6 +217,8 @@ export default {
         uploadPhoto: 'Subir foto',
         removePhoto: 'Eliminar foto',
         editImage: 'Editar foto',
+        imageUploadFailed: 'Error al cargar la imagen',
+        sizeExceeded: ({maxUploadSizeInMB}) => `La imagen supera el tamaño máximo de ${maxUploadSizeInMB}MB.`,
     },
     profilePage: {
         profile: 'Perfil',
@@ -229,6 +232,9 @@ export default {
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
         growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
+        online: 'En línea',
+        offline: 'Desconectado',
+        syncing: 'Sincronizando',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
@@ -272,7 +278,7 @@ export default {
         changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com\ncomo la de Nuevo Expensify.',
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
-        newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua, tener al menos 8 letras,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la nueva contraseña',
     },
     addPayPalMePage: {
@@ -282,26 +288,25 @@ export default {
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
         editPayPalAccount: 'Actualizar cuenta de PayPal',
+        formatError: 'Usuario PayPal.me no válido',
     },
     addDebitCardPage: {
         addADebitCard: 'Agregar una tarjeta de débito',
         nameOnCard: 'Nombre en la tarjeta',
         debitCardNumber: 'Numero de la tarjeta de débito',
-        expiration: 'Vencimiento',
+        expiration: 'Fecha de vencimiento',
         expirationDate: 'MM/AA',
         cvv: 'CVV',
-        billingAddress: 'Dirección de Envio',
-        streetAddress: 'Dirección',
-        cityName: 'Nombre de la ciudad',
+        billingAddress: 'Dirección de envio',
         expensifyTermsOfService: 'Expensify Términos de servicio',
         growlMessageOnSave: 'Su tarteja de débito se agregó correctamente',
         error: {
-            invalidName: 'Por favor agregue un nombre válido',
-            zipCode: 'Por favor ingrese un código postal válido',
+            invalidName: 'Por favor ingrese un nombre válido',
+            addressZipCode: 'Por favor ingrese un código postal válido',
             debitCardNumber: 'Ingrese un número de tarjeta de débito válido',
             expirationDate: 'Por favor introduzca una fecha de vencimiento válida',
             securityCode: 'Ingrese un código de seguridad válido',
-            address: 'Ingrese una dirección de facturación válida',
+            addressStreet: 'Ingrese una dirección de facturación válida que no sea un apartado postal',
             addressState: 'Por favor seleccione un estado',
             addressCity: 'Por favor ingrese una ciudad',
             acceptedTerms: 'Debes aceptar los Términos de servicio para continuar',
@@ -373,7 +378,13 @@ export default {
     loginForm: {
         phoneOrEmail: 'Número de teléfono o email',
         error: {
-            invalidFormatLogin: 'El email o número de teléfono que has introducido no es válido. Corrígelo e inténtalo de nuevo.',
+            invalidFormatEmailLogin: 'El email introducido no es válido. Corrígelo e inténtalo de nuevo.',
+        },
+    },
+    personalDetails: {
+        error: {
+            firstNameLength: 'El nombre no debe tener más de 50 caracteres',
+            lastNameLength: 'El apellido no debe tener más de 50 caracteres',
         },
     },
     resendValidationForm: {
@@ -386,7 +397,7 @@ export default {
     detailsPage: {
         localTime: 'Hora local',
     },
-    newGroupPage: {
+    newChatPage: {
         createGroup: 'Crear grupo',
     },
     notFound: {
@@ -399,7 +410,7 @@ export default {
         confirmNewPassword: 'Confirma la contraseña',
         setPassword: 'Configura tu contraseña',
         passwordsDontMatch: 'Las contraseñas deben coincidir',
-        newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
+        newPasswordPrompt: 'La contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
         passwordFormTitle: '¡Bienvenido de vuelta al Nuevo Expensify! Por favor, elige una contraseña.',
         passwordNotSet: 'No pudimos establecer to contaseña correctamente.',
         accountNotValidated: 'No pudimos validar tu cuenta. Es posible que el enlace de validación haya caducado.',
@@ -466,7 +477,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
-        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907',
+        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907.',
+        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
@@ -595,7 +607,7 @@ export default {
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
         letsChatCTA: '¡Sí, vamos a chatear!',
-        letsChatText: '¡Gracias por hacer eso! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
+        letsChatText: '¡Gracias! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
         letsChatTitle: '¡Vamos a chatear!',
     },
     beneficialOwnersStep: {
@@ -705,14 +717,9 @@ export default {
         },
         invite: {
             invitePeople: 'Invitar nuevos miembros',
-            invitePeoplePrompt: 'Invita nuevos miembros a tu espacio de trabajo.',
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
-            enterEmailOrPhone: 'Correos electrónicos o números de teléfono',
-            EmailOrPhonePlaceholder: 'Introduce una lista de correos electrónicos o números de teléfono separado por comas',
-            pleaseEnterValidLogin: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
-            pleaseEnterUniqueLogin: 'Ese usuario ya es miembro de este espacio de trabajo.',
+            pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            systemUserError: ({email}) => `Lo sentimos, no puedes invitar a ${email} a un espacio de trabajo.`,
             welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
         },
         editor: {
@@ -734,8 +741,16 @@ export default {
             accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta. Concierge puede ayudarte a añadir tu correo de trabajo para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',
             chatWithConcierge: 'Chat con Concierge',
-            letsFinishInChat: '¡Acabemos en el chat!',
+            letsFinishInChat: '¡Continuemos en el chat!',
             almostDone: '¡Casi listo!',
+            disconnectBankAccount: 'Desconectar cuenta bancaria',
+            noLetsStartOver: 'No, empecemos de nuevo',
+            startOver: 'Empezar de nuevo',
+            yesDisconnectMyBankAccount: 'Sí, desconecta mi cuenta bancaria',
+            yesStartOver: 'Sí, empezar de nuevo',
+            disconnectYour: 'Desconecta tu cuenta bancaria de ',
+            bankAccountAnyTransactions: '. Los reembolsos pendientes serán completados sin problemas.',
+            clearProgress: 'Empezar de nuevo descartará lo completado hasta ahora.',
         },
     },
     requestCallPage: {
@@ -744,7 +759,6 @@ export default {
         description: '¿Necesitas ayuda configurando tu cuenta? Nuestro equipo de guías puede ayudarte. Escribe tu nombre y número de teléfono y te llamaremos.',
         callMe: 'Llámame',
         growlMessageOnSave: 'Llamada solicitada.',
-        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
         growlMessageEmptyName: 'Por favor ingresa tu nombre completo',
         growlMessageNoPersonalPolicy: 'No he podido encontrar una póliza personal con la que asociar esta llamada a las Guías, compruebe su conexión e inténtelo de nuevo.',
         callButton: 'Llamar',

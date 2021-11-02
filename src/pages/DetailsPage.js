@@ -72,6 +72,13 @@ const DetailsPage = ({
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
     const shouldShowLocalTime = !hasExpensifyEmails([details.login]);
 
+    let pronouns = details.pronouns;
+
+    if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+        const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+        pronouns = translate(`pronouns.${localeKey}`);
+    }
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
@@ -110,7 +117,7 @@ const DetailsPage = ({
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text numberOfLines={1} style={[styles.w100]}>
+                                        <Text numberOfLines={1}>
                                             {isSMSLogin
                                                 ? toLocalPhone(getPhoneNumber(details))
                                                 : details.login}
@@ -118,13 +125,13 @@ const DetailsPage = ({
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
-                            {details.pronouns ? (
+                            {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('profilePage.preferredPronouns')}
                                     </Text>
                                     <Text numberOfLines={1}>
-                                        {details.pronouns}
+                                        {pronouns}
                                     </Text>
                                 </View>
                             ) : null}

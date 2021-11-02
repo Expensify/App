@@ -145,4 +145,5 @@ const IdentityForm = ({
 
 IdentityForm.propTypes = propTypes;
 IdentityForm.defaultProps = defaultProps;
+IdentityForm.displayName = 'IdentityForm';
 export default withLocalize(IdentityForm);

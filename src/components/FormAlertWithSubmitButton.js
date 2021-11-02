@@ -16,6 +16,9 @@ const propTypes = {
     /** Whether to show the alert text */
     isAlertVisible: PropTypes.bool.isRequired,
 
+    /** Whether the button is disabled */
+    isDisabled: PropTypes.bool,
+
     /** Submit function */
     onSubmit: PropTypes.func.isRequired,
 
@@ -31,22 +34,34 @@ const propTypes = {
     /** Whether message is in html format */
     isMessageHtml: PropTypes.bool,
 
+    /** Styles for container element */
+    containerStyles: PropTypes.arrayOf(PropTypes.object),
+
+    /** Is the button in a loading state */
+    isLoading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     message: '',
+    isDisabled: false,
     isMessageHtml: false,
+    containerStyles: [],
+    isLoading: false,
 };
 
 const FormAlertWithSubmitButton = ({
     isAlertVisible,
+    isDisabled,
     onSubmit,
     buttonText,
     translate,
     onFixTheErrorsLinkPressed,
     message,
     isMessageHtml,
+    containerStyles,
+    isLoading,
 }) => {
     /**
      * @returns {React.Component}
@@ -91,7 +106,7 @@ const FormAlertWithSubmitButton = ({
     }
 
     return (
-        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd]}>
+        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...containerStyles]}>
             {isAlertVisible && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Icon src={Exclamation} fill={colors.red} />
@@ -100,9 +115,11 @@ const FormAlertWithSubmitButton = ({
             )}
             <Button
                 success
+                pressOnEnter
                 text={buttonText}
                 onPress={onSubmit}
-                pressOnEnter
+                isDisabled={isDisabled}
+                isLoading={isLoading}
             />
         </View>
     );
@@ -110,4 +127,6 @@ const FormAlertWithSubmitButton = ({
 
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
+FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
+
 export default withLocalize(FormAlertWithSubmitButton);
