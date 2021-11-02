@@ -164,9 +164,11 @@ class ValidationStep extends React.Component {
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
                     title={this.props.translate('workspace.common.bankAccount')}
+                    stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
                     shouldShowBackButton
+                    shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
