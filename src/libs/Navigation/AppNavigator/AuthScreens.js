@@ -60,8 +60,7 @@ import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import defaultScreenOptions from './defaultScreenOptions';
-import * as API from '../../API';
-import {setLocale} from '../../actions/App';
+import * as App from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
 
 Onyx.connect({
@@ -81,12 +80,6 @@ Onyx.connect({
             PersonalDetails.setPersonalDetails({timezone});
         }
     },
-});
-
-let currentPreferredLocale;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
-    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 const RootStack = createCustomModalStackNavigator();
@@ -142,18 +135,8 @@ class AuthScreens extends React.Component {
         NameValuePair.get(CONST.NVP.PRIORITY_MODE, ONYXKEYS.NVP_PRIORITY_MODE, 'default');
         NameValuePair.get(CONST.NVP.IS_FIRST_TIME_NEW_EXPENSIFY_USER, ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER, true);
 
-        API.Get({
-            returnValueList: 'nameValuePairs',
-            nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
-        }).then((response) => {
-            const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-            if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
-                setLocale(currentPreferredLocale);
-            } else {
-                Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
-            }
-        });
 
+        App.getLocaleAndUpdate();
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();

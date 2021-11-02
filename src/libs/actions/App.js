@@ -23,6 +23,12 @@ Onyx.connect({
     initWithStoredValues: false,
 });
 
+let currentPreferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
+});
+
 /**
  * @param {String} url
  */
@@ -38,6 +44,20 @@ function setLocale(locale) {
         API.PreferredLocale_Update({name: 'preferredLocale', value: locale});
     }
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
+}
+
+function getLocaleAndUpdate() {
+    API.Get({
+        returnValueList: 'nameValuePairs',
+        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    }).then((response) => {
+        const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
+        if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
+            setLocale(currentPreferredLocale);
+        } else {
+            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+        }
+    });
 }
 
 function setSidebarLoaded() {
@@ -63,4 +83,5 @@ export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
+    getLocaleAndUpdate,
 };
