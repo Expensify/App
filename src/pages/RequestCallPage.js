@@ -230,7 +230,7 @@ class RequestCallPage extends Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
-                                placeholder="+14158675309"
+                                placeholder="2109400803"
                                 errorText={this.state.phoneNumberError}
                                 onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}

@@ -476,8 +476,8 @@ export default {
     },
     cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
-        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907.',
-        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
+        noPhoneNumber: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
+        errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
