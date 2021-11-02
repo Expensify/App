@@ -1,5 +1,6 @@
+import _ from 'underscore';
 import React from 'react';
-import {ScrollView, Linking} from 'react-native';
+import {ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -8,9 +9,9 @@ import {
 } from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import compose from '../../libs/compose';
 import MenuItem from '../../components/MenuItem';
 import styles from '../../styles/styles';
+import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -22,19 +23,19 @@ const AppDownloadLinksPage = ({translate}) => {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
             icon: Android,
             iconRight: NewWindow,
-            action: () => { Linking.openURL(CONST.APP_DOWNLOAD_LINKS.ANDROID); },
+            action: () => { openExternalLink(CONST.APP_DOWNLOAD_LINKS.ANDROID); },
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.ios.label',
             icon: Apple,
             iconRight: NewWindow,
-            action: () => { Linking.openURL(CONST.APP_DOWNLOAD_LINKS.IOS); },
+            action: () => { openExternalLink(CONST.APP_DOWNLOAD_LINKS.IOS); },
         },
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.desktop.label',
             icon: Monitor,
             iconRight: NewWindow,
-            action: () => { Linking.openURL(CONST.APP_DOWNLOAD_LINKS.DESKTOP); },
+            action: () => { openExternalLink(CONST.APP_DOWNLOAD_LINKS.DESKTOP); },
         },
     ];
 
@@ -47,7 +48,7 @@ const AppDownloadLinksPage = ({translate}) => {
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.mt5]}>
-                {menuItems.map(item => (
+                {_.map(menuItems, item => (
                     <MenuItem
                         key={item.translationKey}
                         title={translate(item.translationKey)}
@@ -65,6 +66,4 @@ const AppDownloadLinksPage = ({translate}) => {
 AppDownloadLinksPage.propTypes = propTypes;
 AppDownloadLinksPage.displayName = 'AppDownloadLinksPage';
 
-export default compose(
-    withLocalize,
-)(AppDownloadLinksPage);
+export default withLocalize(AppDownloadLinksPage);

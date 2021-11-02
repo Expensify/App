@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Text from '../Text';
 import styles from '../../styles/styles';
-import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 
 const propTypes = {
     /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Should the View Details link be displayed? */
     shouldShowViewDetailsLink: PropTypes.bool,
@@ -33,20 +33,18 @@ const IOUQuote = ({
 }) => (
     <View style={[styles.chatItemMessage]}>
         {_.map(action.message, (fragment, index) => (
-            <View key={`iouQuote-${action.sequenceNumber}-${index}`}>
-                <View style={[styles.blockquote]}>
-                    <Text style={[styles.chatItemMessage]}>
-                        {fragment.text}
+            <View key={`iouQuote-${action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
+                <Text style={[styles.chatItemMessage]}>
+                    {fragment.text}
+                </Text>
+                {shouldShowViewDetailsLink && (
+                    <Text
+                        style={[styles.chatItemMessageLink, styles.alignSelfStart]}
+                        onPress={onViewDetailsPressed}
+                    >
+                        {translate('iou.viewDetails')}
                     </Text>
-                    {shouldShowViewDetailsLink && (
-                        <Text
-                            style={[styles.chatItemMessageLink]}
-                            onPress={onViewDetailsPressed}
-                        >
-                            {translate('iou.viewDetails')}
-                        </Text>
-                    )}
-                </View>
+                )}
             </View>
         ))}
     </View>

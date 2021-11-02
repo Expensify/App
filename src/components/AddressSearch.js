@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -7,6 +7,8 @@ import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
+import Log from '../libs/Log';
+import {getAddressComponent, isAddressValidForVBA} from '../libs/GooglePlacesUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -33,87 +35,101 @@ const defaultProps = {
     containerStyles: null,
 };
 
-class AddressSearch extends React.Component {
-    constructor(props) {
-        super(props);
-        this.googlePlacesRef = React.createRef();
-    }
+const AddressSearch = (props) => {
+    const googlePlacesRef = useRef();
+    useEffect(() => {
+        if (!googlePlacesRef.current) {
+            return;
+        }
 
-    componentDidMount() {
-        this.googlePlacesRef.current?.setAddressText(this.props.value);
-    }
+        googlePlacesRef.current.setAddressText(props.value);
+    }, []);
 
-    getAddressComponent(object, field, nameType) {
-        return _.chain(object.address_components)
-            .find(component => _.contains(component.types, field))
-            .get(nameType)
-            .value();
-    }
-
-    /**
-     * @param {Object} details See https://developers.google.com/maps/documentation/places/web-service/details#PlaceDetailsResponses
-     */
-    saveLocationDetails = (details) => {
-        if (details.address_components) {
+    const saveLocationDetails = (details) => {
+        const addressComponents = details.address_components;
+        if (isAddressValidForVBA(addressComponents)) {
             // Gather the values from the Google details
-            const streetNumber = this.getAddressComponent(details, 'street_number', 'long_name');
-            const streetName = this.getAddressComponent(details, 'route', 'long_name');
-            const city = this.getAddressComponent(details, 'locality', 'long_name');
-            const state = this.getAddressComponent(details, 'administrative_area_level_1', 'short_name');
-            const zipCode = this.getAddressComponent(details, 'postal_code', 'long_name');
+            const streetNumber = getAddressComponent(addressComponents, 'street_number', 'long_name');
+            const streetName = getAddressComponent(addressComponents, 'route', 'long_name');
+            let city = getAddressComponent(addressComponents, 'locality', 'long_name');
+            if (!city) {
+                city = getAddressComponent(addressComponents, 'sublocality', 'long_name');
+                Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
+            }
+            const state = getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+            const zipCode = getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
-            this.props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            this.props.onChangeText('addressCity', city);
-            this.props.onChangeText('addressState', state);
-            this.props.onChangeText('addressZipCode', zipCode);
+            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
+            props.onChangeText('addressCity', city);
+            props.onChangeText('addressState', state);
+            props.onChangeText('addressZipCode', zipCode);
+        } else {
+            // Clear the values associated to the address, so our validations catch the problem
+            Log.hmmm('[AddressSearch] Search result failed validation: ', {
+                address: details.formatted_address,
+                address_components: addressComponents,
+                place_id: details.place_id,
+            });
+            props.onChangeText('addressStreet', null);
+            props.onChangeText('addressCity', null);
+            props.onChangeText('addressState', null);
+            props.onChangeText('addressZipCode', null);
         }
-    }
+    };
 
-    render() {
-        return (
-            <GooglePlacesAutocomplete
-                ref={this.googlePlacesRef}
-                fetchDetails
-                keepResultsAfterBlur
-                suppressDefaultStyles
-                enablePoweredByContainer={false}
-                onPress={(data, details) => this.saveLocationDetails(details)}
-                query={{
-                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                    language: this.props.preferredLocale,
-                }}
-                requestUrl={{
-                    useOnPlatform: 'web',
-                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
-                }}
-                textInputProps={{
-                    InputComp: ExpensiTextInput,
-                    label: this.props.label,
-                    containerStyles: this.props.containerStyles,
-                }}
-                styles={{
-                    textInputContainer: [styles.flexColumn],
-                    listView: [
-                        styles.borderTopRounded,
-                        styles.borderBottomRounded,
-                        styles.mt1,
-                        styles.overflowAuto,
-                        styles.borderLeft,
-                        styles.borderRight,
-                    ],
-                    row: [
-                        styles.pv4,
-                        styles.ph3,
-                        styles.overflowAuto,
-                    ],
-                    description: [styles.googleSearchText],
-                    separator: [styles.googleSearchSeperator],
-                }}
-            />
-        );
-    }
-}
+    return (
+        <GooglePlacesAutocomplete
+            ref={googlePlacesRef}
+            fetchDetails
+            suppressDefaultStyles
+            enablePoweredByContainer={false}
+            onPress={(data, details) => saveLocationDetails(details)}
+            query={{
+                key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                language: props.preferredLocale,
+                types: 'address',
+                components: 'country:us',
+            }}
+            requestUrl={{
+                useOnPlatform: 'web',
+                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+            }}
+            textInputProps={{
+                InputComp: ExpensiTextInput,
+                label: props.label,
+                containerStyles: props.containerStyles,
+                errorText: props.errorText,
+                onChangeText: (text) => {
+                    const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
+
+                    // Ensure whether an address is selected already or has address value initialized.
+                    if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
+                        saveLocationDetails({});
+                    }
+                },
+            }}
+            styles={{
+                textInputContainer: [styles.flexColumn],
+                listView: [
+                    styles.borderTopRounded,
+                    styles.borderBottomRounded,
+                    styles.mt1,
+                    styles.overflowAuto,
+                    styles.borderLeft,
+                    styles.borderRight,
+                ],
+                row: [
+                    styles.pv4,
+                    styles.ph3,
+                    styles.overflowAuto,
+                ],
+                description: [styles.googleSearchText],
+                separator: [styles.googleSearchSeparator],
+            }}
+        />
+    );
+};
 
 AddressSearch.propTypes = propTypes;
 AddressSearch.defaultProps = defaultProps;

@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import compose from '../libs/compose';
+import ROUTES from '../ROUTES';
 import ONYXKEYS from '../ONYXKEYS';
 import {signInWithShortLivedToken} from '../libs/actions/Session';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
@@ -52,33 +52,31 @@ const defaultProps = {
 };
 
 class LogInWithShortLivedTokenPage extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {hasRun: false};
-    }
-
     componentDidMount() {
         const accountID = parseInt(lodashGet(this.props.route.params, 'accountID', ''), 10);
         const email = lodashGet(this.props.route.params, 'email', '');
         const shortLivedToken = lodashGet(this.props.route.params, 'shortLivedToken', '');
-        const encryptedAuthToken = lodashGet(this.props.route.params, 'encryptedAuthToken', '');
 
         // If the user is revisiting the component authenticated with the right account, we don't need to do anything, the componentWillUpdate when betas are loaded and redirect
         if (this.props.session.authToken && email === this.props.session.email) {
             return;
         }
 
-        signInWithShortLivedToken(accountID, email, shortLivedToken, encryptedAuthToken);
-        this.setState({hasRun: true});
+        signInWithShortLivedToken(accountID, email, shortLivedToken);
     }
 
     componentDidUpdate() {
-        if (this.state.hasRun || !this.props.betas) {
+        const email = lodashGet(this.props.route.params, 'email', '');
+        if (!this.props.betas || !this.props.session.authToken || email !== this.props.session.email) {
             return;
         }
 
         // exitTo is URI encoded because it could contain a variable number of slashes (i.e. "workspace/new" vs "workspace/<ID>/card")
         const exitTo = decodeURIComponent(lodashGet(this.props.route.params, 'exitTo', ''));
+        if (exitTo === ROUTES.WORKSPACE_NEW) {
+            // New workspace creation is handled in AuthScreens, not in its own screen
+            return;
+        }
 
         // In order to navigate to a modal, we first have to dismiss the current modal. But there is no current
         // modal you say? I know, it confuses me too. Without dismissing the current modal, if the user cancels out
@@ -98,13 +96,11 @@ class LogInWithShortLivedTokenPage extends Component {
 LogInWithShortLivedTokenPage.propTypes = propTypes;
 LogInWithShortLivedTokenPage.defaultProps = defaultProps;
 
-export default compose(
-    withOnyx({
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
-    }),
-)(LogInWithShortLivedTokenPage);
+export default withOnyx({
+    session: {
+        key: ONYXKEYS.SESSION,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
+    },
+})(LogInWithShortLivedTokenPage);

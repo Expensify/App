@@ -157,7 +157,7 @@ const InitialSettingsPage = ({
             title: policy.name,
             icon: policy.avatarURL ? policy.avatarURL : Building,
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
+            action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
             iconFill: themeColors.iconReversed,
         }))
@@ -181,6 +181,7 @@ const InitialSettingsPage = ({
                                 size="large"
                                 source={myPersonalDetails.avatar}
                                 isActive={network.isOffline === false}
+                                tooltipText={myPersonalDetails.displayName}
                             />
                         </Pressable>
 

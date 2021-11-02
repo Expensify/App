@@ -1,5 +1,42 @@
+import _ from 'underscore';
 import {CommonActions, StackActions, DrawerActions} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+
+/**
+ * Go back to the Main Drawer
+ * @param {Object} navigationRef
+ */
+function navigateBackToRootDrawer(navigationRef) {
+    let isLeavingNestedDrawerNavigator = false;
+
+    // This should take us to the first view of the modal's stack navigator
+    navigationRef.current.dispatch((state) => {
+        // If this is a nested drawer navigator then we pop the screen and
+        // prevent calling goBack() as it's default behavior is to toggle open the active drawer
+        if (state.type === 'drawer') {
+            isLeavingNestedDrawerNavigator = true;
+            return StackActions.pop();
+        }
+
+        // If there are multiple routes then we can pop back to the first route
+        if (state.routes.length > 1) {
+            return StackActions.popToTop();
+        }
+
+        // Otherwise, we are already on the last page of a modal so just do nothing here as goBack() will navigate us
+        // back to the screen we were on before we opened the modal.
+        return StackActions.pop(0);
+    });
+
+    if (isLeavingNestedDrawerNavigator) {
+        return;
+    }
+
+    // Navigate back to where we were before we launched the modal
+    if (navigationRef.current.canGoBack()) {
+        navigationRef.current.goBack();
+    }
+}
 
 /**
  * In order to create the desired browser navigation behavior on web and mobile web we need to replace any
@@ -24,7 +61,7 @@ function pushDrawerRoute(screenName, params, navigationRef) {
 
         if (activeReportID === params.reportID) {
             if (state.type !== 'drawer') {
-                navigationRef.current.dispatch(StackActions.pop());
+                navigateBackToRootDrawer(navigationRef);
             }
             return DrawerActions.closeDrawer();
         }
@@ -37,7 +74,7 @@ function pushDrawerRoute(screenName, params, navigationRef) {
         }
 
         const screenRoute = {type: 'route', name: screenName};
-        const history = [...(state.history || [])].map(() => screenRoute);
+        const history = _.map([...(state.history || [])], () => screenRoute);
         history.push(screenRoute);
         return CommonActions.reset({
             ...state,
@@ -52,4 +89,5 @@ function pushDrawerRoute(screenName, params, navigationRef) {
 
 export default {
     pushDrawerRoute,
+    navigateBackToRootDrawer,
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import lodashGet from 'lodash/get';
-import {View, Linking} from 'react-native';
+import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import moment from 'moment';
@@ -33,6 +33,7 @@ import Log from '../../libs/Log';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
+import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -88,10 +89,10 @@ class RequestorStep extends React.Component {
      */
     clearErrorAndSetValue(inputKey, value) {
         const renamedFields = {
-            street: 'requestorAddressStreet',
-            city: 'requestorAddressCity',
-            state: 'requestorAddressState',
-            zipCode: 'requestorAddressZipCode',
+            addressStreet: 'requestorAddressStreet',
+            addressCity: 'requestorAddressCity',
+            addressState: 'requestorAddressState',
+            addressZipCode: 'requestorAddressZipCode',
         };
         const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
         const newState = {[renamedInputKey]: value};
@@ -236,7 +237,7 @@ class RequestorStep extends React.Component {
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
                             <Text
-                                onPress={() => Linking.openURL('https://onfido.com/facial-scan-policy-and-release/')}
+                                onPress={() => openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
@@ -244,7 +245,7 @@ class RequestorStep extends React.Component {
                             </Text>
                             {', '}
                             <Text
-                                onPress={() => Linking.openURL('https://onfido.com/privacy/')}
+                                onPress={() => openExternalLink('https://onfido.com/privacy/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
@@ -252,7 +253,7 @@ class RequestorStep extends React.Component {
                             </Text>
                             {` ${this.props.translate('common.and')} `}
                             <Text
-                                onPress={() => Linking.openURL('https://onfido.com/terms-of-service/')}
+                                onPress={() => openExternalLink('https://onfido.com/terms-of-service/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
@@ -267,7 +268,6 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.displayName = 'RequestorStep';
 
 export default compose(
     withLocalize,

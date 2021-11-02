@@ -92,7 +92,7 @@ class ReportDetailsPage extends Component {
         this.menuItems = isArchivedRoom(this.props.report) ? []
             : [
                 {
-                    translationKey: 'reportDetailsPage.members',
+                    translationKey: 'common.members',
                     icon: Users,
                     subtitle: props.report.participants.length,
                     action: () => { Navigation.navigate(ROUTES.getReportParticipantsRoute(props.report.reportID)); },
@@ -175,7 +175,7 @@ class ReportDetailsPage extends Component {
                                                     notificationPreference,
                                                 );
                                             }}
-                                            items={Object.values(this.notificationPreferencesOptions)}
+                                            items={_.values(this.notificationPreferencesOptions)}
                                             value={this.props.report.notificationPreference}
                                         />
                                     </View>
@@ -183,7 +183,7 @@ class ReportDetailsPage extends Component {
                             </View>
                         )}
                     </View>
-                    {this.menuItems.map((item) => {
+                    {_.map(this.menuItems, (item) => {
                         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
                         return (
                             <MenuItem
@@ -204,7 +204,6 @@ class ReportDetailsPage extends Component {
     }
 }
 
-ReportDetailsPage.displayName = 'ReportDetailsPage';
 ReportDetailsPage.propTypes = propTypes;
 
 export default compose(

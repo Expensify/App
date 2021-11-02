@@ -188,6 +188,5 @@ class Button extends Component {
 
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
-Button.displayName = 'Button';
 
 export default Button;

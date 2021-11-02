@@ -6,10 +6,7 @@ import {
 import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
-import {
-    Close, Download, BackArrow,
-} from './Icon/Expensicons';
-import compose from '../libs/compose';
+import {Close, Download, BackArrow} from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
@@ -154,4 +151,4 @@ HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
 HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
-export default compose(withLocalize)(HeaderWithCloseButton);
+export default withLocalize(HeaderWithCloseButton);

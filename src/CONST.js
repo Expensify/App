@@ -4,6 +4,7 @@ const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 const CONST = {
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
+    AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
     APP_DOWNLOAD_LINKS: {
         ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
@@ -213,6 +214,7 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         COLD: 'cold',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
+        TOOLTIP_SENSE: 1000,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -269,6 +271,7 @@ const CONST = {
     KEYBOARD_TYPE: {
         NUMERIC: 'numeric',
         PHONE_PAD: 'phone-pad',
+        NUMBER_PAD: 'number-pad',
     },
 
     ATTACHMENT_PICKER_TYPE: {
@@ -426,6 +429,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     PHONE_MAX_LENGTH: 15,
+    PHONE_MIN_LENGTH: 5,
     REGEX: {
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
@@ -436,11 +440,12 @@ const CONST = {
         ANY_VALUE: /^.+$/,
         ZIP_CODE: /[0-9]{5}(?:[- ][0-9]{4})?/,
         INDUSTRY_CODE: /^[0-9]{6}$/,
-        SSN_LAST_FOUR: /[0-9]{4}/,
+        SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         NUMBER: /^[0-9]+$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
-        CARD_EXPIRATION_DATE: /(0[1-9]|10|11|12)\/20[0-9]{2}$/,
+        CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
+        PAYPAL_ME_USERNAME: /^[a-zA-Z0-9]+$/,
 
         // Adapted from: https://gist.github.com/dperini/729294
         // eslint-disable-next-line max-len
@@ -449,35 +454,14 @@ const CONST = {
         // eslint-disable-next-line max-len, no-misleading-character-class
         EMOJIS: /(?:\uD83D(?:\uDC41\u200D\uD83D\uDDE8|\uDC68\u200D\uD83D[\uDC68\uDC69]\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?)|\uDC69\u200D\uD83D\uDC69\u200D\uD83D(?:\uDC66(?:\u200D\uD83D\uDC66)?|\uDC67(?:\u200D\uD83D[\uDC66\uDC67])?))|[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|[\ud83c\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|[\ud83c\ude32-\ude3a]|[\ud83c\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g,
     },
+
+    PRONOUNS: {
+        PREFIX: '__predefined_',
+        SELF_SELECT: '__predefined_selfSelect',
+    },
 };
 
 const EXPENSIFY_EMAILS = [
-    CONST.EMAIL.CONCIERGE,
-    CONST.EMAIL.CONTRIBUTORS,
-    CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.HELP,
-    CONST.EMAIL.QA,
-    CONST.EMAIL.CHRONOS,
-    CONST.EMAIL.RECEIPTS,
-    CONST.EMAIL.BILLS,
-    CONST.EMAIL.STUDENT_AMBASSADOR,
-    CONST.EMAIL.QA_TRAVIS,
-    CONST.EMAIL.SVFG,
-];
-
-const EXCLUDED_GROUP_EMAILS = [
-    CONST.EMAIL.CONTRIBUTORS,
-    CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.HELP,
-    CONST.EMAIL.QA,
-    CONST.EMAIL.CHRONOS,
-    CONST.EMAIL.BILLS,
-    CONST.EMAIL.STUDENT_AMBASSADOR,
-    CONST.EMAIL.QA_TRAVIS,
-    CONST.EMAIL.SVFG,
-];
-
-const EXCLUDED_IOU_EMAILS = [
     CONST.EMAIL.CONCIERGE,
     CONST.EMAIL.CONTRIBUTORS,
     CONST.EMAIL.FIRST_RESPONDER,
@@ -494,7 +478,5 @@ const EXCLUDED_IOU_EMAILS = [
 
 export {
     EXPENSIFY_EMAILS,
-    EXCLUDED_GROUP_EMAILS,
-    EXCLUDED_IOU_EMAILS,
 };
 export default CONST;
