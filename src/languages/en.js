@@ -670,7 +670,7 @@ export default {
             benefit2: 'Digital and physical cards',
             benefit3: 'No personal liability',
             benefit4: 'Customizable limits',
-            chatWithConcierge: 'Chat with Concierge',
+            addWorkEmail: 'Add work email address',
         },
         reimburse: {
             captureReceipts: 'Capture receipts',

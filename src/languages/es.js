@@ -672,7 +672,7 @@ export default {
             benefit2: 'Tarjetas digitales y físicas',
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
-            chatWithConcierge: 'Chatea con Concierge',
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
         },
         reimburse: {
             captureReceipts: 'Captura recibos',

@@ -3,12 +3,12 @@ import {View} from 'react-native';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {Concierge} from '../../../components/Icon/Expensicons';
+import {Mail} from '../../../components/Icon/Expensicons';
 import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';
-import {navigateToConciergeChat} from '../../../libs/actions/Report';
 import Navigation from '../../../libs/Navigation/Navigation';
+import {openOldDotLink} from '../../../libs/actions/Link';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -20,12 +20,12 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
         icon={JewelBoxBlue}
         menuItems={[
             {
-                title: translate('workspace.card.chatWithConcierge'),
+                title: translate('workspace.card.addWorkEmail'),
                 onPress: () => {
                     Navigation.dismissModal();
-                    navigateToConciergeChat();
+                    openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
                 },
-                icon: Concierge,
+                icon: Mail,
                 shouldShowRightIcon: true,
             },
         ]}
