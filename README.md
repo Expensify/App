@@ -307,7 +307,7 @@ This application is built with the following principles.
             - In-Sequence actions are asynchronous methods that return promises. This is necessary when one asynchronous method depends on the results from a previous asynchronous method. Example: Making an XHR to `command=CreateChatReport` which returns a reportID which is used to call `command=Get&rvl=reportStuff`.
 1. **Actions manage Onyx Data**
     - When data needs to be written to or read from the server, this is done through Actions only.
-    - Public action methods should ideally never return anything (not data or a promise). This is done to ensure that action methods can be called in parallel with no dependency on other methods (see discussion above).
+    - Action methods should only have return values (data or a promise) if they are called by other actions. This is done to encourage that action methods can be called in parallel with no dependency on other methods (see discussion above).
     - Actions should favor using `Onyx.merge()` over `Onyx.set()` so that other values in an object aren't completely overwritten.
     - Views should not call `Onyx.merge()` or `Onyx.set()` directly and should call an action instead.
     - In general, the operations that happen inside an action should be done in parallel and not in sequence (eg. don't use the promise of one Onyx method to trigger a second Onyx method). Onyx is built so that every operation is done in parallel and it doesn't matter what order they finish in. XHRs on the other hand need to be handled in sequence with promise chains in order to access and act upon the response.
