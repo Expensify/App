@@ -102,7 +102,7 @@ class CompanyStep extends React.Component {
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
-        this.clearIncorporationDateErrorsAndSetValue = this.clearIncorporationDateErrorsAndSetValue.bind(this);
+        this.clearDateErrorsAndSetValue = this.clearDateErrorsAndSetValue.bind(this);
     }
 
     getFormattedAddressValue() {
@@ -146,7 +146,7 @@ class CompanyStep extends React.Component {
      *
      * @param {String} value
      */
-    clearIncorporationDateErrorsAndSetValue(value) {
+    clearDateErrorsAndSetValue(value) {
         this.clearErrorAndSetValue('incorporationDate', value);
         this.clearError('incorporationDateFuture');
     }
@@ -266,25 +266,23 @@ class CompanyStep extends React.Component {
                             hasError={this.getErrors().incorporationType}
                         />
                     </View>
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex1, styles.mr2]}>
-                            <DatePicker
-                                label={this.props.translate('companyStep.incorporationDate')}
-                                onChange={this.clearIncorporationDateErrorsAndSetValue}
-                                value={this.state.incorporationDate}
-                                placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                                errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
-                                translateX={-14}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                label={this.props.translate('companyStep.incorporationState')}
-                                onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
-                                value={this.state.incorporationState}
-                                hasError={this.getErrors().incorporationState}
-                            />
-                        </View>
+                    <View style={styles.mt4}>
+                        <DatePicker
+                            label={this.props.translate('companyStep.incorporationDate')}
+                            onChange={this.clearDateErrorsAndSetValue}
+                            value={this.state.incorporationDate}
+                            placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
+                            errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
+                            translateX={-14}
+                        />
+                    </View>
+                    <View style={styles.mt4}>
+                        <StatePicker
+                            label={this.props.translate('companyStep.incorporationState')}
+                            onChange={value => this.clearErrorAndSetValue('incorporationState', value)}
+                            value={this.state.incorporationState}
+                            hasError={this.getErrors().incorporationState}
+                        />
                     </View>
                     <CheckboxWithLabel
                         isChecked={this.state.hasNoConnectionToCannabis}
