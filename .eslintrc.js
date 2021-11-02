@@ -9,6 +9,7 @@ module.exports = {
         'import/prefer-default-export': 0,
         'es/no-nullish-coalescing-operators': 'error',
         'es/no-optional-chaining': 'error',
+        'react/destructuring-assignment': [2, 'never'],
 
         /**
          * Custom rules from the eslint-local-rules directory
