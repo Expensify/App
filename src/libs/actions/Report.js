@@ -33,11 +33,13 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
-        if (val) {
-            currentUserEmail = val.email;
-            currentUserAccountID = val.accountID;
+        if (!val) {
+            return;
         }
-    },
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
+},
 });
 
 let lastViewedReportID;

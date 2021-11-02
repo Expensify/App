@@ -1,4 +1,5 @@
 import getPlatform from '../getPlatform';
+// eslint-disable-next-line import/no-cycle
 import {Graphite_Timer} from '../API';
 import {isDevelopment} from '../Environment/Environment';
 import Firebase from '../Firebase';
