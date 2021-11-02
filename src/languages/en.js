@@ -233,6 +233,9 @@ export default {
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
         growlMessageOnSave: 'Your profile was successfully saved',
+        online: 'Online',
+        offline: 'Offline',
+        syncing: 'Syncing',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
