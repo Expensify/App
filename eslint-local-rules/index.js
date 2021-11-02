@@ -7,6 +7,7 @@ const preferUnderscoreMethod = require('./prefer-underscore-method').rule;
 const noUselessCompose = require('./no-useless-compose').rule;
 const noThenableActionsInViews = require('./no-thenable-actions-in-views').rule;
 const noApiInViews = require('./no-api-in-views').rule;
+const preferOnyxConnectInLibs = require('./prefer-onyx-connect-in-libs').rule;
 
 module.exports = {
     'no-negated-variables': noNegatedVariables,
@@ -18,4 +19,5 @@ module.exports = {
     'no-useless-compose': noUselessCompose,
     'no-thenable-actions-in-views': noThenableActionsInViews,
     'no-api-in-views': noApiInViews,
+    'prefer-onyx-connect-in-libs': preferOnyxConnectInLibs,
 };
