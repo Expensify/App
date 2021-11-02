@@ -61,7 +61,11 @@ const defaultProps = {
 class WorkspaceInitialPage extends React.Component {
     constructor(props) {
         super(props);
+
         const {policy} = this.props;
+        this.openEditor = this.openEditor.bind(this);
+        this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
+        this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
 
         this.menuItems = [
             {
@@ -119,16 +123,25 @@ class WorkspaceInitialPage extends React.Component {
         };
     }
 
+    /**
+     * Open Workspace Editor
+     */
     openEditor() { Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id)); }
 
-    toggleDeleteModal(flag) {
-        this.setState({isDeleteModalOpen: flag});
+    /**
+     * Toggle delete confirm modal visibility
+     * @param {Boolean} shouldOpen
+     */
+    toggleDeleteModal(shouldOpen) {
+        this.setState({isDeleteModalOpen: shouldOpen});
     }
 
-
+    /**
+     * Call the delete policy and hide the modal
+     */
     confirmDeleteAndHideModal() {
         deletePolicy(this.props.policy.id);
-        this.hideDeleteModal();
+        this.toggleDeleteModal(false);
     }
 
 
