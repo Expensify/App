@@ -1007,7 +1007,6 @@ function addAction(reportID, text, file) {
     const parser = new ExpensiMark();
     const commentText = parser.replace(text);
     const isAttachment = _.isEmpty(text) && file !== undefined;
-    const attachment = isAttachment && Onyx.prepareFile(file);
 
     // The new sequence number will be one higher than the highest
     const highestSequenceNumber = reportMaxSequenceNumbers[reportID] || 0;
@@ -1080,8 +1079,8 @@ function addAction(reportID, text, file) {
 
     API.Report_AddComment({
         reportID,
+        file,
         reportComment: commentText,
-        file: attachment || undefined,
         clientID: optimisticReportActionID,
 
         // The persist flag enables this request to be retried if we are offline and the app is completely killed.
