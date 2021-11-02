@@ -8,7 +8,7 @@ import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
-import {setPassword, signIn} from '../libs/actions/Session';
+import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -16,8 +16,6 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
 import Text from '../components/Text';
-import * as API from '../libs/API';
-import CONST from '../CONST';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +36,12 @@ const propTypes = {
 
         /** The password used to log in the user */
         password: PropTypes.string,
+    }),
+
+    /** Session object */
+    session: PropTypes.shape({
+        /** An error message to display to the user */
+        error: PropTypes.string,
     }),
 
     /** The accountID and validateCode are passed via the URL */
@@ -67,6 +71,9 @@ const defaultProps = {
     route: {
         params: {},
     },
+    session: {
+        error: '',
+    },
 };
 
 class SetPasswordPage extends Component {
@@ -78,7 +85,6 @@ class SetPasswordPage extends Component {
         this.state = {
             password: '',
             isFormValid: false,
-            error: '',
         };
     }
 
@@ -91,40 +97,13 @@ class SetPasswordPage extends Component {
         if (!this.state.isFormValid) {
             return;
         }
-        API.ValidateEmail({
-            accountID,
-            validateCode,
-        }).then((responseValidate) => {
-            if (responseValidate.jsonCode === 200) {
-                API.ChangePassword({
-                    authToken: responseValidate.authToken,
-                    password: this.state.password,
-                }).then((responsePassword) => {
-                    if (responsePassword.jsonCode === 200) {
-                        signIn(this.state.password);
-                    } else {
-                        this.setState({
-                            error: this.props.translate('setPasswordPage.passwordNotSet'),
-                        });
-                    }
-                });
-            } else if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
-                // If the email is already validated, set the password using the validate code
-                setPassword(
-                    this.state.password,
-                    lodashGet(this.props.route, 'params.validateCode', ''),
-                    lodashGet(this.props.route, 'params.accountID', ''),
-                );
-            } else {
-                this.setState({
-                    error: this.props.translate('setPasswordPage.accountNotValidated'),
-                });
-            }
-        });
+
+        Session.validateEmail(accountID, validateCode, this.state.password);
     }
 
     render() {
-        const error = this.state.error || this.props.account.error;
+        const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
+        const error = sessionError || this.props.account.error;
         return (
             <SafeAreaView style={[styles.signInPage]}>
                 <SignInPageLayout
@@ -168,5 +147,9 @@ export default compose(
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},
+        session: {
+            key: ONYXKEYS.SESSION,
+            initWithStoredValues: false,
+        },
     }),
 )(SetPasswordPage);

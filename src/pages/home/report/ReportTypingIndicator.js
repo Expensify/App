@@ -51,34 +51,20 @@ class ReportTypingIndicator extends React.Component {
                 return <View style={[styles.chatItemComposeSecondaryRow]} />;
             case 1:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                        </Text>
-                    </View>
-                );
-            case 2:
-                return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('common.and')} `}
-                            {getDisplayName(this.state.usersTyping[1])}
-                            {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                        </Text>
+                    <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow]}>
+                        <View style={[styles.chatItemComposeSecondaryRowOffset, styles.flexShrink1]}>
+                            <Text
+                                style={[styles.chatItemComposeSecondaryRowSubText]}
+                                numberOfLines={1}
+                            >
+                                {getDisplayName(this.state.usersTyping[0])}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
+                                {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                            </Text>
+                        </View>
                     </View>
                 );
             default:

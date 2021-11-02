@@ -85,7 +85,7 @@ export default {
         reset: 'Reset',
         done: 'Done',
         debitCard: 'Debit card',
-        payPalMe: 'PayPal.me/',
+        payPalMe: 'PayPal.me',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -194,7 +194,6 @@ export default {
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
-        choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
@@ -233,6 +232,9 @@ export default {
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
         growlMessageOnSave: 'Your profile was successfully saved',
+        online: 'Online',
+        offline: 'Offline',
+        syncing: 'Syncing',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
@@ -281,6 +283,7 @@ export default {
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
+        payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
