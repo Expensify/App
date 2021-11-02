@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
@@ -12,15 +13,31 @@ import LogUtil from './Log';
 
 let isAuthenticating;
 let credentials;
+let authToken;
+
+/**
+ * Checks if both authToken and credentials were already read from persistent storage (Onyx)
+ * @returns {Boolean}
+ */
+function isAuthStoreReady() {
+    return !_.isUndefined(authToken)
+        && !_.isUndefined(credentials);
+}
+
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
+    callback: (val) => {
+        credentials = val || null;
+        Network.setIsReady(isAuthStoreReady());
+    },
 });
 
-let authToken;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
+    callback: (val) => {
+        authToken = lodashGet(val, 'authToken', null);
+        Network.setIsReady(isAuthStoreReady());
+    },
 });
 
 /**
@@ -190,7 +207,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
 
 /**
  * @param {Object} parameters
- * @param {String} [parameters.useExpensifyLogin]
+ * @param {Boolean} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
@@ -1005,14 +1022,13 @@ function DeleteBankAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
  * @returns {Promise}
  */
 function Mobile_GetConstants(parameters) {
     const commandName = 'Mobile_GetConstants';
     requireParameters(['data'], parameters, commandName);
 
-    // Stringinfy the parameters object as we cannot send an object via FormData
+    // Stringify the parameters object as we cannot send an object via FormData
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 

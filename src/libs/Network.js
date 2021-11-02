@@ -5,7 +5,10 @@ import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
+// eslint-disable-next-line import/no-cycle
+import LogUtil from './Log';
 
+let isReady = false;
 let isQueuePaused = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -94,6 +97,14 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: val => email = val ? val.email : null,
 });
+
+/**
+ *
+ * @param {Boolean} val
+ */
+function setIsReady(val) {
+    isReady = val;
+}
 
 /**
  * Checks to see if a request can be made.
@@ -185,6 +196,12 @@ function processNetworkRequestQueue() {
             if (canRetryRequest(queuedRequest)) {
                 requestsToProcessOnNextRun.push(queuedRequest);
             }
+            return;
+        }
+
+        if (!isReady) {
+            LogUtil.hmmm('Trying to make a request when Network is not ready', {command: queuedRequest.command, type: queuedRequest.type});
+            requestsToProcessOnNextRun.push(queuedRequest);
             return;
         }
 
@@ -329,4 +346,5 @@ export {
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
+    setIsReady,
 };
