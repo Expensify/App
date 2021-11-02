@@ -10,7 +10,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {ChatBubble, Close} from '../../components/Icon/Expensicons';
+import {Mail, Close} from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
@@ -22,6 +22,7 @@ import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
+import {openOldDotLink} from '../../libs/actions/Link';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -75,10 +76,10 @@ class EnableStep extends React.Component {
         }];
         if (!isUsingExpensifyCard) {
             menuItems.unshift({
-                title: translate('workspace.bankAccount.chatWithConcierge'),
-                icon: ChatBubble,
+                title: translate('workspace.bankAccount.addWorkEmail'),
+                icon: Mail,
                 onPress: () => {
-                    navigateToConciergeChat();
+                    openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
                 },
                 shouldShowRightIcon: true,
             });
