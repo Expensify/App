@@ -30,18 +30,16 @@ const defaultProps = {
  */
 
 const PDFView = props => (
-    <View style={[styles.flex1, props.style]}>
-        <TouchableWithoutFeedback>
-            <PDF
-                activityIndicator={<FullScreenLoadingIndicator />}
-                source={{uri: props.sourceURL}}
-                style={[
-                    styles.imageModalPDF,
-                    getWidthAndHeightStyle(props.windowWidth, props.windowHeight),
-                ]}
-            />
-        </TouchableWithoutFeedback>
-    </View>
+    <TouchableWithoutFeedback style={[styles.flex1, props.style]}>
+        <PDF
+            activityIndicator={<FullScreenLoadingIndicator />}
+            source={{uri: props.sourceURL}}
+            style={[
+                styles.imageModalPDF,
+                getWidthAndHeightStyle(props.windowWidth, props.windowHeight),
+            ]}
+        />
+    </TouchableWithoutFeedback>
 );
 
 PDFView.propTypes = propTypes;
