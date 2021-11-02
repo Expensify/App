@@ -9,6 +9,8 @@ import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
 // eslint-disable-next-line import/no-cycle
 import LogUtil from './Log';
+// eslint-disable-next-line import/no-cycle
+import * as Session from './actions/Session';
 
 let isAuthenticating;
 let credentials;
@@ -91,21 +93,23 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
  */
 function requireParameters(parameterNames, parameters, commandName) {
     parameterNames.forEach((parameterName) => {
-        if (!_(parameters).has(parameterName)
-            || parameters[parameterName] === null
-            || parameters[parameterName] === undefined
+        if (_(parameters).has(parameterName)
+            && parameters[parameterName] !== null
+            && parameters[parameterName] !== undefined
         ) {
-            const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
-            const parametersCopy = _.chain(parameters)
-                .clone()
-                .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
-                .value();
-            const keys = _(parametersCopy).keys().join(', ') || 'none';
-
-            let error = `Parameter ${parameterName} is required for "${commandName}". `;
-            error += `Supplied parameters: ${keys}`;
-            throw new Error(error);
+            return;
         }
+
+        const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
+        const parametersCopy = _.chain(parameters)
+            .clone()
+            .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
+            .value();
+        const keys = _(parametersCopy).keys().join(', ') || 'none';
+
+        let error = `Parameter ${parameterName} is required for "${commandName}". `;
+        error += `Supplied parameters: ${keys}`;
+        throw new Error(error);
     });
 }
 
@@ -182,7 +186,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
     }
 
     // Set an error state and signify we are done loading
-    Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
+    Session.setSessionLoadingAndError(false, 'Cannot connect to server');
 
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
@@ -283,10 +287,7 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {
-                authToken: response.authToken,
-                encryptedAuthToken: response.encryptedAuthToken,
-            });
+            Session.updateSessionAuthTokens(reponse.authToken, response.encryptedAuthToken);
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue

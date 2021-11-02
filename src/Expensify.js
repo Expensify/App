@@ -124,9 +124,11 @@ class Expensify extends PureComponent {
     }
 
     initializeClient() {
-        if (Visibility.isVisible()) {
-            ActiveClientManager.init();
+        if (!Visibility.isVisible()) {
+            return;
         }
+
+        ActiveClientManager.init();
     }
 
     hideSplash() {

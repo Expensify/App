@@ -41,10 +41,11 @@ class ImageWithSizeCalculation extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        // Only calculate image size if the source has changed
-        if (prevProps.url !== this.props.url) {
-            this.calculateImageSize();
+        if (prevProps.url === this.props.url) {
+            return;
         }
+
+        this.calculateImageSize();
     }
 
     componentWillUnmount() {
