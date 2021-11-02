@@ -650,6 +650,7 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
+            deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',

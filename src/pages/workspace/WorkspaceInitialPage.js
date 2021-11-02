@@ -10,6 +10,7 @@ import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
+import ConfirmModal from '../../components/ConfirmModal';
 import Icon from '../../components/Icon';
 import {
     Bank,
@@ -34,7 +35,7 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import {create} from '../../libs/actions/Policy';
+import {create, deletePolicy} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Whether the current screen is focused. */
@@ -112,9 +113,24 @@ class WorkspaceInitialPage extends React.Component {
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
             },
         ];
+
+        this.state = {
+            isDeleteModalOpen: false,
+        };
     }
 
-    openEditor = () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id));
+    openEditor() { Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(this.props.policy.id)); }
+
+    toggleDeleteModal(flag) {
+        this.setState({isDeleteModalOpen: flag});
+    }
+
+
+    confirmDeleteAndHideModal() {
+        deletePolicy(this.props.policy.id);
+        this.hideDeleteModal();
+    }
+
 
     render() {
         const {
@@ -216,6 +232,15 @@ class WorkspaceInitialPage extends React.Component {
                         })}
                     </View>
                 </ScrollView>
+                <ConfirmModal
+                    title={this.props.translate('workspace.delete')}
+                    isVisible={this.state.isDeleteModalOpen}
+                    onConfirm={this.confirmDeleteAndHideModal}
+                    onCancel={() => this.toggleDeleteModal(false)}
+                    prompt={this.props.translate('workspace.deleteConfirmation')}
+                    confirmText={this.props.translate('common.delete')}
+                    cancelText={this.props.translate('common.cancel')}
+                />
             </ScreenWrapper>
         );
     }
