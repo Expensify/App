@@ -85,7 +85,7 @@ const HeaderWithCloseButton = props => (
             )}
             <Header
                 title={props.title}
-                subtitle={props.stepCounter && shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
+                subtitle={props.stepCounter && props.shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
             />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
