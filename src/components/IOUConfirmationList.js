@@ -391,13 +391,11 @@ class IOUConfirmationList extends Component {
         }
 
         this.setState((prevState) => {
-            const newParticipants = _.reject(prevState.participants, participant => (
-                participant.login === option.login
-            ));
-
-            newParticipants.push({
-                ...option,
-                selected: !option.selected,
+            const newParticipants = _.map(prevState.participants, (participant) => {
+                if (participant.login === option.login) {
+                    return {...option, selected: !option.selected};
+                }
+                return participant;
             });
             return {participants: newParticipants};
         });

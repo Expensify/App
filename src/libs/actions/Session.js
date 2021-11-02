@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -55,14 +56,16 @@ function createAccount(login) {
     API.User_SignUp({
         email: login,
     }).then((response) => {
-        if (response.jsonCode !== 200) {
-            let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
-            if (!response.message && response.jsonCode === 405) {
-                errorMessage = 'Cannot create an account that is under a controlled domain';
-            }
-            Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
-            Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
+        if (response.jsonCode === 200) {
+            return;
         }
+
+        let errorMessage = response.message || `Unknown API Error: ${response.jsonCode}`;
+        if (!response.message && response.jsonCode === 405) {
+            errorMessage = 'Cannot create an account that is under a controlled domain';
+        }
+        Onyx.merge(ONYXKEYS.SESSION, {error: errorMessage});
+        Onyx.merge(ONYXKEYS.CREDENTIALS, {login: null});
     });
 }
 
@@ -310,9 +313,11 @@ function setPassword(password, validateCode, accountID) {
             Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
         })
         .catch((response) => {
-            if (response.title === CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
-                Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
+            if (response.title !== CONST.PASSWORD_PAGE.ERROR.VALIDATE_CODE_FAILED) {
+                return;
             }
+
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -387,6 +392,55 @@ function updateSessionAuthTokens(authToken, encryptedAuthToken) {
     Onyx.merge(ONYXKEYS.SESSION, {authToken, encryptedAuthToken});
 }
 
+/**
+ * @param {String} authToken
+ * @param {String} password
+ */
+function changePasswordAndSignIn(authToken, password) {
+    API.ChangePassword({
+        authToken,
+        password,
+    })
+        .then((responsePassword) => {
+            if (responsePassword.jsonCode === 200) {
+                signIn(password);
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.passwordNotSet'});
+        });
+}
+
+/**
+ * @param {String} accountID
+ * @param {String} validateCode
+ * @param {String} password
+ */
+function validateEmail(accountID, validateCode, password) {
+    API.ValidateEmail({
+        accountID,
+        validateCode,
+    })
+        .then((responseValidate) => {
+            if (responseValidate.jsonCode === 200) {
+                changePasswordAndSignIn(responseValidate.authToken, password);
+                return;
+            }
+
+            if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
+                // If the email is already validated, set the password using the validate code
+                setPassword(
+                    password,
+                    validateCode,
+                    accountID,
+                );
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.accountNotValidated'});
+        });
+}
+
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -402,4 +456,5 @@ export {
     clearAccountMessages,
     setSessionLoadingAndError,
     updateSessionAuthTokens,
+    validateEmail,
 };
