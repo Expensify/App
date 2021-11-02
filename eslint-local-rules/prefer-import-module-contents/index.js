@@ -1,4 +1,6 @@
 const _ = require('underscore');
+const lodashGet = require('lodash/get');
+
 const message = 'Do not import individual exports from local modules. Prefer \'import * as\' syntax.';
 
 /**
@@ -22,7 +24,12 @@ module.exports = {
     rule: {
         create: context => ({
             ImportDeclaration(node) {
-                if (isFromNodeModules(node.source.value)) {
+                const sourceValue = lodashGet(node, 'source.value');
+                if (!sourceValue) {
+                    return;
+                }
+
+                if (isFromNodeModules(sourceValue)) {
                     return;
                 }
 

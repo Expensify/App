@@ -1,3 +1,5 @@
+const lodashGet = require('lodash/get');
+
 /**
  * @param {String} name
  * @returns {Boolean}
@@ -22,7 +24,12 @@ module.exports = {
     rule: {
         create: context => ({
             FunctionDeclaration(node) {
-                if (!isNegatedVariableName(node.id.name)) {
+                const name = lodashGet(node, 'id.name');
+                if (!name) {
+                    return;
+                }
+
+                if (!isNegatedVariableName(name)) {
                     return;
                 }
 
@@ -32,6 +39,11 @@ module.exports = {
                 });
             },
             VariableDeclarator(node) {
+                const name = lodashGet(node, 'id.name');
+                if (!name) {
+                    return;
+                }
+
                 if (!isNegatedVariableName(node.id.name)) {
                     return;
                 }

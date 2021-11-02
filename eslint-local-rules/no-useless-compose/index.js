@@ -1,3 +1,5 @@
+const lodashGet = require('lodash/get');
+
 const message = 'compose() is not necessary when passed a single argument';
 
 module.exports = {
@@ -5,7 +7,12 @@ module.exports = {
     rule: {
         create: context => ({
             CallExpression(node) {
-                if (node.callee.name !== 'compose') {
+                const name = lodashGet(node, 'callee.name');
+                if (!name) {
+                    return;
+                }
+
+                if (name !== 'compose') {
                     return;
                 }
 
