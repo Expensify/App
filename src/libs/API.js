@@ -5,9 +5,9 @@ import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 import redirectToSignIn from './actions/SignInRedirect';
-import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
-
+// eslint-disable-next-line import/no-cycle
+import * as Network from './Network';
 // eslint-disable-next-line import/no-cycle
 import LogUtil from './Log';
 
