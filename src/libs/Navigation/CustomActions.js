@@ -59,26 +59,23 @@ function pushDrawerRoute(screenName, params, navigationRef) {
         const rootState = navigationRef.current.getRootState();
         const activeReportID = lodashGet(rootState, 'routes[0].state.routes[0].params.reportID', '');
 
-        if (state.type !== 'drawer') {
-            if (activeReportID === params.reportID) {
+        if (activeReportID === params.reportID) {
+            if (state.type !== 'drawer') {
                 navigateBackToRootDrawer(navigationRef);
-            } else {
-                // Non Drawer navigators have routes and not history so we'll fallback to navigate() in the case where we are
-                // unable to push a new screen onto the history stack e.g. navigating to a ReportScreen via a modal screen.
-                // Note: One downside of this is that the history will be reset.
-                navigationRef.current.dispatch(() => CommonActions.navigate(screenName, params));
             }
             return DrawerActions.closeDrawer();
         }
 
-        const screenRoute = {type: 'route', name: screenName};
-        const history = _.map([...(state.history || [screenRoute])], () => screenRoute);
+        // Non Drawer navigators have routes and not history so we'll fallback to navigate() in the case where we are
+        // unable to push a new screen onto the history stack e.g. navigating to a ReportScreen via a modal screen.
+        // Note: One downside of this is that the history will be reset.
+        if (state.type !== 'drawer') {
+            return CommonActions.navigate(screenName, params);
+        }
 
-        // Force drawer to close and show the report screen
-        history.push({
-            type: 'drawer',
-            status: 'closed',
-        });
+        const screenRoute = {type: 'route', name: screenName};
+        const history = _.map([...(state.history || [])], () => screenRoute);
+        history.push(screenRoute);
         return CommonActions.reset({
             ...state,
             routes: [{
