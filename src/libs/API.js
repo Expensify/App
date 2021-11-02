@@ -287,7 +287,7 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Session.updateSessionAuthTokens(reponse.authToken, response.encryptedAuthToken);
+            Session.updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
