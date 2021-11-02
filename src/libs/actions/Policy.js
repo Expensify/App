@@ -15,9 +15,11 @@ const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
-        if (val && key) {
-            allPolicies[key] = {...allPolicies[key], ...val};
+        if (!val || !key) {
+            return;
         }
+
+        allPolicies[key] = {...allPolicies[key], ...val};
     },
 });
 
@@ -171,10 +173,12 @@ function getPolicyList(shouldCreateNewPolicy = false) {
             return API.GetPolicyList();
         })
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
-                updateAllPolicies(policyDataToStore);
+            if (data.jsonCode !== 200) {
+                return;
             }
+
+            const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
+            updateAllPolicies(policyDataToStore);
         });
 }
 

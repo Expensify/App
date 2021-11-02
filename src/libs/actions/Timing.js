@@ -28,32 +28,34 @@ function start(eventName, shouldUseFirebase = false) {
  * @param {String} [secondaryName] - optional secondary event name, passed to grafana
  */
 function end(eventName, secondaryName = '') {
-    if (eventName in timestampData) {
-        const {startTime, shouldUseFirebase} = timestampData[eventName];
-        const eventTime = Date.now() - startTime;
-
-        if (shouldUseFirebase) {
-            Firebase.stopTrace(eventName);
-        }
-
-        const grafanaEventName = secondaryName
-            ? `expensify.cash.${eventName}.${secondaryName}`
-            : `expensify.cash.${eventName}`;
-
-        console.debug(`Timing:${grafanaEventName}`, eventTime);
-        delete timestampData[eventName];
-
-        if (isDevelopment()) {
-            // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
-            return;
-        }
-
-        Graphite_Timer({
-            name: grafanaEventName,
-            value: eventTime,
-            platform: `${getPlatform()}`,
-        });
+    if (!timestampData[eventName]) {
+        return;
     }
+
+    const {startTime, shouldUseFirebase} = timestampData[eventName];
+    const eventTime = Date.now() - startTime;
+
+    if (shouldUseFirebase) {
+        Firebase.stopTrace(eventName);
+    }
+
+    const grafanaEventName = secondaryName
+        ? `expensify.cash.${eventName}.${secondaryName}`
+        : `expensify.cash.${eventName}`;
+
+    console.debug(`Timing:${grafanaEventName}`, eventTime);
+    delete timestampData[eventName];
+
+    if (isDevelopment()) {
+        // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
+        return;
+    }
+
+    Graphite_Timer({
+        name: grafanaEventName,
+        value: eventTime,
+        platform: `${getPlatform()}`,
+    });
 }
 
 /**

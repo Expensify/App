@@ -47,9 +47,11 @@ const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy, key) => {
-        if (policy && key && policy.name) {
-            policies[key] = policy;
+        if (!policy || !key || !policy.name) {
+            return;
         }
+
+        policies[key] = policy;
     },
 });
 
@@ -57,9 +59,11 @@ const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     callback: (iouReport, key) => {
-        if (iouReport && key && iouReport.ownerEmail) {
-            iouReports[key] = iouReport;
+        if (!iouReport || !key || !iouReport.ownerEmail) {
+            return;
         }
+
+        iouReports[key] = iouReport;
     },
 });
 

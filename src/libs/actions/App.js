@@ -79,9 +79,14 @@ AppState.addEventListener('change', (nextAppState) => {
     appState = nextAppState;
 });
 
+function triggerUpdateAvailable() {
+    Onyx.merge(ONYXKEYS.UPDATE_AVAILABLE, true);
+}
+
 export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
     getLocaleAndUpdate,
+    triggerUpdateAvailable,
 };
