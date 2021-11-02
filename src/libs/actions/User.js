@@ -40,7 +40,7 @@ Onyx.connect({
  * @param {String} password
  * @returns {Promise}
  */
-function changePassword(oldPassword, password) {
+function changePasswordAndNavigate(oldPassword, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.ChangePassword({oldPassword, password})
@@ -48,12 +48,13 @@ function changePassword(oldPassword, password) {
             if (response.jsonCode !== 200) {
                 const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+                return;
             }
-            return response;
+
+            Navigation.navigate(ROUTES.SETTINGS);
         })
-        .finally((response) => {
+        .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-            return response;
         });
 }
 
@@ -132,7 +133,7 @@ function setExpensifyNewsStatus(subscribed) {
  * @param {String} password
  * @returns {Promise}
  */
-function setSecondaryLogin(login, password) {
+function setSecondaryLoginAndNavigate(login, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.User_SecondaryLogin_Send({
@@ -142,20 +143,20 @@ function setSecondaryLogin(login, password) {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
-        } else {
-            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
-
-            // Replace error with a friendlier message
-            if (error.includes('already belongs to an existing Expensify account.')) {
-                error = 'This login already belongs to an existing Expensify account.';
-            }
-
-            Onyx.merge(ONYXKEYS.USER, {error});
+            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+            return;
         }
-        return response;
-    }).finally((response) => {
+
+        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+
+        // Replace error with a friendlier message
+        if (error.includes('already belongs to an existing Expensify account.')) {
+            error = 'This login already belongs to an existing Expensify account.';
+        }
+
+        Onyx.merge(ONYXKEYS.USER, {error});
+    }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        return response;
     });
 }
 
@@ -299,12 +300,12 @@ function clearUserErrorMessage() {
 }
 
 export {
-    changePassword,
+    changePasswordAndNavigate,
     getBetas,
     getUserDetails,
     resendValidateCode,
     setExpensifyNewsStatus,
-    setSecondaryLogin,
+    setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
     getDomainInfo,
