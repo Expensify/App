@@ -156,7 +156,7 @@ class WorkspaceInitialPage extends React.Component {
                         }, {
                             icon: Trashcan,
                             text: translate('workspace.common.delete'),
-                            onPress: () => {},
+                            onPress: () => this.setState({isDeleteModalOpen: true}),
                         },
                     ]}
                 />
@@ -233,11 +233,11 @@ class WorkspaceInitialPage extends React.Component {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title={this.props.translate('workspace.delete')}
+                    title={this.props.translate('workspace.common.delete')}
                     isVisible={this.state.isDeleteModalOpen}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={() => this.toggleDeleteModal(false)}
-                    prompt={this.props.translate('workspace.deleteConfirmation')}
+                    prompt={this.props.translate('workspace.common.deleteConfirmation')}
                     confirmText={this.props.translate('common.delete')}
                     cancelText={this.props.translate('common.cancel')}
                 />
