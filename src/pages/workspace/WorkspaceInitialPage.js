@@ -124,6 +124,18 @@ const WorkspaceInitialPage = ({
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal()}
+                shouldShowThreeDotsButton
+                threeDotsMenuItems={[
+                    {
+                        icon: Plus,
+                        text: translate('workspace.new.newWorkspace'),
+                        onPress: () => create(),
+                    }, {
+                        icon: Trashcan,
+                        text: translate('workspace.common.delete'),
+                        onPress: () => {},
+                    },
+                ]}
             />
             <ScrollView
                 contentContainerStyle={[
@@ -133,25 +145,6 @@ const WorkspaceInitialPage = ({
                 ]}
             >
                 <View style={[styles.flex1]}>
-
-                    <HeaderWithCloseButton
-                        title={translate('workspace.common.workspace')}
-                        onCloseButtonPress={() => Navigation.dismissModal()}
-                        shouldShowCloseButton={isSmallScreenWidth}
-                        shouldShowThreeDotsButton
-                        threeDotsMenuItems={[
-                            {
-                                icon: Plus,
-                                text: translate('workspace.new.newWorkspace'),
-                                onPress: () => create(),
-                            }, {
-                                icon: Trashcan,
-                                text: translate('workspace.common.delete'),
-                                onPress: () => {},
-                            },
-                        ]}
-                    />
-
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.alignItemsCenter]}>
                             <Pressable
