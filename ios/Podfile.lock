@@ -410,11 +410,11 @@ PODS:
     - react-native-config/App (= 1.4.1)
   - react-native-config/App (1.4.1):
     - React-Core
-  - react-native-document-picker (5.1.0):
+  - react-native-document-picker (7.1.1):
     - React-Core
   - react-native-flipper (0.117.0):
     - React-Core
-  - react-native-image-picker (4.0.3):
+  - react-native-image-picker (4.1.2):
     - React-Core
   - react-native-netinfo (5.9.10):
     - React-Core
@@ -871,9 +871,9 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 124e8f99992490d0d13e0649d950d3e1aae06fe9
   React-jsinspector: 500a59626037be5b3b3d89c5151bc3baa9abf1a9
   react-native-config: d8b45133fd13d4f23bd2064b72f6e2c08b2763ed
-  react-native-document-picker: 0e3602a4064da040321bafad6848d8b0edcb1d55
+  react-native-document-picker: ebcce6982dd91aa6d2b9a38b666895c381015f1d
   react-native-flipper: cd9eabd8917104c1bbdca2621717cdca3b2addef
-  react-native-image-picker: 4089335b89b625d4e34d53fb249c48a7a791b3ea
+  react-native-image-picker: f45729c43d4f854508ab25c0d0f0f711a2a8a267
   react-native-netinfo: 30fb89fa913c342be82a887b56e96be6d71201dd
   react-native-pdf: 4b5a9e4465a6a3b399e91dc4838eb44ddf716d1f
   react-native-performance: 6bd6cfac80594775fb782405fceaaf206becf53b

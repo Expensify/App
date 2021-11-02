@@ -118,17 +118,22 @@ class AttachmentPicker extends Component {
       * Handles the image/document picker result and
       * sends the selected attachment to the caller (parent component)
       *
-      * @param {ImagePickerResponse|DocumentPickerResponse} attachment
+      * @param {Array<ImagePickerResponse|DocumentPickerResponse>} attachments
       */
-    pickAttachment(attachment) {
-        if (attachment) {
-            if (attachment.width === -1 || attachment.height === -1) {
-                this.showImageCorruptionAlert();
-                return;
-            }
-            const result = getDataForUpload(attachment);
-            this.completeAttachmentSelection(result);
+    pickAttachment(attachments = []) {
+        if (attachments.length === 0) {
+            return;
         }
+
+        const fileData = _.first(attachments);
+
+        if (fileData.width === -1 || fileData.height === -1) {
+            this.showImageCorruptionAlert();
+            return;
+        }
+
+        const result = getDataForUpload(fileData);
+        this.completeAttachmentSelection(result);
     }
 
     /**
@@ -179,7 +184,7 @@ class AttachmentPicker extends Component {
                 }
 
                 // Resolve with the first (and only) selected file
-                return resolve(response.assets[0]);
+                return resolve(response.assets);
             });
         });
     }
@@ -208,7 +213,7 @@ class AttachmentPicker extends Component {
     /**
       * Launch the DocumentPicker. Results are in the same format as ImagePicker
       *
-      * @returns {Promise<DocumentPickerResponse>}
+      * @returns {Promise<DocumentPickerResponse[]>}
       */
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
