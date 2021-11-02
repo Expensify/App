@@ -6,7 +6,6 @@ import compose from '../libs/compose';
 import {Checkmark, Clipboard as ClipboardIcon} from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
 import ContextMenuItem from './ContextMenuItem';
-import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import CONST from '../CONST';
@@ -53,13 +52,7 @@ const CommunicationsLink = props => (
                         >
                             {props.children}
                         </Pressable>
-                    ) : (
-                        <Tooltip text={props.value}>
-                            <View style={[styles.communicationsLinkText]}>
-                                {props.children}
-                            </View>
-                        </Tooltip>
-                    )}
+                    ) : props.children}
             </View>
             <ContextMenuItem
                 icon={ClipboardIcon}
