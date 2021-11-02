@@ -110,11 +110,21 @@ function setIsReady(val) {
  * Checks to see if a request can be made.
  *
  * @param {Object} request
+ * @param {String} request.type
+ * @param {String} request.command
  * @param {Object} request.data
  * @param {Boolean} request.data.forceNetworkRequest
  * @return {Boolean}
  */
 function canMakeRequest(request) {
+    // We'll not make the request now if the network is not ready (it should have higher priority than
+    // forceNetworkRequest and isQueuePaused because we wait until credentials + session objects have
+    // been read from persistent storage).
+    if (!isReady) {
+        LogUtil.hmmm('Trying to make a request when Network is not ready', {command: request.command, type: request.type});
+        return false;
+    }
+
     // These requests are always made even when the queue is paused
     if (request.data.forceNetworkRequest === true) {
         return true;
@@ -196,12 +206,6 @@ function processNetworkRequestQueue() {
             if (canRetryRequest(queuedRequest)) {
                 requestsToProcessOnNextRun.push(queuedRequest);
             }
-            return;
-        }
-
-        if (!isReady) {
-            LogUtil.hmmm('Trying to make a request when Network is not ready', {command: queuedRequest.command, type: queuedRequest.type});
-            requestsToProcessOnNextRun.push(queuedRequest);
             return;
         }
 
