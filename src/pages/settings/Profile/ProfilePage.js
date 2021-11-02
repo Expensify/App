@@ -99,12 +99,14 @@ class ProfilePage extends Component {
 
     componentDidUpdate(prevProps) {
         // Recalculate logins if loginList has changed
-        if (this.props.user.loginList !== prevProps.user.loginList) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({
-                logins: this.getLogins(this.props.user.loginList),
-            });
+        if (this.props.user.loginList === prevProps.user.loginList) {
+            return;
         }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({
+            logins: this.getLogins(this.props.user.loginList),
+        });
     }
 
     /**
@@ -187,11 +189,10 @@ class ProfilePage extends Component {
     }
 
     render() {
-        const pronounsList = Object.entries(this.props.translate('pronouns'))
-            .map(([key, value]) => ({
-                label: value,
-                value: `${CONST.PRONOUNS.PREFIX}${key}`,
-            }));
+        const pronounsList = _.map(this.props.translate('pronouns'), (value, key) => ({
+            label: value,
+            value: `${CONST.PRONOUNS.PREFIX}${key}`,
+        }));
 
         // Determines if the pronouns/selected pronouns have changed
         const arePronounsUnchanged = this.props.myPersonalDetails.pronouns === this.state.pronouns;

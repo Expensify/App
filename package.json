@@ -146,7 +146,7 @@
     "electron-notarize": "^1.0.0",
     "electron-reloader": "^1.2.0",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "git+https://github.com/Expensify/eslint-config-expensify.git#83688880733b4fcb425b01ae85fb90a0f882d35f",
+    "eslint-config-expensify": "git+https://github.com/Expensify/eslint-config-expensify.git#8bb251291fe1b88ba5b60e57c82a5b5145492c57",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-detox": "^1.0.0",
     "eslint-plugin-jest": "^24.1.0",

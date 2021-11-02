@@ -114,30 +114,30 @@ class SidebarLinks extends React.Component {
         const previousDraftComments = this.props.draftComments;
         const nextDraftComments = nextProps.draftComments;
 
-        const previousDraftReports = Object.keys(previousDraftComments);
-        const nextDraftReports = Object.keys(nextDraftComments);
+        const previousDraftReports = _.keys(previousDraftComments);
+        const nextDraftReports = _.keys(nextDraftComments);
 
-        const reportsWithNewDraftComments = nextDraftReports.filter((report) => {
+        const reportsWithNewDraftComments = _.filter(nextDraftReports, (report) => {
             const isNewDraftComment = !previousDraftReports.includes(report);
             const wasNonEmptyDraftComment = previousDraftComments[report] === '';
             const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
 
             return isNewDraftComment || (hasDraftCommentChanged && wasNonEmptyDraftComment);
         });
-        const reportsWithRemovedDraftComments = previousDraftReports.filter((report) => {
+        const reportsWithRemovedDraftComments = _.filter(previousDraftReports, (report) => {
             const isRemovedDraftComment = !nextDraftReports.includes(report);
             const isEmptyDraftComment = nextDraftComments[report] === '';
             const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
 
             return isRemovedDraftComment || (hasDraftCommentChanged && isEmptyDraftComment);
         });
-        const reportsWithEditedDraftComments = nextDraftReports.filter((report) => {
+        const reportsWithEditedDraftComments = _.filter(nextDraftReports, (report) => {
             const didDraftCommentExistPreviously = previousDraftReports.includes(report);
             const hasDraftCommentChanged = previousDraftComments[report] !== nextDraftComments[report];
-            const isNotANewDraftComment = !reportsWithNewDraftComments.includes(report);
-            const isNotARemovedDraftComment = !reportsWithRemovedDraftComments.includes(report);
+            const isNewDraftComment = reportsWithNewDraftComments.includes(report);
+            const isRemovedDraftComment = reportsWithRemovedDraftComments.includes(report);
 
-            return didDraftCommentExistPreviously && hasDraftCommentChanged && isNotANewDraftComment && isNotARemovedDraftComment;
+            return didDraftCommentExistPreviously && hasDraftCommentChanged && !isNewDraftComment && !isRemovedDraftComment;
         });
 
         const allReportsWithDraftCommentChanges = [
