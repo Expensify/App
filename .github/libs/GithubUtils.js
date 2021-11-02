@@ -1,3 +1,4 @@
+/* eslint-disable import/group-exports */
 const _ = require('underscore');
 const lodashGet = require('lodash/get');
 const core = require('@actions/core');

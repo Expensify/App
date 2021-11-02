@@ -31,6 +31,8 @@ afterAll(() => {
 });
 
 describe('generateAndroidVersionCode', () => {
+    // This is a false positive for this eslint rule as test.each is a jest global
+    // eslint-disable-next-line expensify/prefer-underscore-method
     test.each([
         ['1.0.1-0', '1001000100'],
         ['1.0.1-44', '1001000144'],
@@ -44,6 +46,8 @@ describe('generateAndroidVersionCode', () => {
 
 
 describe('updateAndroidVersion', () => {
+    // This is a false positive for this eslint rule as test.each is a jest global
+    // eslint-disable-next-line expensify/prefer-underscore-method
     test.each([
         [
             '1.0.1-47',

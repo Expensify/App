@@ -2,8 +2,6 @@ const {PERMISSIONS} = require('react-native-permissions/dist/commonjs/permission
 const {RESULTS} = require('react-native-permissions/dist/commonjs/results');
 const _ = require('underscore');
 
-export {PERMISSIONS, RESULTS};
-
 const openLimitedPhotoLibraryPicker = jest.fn((() => {}));
 const openSettings = jest.fn(() => {});
 const check = jest.fn(() => RESULTS.GRANTED);
@@ -77,4 +75,6 @@ export {
     requestNotifications,
     checkMultiple,
     requestMultiple,
+    PERMISSIONS,
+    RESULTS,
 };
