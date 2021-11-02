@@ -52,6 +52,7 @@ function getImagePickerOptions(type) {
   */
 const documentPickerOptions = {
     type: [RNDocumentPicker.types.allFiles],
+    copyTo: 'cachesDirectory',
 };
 
 /**
@@ -65,7 +66,7 @@ function getDataForUpload(fileData) {
     return {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
-        uri: fileData.uri,
+        uri: fileData.fileCopyUri || fileData.uri,
         size: fileData.fileSize || fileData.size,
     };
 }
