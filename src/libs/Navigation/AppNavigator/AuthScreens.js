@@ -146,10 +146,7 @@ class AuthScreens extends React.Component {
             returnValueList: 'nameValuePairs',
             nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
         }).then((response) => {
-            console.log("IN API GET", response);
             const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-            console.log("IN API GET currentPreferred", currentPreferredLocale);
-            console.log("IN API GET preferredLocale", preferredLocale);
             if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
