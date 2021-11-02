@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -32,11 +32,15 @@ const propTypes = {
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    /** Username for PayPal.Me */
+    payPalMeUsername: PropTypes.string,
 };
 
 const defaultProps = {
     betas: [],
     isLoadingPaymentMethods: true,
+    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -115,7 +119,7 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    <View>
+                    <ScrollView style={styles.flex1}>
                         {
                             Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
                         }
@@ -128,8 +132,9 @@ class PaymentsPage extends React.Component {
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
                             isLoadingPayments={this.props.isLoadingPaymentMethods}
+                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                         />
-                    </View>
+                    </ScrollView>
                     <Popover
                         isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
@@ -138,13 +143,15 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
+                        {!this.props.payPalMeUsername && (
+                            <MenuItem
+                                title={this.props.translate('common.payPalMe')}
+                                icon={PayPal}
+                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                            />
+                        )}
                         <MenuItem
-                            title="PayPal.me"
-                            icon={PayPal}
-                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                        />
-                        <MenuItem
-                            title="Debit Card"
+                            title={this.props.translate('common.debitCard')}
                             icon={CreditCard}
                             onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                         />
@@ -167,6 +174,9 @@ export default compose(
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
             initWithStoredValues: false,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(PaymentsPage);

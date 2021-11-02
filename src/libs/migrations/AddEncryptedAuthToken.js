@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import {reauthenticate} from '../API';
 
@@ -16,12 +17,12 @@ export default function () {
                 Onyx.disconnect(connectionID);
 
                 if (session && !_.isEmpty(session.encryptedAuthToken)) {
-                    console.debug('[Migrate Onyx] Skipped migration AddEncryptedAuthToken');
+                    Log.info('[Migrate Onyx] Skipped migration AddEncryptedAuthToken');
                     return resolve();
                 }
 
                 if (!session || !session.authToken) {
-                    console.debug('[Migrate Onyx] Skipped migration AddEncryptedAuthToken');
+                    Log.info('[Migrate Onyx] Skipped migration AddEncryptedAuthToken');
                     return resolve();
                 }
 
@@ -29,7 +30,7 @@ export default function () {
                 if (session.authToken && _.isUndefined(session.encryptedAuthToken)) {
                     return reauthenticate('Onyx_Migration_AddEncryptedAuthToken')
                         .then(() => {
-                            console.debug('[Migrate Onyx] Ran migration AddEncryptedAuthToken');
+                            Log.info('[Migrate Onyx] Ran migration AddEncryptedAuthToken');
                             return resolve();
                         });
                 }

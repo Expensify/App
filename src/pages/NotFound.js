@@ -12,6 +12,10 @@ import ROUTES from '../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import Text from '../components/Text';
 
+const propTypes = {
+    ...withLocalizePropTypes,
+};
+
 const NotFound = ({translations: {translate}}) => (
     <>
         <SafeAreaView
@@ -37,6 +41,6 @@ const NotFound = ({translations: {translate}}) => (
     </>
 );
 
-NotFound.propTypes = {...withLocalizePropTypes};
-
+NotFound.propTypes = propTypes;
+NotFound.displayName = 'NotFound';
 export default withLocalize(NotFound);

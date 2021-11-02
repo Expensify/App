@@ -44,5 +44,5 @@ class SwipeableView extends PureComponent {
 }
 
 SwipeableView.propTypes = propTypes;
-SwipeableView.displayName = 'SwipeableView';
+
 export default SwipeableView;

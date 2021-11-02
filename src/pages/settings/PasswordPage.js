@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 
@@ -19,6 +19,7 @@ import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import {clearAccountMessages} from '../../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -74,7 +75,7 @@ class PasswordPage extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+        clearAccountMessages();
     }
 
     /**
@@ -253,7 +254,6 @@ class PasswordPage extends Component {
     }
 }
 
-PasswordPage.displayName = 'PasswordPage';
 PasswordPage.propTypes = propTypes;
 PasswordPage.defaultProps = defaultProps;
 

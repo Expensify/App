@@ -25,7 +25,7 @@ describe('GithubUtils', () => {
                 },
             ],
             // eslint-disable-next-line max-len
-            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- [ ] https://github.com/Expensify/App/pull/21\r\n- [x] https://github.com/Expensify/App/pull/22\r\n- [ ] https://github.com/Expensify/App/pull/23\r\n\r\n',
+            body: '**Release Version:** `1.0.1-47`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n- https://github.com/Expensify/App/pull/21\r\n  - [ ] QA\r\n  - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/22\r\n  - [x] QA\r\n  - [ ] Accessibility\r\n\r\n- https://github.com/Expensify/App/pull/23\r\n  - [ ] QA\r\n  - [ ] Accessibility\r\n\r\n',
         };
         const issueWithDeployBlockers = {...baseIssue};
         // eslint-disable-next-line max-len
@@ -37,16 +37,19 @@ describe('GithubUtils', () => {
                     url: 'https://github.com/Expensify/App/pull/21',
                     number: 21,
                     isVerified: false,
+                    isAccessible: false,
                 },
                 {
                     url: 'https://github.com/Expensify/App/pull/22',
                     number: 22,
                     isVerified: true,
+                    isAccessible: false,
                 },
                 {
                     url: 'https://github.com/Expensify/App/pull/23',
                     number: 23,
                     isVerified: false,
+                    isAccessible: false,
                 },
             ],
             labels: [
@@ -233,27 +236,45 @@ describe('GithubUtils', () => {
         const mockPRs = [
             {
                 number: 1,
+                title: 'Test PR 1',
                 html_url: 'https://github.com/Expensify/App/pull/1',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 2,
+                title: 'Test PR 2',
                 html_url: 'https://github.com/Expensify/App/pull/2',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 3,
+                title: 'Test PR 3',
                 html_url: 'https://github.com/Expensify/App/pull/3',
                 user: {login: 'testUser'},
                 labels: [],
             },
             {
                 number: 4,
+                title: 'Test Automated PR',
                 html_url: 'https://github.com/Expensify/App/pull/4',
                 user: {login: 'OSBotify'},
                 labels: [{name: 'automerge'}],
+            },
+            {
+                number: 5,
+                title: '[No QA] Test No QA PR uppercase',
+                html_url: 'https://github.com/Expensify/App/pull/5',
+                user: {login: 'testUser'},
+                labels: [],
+            },
+            {
+                number: 6,
+                title: '[No QA] Test No QA PR Title Case',
+                html_url: 'https://github.com/Expensify/App/pull/6',
+                user: {login: 'testUser'},
+                labels: [],
             },
         ];
         const mockGithub = jest.fn(() => ({
@@ -275,9 +296,11 @@ describe('GithubUtils', () => {
         const basePRList = [
             'https://github.com/Expensify/App/pull/2',
             'https://github.com/Expensify/App/pull/3',
-            'https://github.com/Expensify/App/pull/3',
             'https://github.com/Expensify/App/pull/1',
-            'https://github.com/Expensify/App/pull/4',
+            'https://github.com/Expensify/App/pull/4', // Automated
+            'https://github.com/Expensify/App/pull/3', // This is an intentional duplicate for testing duplicates
+            'https://github.com/Expensify/App/pull/5', // No QA
+            'https://github.com/Expensify/App/pull/6', // No QA
         ];
 
         const baseDeployBlockerList = [
@@ -286,61 +309,122 @@ describe('GithubUtils', () => {
         ];
 
         // eslint-disable-next-line max-len
-        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**\r\n`;
-        const openCheckbox = '- [ ]';
-        const closedCheckbox = '- [x]';
+        const baseExpectedOutput = `**Release Version:** \`${tag}\`\r\n**Compare Changes:** https://github.com/Expensify/App/compare/production...staging\r\n\r\n**This release contains changes from the following pull requests:**`;
+        const openCheckbox = '- [ ] ';
+        const closedCheckbox = '- [x] ';
+        const listStart = '- ';
+        const QA = 'QA';
+        const accessibility = 'Accessibility';
+        const ccApplauseLeads = 'cc @Expensify/applauseleads\r\n';
+        const deployBlockerHeader = '\r\n**Deploy Blockers:**';
+        const lineBreak = '\r\n';
+        const lineBreakDouble = '\r\n\r\n';
+        const indent = '  ';
 
-        const ccApplauseLeads = '\r\ncc @Expensify/applauseleads\r\n';
+        // Valid output which will be reused in the deploy blocker tests
+        const allVerifiedExpectedOutput = `${baseExpectedOutput}`
+                + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`;
+
 
         test('Test no verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList)
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${baseExpectedOutput}${openCheckbox} ${basePRList[3]}\r\n${openCheckbox} ${basePRList[0]}\r\n${openCheckbox} ${basePRList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}`
+                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    );
                 })
         ));
 
         test('Test some verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]])
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${baseExpectedOutput}${openCheckbox} ${basePRList[3]}\r\n${closedCheckbox} ${basePRList[0]}\r\n${openCheckbox} ${basePRList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}`
+                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    );
                 })
         ));
 
-        // eslint-disable-next-line max-len
-        const allVerifiedExpectedOutput = `${baseExpectedOutput}${closedCheckbox} ${basePRList[3]}\r\n${closedCheckbox} ${basePRList[0]}\r\n${closedCheckbox} ${basePRList[1]}\r\n`;
+        test('Test some accessibility verified PRs', () => (
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, [basePRList[0]], [basePRList[1]])
+                .then((issueBody) => {
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}`
+                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${openCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    );
+                })
+        ));
+
         test('Test all verified PRs', () => (
             githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList)
                 .then((issueBody) => {
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${allVerifiedExpectedOutput}${lineBreakDouble}${ccApplauseLeads}`,
+                    );
                 })
         ));
 
-        const deployBlockerHeader = '\r\n**Deploy Blockers:**\r\n';
         test('Test no resolved deploy blockers', () => (
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList)
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, [], baseDeployBlockerList)
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${deployBlockerHeader}${openCheckbox} ${baseDeployBlockerList[0]}\r\n${openCheckbox} ${baseDeployBlockerList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${allVerifiedExpectedOutput}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreak}${openCheckbox}${baseDeployBlockerList[0]}`
+                        + `${lineBreak}${openCheckbox}${baseDeployBlockerList[1]}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    );
                 })
         ));
 
         test('Test some resolved deploy blockers', () => (
-            // eslint-disable-next-line max-len
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, [baseDeployBlockerList[0]])
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, [], baseDeployBlockerList, [baseDeployBlockerList[0]])
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${deployBlockerHeader}${closedCheckbox} ${baseDeployBlockerList[0]}\r\n${openCheckbox} ${baseDeployBlockerList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${allVerifiedExpectedOutput}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
+                        + `${lineBreak}${openCheckbox}${baseDeployBlockerList[1]}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    );
                 })
         ));
 
         test('Test all resolved deploy blockers', () => (
-            // eslint-disable-next-line max-len
-            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList)
+            githubUtils.generateStagingDeployCashBody(tag, basePRList, basePRList, baseDeployBlockerList, baseDeployBlockerList, baseDeployBlockerList)
                 .then((issueBody) => {
-                    // eslint-disable-next-line max-len
-                    expect(issueBody).toBe(`${allVerifiedExpectedOutput}${deployBlockerHeader}${closedCheckbox} ${baseDeployBlockerList[0]}\r\n${closedCheckbox} ${baseDeployBlockerList[1]}\r\n${ccApplauseLeads}`);
+                    expect(issueBody).toBe(
+                        `${baseExpectedOutput}`
+                        + `${lineBreakDouble}${listStart}${basePRList[2]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${openCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[1]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
+                        + `${lineBreakDouble}${deployBlockerHeader}`
+                        + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[0]}`
+                        + `${lineBreak}${closedCheckbox}${baseDeployBlockerList[1]}`
+                        + `${lineBreakDouble}${ccApplauseLeads}`,
+                    );
                 })
         ));
     });

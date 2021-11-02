@@ -4,6 +4,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import _ from 'underscore';
+import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -17,7 +18,6 @@ import Icon from '../../components/Icon';
 import {Workspace} from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
-import Growl from '../../libs/Growl';
 import CONST from '../../CONST';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import {getCurrencyList} from '../../libs/actions/PersonalDetails';
@@ -57,7 +57,6 @@ class WorkspaceSettingsPage extends React.Component {
 
         this.state = {
             name: props.policy.name,
-            avatarURL: props.policy.avatarURL,
             previewAvatarURL: props.policy.avatarURL,
             currency: props.policy.outputCurrency,
         };
@@ -66,7 +65,7 @@ class WorkspaceSettingsPage extends React.Component {
         this.uploadAvatar = this.uploadAvatar.bind(this);
         this.removeAvatar = this.removeAvatar.bind(this);
         this.getCurrencyItems = this.getCurrencyItems.bind(this);
-        this.uploadAvatarPromise = Promise.resolve();
+        this.validate = this.validate.bind(this);
     }
 
     componentDidMount() {
@@ -85,7 +84,8 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     removeAvatar() {
-        this.setState({previewAvatarURL: '', avatarURL: ''});
+        this.setState({previewAvatarURL: ''});
+        Policy.update(this.props.policy.id, {avatarURL: ''}, true);
     }
 
     /**
@@ -93,35 +93,37 @@ class WorkspaceSettingsPage extends React.Component {
      * @param {String} image.uri
      */
     uploadAvatar(image) {
-        Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: true});
+        if (this.props.policy.isAvatarUploading) {
+            return;
+        }
         this.setState({previewAvatarURL: image.uri});
-
-        // Store the upload avatar promise so we can wait for it to finish before updating the policy
-        this.uploadAvatarPromise = Policy.uploadAvatar(image).then(url => new Promise((resolve) => {
-            this.setState({avatarURL: url}, resolve);
-        })).catch(() => {
-            Growl.error(this.props.translate('workspace.editor.avatarUploadFailureMessage'));
-        }).finally(() => Policy.updateLocalPolicyValues(this.props.policy.id, {isAvatarUploading: false}));
+        Policy.uploadAvatar(this.props.policy.id, image);
     }
 
     submit() {
+        if (this.props.policy.isPolicyUpdating || !this.validate()) {
+            return;
+        }
         const name = this.state.name.trim();
-        const avatarURL = this.state.avatarURL;
         const outputCurrency = this.state.currency;
-        Policy.updateLocalPolicyValues(this.props.policy.id, {name, avatarURL, outputCurrency});
 
-        // Wait for the upload avatar promise to finish before updating the policy
-        this.uploadAvatarPromise.then(() => {
-            Policy.update(this.props.policy.id, {name, avatarURL, outputCurrency});
-        });
-        Growl.success(this.props.translate('workspace.common.growlMessageOnSave'));
+        // Send the API call with new settings values, the avatar has been updated when uploaded
+        Policy.update(this.props.policy.id, {name, outputCurrency}, true);
+    }
+
+    validate() {
+        const errors = {};
+        if (!this.state.name.trim().length) {
+            errors.nameError = true;
+        }
+        return _.size(errors) === 0;
     }
 
     render() {
         const {policy} = this.props;
 
         if (!Permissions.canUseFreePlan(this.props.betas)) {
-            console.debug('Not showing workspace editor page because user is not on free plan beta');
+            Log.info('Not showing workspace editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
 

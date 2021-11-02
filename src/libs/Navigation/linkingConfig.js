@@ -166,6 +166,7 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
+                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             WorkspaceInvite: {
