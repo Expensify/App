@@ -1,10 +1,15 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+
+import {
+    beforeEach, jest, test, expect,
+} from '@jest/globals';
 import * as API from '../../src/libs/API';
 import {signInWithTestUser} from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import Log from '../../src/libs/Log';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -19,6 +24,8 @@ Onyx.init({
     keys: ONYXKEYS,
     registerStorageEventListener: () => {},
 });
+
+jest.mock('../../src/libs/Log');
 
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
@@ -92,6 +99,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
 
                     expect(callsToChatList.length).toBe(3);
                     expect(callsToAuthenticate.length).toBe(2);
+                    expect(Log.hmmm).not.toHaveBeenCalledWith('Trying to make a request when Network is not ready', {command: 'GetAccountStatus', type: 'post'});
                 });
         });
 });
@@ -207,5 +215,6 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
             expect(account).toEqual(TEST_ACCOUNT_DATA);
             expect(personalDetailsList).toEqual(TEST_PERSONAL_DETAILS);
             expect(chatList).toEqual(TEST_CHAT_LIST);
+            expect(Log.hmmm).not.toHaveBeenCalledWith('Trying to make a request when Network is not ready', {command: 'GetAccountStatus', type: 'post'});
         });
 });
