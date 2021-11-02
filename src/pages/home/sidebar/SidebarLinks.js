@@ -92,15 +92,9 @@ const defaultProps = {
 };
 
 class SidebarLinks extends React.Component {
-    static getUnreadReports(props) {
-        return Object.entries(props.reports)
-            .map(x => x[1])
-            .filter(x => x.unreadActionCount > 0);
-    }
-
     static getRecentReports(props) {
         const activeReportID = parseInt(props.currentlyViewedReportID, 10);
-        const {recentReports} = getSidebarOptions(
+        const sidebarOptions = getSidebarOptions(
             props.reports,
             props.personalDetails,
             props.draftComments,
@@ -108,15 +102,29 @@ class SidebarLinks extends React.Component {
             props.priorityMode,
             props.betas,
         );
-        return recentReports;
+        return sidebarOptions.recentReports;
     }
 
-    static shouldReorder(nextProps, currentlyViewedReportID, unreadReports) {
+    static getUnreadReports(reportsObject) {
+        const reports = _.values(reportsObject || {});
+        if (reports.length === 0) {
+            return [];
+        }
+        const unreadReports = _.filter(reports, report => report.unreadActionCount > 0);
+        return unreadReports;
+    }
+
+    static shouldReorder(nextProps, orderedReports, currentlyViewedReportID, unreadReports) {
         // We do not want to re-order reports in the LHN if the only change is the draft comment in the
         // current report.
 
         // We don't need to limit draft comment flashing for small screen widths as LHN is not visible.
         if (nextProps.isSmallScreenWidth) {
+            return true;
+        }
+
+        // Always update if LHN is empty.
+        if (orderedReports.length === 0) {
             return true;
         }
 
@@ -128,12 +136,15 @@ class SidebarLinks extends React.Component {
         }
 
         // If any reports have new unread messages, re-order the list
-        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps);
-        if (nextUnreadReports.length > 0 && nextUnreadReports.some(x => !unreadReports.some(y => x.reportID === y.reportID))) {
+        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps.reports);
+        const hasNewUnreadReports = nextUnreadReports.length > 0
+            && _.some(nextUnreadReports,
+                nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
+        if (hasNewUnreadReports) {
             return true;
         }
 
-        // Never re-order if the active report has a draft and vice versa
+        // Do not re-order if the active report has a draft and vice versa.
         if (nextProps.currentlyViewedReportID) {
             const hasActiveReportDraft = lodashGet(nextProps.reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${nextProps.currentlyViewedReportID}`, false);
             return !hasActiveReportDraft;
@@ -145,25 +156,27 @@ class SidebarLinks extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            orderedReports: [],
             currentlyViewedReportID: props.currentlyViewedReportID,
-            unreadReports: props?.reports?.length > 0 ? SidebarLinks.getUnreadReports(props) : [],
+            orderedReports: [],
+            unreadReports: SidebarLinks.getUnreadReports(props.reports),
         };
     }
 
     static getDerivedStateFromProps(nextProps, prevState) {
-        const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.currentlyViewedReportID, prevState.unreadReports);
+        const shouldReorder = SidebarLinks.shouldReorder(nextProps, prevState.orderedReports, prevState.currentlyViewedReportID, prevState.unreadReports);
         const recentReports = SidebarLinks.getRecentReports(nextProps);
         const orderedReports = shouldReorder
             ? recentReports
-            : prevState.orderedReports.map(
-                ordRep => recentReports.filter(recRep => ordRep.reportID === recRep.reportID)[0],
-            );
+            : _.map(prevState.orderedReports,
+                orderedReport => _.chain(recentReports)
+                    .filter(recentReport => orderedReport.reportID === recentReport.reportID)
+                    .first()
+                    .value());
 
         return {
             orderedReports,
             currentlyViewedReportID: nextProps.currentlyViewedReportID,
-            unreadReports: SidebarLinks.getUnreadReports(nextProps),
+            unreadReports: SidebarLinks.getUnreadReports(nextProps.reports),
         };
     }
 
@@ -172,13 +185,12 @@ class SidebarLinks extends React.Component {
     }
 
     render() {
-        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
-
         // Wait until the reports and personalDetails are actually loaded before displaying the LHN
         if (!this.props.initialReportDataLoaded || _.isEmpty(this.props.personalDetails)) {
             return null;
         }
 
+        const activeReportID = parseInt(this.props.currentlyViewedReportID, 10);
         const sections = [{
             title: '',
             indexOffset: 0,
