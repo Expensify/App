@@ -272,12 +272,13 @@ export default {
         changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com\ncomo la de Nuevo Expensify.',
         currentPassword: 'Contraseña actual',
         newPassword: 'Nueva contraseña',
-        newPasswordPrompt: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
+        newPasswordPrompt: 'La nueva contraseña tiene que ser diferente de la antigua. Su contraseña debe tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula, 1 número.',
         confirmNewPassword: 'Confirma la nueva contraseña',
         errors: {
             currentPassword: 'Contraseña actual es requerido',
             confirmNewPassword: 'Confirma la nueva contraseña es requerido',
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
+            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
         },
     },
     addPayPalMePage: {

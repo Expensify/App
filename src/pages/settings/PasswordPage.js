@@ -69,6 +69,7 @@ class PasswordPage extends Component {
             confirmNewPassword: 'passwordPage.errors.confirmNewPassword',
             newPasswordSameAsOld: 'passwordPage.errors.newPasswordSameAsOld',
             confirmPasswordMatch: 'setPasswordPage.passwordsDontMatch',
+            newPassword: 'passwordPage.errors.newPassword',
         };
     }
 
@@ -94,7 +95,7 @@ class PasswordPage extends Component {
      * Set value for the field in state and clear error flag
      * @param {String} field
      * @param {String} value
-     * @param {Array} additionalErrorFlags
+     * @param {String[]} additionalErrorFlags
      */
     clearErrorAndSetValue(field, value, additionalErrorFlags) {
         const errorsToReset = {
@@ -199,18 +200,24 @@ class PasswordPage extends Component {
                                 textContentType="password"
                                 value={this.state.newPassword}
                                 hasError={this.state.errors.newPassword || this.state.errors.newPasswordSameAsOld}
-                                errorText={!this.state.errors.newPassword && this.state.errors.newPasswordSameAsOld ? this.getErrorText('newPasswordSameAsOld') : ''}
+                                errorText={!this.state.errors.newPassword && this.state.errors.newPasswordSameAsOld
+                                    ? this.getErrorText('newPasswordSameAsOld')
+                                    : this.getErrorText('newPassword')}
                                 onChangeText={text => this.clearErrorAndSetValue('newPassword', text, ['newPasswordSameAsOld'])}
                             />
-                            <Text
-                                style={[
-                                    styles.textLabelSupporting,
-                                    styles.mt1,
-                                    this.state.errors.newPassword && styles.formError,
-                                ]}
-                            >
-                                {this.props.translate('passwordPage.newPasswordPrompt')}
-                            </Text>
+                            {
+                              !this.state.errors.newPassword && !this.state.errors.newPasswordSameAsOld
+                              && (
+                              <Text
+                                  style={[
+                                      styles.textLabelSupporting,
+                                      styles.mt1,
+                                  ]}
+                              >
+                                  {this.props.translate('passwordPage.newPasswordPrompt')}
+                              </Text>
+                              )
+                            }
                         </View>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
