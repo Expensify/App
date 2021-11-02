@@ -75,8 +75,6 @@ function addDefaultValuesToParameters(command, parameters) {
         // If we end up here with no authToken it means we are trying to make an API request before we are signed in.
         // In this case, we should cancel the current request by pausing the queue and clearing the remaining requests.
         if (!authToken) {
-            redirectToSignIn();
-
             LogUtil.info('A request was made without an authToken', false, {command, parameters});
             Network.pauseRequestQueue();
             Network.clearRequestQueue();
