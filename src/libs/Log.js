@@ -42,6 +42,45 @@ const Log = new Logger({
     },
     isDebug: !CONFIG.IS_IN_PRODUCTION,
 });
+
+const logWarning = Log.warn;
+const logAlert = Log.alert;
+
+/**
+ * Override Log.warn to only log a server error in production.
+ *
+ * @param {String} message
+ * @param {String|Object} [parameters]
+ * @throws {Error} on dev
+ */
+Log.warn = (message, parameters = '') => {
+    if (!CONFIG.IS_IN_PRODUCTION) {
+        throw new Error({
+            message,
+            ...parameters,
+        });
+    }
+    logWarning(message, parameters);
+};
+
+/**
+ * Override Log.alert to only log a server error in production.
+ *
+ * @param {String} message
+ * @param {Object} [parameters]
+ * @param {Boolean} [includeStackTrace]
+ * @throws {Error} on dev
+ */
+Log.alert = (message, parameters = {}, includeStackTrace = true) => {
+    if (!CONFIG.IS_IN_PRODUCTION) {
+        throw new Error({
+            message,
+            ...parameters,
+        });
+    }
+    logAlert(message, parameters, includeStackTrace);
+};
+
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 NetworkConnection.registerLogInfoCallback(Log.info);
