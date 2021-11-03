@@ -89,3 +89,15 @@ exports.updateiOSVersion = function updateiOSVersion(version) {
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;
 };
+
+/**
+ * Confirms there isn't a mismatch between the bundleVersion and shortBundleVersion
+ *
+ * @returns {boolean}
+ */
+exports.versionStringsMatch = function versionStringsMatch() {
+    const bundleVersion = execSync(`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ${PLIST_PATH}`);
+    const shortBundleVersion = execSync(`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" ${PLIST_PATH}`);
+
+    return shortBundleVersion !== bundleVersion.split('-')[0];
+};
