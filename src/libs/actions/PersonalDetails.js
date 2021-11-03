@@ -305,13 +305,12 @@ function setAvatar(file) {
     API.User_UploadAvatar({file})
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
-            if (response.jsonCode === 200) {
-                setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
-            } else {
+            if (response.jsonCode !== 200) { 
                 const error = new Error();
                 error.jsonCode = response.jsonCode;
                 throw error;
             }
+            setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
         })
         .catch((error) => {
             setPersonalDetails({avatarUploading: false});
