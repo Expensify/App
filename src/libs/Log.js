@@ -51,14 +51,15 @@ const logAlert = Log.alert;
  *
  * @param {String} message
  * @param {String|Object} [parameters]
- * @throws {Error} on dev
  */
 Log.warn = (message, parameters = '') => {
     if (!CONFIG.IS_IN_PRODUCTION) {
-        throw new Error({
+        // eslint-disable-next-line no-console
+        console.warn({
             message,
             ...parameters,
         });
+        return;
     }
     logWarning(message, parameters);
 };
@@ -69,14 +70,14 @@ Log.warn = (message, parameters = '') => {
  * @param {String} message
  * @param {Object} [parameters]
  * @param {Boolean} [includeStackTrace]
- * @throws {Error} on dev
  */
 Log.alert = (message, parameters = {}, includeStackTrace = true) => {
     if (!CONFIG.IS_IN_PRODUCTION) {
-        throw new Error({
+        console.error({
             message,
             ...parameters,
         });
+        return;
     }
     logAlert(message, parameters, includeStackTrace);
 };
