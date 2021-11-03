@@ -120,6 +120,8 @@ class Datepicker extends React.Component {
                         display="spinner"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
+                        minimumDate={this.props.minimumDate}
+                        maximumDate={this.props.maximumDate}
                     />
                 </Popover>
             </>

@@ -258,6 +258,7 @@ class CompanyStep extends React.Component {
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate')}
                             translateX={-14}
+                            maximumDate={new Date()}
                         />
                     </View>
                     <View style={styles.mt4}>
