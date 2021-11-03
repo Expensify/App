@@ -74,10 +74,7 @@ export default function (WrappedComponent) {
         const currentRoute = _.last(useNavigationState(state => state.routes || []));
         const policyID = getPolicyIDFromRoute(currentRoute);
 
-        console.log('RORY_DEBUG', currentRoute, previousRoute, policyID);
-
         if (_.isString(policyID) && !previousRoute.includes(policyID)) {
-            console.log('RORY_DEBUG fetching full policy', policyID);
             Policy.loadFullPolicy(policyID);
         }
 
