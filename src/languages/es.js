@@ -589,7 +589,7 @@ export default {
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: 'Corp',
-            PARTNERSHIP: 'Camaradería',
+            PARTNERSHIP: 'Sociedad',
             COOPERATIVE: 'Cooperativa',
             SOLE_PROPRIETORSHIP: 'Propietario único',
             OTHER: 'Otra',
