@@ -142,27 +142,29 @@ const WorkspaceInitialPage = ({
                                     )}
                             </Pressable>
 
-                            <Pressable
-                                style={[
-                                    styles.alignSelfCenter,
-                                    styles.mt4,
-                                    styles.mb6,
-                                    styles.w100,
-                                ]}
-                                onPress={openEditor}
-                            >
-                                <Tooltip text={policy.name || ''}>
-                                    <Text
-                                        numberOfLines={1}
-                                        style={[
-                                            styles.displayName,
-                                            styles.alignSelfCenter,
-                                        ]}
-                                    >
-                                        {policy.name}
-                                    </Text>
-                                </Tooltip>
-                            </Pressable>
+                            {policy.name && (
+                                <Pressable
+                                    style={[
+                                        styles.alignSelfCenter,
+                                        styles.mt4,
+                                        styles.mb6,
+                                        styles.w100,
+                                    ]}
+                                    onPress={openEditor}
+                                >
+                                    <Tooltip text={policy.name}>
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[
+                                                styles.displayName,
+                                                styles.alignSelfCenter,
+                                            ]}
+                                        >
+                                            {policy.name}
+                                        </Text>
+                                    </Tooltip>
+                                </Pressable>
+                            )}
                         </View>
                     </View>
                     {_.map(menuItems, (item) => {
