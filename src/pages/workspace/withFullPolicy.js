@@ -12,6 +12,8 @@ let previousRoute = '';
  */
 export default function (WrappedComponent) {
     const propTypes = {
+        /** The HOC takes an optional ref as a prop and passes it as a ref to the wrapped component.
+         * That way, if a ref is passed to a component wrapped in the HOC, the ref is a reference to the wrapped component, not the HOC. */
         forwardedRef: PropTypes.func,
     };
 

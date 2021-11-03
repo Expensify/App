@@ -47,8 +47,8 @@ function getSimplifiedEmployeeList(employeeList) {
  * @param {String} fullPolicyOrPolicySummary.role
  * @param {String} fullPolicyOrPolicySummary.type
  * @param {String} fullPolicyOrPolicySummary.outputCurrency
- * @param {Object} fullPolicyOrPolicySummary.value.employeeList
  * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
+ * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @returns {Object}
  */
 function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
