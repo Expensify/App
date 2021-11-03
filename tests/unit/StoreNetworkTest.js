@@ -12,7 +12,7 @@ jest.useFakeTimers();
 
 Onyx.init({
     keys: ONYXKEYS,
-    registerStorageEventListener: () => { },
+    registerStorageEventListener: () => {},
 });
 
 jest.mock('../../src/libs/Log');
