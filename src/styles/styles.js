@@ -596,7 +596,7 @@ const styles = {
     },
     expensiPicker: (disabled = false) => ({
         iconContainer: {
-            pointerEvents: 'none'
+            pointerEvents: 'none',
             top: 16,
             right: 12,
         },
