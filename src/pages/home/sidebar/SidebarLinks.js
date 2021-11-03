@@ -106,7 +106,7 @@ class SidebarLinks extends React.Component {
     }
 
     static getUnreadReports(reportsObject) {
-        const reports = _.values(reportsObject || {});
+        const reports = _.values(reportsObject);
         if (reports.length === 0) {
             return [];
         }
@@ -136,7 +136,7 @@ class SidebarLinks extends React.Component {
         }
 
         // If any reports have new unread messages, re-order the list
-        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps.reports);
+        const nextUnreadReports = SidebarLinks.getUnreadReports(nextProps.reports || {});
         const hasNewUnreadReports = nextUnreadReports.length > 0
             && _.some(nextUnreadReports,
                 nextUnreadReport => !_.some(unreadReports, unreadReport => unreadReport.reportID === nextUnreadReport.reportID));
@@ -158,7 +158,7 @@ class SidebarLinks extends React.Component {
         this.state = {
             currentlyViewedReportID: props.currentlyViewedReportID,
             orderedReports: [],
-            unreadReports: SidebarLinks.getUnreadReports(props.reports),
+            unreadReports: SidebarLinks.getUnreadReports(props.reports || {}),
         };
     }
 
@@ -176,7 +176,7 @@ class SidebarLinks extends React.Component {
         return {
             orderedReports,
             currentlyViewedReportID: nextProps.currentlyViewedReportID,
-            unreadReports: SidebarLinks.getUnreadReports(nextProps.reports),
+            unreadReports: SidebarLinks.getUnreadReports(nextProps.reports || {}),
         };
     }
 
@@ -194,7 +194,7 @@ class SidebarLinks extends React.Component {
         const sections = [{
             title: '',
             indexOffset: 0,
-            data: this.state.orderedReports ?? [],
+            data: this.state.orderedReports || [],
             shouldShow: true,
         }];
 
