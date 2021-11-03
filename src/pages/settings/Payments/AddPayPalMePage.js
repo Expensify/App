@@ -75,7 +75,7 @@ class AddPayPalMePage extends React.Component {
             <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title="PayPal.me"
+                        title={this.props.translate('common.payPalMe')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -86,7 +86,7 @@ class AddPayPalMePage extends React.Component {
                                 {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
                             </Text>
                             <ExpensiTextInput
-                                label={this.props.translate('common.payPalMe')}
+                                label={this.props.translate('addPayPalMePage.payPalMe')}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.payPalMeUsername}

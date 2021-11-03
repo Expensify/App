@@ -386,13 +386,11 @@ class IOUConfirmationList extends Component {
         }
 
         this.setState((prevState) => {
-            const newParticipants = _.reject(prevState.participants, participant => (
-                participant.login === option.login
-            ));
-
-            newParticipants.push({
-                ...option,
-                selected: !option.selected,
+            const newParticipants = _.map(prevState.participants, (participant) => {
+                if (participant.login === option.login) {
+                    return {...option, selected: !option.selected};
+                }
+                return participant;
             });
             return {participants: newParticipants};
         });
@@ -438,7 +436,6 @@ class IOUConfirmationList extends Component {
                         options={this.state.confirmationButtonOptions}
                         isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                        menuHeaderText={this.props.translate('iou.choosePaymentMethod')}
                         onPress={this.onPress}
                     />
                 </FixedFooter>
