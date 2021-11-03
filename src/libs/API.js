@@ -478,7 +478,7 @@ function GetIOUReport(parameters) {
  */
 function GetPolicyList(policyIDList = []) {
     if (!policyIDList || policyIDList.length > 1) {
-        LogUtil.warn('[API] Attempting to load multiple full policies at once', {policyIDList});
+        LogUtil.hmmm('[API] Attempting to load multiple full policies at once', {policyIDList});
     }
 
     const commandName = 'Get';
