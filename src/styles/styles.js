@@ -175,30 +175,6 @@ const styles = {
         textTransform: 'uppercase',
     },
 
-    background100: {
-        backgroundSize: '100% 100%',
-    },
-
-    backgroundGreen: {
-        backgroundColor: colors.green,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
-    },
-
-    backgroundOrange: {
-        backgroundColor: colors.orange,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
-    },
-
-    backgroundPink: {
-        backgroundColor: colors.pink,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
-    },
-
-    backgroundBlue: {
-        backgroundColor: colors.blue,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
-    },
-
     colorReversed: {
         color: themeColors.textReversed,
     },
@@ -2463,6 +2439,11 @@ function getEmojiPickerStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * Get the random promo color and image for Login page
+ *
+ * @return {Object}
+ */
 function getLoginPagePromoStyle() {
     const promos = [
         {

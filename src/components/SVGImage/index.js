@@ -1,18 +1,7 @@
 import React from 'react';
 import {Image} from 'react-native';
-import PropTypes from 'prop-types';
 import {getWidthAndHeightStyle} from '../../styles/styles';
-
-const propTypes = {
-    /** The asset to render. */
-    src: PropTypes.string.isRequired,
-
-    /** The width of the icon. */
-    width: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-
-    /** The height of the icon. */
-    height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-};
+import propTypes from './propTypes';
 
 const SVGImage = ({width, height, src}) => (
     <Image
@@ -22,5 +11,6 @@ const SVGImage = ({width, height, src}) => (
 );
 
 SVGImage.propTypes = propTypes;
+SVGImage.displayName = 'SVGImage';
 
 export default SVGImage;
