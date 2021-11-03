@@ -98,6 +98,9 @@ export default {
                         path: ROUTES.WORKSPACE_BANK_ACCOUNT,
                         exact: true,
                     },
+                    Workspace_Invite: {
+                        path: ROUTES.WORKSPACE_INVITE,
+                    },
                     ReimbursementAccount: {
                         path: ROUTES.BANK_ACCOUNT,
                         exact: true,
@@ -167,11 +170,6 @@ export default {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
                     IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
-                },
-            },
-            WorkspaceInvite: {
-                screens: {
-                    WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
             RequestCall: {

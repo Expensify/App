@@ -219,6 +219,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Workspace_BankAccount',
     },
     {
+        Component: WorkspaceInvitePage,
+        name: 'Workspace_Invite',
+    },
+    {
         Component: ReimbursementAccountPage,
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
@@ -238,11 +242,6 @@ const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator([{
 const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     Component: ReimbursementAccountPage,
     name: 'ReimbursementAccount_Root',
-}]);
-
-const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
-    Component: WorkspaceInvitePage,
-    name: 'WorkspaceInvite_Root',
 }]);
 
 const RequestCallModalStackNavigator = createModalStackNavigator([{
@@ -265,6 +264,5 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
 };

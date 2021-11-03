@@ -73,6 +73,7 @@ class WorkspaceMembersPage extends React.Component {
         };
 
         this.renderItem = this.renderItem.bind(this);
+        this.inviteUser = this.inviteUser.bind(this);
         this.addUser = this.addUser.bind(this);
         this.removeUser = this.removeUser.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
@@ -285,7 +286,7 @@ class WorkspaceMembersPage extends React.Component {
                             small
                             success
                             text={this.props.translate('common.invite')}
-                            onPress={() => this.inviteUser()}
+                            onPress={this.inviteUser}
                         />
                         <Button
                             small
