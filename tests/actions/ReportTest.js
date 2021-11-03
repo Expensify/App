@@ -37,7 +37,7 @@ describe('actions/Report', () => {
 
         Onyx.init({
             keys: ONYXKEYS,
-            registerStorageEventListener: () => { },
+            registerStorageEventListener: () => {},
         });
     });
 
