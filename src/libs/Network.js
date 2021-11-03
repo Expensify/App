@@ -99,7 +99,6 @@ Onyx.connect({
 });
 
 /**
- *
  * @param {Boolean} val
  */
 function setIsReady(val) {
