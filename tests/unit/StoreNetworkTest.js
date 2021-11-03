@@ -22,19 +22,19 @@ beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 // This unit test was moved to its own file because modifies Network.setIsReady which
 // could mess up other unit tests, and also beforeEach can't be used for this scenario.
 describe('retry network request', () => {
-    const delayOrixConnect = 3000;
-    const origSetIsReady = Network.setIsReady;
+    const ONYX_CONNECT_DELAY_MS = 3000;
+    const originalSetIsReady = Network.setIsReady;
     const TEST_USER_LOGIN = 'test@testguy.com';
 
     // We can't mock Onyx functions here because Onyx.connect already registered the callbacks
     // when API.js is loaded, so instead we mock the setIsReady with setTimeout to simulate a
     // delay in the Onyx.connect callback.
-    Network.setIsReady = val => setTimeout(() => origSetIsReady(val), delayOrixConnect);
+    Network.setIsReady = val => setTimeout(() => originalSetIsReady(val), ONYX_CONNECT_DELAY_MS);
 
     // We restore setIsReady to its original implementation.
     afterAll(() => {
         jest.runAllTimers();
-        Network.setIsReady = origSetIsReady;
+        Network.setIsReady = originalSetIsReady;
     });
 
     test('if auth and credentials are not read from Onyx yet', () => {

@@ -15,20 +15,19 @@ let isAuthenticating;
 let credentials;
 let authToken;
 
-/**
- * Checks if both authToken and credentials were already read from persistent storage (Onyx)
- * @returns {Boolean}
- */
-function isAuthStoreReady() {
-    return !_.isUndefined(authToken)
-        && !_.isUndefined(credentials);
+function checkRequiredDataAndSetNetworkReady() {
+    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
+        return;
+    }
+
+    Network.setIsReady(true);
 }
 
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
         credentials = val || null;
-        Network.setIsReady(isAuthStoreReady());
+        checkRequiredDataAndSetNetworkReady();
     },
 });
 
@@ -36,7 +35,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = lodashGet(val, 'authToken', null);
-        Network.setIsReady(isAuthStoreReady());
+        checkRequiredDataAndSetNetworkReady();
     },
 });
 
