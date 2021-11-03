@@ -142,13 +142,14 @@ class CompanyStep extends React.Component {
     }
 
     /**
-     * Clear errors associated with incorporation date.
+     * Clear both errors associated with incorporation date, and set the new value.
      *
      * @param {String} value
      */
     clearDateErrorsAndSetValue(value) {
-        this.clearErrorAndSetValue('incorporationDate', value);
+        this.clearError('incorporationDate');
         this.clearError('incorporationDateFuture');
+        this.setValue({incorporationDate: value});
     }
 
     /**
