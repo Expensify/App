@@ -3,7 +3,7 @@ import colors from './colors';
 import variables from './variables';
 import themeColors from './themes/default';
 
-export default (type, windowDimensions, popoverAnchorPosition = {}) => {
+export default (type, windowDimensions, popoverAnchorPosition = {}, containerStyle = {}) => {
     const {isSmallScreenWidth, windowWidth} = windowDimensions;
 
     let modalStyle = {
@@ -205,6 +205,8 @@ export default (type, windowDimensions, popoverAnchorPosition = {}) => {
             animationIn = 'slideInUp';
             animationOut = 'slideOutDown';
     }
+
+    modalContainerStyle = {...modalContainerStyle, ...containerStyle};
 
     return {
         modalStyle,

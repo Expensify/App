@@ -2109,6 +2109,12 @@ const styles = {
         flex: 1,
     },
 
+    keyboardShortcutModalContainer: {
+        maxWidth: 600,
+        maxHeight: '100%',
+        flex: '0 0 auto',
+    },
+
     keyboardShortcutTableContainer: {
         display: 'flex',
         width: '100%',
@@ -2236,6 +2242,8 @@ function getKeyboardShortcutModalStyle(isSmallScreenWidth) {
         width: isSmallScreenWidth ? '100%' : '90%',
         alignItems: 'center',
         flex: 1,
+        height: 'auto',
+        maxHeight: '100%',
     };
 }
 

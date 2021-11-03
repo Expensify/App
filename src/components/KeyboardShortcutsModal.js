@@ -80,10 +80,11 @@ class KeyboardShortcutsModal extends React.PureComponent {
             <Modal
                 isVisible={this.state.isOpen}
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                containerStyle={styles.keyboardShortcutModalContainer}
                 onClose={() => this.toggleKeyboardShortcutModal(false)}
             >
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortCutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
-                <View style={styles.p5}>
+                <View style={[styles.p5, styles.pt0]}>
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
                     <View style={[getKeyboardShortcutModalStyle(this.props.isSmallScreenWidth)]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
