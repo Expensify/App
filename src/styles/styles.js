@@ -2129,7 +2129,7 @@ const styles = {
         flex: 1,
         flexDirection: 'row',
         borderColor: colors.gray3,
-        maxHeight: 40,
+        flexBasis: 'auto',
         alignSelf: 'stretch',
         borderTopWidth: 1,
     },
