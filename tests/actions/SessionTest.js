@@ -19,7 +19,7 @@ HttpUtils.xhr = jest.fn();
 
 Onyx.init({
     keys: ONYXKEYS,
-    registerStorageEventListener: () => { },
+    registerStorageEventListener: () => {},
 });
 
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
