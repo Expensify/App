@@ -305,7 +305,7 @@ function setAvatar(file) {
     API.User_UploadAvatar({file})
         .then((response) => {
             // Once we get the s3url back, update the personal details for the user with the new avatar URL
-            if (response.jsonCode !== 200) { 
+            if (response.jsonCode !== 200) {
                 const error = new Error();
                 error.jsonCode = response.jsonCode;
                 throw error;
