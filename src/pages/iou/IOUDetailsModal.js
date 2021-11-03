@@ -260,7 +260,6 @@ class IOUDetailsModal extends Component {
                                         anchorPosition={styles.createMenuPositionRightSidepane}
                                         animationIn="fadeInUp"
                                         animationOut="fadeOutDown"
-                                        headerText={this.props.translate('iou.choosePaymentMethod')}
                                         menuItems={_.map(this.state.paymentOptions, paymentType => ({
                                             text: paymentTypeOptions[paymentType].text,
                                             icon: paymentTypeOptions[paymentType].icon,
