@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+import Str from 'expensify-common/lib/str';
 import Text from '../Text';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
@@ -35,7 +36,7 @@ const IOUQuote = ({
         {_.map(action.message, (fragment, index) => (
             <View key={`iouQuote-${action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
                 <Text style={[styles.chatItemMessage]}>
-                    {fragment.text}
+                    {Str.htmlDecode(fragment.text)}
                 </Text>
                 {shouldShowViewDetailsLink && (
                     <Text
