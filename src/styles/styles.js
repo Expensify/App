@@ -2121,17 +2121,17 @@ const styles = {
         width: '100%',
         borderColor: colors.gray3,
         height: 'auto',
-        borderBottomWidth: 1,
+        borderRadius: variables.componentBorderRadius,
+        borderWidth: 1,
     },
 
     keyboardShortcutTableRow: {
         flex: 1,
         flexDirection: 'row',
         borderColor: colors.gray3,
-        borderWidth: 1,
         maxHeight: 40,
         alignSelf: 'stretch',
-        borderBottomWidth: 0,
+        borderTopWidth: 1,
     },
 
     keyboardShortcutTablePrefix: {
@@ -2141,13 +2141,7 @@ const styles = {
     },
 
     keyboardShortcutTableFirstRow: {
-        borderTopLeftRadius: variables.componentBorderRadius,
-        borderTopRightRadius: variables.componentBorderRadius,
-    },
-
-    keyboardShortcutTableLastRow: {
-        borderBottomLeftRadius: variables.componentBorderRadius,
-        borderBottomRightRadius: variables.componentBorderRadius,
+        borderTopWidth: 0,
     },
 };
 
