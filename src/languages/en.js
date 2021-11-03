@@ -232,6 +232,8 @@ export default {
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
         growlMessageOnSave: 'Your profile was successfully saved',
+        invalidFileMessage: 'Invalid file. Please try a different image.',
+        avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
         online: 'Online',
         offline: 'Offline',
         syncing: 'Syncing',

@@ -232,6 +232,8 @@ export default {
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
         growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
+        invalidFileMessage: 'Archivo inválido. Pruebe con una imagen diferente.',
+        avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
