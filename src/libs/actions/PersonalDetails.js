@@ -302,12 +302,25 @@ function fetchLocalCurrency() {
  */
 function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
-    API.User_UploadAvatar({file}).then((response) => {
-        // Once we get the s3url back, update the personal details for the user with the new avatar URL
-        if (response.jsonCode === 200) {
-            setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
-        }
-    });
+    API.User_UploadAvatar({file})
+        .then((response) => {
+            // Once we get the s3url back, update the personal details for the user with the new avatar URL
+            if (response.jsonCode === 200) {
+                setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
+            } else {
+                const error = new Error();
+                error.jsonCode = response.jsonCode;
+                throw error;
+            }
+        })
+        .catch((error) => {
+            setPersonalDetails({avatarUploading: false});
+            if (error.jsonCode === 405 || error.jsonCode === 502) {
+                Growl.show(translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+            } else {
+                Growl.show(translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+            }
+        });
 }
 
 /**
