@@ -25,7 +25,7 @@ export default function (WrappedComponent) {
         const currentRoute = _.last(useNavigationState(state => state.routes || []));
         const policyID = _.get(currentRoute, ['params', 'policyID'], '');
 
-        if (policyID && !previousRoute.includes(policyID)) {
+        if (_.isString(policyID) && !previousRoute.includes(policyID)) {
             Policy.loadFullPolicy(policyID);
         }
 

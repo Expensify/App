@@ -166,7 +166,7 @@ function getPolicyList(shouldCreateNewPolicy = false) {
  * @param {String} policyID
  */
 function loadFullPolicy(policyID) {
-    API.GetPolicyList([policyID])
+    API.GetFullPolicy(policyID)
         .then((data) => {
             if (data.jsonCode === 200) {
                 const policy = data.policyList[0] || {};
