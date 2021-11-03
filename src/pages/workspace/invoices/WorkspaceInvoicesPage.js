@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import withFullPolicy from '../withFullPolicy';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
 import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
 import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
@@ -40,7 +38,4 @@ const WorkspaceInvoicesPage = ({translate, route}) => (
 WorkspaceInvoicesPage.propTypes = propTypes;
 WorkspaceInvoicesPage.displayName = 'WorkspaceInvoicesPage';
 
-export default compose(
-    withLocalize,
-    withFullPolicy,
-)(WorkspaceInvoicesPage);
+export default withLocalize(WorkspaceInvoicesPage);

@@ -1,8 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView, Pressable} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import {withNavigationFocus} from '@react-navigation/compat';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -29,31 +27,20 @@ import themedefault from '../../styles/themes/default';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
-import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import withFullPolicy from './withFullPolicy';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const propTypes = {
     /** Whether the current screen is focused. */
     isFocused: PropTypes.bool.isRequired,
 
-    /** Policy for the current route */
-    policy: PropTypes.shape({
-        /** ID of the policy */
-        id: PropTypes.string,
-
-        /** Name of the policy */
-        name: PropTypes.string,
-    }),
-
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    policy: {},
-};
+const defaultProps = fullPolicyDefaultProps;
 
 const WorkspaceInitialPage = ({
     translate, isSmallScreenWidth, policy, isFocused,
@@ -164,7 +151,7 @@ const WorkspaceInitialPage = ({
                                 ]}
                                 onPress={openEditor}
                             >
-                                <Tooltip text={policy.name}>
+                                <Tooltip text={policy.name || ''}>
                                     <Text
                                         numberOfLines={1}
                                         style={[
@@ -208,14 +195,4 @@ export default compose(
     withWindowDimensions,
     withNavigationFocus,
     withFullPolicy,
-    withOnyx({
-        policy: {
-            key: (props) => {
-                const routes = lodashGet(props.navigation.getState(), 'routes', []);
-                const routeWithPolicyIDParam = _.find(routes, route => route.params && route.params.policyID);
-                const policyID = lodashGet(routeWithPolicyIDParam, ['params', 'policyID']);
-                return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-            },
-        },
-    }),
 )(WorkspaceInitialPage);

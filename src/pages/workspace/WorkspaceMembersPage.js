@@ -27,24 +27,14 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
-import withFullPolicy from './withFullPolicy';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
-
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
-
-    /** The policy passed via the route */
-    policy: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -54,13 +44,13 @@ const propTypes = {
             policyID: PropTypes.string,
         }),
     }).isRequired,
+
+    ...fullPolicyPropTypes,
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    policy: {
-        name: '',
-    },
-};
+const defaultProps = fullPolicyDefaultProps;
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -334,9 +324,6 @@ export default compose(
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policy: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,
