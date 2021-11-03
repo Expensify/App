@@ -27,6 +27,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
+import withFullPolicy from './withFullPolicy';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -328,6 +329,7 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withFullPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

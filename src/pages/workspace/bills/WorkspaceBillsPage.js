@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withFullPolicy from '../withFullPolicy';
 import WorkspaceBillsNoVBAView from './WorkspaceBillsNoVBAView';
 import WorkspaceBillsVBAView from './WorkspaceBillsVBAView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
@@ -37,4 +39,7 @@ const WorkspaceBillsPage = ({translate, route}) => (
 
 WorkspaceBillsPage.propTypes = propTypes;
 WorkspaceBillsPage.displayName = 'WorkspaceBillsPage';
-export default withLocalize(WorkspaceBillsPage);
+export default compose(
+    withLocalize,
+    withFullPolicy,
+)(WorkspaceBillsPage);

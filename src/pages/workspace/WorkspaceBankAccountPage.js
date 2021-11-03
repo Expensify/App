@@ -16,6 +16,7 @@ import ROUTES from '../../ROUTES';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import WorkspaceSection from './WorkspaceSection';
 import WorkspaceResetBankAccountModal from './WorkspaceResetBankAccountModal';
+import withFullPolicy from './withFullPolicy';
 
 const propTypes = {
     /** ACH data for the withdrawal account actively being set up */
@@ -125,6 +126,7 @@ WorkspaceBankAccountPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withFullPolicy,
     withOnyx({
         reimbursementAccount: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,

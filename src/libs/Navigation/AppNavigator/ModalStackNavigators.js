@@ -1,7 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
 import {createStackNavigator, CardStyleInterpolators} from '@react-navigation/stack';
-import * as Policy from '../../actions/Policy';
 import styles from '../../../styles/styles';
 import NewChatPage from '../../../pages/NewChatPage';
 import NewGroupPage from '../../../pages/NewGroupPage';
@@ -50,16 +49,13 @@ const defaultSubRouteOptions = {
  * Create a modal stack navigator with an array of sub-screens.
  *
  * @param {Object[]} screens array of screen config objects
- * @param {Object|Function} [screenListeners] – event listeners applied to all screens in this navigator.
- *                                              See docs: https://reactnavigation.org/docs/navigation-events/#screenlisteners-prop-on-the-navigator
  * @returns {Function}
  */
-function createModalStackNavigator(screens, screenListeners) {
+function createModalStackNavigator(screens) {
     const ModalStackNavigator = createStackNavigator();
     return () => (
         <ModalStackNavigator.Navigator
             screenOptions={defaultSubRouteOptions}
-            screenListeners={screenListeners}
         >
             {_.map(screens, screen => (
                 <ModalStackNavigator.Screen
@@ -145,7 +141,6 @@ const NewChatModalStackNavigator = createModalStackNavigator([{
     name: 'NewChat_Root',
 }]);
 
-let previousRoute = '';
 const SettingsModalStackNavigator = createModalStackNavigator([
     {
         Component: SettingsInitialPage,
@@ -228,26 +223,7 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
     },
-], {
-    state: ({data}) => {
-        // If current route is workspace route, and previous route was not, full-load the policy
-        const policyID = _.chain(data)
-            .get(['state', 'routes'], [])
-            .pluck('params')
-            .last()
-            .get('policyID', '')
-            .value();
-        if (policyID && !previousRoute.includes(policyID)) {
-            Policy.loadFullPolicy(policyID);
-        }
-
-        previousRoute = _.chain(data)
-            .get(['state', 'routes'], [])
-            .last()
-            .get('path', '')
-            .value();
-    },
-});
+]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
     Component: EnablePaymentsPage,

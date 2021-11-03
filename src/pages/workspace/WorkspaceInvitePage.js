@@ -21,6 +21,7 @@ import CONST, {EXPENSIFY_EMAILS} from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import {openExternalLink} from '../../libs/actions/Link';
 import Text from '../../components/Text';
+import withFullPolicy from './withFullPolicy';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -350,6 +351,7 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withFullPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

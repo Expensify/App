@@ -25,6 +25,7 @@ import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import withFullPolicy from './withFullPolicy';
 
 const propTypes = {
     /** List of betas */
@@ -200,6 +201,7 @@ WorkspaceSettingsPage.propTypes = propTypes;
 WorkspaceSettingsPage.defaultProps = defaultProps;
 
 export default compose(
+    withFullPolicy,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,

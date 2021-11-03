@@ -32,6 +32,7 @@ import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import withFullPolicy from './withFullPolicy';
 
 const propTypes = {
     /** Whether the current screen is focused. */
@@ -206,6 +207,7 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withNavigationFocus,
+    withFullPolicy,
     withOnyx({
         policy: {
             key: (props) => {

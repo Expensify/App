@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withFullPolicy from '../withFullPolicy';
 import WorkspaceReimburseNoVBAView from './WorkspaceReimburseNoVBAView';
 import WorkspaceReimburseVBAView from './WorkspaceReimburseVBAView';
 import WorkspacePageWithSections from '../WorkspacePageWithSections';
@@ -38,4 +40,7 @@ const WorkspaceReimbursePage = ({translate, route}) => (
 WorkspaceReimbursePage.propTypes = propTypes;
 WorkspaceReimbursePage.displayName = 'WorkspaceReimbursePage';
 
-export default withLocalize(WorkspaceReimbursePage);
+export default compose(
+    withLocalize,
+    withFullPolicy,
+)(WorkspaceReimbursePage);
