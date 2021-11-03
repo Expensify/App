@@ -2113,6 +2113,7 @@ const styles = {
         maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
+        fontFamily: fontFamily.GTA,
     },
 
     keyboardShortcutTableContainer: {
@@ -2135,7 +2136,18 @@ const styles = {
 
     keyboardShortcutTablePrefix: {
         width: '30%',
-        backgroundColor: colors.gray2,
+        borderRightWidth: 1,
+        borderColor: colors.gray3,
+    },
+
+    keyboardShortcutTableFirstRow: {
+        borderTopLeftRadius: variables.componentBorderRadius,
+        borderTopRightRadius: variables.componentBorderRadius,
+    },
+
+    keyboardShortcutTableLastRow: {
+        borderBottomLeftRadius: variables.componentBorderRadius,
+        borderBottomRightRadius: variables.componentBorderRadius,
     },
 };
 

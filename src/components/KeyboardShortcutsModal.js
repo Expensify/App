@@ -55,9 +55,16 @@ class KeyboardShortcutsModal extends React.PureComponent {
         this.setState({isOpen: flag});
     }
 
-    renderRow(shortcut) {
+    renderRow(shortcut, isFirstRow, isLastRow) {
         return (
-            <View style={[styles.keyboardShortcutTableRow]} key={shortcut.key}>
+            <View
+                style={[
+                    styles.keyboardShortcutTableRow,
+                    isFirstRow && styles.keyboardShortcutTableFirstRow,
+                    isLastRow && styles.keyboardShortcutTableLastRow,
+                ]}
+                key={shortcut.key}
+            >
                 <View style={[styles.dFlex, styles.p2, styles.keyboardShortcutTablePrefix]}>
                     <Text>{shortcut.key}</Text>
                 </View>
@@ -88,7 +95,11 @@ class KeyboardShortcutsModal extends React.PureComponent {
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
                     <View style={[getKeyboardShortcutModalStyle(this.props.isSmallScreenWidth)]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
-                            {shortcuts.map(shortcut => (this.renderRow(shortcut)))}
+                            {shortcuts.map((shortcut, index) => {
+                                const isFirstRow = index === 0;
+                                const isLastRow = index === shortcuts.length - 1;
+                                return this.renderRow(shortcut, isFirstRow, isLastRow);
+                            })}
                         </View>
 
                     </View>
