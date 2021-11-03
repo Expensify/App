@@ -42,7 +42,6 @@ const Log = new Logger({
     },
     isDebug: !CONFIG.IS_IN_PRODUCTION,
 });
-
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 NetworkConnection.registerLogInfoCallback(Log.info);
