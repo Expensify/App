@@ -27,37 +27,33 @@ const SignInPageLayoutNarrow = props => (
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={[
-            styles.flexGrow1,
+            styles.flex1,
             styles.signInPageNarrowContentContainer,
             styles.alignSelfCenter,
         ]}
-        contentContainerStyle={styles.ph5}
+        contentContainerStyle={[styles.ph5, styles.flex1]}
     >
-        <KeyboardAvoidingView behavior="position">
-            <View style={[styles.flexGrow1]}>
-                <View
-                    style={[
-                        styles.signInPageInnerNative,
-                        styles.flex1,
-                        styles.dFlex,
-                        styles.flexColumn,
-                        styles.mt40Percentage,
-                    ]}
-                >
-                    <View style={[styles.componentHeightLarge, styles.mb2]}>
-                        <ExpensifyCashLogo
-                            width={variables.componentSizeLarge}
-                            height={variables.componentSizeLarge}
-                        />
-                    </View>
-                    {props.shouldShowWelcomeText && (
-                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                            {props.welcomeText}
-                        </Text>
-                    )}
-                    {props.children}
-                </View>
+        <KeyboardAvoidingView
+            behavior="position"
+            style={[
+                styles.flex1,
+                styles.w100,
+                styles.mt40Percentage,
+                styles.alignSelfCenter,
+            ]}
+        >
+            <View style={[styles.componentHeightLarge, styles.mb2]}>
+                <ExpensifyCashLogo
+                    width={variables.componentSizeLarge}
+                    height={variables.componentSizeLarge}
+                />
             </View>
+            {props.shouldShowWelcomeText && (
+                <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                    {props.welcomeText}
+                </Text>
+            )}
+            {props.children}
         </KeyboardAvoidingView>
         <View style={[styles.mt3, styles.mb5, styles.alignSelfCenter]}>
             <TermsAndLicenses />
