@@ -10,7 +10,6 @@ import {signInWithTestUser} from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import Log from '../../src/libs/Log';
 import * as Network from '../../src/libs/Network';
 import {fetchAccountDetails} from '../../src/libs/actions/Session';
 
@@ -33,6 +32,9 @@ beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 afterEach(() => {
     Network.setIsReady(false);
     AsyncStorageMock.addDelayToGetItem(0);
+
+    jest.resetAllMocks();
+    jest.clearAllTimers();
 });
 
 test('failing to reauthenticate while offline should not log out user', () => {
@@ -223,25 +225,40 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
         });
 });
 
-test('retry network request if auth and credentials are not read from Onyx yet', () => {
-    // add a delay to AsyncStorage.getItem() to simulate a delay in the Onyx.connect callbacks
+test.only('retry network request if auth and credentials are not read from Onyx yet', () => {
+    // Add a delay to AsyncStorage.getItem() to simulate a delay in the Onyx.connect callbacks
     AsyncStorageMock.addDelayToGetItem(3000);
 
-    const originalSetIsReady = Network.setIsReady;
-    Network.setIsReady = jest.fn(param => originalSetIsReady(param));
-
-    // reset isReady for this unit test, because Onyx.clear() calls in beforeEach resolves the
+    // Reset isReady for this unit test, because Onyx.clear() in beforeEach resolves the
     // Onyx.connect callbacks with null values
     Network.setIsReady(false);
-    HttpUtils.xhr = jest.fn();
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {});
+    Onyx.merge(ONYXKEYS.SESSION, {});
+
+    // Functions to mock and that we want to track
+    const spyNetworkSetIsReady = jest.spyOn(Network, 'setIsReady');
+    const spyHttpUtilsXhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => Promise.resolve({}));
 
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
     fetchAccountDetails(TEST_USER_LOGIN);
-
     return waitForPromisesToResolve().then(() => {
         // We should expect not having the Network ready and not making an http request
-        expect(Network.setIsReady).toHaveBeenLastCalledWith(false);
-        expect(HttpUtils.xhr).not.toHaveBeenCalled();
+        expect(spyNetworkSetIsReady).not.toHaveBeenCalled();
+        expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
+
+        // Resolve AsyncStorage.getItem() calls
+        jest.runOnlyPendingTimers();
+        return waitForPromisesToResolve().then(() => {
+            // We should expect call Network.setIsReady(true) but not making an http request yet
+            expect(spyNetworkSetIsReady).toHaveBeenLastCalledWith(true);
+            expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
+
+            // Run interval of processNetworkRequestQueue in Network.js
+            jest.runOnlyPendingTimers();
+
+            // We should expect a retry of the network request
+            expect(spyHttpUtilsXhr).toHaveBeenCalled();
+        });
     });
 });
