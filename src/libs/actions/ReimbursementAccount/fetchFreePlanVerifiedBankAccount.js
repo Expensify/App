@@ -93,6 +93,24 @@ function getHasTriedToUpgrade(bankAccount, kycVerificationsMigration) {
 }
 
 /**
+ * @param {Object} achData
+ * @returns {Boolean}
+ */
+function needsToCompleteOnfido(achData) {
+    if (!achData.useOnfido) {
+        return false;
+    }
+
+    const onfidoResponse = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO);
+    const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
+    if (!sdkToken || achData.isOnfidoSetupComplete || onfidoResponse.status === CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * @param {String} stepToOpen
  * @param {Object} achData
  * @param {BankAccount} bankAccount
@@ -100,73 +118,53 @@ function getHasTriedToUpgrade(bankAccount, kycVerificationsMigration) {
  * @returns {String}
  */
 function getCurrentStep(stepToOpen, achData, bankAccount, hasTriedToUpgrade) {
-    let currentStep = getReimbursementAccountInSetup().currentStep;
-    if (!stepToOpen && achData.currentStep) {
-        // eslint-disable-next-line no-use-before-define
-        currentStep = getNextStepToComplete(achData);
-    }
-
-    // If we're not in setup, it means we already have a withdrawal account
-    // and we're upgrading it to a business bank account. So let the user
-    // review all steps with all info prefilled and editable, unless a specific step was passed.
-    if (!achData.isInSetup) {
-        // @TODO Not sure if we need to do this since for
-        // NewDot none of the accounts are pre-existing ones
-        currentStep = '';
-    }
-
-    // Temporary fix for Onfido flow. Can be removed by nkuoch after Sept 1 2020.
-    // @TODO not sure if we still need this or what this is about, but seems like maybe yes...
-    if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && achData.useOnfido) {
-        const onfidoResponse = lodashGet(
-            achData,
-            CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
-        );
-        const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
-        if (sdkToken && !achData.isOnfidoSetupComplete
-            && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
-        ) {
-            currentStep = CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-        }
-    }
-
-    // Ensure we route the user to the correct step based on the status of their bank account
-    if (bankAccount && !currentStep) {
-        currentStep = bankAccount.isPending() || bankAccount.isVerifying()
-            ? CONST.BANK_ACCOUNT.STEP.VALIDATION
-            : CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-
-        // @TODO Again, not sure how much of this logic is needed right now
-        // as we shouldn't be handling any open accounts in New Expensify yet that need to pass any more
-        // checks or can be upgraded, but leaving in for possible future compatibility.
-        if (bankAccount.isOpen()) {
-            if (bankAccount.needsToPassLatestChecks()) {
-                currentStep = hasTriedToUpgrade ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
-            } else {
-                // We do not show a specific view for the EnableStep since we
-                // will enable the Expensify card automatically. However, we will still handle
-                // that step and show the Validate view.
-                currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
-            }
-        }
-    }
-
-    // If at this point we still don't have a current step, default to the BankAccountStep
-    if (!currentStep) {
-        currentStep = CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
-    }
-
     // If we are providing a stepToOpen via a deep link then we will always navigate to that step. This
     // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
     // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
     // their achData.
     if (stepToOpen) {
-        currentStep = stepToOpen;
+        return stepToOpen;
     }
 
-    return currentStep;
+    // To determine if there's any step we can go to we will look at the data from the server first then whatever is in device storage.
+    const currentStep = achData.currentStep
+        ? getNextStepToComplete(achData)
+        : getReimbursementAccountInSetup().currentStep;
+
+    if (achData.isInSetup) {
+        if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && needsToCompleteOnfido(achData)) {
+            return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+        }
+
+        return currentStep;
+    }
+
+    // If we don't have a bank account then take the user to the BankAccountStep so they can create one.
+    if (!bankAccount) {
+        return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    }
+
+    if (bankAccount.isPending() || bankAccount.isVerifying()) {
+        return CONST.BANK_ACCOUNT.STEP.VALIDATION;
+    }
+
+    // No clear place to direct this user so we'll go with the bank account step
+    if (!bankAccount.isOpen()) {
+        return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
+    }
+
+    if (bankAccount.needsToPassLatestChecks()) {
+        return hasTriedToUpgrade ? CONST.BANK_ACCOUNT.STEP.VALIDATION : CONST.BANK_ACCOUNT.STEP.COMPANY;
+    }
+
+    return CONST.BANK_ACCOUNT.STEP.ENABLE;
 }
 
+/**
+ * @param {BankAccount} bankAccount
+ * @param {Boolean} hasTriedToUpgrade
+ * @returns {Object}
+ */
 function setupACHData(bankAccount, hasTriedToUpgrade) {
     // If we already have a substep stored locally then we will add that to the new achData
     const subStep = lodashGet(getReimbursementAccountInSetup(), 'subStep', '');
@@ -211,8 +209,8 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
         .then(({
             bankAccount, kycVerificationsMigration, throttledDate, maxAttemptsReached, isPlaidDisabled,
         }) => {
-            const achData = setupACHData(bankAccount);
             const hasTriedToUpgrade = getHasTriedToUpgrade(bankAccount, kycVerificationsMigration);
+            const achData = setupACHData(bankAccount, hasTriedToUpgrade);
             const currentStep = getCurrentStep(stepToOpen, achData, bankAccount, hasTriedToUpgrade);
 
             // 'error' displays any string set as an error encountered during the add Verified BBA flow.
