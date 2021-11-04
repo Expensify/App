@@ -448,6 +448,7 @@ function Get(parameters, shouldUseSecure = false) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} parameters.forceNetworkRequest
  * @returns {Promise}
  */
 function GetAccountStatus(parameters) {
