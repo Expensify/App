@@ -258,7 +258,6 @@ function isValidLengthForFirstOrLastName(name) {
     return name.length <= 50;
 }
 
-
 export {
     meetsAgeRequirements,
     isValidAddress,

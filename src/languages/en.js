@@ -284,7 +284,7 @@ export default {
             currentPassword: 'Current password is required',
             confirmNewPassword: 'Confirm password is required',
             newPasswordSameAsOld: 'New password must be different than your old password',
-            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, 1 number.',
+            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         },
     },
     addPayPalMePage: {

@@ -115,7 +115,7 @@ class PasswordPage extends Component {
     }
 
     /**
-     * Validate all fields and submit the form if no errors
+     * Validate all fields
      * @returns {Boolean}
      */
     validate() {

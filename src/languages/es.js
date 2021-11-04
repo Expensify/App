@@ -284,7 +284,7 @@ export default {
             currentPassword: 'Contraseña actual es requerido',
             confirmNewPassword: 'Confirma la nueva contraseña es requerido',
             newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
-            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula, 1 número.',
+            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
         },
     },
     addPayPalMePage: {
