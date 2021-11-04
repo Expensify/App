@@ -5,13 +5,6 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import {signInWithTestUser} from '../utils/TestHelper';
 
-// Set up manual mocks for methods used in the actions so our test does not fail.
-jest.mock('../../src/libs/Notification/PushNotification', () => ({
-    // There is no need for a jest.fn() since we don't need to make assertions against it.
-    register: () => {},
-    deregister: () => {},
-}));
-
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
 HttpUtils.xhr = jest.fn();

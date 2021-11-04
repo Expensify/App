@@ -7,12 +7,8 @@ import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
 import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import PushNotification from '../../src/libs/Notification/PushNotification';
 import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
-
-PushNotification.register = () => {};
-PushNotification.deregister = () => {};
 
 describe('actions/Report', () => {
     beforeAll(() => {
