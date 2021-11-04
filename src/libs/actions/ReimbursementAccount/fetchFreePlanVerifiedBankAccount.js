@@ -115,7 +115,7 @@ function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTr
         : getReimbursementAccountInSetup().currentStep;
 
     if (achData.isInSetup) {
-        return currentStep;
+        return currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
     }
 
     // If we don't have a bank account then take the user to the BankAccountStep so they can create one.

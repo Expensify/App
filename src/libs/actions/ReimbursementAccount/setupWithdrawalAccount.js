@@ -20,63 +20,150 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
 }
 
 /**
- * Create or update the bank account in db with the updated data.
- *
- * @param {Object} [data]
- *
- * // BankAccountStep
- * @param {Boolean} [data.acceptTerms]
- * @param {String} [data.accountNumber]
- * @param {String} [data.routingNumber]
- * @param {String} [data.setupType]
- * @param {String} [data.country]
- * @param {String} [data.currency]
- * @param {String} [data.fieldsType]
- * @param {String} [data.plaidAccessToken]
- * @param {String} [data.plaidAccountID]
- * @param {String} [data.ownershipType]
- * @param {Boolean} [data.isSavings]
- * @param {String} [data.addressName]
- *
- * // BeneficialOwnersStep
- * @param {Boolean} [data.ownsMoreThan25Percent]
- * @param {Boolean} [data.hasOtherBeneficialOwners]
- * @param {Boolean} [data.acceptTermsAndConditions]
- * @param {Boolean} [data.certifyTrueInformation]
- * @param {Array} [data.beneficialOwners]
- *
- * // CompanyStep
- * @param {String} [data.companyName]
- * @param {String} [data.addressStreet]
- * @param {String} [data.addressCity]
- * @param {String} [data.addressState]
- * @param {String} [data.addressZipCode]
- * @param {String} [data.companyPhone]
- * @param {String} [data.website]
- * @param {String} [data.companyTaxID]
- * @param {String} [data.incorporationType]
- * @param {String} [data.incorporationState]
- * @param {String} [data.incorporationDate]
- * @param {Boolean} [data.hasNoConnectionToCannabis]
- *
- * // RequestorStep
- * @param {String} [data.dob]
- * @param {String} [data.firstName]
- * @param {String} [data.lastName]
- * @param {String} [data.requestorAddressStreet]
- * @param {String} [data.requestorAddressCity]
- * @param {String} [data.requestorAddressState]
- * @param {String} [data.requestorAddressZipCode]
- * @param {String} [data.ssnLast4]
- * @param {String} [data.isControllingOfficer]
- * @param {Object} [data.onfidoData]
- * @param {Boolean} [data.isOnfidoSetupComplete]
+ * @param {Object} updatedACHData
  */
-function setupWithdrawalAccount(data) {
-    let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
+function getBankAccountListAndGoToValidateStep(updatedACHData) {
+    // Get an up-to-date bank account list so that we can allow the user to validate their newly
+    // generated bank account
+    API.Get({returnValueList: 'bankAccountList'})
+        .then((bankAccountListResponse) => {
+            const bankAccountJSON = _.findWhere(bankAccountListResponse.bankAccountList, {
+                bankAccountID: updatedACHData.bankAccountID,
+            });
+            const bankAccount = new BankAccount(bankAccountJSON);
+            const achData = bankAccount.toACHData();
+            const needsToPassLatestChecks = achData.state === BankAccount.STATE.OPEN
+                && achData.needsToPassLatestChecks;
+            achData.bankAccountInReview = needsToPassLatestChecks
+                || achData.state === BankAccount.STATE.VERIFYING;
 
-    const newACHData = {
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+        });
+}
+
+/**
+ * @param {Object} achData
+ * @returns {Object}
+ */
+function getOnfidoTokenAndStatusFromACHData(achData) {
+    const onfidoResponse = lodashGet(
+        achData,
+        CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
+    );
+
+    return {
+        sdkToken: lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN),
+        status: onfidoResponse.status,
+    };
+}
+
+/**
+ * @param {Object} achData
+ * @returns {Boolean}
+ */
+function needsToDoOnfido(achData) {
+    const {sdkToken, status} = getOnfidoTokenAndStatusFromACHData(achData);
+    if (!sdkToken || achData.isOnfidoSetupComplete || status === CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @param {Object} requestorResponse
+ * @returns {Array}
+ */
+function getRequestorQuestions(requestorResponse) {
+    const questions = lodashGet(requestorResponse, CONST.BANK_ACCOUNT.QUESTIONS.QUESTION) || [];
+    if (!_.isEmpty(questions)) {
+        return questions;
+    }
+
+    const differentiatorQuestion = lodashGet(
+        requestorResponse,
+        CONST.BANK_ACCOUNT.QUESTIONS.DIFFERENTIATOR_QUESTION,
+    );
+
+    return differentiatorQuestion ? [differentiatorQuestion] : [];
+}
+
+/**
+ * @param {Object} response
+ * @returns {Boolean}
+ */
+function hasAccountOrRoutingError(response) {
+    return response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
+        || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER;
+}
+
+/**
+ * @param {Object} updatedACHData
+ * @returns {String}
+ */
+function getNextStep(updatedACHData) {
+    const currentStep = updatedACHData.currentStep;
+    if (currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE) {
+        return currentStep;
+    }
+
+    if (currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && updatedACHData.bankAccountInReview) {
+        return currentStep;
+    }
+
+    return getNextStepID();
+}
+
+/**
+ *
+ * @param {Object} response
+ * @param {String} verificationsError
+ * @param {Object} updatedACHData
+ */
+function showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData) {
+    let error = verificationsError;
+    let isErrorHTML = false;
+    const responseACHData = lodashGet(response, 'achData', {});
+
+    if (response.jsonCode === 666 || response.jsonCode === 404) {
+        // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
+        error = response.htmlMessage || response.message;
+        isErrorHTML = Boolean(response.htmlMessage);
+    }
+
+    if (response.jsonCode === 402) {
+        if (hasAccountOrRoutingError(response)) {
+            setBankAccountFormValidationErrors({routingNumber: true});
+            showBankAccountErrorModal();
+        } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
+            error = translateLocal('bankAccount.error.incorporationState');
+        } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
+            error = translateLocal('bankAccount.error.companyType');
+        } else {
+            console.error(response.message);
+        }
+    }
+
+    if (error) {
+        showBankAccountFormValidationError(error);
+        showBankAccountErrorModal(error, isErrorHTML);
+    }
+
+    // Go to next step
+    goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), {
+        ...responseACHData,
+        subStep: hasAccountOrRoutingError(response),
+    });
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+}
+
+/**
+ * @param {Object} data
+ * @returns {Object}
+ */
+function mergeParamsWithLocalACHData(data) {
+    const updatedACHData = {
         ...getReimbursementAccountInSetup(),
         ...data,
 
@@ -87,148 +174,152 @@ function setupWithdrawalAccount(data) {
     };
 
     if (data && !_.isUndefined(data.isSavings)) {
-        newACHData.isSavings = Boolean(data.isSavings);
+        updatedACHData.isSavings = Boolean(data.isSavings);
     }
-    if (!newACHData.setupType) {
-        newACHData.setupType = newACHData.plaidAccountID
+    if (!updatedACHData.setupType) {
+        updatedACHData.setupType = updatedACHData.plaidAccountID
             ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID
             : CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
-
-    nextStep = newACHData.currentStep;
 
     // If we are setting up a Plaid account replace the accountNumber with the unmasked number
     if (data.plaidAccountID) {
         const unmaskedAccount = _.find(getPlaidBankAccounts(), bankAccount => (
             bankAccount.plaidAccountID === data.plaidAccountID
         ));
-        newACHData.accountNumber = unmaskedAccount.accountNumber;
+        updatedACHData.accountNumber = unmaskedAccount.accountNumber;
+    }
+    return updatedACHData;
+}
+
+/**
+ * @param {Object} achData
+ * @param {String} nextStep
+ */
+function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
+    const requestorResponse = lodashGet(
+        achData,
+        CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ID,
+    );
+
+    if (achData.useOnfido) {
+        if (needsToDoOnfido(achData)) {
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
+                ...achData,
+                sdkToken: getOnfidoTokenAndStatusFromACHData(achData).token,
+            });
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            return;
+        }
+    } else if (requestorResponse) {
+        // Don't go to next step if Requestor Step needs to ask some questions
+        const questions = getRequestorQuestions(requestorResponse);
+        if (!_.isEmpty(questions)) {
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
+                ...achData,
+                questions,
+            });
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            return;
+        }
     }
 
-    API.BankAccount_SetupWithdrawal(newACHData)
+    goToWithdrawalAccountSetupStep(nextStep, {
+        ...achData,
+    });
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+}
+
+/**
+ * Create or update the bank account in db with the updated data.
+ *
+ * @param {Object} [params]
+ *
+ * // BankAccountStep
+ * @param {Boolean} [params.acceptTerms]
+ * @param {String} [params.accountNumber]
+ * @param {String} [params.routingNumber]
+ * @param {String} [params.setupType]
+ * @param {String} [params.country]
+ * @param {String} [params.currency]
+ * @param {String} [params.fieldsType]
+ * @param {String} [params.plaidAccessToken]
+ * @param {String} [params.plaidAccountID]
+ * @param {String} [params.ownershipType]
+ * @param {Boolean} [params.isSavings]
+ * @param {String} [params.addressName]
+ *
+ * // BeneficialOwnersStep
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {Array} [params.beneficialOwners]
+ *
+ * // CompanyStep
+ * @param {String} [params.companyName]
+ * @param {String} [params.addressStreet]
+ * @param {String} [params.addressCity]
+ * @param {String} [params.addressState]
+ * @param {String} [params.addressZipCode]
+ * @param {String} [params.companyPhone]
+ * @param {String} [params.website]
+ * @param {String} [params.companyTaxID]
+ * @param {String} [params.incorporationType]
+ * @param {String} [params.incorporationState]
+ * @param {String} [params.incorporationDate]
+ * @param {Boolean} [params.hasNoConnectionToCannabis]
+ *
+ * // RequestorStep
+ * @param {String} [params.dob]
+ * @param {String} [params.firstName]
+ * @param {String} [params.lastName]
+ * @param {String} [params.requestorAddressStreet]
+ * @param {String} [params.requestorAddressCity]
+ * @param {String} [params.requestorAddressState]
+ * @param {String} [params.requestorAddressZipCode]
+ * @param {String} [params.ssnLast4]
+ * @param {String} [params.isControllingOfficer]
+ * @param {Object} [params.onfidoData]
+ * @param {Boolean} [params.isOnfidoSetupComplete]
+ */
+function setupWithdrawalAccount(params) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
+    const updatedACHData = mergeParamsWithLocalACHData(params);
+    API.BankAccount_SetupWithdrawal(updatedACHData)
         .then((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData}});
-            const currentStep = newACHData.currentStep;
-            let achData = lodashGet(response, 'achData', {});
-            let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
-            let isErrorHTML = false;
-            const errors = {};
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...updatedACHData}});
+            const currentStep = updatedACHData.currentStep;
+            const responseACHData = lodashGet(response, 'achData', {});
+            const verificationsError = lodashGet(responseACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            if (response.jsonCode !== 200 || verificationsError) {
+                showSetupWithdrawalAccountErrors(response, verificationsError, updatedACHData);
+                return;
+            }
 
-            if (response.jsonCode === 200 && !error) {
-                // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
-                // of accounts yet and must have some kind of record of which account is the one the user is trying to
-                // set up for the free plan.
-                if (achData.bankAccountID) {
-                    setFreePlanVerifiedBankAccountID(achData.bankAccountID);
-                }
+            // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
+            // of accounts yet and must have some kind of record of which account is the one the user is trying to
+            // set up for the free plan.
+            if (responseACHData.bankAccountID) {
+                setFreePlanVerifiedBankAccountID(responseACHData.bankAccountID);
+            }
 
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
-                    const requestorResponse = lodashGet(
-                        achData,
-                        CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ID,
-                    );
-                    if (newACHData.useOnfido) {
-                        const onfidoResponse = lodashGet(
-                            achData,
-                            CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO,
-                        );
-                        const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
-                        if (sdkToken && !newACHData.isOnfidoSetupComplete
-                                && onfidoResponse.status !== CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS
-                        ) {
-                            // Requestor Step still needs to run Onfido
-                            achData.sdkToken = sdkToken;
-                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
-                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-                            return;
-                        }
-                    } else if (requestorResponse) {
-                        // Don't go to next step if Requestor Step needs to ask some questions
-                        let questions = lodashGet(requestorResponse, CONST.BANK_ACCOUNT.QUESTIONS.QUESTION) || [];
-                        if (_.isEmpty(questions)) {
-                            const differentiatorQuestion = lodashGet(
-                                requestorResponse,
-                                CONST.BANK_ACCOUNT.QUESTIONS.DIFFERENTIATOR_QUESTION,
-                            );
-                            if (differentiatorQuestion) {
-                                questions = [differentiatorQuestion];
-                            }
-                        }
-                        if (!_.isEmpty(questions)) {
-                            achData.questions = questions;
-                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
-                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-                            return;
-                        }
-                    }
-                }
+            if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
+                checkDataAndMaybeStayOnRequestorStep(responseACHData, getNextStep(updatedACHData));
+                return;
+            }
 
-                if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
-                    // Get an up-to-date bank account list so that we can allow the user to validate their newly
-                    // generated bank account
-                    API.Get({returnValueList: 'bankAccountList'})
-                        .then((bankAccountListResponse) => {
-                            const bankAccountJSON = _.findWhere(bankAccountListResponse.bankAccountList, {
-                                bankAccountID: newACHData.bankAccountID,
-                            });
-                            const bankAccount = new BankAccount(bankAccountJSON);
-                            achData = bankAccount.toACHData();
-                            const needsToPassLatestChecks = achData.state === BankAccount.STATE.OPEN
-                                && achData.needsToPassLatestChecks;
-                            achData.bankAccountInReview = needsToPassLatestChecks
-                                || achData.state === BankAccount.STATE.VERIFYING;
-
-                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
-                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
-                        });
-                    return;
-                }
-
-                if ((currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && newACHData.bankAccountInReview)
-                    || currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE
-                ) {
-                    // Setup done!
-                } else {
-                    nextStep = getNextStepID();
-                }
-            } else {
-                if (response.jsonCode === 666 || response.jsonCode === 404) {
-                    // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
-                    error = response.htmlMessage || response.message;
-                    isErrorHTML = Boolean(response.htmlMessage);
-                }
-
-                if (response.jsonCode === 402) {
-                    if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
-                        || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
-                    ) {
-                        errors.routingNumber = true;
-                        achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
-                    } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
-                        error = translateLocal('bankAccount.error.incorporationState');
-                    } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
-                        error = translateLocal('bankAccount.error.companyType');
-                    } else {
-                        console.error(response.message);
-                    }
-                }
+            if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT) {
+                getBankAccountListAndGoToValidateStep(responseACHData);
+                return;
             }
 
             // Go to next step
-            goToWithdrawalAccountSetupStep(nextStep, achData);
-
-            if (_.size(errors)) {
-                setBankAccountFormValidationErrors(errors);
-                showBankAccountErrorModal();
-            }
-            if (error) {
-                showBankAccountFormValidationError(error);
-                showBankAccountErrorModal(error, isErrorHTML);
-            }
+            goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
             console.error(response.stack);
             showBankAccountErrorModal(translateLocal('common.genericErrorMessage'));
         });

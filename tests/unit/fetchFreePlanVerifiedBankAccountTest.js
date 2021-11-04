@@ -15,6 +15,25 @@ describe('getCurrentStep', () => {
         expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     });
 
+    it('Returns BankAccountStep when there is no step in storage or bankAccount but is achData', () => {
+        // GIVEN a bank account that doesn't yet exist and no stepToOpen
+        const nullBankAccount = null;
+        const achData = {
+            bankAccountInReview: false,
+            domainLimit: 0,
+            isInSetup: true,
+            policyID: '',
+            subStep: '',
+            useOnfido: true,
+        };
+
+        // WHEN we get the current step
+        const currentStep = getCurrentStep('', '', achData, nullBankAccount, false);
+
+        // THEN it will be the BankAccountStep
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+    });
+
     it('Returns whatever step we give for stepToOpen', () => {
         // GIVEN a bank account that doesn't yet exist and has a stepToOpen
         const nullBankAccount = null;
