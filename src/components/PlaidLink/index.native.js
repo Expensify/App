@@ -13,6 +13,7 @@ class PlaidLink extends React.Component {
     }
 
     componentDidMount() {
+        console.log("here");
         const emitter = new NativeEventEmitter(nativeModule);
         this.listener = emitter.addListener('onEvent', this.onEvent.bind(this));
 
@@ -21,6 +22,7 @@ class PlaidLink extends React.Component {
                 token: this.props.token,
             },
             onSuccess: ({publicToken, metadata}) => {
+                console.log("here in onSuccess", metadata);
                 this.props.onSuccess({publicToken, metadata});
             },
         });
