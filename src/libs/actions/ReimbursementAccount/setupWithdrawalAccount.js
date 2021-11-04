@@ -249,13 +249,6 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
  * @param {Boolean} [params.isSavings]
  * @param {String} [params.addressName]
  *
- * // BeneficialOwnersStep
- * @param {Boolean} [params.ownsMoreThan25Percent]
- * @param {Boolean} [params.hasOtherBeneficialOwners]
- * @param {Boolean} [params.acceptTermsAndConditions]
- * @param {Boolean} [params.certifyTrueInformation]
- * @param {Array} [params.beneficialOwners]
- *
  * // CompanyStep
  * @param {String} [params.companyName]
  * @param {String} [params.addressStreet]
@@ -282,6 +275,14 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
  * @param {String} [params.isControllingOfficer]
  * @param {Object} [params.onfidoData]
  * @param {Boolean} [params.isOnfidoSetupComplete]
+ *
+ * // ACHContractStep
+ * @param {Boolean} [params.ownsMoreThan25Percent]
+ * @param {Boolean} [params.hasOtherBeneficialOwners]
+ * @param {Boolean} [params.acceptTermsAndConditions]
+ * @param {Boolean} [params.certifyTrueInformation]
+ * @param {Array} [params.beneficialOwners]
+
  */
 function setupWithdrawalAccount(params) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
