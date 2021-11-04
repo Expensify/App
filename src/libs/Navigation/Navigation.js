@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import {Keyboard} from 'react-native';
 import {
     StackActions,
     DrawerActions,
@@ -44,6 +45,7 @@ function openDrawer() {
         return;
     }
     navigationRef.current.dispatch(DrawerActions.openDrawer());
+    Keyboard.dismiss();
 }
 
 /**
