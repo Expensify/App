@@ -93,31 +93,14 @@ function getHasTriedToUpgrade(bankAccount, kycVerificationsMigration) {
 }
 
 /**
- * @param {Object} achData
- * @returns {Boolean}
- */
-function needsToCompleteOnfido(achData) {
-    if (!achData.useOnfido) {
-        return false;
-    }
-
-    const onfidoResponse = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.REQUESTOR_IDENTITY_ONFIDO);
-    const sdkToken = lodashGet(onfidoResponse, CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.SDK_TOKEN);
-    if (!sdkToken || achData.isOnfidoSetupComplete || onfidoResponse.status === CONST.BANK_ACCOUNT.ONFIDO_RESPONSE.PASS) {
-        return false;
-    }
-
-    return true;
-}
-
-/**
  * @param {String} stepToOpen
+ * @param {String} stepFromStorage
  * @param {Object} achData
  * @param {BankAccount} bankAccount
  * @param {Boolean} hasTriedToUpgrade
  * @returns {String}
  */
-function getCurrentStep(stepToOpen, achData, bankAccount, hasTriedToUpgrade) {
+function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade) {
     // If we are providing a stepToOpen via a deep link then we will always navigate to that step. This
     // should be used with caution as it is possible to drop a user into a flow they can't complete e.g.
     // if we drop the user into the CompanyStep, but they have no accountNumber or routing Number in
@@ -132,10 +115,6 @@ function getCurrentStep(stepToOpen, achData, bankAccount, hasTriedToUpgrade) {
         : getReimbursementAccountInSetup().currentStep;
 
     if (achData.isInSetup) {
-        if (currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && needsToCompleteOnfido(achData)) {
-            return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
-        }
-
         return currentStep;
     }
 
@@ -211,7 +190,8 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
         }) => {
             const hasTriedToUpgrade = getHasTriedToUpgrade(bankAccount, kycVerificationsMigration);
             const achData = setupACHData(bankAccount, hasTriedToUpgrade);
-            const currentStep = getCurrentStep(stepToOpen, achData, bankAccount, hasTriedToUpgrade);
+            const stepFromStorage = getReimbursementAccountInSetup().currentStep;
+            const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade);
 
             // 'error' displays any string set as an error encountered during the add Verified BBA flow.
             // If we are fetching a bank account, clear the error to reset.
@@ -223,3 +203,4 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
 }
 
 export default fetchFreePlanVerifiedBankAccount;
+export {getCurrentStep};
