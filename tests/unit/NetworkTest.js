@@ -28,8 +28,6 @@ Onyx.init({
     registerStorageEventListener: () => {},
 });
 
-jest.mock('../../src/libs/Log');
-
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
 afterEach(() => {
@@ -107,7 +105,6 @@ test('failing to reauthenticate while offline should not log out user', () => {
 
                     expect(callsToChatList.length).toBe(3);
                     expect(callsToAuthenticate.length).toBe(2);
-                    expect(Log.hmmm).not.toHaveBeenCalledWith('Trying to make a request when Network is not ready', {command: 'GetAccountStatus', type: 'post'});
                 });
         });
 });
@@ -223,7 +220,6 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
             expect(account).toEqual(TEST_ACCOUNT_DATA);
             expect(personalDetailsList).toEqual(TEST_PERSONAL_DETAILS);
             expect(chatList).toEqual(TEST_CHAT_LIST);
-            expect(Log.hmmm).not.toHaveBeenCalledWith('Trying to make a request when Network is not ready', {command: 'GetAccountStatus', type: 'post'});
         });
 });
 
@@ -231,15 +227,21 @@ test('retry network request if auth and credentials are not read from Onyx yet',
     // add a delay to AsyncStorage.getItem() to simulate a delay in the Onyx.connect callbacks
     AsyncStorageMock.addDelayToGetItem(3000);
 
+    const originalSetIsReady = Network.setIsReady;
+    Network.setIsReady = jest.fn(param => originalSetIsReady(param));
+
     // reset isReady for this unit test, because Onyx.clear() calls in beforeEach resolves the
     // Onyx.connect callbacks with null values
     Network.setIsReady(false);
+    HttpUtils.xhr = jest.fn();
 
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
     fetchAccountDetails(TEST_USER_LOGIN);
 
-    // We should expect Log.hmmm to be called (logging an message to server when a request is
-    // made but Network is not ready)
-    expect(Log.hmmm).toHaveBeenCalledWith('Trying to make a request when Network is not ready', {command: 'GetAccountStatus', type: 'post'});
+    return waitForPromisesToResolve().then(() => {
+        // We should expect not having the Network ready and not making an http request
+        expect(Network.setIsReady).toHaveBeenLastCalledWith(false);
+        expect(HttpUtils.xhr).not.toHaveBeenCalled();
+    });
 });

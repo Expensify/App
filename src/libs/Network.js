@@ -116,9 +116,6 @@ function setIsReady(val) {
  * @return {Boolean}
  */
 function canMakeRequest(request) {
-    // We'll not make the request now if the network is not ready (it should have higher priority than
-    // forceNetworkRequest and isQueuePaused because we wait until credentials + session objects have
-    // been read from persistent storage).
     if (!isReady) {
         LogUtil.hmmm('Trying to make a request when Network is not ready', {command: request.command, type: request.type});
         return false;
