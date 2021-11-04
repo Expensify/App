@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {SvgCssUri} from 'react-native-svg';
 import propTypes from './propTypes';
