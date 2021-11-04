@@ -243,7 +243,7 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <ExpensiPicker
                             label={this.props.translate('companyStep.companyType')}
-                            items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
+                            items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                             value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}
