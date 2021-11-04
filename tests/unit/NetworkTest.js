@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import {
     beforeEach, jest, test, expect, afterEach,
 } from '@jest/globals';
-import AsyncStorageMock from '@react-native-async-storage/async-storage';
 import * as API from '../../src/libs/API';
 import {signInWithTestUser} from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
@@ -31,10 +30,8 @@ beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
 afterEach(() => {
     Network.setIsReady(false);
-    AsyncStorageMock.addDelayToGetItem(0);
-
-    jest.resetAllMocks();
-    jest.clearAllTimers();
+    Onyx.addDelayToConnectCallback(0);
+    jest.clearAllMocks();
 });
 
 test('failing to reauthenticate while offline should not log out user', () => {
@@ -225,13 +222,14 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
         });
 });
 
-test.only('retry network request if auth and credentials are not read from Onyx yet', () => {
-    // Add a delay to AsyncStorage.getItem() to simulate a delay in the Onyx.connect callbacks
-    AsyncStorageMock.addDelayToGetItem(3000);
+test('retry network request if auth and credentials are not read from Onyx yet', () => {
+    Onyx.addDelayToConnectCallback(3000);
 
     // Reset isReady for this unit test, because Onyx.clear() in beforeEach resolves the
     // Onyx.connect callbacks with null values
     Network.setIsReady(false);
+
+    // Set values to trigger Onyx.connect callbacks
     Onyx.merge(ONYXKEYS.CREDENTIALS, {});
     Onyx.merge(ONYXKEYS.SESSION, {});
 
@@ -242,23 +240,26 @@ test.only('retry network request if auth and credentials are not read from Onyx 
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
     fetchAccountDetails(TEST_USER_LOGIN);
+
+    // Wait for the mock Onyx.callbacks to be set
     return waitForPromisesToResolve().then(() => {
         // We should expect not having the Network ready and not making an http request
         expect(spyNetworkSetIsReady).not.toHaveBeenCalled();
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
-        // Resolve AsyncStorage.getItem() calls
+        // Resolve Onyx.connect callbacks
         jest.runOnlyPendingTimers();
-        return waitForPromisesToResolve().then(() => {
-            // We should expect call Network.setIsReady(true) but not making an http request yet
-            expect(spyNetworkSetIsReady).toHaveBeenLastCalledWith(true);
-            expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
-            // Run interval of processNetworkRequestQueue in Network.js
-            jest.runOnlyPendingTimers();
+        // We should expect call Network.setIsReady(true)
+        expect(spyNetworkSetIsReady).toHaveBeenLastCalledWith(true);
 
-            // We should expect a retry of the network request
-            expect(spyHttpUtilsXhr).toHaveBeenCalled();
-        });
+        // We should expect not making an http request yet
+        expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
+
+        // Run processNetworkRequestQueue in the setInterval of Network.js
+        jest.runOnlyPendingTimers();
+
+        // We should expect a retry of the network request
+        expect(spyHttpUtilsXhr).toHaveBeenCalled();
     });
 });
