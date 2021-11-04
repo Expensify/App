@@ -27,6 +27,8 @@ let onError = () => {};
 let didLoadPersistedRequests;
 let isOffline;
 
+const PROCESS_REQUEST_DELAY_MS = 1000;
+
 /**
  * Process the offline NETWORK_REQUEST_QUEUE
  * @param {Array<Object> | null} persistedRequests - Requests
@@ -240,7 +242,7 @@ function processNetworkRequestQueue() {
 }
 
 // Process our write queue very often
-setInterval(processNetworkRequestQueue, 1000);
+setInterval(processNetworkRequestQueue, PROCESS_REQUEST_DELAY_MS);
 
 /**
  * @param {Object} request
@@ -334,6 +336,7 @@ function registerErrorHandler(callback) {
 export {
     post,
     pauseRequestQueue,
+    PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,
     registerParameterEnhancer,
     clearRequestQueue,

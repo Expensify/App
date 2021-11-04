@@ -223,45 +223,45 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
 });
 
 test('retry network request if auth and credentials are not read from Onyx yet', () => {
+    // Given a test user login and account ID
+    const TEST_USER_LOGIN = 'test@testguy.com';
+
+    // Given a delay to the Onyx.connect callbacks
     const ONYX_DELAY_MS = 3000;
-    const NETWORK_INTERVAL_MS = 1000;
     Onyx.addDelayToConnectCallback(ONYX_DELAY_MS);
 
-    // Reset isReady for this unit test, because Onyx.clear() in beforeEach resolves the
-    // Onyx.connect callbacks with null values
+    // Given initial state to Network
     Network.setIsReady(false);
 
-    // Set values to trigger Onyx.connect callbacks
+    // Given initial empty values to trigger Onyx.connect callbacks in API.js
     Onyx.merge(ONYXKEYS.CREDENTIALS, {});
     Onyx.merge(ONYXKEYS.SESSION, {});
 
-    // Functions to mock and that we want to track
+    // Given some mock functions to track the isReady
+    // flag in Network and the http requests made
     const spyNetworkSetIsReady = jest.spyOn(Network, 'setIsReady');
     const spyHttpUtilsXhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => Promise.resolve({}));
 
-    // Given a test user login and account ID
-    const TEST_USER_LOGIN = 'test@testguy.com';
+    // When we make an arbitrary request that can be retried
+    // And we wait for the Onyx.callbacks to be set
     fetchAccountDetails(TEST_USER_LOGIN);
-
-    // Wait for the mock Onyx.callbacks to be set
     return waitForPromisesToResolve().then(() => {
-        // We should expect not having the Network ready and not making an http request
+        // Then we expect not having the Network ready and not making an http request
         expect(spyNetworkSetIsReady).not.toHaveBeenCalled();
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
-        // Resolve Onyx.connect callbacks
+        // When we resolve Onyx.connect callbacks
         jest.advanceTimersByTime(ONYX_DELAY_MS);
 
-        // We should expect call Network.setIsReady(true)
+        // Then we should expect call Network.setIsReady(true)
+        // And We should expect not making an http request yet
         expect(spyNetworkSetIsReady).toHaveBeenLastCalledWith(true);
-
-        // We should expect not making an http request yet
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
-        // Run processNetworkRequestQueue in the setInterval of Network.js
-        jest.advanceTimersByTime(NETWORK_INTERVAL_MS);
+        // When we run processNetworkRequestQueue in the setInterval of Network.js
+        jest.advanceTimersByTime(Network.PROCESS_REQUEST_DELAY_MS);
 
-        // We should expect a retry of the network request
+        // Then we should expect a retry of the network request
         expect(spyHttpUtilsXhr).toHaveBeenCalled();
     });
 });
