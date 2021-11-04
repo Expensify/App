@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import RoomAvatar from './RoomAvatar';
 import stylePropTypes from '../styles/stylePropTypes';
+import {withOnyx} from 'react-native-onyx';
+
 
 const propTypes = {
     /** Url source for the avatar */
@@ -18,6 +20,10 @@ const propTypes = {
     /** Set the size of Avatar */
     size: PropTypes.oneOf(['default', 'small']),
 
+    network: PropTypes.shape({
+        /** Is the network currently offline or not */
+        isOffline: PropTypes.bool,
+    }),
     /** Whether this avatar is for a default room */
     isDefaultChatRoom: PropTypes.bool,
 
@@ -35,6 +41,9 @@ const defaultProps = {
 };
 
 class Avatar extends PureComponent {
+
+
+
     render() {
         if (!this.props.source && !this.props.isDefaultChatRoom) {
             return null;
@@ -44,11 +53,16 @@ class Avatar extends PureComponent {
             this.props.size === 'small' ? styles.avatarSmall : styles.avatarNormal,
             ...this.props.imageStyles,
         ];
+        
+
+           
         return (
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {this.props.isDefaultChatRoom
                     ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
-                    : <Image source={{uri: this.props.source}} style={imageStyle} />}
+                    :  this.props.network.isOffline ? <Image source={require('../../assets/images/default_avatar.png')} style={imageStyle}/> : <Image source={{uri: this.props.source}} style={imageStyle}/>
+                                      
+                    }
             </View>
         );
     }
@@ -56,4 +70,8 @@ class Avatar extends PureComponent {
 
 Avatar.defaultProps = defaultProps;
 Avatar.propTypes = propTypes;
-export default Avatar;
+export default withOnyx({
+    network: {
+        key: 'network',
+    }
+})(Avatar);
