@@ -57,6 +57,12 @@ const propTypes = {
 
     /** Whether the menu item should be interactive at all */
     interactive: PropTypes.bool,
+
+    /** Whether we should show the selected state */
+    showSelectedState: PropTypes.bool,
+
+    /** Whether this item is selected */
+    selected: PropTypes.bool,
 };
 
 export default propTypes;

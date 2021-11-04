@@ -26,7 +26,7 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
+import {userWalletPropTypes} from '../settings/Payments/paymentPropTypes';
 import ROUTES from '../../ROUTES';
 
 /**

@@ -126,7 +126,7 @@ class TransferBalancePage extends React.Component {
             )
             : defaultAccount;
 
-        const selectedPaymentType = selectAccount.type === 'bank' ? CONST.WALLET.PAYMENT_TYPE.ACH : CONST.WALLET.PAYMENT_TYPE.INSTANT;
+        const selectedPaymentType = selectAccount && selectAccount.type === 'bank' ? CONST.WALLET.PAYMENT_TYPE.ACH : CONST.WALLET.PAYMENT_TYPE.INSTANT;
         const transferAmount = (this.props.userWallet.currentBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
         const isButtonDisabled = !canTransfer && !selectAccount;
@@ -175,19 +175,22 @@ class TransferBalancePage extends React.Component {
                         >
                             {this.props.translate('transferAmountPage.whichAccount')}
                         </Text>
-                        <MenuItem
-                            title={selectAccount.title}
-                            description={selectAccount.description}
-                            shouldShowRightIcon
-                            iconWidth={variables.iconSizeXLarge}
-                            iconHeight={variables.iconSizeXLarge}
-                            icon={Bolt}
-                            wrapperStyle={{
-                                ...styles.mrn5,
-                                ...styles.ph0,
-                            }}
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
-                        />
+                        {!!selectAccount
+                            && (
+                            <MenuItem
+                                title={selectAccount.title}
+                                description={selectAccount.description}
+                                shouldShowRightIcon
+                                iconWidth={variables.iconSizeXLarge}
+                                iconHeight={variables.iconSizeXLarge}
+                                icon={Bolt}
+                                wrapperStyle={{
+                                    ...styles.mrn5,
+                                    ...styles.ph0,
+                                }}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
+                            />
+                            )}
                         <Text
                             style={[
                                 styles.mt5,
