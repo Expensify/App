@@ -113,35 +113,32 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
 
     const chunkedDataEvents = {};
     const callback = (eventData) => {
+        let data;
+        try {
+            data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
+        } catch (err) {
+            Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
+            return;
+        }
         if (!isChunked) {
-            let data;
-
-            try {
-                data = _.isObject(eventData) ? eventData : JSON.parse(eventData);
-            } catch (err) {
-                Log.alert('[Pusher] Unable to parse JSON response from Pusher', {error: err, eventData});
-                return;
-            }
-
             eventCallback(data);
             return;
         }
-
         // If we are chunking the requests, we need to construct a rolling list of all packets that have come through
         // Pusher. If we've completed one of these full packets, we'll combine the data and act on the event that it's
         // assigned to.
 
         // If we haven't seen this eventID yet, initialize it into our rolling list of packets.
-        if (!chunkedDataEvents[eventData.id]) {
-            chunkedDataEvents[eventData.id] = {chunks: [], receivedFinal: false};
+        if (!chunkedDataEvents[data.id]) {
+            chunkedDataEvents[data.id] = {chunks: [], receivedFinal: false};
         }
 
         // Add it to the rolling list.
-        const chunkedEvent = chunkedDataEvents[eventData.id];
-        chunkedEvent.chunks[eventData.index] = eventData.chunk;
+        const chunkedEvent = chunkedDataEvents[data.id];
+        chunkedEvent.chunks[data.index] = data.chunk;
 
         // If this is the last packet, mark that we've hit the end.
-        if (eventData.final) {
+        if (data.final) {
             chunkedEvent.receivedFinal = true;
         }
 
@@ -158,7 +155,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
                 });
             }
 
-            delete chunkedDataEvents[eventData.id];
+            delete chunkedDataEvents[data.id];
         }
     };
 
@@ -227,6 +224,7 @@ function subscribe(
                 reject(status);
             });
         } else {
+            debugger;
             bindEventToChannel(channel, eventName, eventCallback, isChunked);
             resolve();
         }
