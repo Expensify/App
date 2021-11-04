@@ -1,8 +1,8 @@
 import CONST from '../../src/CONST';
-import {getCurrentStep} from '../../src/libs/actions/ReimbursementAccount/fetchFreePlanVerifiedBankAccount';
+import {getCurrentStep, buildACHData} from '../../src/libs/actions/ReimbursementAccount/fetchFreePlanVerifiedBankAccount';
 import BankAccount from '../../src/libs/models/BankAccount';
 
-describe('fetchFreePlanVerifiedBankAccount', () => {
+describe('getCurrentStep', () => {
     it('Returns BankAccountStep when there is no step in storage, achData, bankAccount, etc', () => {
         // GIVEN a bank account that doesn't yet exist and no stepToOpen
         const nullBankAccount = null;
@@ -12,7 +12,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep('', '', achData, nullBankAccount, false);
 
         // THEN it will be the BankAccountStep
-        expect(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
     });
 
     it('Returns whatever step we give for stepToOpen', () => {
@@ -25,7 +25,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, nullBankAccount, false);
 
         // THEN it will be whatever we set the stepToOpen to be
-        expect(CONST.BANK_ACCOUNT.STEP.COMPANY).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.COMPANY);
     });
 
     it('Returns the logical next step if we have a currentStep in achData', () => {
@@ -38,7 +38,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, false);
 
         // THEN it will be the logical next step
-        expect(CONST.BANK_ACCOUNT.STEP.REQUESTOR).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
     });
 
     it('Returns the requestor step if we have to do onfido', () => {
@@ -55,7 +55,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, false);
 
         // THEN we will stay on the requestor step
-        expect(CONST.BANK_ACCOUNT.STEP.REQUESTOR).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.REQUESTOR);
     });
 
     it('Returns steps based on pending BankAccount if there is no current step in achData or device storage', () => {
@@ -70,7 +70,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, false);
 
         // THEN it will be the validation step
-        expect(CONST.BANK_ACCOUNT.STEP.VALIDATION).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
     });
 
     it('Returns steps based on verifying BankAccount if there is no current step in achData or device storage', () => {
@@ -85,7 +85,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, false);
 
         // THEN it will be the validation step
-        expect(CONST.BANK_ACCOUNT.STEP.VALIDATION).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
     });
 
     it('Returns step based on open BankAccount that needs to pass checks and has not yet attempted upgrade', () => {
@@ -103,7 +103,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, false);
 
         // THEN it will be the company step
-        expect(CONST.BANK_ACCOUNT.STEP.COMPANY).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.COMPANY);
     });
 
     it('Returns step based on open BankAccount that needs to pass checks and has attempted upgrade', () => {
@@ -121,7 +121,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, true);
 
         // THEN it will be the validation step
-        expect(CONST.BANK_ACCOUNT.STEP.VALIDATION).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.VALIDATION);
     });
 
     it('Returns step based on open BankAccount that does not need to pass checks', () => {
@@ -160,7 +160,7 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, true);
 
         // THEN it will be the enable step
-        expect(CONST.BANK_ACCOUNT.STEP.ENABLE).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.ENABLE);
     });
 
     it('Returns step based on deleted BankAccount and no currentStep', () => {
@@ -175,6 +175,79 @@ describe('fetchFreePlanVerifiedBankAccount', () => {
         const currentStep = getCurrentStep(stepToOpen, '', achData, bankAccount, true);
 
         // THEN it will be the bank account step
-        expect(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT).toBe(currentStep);
+        expect(currentStep).toBe(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+    });
+});
+
+describe('buildACHData()', () => {
+    it('Returns the correct shape for a bank account in setup', () => {
+        const bankAccount = new BankAccount({
+            state: BankAccount.STATE.SETUP,
+        });
+        const achData = buildACHData(bankAccount, false);
+        expect(achData).toEqual({
+            useOnfido: true,
+            policyID: '',
+            isInSetup: true,
+            bankAccountInReview: false,
+            domainLimit: 0,
+            needsToUpgrade: false,
+            subStep: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
+            state: BankAccount.STATE.SETUP,
+            validateCodeExpectedDate: '',
+            needsToPassLatestChecks: true,
+        });
+    });
+
+    it('Returns the correct shape for an open account that has tried to upgrade', () => {
+        const bankAccount = new BankAccount({
+            state: BankAccount.STATE.OPEN,
+            additionalData: {
+                hasFullSSN: false,
+            },
+        });
+        const achData = buildACHData(bankAccount, true);
+        expect(achData).toEqual({
+            useOnfido: true,
+            policyID: '',
+            isInSetup: false,
+            bankAccountInReview: true,
+            domainLimit: 0,
+            hasFullSSN: false,
+            needsToUpgrade: true,
+            state: BankAccount.STATE.OPEN,
+            validateCodeExpectedDate: '',
+            needsToPassLatestChecks: true,
+        });
+    });
+
+    it('Returns the correct shape for a verifying account', () => {
+        const bankAccount = new BankAccount({
+            state: BankAccount.STATE.VERIFYING,
+        });
+        const achData = buildACHData(bankAccount, false);
+        expect(achData).toEqual({
+            useOnfido: true,
+            policyID: '',
+            isInSetup: false,
+            bankAccountInReview: true,
+            domainLimit: 0,
+            needsToUpgrade: true,
+            state: BankAccount.STATE.VERIFYING,
+            validateCodeExpectedDate: '',
+            needsToPassLatestChecks: true,
+        });
+    });
+
+    it('Returns the correct shape for no account', () => {
+        const bankAccount = undefined;
+        const achData = buildACHData(bankAccount, false);
+        expect(achData).toEqual({
+            useOnfido: true,
+            policyID: '',
+            isInSetup: true,
+            bankAccountInReview: false,
+            domainLimit: 0,
+        });
     });
 });

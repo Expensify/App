@@ -142,32 +142,42 @@ function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTr
 /**
  * @param {BankAccount} bankAccount
  * @param {Boolean} hasTriedToUpgrade
+ * @returns {Boolean}
+ */
+function getIsBankAccountInReview(bankAccount, hasTriedToUpgrade) {
+    if (!bankAccount) {
+        return false;
+    }
+
+    if (bankAccount.isVerifying()) {
+        return true;
+    }
+
+    if (bankAccount.isOpen() && bankAccount.needsToPassLatestChecks()) {
+        return hasTriedToUpgrade;
+    }
+
+    return false;
+}
+
+/**
+ * @param {BankAccount} bankAccount
+ * @param {Boolean} hasTriedToUpgrade
+ * @param {String} subStep
  * @returns {Object}
  */
-function setupACHData(bankAccount, hasTriedToUpgrade) {
-    // If we already have a substep stored locally then we will add that to the new achData
-    const subStep = lodashGet(getReimbursementAccountInSetup(), 'subStep', '');
-    const achData = bankAccount ? bankAccount.toACHData() : {};
-    achData.useOnfido = true;
-    achData.policyID = getReimbursementAccountWorkspaceID() || '';
-    achData.isInSetup = !bankAccount || bankAccount.isInSetup();
-    achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
-    achData.domainLimit = 0;
-
-    // If the bank account has already been created in the db and is not yet open
-    // let's show the manual form with the previously added values. Otherwise, we will
-    // make the subStep the previous value.
-    if (bankAccount && bankAccount.isInSetup()) {
-        achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
-    } else {
-        achData.subStep = subStep;
-    }
-
-    if (bankAccount && bankAccount.isOpen() && bankAccount.needsToPassLatestChecks()) {
-        achData.bankAccountInReview = hasTriedToUpgrade;
-    }
-
-    return achData;
+function buildACHData(bankAccount, hasTriedToUpgrade, subStep) {
+    return {
+        ...(bankAccount ? bankAccount.toACHData() : {}),
+        useOnfido: true,
+        policyID: getReimbursementAccountWorkspaceID() || '',
+        isInSetup: !bankAccount || bankAccount.isInSetup(),
+        bankAccountInReview: getIsBankAccountInReview(bankAccount, hasTriedToUpgrade),
+        domainLimit: 0,
+        subStep: bankAccount && bankAccount.isInSetup()
+            ? CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL
+            : subStep,
+    };
 }
 
 /**
@@ -188,8 +198,10 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
         .then(({
             bankAccount, kycVerificationsMigration, throttledDate, maxAttemptsReached, isPlaidDisabled,
         }) => {
+            // If we already have a substep stored locally then we will add that to the new achData
+            const subStep = lodashGet(getReimbursementAccountInSetup(), 'subStep', '');
             const hasTriedToUpgrade = getHasTriedToUpgrade(bankAccount, kycVerificationsMigration);
-            const achData = setupACHData(bankAccount, hasTriedToUpgrade);
+            const achData = buildACHData(bankAccount, hasTriedToUpgrade, subStep);
             const stepFromStorage = getReimbursementAccountInSetup().currentStep;
             const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade);
 
@@ -203,4 +215,4 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
 }
 
 export default fetchFreePlanVerifiedBankAccount;
-export {getCurrentStep};
+export {getCurrentStep, buildACHData};
