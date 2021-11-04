@@ -1,5 +1,8 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import {
+    describe, beforeAll, it, expect,
+} from '@jest/globals';
 import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
@@ -593,24 +596,26 @@ describe('OptionsListUtils', () => {
     });
 
     it('getSidebarOptions() with GSD priority mode', () => {
-        // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, REPORT_DRAFT_COMMENTS, 0, CONST.PRIORITY_MODE.GSD);
+        waitForPromisesToResolve().then(() => {
+            // When we call getSidebarOptions() with no search value
+            const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, REPORT_DRAFT_COMMENTS, 0, CONST.PRIORITY_MODE.GSD);
 
-        // Then expect all of the reports to be shown both multiple and single participant except the
-        // report that has no lastMessageTimestamp and the chat with Thor who's message is read
-        expect(results.recentReports.length).toBe(_.size(REPORTS) - 2);
+            // Then expect all of the reports to be shown both multiple and single participant except the
+            // report that has no lastMessageTimestamp and the chat with Thor who's message is read
+            expect(results.recentReports.length).toBe(_.size(REPORTS) - 2);
 
-        // That no personalDetails are shown
-        expect(results.personalDetails.length).toBe(0);
+            // That no personalDetails are shown
+            expect(results.personalDetails.length).toBe(0);
 
-        // And Mister Fantastic is alphabetically the fourth report and has an unread message
-        // despite being pinned
-        expect(results.recentReports[4].login).toBe('reedrichards@expensify.com');
+            // And Mister Fantastic is alphabetically the fourth report and has an unread message
+            // despite being pinned
+            expect(results.recentReports[4].login).toBe('reedrichards@expensify.com');
 
-        // And Black Panther is alphabetically the first report and has an unread message
-        expect(results.recentReports[0].login).toBe('tchalla@expensify.com');
+            // And Black Panther is alphabetically the first report and has an unread message
+            expect(results.recentReports[0].login).toBe('tchalla@expensify.com');
 
-        // And Mister Sinister is alphabetically the fifth report and has an IOU debt despite not being pinned
-        expect(results.recentReports[5].login).toBe('mistersinister@marauders.com');
+            // And Mister Sinister is alphabetically the fifth report and has an IOU debt despite not being pinned
+            expect(results.recentReports[5].login).toBe('mistersinister@marauders.com');
+        });
     });
 });
