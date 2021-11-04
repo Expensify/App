@@ -12,7 +12,7 @@ import PlaidLink from './PlaidLink';
 import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
-    getPlaidBankAccounts,
+    fetchPlaidBankAccounts,
     setBankAccountFormValidationErrors,
     showBankAccountErrorModal,
 } from '../libs/actions/BankAccounts';
@@ -165,7 +165,7 @@ class AddPlaidBankAccount extends React.Component {
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
-                            getPlaidBankAccounts(publicToken, metadata.institution.name);
+                            fetchPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}
                         onError={(error) => {

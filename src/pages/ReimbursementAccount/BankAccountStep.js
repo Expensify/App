@@ -25,7 +25,6 @@ import {
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
-    validateRoutingNumber,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -34,6 +33,7 @@ import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {BankMouseGreen} from '../../components/Icon/Illustrations';
+import {isValidRoutingNumber} from '../../libs/ValidationUtils';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -87,7 +87,7 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !validateRoutingNumber(this.state.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !isValidRoutingNumber(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
         if (!this.state.hasAcceptedTerms) {
