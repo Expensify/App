@@ -29,7 +29,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicyList} from '../../actions/Policy';
+import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import getOperatingSystem from '../../getOperatingSystem';
@@ -58,6 +58,7 @@ import {
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
 import {setLocale} from '../../actions/App';
@@ -167,15 +168,12 @@ class AuthScreens extends React.Component {
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
             .then((url) => {
-                // url is null on mobile unless the app was opened via a deeplink
-                if (url) {
-                    const path = new URL(url).pathname;
-                    const exitTo = new URLSearchParams(url).get('exitTo');
-                    const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
-                    getPolicyList(shouldCreateFreePolicy);
-                } else {
-                    getPolicyList(false);
+                if (this.shouldCreateFreePolicy(url)) {
+                    Policy.createAndGetPolicyList();
+                    return;
                 }
+
+                Policy.getPolicyList();
             });
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -227,6 +225,21 @@ class AuthScreens extends React.Component {
         this.interval = null;
     }
 
+    /**
+     * @param {String} [url]
+     * @returns {Boolean}
+     */
+    shouldCreateFreePolicy(url = '') {
+        if (!url) {
+            return false;
+        }
+
+        const path = new URL(url).pathname;
+        const exitTo = new URLSearchParams(url).get('exitTo');
+        return Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
+            && exitTo === ROUTES.WORKSPACE_NEW;
+    }
+
     render() {
         const commonModalScreenOptions = {
             headerShown: false,
@@ -272,6 +285,14 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     component={MainDrawerNavigator}
+                />
+                <RootStack.Screen
+                    name="ValidateLogin"
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
+                    }}
+                    component={ValidateLoginPage}
                 />
                 <RootStack.Screen
                     name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}

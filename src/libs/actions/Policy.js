@@ -91,7 +91,7 @@ function updateAllPolicies(policyCollection) {
  * @param {Boolean} [shouldAutomaticallyReroute]
  * @returns {Promise}
  */
-function create(name = '', shouldAutomaticallyReroute = true) {
+function create(name = '') {
     let res = null;
     return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
@@ -112,14 +112,23 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 role: CONST.POLICY.ROLE.ADMIN,
                 outputCurrency: response.policy.outputCurrency,
             });
-        }).then(() => {
-            const policyID = lodashGet(res, 'policyID');
-            if (shouldAutomaticallyReroute) {
-                Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-            }
-            return Promise.resolve(policyID);
-        });
+        })
+        .then(() => Promise.resolve(lodashGet(res, 'policyID')));
+}
+
+/**
+ * @param {String} policyID
+ */
+function navigateToPolicy(policyID) {
+    Navigation.dismissModal();
+    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
+}
+
+/**
+ * @param {String} [name]
+ */
+function createAndNavigate(name = '') {
+    create(name).then(navigateToPolicy);
 }
 
 /**
@@ -133,33 +142,31 @@ function create(name = '', shouldAutomaticallyReroute = true) {
  *
  * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
  * and we also don't have to wait for full policies to load before navigating to the new policy.
- *
- * @param {Boolean} [shouldCreateNewPolicy]
  */
-function getPolicyList(shouldCreateNewPolicy = false) {
-    let newPolicyID;
-    const createPolicyPromise = shouldCreateNewPolicy
-        ? create('', false)
-        : Promise.resolve();
-    createPolicyPromise
-        .then((policyID) => {
-            newPolicyID = policyID;
-            return API.GetPolicySummaryList();
-        })
+function getPolicyList() {
+    API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policyDataToStore = _.reduce(data.policySummaryList, (memo, policy) => ({
+                const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
                     ...memo,
                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
                 }), {});
-                updateAllPolicies(policyDataToStore);
-            }
 
-            if (shouldCreateNewPolicy) {
-                Navigation.dismissModal();
-                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceInitialRoute(newPolicyID) : ROUTES.HOME);
+                if (!_.isEmpty(policyCollection)) {
+                    updateAllPolicies(policyCollection);
+                }
             }
         });
+}
+
+function createAndGetPolicyList() {
+    let newPolicyID;
+    create()
+        .then((policyID) => {
+            newPolicyID = policyID;
+            return getPolicyList();
+        })
+        .then(() => navigateToPolicy(newPolicyID));
 }
 
 /**
@@ -169,7 +176,7 @@ function loadFullPolicy(policyID) {
     API.GetFullPolicy(policyID)
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policy = data.policyList[0] || {};
+                const policy = lodashGet(data, 'policyList[0]', {});
                 if (policy.id) {
                     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
                 }
@@ -364,4 +371,6 @@ export {
     update,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
+    createAndNavigate,
+    createAndGetPolicyList,
 };
