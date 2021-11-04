@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import lodashMerge from 'lodash/merge';
 import lodashGet from 'lodash/get';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -102,7 +103,7 @@ function updateAllPolicies(policyCollection) {
  * @param {Boolean} [shouldAutomaticallyReroute]
  * @returns {Promise}
  */
-function create(name = '', shouldAutomaticallyReroute = true) {
+function create(name = '') {
     let res = null;
     return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
@@ -123,14 +124,22 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 role: CONST.POLICY.ROLE.ADMIN,
                 outputCurrency: response.policy.outputCurrency,
             });
-        }).then(() => {
-            const policyID = lodashGet(res, 'policyID');
-            if (shouldAutomaticallyReroute) {
-                Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-            }
-            return Promise.resolve(policyID);
-        });
+        }).then(() => Promise.resolve(lodashGet(res, 'policyID')));
+}
+
+/**
+ * @param {String} policyID
+ */
+function navigateToPolicy(policyID) {
+    Navigation.dismissModal();
+    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
+}
+
+/**
+ * @param {String} [name]
+ */
+function createAndNavigate(name = '') {
+    create(name).then(navigateToPolicy);
 }
 
 /**
@@ -144,38 +153,39 @@ function create(name = '', shouldAutomaticallyReroute = true) {
  *
  * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
  * and we also don't have to wait for full policies to load before navigating to the new policy.
- *
- * @param {Boolean} [shouldCreateNewPolicy]
  */
-function getPolicyList(shouldCreateNewPolicy = false) {
-    let newPolicyID;
-    const createPolicyPromise = shouldCreateNewPolicy
-        ? create('', false)
-        : Promise.resolve();
-    createPolicyPromise
-        .then((policyID) => {
-            newPolicyID = policyID;
-            return API.GetPolicySummaryList();
-        })
+function getPolicyList() {
+    const policyCollection = {};
+    API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policyDataToStore = transformPolicyListToOnyxCollection(data.policySummaryList || []);
-                updateAllPolicies(policyDataToStore);
-            }
-
-            if (shouldCreateNewPolicy) {
-                Navigation.dismissModal();
-                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceInitialRoute(newPolicyID) : ROUTES.HOME);
+                lodashMerge(policyCollection, transformPolicyListToOnyxCollection(data.policySummaryList || []));
             }
 
             return API.GetPolicyList();
         })
         .then((data) => {
             if (data.jsonCode === 200) {
-                const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
-                updateAllPolicies(policyDataToStore);
+                lodashMerge(policyCollection, transformPolicyListToOnyxCollection(data.policyList || []));
             }
+        })
+        .finally(() => {
+            if (_.isEmpty(policyCollection)) {
+                return;
+            }
+
+            updateAllPolicies(policyCollection);
         });
+}
+
+function createAndGetPolicyList() {
+    let newPolicyID;
+    create()
+        .then((policyID) => {
+            newPolicyID = policyID;
+            return getPolicyList();
+        })
+        .then(() => navigateToPolicy(newPolicyID));
 }
 
 /**
@@ -364,4 +374,6 @@ export {
     update,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
+    createAndNavigate,
+    createAndGetPolicyList,
 };
