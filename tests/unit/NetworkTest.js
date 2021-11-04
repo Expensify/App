@@ -223,7 +223,9 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
 });
 
 test('retry network request if auth and credentials are not read from Onyx yet', () => {
-    Onyx.addDelayToConnectCallback(3000);
+    const ONYX_DELAY_MS = 3000;
+    const NETWORK_INTERVAL_MS = 1000;
+    Onyx.addDelayToConnectCallback(ONYX_DELAY_MS);
 
     // Reset isReady for this unit test, because Onyx.clear() in beforeEach resolves the
     // Onyx.connect callbacks with null values
@@ -248,7 +250,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
         // Resolve Onyx.connect callbacks
-        jest.runOnlyPendingTimers();
+        jest.advanceTimersByTime(ONYX_DELAY_MS);
 
         // We should expect call Network.setIsReady(true)
         expect(spyNetworkSetIsReady).toHaveBeenLastCalledWith(true);
@@ -257,7 +259,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
         // Run processNetworkRequestQueue in the setInterval of Network.js
-        jest.runOnlyPendingTimers();
+        jest.advanceTimersByTime(NETWORK_INTERVAL_MS);
 
         // We should expect a retry of the network request
         expect(spyHttpUtilsXhr).toHaveBeenCalled();
