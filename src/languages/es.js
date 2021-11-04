@@ -337,6 +337,8 @@ export default {
     },
     paymentMethodList: {
         addPaymentMethod: 'Agrega método de pago',
+        addDebitCard: 'Agregar tarjeta de débito',
+        addBankAccount: 'Agregar cuenta de banco',
         accountLastFour: 'Cuenta con terminación',
         cardLastFour: 'Tarjeta con terminacíon',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
