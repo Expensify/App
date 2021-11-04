@@ -541,7 +541,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
  * @param {Object} reports
  * @param {Object} personalDetails
  * @param {String} searchValue
- * @param {Array<String>} betas
+ * @param {Array<String>=} betas
  * @returns {Object}
  */
 function getSearchOptions(
@@ -638,7 +638,7 @@ function getNewChatOptions(
  * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {String} priorityMode
- * @param {Array<String>} betas
+ * @param {Array<String>=} betas
  * @returns {Object}
  */
 function getSidebarOptions(
