@@ -371,6 +371,55 @@ function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
 }
 
+/**
+ * @param {String} authToken
+ * @param {String} password
+ */
+function changePasswordAndSignIn(authToken, password) {
+    API.ChangePassword({
+        authToken,
+        password,
+    })
+        .then((responsePassword) => {
+            if (responsePassword.jsonCode === 200) {
+                signIn(password);
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.passwordNotSet'});
+        });
+}
+
+/**
+ * @param {String} accountID
+ * @param {String} validateCode
+ * @param {String} password
+ */
+function validateEmail(accountID, validateCode, password) {
+    API.ValidateEmail({
+        accountID,
+        validateCode,
+    })
+        .then((responseValidate) => {
+            if (responseValidate.jsonCode === 200) {
+                changePasswordAndSignIn(responseValidate.authToken, password);
+                return;
+            }
+
+            if (responseValidate.title === CONST.PASSWORD_PAGE.ERROR.ALREADY_VALIDATED) {
+                // If the email is already validated, set the password using the validate code
+                setPassword(
+                    password,
+                    validateCode,
+                    accountID,
+                );
+                return;
+            }
+
+            Onyx.merge(ONYXKEYS.SESSION, {error: 'setPasswordPage.accountNotValidated'});
+        });
+}
+
 export {
     continueSessionFromECom,
     fetchAccountDetails,
@@ -384,4 +433,5 @@ export {
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
+    validateEmail,
 };
