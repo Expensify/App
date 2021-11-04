@@ -46,9 +46,11 @@ Onyx.connect({
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
+ *
+ * @param {String} redirectURI
  */
-function fetchPlaidLinkToken() {
-    API.Plaid_GetLinkToken()
+function fetchPlaidLinkToken(redirectURI) {
+    API.Plaid_GetLinkToken(redirectURI)
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;

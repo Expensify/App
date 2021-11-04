@@ -4,6 +4,7 @@ import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
+    console.log("here in index PlaidLink");
     const onSuccess = useCallback((publicToken, metadata) => {
         props.onSuccess({publicToken, metadata});
     }, []);

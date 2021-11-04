@@ -868,8 +868,10 @@ function Wallet_GetOnfidoSDKToken() {
 /**
  * @returns {Promise}
  */
-function Plaid_GetLinkToken() {
-    return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+function Plaid_GetLinkToken(parameters) {
+    const commandName = 'Plaid_GetLinkToken';
+    requireParameters(['redirectURI'], parameters, commandName);
+    return Network.post('Plaid_GetLinkToken', parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
