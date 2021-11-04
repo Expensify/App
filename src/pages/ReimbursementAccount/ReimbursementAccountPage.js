@@ -1,18 +1,18 @@
-import moment from 'moment';
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import Log from '../../libs/Log';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
     fetchFreePlanVerifiedBankAccount,
-    hideBankAccountErrorModal,
     hideBankAccountErrors,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
-import VBALoadingIndicator from '../../components/VBALoadingIndicator';
+import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Permissions from '../../libs/Permissions';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -31,31 +31,15 @@ import BeneficialOwnersStep from './BeneficialOwnersStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import ConfirmModal from '../../components/ConfirmModal';
-import ExistingOwners from './ExistingOwners';
+import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** ACH data for the withdrawal account actively being set up */
-    reimbursementAccount: PropTypes.shape({
-        /** Whether we are loading the data via the API */
-        loading: PropTypes.bool,
-
-        /** A date that indicates the user has been throttled */
-        throttledDate: PropTypes.string,
-
-        /** Additional data for the account in setup */
-        achData: PropTypes.shape({
-
-            /** Step of the setup flow that we are on. Determines which view is presented. */
-            currentStep: PropTypes.string,
-        }),
-
-        /** Disable validation button if max attempts exceeded */
-        maxAttemptsReached: PropTypes.bool,
-    }),
+    reimbursementAccount: reimbursementAccountPropTypes,
 
     /** Current session for the user */
     session: PropTypes.shape({
@@ -89,7 +73,10 @@ const defaultProps = {
 class ReimbursementAccountPage extends React.Component {
     componentDidMount() {
         // We can specify a step to navigate to by using route params when the component mounts.
-        fetchFreePlanVerifiedBankAccount(this.getStepToOpenFromRouteParams());
+        const stepToOpen = this.getStepToOpenFromRouteParams();
+
+        // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
+        fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
     }
 
     componentDidUpdate(prevProps) {
@@ -124,12 +111,14 @@ class ReimbursementAccountPage extends React.Component {
                 return CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
             case 'company':
                 return CONST.BANK_ACCOUNT.STEP.COMPANY;
-            case 'requestor':
+            case 'personal-information':
                 return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
             case 'contract':
                 return CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT;
             case 'validate':
                 return CONST.BANK_ACCOUNT.STEP.VALIDATION;
+            case 'enable':
+                return CONST.BANK_ACCOUNT.STEP.ENABLE;
             default:
                 return '';
         }
@@ -149,32 +138,39 @@ class ReimbursementAccountPage extends React.Component {
                 return 'contract';
             case CONST.BANK_ACCOUNT.STEP.VALIDATION:
                 return 'validate';
+            case CONST.BANK_ACCOUNT.STEP.ENABLE:
+                return 'enable';
             case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
             default:
                 return 'new';
         }
     }
 
-    /**
-     * @returns {React.Component|string}
-     */
-    getErrorModalPrompt() {
-        if (lodashGet(this.props.reimbursementAccount, 'existingOwners', []).length > 0) {
-            return <ExistingOwners />;
-        }
-
-        return this.props.reimbursementAccount.errorModalMessage || this.props.translate('bankAccount.confirmModalPrompt');
-    }
-
     render() {
         if (!Permissions.canUseFreePlan(this.props.betas)) {
-            console.debug('Not showing new bank account page because user is not on free plan beta');
+            Log.info('Not showing new bank account page because user is not on free plan beta');
             Navigation.dismissModal();
             return null;
         }
 
+        // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
+        // user left off. This view will refer to the achData as the single source of truth to determine which route to
+        // display. We can also specify a specific route to navigate to via route params when the component first
+        // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
+        // next step.
+        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
+        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         if (this.props.reimbursementAccount.loading) {
-            return <VBALoadingIndicator />;
+            const isSubmittingVerificationsData = _.contains([
+                CONST.BANK_ACCOUNT.STEP.COMPANY,
+                CONST.BANK_ACCOUNT.STEP.REQUESTOR,
+                CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT,
+            ], currentStep);
+            return (
+                <ReimbursementAccountLoadingIndicator
+                    isSubmittingVerificationsData={isSubmittingVerificationsData}
+                />
+            );
         }
 
         let errorComponent;
@@ -190,25 +186,20 @@ class ReimbursementAccountPage extends React.Component {
 
         const throttledDate = lodashGet(this.props, 'reimbursementAccount.throttledDate');
         if (throttledDate) {
-            const throttledEnd = moment().add(24, 'hours');
-            if (moment() < throttledEnd) {
-                errorComponent = (
-                    <View style={[styles.m5]}>
-                        <Text>
-                            {this.props.translate('bankAccount.hasBeenThrottledError', {
-                                fromNow: throttledEnd.fromNow(),
-                            })}
-                        </Text>
-                    </View>
-                );
-            }
+            errorComponent = (
+                <View style={[styles.m5]}>
+                    <Text>
+                        {this.props.translate('bankAccount.hasBeenThrottledError')}
+                    </Text>
+                </View>
+            );
         }
 
         if (errorComponent) {
             return (
                 <ScreenWrapper>
                     <HeaderWithCloseButton
-                        title={this.props.translate('bankAccount.addBankAccount')}
+                        title={this.props.translate('workspace.common.bankAccount')}
                         onCloseButtonPress={Navigation.dismissModal}
                     />
                     {errorComponent}
@@ -216,16 +207,6 @@ class ReimbursementAccountPage extends React.Component {
             );
         }
 
-        const error = lodashGet(this.props, 'reimbursementAccount.error');
-        const maxAttemptsReached = lodashGet(this.props, 'reimbursementAccount.maxAttemptsReached');
-
-        // The SetupWithdrawalAccount flow allows us to continue the flow from various points depending on where the
-        // user left off. This view will refer to the achData as the single source of truth to determine which route to
-        // display. We can also specify a specific route to navigate to via route params when the component first
-        // mounts which will set the achData.currentStep after the account data is fetched and overwrite the logical
-        // next step.
-        const achData = lodashGet(this.props, 'reimbursementAccount.achData', {});
-        const currentStep = achData.currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -245,25 +226,14 @@ class ReimbursementAccountPage extends React.Component {
                         <BeneficialOwnersStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
-                        <ValidationStep
-                            achData={this.props.reimbursementAccount.achData}
-                            maxAttemptsReached={maxAttemptsReached}
-                            error={error}
-                        />
+                        <ValidationStep />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE && (
                         <EnableStep
                             achData={this.props.reimbursementAccount.achData}
                         />
                     )}
-                    <ConfirmModal
-                        title={this.props.translate('bankAccount.confirmModalTitle')}
-                        onConfirm={hideBankAccountErrorModal}
-                        prompt={this.getErrorModalPrompt()}
-                        isVisible={lodashGet(this.props, 'reimbursementAccount.isErrorModalVisible', false)}
-                        confirmText={this.props.translate('bankAccount.confirmModalConfirmText')}
-                        shouldShowCancelButton={false}
-                    />
+                    <WorkspaceResetBankAccountModal />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
         );

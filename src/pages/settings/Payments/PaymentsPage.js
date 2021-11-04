@@ -1,6 +1,6 @@
 import React from 'react';
-import {View} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
 import ROUTES from '../../../ROUTES';
@@ -14,7 +14,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index
 import Text from '../../../components/Text';
 import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal, Transfer} from '../../../components/Icon/Expensicons';
+import {PayPal, Transfer, CreditCard} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
@@ -24,12 +24,19 @@ import {walletTransferPropTypes} from './paymentPropTypes';
 import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
+const DEBIT_CARD = 'debitCard';
 
 const propTypes = {
     walletTransfer: walletTransferPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
+
+    /** Are we loading payment methods? */
+    isLoadingPaymentMethods: PropTypes.bool,
+
+    /** Username for PayPal.Me */
+    payPalMeUsername: PropTypes.string,
 
     ...withLocalizePropTypes,
 };
@@ -39,6 +46,8 @@ const defaultProps = {
         completed: false,
     },
     betas: [],
+    isLoadingPaymentMethods: true,
+    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -49,7 +58,6 @@ class PaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             anchorPositionTop: 0,
             anchorPositionLeft: 0,
-            isLoadingPaymentMethods: true,
         };
 
         this.paymentMethodPressed = this.paymentMethodPressed.bind(this);
@@ -59,9 +67,7 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods().then(() => {
-            this.setState({isLoadingPaymentMethods: false});
-        });
+        getPaymentMethods();
     }
 
     /**
@@ -98,6 +104,10 @@ class PaymentsPage extends React.Component {
         if (paymentType === PAYPAL) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
         }
+
+        if (paymentType === DEBIT_CARD) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
+        }
     }
 
     /**
@@ -124,20 +134,20 @@ class PaymentsPage extends React.Component {
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
                     />
-                    {Permissions.canUseWallet(this.props.betas) && (
-                        <>
-                            <View style={[styles.mv5]}>
-                                <CurrentWalletBalance />
-                            </View>
-                            <MenuItem
-                                title={this.props.translate('common.transferBalance')}
-                                icon={Transfer}
-                                onPress={this.transferBalance}
-                                shouldShowRightIcon
-                            />
-                        </>
-                    )}
-                    <View style={[styles.flex1, styles.pt4]}>
+                    <ScrollView style={styles.flex1}>
+                        {Permissions.canUseWallet(this.props.betas) && (
+                            <>
+                                <View style={[styles.mv5]}>
+                                    <CurrentWalletBalance />
+                                </View>
+                                <MenuItem
+                                    title={this.props.translate('common.transferBalance')}
+                                    icon={Transfer}
+                                    onPress={this.transferBalance}
+                                    shouldShowRightIcon
+                                />
+                            </>
+                        )}
                         <Text
                             style={[styles.ph5, styles.formLabel]}
                         >
@@ -146,9 +156,10 @@ class PaymentsPage extends React.Component {
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
-                            isLoadingPayments={this.state.isLoadingPaymentMethods}
+                            isLoadingPayments={this.props.isLoadingPaymentMethods}
+                            isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                         />
-                    </View>
+                    </ScrollView>
                     <Popover
                         isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
@@ -157,11 +168,20 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        <MenuItem
-                            title="PayPal.me"
-                            icon={PayPal}
-                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                        />
+                        <View style={styles.pr15}>
+                            {!this.props.payPalMeUsername && (
+                                <MenuItem
+                                    title={this.props.translate('common.payPalMe')}
+                                    icon={PayPal}
+                                    onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                                />
+                            )}
+                            <MenuItem
+                                title={this.props.translate('common.debitCard')}
+                                icon={CreditCard}
+                                onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
+                            />
+                        </View>
                     </Popover>
                     <ConfirmModal
                         title={this.props.translate('paymentsPage.allSet')}
@@ -184,7 +204,6 @@ class PaymentsPage extends React.Component {
 
 PaymentsPage.propTypes = propTypes;
 PaymentsPage.defaultProps = defaultProps;
-PaymentsPage.displayName = 'PaymentsPage';
 
 export default compose(
     withLocalize,
@@ -194,6 +213,13 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        isLoadingPaymentMethods: {
+            key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
+            initWithStoredValues: false,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(PaymentsPage);

@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
+import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -15,6 +15,7 @@ import {
 import {getPaymentMethodsList} from '../../../libs/paymentUtils';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import CONST from '../../../CONST';
+import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
 const MENU_ITEM = 'menuItem';
 
@@ -24,6 +25,9 @@ const propTypes = {
 
     /** Are we loading payments from the server? */
     isLoadingPayments: PropTypes.bool,
+
+    /** Is the payment options menu open / active? */
+    isAddPaymentMenuActive: PropTypes.bool,
 
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
@@ -38,19 +42,7 @@ const propTypes = {
     selectedAccountID: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 
     /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc */
-        addressName: PropTypes.string,
-
-        /** The masked bank account number */
-        accountNumber: PropTypes.string,
-
-        /** The bankAccountID in the bankAccounts db */
-        bankAccountID: PropTypes.number,
-
-        /** The bank account type */
-        type: PropTypes.string,
-    })),
+    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
 
     /** Array of card objects */
     cardList: PropTypes.arrayOf(PropTypes.shape({
@@ -75,6 +67,7 @@ const defaultProps = {
     enableSelection: false,
     selectedAccountID: '',
     filterList: '',
+    isAddPaymentMenuActive: false,
 };
 
 class PaymentMethodList extends Component {
@@ -139,6 +132,8 @@ class PaymentMethodList extends Component {
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
+            iconFill: this.props.isAddPaymentMenuActive ? getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.props.isAddPaymentMenuActive ? [getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;
@@ -176,8 +171,10 @@ class PaymentMethodList extends Component {
                     disabled={item.disabled}
                     showSelectedState={this.props.enableSelection}
                     selected={this.state.selectedAccountID === item.id}
+                    iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
+                    wrapperStyle={item.wrapperStyle}
                 />
             );
         }
@@ -196,7 +193,6 @@ class PaymentMethodList extends Component {
             <FlatList
                 data={this.createPaymentMethodList(this.props.filterList)}
                 renderItem={this.renderItem}
-                bounces
             />
         );
     }

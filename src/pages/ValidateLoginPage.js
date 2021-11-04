@@ -1,19 +1,19 @@
-import {Component} from 'react';
+import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
-import validateLinkPropTypes from './validateLinkPropTypes';
+import {
+    propTypes as validateLinkPropTypes,
+    defaultProps as validateLinkDefaultProps,
+} from './validateLinkPropTypes';
 import {validateLogin} from '../libs/actions/User';
+import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 };
 
 const defaultProps = {
-    route: {
-        params: {},
-    },
+    route: validateLinkDefaultProps,
 };
 class ValidateLoginPage extends Component {
     componentDidMount() {
@@ -24,8 +24,7 @@ class ValidateLoginPage extends Component {
     }
 
     render() {
-        // Don't render anything here since we will redirect the user once we've attempted to validate their login
-        return null;
+        return <FullScreenLoadingIndicator />;
     }
 }
 

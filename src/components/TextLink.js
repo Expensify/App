@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Pressable, Linking} from 'react-native';
+import {Linking} from 'react-native';
 import Text from './Text';
 import styles from '../styles/styles';
+import stylePropTypes from '../styles/stylePropTypes';
 
 const propTypes = {
     /** Link to open in new tab */
@@ -17,7 +18,7 @@ const propTypes = {
     ]).isRequired,
 
     /** Additional style props */
-    style: PropTypes.oneOfType([PropTypes.object, PropTypes.arrayOf(PropTypes.object)]),
+    style: stylePropTypes,
 
     /** Overwrites the default link behavior with a custom callback */
     onPress: PropTypes.func,
@@ -32,7 +33,10 @@ const defaultProps = {
 const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
-        <Pressable
+        <Text
+            style={[styles.link, ...additionalStyles]}
+            accessibilityRole="link"
+            href={props.href}
             onPress={(e) => {
                 e.preventDefault();
                 if (props.onPress) {
@@ -42,15 +46,9 @@ const TextLink = (props) => {
 
                 Linking.openURL(props.href);
             }}
-            accessibilityRole="link"
-            href={props.href}
         >
-            {({hovered, pressed}) => (
-                <Text style={[styles.link, (hovered || pressed) ? styles.linkHovered : undefined, ...additionalStyles]}>
-                    {props.children}
-                </Text>
-            )}
-        </Pressable>
+            {props.children}
+        </Text>
     );
 };
 

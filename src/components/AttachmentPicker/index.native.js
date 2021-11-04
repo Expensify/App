@@ -1,11 +1,12 @@
 /**
  * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
  */
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import * as basePropTypes from './AttachmentPickerPropTypes';
+import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
@@ -65,7 +66,7 @@ function getDataForUpload(fileData) {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.uri,
-        size: fileData.size,
+        size: fileData.fileSize || fileData.size,
     };
 }
 
@@ -284,7 +285,7 @@ class AttachmentPicker extends Component {
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
-                             this.menuItemData.map(item => (
+                             _.map(this.menuItemData, item => (
                                  <MenuItem
                                      key={item.textTranslationKey}
                                      icon={item.icon}
@@ -302,7 +303,8 @@ class AttachmentPicker extends Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
-AttachmentPicker.displayName = 'AttachmentPicker';
+AttachmentPicker.defaultProps = defaultProps;
+
 export default compose(
     withWindowDimensions,
     withLocalize,

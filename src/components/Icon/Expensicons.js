@@ -3,15 +3,19 @@ import Apple from '../../../assets/images/apple.svg';
 import ArrowRight from '../../../assets/images/arrow-right.svg';
 import BackArrow from '../../../assets/images/back-left.svg';
 import Bank from '../../../assets/images/bank.svg';
+import Bill from '../../../assets/images/bill.svg';
 import Bolt from '../../../assets/images/bolt.svg';
+import Briefcase from '../../../assets/images/briefcase.svg';
 import Bug from '../../../assets/images/bug.svg';
 import Building from '../../../assets/images/building.svg';
 import Camera from '../../../assets/images/camera.svg';
 import Cash from '../../../assets/images/cash.svg';
 import ChatBubble from '../../../assets/images/chatbubble.svg';
 import Checkmark from '../../../assets/images/checkmark.svg';
+import CircleHourglass from '../../../assets/images/circle-hourglass.svg';
 import Clipboard from '../../../assets/images/clipboard.svg';
 import Close from '../../../assets/images/close.svg';
+import Concierge from '../../../assets/images/concierge.svg';
 import CreditCard from '../../../assets/images/creditcard.svg';
 import DownArrow from '../../../assets/images/down.svg';
 import Download from '../../../assets/images/download.svg';
@@ -22,9 +26,11 @@ import ExpensifyCard from '../../../assets/images/expensifycard.svg';
 import Gallery from '../../../assets/images/gallery.svg';
 import Gear from '../../../assets/images/gear.svg';
 import Info from '../../../assets/images/info.svg';
+import Invoice from '../../../assets/images/invoice.svg';
 import Link from '../../../assets/images/link.svg';
 import LinkCopy from '../../../assets/images/link-copy.svg';
 import Lock from '../../../assets/images/lock.svg';
+import Luggage from '../../../assets/images/luggage.svg';
 import MagnifyingGlass from '../../../assets/images/magnifyingglass.svg';
 import Mail from '../../../assets/images/mail.svg';
 import MoneyBag from '../../../assets/images/money-bag.svg';
@@ -44,6 +50,8 @@ import Plus from '../../../assets/images/plus.svg';
 import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
 import Receipt from '../../../assets/images/receipt.svg';
+import ReceiptSearch from '../../../assets/images/receipt-search.svg';
+import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
 import Sync from '../../../assets/images/sync.svg';
@@ -62,15 +70,19 @@ export {
     ArrowRight,
     BackArrow,
     Bank,
+    Bill,
     Bolt,
+    Briefcase,
     Building,
     Bug,
     Camera,
     Cash,
     ChatBubble,
     Checkmark,
+    CircleHourglass,
     Clipboard,
     Close,
+    Concierge,
     CreditCard,
     DownArrow,
     Download,
@@ -81,9 +93,11 @@ export {
     Gallery,
     Gear,
     Info,
+    Invoice,
     Link,
     LinkCopy,
     Lock,
+    Luggage,
     MagnifyingGlass,
     Mail,
     MoneyBag,
@@ -103,6 +117,8 @@ export {
     Printer,
     Profile,
     Receipt,
+    ReceiptSearch,
+    RotateLeft,
     Send,
     SignOut,
     Sync,

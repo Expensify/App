@@ -7,7 +7,6 @@ import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
 import {Close, Download, BackArrow} from './Icon/Expensicons';
-import compose from '../libs/compose';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
@@ -37,8 +36,17 @@ const propTypes = {
     /** Whether we should show a inbox call button */
     shouldShowInboxCallButton: PropTypes.bool,
 
+    /** Whether we should show the step counter */
+    shouldShowStepCounter: PropTypes.bool,
+
     /** The task ID to associate with the call button, if we show it */
     inboxCallTaskID: PropTypes.string,
+
+    /** Data to display a step counter in the header */
+    stepCounter: PropTypes.shape({
+        step: PropTypes.number,
+        total: PropTypes.number,
+    }),
 
     ...withLocalizePropTypes,
 };
@@ -52,7 +60,9 @@ const defaultProps = {
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
     shouldShowInboxCallButton: false,
+    shouldShowStepCounter: true,
     inboxCallTaskID: '',
+    stepCounter: null,
 };
 
 const HeaderWithCloseButton = props => (
@@ -76,7 +86,10 @@ const HeaderWithCloseButton = props => (
                     </TouchableOpacity>
                 </Tooltip>
             )}
-            <Header title={props.title} />
+            <Header
+                title={props.title}
+                subtitle={props.stepCounter && props.shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
+            />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
                     props.shouldShowDownloadButton && (
@@ -113,4 +126,4 @@ HeaderWithCloseButton.propTypes = propTypes;
 HeaderWithCloseButton.defaultProps = defaultProps;
 HeaderWithCloseButton.displayName = 'HeaderWithCloseButton';
 
-export default compose(withLocalize)(HeaderWithCloseButton);
+export default withLocalize(HeaderWithCloseButton);

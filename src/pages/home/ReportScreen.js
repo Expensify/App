@@ -3,6 +3,7 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {Keyboard, View} from 'react-native';
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import styles from '../../styles/styles';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import HeaderView from './HeaderView';
@@ -10,14 +11,15 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import {handleInaccessibleReport, updateCurrentlyViewedReportID, addAction} from '../../libs/actions/Report';
 import ONYXKEYS from '../../ONYXKEYS';
-
+import Permissions from '../../libs/Permissions';
+import {isDefaultRoom} from '../../libs/reportUtils';
 import ReportActionsView from './report/ReportActionsView';
 import ReportActionCompose from './report/ReportActionCompose';
 import KeyboardSpacer from '../../components/KeyboardSpacer';
 import SwipeableView from '../../components/SwipeableView';
 import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import ReportActionPropTypes from './report/ReportActionPropTypes';
+import reportActionPropTypes from './report/reportActionPropTypes';
 
 const propTypes = {
     /** Navigation route context info provided by react navigation */
@@ -53,7 +55,10 @@ const propTypes = {
     }),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
+
+    /** Beta features list */
+    betas: PropTypes.arrayOf(PropTypes.string),
 };
 
 const defaultProps = {
@@ -67,6 +72,7 @@ const defaultProps = {
         maxSequenceNumber: 0,
         hasOutstandingIOU: false,
     },
+    betas: [],
 };
 
 /**
@@ -141,7 +147,7 @@ class ReportScreen extends React.Component {
      */
     storeCurrentlyViewedReport() {
         const reportID = getReportID(this.props.route);
-        if (_.isNaN(reportID)) {
+        if (_.isNaN(reportID) || !lodashGet(this.props.report, 'reportID', '')) {
             handleInaccessibleReport();
             return;
         }
@@ -150,6 +156,10 @@ class ReportScreen extends React.Component {
 
     render() {
         if (!this.props.isSidebarLoaded) {
+            return null;
+        }
+
+        if (!Permissions.canUseDefaultRooms(this.props.betas) && isDefaultRoom(this.props.report)) {
             return null;
         }
 
@@ -207,5 +217,8 @@ export default withOnyx({
     },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    betas: {
+        key: ONYXKEYS.BETAS,
     },
 })(ReportScreen);
