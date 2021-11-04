@@ -1,5 +1,5 @@
 import React from 'react';
-import {ScrollView} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -143,18 +143,20 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        {!this.props.payPalMeUsername && (
+                        <View style={styles.pr15}>
+                            {!this.props.payPalMeUsername && (
+                                <MenuItem
+                                    title={this.props.translate('common.payPalMe')}
+                                    icon={PayPal}
+                                    onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                                />
+                            )}
                             <MenuItem
-                                title={this.props.translate('common.payPalMe')}
-                                icon={PayPal}
-                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                                title={this.props.translate('common.debitCard')}
+                                icon={CreditCard}
+                                onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                             />
-                        )}
-                        <MenuItem
-                            title={this.props.translate('common.debitCard')}
-                            icon={CreditCard}
-                            onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
-                        />
+                        </View>
                     </Popover>
                 </KeyboardAvoidingView>
             </ScreenWrapper>
