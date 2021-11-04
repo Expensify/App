@@ -2,38 +2,14 @@ import Onyx from 'react-native-onyx';
 import _ from 'underscore';
 import lodashHas from 'lodash/has';
 import lodashGet from 'lodash/get';
-import * as API from '../API';
-import CONST from '../../CONST';
-import ONYXKEYS from '../../ONYXKEYS';
-import {translateLocal} from '../translate';
-import BankAccount from '../models/BankAccount';
-import Growl from '../Growl';
-import {getPlaidBankAccounts} from './Plaid';
-
-/** Reimbursement account actively being set up */
-let reimbursementAccountInSetup = {};
-Onyx.connect({
-    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-    callback: (val) => {
-        reimbursementAccountInSetup = lodashGet(val, 'achData', {});
-    },
-});
-
-let reimbursementAccountWorkspaceID = null;
-Onyx.connect({
-    key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID,
-    callback: (val) => {
-        reimbursementAccountWorkspaceID = val;
-    },
-});
-
-let credentials;
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: (val) => {
-        credentials = val;
-    },
-});
+import * as API from '../../API';
+import CONST from '../../../CONST';
+import ONYXKEYS from '../../../ONYXKEYS';
+import {translateLocal} from '../../translate';
+import BankAccount from '../../models/BankAccount';
+import Growl from '../../Growl';
+import {getPlaidBankAccounts} from '../Plaid';
+import {getReimbursementAccountInSetup, getCredentials, getReimbursementAccountWorkspaceID} from './store';
 
 /**
  * @private
@@ -50,7 +26,7 @@ function setFreePlanVerifiedBankAccountID(bankAccountID) {
  * @param {Object} achData
  */
 function goToWithdrawalAccountSetupStep(stepID, achData) {
-    const newACHData = {...reimbursementAccountInSetup};
+    const newACHData = {...getReimbursementAccountInSetup()};
 
     // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -114,7 +90,7 @@ function getIndexByStepID(stepID) {
  */
 function getNextStepID(stepID) {
     const nextStepIndex = Math.min(
-        getIndexByStepID(stepID || reimbursementAccountInSetup.currentStep) + 1,
+        getIndexByStepID(stepID || getReimbursementAccountInSetup().currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
     return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
@@ -208,7 +184,7 @@ function setupWithdrawalAccount(data) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
 
     const newACHData = {
-        ...reimbursementAccountInSetup,
+        ...getReimbursementAccountInSetup(),
         ...data,
 
         // This param tells Web-Secure that this bank account is from NewDot so we can modify links back to the correct
@@ -385,7 +361,7 @@ function getNextStepToComplete(achData) {
  */
 function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
     // Remember which account BankAccountStep subStep the user had before so we can set it later
-    const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
+    const subStep = lodashGet(getReimbursementAccountInSetup(), 'subStep', '');
     const initialData = {loading: true, error: ''};
 
     // Some UI needs to know the bank account state during the loading process, so we are keeping it in Onyx if passed
@@ -434,7 +410,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
 
                     // Next we'll build the achData and save it to Onyx
                     // If the user is already setting up a bank account we will continue the flow for them
-                    let currentStep = reimbursementAccountInSetup.currentStep;
+                    let currentStep = getReimbursementAccountInSetup().currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
                     if (!stepToOpen && achData.currentStep) {
                         // eslint-disable-next-line no-use-before-define
@@ -442,7 +418,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
                     }
 
                     achData.useOnfido = true;
-                    achData.policyID = reimbursementAccountWorkspaceID || '';
+                    achData.policyID = getReimbursementAccountWorkspaceID() || '';
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
@@ -535,19 +511,19 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
  * Reset user's reimbursement account. This will delete the bank account.
  */
 function resetFreePlanBankAccount() {
-    const bankAccountID = lodashGet(reimbursementAccountInSetup, 'bankAccountID');
+    const bankAccountID = lodashGet(getReimbursementAccountInSetup(), 'bankAccountID');
     if (!bankAccountID) {
         throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
     }
-    if (!credentials || !credentials.login) {
+    if (!getCredentials() || !getCredentials().login) {
         throw new Error('Missing credentials when attempting to reset free plan bank account');
     }
 
     // Create a copy of the reimbursementAccount data since we are going to optimistically wipe it so the UI changes quickly.
     // If the API request fails we will set this data back into Onyx.
-    const previousACHData = {...reimbursementAccountInSetup};
+    const previousACHData = {...getReimbursementAccountInSetup()};
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
-    API.DeleteBankAccount({bankAccountID, ownerEmail: credentials.login})
+    API.DeleteBankAccount({bankAccountID, ownerEmail: getCredentials().login})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Unable to delete bank account so we restore the bank account details
