@@ -45,6 +45,7 @@ export default {
     getIouSplitRoute: reportID => `${IOU_BILL}/${reportID}`,
     getIOUSendRoute: reportID => `${IOU_SEND}/${reportID}`,
     IOU_BILL_CURRENCY: `${IOU_BILL_CURRENCY}/:reportID?`,
+    IOU_ENABLE_PAYMENTS: 'iou/enable-payments',
     IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
     IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
     getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST_CURRENCY}/${reportID}`,
@@ -67,6 +68,7 @@ export default {
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     LOGIN_WITH_SHORT_LIVED_TOKEN: 'transition',
+    VALIDATE_LOGIN: 'v/:accountID/:validateCode',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.

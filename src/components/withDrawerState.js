@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {useDrawerStatus} from '@react-navigation/drawer';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
-export const withDrawerPropTypes = {
+const withDrawerPropTypes = {
     isDrawerOpen: PropTypes.bool.isRequired,
 };
 
@@ -36,3 +36,7 @@ export default function withDrawerState(WrappedComponent) {
         <WithDrawerState {...props} forwardedRef={ref} />
     ));
 }
+
+export {
+    withDrawerPropTypes,
+};

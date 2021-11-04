@@ -4,6 +4,7 @@ import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
+import {setReportWithDraft} from '../../src/libs/actions/Report';
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
@@ -214,8 +215,6 @@ describe('OptionsListUtils', () => {
             login: 'receipts@expensify.com',
         },
     };
-
-    const REPORT_DRAFT_COMMENTS = {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}1`]: 'Draft comment'};
 
     // Set the currently logged in user, report data, and personal details
     beforeAll(() => {
@@ -560,57 +559,61 @@ describe('OptionsListUtils', () => {
             },
         };
 
-        // When we call getSidebarOptions() with no search value and default priority mode
-        const results = OptionsListUtils.getSidebarOptions(
-            reportsWithAddedPinnedMessagelessReport,
-            PERSONAL_DETAILS,
-            REPORT_DRAFT_COMMENTS,
-            0,
-            CONST.PRIORITY_MODE.DEFAULT,
-        );
+        return setReportWithDraft(1, true)
+            .then(() => {
+                // When we call getSidebarOptions() with no search value and default priority mode
+                const results = OptionsListUtils.getSidebarOptions(
+                    reportsWithAddedPinnedMessagelessReport,
+                    PERSONAL_DETAILS,
+                    0,
+                    CONST.PRIORITY_MODE.DEFAULT,
+                );
 
-        // Then expect all of the reports to be shown both multiple and single participant except the
-        // unpinned report that has no lastMessageTimestamp
-        expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
+                // Then expect all of the reports to be shown both multiple and single participant except the
+                // unpinned report that has no lastMessageTimestamp
+                expect(results.recentReports.length).toBe(_.size(reportsWithAddedPinnedMessagelessReport) - 1);
 
-        const numberOfPinnedReports = results.recentReports.filter(report => report.isPinned).length;
-        expect(numberOfPinnedReports).toBe(2);
+                const numberOfPinnedReports = _.filter(results.recentReports, report => report.isPinned).length;
+                expect(numberOfPinnedReports).toBe(2);
 
-        // That no personalDetails are shown
-        expect(results.personalDetails.length).toBe(0);
+                // That no personalDetails are shown
+                expect(results.personalDetails.length).toBe(0);
 
-        // And the most recent pinned report is first in the list of reports
-        expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
+                // And the most recent pinned report is first in the list of reports
+                expect(results.recentReports[0].login).toBe('captain_britain@expensify.com');
 
-        // And the third report is the report with an IOU debt
-        expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
+                // And the third report is the report with an IOU debt
+                expect(results.recentReports[2].login).toBe('mistersinister@marauders.com');
 
-        // And the fourth report is the report with a draft comment
-        expect(results.recentReports[3].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
+                // And the fourth report is the report with a draft comment
+                expect(results.recentReports[3].text).toBe('tonystark@expensify.com, reedrichards@expensify.com');
 
-        // And the fifth report is the report with the lastMessage timestamp
-        expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
+                // And the fifth report is the report with the lastMessage timestamp
+                expect(results.recentReports[4].login).toBe('steverogers@expensify.com');
+            });
     });
 
-    it('getSidebarOptions() with GSD priority mode', () => {
-        // When we call getSidebarOptions() with no search value
-        const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, REPORT_DRAFT_COMMENTS, 0, CONST.PRIORITY_MODE.GSD);
+    it('getSidebarOptions() with GSD priority mode',
+        () => setReportWithDraft(1, true)
+            .then(() => {
+                // When we call getSidebarOptions() with no search value
+                const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);
 
-        // Then expect all of the reports to be shown both multiple and single participant except the
-        // report that has no lastMessageTimestamp and the chat with Thor who's message is read
-        expect(results.recentReports.length).toBe(_.size(REPORTS) - 2);
+                // Then expect all of the reports to be shown both multiple and single participant except the
+                // report that has no lastMessageTimestamp and the chat with Thor who's message is read
+                expect(results.recentReports.length).toBe(_.size(REPORTS) - 2);
 
-        // That no personalDetails are shown
-        expect(results.personalDetails.length).toBe(0);
+                // That no personalDetails are shown
+                expect(results.personalDetails.length).toBe(0);
 
-        // And Mister Fantastic is alphabetically the fourth report and has an unread message
-        // despite being pinned
-        expect(results.recentReports[4].login).toBe('reedrichards@expensify.com');
+                // And Mister Fantastic is alphabetically the fourth report and has an unread message
+                // despite being pinned
+                expect(results.recentReports[4].login).toBe('reedrichards@expensify.com');
 
-        // And Black Panther is alphabetically the first report and has an unread message
-        expect(results.recentReports[0].login).toBe('tchalla@expensify.com');
+                // And Black Panther is alphabetically the first report and has an unread message
+                expect(results.recentReports[0].login).toBe('tchalla@expensify.com');
 
-        // And Mister Sinister is alphabetically the fifth report and has an IOU debt despite not being pinned
-        expect(results.recentReports[5].login).toBe('mistersinister@marauders.com');
-    });
+                // And Mister Sinister is alphabetically the fifth report and has an IOU debt despite not being pinned
+                expect(results.recentReports[5].login).toBe('mistersinister@marauders.com');
+            }));
 });

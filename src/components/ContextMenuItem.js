@@ -114,6 +114,5 @@ class ContextMenuItem extends Component {
 
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
-ContextMenuItem.displayName = 'ContextMenuItem';
 
 export default ContextMenuItem;

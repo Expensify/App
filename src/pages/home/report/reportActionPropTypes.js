@@ -1,13 +1,13 @@
 import PropTypes from 'prop-types';
 
-import ReportActionFragmentPropTypes from './ReportActionFragmentPropTypes';
+import reportActionFragmentPropTypes from './reportActionFragmentPropTypes';
 
 export default {
     // Name of the action e.g. ADDCOMMENT
     actionName: PropTypes.string,
 
     // Person who created the action
-    person: PropTypes.arrayOf(ReportActionFragmentPropTypes),
+    person: PropTypes.arrayOf(reportActionFragmentPropTypes),
 
     // ID of the report action
     sequenceNumber: PropTypes.number,
@@ -16,7 +16,7 @@ export default {
     timestamp: PropTypes.number,
 
     // report action message
-    message: PropTypes.arrayOf(ReportActionFragmentPropTypes),
+    message: PropTypes.arrayOf(reportActionFragmentPropTypes),
 
     // Original message associated with this action
     originalMessage: PropTypes.shape({

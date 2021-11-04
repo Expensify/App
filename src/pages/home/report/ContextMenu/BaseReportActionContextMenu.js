@@ -5,16 +5,16 @@ import PropTypes from 'prop-types';
 import getReportActionContextMenuStyles from '../../../../styles/getReportActionContextMenuStyles';
 import ContextMenuItem from '../../../../components/ContextMenuItem';
 import {
-    propTypes as GenericReportActionContextMenuPropTypes,
+    propTypes as genericReportActionContextMenuPropTypes,
     defaultProps as GenericReportActionContextMenuDefaultProps,
-} from './GenericReportActionContextMenuPropTypes';
+} from './genericReportActionContextMenuPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import ContextMenuActions, {CONTEXT_MENU_TYPES} from './ContextMenuActions';
 
 const propTypes = {
     /** String representing the context menu type [LINK, REPORT_ACTION] which controls context menu choices  */
     type: PropTypes.string,
-    ...GenericReportActionContextMenuPropTypes,
+    ...genericReportActionContextMenuPropTypes,
     ...withLocalizePropTypes,
 };
 

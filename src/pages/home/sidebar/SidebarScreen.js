@@ -27,7 +27,7 @@ import {
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {create, isAdminOfFreePolicy} from '../../../libs/actions/Policy';
+import * as Policy from '../../../libs/actions/Policy';
 import Performance from '../../../libs/Performance';
 import NameValuePair from '../../../libs/actions/NameValuePair';
 
@@ -76,7 +76,7 @@ class SidebarScreen extends Component {
 
                 // It's also possible that we already have a workspace policy. In either case we will not toggle the menu but do still want to set the NVP in this case since the user does
                 // not need to create a workspace.
-                if (!isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
+                if (!Policy.isAdminOfFreePolicy(this.props.allPolicies) && !isDisplayingWorkspaceRoute) {
                     this.toggleCreateMenu();
                 }
 
@@ -183,14 +183,14 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) && !isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                ...(Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: NewWorkspace,
                                         iconWidth: 46,
                                         iconHeight: 40,
                                         text: this.props.translate('workspace.new.newWorkspace'),
                                         description: this.props.translate('workspace.new.getTheExpensifyCardAndMore'),
-                                        onSelected: () => create(),
+                                        onSelected: () => Policy.createAndNavigate(),
                                     },
                                 ] : []),
                             ]}

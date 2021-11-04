@@ -1,4 +1,5 @@
 import {Animated, Easing} from 'react-native';
+import useNativeDriver from '../../libs/useNativeDriver';
 
 class SpinningIndicatorAnimation {
     constructor() {
@@ -23,7 +24,9 @@ class SpinningIndicatorAnimation {
                 duration: 2000,
                 easing: Easing.linear,
                 isInteraction: false,
-                useNativeDriver: true,
+
+                // Animated.loop does not work with `useNativeDriver: true` on Web
+                useNativeDriver,
             }),
         ).start();
     }

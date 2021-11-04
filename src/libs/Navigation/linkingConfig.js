@@ -27,6 +27,7 @@ export default {
 
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
+            ValidateLogin: ROUTES.VALIDATE_LOGIN,
             [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
 
             // Modal Screens
@@ -166,6 +167,7 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
+                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             WorkspaceInvite: {

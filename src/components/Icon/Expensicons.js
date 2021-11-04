@@ -50,6 +50,7 @@ import Printer from '../../../assets/images/printer.svg';
 import Profile from '../../../assets/images/profile.svg';
 import Receipt from '../../../assets/images/receipt.svg';
 import ReceiptSearch from '../../../assets/images/receipt-search.svg';
+import RotateLeft from '../../../assets/images/rotate-left.svg';
 import Send from '../../../assets/images/send.svg';
 import SignOut from '../../../assets/images/sign-out.svg';
 import Sync from '../../../assets/images/sync.svg';
@@ -114,6 +115,7 @@ export {
     Profile,
     Receipt,
     ReceiptSearch,
+    RotateLeft,
     Send,
     SignOut,
     Sync,

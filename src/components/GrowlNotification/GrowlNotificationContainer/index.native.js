@@ -2,10 +2,10 @@ import React from 'react';
 import {Animated} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import styles, {getSafeAreaPadding} from '../../../styles/styles';
-import GrowlNotificationContainerPropTypes from './GrowlNotificationContainerPropTypes';
+import growlNotificationContainerPropTypes from './growlNotificationContainerPropTypes';
 
 const propTypes = {
-    ...GrowlNotificationContainerPropTypes,
+    ...growlNotificationContainerPropTypes,
 };
 
 const GrowlNotificationContainer = ({children, translateY}) => (

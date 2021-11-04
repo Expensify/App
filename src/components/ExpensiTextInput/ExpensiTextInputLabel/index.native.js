@@ -2,7 +2,7 @@ import React, {memo} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
 import labelStyles from './overrideLabelStyles';
-import propTypes from './propTypes';
+import propTypes from './expensiTextInputLabelPropTypes';
 
 const ExpensiTextInputLabel = ({
     label,
