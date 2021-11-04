@@ -586,6 +586,14 @@ export default {
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
+        incorporationTypes: {
+            LLC: 'LLC',
+            CORPORATION: 'Corp',
+            PARTNERSHIP: 'Partnership',
+            COOPERATIVE: 'Cooperative',
+            SOLE_PROPRIETORSHIP: 'Sole Proprietorship',
+            OTHER: 'Other',
+        },
     },
     requestorStep: {
         headerTitle: 'Personal information',
