@@ -50,7 +50,7 @@ Onyx.connect({
  * @param {String} redirectURI
  */
 function fetchPlaidLinkToken(redirectURI) {
-    API.Plaid_GetLinkToken(redirectURI)
+    API.Plaid_GetLinkToken({redirect_uri: redirectURI})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;

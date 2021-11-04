@@ -870,7 +870,7 @@ function Wallet_GetOnfidoSDKToken() {
  */
 function Plaid_GetLinkToken(parameters) {
     const commandName = 'Plaid_GetLinkToken';
-    requireParameters(['redirectURI'], parameters, commandName);
+    requireParameters(['redirect_uri'], parameters, commandName);
     return Network.post('Plaid_GetLinkToken', parameters, CONST.NETWORK.METHOD.POST, true);
 }
 
