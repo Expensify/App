@@ -2,14 +2,17 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 
 import {
-    beforeEach, jest, test, expect,
+    beforeEach, jest, test, expect, afterEach,
 } from '@jest/globals';
+import AsyncStorageMock from '@react-native-async-storage/async-storage';
 import * as API from '../../src/libs/API';
 import {signInWithTestUser} from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import Log from '../../src/libs/Log';
+import * as Network from '../../src/libs/Network';
+import {fetchAccountDetails} from '../../src/libs/actions/Session';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -28,6 +31,11 @@ Onyx.init({
 jest.mock('../../src/libs/Log');
 
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
+
+afterEach(() => {
+    Network.setIsReady(false);
+    AsyncStorageMock.addDelayToGetItem(0);
+});
 
 test('failing to reauthenticate while offline should not log out user', () => {
     // Given a test user login and account ID
@@ -217,4 +225,21 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
             expect(chatList).toEqual(TEST_CHAT_LIST);
             expect(Log.hmmm).not.toHaveBeenCalledWith('Trying to make a request when Network is not ready', {command: 'GetAccountStatus', type: 'post'});
         });
+});
+
+test('retry network request if auth and credentials are not read from Onyx yet', () => {
+    // add a delay to AsyncStorage.getItem() to simulate a delay in the Onyx.connect callbacks
+    AsyncStorageMock.addDelayToGetItem(3000);
+
+    // reset isReady for this unit test, because Onyx.clear() calls in beforeEach resolves the
+    // Onyx.connect callbacks with null values
+    Network.setIsReady(false);
+
+    // Given a test user login and account ID
+    const TEST_USER_LOGIN = 'test@testguy.com';
+    fetchAccountDetails(TEST_USER_LOGIN);
+
+    // We should expect Log.hmmm to be called (logging an message to server when a request is
+    // made but Network is not ready)
+    expect(Log.hmmm).toHaveBeenCalledWith('Trying to make a request when Network is not ready', {command: 'GetAccountStatus', type: 'post'});
 });
