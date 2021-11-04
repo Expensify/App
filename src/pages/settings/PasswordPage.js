@@ -12,8 +12,8 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
-import {changePassword} from '../../libs/actions/User';
 import {isValidPassword} from '../../libs/ValidationUtils';
+import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -152,12 +152,7 @@ class PasswordPage extends Component {
         if (!this.validate()) {
             return;
         }
-        changePassword(this.state.currentPassword, this.state.newPassword)
-            .then((response) => {
-                if (response.jsonCode === 200) {
-                    Navigation.navigate(ROUTES.SETTINGS);
-                }
-            });
+        User.changePasswordAndNavigate(this.state.currentPassword, this.state.newPassword);
     }
 
     render() {
