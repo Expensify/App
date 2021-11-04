@@ -37,8 +37,10 @@ function getBankAccountListAndGoToValidateStep(updatedACHData) {
             achData.bankAccountInReview = needsToPassLatestChecks
                 || achData.state === BankAccount.STATE.VERIFYING;
 
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, {
+                ...achData,
+                loading: false,
+            });
         });
 }
 
@@ -154,8 +156,8 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
     goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), {
         ...responseACHData,
         subStep: hasAccountOrRoutingError(response),
+        loading: false,
     });
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
 }
 
 /**
@@ -207,8 +209,8 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
                 ...achData,
                 sdkToken: getOnfidoTokenAndStatusFromACHData(achData).token,
+                loading: false,
             });
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
             return;
         }
     } else if (requestorResponse) {
@@ -218,22 +220,26 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
                 ...achData,
                 questions,
+                loading: false,
             });
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
             return;
         }
     }
 
     goToWithdrawalAccountSetupStep(nextStep, {
         ...achData,
+        loading: false,
     });
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
 }
 
 /**
  * Create or update the bank account in db with the updated data.
  *
- * @param {Object} [params]
+ * This action is called by several steps in the Verified Bank Account flow and is coupled tightly with SetupWithdrawalAccount in Auth
+ * Each time the command is called the state of the bank account progresses a bit further and when handling the response we redirect
+ * to the appropriate next step in the flow.
+ *
+ * @param {Object} params
  *
  * // BankAccountStep
  * @param {Boolean} [params.acceptTerms]
@@ -282,7 +288,6 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
  * @param {Boolean} [params.acceptTermsAndConditions]
  * @param {Boolean} [params.certifyTrueInformation]
  * @param {Array} [params.beneficialOwners]
-
  */
 function setupWithdrawalAccount(params) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
@@ -316,8 +321,10 @@ function setupWithdrawalAccount(params) {
             }
 
             // Go to next step
-            goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+            goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), {
+                ...responseACHData,
+                loading: false,
+            });
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});

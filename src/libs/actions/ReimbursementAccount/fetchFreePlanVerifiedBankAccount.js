@@ -205,12 +205,13 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
             const stepFromStorage = getReimbursementAccountInSetup().currentStep;
             const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade);
 
-            // 'error' displays any string set as an error encountered during the add Verified BBA flow.
-            // If we are fetching a bank account, clear the error to reset.
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                throttledDate, maxAttemptsReached, error: '', isPlaidDisabled,
+            goToWithdrawalAccountSetupStep(currentStep, {
+                ...achData,
+                throttledDate,
+                maxAttemptsReached,
+                error: '',
+                isPlaidDisabled,
             });
-            goToWithdrawalAccountSetupStep(currentStep, achData);
         });
 }
 
