@@ -130,9 +130,7 @@ class ReportActionsView extends React.Component {
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
-            if (Report.isReportDataUptoDate()) {
-                Report.updateLastReadActionID(this.props.reportID);
-            }
+            Report.updateLastReadActionID(this.props.reportID);
         }
 
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);

@@ -78,8 +78,12 @@ const lastReadSequenceNumbers = {};
 // since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
 const optimisticReportActionIDs = {};
 
-// Boolean to indicate if report data comes from the API request or from local cache.
-let isReportDataFresh = false;
+// Boolean to indicate if report data is loading from the API or not.
+let isReportDataLoading = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    callback: val => isReportDataLoading = val,
+});
 
 /**
  * Checks the report to see if there are any unread action items
@@ -935,6 +939,7 @@ function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
     return API.Get({
         returnValueList: 'chatList',
     })
@@ -955,7 +960,7 @@ function fetchAllReports(
         })
         .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
-            isReportDataFresh = true;
+            Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
 
             // If at this point the user still doesn't have a Concierge report, create it for them.
             // This means they were a participant in reports before their account was created (e.g. default rooms)
@@ -1171,6 +1176,11 @@ function deleteReportComment(reportID, reportAction) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
+    // If report data is loading, we can't update the last read sequence number because it is obsolete
+    if (isReportDataLoading) {
+        return;
+    }
+
     // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
     // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
     // the side of caution and do nothing in this case.
@@ -1417,14 +1427,6 @@ function handleInaccessibleReport() {
     navigateToConciergeChat();
 }
 
-/**
- * Check if report data is up to date or it comes from local cache
- * @returns {Boolean}
- */
-function isReportDataUptoDate() {
-    return isReportDataFresh;
-}
-
 export {
     fetchAllReports,
     fetchActions,
@@ -1451,7 +1453,6 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
-    isReportDataUptoDate,
     setReportWithDraft,
     fetchActionsWithLoadingState,
 };
