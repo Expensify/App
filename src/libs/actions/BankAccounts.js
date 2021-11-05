@@ -508,7 +508,7 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
 
                 const requestorIdentity = getRequestorIdentity(reimbursementAccountDraft, achData);
 
-                // Function to validate data is bank account setup step
+                // Function to validate data in bank account setup step
                 const isStepComplete = (step) => {
                     switch (step) {
                         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:
