@@ -7,4 +7,5 @@ export default {
     REPORT_COMMENT_EDIT: 'reportCommentEdit',
     REPORT_TOGGLE_PINNED: 'reportTogglePinned',
     PREFERRED_LOCALE: 'preferredLocale',
+    EXPENSIFY_CARD_UPDATE: 'expensifyCardUpdate',
 };

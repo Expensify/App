@@ -22,6 +22,7 @@ import WorkspaceSection from '../workspace/WorkspaceSection';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
 import {openOldDotLink} from '../../libs/actions/Link';
+import {subscribeToExpensifyCardUpdates} from '../../libs/actions/User';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -54,6 +55,7 @@ class EnableStep extends React.Component {
         }
 
         const isUsingExpensifyCard = user.isUsingExpensifyCard;
+        const isCheckingDomain = user.isCheckingDomain;
         const account = _.find(bankAccountList, bankAccount => bankAccount.bankAccountID === reimbursementAccount.achData.bankAccountID);
         if (!account) {
             // This shouldn't happen as we can only end up here if we have successfully added a bank account.
@@ -79,6 +81,7 @@ class EnableStep extends React.Component {
                 icon: Mail,
                 onPress: () => {
                     openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
             });
@@ -112,6 +115,9 @@ class EnableStep extends React.Component {
                             {!isUsingExpensifyCard
                                 ? translate('workspace.bankAccount.accountDescriptionNoCards')
                                 : translate('workspace.bankAccount.accountDescriptionWithCards')}
+                        </Text>
+                        <Text>
+                            {isCheckingDomain && 'We\'re still checking your work email, please check back in a few minutes.'}
                         </Text>
                     </WorkspaceSection>
                 </View>

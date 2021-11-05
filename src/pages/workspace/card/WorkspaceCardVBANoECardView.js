@@ -9,6 +9,7 @@ import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';
 import Navigation from '../../../libs/Navigation/Navigation';
 import {openOldDotLink} from '../../../libs/actions/Link';
+import {subscribeToExpensifyCardUpdates} from '../../../libs/actions/User';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -24,6 +25,7 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
                 onPress: () => {
                     Navigation.dismissModal();
                     openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    subscribeToExpensifyCardUpdates();
                 },
                 icon: Mail,
                 shouldShowRightIcon: true,
@@ -42,6 +44,9 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
                 translate('workspace.card.benefit4'),
             ]}
         />
+        <View style={[styles.mv4]}>
+            <Text>We are still checking this domain</Text>
+        </View>
     </WorkspaceSection>
 );
 
