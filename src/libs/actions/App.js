@@ -52,9 +52,11 @@ function getLocaleAndUpdate() {
         nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
     }).then((response) => {
         const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-        if (preferredLocale !== currentPreferredLocale) {
-            Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
+        if (preferredLocale === currentPreferredLocale) {
+            return;
         }
+
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
     });
 }
 
