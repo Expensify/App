@@ -148,15 +148,17 @@ function createAndNavigate(name = '') {
 function getPolicyList() {
     API.GetPolicySummaryList()
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
-                    ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-                }), {});
+            if (data.jsonCode !== 200) {
+                return;
+            }
 
-                if (!_.isEmpty(policyCollection)) {
-                    updateAllPolicies(policyCollection);
-                }
+            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
+                ...memo,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+            }), {});
+
+            if (!_.isEmpty(policyCollection)) {
+                updateAllPolicies(policyCollection);
             }
         });
 }

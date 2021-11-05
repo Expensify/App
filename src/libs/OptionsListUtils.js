@@ -47,9 +47,11 @@ const reportsWithDraft = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
     callback: (hasDraft, key) => {
-        if (key) {
-            reportsWithDraft[key] = hasDraft;
+        if (!key) {
+            return;
         }
+
+        reportsWithDraft[key] = hasDraft;
     },
 });
 
