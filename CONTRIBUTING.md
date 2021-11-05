@@ -59,9 +59,9 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
-#### Express interest for the job on Upwork.com
+#### Check GitHub for existing proposals from other users
 
-1. If you are interested in working on a job posted in Upwork, click **Submit a Proposal** in Upwork to express your interest to the Expensify team.
+1. If someone already posted a good solution, most probably they will be assigned the issue. You can still post proposals, but you should know that the best proposal that addresses the problem will be selected, all things equal we prioritize the first proposal.
 
 #### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.
