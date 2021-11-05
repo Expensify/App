@@ -97,7 +97,6 @@ class SidebarLinks extends React.Component {
         const sidebarOptions = getSidebarOptions(
             props.reports,
             props.personalDetails,
-            props.draftComments,
             activeReportID,
             props.priorityMode,
             props.betas,
