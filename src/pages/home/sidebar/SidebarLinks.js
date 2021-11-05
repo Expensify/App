@@ -97,7 +97,6 @@ class SidebarLinks extends React.Component {
         const sidebarOptions = getSidebarOptions(
             props.reports,
             props.personalDetails,
-            props.draftComments,
             activeReportID,
             props.priorityMode,
             props.betas,
@@ -274,9 +273,6 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        draftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
