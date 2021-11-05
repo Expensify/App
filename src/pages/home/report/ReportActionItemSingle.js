@@ -68,6 +68,7 @@ const ReportActionItemSingle = ({
                 <Avatar
                     imageStyles={[styles.actionAvatar]}
                     source={avatarUrl}
+                    containerStyles={[styles.avatarNormal, {marginRight: 8}]}
                 />
             </Pressable>
             <View style={[styles.chatItemRight]}>
