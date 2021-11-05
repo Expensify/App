@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
-import lodashMerge from 'lodash/merge';
 import lodashGet from 'lodash/get';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -42,38 +41,27 @@ function getSimplifiedEmployeeList(employeeList) {
  * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
- * @param {Object} fullPolicy
- * @param {String} fullPolicy.id
- * @param {String} fullPolicy.name
- * @param {String} fullPolicy.role
- * @param {String} fullPolicy.type
- * @param {String} fullPolicy.outputCurrency
- * @param {Object} fullPolicy.value.employeeList
- * @param {String} [fullPolicy.value.avatarURL]
+ * @param {Object} fullPolicyOrPolicySummary
+ * @param {String} fullPolicyOrPolicySummary.id
+ * @param {String} fullPolicyOrPolicySummary.name
+ * @param {String} fullPolicyOrPolicySummary.role
+ * @param {String} fullPolicyOrPolicySummary.type
+ * @param {String} fullPolicyOrPolicySummary.outputCurrency
+ * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
+ * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @returns {Object}
  */
-function getSimplifiedPolicyObject(fullPolicy) {
+function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
     return {
-        id: fullPolicy.id,
-        name: fullPolicy.name,
-        role: fullPolicy.role,
-        type: fullPolicy.type,
-        owner: fullPolicy.owner,
-        outputCurrency: fullPolicy.outputCurrency,
-        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
-        avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
+        id: fullPolicyOrPolicySummary.id,
+        name: fullPolicyOrPolicySummary.name,
+        role: fullPolicyOrPolicySummary.role,
+        type: fullPolicyOrPolicySummary.type,
+        owner: fullPolicyOrPolicySummary.owner,
+        outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
+        avatarURL: fullPolicyOrPolicySummary.avatarURL || '',
+        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
     };
-}
-
-/**
- * @param {Array<Object>} policyList
- * @returns {Object}
- */
-function transformPolicyListToOnyxCollection(policyList) {
-    return _.reduce(policyList, (memo, policy) => ({
-        ...memo,
-        [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-    }), {});
 }
 
 /**
@@ -124,7 +112,8 @@ function create(name = '') {
                 role: CONST.POLICY.ROLE.ADMIN,
                 outputCurrency: response.policy.outputCurrency,
             });
-        }).then(() => Promise.resolve(lodashGet(res, 'policyID')));
+        })
+        .then(() => Promise.resolve(lodashGet(res, 'policyID')));
 }
 
 /**
@@ -155,26 +144,18 @@ function createAndNavigate(name = '') {
  * and we also don't have to wait for full policies to load before navigating to the new policy.
  */
 function getPolicyList() {
-    const policyCollection = {};
     API.GetPolicySummaryList()
         .then((data) => {
             if (data.jsonCode === 200) {
-                lodashMerge(policyCollection, transformPolicyListToOnyxCollection(data.policySummaryList || []));
-            }
+                const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
+                    ...memo,
+                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+                }), {});
 
-            return API.GetPolicyList();
-        })
-        .then((data) => {
-            if (data.jsonCode === 200) {
-                lodashMerge(policyCollection, transformPolicyListToOnyxCollection(data.policyList || []));
+                if (!_.isEmpty(policyCollection)) {
+                    updateAllPolicies(policyCollection);
+                }
             }
-        })
-        .finally(() => {
-            if (_.isEmpty(policyCollection)) {
-                return;
-            }
-
-            updateAllPolicies(policyCollection);
         });
 }
 
@@ -186,6 +167,21 @@ function createAndGetPolicyList() {
             return getPolicyList();
         })
         .then(() => navigateToPolicy(newPolicyID));
+}
+
+/**
+ * @param {String} policyID
+ */
+function loadFullPolicy(policyID) {
+    API.GetFullPolicy(policyID)
+        .then((data) => {
+            if (data.jsonCode === 200) {
+                const policy = lodashGet(data, 'policyList[0]', {});
+                if (policy.id) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
+                }
+            }
+        });
 }
 
 /**
@@ -366,6 +362,7 @@ function hideWorkspaceAlertMessage(policyID) {
 
 export {
     getPolicyList,
+    loadFullPolicy,
     removeMembers,
     invite,
     isAdminOfFreePolicy,

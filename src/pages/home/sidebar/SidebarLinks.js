@@ -110,7 +110,7 @@ class SidebarLinks extends React.Component {
         if (reports.length === 0) {
             return [];
         }
-        const unreadReports = _.filter(reports, report => report.unreadActionCount > 0);
+        const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
         return unreadReports;
     }
 
