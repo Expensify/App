@@ -61,7 +61,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 
 #### Check GitHub for existing proposals from other users
 
-1. If someone already posted a good solution, most probably they will be assigned the issue. You can still post proposals, but you should know that the best proposal that addresses the problem will be selected, all things equal we prioritize the first proposal.
+1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided and best proposed solution that addresses the job.
 
 #### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.
