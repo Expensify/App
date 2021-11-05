@@ -27,6 +27,7 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
+import getPlatform from '../libs/getPlatform';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -106,8 +107,14 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
+        let redirectURI = '';
+        if (getPlatform() === 'web') {
+            console.log("in web");
+            // redirectURI = 'https://new.expensify.com/partners/plaid/oauth_web';
+            redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
+        }
         clearPlaidBankAccountsAndToken();
-        fetchPlaidLinkToken();
+        fetchPlaidLinkToken(redirectURI);
     }
 
     /**
