@@ -33,6 +33,7 @@ import {
     saveReportComment,
     saveReportActionDraft,
     broadcastUserIsTyping,
+    setReportWithDraft,
 } from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
@@ -337,6 +338,17 @@ class ReportActionCompose extends React.Component {
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
+
+        // Indicate that draft has been created.
+        if (this.comment.length === 0 && newComment.length !== 0) {
+            setReportWithDraft(this.props.reportID.toString(), true);
+        }
+
+        // The draft has been deleted.
+        if (newComment.length === 0) {
+            setReportWithDraft(this.props.reportID.toString(), false);
+        }
+
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         if (newComment) {

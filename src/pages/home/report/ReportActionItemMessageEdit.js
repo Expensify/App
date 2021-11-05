@@ -28,11 +28,18 @@ const propTypes = {
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
+    /** A ref to forward to the text input */
+    forwardedRef: PropTypes.func,
+
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
     /** Localization props */
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    forwardedRef: () => {},
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -125,7 +132,10 @@ class ReportActionItemMessageEdit extends React.Component {
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
                     <TextInputFocusable
                         multiline
-                        ref={el => this.textInput = el}
+                        ref={(el) => {
+                            this.textInput = el;
+                            this.props.forwardedRef(el);
+                        }}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
                         defaultValue={this.state.draft}
@@ -135,7 +145,6 @@ class ReportActionItemMessageEdit extends React.Component {
                             scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false);
                         }}
-                        autoFocus
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
@@ -161,7 +170,11 @@ class ReportActionItemMessageEdit extends React.Component {
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
+ReportActionItemMessageEdit.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(ReportActionItemMessageEdit);
+)(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <ReportActionItemMessageEdit {...props} forwardedRef={ref} />
+)));

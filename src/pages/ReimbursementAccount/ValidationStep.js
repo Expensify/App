@@ -170,6 +170,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
                     shouldShowBackButton
+                    shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
