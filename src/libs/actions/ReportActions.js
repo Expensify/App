@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as CollectionUtils from '../CollectionUtils';
+import CONST from '../../CONST';
 
 /**
  * Map of the most recent non-loading sequenceNumber for a reportActions_* key in Onyx by reportID.
@@ -17,6 +19,8 @@ import * as CollectionUtils from '../CollectionUtils';
  * referenced and not the locally stored reportAction's max sequenceNumber.
  */
 const reportActionsMaxSequenceNumbers = {};
+const reportActions = {};
+
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions, key) => {
@@ -26,6 +30,7 @@ Onyx.connect({
 
         const reportID = CollectionUtils.extractCollectionItemID(key);
         const actionsArray = _.toArray(actions);
+        reportActions[reportID] = actionsArray;
         const mostRecentNonLoadingActionIndex = _.findLastIndex(actionsArray, action => !action.loading);
         const mostRecentAction = actionsArray[mostRecentNonLoadingActionIndex];
         if (!mostRecentAction || _.isUndefined(mostRecentAction.sequenceNumber)) {
@@ -67,7 +72,23 @@ function isReportMissingActions(reportID, maxKnownSequenceNumber) {
         || reportActionsMaxSequenceNumbers[reportID] < maxKnownSequenceNumber;
 }
 
+function getdeletedCommentsCount(reportID, lastSequenceNumber) {
+    return _.reduce(reportActions[reportID], (deletedMessages, action) => {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber < lastSequenceNumber) {
+            return deletedMessages;
+        }
+
+        // Empty ADDCOMMENT actions typically mean they have been deleted
+        const message = _.first(lodashGet(action, 'message', null));
+        const html = lodashGet(message, 'html', '');
+        if (_.isEmpty(html)) {
+            return deletedMessages + 1;
+        }
+    }, 0);
+}
+
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
+    getdeletedCommentsCount,
 };
