@@ -46,8 +46,7 @@ const defaultProps = {
 
 class ReportActionItemFragment extends React.PureComponent {
     render() {
-        const {fragment, tooltipText} = this.props;
-        switch (fragment.type) {
+        switch (this.props.fragment.type) {
             case 'COMMENT':
                 // If this is an attachment placeholder, return the placeholder component
                 if (this.props.isAttachment && this.props.loading) {
@@ -63,38 +62,38 @@ class ReportActionItemFragment extends React.PureComponent {
                 }
 
                 // Only render HTML if we have html in the fragment
-                return fragment.html !== fragment.text
+                return this.props.fragment.html !== this.props.fragment.text
                     ? (
                         <RenderHTML
-                            html={`<comment>${fragment.html + (fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
+                            html={`<comment>${this.props.fragment.html + (this.props.fragment.isEdited ? '<edited></edited>' : '')}</comment>`}
                         />
                     ) : (
                         <Text
                             selectable={!canUseTouchScreen() || !this.props.isSmallScreenWidth}
-                            style={isSingleEmoji(fragment.text) ? styles.singleEmojiText : undefined}
+                            style={isSingleEmoji(this.props.fragment.text) ? styles.singleEmojiText : undefined}
                         >
-                            {Str.htmlDecode(fragment.text)}
-                            {fragment.isEdited && (
-                            <Text
-                                fontSize={variables.fontSizeSmall}
-                                color={themeColors.textSupporting}
-                            >
-                                {/* Native devices do not support margin between nested text */}
-                                <Text style={styles.w1}>{' '}</Text>
-                                {this.props.translate('reportActionCompose.edited')}
-                            </Text>
+                            {Str.htmlDecode(this.props.fragment.text)}
+                            {this.props.fragment.isEdited && (
+                                <Text
+                                    fontSize={variables.fontSizeSmall}
+                                    color={themeColors.textSupporting}
+                                >
+                                    {/* Native devices do not support margin between nested text */}
+                                    <Text style={styles.w1}>{' '}</Text>
+                                    {this.props.translate('reportActionCompose.edited')}
+                                </Text>
                             )}
                         </Text>
                     );
             case 'TEXT':
                 return (
-                    <Tooltip text={tooltipText}>
+                    <Tooltip text={this.props.tooltipText}>
                         <Text
                             selectable
                             numberOfLines={this.props.isSingleLine ? 1 : undefined}
                             style={[styles.chatItemMessageHeaderSender]}
                         >
-                            {Str.htmlDecode(fragment.text)}
+                            {Str.htmlDecode(this.props.fragment.text)}
                         </Text>
                     </Tooltip>
                 );

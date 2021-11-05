@@ -73,22 +73,15 @@ const timezones = _.map(moment.tz.names(), timezone => ({
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
-        const {
-            firstName,
-            lastName,
-            pronouns,
-            timezone = {},
-        } = props.myPersonalDetails;
-
         this.state = {
-            firstName,
+            firstName: props.myPersonalDetails.firstName,
             firstNameError: '',
-            lastName,
+            lastName: props.myPersonalDetails.lastName,
             lastNameError: '',
-            pronouns,
-            hasSelfSelectedPronouns: !_.isEmpty(pronouns) && !pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            pronouns: props.myPersonalDetails.pronouns,
+            hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
         };
         this.getLogins = this.getLogins.bind(this);
@@ -153,25 +146,17 @@ class ProfilePage extends Component {
      * Submit form to update personal details
      */
     updatePersonalDetails() {
-        const {
-            firstName,
-            lastName,
-            pronouns,
-            selectedTimezone,
-            isAutomaticTimezone,
-        } = this.state;
-
         if (!this.validateInputs()) {
             return;
         }
 
         setPersonalDetails({
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            pronouns: pronouns.trim(),
+            firstName: this.state.firstName.trim(),
+            lastName: this.state.lastName.trim(),
+            pronouns: this.state.pronouns.trim(),
             timezone: {
-                automatic: isAutomaticTimezone,
-                selected: selectedTimezone,
+                automatic: this.state.isAutomaticTimezone,
+                selected: this.state.selectedTimezone,
             },
         }, true);
     }

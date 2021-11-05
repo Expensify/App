@@ -13,27 +13,19 @@ import fileDownload from '../../../libs/fileDownload';
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = ({
-    href,
-    rel,
-    target,
-    children,
-    style,
-    fileName,
-    ...props
-}) => {
+const BaseAnchorForCommentsOnly = (props) => {
     let linkRef;
     return (
 
         props.isAttachment
             ? (
                 <Pressable onPress={() => {
-                    fileDownload(href, fileName);
+                    fileDownload(props.href, props.fileName);
                 }}
                 >
                     <AttachmentView
-                        sourceURL={href}
-                        file={{name: fileName}}
+                        sourceURL={props.href}
+                        file={{name: props.fileName}}
                         shouldShowDownloadIcon
                     />
                 </Pressable>
@@ -45,7 +37,7 @@ const BaseAnchorForCommentsOnly = ({
                                 showContextMenu(
                                     CONTEXT_MENU_TYPES.LINK,
                                     event,
-                                    href,
+                                    props.href,
                                     lodashGet(linkRef, 'current'),
                                 );
                             }
@@ -53,14 +45,17 @@ const BaseAnchorForCommentsOnly = ({
                 >
                     <Text
                         ref={el => linkRef = el}
-                        style={StyleSheet.flatten(style)}
+                        style={StyleSheet.flatten(props.style)}
                         accessibilityRole="link"
-                        href={href}
-                        hrefAttrs={{rel, target}}
-                // eslint-disable-next-line react/jsx-props-no-spreading
+                        href={props.href}
+                        hrefAttrs={{
+                            rel: props.rel,
+                            target: props.target,
+                        }}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     >
-                        {children}
+                        {props.children}
                     </Text>
                 </PressableWithSecondaryInteraction>
             )

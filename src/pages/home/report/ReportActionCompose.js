@@ -415,17 +415,17 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
-        const {selection} = this.state;
-        const newComment = this.comment.slice(0, selection.start)
-            + emoji + this.comment.slice(selection.end, this.comment.length);
+        const newComment = this.comment.slice(0, this.state.selection.start)
+            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
         this.textInput.setNativeProps({
             text: newComment,
         });
-        const updatedSelection = {
-            start: selection.start + emoji.length,
-            end: selection.start + emoji.length,
-        };
-        this.setState({selection: updatedSelection});
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
+            },
+        }));
         this.updateComment(newComment);
     }
 

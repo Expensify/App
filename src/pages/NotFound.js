@@ -16,7 +16,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const NotFound = ({translations: {translate}}) => (
+const NotFound = props => (
     <>
         <SafeAreaView
             style={styles.notFoundSafeArea}
@@ -29,12 +29,12 @@ const NotFound = ({translations: {translate}}) => (
                 />
                 <View style={styles.notFoundContent}>
                     <Text style={styles.notFoundTextHeader}>404</Text>
-                    <Text style={styles.notFoundTextBody}>{translate('notFound.chatYouLookingForCannotBeFound')}</Text>
+                    <Text style={styles.notFoundTextBody}>{props.translate('notFound.chatYouLookingForCannotBeFound')}</Text>
                 </View>
                 <TouchableOpacity
                     onPress={() => Navigation.navigate(ROUTES.HOME)}
                 >
-                    <Text style={styles.notFoundButtonText}>{translate('notFound.getMeOutOfHere')}</Text>
+                    <Text style={styles.notFoundButtonText}>{props.translate('notFound.getMeOutOfHere')}</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

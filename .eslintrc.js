@@ -4,6 +4,7 @@ module.exports = {
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js'],
     rules: {
         'react/jsx-filename-extension': [1, {extensions: ['.js']}],
+        'react/destructuring-assignment': ['error', 'never'],
         'comma-dangle': ['error', 'always-multiline'],
     },
     plugins: ['detox'],

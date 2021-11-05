@@ -13,27 +13,20 @@ import styles from '../../../styles/styles';
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = ({
-    href,
-    children,
-    style,
-    isAttachment,
-    fileName,
-    ...props
-}) => {
+const BaseAnchorForCommentsOnly = (props) => {
     let linkRef;
     return (
-        isAttachment
+        props.isAttachment
             ? (
                 <Pressable
                     style={styles.mw100}
                     onPress={() => {
-                        fileDownload(href, fileName);
+                        fileDownload(props.href, props.fileName);
                     }}
                 >
                     <AttachmentView
-                        sourceURL={href}
-                        file={{name: fileName}}
+                        sourceURL={props.href}
+                        file={{name: props.fileName}}
                         shouldShowDownloadIcon
                     />
                 </Pressable>
@@ -45,20 +38,20 @@ const BaseAnchorForCommentsOnly = ({
                     showContextMenu(
                         CONTEXT_MENU_TYPES.LINK,
                         event,
-                        href,
+                        props.href,
                         lodashGet(linkRef, 'current'),
                     );
                 }
             }
-                    onPress={() => Linking.openURL(href)}
+                    onPress={() => Linking.openURL(props.href)}
                 >
                     <Text
                         ref={el => linkRef = el}
-                        style={StyleSheet.flatten(style)}
+                        style={StyleSheet.flatten(props.style)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
                     >
-                        {children}
+                        {props.children}
                     </Text>
                 </PressableWithSecondaryInteraction>
             )

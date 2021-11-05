@@ -38,26 +38,26 @@ const defaultProps = {
     errorText: '',
 };
 
-const CheckboxWithLabel = ({
-    LabelComponent, isChecked, onPress, style, label, hasError, errorText,
-}) => {
+const CheckboxWithLabel = (props) => {
+    // eslint-disable-next-line react/destructuring-assignment
+    const {LabelComponent} = props;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
-    const wrapperStyles = _.isArray(style) ? [...defaultStyles, ...style] : [...defaultStyles, style];
+    const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
 
-    if (!label && !LabelComponent) {
+    if (!props.label && !LabelComponent) {
         throw new Error('Must provide at least label or LabelComponent prop');
     }
     return (
         <>
             <View style={wrapperStyles}>
                 <Checkbox
-                    isChecked={isChecked}
-                    onPress={() => onPress(!isChecked)}
-                    label={label}
-                    hasError={hasError}
+                    isChecked={props.isChecked}
+                    onPress={() => props.onPress(!props.isChecked)}
+                    label={props.label}
+                    hasError={props.hasError}
                 />
                 <TouchableOpacity
-                    onPress={() => onPress(!isChecked)}
+                    onPress={() => props.onPress(!props.isChecked)}
                     style={[
                         styles.ml3,
                         styles.pr2,
@@ -68,17 +68,17 @@ const CheckboxWithLabel = ({
                         styles.alignItemsCenter,
                     ]}
                 >
-                    {label && (
+                    {props.label && (
                         <Text style={[styles.ml2]}>
-                            {label}
+                            {props.label}
                         </Text>
                     )}
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>
             </View>
-            {!_.isEmpty(errorText) && (
+            {!_.isEmpty(props.errorText) && (
                 <InlineErrorText>
-                    {errorText}
+                    {props.errorText}
                 </InlineErrorText>
             )}
         </>

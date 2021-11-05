@@ -107,6 +107,7 @@ class Button extends Component {
     }
 
     renderContent() {
+        // eslint-disable-next-line react/destructuring-assignment
         const {ContentComponent} = this.props;
         if (ContentComponent) {
             return <ContentComponent />;

@@ -61,31 +61,20 @@ class Datepicker extends React.Component {
     }
 
     render() {
-        const {
-            label,
-            placeholder,
-            hasError,
-            errorText,
-            translateX,
-            containerStyles,
-            disabled,
-            isSmallScreenWidth,
-        } = this.props;
-
         return (
             <ExpensiTextInput
-                forceActiveLabel={!isSmallScreenWidth}
+                forceActiveLabel={!this.props.isSmallScreenWidth}
                 ref={input => this.inputRef = input}
                 onFocus={this.showDatepicker}
-                label={label}
+                label={this.props.label}
                 onChangeText={this.raiseDateChange}
                 defaultValue={this.defaultValue}
-                placeholder={placeholder}
-                hasError={hasError}
-                errorText={errorText}
-                containerStyles={containerStyles}
-                translateX={translateX}
-                disabled={disabled}
+                placeholder={this.props.placeholder}
+                hasError={this.props.hasError}
+                errorText={this.props.errorText}
+                containerStyles={this.props.containerStyles}
+                translateX={this.props.translateX}
+                disabled={this.props.disabled}
             />
         );
     }

@@ -155,6 +155,7 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     render() {
+        // eslint-disable-next-line react/destructuring-assignment
         const {DefaultAvatar} = this.props;
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
