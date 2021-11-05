@@ -39,8 +39,7 @@ const defaultProps = {
 };
 
 const CheckboxWithLabel = (props) => {
-    // eslint-disable-next-line react/destructuring-assignment
-    const {LabelComponent} = props;
+    const LabelComponent = props.LabelComponent;
     const defaultStyles = [styles.flexRow, styles.alignItemsCenter];
     const wrapperStyles = _.isArray(props.style) ? [...defaultStyles, ...props.style] : [...defaultStyles, props.style];
 

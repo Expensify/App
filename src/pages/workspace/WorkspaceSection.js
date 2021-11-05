@@ -32,8 +32,7 @@ const defaultProps = {
 };
 
 const WorkspaceSection = (props) => {
-    // eslint-disable-next-line react/destructuring-assignment
-    const {IconComponent} = props;
+    const IconComponent = props.IconComponent;
     return (
         <>
             <View style={styles.pageWrapper}>

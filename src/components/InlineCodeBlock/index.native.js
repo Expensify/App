@@ -4,8 +4,7 @@ import WrappedText from './WrappedText';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 
 const InlineCodeBlock = (props) => {
-    // eslint-disable-next-line react/destructuring-assignment
-    const {TDefaultRenderer} = props;
+    const TDefaultRenderer = props.TDefaultRenderer;
     return (
         <TDefaultRenderer
             // eslint-disable-next-line react/jsx-props-no-spreading
