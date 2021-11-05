@@ -223,6 +223,12 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
 });
 
 test('retry network request if auth and credentials are not read from Onyx yet', () => {
+    // For this test we're having difficulty creating a situation where Onyx.connect() has not yet run
+    // because some Onyx.connect callbacks are already registered in API.js (which happens before this
+    // unit test is setup), so in order to test an scenario where the auth token and credentials hasn't
+    // been read from storage we set Network.setIsReady(false) and trigger an update in the Onyx.connect
+    // callbacks registered in API.js merging an empty object.
+
     // Given a test user login and account ID
     const TEST_USER_LOGIN = 'test@testguy.com';
 
@@ -233,7 +239,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
     // Given initial state to Network
     Network.setIsReady(false);
 
-    // Given initial empty values to trigger Onyx.connect callbacks in API.js
+    // Given any initial value to trigger an update
     Onyx.merge(ONYXKEYS.CREDENTIALS, {});
     Onyx.merge(ONYXKEYS.SESSION, {});
 
