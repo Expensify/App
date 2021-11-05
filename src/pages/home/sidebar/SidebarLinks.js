@@ -274,9 +274,6 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        draftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
-        },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
         },
