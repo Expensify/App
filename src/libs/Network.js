@@ -127,8 +127,6 @@ function canMakeRequest(request) {
  * @return {Boolean}
  */
 function canRetryRequest(request) {
-    // We have to keep this variable name because Web-Expensify expects it?
-    // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldRetry = lodashGet(request, 'data.shouldRetry', true);
     const logParams = {command: request.command, shouldRetry, isQueuePaused};
     const returnValueList = lodashGet(request, 'data.returnValueList');
