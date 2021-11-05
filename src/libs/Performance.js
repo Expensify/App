@@ -26,8 +26,7 @@ function diffObject(object, base) {
             }
 
             // eslint-disable-next-line no-param-reassign
-            result[key] = (
-                _.isObject(value) && _.isObject(comparisonObject[key]))
+            result[key] = (_.isObject(value) && _.isObject(comparisonObject[key]))
                 ? changes(value, comparisonObject[key])
                 : value;
         });

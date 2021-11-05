@@ -444,9 +444,16 @@ function validateEmail(accountID, validateCode, password) {
 // It's necessary to throttle requests to reauthenticate since calling this multiple times will cause Pusher to
 // reconnect each time when we only need to reconnect once. This way, if an authToken is expired and we try to
 // subscribe to a bunch of channels at once we will only reauthenticate and force reconnect Pusher once.
-const throttledReauthenticatePusher = _.throttle(() => {
-    // eslint-disable-next-line no-use-before-define
-    reauthenticatePusher();
+const reauthenticatePusher = _.throttle(() => {
+    Log.info('[Pusher] Re-authenticating and then reconnecting');
+    API.reauthenticate('Push_Authenticate')
+        .then(Pusher.reconnect)
+        .catch(() => {
+            console.debug(
+                '[PusherConnectionManager]',
+                'Unable to re-authenticate Pusher because we are offline.',
+            );
+        });
 }, 5000, {trailing: false});
 
 /**
@@ -468,7 +475,7 @@ function authenticatePusher(socketID, channelName, callback) {
                 callback(new Error('Expensify session expired'), {auth: ''});
 
                 // Attempt to refresh the authToken then reconnect to Pusher
-                throttledReauthenticatePusher();
+                reauthenticatePusher();
                 return;
             }
 
@@ -482,18 +489,6 @@ function authenticatePusher(socketID, channelName, callback) {
         .catch((error) => {
             Log.info('[PusherConnectionManager] Unhandled error: ', false, {channelName});
             callback(error, {auth: ''});
-        });
-}
-
-function reauthenticatePusher() {
-    Log.info('[Pusher] Re-authenticating and then reconnecting');
-    API.reauthenticate('Push_Authenticate')
-        .then(() => Pusher.reconnect())
-        .catch(() => {
-            console.debug(
-                '[PusherConnectionManager]',
-                'Unable to re-authenticate Pusher because we are offline.',
-            );
         });
 }
 
@@ -528,7 +523,7 @@ export {
     updateSessionAuthTokens,
     validateEmail,
     authenticatePusher,
-    throttledReauthenticatePusher,
+    reauthenticatePusher,
     setShouldSignOut,
     setShouldShowComposeInput,
 };

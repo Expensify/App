@@ -25,7 +25,7 @@ function init() {
         switch (eventName) {
             case 'error':
                 Log.info('[PusherConnectionManager] error event', false, {error: data});
-                Session.throttledReauthenticatePusher();
+                Session.reauthenticatePusher();
                 break;
             case 'connected':
                 Log.info('[PusherConnectionManager] connected event');

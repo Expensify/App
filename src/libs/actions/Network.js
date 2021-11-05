@@ -9,10 +9,10 @@ function setIsLoadingAfterReconnect(isLoadingAfterReconnect) {
 }
 
 /**
- * @param {Boolean} isCurrentlyOffline
+ * @param {Boolean} isOffline
  */
-function setIsOffline(isCurrentlyOffline) {
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+function setIsOffline(isOffline) {
+    Onyx.merge(ONYXKEYS.NETWORK, {isOffline});
 }
 
 export {

@@ -31,7 +31,8 @@ Onyx.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    ActiveClients.addClient(clientID).then(isInitialized);
+    ActiveClients.addClient(clientID)
+        .then(isInitialized);
 }
 
 function isReady() {
