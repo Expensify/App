@@ -159,7 +159,7 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry', true);
+        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
         if (!shouldRetry || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;

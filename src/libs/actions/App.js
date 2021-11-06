@@ -46,7 +46,7 @@ function setLocale(locale) {
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
-function getLocaleAndUpdate() {
+function getLocale() {
     API.Get({
         returnValueList: 'nameValuePairs',
         nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -87,6 +87,6 @@ export {
     setCurrentURL,
     setLocale,
     setSidebarLoaded,
-    getLocaleAndUpdate,
+    getLocale,
     triggerUpdateAvailable,
 };

@@ -127,7 +127,7 @@ function canMakeRequest(request) {
  * @return {Boolean}
  */
 function canRetryRequest(request) {
-    const shouldRetry = lodashGet(request, 'data.shouldRetry', true);
+    const shouldRetry = lodashGet(request, 'data.shouldRetry');
     const logParams = {command: request.command, shouldRetry, isQueuePaused};
     const returnValueList = lodashGet(request, 'data.returnValueList');
     if (returnValueList) {
@@ -157,7 +157,7 @@ function processNetworkRequestQueue() {
         // If we have a request then we need to check if it can be persisted in case we close the tab while offline.
         // We filter persisted requests from the normal Queue to remove duplicates
         networkRequestQueue = _.reject(networkRequestQueue, (request) => {
-            const shouldRetry = lodashGet(request, 'data.shouldRetry', true);
+            const shouldRetry = lodashGet(request, 'data.shouldRetry');
             if (shouldRetry && request.data.persist) {
                 retryableRequests.push(request);
                 return true;
@@ -261,6 +261,11 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             reject,
             shouldUseSecure,
         };
+
+        // All requests should be retried by default
+        if (_.isUndefined(request.data.shouldRetry)) {
+            request.data.shouldRetry = true;
+        }
 
         // Add the request to a queue of actions to perform
         networkRequestQueue.push(request);
