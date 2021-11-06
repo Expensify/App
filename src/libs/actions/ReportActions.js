@@ -73,6 +73,10 @@ function isReportMissingActions(reportID, maxKnownSequenceNumber) {
 }
 
 function getdeletedCommentsCount(reportID, lastSequenceNumber) {
+    if (!reportActions[reportID]) {
+        return 0;
+    }
+
     return _.reduce(reportActions[reportID], (deletedMessages, action) => {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber < lastSequenceNumber) {
             return deletedMessages;
@@ -81,9 +85,7 @@ function getdeletedCommentsCount(reportID, lastSequenceNumber) {
         // Empty ADDCOMMENT actions typically mean they have been deleted
         const message = _.first(lodashGet(action, 'message', null));
         const html = lodashGet(message, 'html', '');
-        if (_.isEmpty(html)) {
-            return deletedMessages + 1;
-        }
+        return _.isEmpty(html) ? deletedMessages + 1 : deletedMessages;
     }, 0);
 }
 
