@@ -7,9 +7,12 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import validateLinkPropTypes from './validateLinkPropTypes';
+import {
+    propTypes as validateLinkPropTypes,
+    defaultProps as validateLinkDefaultProps,
+} from './validateLinkPropTypes';
 import styles from '../styles/styles';
-import {setPassword} from '../libs/actions/Session';
+import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
 import Button from '../components/Button';
 import SignInPageLayout from './signin/SignInPageLayout';
@@ -39,6 +42,12 @@ const propTypes = {
         password: PropTypes.string,
     }),
 
+    /** Session object */
+    session: PropTypes.shape({
+        /** An error message to display to the user */
+        error: PropTypes.string,
+    }),
+
     /** The accountID and validateCode are passed via the URL */
     route: validateLinkPropTypes,
 
@@ -48,8 +57,9 @@ const propTypes = {
 const defaultProps = {
     account: {},
     credentials: {},
-    route: {
-        params: {},
+    route: validateLinkDefaultProps,
+    session: {
+        error: '',
     },
 };
 
@@ -69,20 +79,24 @@ class SetPasswordPage extends Component {
      * Validate the form and then submit it
      */
     validateAndSubmitForm() {
+        const accountID = lodashGet(this.props.route.params, 'accountID', '');
+        const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
         if (!this.state.isFormValid) {
             return;
         }
-        setPassword(
-            this.state.password,
-            lodashGet(this.props.route, 'params.validateCode', ''),
-            lodashGet(this.props.route, 'params.accountID', ''),
-        );
+
+        Session.validateEmail(accountID, validateCode, this.state.password);
     }
 
     render() {
+        const sessionError = this.props.session.error && this.props.translate(this.props.session.error);
+        const error = sessionError || this.props.account.error;
         return (
             <SafeAreaView style={[styles.signInPage]}>
-                <SignInPageLayout welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}>
+                <SignInPageLayout
+                    shouldShowWelcomeText
+                    welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
+                >
                     <View style={[styles.mb4]}>
                         <NewPasswordForm
                             password={this.state.password}
@@ -101,10 +115,9 @@ class SetPasswordPage extends Component {
                             isDisabled={!this.state.isFormValid}
                         />
                     </View>
-
-                    {!_.isEmpty(this.props.account.error) && (
+                    {!_.isEmpty(error) && (
                         <Text style={[styles.formError]}>
-                            {this.props.account.error}
+                            {error}
                         </Text>
                     )}
                 </SignInPageLayout>
@@ -121,5 +134,9 @@ export default compose(
     withOnyx({
         credentials: {key: ONYXKEYS.CREDENTIALS},
         account: {key: ONYXKEYS.ACCOUNT},
+        session: {
+            key: ONYXKEYS.SESSION,
+            initWithStoredValues: false,
+        },
     }),
 )(SetPasswordPage);

@@ -17,6 +17,9 @@ const propTypes = {
      * on form type (set password, sign in, etc.) */
     welcomeText: PropTypes.string.isRequired,
 
+    /** Whether to show welcome text on a particular page */
+    shouldShowWelcomeText: PropTypes.bool.isRequired,
+
     ...withLocalizePropTypes,
 };
 
@@ -66,9 +69,11 @@ class SignInPageLayoutNarrow extends React.Component {
                                     height={variables.componentSizeLarge}
                                 />
                             </View>
-                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                                {this.props.welcomeText}
-                            </Text>
+                            {this.props.shouldShowWelcomeText && (
+                                <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                    {this.props.welcomeText}
+                                </Text>
+                            )}
                             {this.props.children}
                         </View>
                     </View>

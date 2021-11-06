@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import {
     getReportActionItemStyle,
 } from '../../../styles/getReportActionItemStyles';
@@ -31,7 +31,7 @@ const propTypes = {
     reportID: PropTypes.number.isRequired,
 
     /** All the data of the action item */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: PropTypes.bool.isRequired,
@@ -78,6 +78,13 @@ class ReportActionItem extends Component {
             || this.props.shouldDisplayNewIndicator !== nextProps.shouldDisplayNewIndicator
             || !_.isEqual(this.props.action, nextProps.action)
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.draftMessage && this.props.draftMessage) {
+            // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
+            this.textInput.focus();
+        }
     }
 
     /**
@@ -127,6 +134,7 @@ class ReportActionItem extends Component {
                             draftMessage={this.props.draftMessage}
                             reportID={this.props.reportID}
                             index={this.props.index}
+                            ref={el => this.textInput = el}
                     />
                 );
         }
@@ -139,7 +147,7 @@ class ReportActionItem extends Component {
                 preventDefaultContentMenu={!this.props.draftMessage}
 
             >
-                <Hoverable resetsOnClickOutside={false}>
+                <Hoverable resetsOnClickOutside>
                     {hovered => (
                         <View>
                             {this.props.shouldDisplayNewIndicator && (

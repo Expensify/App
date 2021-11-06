@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {Linking} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
+import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import styles, {getNavigationModalCardStyle} from '../../../styles/styles';
+import {getNavigationModalCardStyle} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -27,18 +29,14 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicySummaries, getPolicyList} from '../../actions/Policy';
+import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import Permissions from '../../Permissions';
 import getOperatingSystem from '../../getOperatingSystem';
-import {fetchFreePlanVerifiedBankAccount} from '../../actions/BankAccounts';
+import {fetchFreePlanVerifiedBankAccount, fetchUserWallet} from '../../actions/BankAccounts';
 
 // Main drawer navigator
 import MainDrawerNavigator from './MainDrawerNavigator';
-
-// Validate login page
-import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 
 // Modal Stack Navigators
 import {
@@ -54,22 +52,16 @@ import {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
-    WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    WorkspaceEditorNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
-import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
-import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
-import WorkspaceSettingsDrawerNavigator from './WorkspaceSettingsDrawerNavigator';
-import spacing from '../../../styles/utilities/spacing';
-import CardOverlay from '../../../components/CardOverlay';
+import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
-import {setLocale} from '../../actions/App';
+import {cleanupSession} from '../../actions/Session';
 
 Onyx.connect({
     key: ONYXKEYS.MY_PERSONAL_DETAILS,
@@ -111,22 +103,6 @@ const modalScreenListeners = {
     },
 };
 
-let hasLoadedPolicies = false;
-
-/**
- * We want to only load policy info if you are in the freePlan beta.
- * @param {Array} betas
- */
-function loadPoliciesBehindBeta(betas) {
-    // When removing the freePlan beta, simply load the policyList and the policySummaries in componentDidMount().
-    // Policy info loading should not be blocked behind the defaultRooms beta alone.
-    if (!hasLoadedPolicies && (Permissions.canUseFreePlan(betas) || Permissions.canUseDefaultRooms(betas))) {
-        getPolicyList();
-        getPolicySummaries();
-        hasLoadedPolicies = true;
-    }
-}
-
 const propTypes = {
     /** Information about the network */
     network: PropTypes.shape({
@@ -134,15 +110,11 @@ const propTypes = {
         isOffline: PropTypes.bool,
     }),
 
-    /** List of betas available to current user */
-    betas: PropTypes.arrayOf(PropTypes.string),
-
     ...windowDimensionsPropTypes,
 };
 
 const defaultProps = {
     network: {isOffline: true},
-    betas: [],
 };
 
 class AuthScreens extends React.Component {
@@ -173,10 +145,8 @@ class AuthScreens extends React.Component {
             returnValueList: 'nameValuePairs',
             nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
         }).then((response) => {
-            const preferredLocale = response.nameValuePairs.preferredLocale || CONST.DEFAULT_LOCALE;
-            if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
-                setLocale(currentPreferredLocale);
-            } else {
+            const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
+            if (preferredLocale !== currentPreferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
         });
@@ -184,13 +154,24 @@ class AuthScreens extends React.Component {
         PersonalDetails.fetchPersonalDetails();
         User.getUserDetails();
         User.getBetas();
+        User.getDomainInfo();
         PersonalDetails.fetchLocalCurrency();
         fetchAllReports(true, true);
         fetchCountryCodeByRequestIP();
         UnreadIndicatorUpdater.listenForReportChanges();
         fetchFreePlanVerifiedBankAccount();
+        fetchUserWallet();
 
-        loadPoliciesBehindBeta(this.props.betas);
+        // Load policies, maybe creating a new policy first.
+        Linking.getInitialURL()
+            .then((url) => {
+                if (this.shouldCreateFreePolicy(url)) {
+                    Policy.createAndGetPolicyList();
+                    return;
+                }
+
+                Policy.getPolicyList();
+            });
 
         // Refresh the personal details, timezone and betas every 30 minutes
         // There is no pusher event that sends updated personal details data yet
@@ -226,19 +207,7 @@ class AuthScreens extends React.Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        if (nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth) {
-            return true;
-        }
-
-        if (nextProps.betas !== this.props.betas) {
-            return true;
-        }
-
-        return false;
-    }
-
-    componentDidUpdate() {
-        loadPoliciesBehindBeta(this.props.betas);
+        return nextProps.isSmallScreenWidth !== this.props.isSmallScreenWidth;
     }
 
     componentWillUnmount() {
@@ -248,10 +217,24 @@ class AuthScreens extends React.Component {
         if (this.unsubscribeGroupShortcut) {
             this.unsubscribeGroupShortcut();
         }
-        NetworkConnection.stopListeningForReconnect();
+        cleanupSession();
         clearInterval(this.interval);
         this.interval = null;
-        hasLoadedPolicies = false;
+    }
+
+    /**
+     * @param {String} [url]
+     * @returns {Boolean}
+     */
+    shouldCreateFreePolicy(url = '') {
+        if (!url) {
+            return false;
+        }
+
+        const path = new URL(url).pathname;
+        const exitTo = new URLSearchParams(url).get('exitTo');
+        return Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
+            && exitTo === ROUTES.WORKSPACE_NEW;
     }
 
     render() {
@@ -273,17 +256,6 @@ class AuthScreens extends React.Component {
             // This is a custom prop we are passing to custom navigator so that we will know to add a Pressable overlay
             // when displaying a modal. This allows us to dismiss by clicking outside on web / large screens.
             isModal: true,
-        };
-        const fullscreenModalScreenOptions = {
-            ...commonModalScreenOptions,
-            cardStyle: {
-                ...styles.fullscreenCard,
-                padding: this.props.isSmallScreenWidth ? spacing.p0.padding : spacing.p5.padding,
-            },
-            cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, true, props),
-            cardOverlayEnabled: !this.props.isSmallScreenWidth,
-            isFullScreenModal: true,
-            cardOverlay: CardOverlay,
         };
 
         return (
@@ -320,24 +292,9 @@ class AuthScreens extends React.Component {
                     component={ValidateLoginPage}
                 />
                 <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
+                    name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
                     options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCodePage}
-                />
-                <RootStack.Screen
-                    name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
-                    options={defaultScreenOptions}
-                    component={LoginWithValidateCode2FAPage}
+                    component={LogInWithShortLivedTokenPage}
                 />
 
                 {/* These are the various modal routes */}
@@ -345,12 +302,6 @@ class AuthScreens extends React.Component {
                 modal subscreens e.g. `/settings/profile` and this will allow us to navigate while inside the modal. We
                 are also using a custom navigator on web so even if a modal does not have any subscreens it still must
                 use a navigator */}
-                <RootStack.Screen
-                    name="WorkspaceSettings"
-                    options={fullscreenModalScreenOptions}
-                    component={WorkspaceSettingsDrawerNavigator}
-                    listeners={modalScreenListeners}
-                />
                 <RootStack.Screen
                     name="Settings"
                     options={modalScreenOptions}
@@ -422,19 +373,6 @@ class AuthScreens extends React.Component {
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen
-                    name="ReimbursementAccount"
-                    options={modalScreenOptions}
-                    component={ReimbursementAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                    initialParams={{stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT}}
-                />
-                <RootStack.Screen
-                    name="WorkspaceInvite"
-                    options={modalScreenOptions}
-                    component={WorkspaceInviteModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
                     name="RequestCall"
                     options={modalScreenOptions}
                     component={RequestCallModalStackNavigator}
@@ -444,12 +382,6 @@ class AuthScreens extends React.Component {
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="WorkspaceEditor"
-                    options={modalScreenOptions}
-                    component={WorkspaceEditorNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
@@ -464,9 +396,6 @@ export default compose(
     withOnyx({
         network: {
             key: ONYXKEYS.NETWORK,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
         },
     }),
 )(AuthScreens);

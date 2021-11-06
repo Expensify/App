@@ -8,7 +8,10 @@ const propTypes = {
     name: PropTypes.string,
 
     /** Input value */
-    value: PropTypes.string.isRequired,
+    value: PropTypes.string,
+
+    /** Default value - used for non controlled inputs */
+    defaultValue: PropTypes.string,
 
     /** Input value placeholder */
     placeholder: PropTypes.string,
@@ -30,6 +33,8 @@ const propTypes = {
 
     /** should ignore labels translate x? */
     ignoreLabelTranslateX: PropTypes.bool,
+
+    forceActiveLabel: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -42,6 +47,14 @@ const defaultProps = {
     translateX: -22,
     inputStyle: [],
     ignoreLabelTranslateX: false,
+
+    /**
+     * To be able to function as either controlled or uncontrolled component we should not
+     * assign a default prop value for `value` or `defaultValue` props
+     */
+    value: undefined,
+    defaultValue: undefined,
+    forceActiveLabel: false,
 };
 
 export {propTypes, defaultProps};

@@ -1,9 +1,11 @@
+import _ from 'underscore';
 import React from 'react';
-import {View, Linking} from 'react-native';
+import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import {translateLocal} from '../../../libs/translate';
 import CONST from '../../../CONST';
+import {openExternalLink} from '../../../libs/actions/Link';
 
 const termsData = [
     {
@@ -40,7 +42,7 @@ const termsData = [
     },
 ];
 
-const getShortTermsSections = () => termsData.map(section => (
+const getShortTermsSections = () => _.map(termsData, section => (
     <View style={styles.shortTermsRow} key={section.title}>
         <View style={[styles.flex4]}>
             <Text>{section.title}</Text>
@@ -102,7 +104,7 @@ const ShortTermsForm = () => (
                     {' '}
                     <Text
                         style={styles.link}
-                        onPress={() => Linking.openURL(CONST.CFPB_PREPAID_URL)}
+                        onPress={() => openExternalLink(CONST.CFPB_PREPAID_URL)}
                     >
                         {CONST.TERMS.CFPB_PREPAID}
                     </Text>
@@ -113,7 +115,7 @@ const ShortTermsForm = () => (
                     {' '}
                     <Text
                         style={styles.link}
-                        onPress={() => Linking.openURL(CONST.FEES_URL)}
+                        onPress={() => openExternalLink(CONST.FEES_URL)}
                     >
                         {CONST.TERMS.USE_EXPENSIFY_FEES}
                     </Text>

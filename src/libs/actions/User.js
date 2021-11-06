@@ -40,7 +40,7 @@ Onyx.connect({
  * @param {String} password
  * @returns {Promise}
  */
-function changePassword(oldPassword, password) {
+function changePasswordAndNavigate(oldPassword, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.ChangePassword({oldPassword, password})
@@ -48,12 +48,13 @@ function changePassword(oldPassword, password) {
             if (response.jsonCode !== 200) {
                 const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+                return;
             }
-            return response;
+
+            Navigation.navigate(ROUTES.SETTINGS);
         })
-        .finally((response) => {
+        .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-            return response;
         });
 }
 
@@ -63,56 +64,6 @@ function getBetas() {
             Onyx.set(ONYXKEYS.BETAS, response.betas);
         }
     });
-}
-
-/**
- * Fetch the public domain info for the current user (includes secondary logins).
- *
- * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
- * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
- * If that happens, this function will automatically retry itself in 10 minutes.
- *
- * @param {String} loginList
- */
-function getDomainInfo(loginList) {
-    // If this command fails, we'll retry again in 10 minutes,
-    // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
-    const RETRY_TIMEOUT = 600000;
-
-    // First we filter out any domains that are in the list of common public domains
-    const emailList = _.filter(loginList, email => (
-        !_.contains(COMMON_PUBLIC_DOMAINS, Str.extractEmailDomain(email))
-    ));
-
-    // If there are no emails left, we have a public domain
-    if (!emailList.length) {
-        Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
-        return;
-    }
-
-    // Check the API for the remaining uncommon domains
-    API.User_IsFromPublicDomain({emailList: emailList.join(',')})
-        .then((response) => {
-            if (response.jsonCode === 200) {
-                const {isFromPublicDomain} = response;
-                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
-
-                // If the user is not on a public domain we'll want to know whether they are on a domain that has
-                // already provisioned the Expensify card
-                if (isFromPublicDomain) {
-                    return;
-                }
-
-                API.User_IsUsingExpensifyCard()
-                    .then(({isUsingExpensifyCard}) => {
-                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
-                    });
-            } else {
-                // eslint-disable-next-line max-len
-                console.debug(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
-                setTimeout(() => getDomainInfo(loginList), RETRY_TIMEOUT);
-            }
-        });
 }
 
 /**
@@ -130,7 +81,8 @@ function getUserDetails() {
             // Update the User onyx key
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             const expensifyNewsStatus = lodashGet(response, 'account.subscribed', true);
-            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus});
+            const validatedStatus = lodashGet(response, 'account.validated', false);
+            Onyx.merge(ONYXKEYS.USER, {loginList, expensifyNewsStatus: !!expensifyNewsStatus, validated: !!validatedStatus});
 
             // Update the nvp_payPalMeAddress NVP
             const payPalMeAddress = lodashGet(response, `nameValuePairs.${CONST.NVP.PAYPAL_ME_ADDRESS}`, '');
@@ -139,10 +91,6 @@ function getUserDetails() {
             // Update the blockedFromConcierge NVP
             const blockedFromConcierge = lodashGet(response, `nameValuePairs.${CONST.NVP.BLOCKED_FROM_CONCIERGE}`, {});
             Onyx.merge(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE, blockedFromConcierge);
-
-            // Get domainInfo for user
-            const emailList = _.map(loginList, userLogin => userLogin.partnerUserID);
-            getDomainInfo(emailList);
 
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -185,7 +133,7 @@ function setExpensifyNewsStatus(subscribed) {
  * @param {String} password
  * @returns {Promise}
  */
-function setSecondaryLogin(login, password) {
+function setSecondaryLoginAndNavigate(login, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.User_SecondaryLogin_Send({
@@ -195,20 +143,20 @@ function setSecondaryLogin(login, password) {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
-        } else {
-            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
-
-            // Replace error with a friendlier message
-            if (error.includes('already belongs to an existing Expensify account.')) {
-                error = 'This login already belongs to an existing Expensify account.';
-            }
-
-            Onyx.merge(ONYXKEYS.USER, {error});
+            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+            return;
         }
-        return response;
-    }).finally((response) => {
+
+        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+
+        // Replace error with a friendlier message
+        if (error.includes('already belongs to an existing Expensify account.')) {
+            error = 'This login already belongs to an existing Expensify account.';
+        }
+
+        Onyx.merge(ONYXKEYS.USER, {error});
+    }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        return response;
     });
 }
 
@@ -262,6 +210,49 @@ function isBlockedFromConcierge(expiresAt) {
 }
 
 /**
+ * Fetch the public domain info for the current user.
+ *
+ * This API is a bit weird in that it sometimes depends on information being cached in bedrock.
+ * If the info for the domain is not in bedrock, then it creates an asynchronous bedrock job to gather domain info.
+ * If that happens, this function will automatically retry itself in 10 minutes.
+ */
+function getDomainInfo() {
+    // If this command fails, we'll retry again in 10 minutes,
+    // arbitrarily chosen giving Bedrock time to resolve the ClearbitCheckPublicEmail job for this email.
+    const RETRY_TIMEOUT = 600000;
+
+    // First check list of common public domains
+    if (_.contains(COMMON_PUBLIC_DOMAINS, sessionEmail)) {
+        Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain: true});
+        return;
+    }
+
+    // If it is not a common public domain, check the API
+    API.User_IsFromPublicDomain({email: sessionEmail})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                const {isFromPublicDomain} = response;
+                Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
+
+                // If the user is not on a public domain we'll want to know whether they are on a domain that has
+                // already provisioned the Expensify card
+                if (isFromPublicDomain) {
+                    return;
+                }
+
+                API.User_IsUsingExpensifyCard()
+                    .then(({isUsingExpensifyCard}) => {
+                        Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
+                    });
+            } else {
+                // eslint-disable-next-line max-len
+                Log.info(`Command User_IsFromPublicDomain returned error code: ${response.jsonCode}. Most likely, this means that the domain ${Str.extractEmail(sessionEmail)} is not in the bedrock cache. Retrying in ${RETRY_TIMEOUT / 1000 / 60} minutes`);
+                setTimeout(getDomainInfo, RETRY_TIMEOUT);
+            }
+        });
+}
+
+/**
  * Initialize our pusher subscription to listen for user changes
  */
 function subscribeToUserEvents() {
@@ -304,17 +295,22 @@ function setShouldUseSecureStaging(shouldUseSecureStaging) {
     Onyx.merge(ONYXKEYS.USER, {shouldUseSecureStaging});
 }
 
+function clearUserErrorMessage() {
+    Onyx.merge(ONYXKEYS.USER, {error: ''});
+}
+
 export {
-    changePassword,
+    changePasswordAndNavigate,
     getBetas,
     getUserDetails,
     resendValidateCode,
     setExpensifyNewsStatus,
-    setSecondaryLogin,
+    setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
     getDomainInfo,
     subscribeToUserEvents,
     setPreferredSkinTone,
     setShouldUseSecureStaging,
+    clearUserErrorMessage,
 };

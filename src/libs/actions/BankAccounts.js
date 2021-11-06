@@ -9,7 +9,6 @@ import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import Navigation from '../Navigation/Navigation';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -34,6 +33,14 @@ Onyx.connect({
     key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID,
     callback: (val) => {
         reimbursementAccountWorkspaceID = val;
+    },
+});
+
+let credentials;
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: (val) => {
+        credentials = val;
     },
 });
 
@@ -64,7 +71,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
         delete newACHData.questions;
         delete newACHData.answers;
-        if (lodashHas(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
+        if (lodashHas(newACHData, CONST.BANK_ACCOUNT.VERIFICATIONS.EXTERNAL_API_RESPONSES)) {
             delete newACHData.verifications.externalApiResponses.requestorIdentityID;
             delete newACHData.verifications.externalApiResponses.requestorIdentityKBA;
         }
@@ -72,7 +79,7 @@ function goToWithdrawalAccountSetupStep(stepID, achData) {
 
     // When going back to the BankAccountStep from the Company Step, show the manual form instead of Plaid
     if (newACHData.currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && stepID === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT) {
-        newACHData.subStep = 'manual';
+        newACHData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
     }
 
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData, ...achData, currentStep: stepID}});
@@ -115,6 +122,7 @@ function getPlaidBankAccounts(publicToken, bank) {
                     ...account,
                     accountNumber: Str.maskPAN(account.accountNumber),
                 })),
+                bankName,
             });
         });
 }
@@ -286,7 +294,7 @@ function activateWallet(currentStep, parameters) {
                         CONST.WALLET.ERROR.UNABLE_TO_VERIFY,
                     ];
 
-                    if (errorTitles.includes(response.title)) {
+                    if (_.contains(errorTitles, response.title)) {
                         setAdditionalDetailsStep(false, null, response.message);
                         return;
                     }
@@ -334,17 +342,21 @@ function fetchUserWallet() {
  * Fetch the bank account currently being set up by the user for the free plan if it exists.
  *
  * @param {String} [stepToOpen]
+ * @param {String} [localBankAccountState]
  */
-function fetchFreePlanVerifiedBankAccount(stepToOpen) {
+function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
+    // Remember which account BankAccountStep subStep the user had before so we can set it later
+    const subStep = lodashGet(reimbursementAccountInSetup, 'subStep', '');
+    const initialData = {loading: true, error: ''};
+
+    // Some UI needs to know the bank account state during the loading process, so we are keeping it in Onyx if passed
+    if (localBankAccountState) {
+        initialData.achData = {state: localBankAccountState};
+    }
+
     // We are using set here since we will rely on data from the server (not local data) to populate the VBA flow
     // and determine which step to navigate to.
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-        loading: true,
-        error: '',
-
-        // We temporarily keep the achData state to prevent UI changes while fetching.
-        achData: {state: lodashGet(reimbursementAccountInSetup, 'state', '')},
-    });
+    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, initialData);
     let bankAccountID;
 
     API.Get({
@@ -385,21 +397,25 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen) {
                     // If the user is already setting up a bank account we will continue the flow for them
                     let currentStep = reimbursementAccountInSetup.currentStep;
                     const achData = bankAccount ? bankAccount.toACHData() : {};
+                    if (!stepToOpen && achData.currentStep) {
+                        // eslint-disable-next-line no-use-before-define
+                        currentStep = getNextStepToComplete(achData);
+                    }
+
                     achData.useOnfido = true;
                     achData.policyID = reimbursementAccountWorkspaceID || '';
                     achData.isInSetup = !bankAccount || bankAccount.isInSetup();
                     achData.bankAccountInReview = bankAccount && bankAccount.isVerifying();
                     achData.domainLimit = 0;
 
-                    // Adding a default empty state to make sure we override the temporary one we are keeping
-                    // for UI purposes. This covers an edge case in which a user deleted their bank account,
-                    // but would still see Finish Setup in the UI, instead of Get Started.
-                    achData.state = lodashGet(achData, 'state', '');
-
                     // If the bank account has already been created in the db and is not yet open
-                    // let's show the manual form with the previously added values
-                    achData.subStep = bankAccount && bankAccount.isInSetup()
-                                      && CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                    // let's show the manual form with the previously added values. Otherwise, we will
+                    // make the subStep the previous value.
+                    if (bankAccount && bankAccount.isInSetup()) {
+                        achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
+                    } else {
+                        achData.subStep = subStep;
+                    }
 
                     // If we're not in setup, it means we already have a withdrawal account
                     // and we're upgrading it to a business bank account. So let the user
@@ -515,14 +531,27 @@ function getIndexByStepID(stepID) {
 
 /**
  * Get next step ID
+ * @param {String} [stepID]
  * @return {String}
  */
-function getNextStepID() {
+function getNextStepID(stepID) {
     const nextStepIndex = Math.min(
-        getIndexByStepID(reimbursementAccountInSetup.currentStep) + 1,
+        getIndexByStepID(stepID || reimbursementAccountInSetup.currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
     return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
+}
+
+/**
+ * @param {Object} achData
+ * @returns {String}
+ */
+function getNextStepToComplete(achData) {
+    if (achData.currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR && !achData.isOnfidoSetupComplete) {
+        return CONST.BANK_ACCOUNT.STEP.REQUESTOR;
+    }
+
+    return getNextStepID(achData.currentStep);
 }
 
 /**
@@ -531,6 +560,16 @@ function getNextStepID() {
  */
 function setFreePlanVerifiedBankAccountID(bankAccountID) {
     API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: bankAccountID});
+}
+
+/**
+ * Show error modal and optionally a specific error message
+ *
+ * @param {String} errorModalMessage The error message to be displayed in the modal's body.
+ * @param {Boolean} isErrorModalMessageHtml if @errorModalMessage is in html format or not
+ */
+function showBankAccountErrorModal(errorModalMessage = null, isErrorModalMessageHtml = false) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errorModalMessage, isErrorModalMessageHtml});
 }
 
 /**
@@ -543,7 +582,6 @@ function validateBankAccount(bankAccountID, validateCode) {
     API.BankAccount_Validate({bankAccountID, validateCode})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Growl.show('Bank Account successfully validated!', CONST.GROWL.SUCCESS, 5000);
                 Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
@@ -553,36 +591,30 @@ function validateBankAccount(bankAccountID, validateCode) {
                             achData: {state: BankAccount.STATE.OPEN},
                         };
 
-                        if (isUsingExpensifyCard) {
-                            Navigation.dismissModal();
-                        } else {
-                            reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
-                        }
-
+                        reimbursementAccount.achData.currentStep = CONST.BANK_ACCOUNT.STEP.ENABLE;
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
                         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, reimbursementAccount);
                     });
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, error: response.message});
+            // User has input the validate code incorrectly many times so we will return early in this case and not let them enter the amounts again.
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.MAX_VALIDATION_ATTEMPTS_REACHED) {
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, maxAttemptsReached: true});
+                return;
+            }
+
+            // If the validation amounts entered were incorrect, show specific error
+            if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
+                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
+                return;
+            }
+
+            // We are generically showing any other backend errors that might pop up in the validate step
+            showBankAccountErrorModal(response.message);
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
-}
-
-/**
- * Show error modal and optionally a specific error message
- *
- * @param {String} errorModalMessage The error message to be displayed in the modal's body.
- */
-function showBankAccountErrorModal(errorModalMessage = null) {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: true, errorModalMessage});
-}
-
-/**
- * Hide error modal
- */
-function hideBankAccountErrorModal() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isErrorModalVisible: false});
 }
 
 /**
@@ -606,13 +638,22 @@ function showBankAccountFormValidationError(error) {
 }
 
 /**
+ * Set the current sub step in first step of adding withdrawal bank account
+ *
+ * @param {String} subStep - One of {CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID, null}
+ */
+function setBankAccountSubStep(subStep) {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
+}
+
+/**
  * Create or update the bank account in db with the updated data.
  *
  * @param {Object} [data]
  */
 function setupWithdrawalAccount(data) {
     let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
 
     const newACHData = {
         ...reimbursementAccountInSetup,
@@ -644,21 +685,12 @@ function setupWithdrawalAccount(data) {
     }
 
     API.BankAccount_SetupWithdrawal(newACHData)
-        /* eslint-disable arrow-body-style */
         .then((response) => {
-            // Without this block, we can call merge again with the achData before this merge finishes, resulting in
-            // the original achData overwriting the data we're trying to set here. With this block, we ensure that the
-            // newACHData is set in Onyx before we call merge on the reimbursementAccount key again.
-            return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                loading: false,
-                achData: {...newACHData},
-            })
-                .then(() => Promise.resolve(response));
-        })
-        .then((response) => {
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
+            let isErrorHTML = false;
             const errors = {};
 
             if (response.jsonCode === 200 && !error) {
@@ -667,18 +699,6 @@ function setupWithdrawalAccount(data) {
                 // set up for the free plan.
                 if (achData.bankAccountID) {
                     setFreePlanVerifiedBankAccountID(achData.bankAccountID);
-                }
-
-                // Show warning if another account already set up this bank account and promote share
-                if (response.existingOwners) {
-                    Onyx.merge(
-                        ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                        {
-                            existingOwners: response.existingOwners,
-                            isErrorModalVisible: true,
-                        },
-                    );
-                    return;
                 }
 
                 if (currentStep === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {
@@ -698,6 +718,7 @@ function setupWithdrawalAccount(data) {
                             // Requestor Step still needs to run Onfido
                             achData.sdkToken = sdkToken;
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                             return;
                         }
                     } else if (requestorResponse) {
@@ -715,6 +736,7 @@ function setupWithdrawalAccount(data) {
                         if (!_.isEmpty(questions)) {
                             achData.questions = questions;
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                             return;
                         }
                     }
@@ -736,6 +758,7 @@ function setupWithdrawalAccount(data) {
                                 || achData.state === BankAccount.STATE.VERIFYING;
 
                             goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
+                            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                         });
                     return;
                 }
@@ -749,7 +772,9 @@ function setupWithdrawalAccount(data) {
                 }
             } else {
                 if (response.jsonCode === 666 || response.jsonCode === 404) {
-                    error = response.message;
+                    // Since these specific responses can have an error message in html format with richer content, give priority to the html error.
+                    error = response.htmlMessage || response.message;
+                    isErrorHTML = Boolean(response.htmlMessage);
                 }
 
                 if (response.jsonCode === 402) {
@@ -766,10 +791,6 @@ function setupWithdrawalAccount(data) {
                         console.error(response.message);
                     }
                 }
-
-                if (lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.THROTTLED)) {
-                    achData.disableFields = true;
-                }
             }
 
             // Go to next step
@@ -781,8 +802,9 @@ function setupWithdrawalAccount(data) {
             }
             if (error) {
                 showBankAccountFormValidationError(error);
-                showBankAccountErrorModal(error);
+                showBankAccountErrorModal(error, isErrorHTML);
             }
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
@@ -792,7 +814,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', existingOwners: null, errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
@@ -804,6 +826,84 @@ function setWorkspaceIDForReimbursementAccount(workspaceID) {
  */
 function updateReimbursementAccountDraft(bankAccountData) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
+}
+
+/**
+ * Triggers a modal to open allowing the user to reset their bank account
+ */
+function requestResetFreePlanBankAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: true});
+}
+
+/**
+ * Hides modal allowing the user to reset their bank account
+ */
+function cancelResetFreePlanBankAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
+}
+
+/**
+ * Reset user's reimbursement account. This will delete the bank account.
+ */
+function resetFreePlanBankAccount() {
+    const bankAccountID = lodashGet(reimbursementAccountInSetup, 'bankAccountID');
+    if (!bankAccountID) {
+        throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
+    }
+    if (!credentials || !credentials.login) {
+        throw new Error('Missing credentials when attempting to reset free plan bank account');
+    }
+
+    // Create a copy of the reimbursementAccount data since we are going to optimistically wipe it so the UI changes quickly.
+    // If the API request fails we will set this data back into Onyx.
+    const previousACHData = {...reimbursementAccountInSetup};
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
+    API.DeleteBankAccount({bankAccountID, ownerEmail: credentials.login})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Unable to delete bank account so we restore the bank account details
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: previousACHData});
+                Growl.error('Sorry we were unable to delete this bank account. Please try again later');
+                return;
+            }
+
+            // Reset reimbursement account, and clear draft user input, and the bank account list
+            const achData = {
+                useOnfido: true,
+                policyID: '',
+                isInSetup: true,
+                domainLimit: 0,
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+            };
+            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
+            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
+            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, []);
+
+            // Clear the NVP for the bank account so the user can add a new one
+            API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});
+        });
+}
+
+/*
+ * Checks the given number is a valid US Routing Number
+ * using ABA routingNumber checksum algorithm: http://www.brainjar.com/js/validation/
+ * @param {String} number
+ * @returns {Boolean}
+ */
+function validateRoutingNumber(number) {
+    let n = 0;
+    for (let i = 0; i < number.length; i += 3) {
+        n += (parseInt(number.charAt(i), 10) * 3)
+            + (parseInt(number.charAt(i + 1), 10) * 7)
+            + parseInt(number.charAt(i + 2), 10);
+    }
+
+    // If the resulting sum is an even multiple of ten (but not zero),
+    // the ABA routing number is valid.
+    if (n !== 0 && n % 10 === 0) {
+        return true;
+    }
+    return false;
 }
 
 export {
@@ -819,10 +919,14 @@ export {
     setupWithdrawalAccount,
     validateBankAccount,
     hideBankAccountErrors,
-    hideBankAccountErrorModal,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
     setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
+    setBankAccountSubStep,
     updateReimbursementAccountDraft,
+    requestResetFreePlanBankAccount,
+    cancelResetFreePlanBankAccount,
+    resetFreePlanBankAccount,
+    validateRoutingNumber,
 };

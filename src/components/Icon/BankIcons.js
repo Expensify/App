@@ -1,4 +1,5 @@
-import {Bank, CreditCard} from './Expensicons';
+import _ from 'underscore';
+import {CreditCard} from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -8,9 +9,9 @@ import Chase from '../../../assets/images/bankicons/chase.svg';
 import CitiBank from '../../../assets/images/bankicons/citibank.svg';
 import CitizensBank from '../../../assets/images/bankicons/citizens-bank.svg';
 import Discover from '../../../assets/images/bankicons/discover.svg';
-import Expensify from '../../../assets/images/bankicons/expensify.svg';
 import Fidelity from '../../../assets/images/bankicons/fidelity.svg';
 import HuntingtonBank from '../../../assets/images/bankicons/huntington-bank.svg';
+import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg';
 import NavyFederalCreditUnion from '../../../assets/images/bankicons/navy-federal-credit-union.svg';
 import PNC from '../../../assets/images/bankicons/pnc.svg';
 import RegionsBank from '../../../assets/images/bankicons/regions-bank.svg';
@@ -28,10 +29,6 @@ import variables from '../../styles/variables';
  */
 
 function getAssetIcon(bankName, isCard) {
-    if (bankName === 'expensify card') {
-        return Expensify;
-    }
-
     if (bankName.includes('americanexpress')) {
         return AmericanExpress;
     }
@@ -104,7 +101,7 @@ function getAssetIcon(bankName, isCard) {
         return USAA;
     }
 
-    return isCard ? CreditCard : Bank;
+    return isCard ? CreditCard : GenericBank;
 }
 
 /**
@@ -116,15 +113,15 @@ function getAssetIcon(bankName, isCard) {
 
 export default function getBankIcon(bankName, isCard) {
     const bankIcon = {
-        icon: isCard ? CreditCard : Bank,
+        icon: isCard ? CreditCard : GenericBank,
     };
 
     if (bankName) {
         bankIcon.icon = getAssetIcon(bankName.toLowerCase(), isCard);
     }
 
-    // For default icons the icon size should not be set.
-    if (![CreditCard, Bank].includes(bankIcon.icon)) {
+    // For default Credit Card icon the icon size should not be set.
+    if (!_.contains([CreditCard], bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 

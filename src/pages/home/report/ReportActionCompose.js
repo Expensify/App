@@ -33,6 +33,7 @@ import {
     saveReportComment,
     saveReportActionDraft,
     broadcastUserIsTyping,
+    setReportWithDraft,
 } from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
@@ -43,7 +44,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST, {EXCLUDED_IOU_EMAILS} from '../../../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -51,7 +52,7 @@ import Permissions from '../../../libs/Permissions';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import {canEditReportAction, hasExpensifyEmails, isArchivedRoom} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
@@ -95,7 +96,7 @@ const propTypes = {
     }),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** Is the report view covered by the drawer */
     isDrawerOpen: PropTypes.bool.isRequired,
@@ -271,7 +272,7 @@ class ReportActionCompose extends React.Component {
         }
 
         if (this.props.report.participants
-            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE)
+            && _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE)
             && !_.isEmpty(this.props.blockedFromConcierge)
             && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
@@ -331,6 +332,17 @@ class ReportActionCompose extends React.Component {
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
+
+        // Indicate that draft has been created.
+        if (this.comment.length === 0 && newComment.length !== 0) {
+            setReportWithDraft(this.props.reportID.toString(), true);
+        }
+
+        // The draft has been deleted.
+        if (newComment.length === 0) {
+            setReportWithDraft(this.props.reportID.toString(), false);
+        }
+
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         if (newComment) {
@@ -356,7 +368,7 @@ class ReportActionCompose extends React.Component {
                 e.preventDefault();
 
                 const reportActionKey = _.find(
-                    Object.keys(this.props.reportActions).reverse(),
+                    _.keys(this.props.reportActions).reverse(),
                     key => canEditReportAction(this.props.reportActions[key]),
                 );
 
@@ -459,7 +471,7 @@ class ReportActionCompose extends React.Component {
         // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXCLUDED_IOU_EMAILS).length > 0;
+        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
         const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
@@ -474,7 +486,7 @@ class ReportActionCompose extends React.Component {
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
         const isConciergeChat = this.props.report.participants
-            && this.props.report.participants.includes(CONST.EMAIL.CONCIERGE);
+            && _.contains(this.props.report.participants, CONST.EMAIL.CONCIERGE);
         let isBlockedFromConcierge = false;
         if (isConciergeChat && !_.isEmpty(this.props.blockedFromConcierge)) {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
@@ -560,6 +572,19 @@ class ReportActionCompose extends React.Component {
                                                                     },
                                                                 },
                                                         ] : []),
+                                                    ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
+                                                        {
+                                                            icon: Send,
+                                                            text: this.props.translate('iou.sendMoney'),
+                                                            onSelected: () => {
+                                                                Navigation.navigate(
+                                                                    ROUTES.getIOUSendRoute(
+                                                                        this.props.reportID,
+                                                                    ),
+                                                                );
+                                                            },
+                                                        },
+                                                    ] : []),
                                                     {
                                                         icon: Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),

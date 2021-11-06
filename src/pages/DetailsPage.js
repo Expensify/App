@@ -15,6 +15,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
+import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import {hasExpensifyEmails} from '../libs/reportUtils';
 
@@ -72,12 +73,19 @@ const DetailsPage = ({
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
     const shouldShowLocalTime = !hasExpensifyEmails([details.login]);
 
+    let pronouns = details.pronouns;
+
+    if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+        const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+        pronouns = translate(`pronouns.${localeKey}`);
+    }
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
                 title={translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal()}
             />
             <View
@@ -110,21 +118,23 @@ const DetailsPage = ({
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text numberOfLines={1}>
-                                            {isSMSLogin
-                                                ? toLocalPhone(getPhoneNumber(details))
-                                                : details.login}
-                                        </Text>
+                                        <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                            <Text numberOfLines={1}>
+                                                {isSMSLogin
+                                                    ? toLocalPhone(getPhoneNumber(details))
+                                                    : details.login}
+                                            </Text>
+                                        </Tooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
-                            {details.pronouns ? (
+                            {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {translate('profilePage.preferredPronouns')}
                                     </Text>
                                     <Text numberOfLines={1}>
-                                        {details.pronouns}
+                                        {pronouns}
                                     </Text>
                                 </View>
                             ) : null}

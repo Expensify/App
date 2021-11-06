@@ -232,7 +232,6 @@ class IOUCurrencySelection extends Component {
 
 IOUCurrencySelection.propTypes = propTypes;
 IOUCurrencySelection.defaultProps = defaultProps;
-IOUCurrencySelection.displayName = 'IOUCurrencySelection';
 
 export default compose(
     withLocalize,

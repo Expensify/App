@@ -37,11 +37,11 @@ New contributors are limited to working on one job at a time, however experience
 There are two ways you can find a job that you can contribute to:
 
 #### Finding a job that Expensify posted
-This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2)(you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view open jobs by searching for issues in GitHub with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22).
+This is the most common scenario for contributors. The Expensify team posts new jobs to the Upwork job list [here](https://www.upwork.com/ab/jobs/search/?q=Expensify%20React%20Native&sort=recency&user_location_match=2) (you must be signed in to Upwork to view jobs). Each job in Upwork has a corresponding GitHub issue, which will include instructions to follow. You can also view open jobs by searching for issues in GitHub with the [`Help Wanted` label](https://github.com/Expensify/App/issues?q=is%3Aopen+is%3Aissue+label%3A%22Help+Wanted%22).
 
 #### Proposing a job that Expensify hasn’t posted
 
-In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Github repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement. Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
+In this scenario, it’s possible that you found a bug or enhancement that we haven’t posted to the [Github repository](https://github.com/Expensify/App/issues?q=is%3Aissue). This is an opportunity to propose a job, and (optionally) a solution. If it's a valid job proposal that we choose to implement by deploying it to production — either internally or via an external contributor — then we will compensate you $250 for identifying and proposing the improvement. Note: If you get assigned the job you proposed **and** you complete the job, this $250 for identifying the improvement is *in addition to* the reward you will be paid for completing the job.
 
 1. Check to ensure an issue does not already exist in the [New Expensify Issue list](https://github.com/Expensify/App/issues). Please use your best judgement to search for similar titles and issue descriptions.
 2. If your bug or enhancement matches an existing issue, please feel free to comment on that GitHub issue with your findings if you think it will help solve a problem.
@@ -70,6 +70,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 #### Propose a solution for the job
 4. After you reproduce the issue, make a proposal for your solution and post it as a comment in the corresponding GitHub issue (linked in the Upwork job). Your solution proposal should include a brief technical explanation of the changes you will make.
     - Note: If you post a proposed solution in an issue that has not been tagged with the `External` label, Expensify has the right to use your proposal to fix said issue, without providing compensation for your solution.
+    - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. Any new proposal should be substantively different from existing proposals.
 5. Pause at this step until Expensify provides feedback on your proposal (do not begin coding or creating a pull request yet).
 6. If your solution proposal is accepted, Expensify will hire you on Upwork and assign the GitHub issue to you.
 
@@ -96,13 +97,15 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 	2. Tests - All tests must pass before a merge of a pull request
 	3. Lint - All code must pass lint checks before a merge of a pull request
 13. Please never force push when a PR review has already started (because this messes with the PR review history)
-14. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, and Android) to confirm the fix works as expected and there are no regressions.
-15. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
+14. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use Github keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
+15. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
+16. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web). If you are unable to build to iOS/OSX due to using a Windows machine, please let the reviewers know so they can double check that platform themselves.
 
 #### Timeline expectations and asking for help along the way
 - If you have made a change to your pull request and are ready for another review, leave a comment that says "Updated" on the pull request  itself.
 - Please keep the conversation in GitHub, and do not ping individual reviewers in Slack or Upwork to get their attention.
 - Pull Request reviews can sometimes take a few days. If your pull request has not been addressed after four days please let us know via the #expensify-open-source Slack channel.
+- On occasion, our engineers will need to focus on a feature release and choose to place a hold on the review of your PR. Depending on the hold length, our team will decide if a bonus will be applied to the job.    
 
 #### Important note about JavaScript Style
 - Read our official [JavaScript and React style guide](STYLE.md). Please refer to our Style Guide before asking for a review.

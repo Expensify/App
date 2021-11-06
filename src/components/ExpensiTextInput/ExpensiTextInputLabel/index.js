@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {Animated} from 'react-native';
 import {setNativePropsWeb} from '../../../libs/TextInputUtils';
 import styles from '../../../styles/styles';
-import {propTypes, defaultProps} from './propTypes';
+import {propTypes, defaultProps} from './expensiTextInputLabelPropTypes';
 
 class ExpensiTextInputLabel extends Component {
     constructor(props) {
@@ -19,6 +19,7 @@ class ExpensiTextInputLabel extends Component {
     render() {
         return (
             <Animated.Text
+                pointerEvents="none"
                 accessibilityRole="label"
                 ref={el => this.label = el}
                 style={[
