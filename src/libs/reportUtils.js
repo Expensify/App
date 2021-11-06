@@ -169,14 +169,13 @@ function hasExpensifyEmails(emails) {
 }
 
 /**
- * Whether the time row should be shown for the a report.
+ * Whether the time row should be shown for a report.
  * @param {Array<Object>} personalDetails
  * @param {Object} myPersonalDetails
  * @param {Object} report
  * @return {Boolean}
  */
 function shouldShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
-    // eslint-disable-next-line no-unused-vars
     const reportParticipants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
