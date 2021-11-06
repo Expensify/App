@@ -52,7 +52,6 @@ import {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
-    WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
 } from './ModalStackNavigators';
@@ -62,7 +61,6 @@ import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedToke
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
-import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
 
 Onyx.connect({
@@ -148,9 +146,7 @@ class AuthScreens extends React.Component {
             nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
         }).then((response) => {
             const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-            if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
-                setLocale(currentPreferredLocale);
-            } else {
+            if (preferredLocale !== currentPreferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
         });
@@ -374,12 +370,6 @@ class AuthScreens extends React.Component {
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
                     component={AddPersonalBankAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="WorkspaceInvite"
-                    options={modalScreenOptions}
-                    component={WorkspaceInviteModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

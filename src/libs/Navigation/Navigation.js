@@ -128,7 +128,7 @@ function navigate(route = ROUTES.HOME) {
 /**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
- * @param {Boolean} shouldOpenDrawer
+ * @param {Boolean} [shouldOpenDrawer]
  */
 function dismissModal(shouldOpenDrawer = false) {
     if (!navigationRef.isReady()) {
