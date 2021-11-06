@@ -205,8 +205,8 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
             const stepFromStorage = getReimbursementAccountInSetup().currentStep;
             const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade);
 
-            goToWithdrawalAccountSetupStep(currentStep, {
-                ...achData,
+            goToWithdrawalAccountSetupStep(currentStep, achData);
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
                 throttledDate,
                 maxAttemptsReached,
                 error: '',
