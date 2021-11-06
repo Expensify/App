@@ -72,7 +72,13 @@ function isReportMissingActions(reportID, maxKnownSequenceNumber) {
         || reportActionsMaxSequenceNumbers[reportID] < maxKnownSequenceNumber;
 }
 
-function getdeletedCommentsCount(reportID, lastSequenceNumber) {
+/**
+ * Get the count of deleted messages upto a sequence number of a report
+ * @param {Number|String} reportID
+ * @param {Number} lastSequenceNumber
+ * @return {Number}
+ */
+function getDeletedCommentsCount(reportID, lastSequenceNumber) {
     if (!reportActions[reportID]) {
         return 0;
     }
@@ -92,5 +98,5 @@ function getdeletedCommentsCount(reportID, lastSequenceNumber) {
 export {
     isReportMissingActions,
     dangerouslyGetReportActionsMaxSequenceNumber,
-    getdeletedCommentsCount,
+    getDeletedCommentsCount,
 };

@@ -23,7 +23,7 @@ import {
     isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom,
 } from '../reportUtils';
 import Timers from '../Timers';
-import {dangerouslyGetReportActionsMaxSequenceNumber, getdeletedCommentsCount, isReportMissingActions} from './ReportActions';
+import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 
@@ -104,7 +104,7 @@ function getUnreadActionCount(report) {
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber - getdeletedCommentsCount(report.reportID, lastReadSequenceNumber);
+    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(report.reportID, lastReadSequenceNumber);
     return Math.max(0, unreadActionCount);
 }
 
@@ -414,7 +414,7 @@ function setLocalLastRead(reportID, lastReadSequenceNumber) {
 
     // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
     // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
-    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber - getdeletedCommentsCount(reportID, lastReadSequenceNumber), 0);
+    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumber), 0);
 
     // Update the report optimistically.
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -974,7 +974,7 @@ function fetchAllReports(
                 // data processing by Onyx.
                 const reportIDsWithMissingActions = _.chain(returnedReports)
                     .map(report => report.reportID)
-                    .filter(reportID => isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .filter(reportID => ReportActions.isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
                     .value();
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
@@ -996,7 +996,7 @@ function fetchAllReports(
                     reportIDs: reportIDsToFetchActions,
                 });
                 _.each(reportIDsToFetchActions, (reportID) => {
-                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                    const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
                     fetchActions(reportID, offset);
                 });
 
