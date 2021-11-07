@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {setBrowserAttributes} from '../libs/TextInputUtils';
+import {accessibilityRoleForm, setBrowserAttributes} from '../libs/TextInputUtils';
 
 class Form extends React.Component {
     componentDidMount() {
@@ -11,7 +11,7 @@ class Form extends React.Component {
     render() {
         return (
             <View
-                accessibilityRole="form"
+                accessibilityRole={accessibilityRoleForm}
                 accessibilityAutoComplete="on"
                 ref={el => this.form = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading

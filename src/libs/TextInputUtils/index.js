@@ -2,6 +2,7 @@
  * Web password field needs `current-password` as autocomplete type which is not supported on native
  */
 const passwordAutocompleteType = 'current-password';
+const accessibilityRoleForm = 'form';
 
 /**
  * Used to set attributes on underlying dom node that are only available on web and throws error on native platform.
@@ -20,5 +21,6 @@ function setBrowserAttributes(element, attribute, value) {
 
 export {
     passwordAutocompleteType,
+    accessibilityRoleForm,
     setBrowserAttributes,
 };
