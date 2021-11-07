@@ -33,11 +33,15 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
+    /** Whether the page is visible. */
+    visible: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     account: {},
+    visible: false,
 };
 
 class PasswordForm extends React.Component {
@@ -81,21 +85,8 @@ class PasswordForm extends React.Component {
 
     render() {
         return (
-            <>
+            <View style={!this.props.visible && styles.visuallyHidden}>
                 <View style={[styles.mv3]}>
-                    <View
-                        style={styles.visuallyHidden}
-                        accessibilityHidden
-                    >
-                        <ExpensiTextInput
-                            value={this.props.credentials.login}
-                            autoCompleteType="username"
-                            textContentType="username"
-                            nativeID="username"
-                            name="username"
-                            autoCorrect={false}
-                        />
-                    </View>
                     <ExpensiTextInput
                         label={this.props.translate('common.password')}
                         secureTextEntry
@@ -158,9 +149,9 @@ class PasswordForm extends React.Component {
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    <ChangeExpensifyLoginLink />
+                    {this.props.visible && <ChangeExpensifyLoginLink />}
                 </View>
-            </>
+            </View>
         );
     }
 }
@@ -172,6 +163,5 @@ export default compose(
     withLocalize,
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
-        credentials: {key: ONYXKEYS.CREDENTIALS},
     }),
 )(PasswordForm);

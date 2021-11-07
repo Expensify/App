@@ -32,6 +32,9 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
+    /** Whether the page is visible. */
+    visible: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -39,6 +42,7 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
+    visible: false,
 };
 
 class LoginForm extends React.Component {
@@ -98,7 +102,7 @@ class LoginForm extends React.Component {
 
     render() {
         return (
-            <>
+            <View style={!this.props.visible && styles.visuallyHidden}>
                 <View style={[styles.mt3]}>
                     <ExpensiTextInput
                         label={this.props.translate('loginForm.phoneOrEmail')}
@@ -140,8 +144,7 @@ class LoginForm extends React.Component {
                         onPress={this.validateAndSubmitForm}
                     />
                 </View>
-
-            </>
+            </View>
         );
     }
 }
