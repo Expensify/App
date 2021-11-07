@@ -1,10 +1,10 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
 import {setBrowserAttributes} from '../../../libs/TextInputUtils';
 import styles from '../../../styles/styles';
 import {propTypes, defaultProps} from './expensiTextInputLabelPropTypes';
 
-class ExpensiTextInputLabel extends Component {
+class ExpensiTextInputLabel extends PureComponent {
     constructor(props) {
         super(props);
         this.label = null;

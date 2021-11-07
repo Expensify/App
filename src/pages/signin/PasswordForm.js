@@ -101,7 +101,7 @@ class PasswordForm extends React.Component {
                         secureTextEntry
                         autoCompleteType={passwordAutocompleteType}
                         textContentType="password"
-                        nativeID={passwordAutocompleteType}
+                        nativeID="password"
                         name="password"
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}

@@ -196,7 +196,6 @@ class BaseExpensiTextInput extends Component {
                                         labelTranslateY={this.state.labelTranslateY}
                                         labelScale={this.state.labelScale}
                                         for={this.props.nativeID}
-
                                     />
                                 </>
                             ) : null}
