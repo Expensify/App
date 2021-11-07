@@ -7,7 +7,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {setBrowserAttributes} from '../../../libs/TextInputUtils';
+import Form from '../../../components/Form';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -23,68 +23,48 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class SignInPageLayoutNarrow extends React.Component {
-    constructor(props) {
-        super(props);
-        this.form = null;
-    }
-
-    componentDidMount() {
-        // These native props are needed for Password Managers like LastPass
-        if (this.form) {
-            setBrowserAttributes(this.form, 'method', 'post');
-            setBrowserAttributes(this.form, 'action', '/');
-        }
-    }
-
-    render() {
-        return (
-            <ScrollView
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                style={[
-                    styles.flexGrow1,
-                    styles.signInPageNarrowContentContainer,
-                    styles.alignSelfCenter,
-                ]}
-                contentContainerStyle={styles.ph5}
-            >
-                <KeyboardAvoidingView behavior="position">
-                    <View style={[styles.flexGrow1]}>
-                        <View
-                            style={[
-                                styles.signInPageInnerNative,
-                                styles.flex1,
-                                styles.dFlex,
-                                styles.flexColumn,
-                                styles.mt40Percentage,
-                            ]}
-                            accessibilityRole="form"
-                            accessibilityAutoComplete="on"
-                            ref={el => this.form = el}
-                        >
-                            <View style={[styles.componentHeightLarge, styles.mb2]}>
-                                <ExpensifyCashLogo
-                                    width={variables.componentSizeLarge}
-                                    height={variables.componentSizeLarge}
-                                />
-                            </View>
-                            {this.props.shouldShowWelcomeText && (
-                                <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                                    {this.props.welcomeText}
-                                </Text>
-                            )}
-                            {this.props.children}
-                        </View>
+const SignInPageLayoutNarrow = props => (
+    <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        style={[
+            styles.flexGrow1,
+            styles.signInPageNarrowContentContainer,
+            styles.alignSelfCenter,
+        ]}
+        contentContainerStyle={styles.ph5}
+    >
+        <KeyboardAvoidingView behavior="position">
+            <View style={[styles.flexGrow1]}>
+                <Form
+                    style={[
+                        styles.signInPageInnerNative,
+                        styles.flex1,
+                        styles.dFlex,
+                        styles.flexColumn,
+                        styles.mt40Percentage,
+                    ]}
+                >
+                    <View style={[styles.componentHeightLarge, styles.mb2]}>
+                        <ExpensifyCashLogo
+                            width={variables.componentSizeLarge}
+                            height={variables.componentSizeLarge}
+                        />
                     </View>
-                </KeyboardAvoidingView>
-                <View style={[styles.mt3, styles.mb5, styles.alignSelfCenter]}>
-                    <TermsAndLicenses />
-                </View>
-            </ScrollView>
-        );
-    }
-}
+                    {props.shouldShowWelcomeText && (
+                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                            {props.welcomeText}
+                        </Text>
+                    )}
+                    {props.children}
+                </Form>
+            </View>
+        </KeyboardAvoidingView>
+        <View style={[styles.mt3, styles.mb5, styles.alignSelfCenter]}>
+            <TermsAndLicenses />
+        </View>
+    </ScrollView>
+);
 
 SignInPageLayoutNarrow.propTypes = propTypes;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';

@@ -157,10 +157,10 @@ class BaseExpensiTextInput extends Component {
             ignoreLabelTranslateX,
             innerRef,
             autoFocus,
+            multiline,
 
             // Only present for Web
             name,
-            multiline,
             ...inputProps
         } = this.props;
 
