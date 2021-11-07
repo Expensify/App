@@ -5,6 +5,7 @@ import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
+import createCallback from './createCallback';
 
 let isQueuePaused = false;
 
@@ -16,11 +17,11 @@ let networkRequestQueue = [];
 // parameters such as authTokens or CSRF tokens, etc.
 let enhanceParameters;
 
-// These handlers must be registered in order to process the response or network errors returned from the queue.
-// The first argument passed will be the queuedRequest object and the second will be either the response or error.
-let onResponse = () => {};
-let onError = () => {};
-let onRequest = () => {};
+// These handlers must be registered so we can process the request, response, and errors returned from the queue.
+// The first argument passed will be the queuedRequest object and the second will be either the parameters, response, or error.
+const [onRequest, registerRequestHandler] = createCallback();
+const [onResponse, registerResponseHandler] = createCallback();
+const [onError, registerErrorHandler] = createCallback();
 
 let didLoadPersistedRequests;
 let isOffline;
@@ -304,30 +305,6 @@ function registerParameterEnhancer(callback) {
  */
 function clearRequestQueue() {
     networkRequestQueue = [];
-}
-
-/**
- * Register a method to call when the authToken expires
- * @param {Function} callback
- */
-function registerResponseHandler(callback) {
-    onResponse = callback;
-}
-
-/**
- * @param {Function} callback
- */
-function registerRequestHandler(callback) {
-    onRequest = callback;
-}
-
-/**
- * The error handler will handle fetch() errors. Not used for successful responses that might send expected error codes
- * e.g. jsonCode: 407.
- * @param {Function} callback
- */
-function registerErrorHandler(callback) {
-    onError = callback;
 }
 
 export {
