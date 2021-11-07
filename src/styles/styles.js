@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -172,30 +173,6 @@ const styles = {
 
     textUppercase: {
         textTransform: 'uppercase',
-    },
-
-    background100: {
-        backgroundSize: '100% 100%',
-    },
-
-    backgroundGreen: {
-        backgroundColor: colors.green,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
-    },
-
-    backgroundOrange: {
-        backgroundColor: colors.orange,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
-    },
-
-    backgroundPink: {
-        backgroundColor: colors.pink,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
-    },
-
-    backgroundBlue: {
-        backgroundColor: colors.blue,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
     },
 
     colorReversed: {
@@ -2231,7 +2208,6 @@ const webViewStyles = {
     baseFontStyle: {
         color: themeColors.text,
         fontSize: variables.fontSizeNormal,
-        lineHeight: variables.fontSizeNormalHeight,
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
@@ -2514,6 +2490,33 @@ function getEmojiPickerStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * Get the random promo color and image for Login page
+ *
+ * @return {Object}
+ */
+function getLoginPagePromoStyle() {
+    const promos = [
+        {
+            backgroundColor: colors.green,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg`,
+        },
+        {
+            backgroundColor: colors.orange,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg`,
+        },
+        {
+            backgroundColor: colors.pink,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg`,
+        },
+        {
+            backgroundColor: colors.blue,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
+        },
+    ];
+    return promos[_.random(0, 3)];
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -2536,4 +2539,5 @@ export {
     getFontFamilyMonospace,
     getEmojiPickerStyle,
     getKeyboardShortcutModalStyle,
+    getLoginPagePromoStyle,
 };

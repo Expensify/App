@@ -1,7 +1,6 @@
 const codeWordWrapper = {
-    height: 18,
+    height: 20,
     justifyContent: 'center',
-    marginTop: 2,
 };
 
 const codeWordStyle = {

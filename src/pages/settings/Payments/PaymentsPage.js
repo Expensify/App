@@ -32,11 +32,15 @@ const propTypes = {
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    /** Username for PayPal.Me */
+    payPalMeUsername: PropTypes.string,
 };
 
 const defaultProps = {
     betas: [],
     isLoadingPaymentMethods: true,
+    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -139,15 +143,19 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        <MenuItem
-                            title={this.props.translate('common.payPalMe')}
-                            icon={PayPal}
-                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                        />
+                        {!this.props.payPalMeUsername && (
+                            <MenuItem
+                                title={this.props.translate('common.payPalMe')}
+                                icon={PayPal}
+                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                                wrapperStyle={styles.pr15}
+                            />
+                        )}
                         <MenuItem
                             title={this.props.translate('common.debitCard')}
                             icon={CreditCard}
                             onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
+                            wrapperStyle={styles.pr15}
                         />
                     </Popover>
                 </KeyboardAvoidingView>
@@ -168,6 +176,9 @@ export default compose(
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
             initWithStoredValues: false,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(PaymentsPage);

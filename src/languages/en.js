@@ -85,7 +85,7 @@ export default {
         reset: 'Reset',
         done: 'Done',
         debitCard: 'Debit card',
-        payPalMe: 'PayPal.me/',
+        payPalMe: 'PayPal.me',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -194,7 +194,6 @@ export default {
         paid: ({owner, manager}) => `${manager} paid ${owner}`,
         split: ({amount}) => `Split ${amount}`,
         send: ({amount}) => `Send ${amount}`,
-        choosePaymentMethod: 'Choose payment method:',
         noReimbursableExpenses: 'This report has an invalid amount',
         maxParticipantsReached: ({count}) => `You've selected the maximum number (${count}) of participants.`,
         error: {
@@ -233,6 +232,11 @@ export default {
         setMyTimezoneAutomatically: 'Set my timezone automatically',
         timezone: 'Timezone',
         growlMessageOnSave: 'Your profile was successfully saved',
+        invalidFileMessage: 'Invalid file. Please try a different image.',
+        avatarUploadFailureMessage: 'An error occurred uploading the avatar, please try again.',
+        online: 'Online',
+        offline: 'Offline',
+        syncing: 'Syncing',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Add phone number',
@@ -281,6 +285,7 @@ export default {
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
+        payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Your PayPal username',
         addPayPalAccount: 'Add PayPal account',
         editPayPalAccount: 'Update PayPal account',
@@ -581,6 +586,14 @@ export default {
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
+        incorporationTypes: {
+            LLC: 'LLC',
+            CORPORATION: 'Corp',
+            PARTNERSHIP: 'Partnership',
+            COOPERATIVE: 'Cooperative',
+            SOLE_PROPRIETORSHIP: 'Sole Proprietorship',
+            OTHER: 'Other',
+        },
     },
     requestorStep: {
         headerTitle: 'Personal information',
@@ -601,7 +614,7 @@ export default {
         reviewingInfo: 'Thanks! We\'re reviewing your information, and will be in touch shortly. Please check your chat with Concierge ',
         forNextSteps: ' for next steps to finish setting up your bank account.',
         letsChatCTA: 'Yes, let\'s chat!',
-        letsChatText: 'Thanks for doing that! We have a couple more things to work out, but it’ll be easier over chat. Ready to chat?',
+        letsChatText: 'Thanks for doing that! We need your help verifying a few pieces of information, but we can work this out quickly over chat. Ready?',
         letsChatTitle: 'Let\'s chat!',
     },
     beneficialOwnersStep: {
@@ -714,7 +727,7 @@ export default {
             personalMessagePrompt: 'Add a personal message (optional)',
             pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName}! Download the Expensify mobile app to start tracking your expenses.`,
+            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
             nameInputLabel: 'Name',
@@ -754,7 +767,7 @@ export default {
         callMe: 'Call me',
         growlMessageOnSave: 'Call requested.',
         growlMessageEmptyName: 'Please provide both a first and last name so our guides know how to address you!',
-        growlMessageNoPersonalPolicy: 'I wasn’t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
+        growlMessageNoPersonalPolicy: 'I wasn\'t able to find a personal policy to associate this Guides call with, please check your connection and try again.',
         callButton: 'Call',
         callButtonTooltip: 'Get live help from our team',
     },

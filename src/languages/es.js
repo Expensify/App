@@ -85,7 +85,7 @@ export default {
         reset: 'Restablecer',
         done: 'Listo',
         debitCard: 'Tarjeta de débito',
-        payPalMe: 'PayPal.me/',
+        payPalMe: 'PayPal.me',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -194,7 +194,6 @@ export default {
         paid: ({owner, manager}) => `${manager} pagó a ${owner}`,
         split: ({amount}) => `Dividir ${amount}`,
         send: ({amount}) => `Enviar ${amount}`,
-        choosePaymentMethod: 'Elige el método de pago:',
         noReimbursableExpenses: 'El monto de este informe es inválido',
         maxParticipantsReached: ({count}) => `Has seleccionado el número máximo (${count}) de participantes.`,
         error: {
@@ -233,6 +232,11 @@ export default {
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
         growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
+        invalidFileMessage: 'Archivo inválido. Pruebe con una imagen diferente.',
+        avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
+        online: 'En línea',
+        offline: 'Desconectado',
+        syncing: 'Sincronizando',
     },
     addSecondaryLoginPage: {
         addPhoneNumber: 'Agregar número de teléfono',
@@ -281,6 +285,7 @@ export default {
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
+        payPalMe: 'PayPal.me/',
         yourPayPalUsername: 'Tu usuario de PayPal',
         addPayPalAccount: 'Agregar cuenta de PayPal',
         growlMessageOnSave: 'Su nombre de usuario de PayPal se agregó correctamente',
@@ -583,6 +588,14 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '(prefijo) + (número)',
+        incorporationTypes: {
+            LLC: 'LLC',
+            CORPORATION: 'Corp',
+            PARTNERSHIP: 'Sociedad',
+            COOPERATIVE: 'Cooperativa',
+            SOLE_PROPRIETORSHIP: 'Propietario único',
+            OTHER: 'Otra',
+        },
     },
     requestorStep: {
         headerTitle: 'Información personal',
@@ -603,7 +616,7 @@ export default {
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
         letsChatCTA: '¡Sí, vamos a chatear!',
-        letsChatText: '¡Gracias! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
+        letsChatText: '¡Gracias! Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
     },
     beneficialOwnersStep: {
