@@ -16,7 +16,7 @@ import CONST from '../../CONST';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import exampleCheckImage from '../../../assets/images/example-check-image.png';
+import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
@@ -259,7 +259,7 @@ class BankAccountStep extends React.Component {
                         <Image
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
-                            source={exampleCheckImage}
+                            source={exampleCheckImage(this.props.preferredLocale)}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('bankAccount.routingNumber')}

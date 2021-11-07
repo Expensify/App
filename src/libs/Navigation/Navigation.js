@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import {Keyboard} from 'react-native';
 import {
     StackActions,
     DrawerActions,
@@ -44,6 +45,7 @@ function openDrawer() {
         return;
     }
     navigationRef.current.dispatch(DrawerActions.openDrawer());
+    Keyboard.dismiss();
 }
 
 /**
@@ -126,7 +128,7 @@ function navigate(route = ROUTES.HOME) {
 /**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
- * @param {Boolean} shouldOpenDrawer
+ * @param {Boolean} [shouldOpenDrawer]
  */
 function dismissModal(shouldOpenDrawer = false) {
     if (!navigationRef.isReady()) {
