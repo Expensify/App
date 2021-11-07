@@ -225,7 +225,7 @@ class PasswordPage extends Component {
                                 onSubmitEditing={this.validateAndSubmitForm}
                             />
                         </View>
-                        {!_.some(_.values(this.state.errors)) && !_.isEmpty(this.props.account.error) && (
+                        {_.every(this.state.errors, error => !error) && !_.isEmpty(this.props.account.error) && (
                             <Text style={styles.formError}>
                                 {this.props.account.error}
                             </Text>
