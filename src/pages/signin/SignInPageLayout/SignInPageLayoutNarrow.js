@@ -7,6 +7,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import withWindowDimensions from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -27,35 +28,36 @@ const SignInPageLayoutNarrow = props => (
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={[
-            styles.flex1,
+            styles.h100,
             styles.signInPageNarrowContentContainer,
             styles.alignSelfCenter,
         ]}
-        contentContainerStyle={[styles.ph5, styles.flex1]}
+        contentContainerStyle={[styles.ph5, styles.mnh100]}
     >
-        <KeyboardAvoidingView
-            behavior="position"
-            style={[
-                styles.flex1,
-                styles.w100,
-                styles.mt40Percentage,
-                styles.alignSelfCenter,
-            ]}
-        >
-            <View style={[styles.componentHeightLarge, styles.mb2]}>
-                <ExpensifyCashLogo
-                    width={variables.componentSizeLarge}
-                    height={variables.componentSizeLarge}
-                />
-            </View>
-            {props.shouldShowWelcomeText && (
-                <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                    {props.welcomeText}
-                </Text>
-            )}
-            {props.children}
-        </KeyboardAvoidingView>
-        <View style={[styles.mt3, styles.mb5, styles.alignSelfCenter]}>
+        <View style={styles.flex1}>
+            <KeyboardAvoidingView
+                behavior="position"
+                contentContainerStyle={[
+                    styles.mt40Percentage,
+                    styles.mb3,
+                    styles.pb5,
+                ]}
+            >
+                <View style={[styles.componentHeightLarge, styles.mb2]}>
+                    <ExpensifyCashLogo
+                        width={variables.componentSizeLarge}
+                        height={variables.componentSizeLarge}
+                    />
+                </View>
+                {props.shouldShowWelcomeText && (
+                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                        {props.welcomeText}
+                    </Text>
+                )}
+                {props.children}
+            </KeyboardAvoidingView>
+        </View>
+        <View style={[styles.mb5, styles.alignSelfCenter]}>
             <TermsAndLicenses />
         </View>
     </ScrollView>
@@ -64,4 +66,4 @@ const SignInPageLayoutNarrow = props => (
 SignInPageLayoutNarrow.propTypes = propTypes;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
-export default withLocalize(SignInPageLayoutNarrow);
+export default withWindowDimensions(withLocalize(SignInPageLayoutNarrow));
