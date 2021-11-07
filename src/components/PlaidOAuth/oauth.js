@@ -23,7 +23,7 @@ const OAuthLink = (props, callback, deps) => {
         receivedRedirectUri: window.location.href, //the redirect URI with an OAuth state ID parameter
         onSuccess,
         onExit,
-};
+    };
     const { open, ready, error } = usePlaidLink(config);
     // automatically reinitialize Link
     useEffect(() => {
