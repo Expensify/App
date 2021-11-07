@@ -20,6 +20,7 @@ let enhanceParameters;
 // The first argument passed will be the queuedRequest object and the second will be either the response or error.
 let onResponse = () => {};
 let onError = () => {};
+let onRequest = () => {};
 
 let didLoadPersistedRequests;
 let isOffline;
@@ -207,6 +208,7 @@ function processNetworkRequestQueue() {
             return;
         }
 
+        onRequest(queuedRequest, finalParameters);
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
@@ -313,6 +315,13 @@ function registerResponseHandler(callback) {
 }
 
 /**
+ * @param {Function} callback
+ */
+function registerRequestHandler(callback) {
+    onRequest = callback;
+}
+
+/**
  * The error handler will handle fetch() errors. Not used for successful responses that might send expected error codes
  * e.g. jsonCode: 407.
  * @param {Function} callback
@@ -329,4 +338,5 @@ export {
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
+    registerRequestHandler,
 };
