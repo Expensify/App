@@ -8,6 +8,7 @@ import {plaidLinkDefaultProps, plaidLinkPropTypes} from "../PlaidLink/plaidLinkP
 import PlaidLink from "../PlaidLink";
 
 const OAuthLink = (props, callback, deps) => {
+    console.log("in OAuthLink");
     // The Link token from the first Link initialization
     // const linkToken = localStorage.getItem('link_token');
     const linkToken = props.plaidLinkToken;
@@ -16,6 +17,7 @@ const OAuthLink = (props, callback, deps) => {
         // return to "https://example.com" upon completion
     }, deps);
     const onExit = (err, metatdata) => {
+        console.log(err);
         // handle error...
     };
     const config = {

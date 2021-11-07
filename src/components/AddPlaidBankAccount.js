@@ -9,6 +9,7 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
+import OAuthLink from "./PlaidOAuth/oauth";
 import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
@@ -170,20 +171,24 @@ class AddPlaidBankAccount extends React.Component {
                         </View>
                     )}
                 {!_.isEmpty(this.props.plaidLinkToken) && (
-                    <PlaidLink
-                        token={this.props.plaidLinkToken}
-                        onSuccess={({publicToken, metadata}) => {
-                            Log.info('[PlaidLink] Success!');
-                            getPlaidBankAccounts(publicToken, metadata.institution.name);
-                            this.setState({institution: metadata.institution});
-                        }}
-                        onError={(error) => {
-                            Log.hmmm('[PlaidLink] Error: ', error.message);
-                        }}
+                    // <PlaidLink
+                    //     token={this.props.plaidLinkToken}
+                    //     onSuccess={({publicToken, metadata}) => {
+                    //         Log.info('[PlaidLink] Success!');
+                    //         getPlaidBankAccounts(publicToken, metadata.institution.name);
+                    //         this.setState({institution: metadata.institution});
+                    //     }}
+                    //     onError={(error) => {
+                    //         Log.hmmm('[PlaidLink] Error: ', error.message);
+                    //     }}
+                    //
+                    //     // User prematurely exited the Plaid flow
+                    //     // eslint-disable-next-line react/jsx-props-no-multi-spaces
+                    //     onExit={this.props.onExitPlaid}
+                    // />
+                    <OAuthLink
+                        plaidLinkToken={this.props.plaidLinkToken}
 
-                        // User prematurely exited the Plaid flow
-                        // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                        onExit={this.props.onExitPlaid}
                     />
                 )}
                 {accounts.length > 0 && (
