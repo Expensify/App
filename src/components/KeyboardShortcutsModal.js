@@ -37,7 +37,7 @@ class KeyboardShortcutsModal extends React.PureComponent {
         }
         this.unsubscribeShortCutModal = KeyboardShortcut.subscribe('?', () => {
             this.toggleKeyboardShortcutModal(true);
-        }, shortcutModifiers, false, 'openShortcutDialog');
+        }, shortcutModifiers, true, 'openShortcutDialog');
     }
 
     componentWillUnmount() {
