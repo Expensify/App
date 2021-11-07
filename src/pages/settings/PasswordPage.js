@@ -79,8 +79,6 @@ class PasswordPage extends Component {
     }
 
     /**
-     * Return the error message for the field
-     *
      * @param {String} field
      * @returns {String}
      */
@@ -88,22 +86,21 @@ class PasswordPage extends Component {
         if (this.state.errors[field]) {
             return this.props.translate(this.errorKeysMap[field]);
         }
-        return null;
+        return '';
     }
 
 
     /**
-     * Set value for the field in state and clear error flag
      * @param {String} field
      * @param {String} value
-     * @param {String[]} additionalErrorFlags
+     * @param {String[]} additionalErrorsToClear
      */
-    clearErrorAndSetValue(field, value, additionalErrorFlags) {
+    clearErrorAndSetValue(field, value, additionalErrorsToClear) {
         const errorsToReset = {
             [field]: false,
         };
-        if (additionalErrorFlags) {
-            _.each(additionalErrorFlags, (errorFlag) => {
+        if (additionalErrorsToClear) {
+            _.each(additionalErrorsToClear, (errorFlag) => {
                 errorsToReset[errorFlag] = false;
             });
         }
@@ -115,7 +112,6 @@ class PasswordPage extends Component {
     }
 
     /**
-     * Validate all fields
      * @returns {Boolean}
      */
     validate() {

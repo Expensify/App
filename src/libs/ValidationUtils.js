@@ -231,8 +231,6 @@ function isValidUSPhone(phoneNumber) {
 }
 
 /**
- * Checks if the password matches regex
- *
  * @param {String} password
  * @returns {Boolean}
  */
