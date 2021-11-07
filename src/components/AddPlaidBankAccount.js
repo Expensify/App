@@ -111,8 +111,9 @@ class AddPlaidBankAccount extends React.Component {
         if (getPlatform() === 'web') {
             console.log("in web");
             // redirectURI = 'https://new.expensify.com/partners/plaid/oauth_web';
-            // redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
-            redirectURI = 'https://www.expensify.com.dev/partners/plaid/oauth_callback.php';
+            redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
+            // redirectURI = 'https://expensify.com.dev/partners/plaid/oauth_callback.php';
+            // https://expensify.com.dev/partners/plaid/oauth_callback.php
         }
         clearPlaidBankAccountsAndToken();
         fetchPlaidLinkToken(redirectURI);

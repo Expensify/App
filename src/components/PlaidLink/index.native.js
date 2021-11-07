@@ -13,7 +13,6 @@ class PlaidLink extends React.Component {
     }
 
     componentDidMount() {
-        console.log("here");
         const emitter = new NativeEventEmitter(nativeModule);
         this.listener = emitter.addListener('onEvent', this.onEvent.bind(this));
 
