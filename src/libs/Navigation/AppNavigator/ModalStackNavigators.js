@@ -37,6 +37,7 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import OAuthLink from "../../../components/PlaidOAuth/oauth";
 import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
@@ -224,6 +225,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         Component: ReimbursementAccountPage,
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+    },
+    {
+        Component: OAuthLink,
+        name: 'OAuth_Plaid',
     },
 ]);
 

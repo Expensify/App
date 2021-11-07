@@ -103,6 +103,10 @@ export default {
                         path: ROUTES.BANK_ACCOUNT,
                         exact: true,
                     },
+                    OAuth_PLaid: {
+                        path: ROUTES.OAUTH_PLAID,
+                        exact: true,
+                    },
                 },
             },
             Report_Details: {
