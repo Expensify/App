@@ -776,7 +776,7 @@ export default {
     },
     keyboardShortCutModal: {
         title: 'Keyboard Shortcuts',
-        subtitle: 'Do you expense reports faster with these handy keyboard shortcuts',
+        subtitle: 'Save time with these handy keyboard shortcuts:',
         shortcuts: {
             openShortcutDialog: 'Opens the keyboard shortcuts dialog',
             escape: 'Escape Dialogs',

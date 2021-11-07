@@ -778,7 +778,7 @@ export default {
     },
     keyboardShortCutModal: {
         title: 'Atajos de teclado',
-        subtitle: '¿Realiza informes de gastos más rápido con estos prácticos atajos de teclado?',
+        subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {
             openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
             escape: 'Diálogos de escape',
