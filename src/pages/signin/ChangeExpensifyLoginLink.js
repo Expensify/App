@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const ChangeExpensifyLoginLink = ({credentials, translate, toLocalPhone}) => (
-    <View style={[styles.changeExpensifyLoginLinkContainer, styles.mb4, styles.mt3]}>
+    <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
         <Text>
             {translate('common.not')}
             &nbsp;

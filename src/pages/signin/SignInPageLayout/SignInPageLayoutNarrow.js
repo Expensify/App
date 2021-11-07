@@ -23,9 +23,13 @@ const propTypes = {
     shouldShowWelcomeText: PropTypes.bool.isRequired,
 
     /** SafeArea insets */
-    insets: PropTypes.shape(PropTypes.object).isRequired,
+    insets: PropTypes.shape(PropTypes.object),
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    insets: {},
 };
 
 const SignInPageLayoutNarrow = props => (
@@ -73,6 +77,7 @@ const SignInPageLayoutNarrow = props => (
 );
 
 SignInPageLayoutNarrow.propTypes = propTypes;
+SignInPageLayoutNarrow.defaultProps = defaultProps;
 SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
 export default compose(
