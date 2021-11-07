@@ -39,9 +39,6 @@ const propTypes = {
         accountExists: PropTypes.bool,
     }),
 
-    /** Flag to see if validation code expired */
-    validationCodeExpired: PropTypes.bool.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -88,7 +85,7 @@ class ResendValidationForm extends React.Component {
     }
 
     render() {
-        const isNewAccount = !this.props.account.accountExists;
+        const isNewAccount = !this.props.account.accountExists && !this.props.account.validateCodeExpired;
         const isOldUnvalidatedAccount = this.props.account.accountExists && !this.props.account.validated;
         const isSMSLogin = Str.isSMSLogin(this.props.credentials.login);
         const login = isSMSLogin ? this.props.toLocalPhone(Str.removeSMSDomain(this.props.credentials.login)) : this.props.credentials.login;
@@ -102,7 +99,7 @@ class ResendValidationForm extends React.Component {
             });
         } else if (isOldUnvalidatedAccount) {
             message = this.props.translate('resendValidationForm.unvalidatedAccount');
-        } else if (this.props.validationCodeExpired) {
+        } else if (this.props.account.validateCodeExpired) {
             message = this.props.translate('resendValidationForm.validationCodeFailedMessage');
         } else {
             message = this.props.translate('resendValidationForm.weSentYouMagicSignInLink', {

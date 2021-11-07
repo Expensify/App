@@ -82,7 +82,7 @@ class SignInPage extends Component {
         // - AND an account did not exist or is not validated for that login
         const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        const welcomeText = showResendValidationLinkForm && validateCodeExpired
+        const welcomeText = showResendValidationLinkForm
             ? ''
             : this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
@@ -98,7 +98,7 @@ class SignInPage extends Component {
 
                         {showPasswordForm && <PasswordForm />}
 
-                        {showResendValidationLinkForm && <ResendValidationForm validateCodeExpired={validateCodeExpired} />}
+                        {showResendValidationLinkForm && <ResendValidationForm />}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
