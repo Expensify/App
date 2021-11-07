@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Animated} from 'react-native';
-import {setNativePropsWeb} from '../../../libs/TextInputUtils';
+import {setBrowserAttributes} from '../../../libs/TextInputUtils';
 import styles from '../../../styles/styles';
 import {propTypes, defaultProps} from './expensiTextInputLabelPropTypes';
 
@@ -11,8 +11,8 @@ class ExpensiTextInputLabel extends Component {
     }
 
     componentDidMount() {
-        if (this.label && this.props.for) {
-            setNativePropsWeb(this.label, 'for', this.props.for);
+        if (this.props.for) {
+            setBrowserAttributes(this.label, 'for', this.props.for);
         }
     }
 
@@ -40,6 +40,5 @@ class ExpensiTextInputLabel extends Component {
 
 ExpensiTextInputLabel.propTypes = propTypes;
 ExpensiTextInputLabel.defaultProps = defaultProps;
-ExpensiTextInputLabel.displayName = 'ExpensiTextInputLabel';
 
 export default ExpensiTextInputLabel;

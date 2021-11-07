@@ -1,7 +1,7 @@
 import React, {memo} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import propTypes from './expensiTextInputLabelPropTypes';
+import {propTypes, defaultProps} from './expensiTextInputLabelPropTypes';
 
 const ExpensiTextInputLabel = ({
     label,
@@ -24,6 +24,7 @@ const ExpensiTextInputLabel = ({
 );
 
 ExpensiTextInputLabel.propTypes = propTypes;
+ExpensiTextInputLabel.propTypes = defaultProps;
 ExpensiTextInputLabel.displayName = 'ExpensiTextInputLabel';
 
 export default memo(ExpensiTextInputLabel);

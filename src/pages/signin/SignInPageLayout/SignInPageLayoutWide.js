@@ -8,7 +8,7 @@ import Text from '../../../components/Text';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {setNativePropsWeb} from '../../../libs/TextInputUtils';
+import {setBrowserAttributes} from '../../../libs/TextInputUtils';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -38,8 +38,8 @@ class SignInPageLayoutWide extends React.Component {
     componentDidMount() {
         // These native props are needed for Password Managers like LastPass
         if (this.form) {
-            setNativePropsWeb(this.form, 'method', 'post');
-            setNativePropsWeb(this.form, 'action', '/');
+            setBrowserAttributes(this.form, 'method', 'post');
+            setBrowserAttributes(this.form, 'action', '/');
         }
     }
 

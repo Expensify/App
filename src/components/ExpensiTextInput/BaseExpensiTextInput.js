@@ -8,7 +8,7 @@ import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
-import {setNativePropsWeb} from '../../libs/TextInputUtils';
+import {setBrowserAttributes} from '../../libs/TextInputUtils';
 import InlineErrorText from '../InlineErrorText';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -12;
@@ -43,12 +43,16 @@ class BaseExpensiTextInput extends Component {
     }
 
     componentDidMount() {
+        if (!this.input) {
+            return;
+        }
+
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (this.props.autoFocus && this.input) {
+        if (this.props.autoFocus) {
             this.input.focus();
         }
-        if (this.input && this.props.name) {
-            setNativePropsWeb(this.input, 'name', this.props.name);
+        if (this.props.name) {
+            setBrowserAttributes(this.input, 'name', this.props.name);
         }
     }
 

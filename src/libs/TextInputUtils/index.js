@@ -1,23 +1,24 @@
-function getPasswordAutocompleteType() {
-    return 'current-password';
-}
+/**
+ * Web password field needs `current-password` as autocomplete type which is not supported on native
+ */
+const passwordAutocompleteType = 'current-password';
 
 /**
- * Set input Native Props on Web Platform
- *
- * @param {Object} input
- * @param {String} prop
- * @param {any} value
+ * Used to set attributes on underlying dom node that are only available on web and throws error on native platform.
+ * @param {Object} element
+ * @param {String} attribute
+ * @param {String} value
  */
-function setNativePropsWeb(input, prop, value) {
-    if (input) {
-        input.setNativeProps({
-            [prop]: value,
-        });
+function setBrowserAttributes(element, attribute, value) {
+    if (!element) {
+        return;
     }
+    element.setNativeProps({
+        [attribute]: value,
+    });
 }
 
 export {
-    getPasswordAutocompleteType,
-    setNativePropsWeb,
+    passwordAutocompleteType,
+    setBrowserAttributes,
 };

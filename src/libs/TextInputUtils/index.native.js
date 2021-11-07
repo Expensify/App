@@ -1,10 +1,11 @@
-function getPasswordAutocompleteType() {
-    return 'password';
-}
+const passwordAutocompleteType = 'password';
 
-function setNativePropsWeb() {}
+/**
+ * Skip adding browser only attributes to underlying Nodes which will result in an runtime error.
+ */
+function setBrowserAttributes() {}
 
 export {
-    getPasswordAutocompleteType,
-    setNativePropsWeb,
+    passwordAutocompleteType,
+    setBrowserAttributes,
 };

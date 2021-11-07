@@ -16,7 +16,7 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import {getPasswordAutocompleteType} from '../../libs/TextInputUtils';
+import {passwordAutocompleteType} from '../../libs/TextInputUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -99,9 +99,9 @@ class PasswordForm extends React.Component {
                     <ExpensiTextInput
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType={getPasswordAutocompleteType()}
+                        autoCompleteType={passwordAutocompleteType}
                         textContentType="password"
-                        nativeID={getPasswordAutocompleteType()}
+                        nativeID={passwordAutocompleteType}
                         name="password"
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
