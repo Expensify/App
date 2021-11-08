@@ -133,14 +133,14 @@ class BeneficialOwnersStep extends React.Component {
      * @param {String} value
      */
     clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
+        const renamedFields = {
+            addressStreet: 'street',
+            addressCity: 'city',
+            addressState: 'state',
+            addressZipCode: 'zipCode',
+        };
+        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
         this.setState((prevState) => {
-            const renamedFields = {
-                addressStreet: 'street',
-                addressCity: 'city',
-                addressState: 'state',
-                addressZipCode: 'zipCode',
-            };
-            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             const beneficialOwners = [...prevState.beneficialOwners];
             beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
             updateReimbursementAccountDraft({beneficialOwners});
@@ -151,7 +151,7 @@ class BeneficialOwnersStep extends React.Component {
         if (inputKey === 'dob') {
             this.clearError(`beneficialOwnersErrors.${ownerIndex}.dobAge`);
         }
-        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${inputKey}`);
+        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${renamedInputKey}`);
     }
 
     submit() {

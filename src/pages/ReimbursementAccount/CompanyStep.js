@@ -192,7 +192,11 @@ class CompanyStep extends React.Component {
                         label={this.props.translate('common.companyAddress')}
                         containerStyles={[styles.mt4]}
                         value={this.state.addressStreet}
-                        onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                        onChange={(values) => {
+                            _.each(values, (value, key) => {
+                                this.clearErrorAndSetValue(key, value);
+                            });
+                        }}
                         errorText={this.getErrorText('addressStreet')}
                     />
                     <View style={[styles.flexRow, styles.mt4]}>
@@ -202,7 +206,7 @@ class CompanyStep extends React.Component {
                                 onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
                                 value={this.state.addressCity}
                                 errorText={this.getErrorText('addressCity')}
-                                translateX={-124} // TODO: Is this necessary?
+                                translateX={-14}
                             />
                         </View>
                         <View style={[styles.flex1]}>

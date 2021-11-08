@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
+import _ from 'underscore';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -22,13 +23,14 @@ const propTypes = {
     value: PropTypes.string,
 
     /** A callback function when the value of this field has changed */
-    onChangeText: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
 
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
     ...withLocalizePropTypes,
 };
+
 const defaultProps = {
     value: '',
     containerStyles: null,
@@ -44,30 +46,22 @@ const AddressSearch = (props) => {
             const streetNumber = getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
             const streetName = getAddressComponent(addressComponents, 'route', 'long_name') || '';
 
-            const streetNumberAndName = `${streetNumber} ${streetName}`.trim();
+            const addressStreet = `${streetNumber} ${streetName}`.trim();
 
-            let city = getAddressComponent(addressComponents, 'locality', 'long_name');
-            if (!city) {
-                city = getAddressComponent(addressComponents, 'sublocality', 'long_name');
-                Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
+            let addressCity = getAddressComponent(addressComponents, 'locality', 'long_name');
+            if (!addressCity) {
+                addressCity = getAddressComponent(addressComponents, 'sublocality', 'long_name');
+                Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: addressCity});
             }
-            const zipCode = getAddressComponent(addressComponents, 'postal_code', 'long_name');
-            const state = getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+            const addressZipCode = getAddressComponent(addressComponents, 'postal_code', 'long_name');
+            const addressState = getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
 
-            // Trigger text change events for each of the individual fields being saved on the server
-            if (streetNumberAndName.length > props.value.length) {
-                // We only replace what the user typed in the address input if we think ours is more complete
-                props.onChangeText('addressStreet', streetNumberAndName);
-            }
-            if (city) {
-                props.onChangeText('addressCity', city);
-            }
-            if (state) {
-                props.onChangeText('addressState', state);
-            }
-            if (zipCode) {
-                props.onChangeText('addressZipCode', zipCode);
-            }
+            props.onChange(_.pick({
+                addressCity,
+                addressState,
+                addressZipCode,
+                addressStreet,
+            }, _.identity));
         }
     };
 
@@ -97,10 +91,8 @@ const AddressSearch = (props) => {
                     // This line of code https://github.com/FaridSafi/react-native-google-places-autocomplete/blob/47d7223dd48f85da97e80a0729a985bbbcee353f/GooglePlacesAutocomplete.js#L148
                     // will call onChangeText passing '' after the component renders the first time, clearing its value. Why? who knows, but we have to skip it.
                     if (skippedFirstOnChangeText) {
-                        console.log('textInputProps.onChange', text); // TODO: remove
-                        props.onChangeText('addressStreet', text);
+                        props.onChange({addressStreet: text});
                     } else {
-                        console.log('skipping textInputProps.onChange', text); // TODO: remove
                         setSkippedFirstOnChangeText(true);
                     }
                 },

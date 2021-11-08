@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import _ from 'underscore';
 import PropTypes from 'prop-types';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import AddressSearch from '../../components/AddressSearch';
@@ -7,6 +8,7 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
+import StatePicker from '../../components/StatePicker';
 
 
 const propTypes = {
@@ -76,23 +78,6 @@ const IdentityForm = ({
     const dobErrorText = (errors.dob ? translate('bankAccount.error.dob') : '')
         || (errors.dobAge ? translate('bankAccount.error.age') : '');
 
-    const getFormattedAddressValue = () => {
-        let addressString = '';
-        if (street) {
-            addressString += `${street}, `;
-        }
-        if (city) {
-            addressString += `${city}, `;
-        }
-        if (state) {
-            addressString += `${state}, `;
-        }
-        if (zipCode) {
-            addressString += `${zipCode}`;
-        }
-        return addressString;
-    };
-
     return (
         <View style={style}>
             <View style={[styles.flexRow]}>
@@ -135,9 +120,40 @@ const IdentityForm = ({
             <AddressSearch
                 label={translate('common.personalAddress')}
                 containerStyles={[styles.mt4]}
-                value={getFormattedAddressValue()}
-                onChangeText={(fieldName, value) => onFieldChange(fieldName, value)}
-                errorText={errors.street ? translate('bankAccount.error.addressStreet') : ''}
+                value={street}
+                onChange={(addressValues) => {
+                    _.each(addressValues, (value, key) => {
+                        onFieldChange(key, value);
+                    });
+                }}
+                errorText={errors.street ? translate('bankAccount.error.address') : ''}
+            />
+            <View style={[styles.flexRow, styles.mt4]}>
+                <View style={[styles.flex2, styles.mr2]}>
+                    <ExpensiTextInput
+                        label={translate('common.city')}
+                        value={city}
+                        onChangeText={value => onFieldChange('addressCity', value)}
+                        errorText={errors.city ? translate('bankAccount.error.addressCity') : ''}
+                        translateX={-14}
+                    />
+                </View>
+                <View style={[styles.flex1]}>
+                    <StatePicker
+                        value={state}
+                        onChange={value => onFieldChange('addressState', value)}
+                        hasError={Boolean(errors.state)}
+                    />
+                </View>
+            </View>
+            <ExpensiTextInput
+                label={translate('common.zip')}
+                containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                value={zipCode}
+                onChangeText={value => onFieldChange('addressZipCode', value)}
+                errorText={errors.zipCode ? translate('bankAccount.error.zipCode') : ''}
+                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
             />
         </View>
     );
