@@ -43,21 +43,25 @@ class BaseExpensiTextInput extends Component {
 
     componentDidMount() {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (this.props.autoFocus && this.input) {
-            this.input.focus();
+        if (!this.props.autoFocus || !this.input) {
+            return;
         }
+
+        this.input.focus();
     }
 
     componentDidUpdate(prevProps) {
         // activate or deactivate the label when value is changed programmatically from outside
-        if (prevProps.value !== this.props.value) {
-            this.value = this.props.value;
+        if (prevProps.value === this.props.value) {
+            return;
+        }
 
-            if (this.props.value) {
-                this.activateLabel();
-            } else if (!this.state.isFocused) {
-                this.deactivateLabel();
-            }
+        this.value = this.props.value;
+
+        if (this.props.value) {
+            this.activateLabel();
+        } else if (!this.state.isFocused) {
+            this.deactivateLabel();
         }
     }
 
@@ -100,21 +104,25 @@ class BaseExpensiTextInput extends Component {
     }
 
     activateLabel() {
-        if (this.value.length >= 0 && !this.isLabelActive) {
-            this.animateLabel(
-                ACTIVE_LABEL_TRANSLATE_Y,
-                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
-                ACTIVE_LABEL_SCALE,
-            );
-            this.isLabelActive = true;
+        if (this.value.length < 0 || this.isLabelActive) {
+            return;
         }
+
+        this.animateLabel(
+            ACTIVE_LABEL_TRANSLATE_Y,
+            ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
+            ACTIVE_LABEL_SCALE,
+        );
+        this.isLabelActive = true;
     }
 
     deactivateLabel() {
-        if (!this.props.forceActiveLabel && this.value.length === 0) {
-            this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
-            this.isLabelActive = false;
+        if (this.props.forceActiveLabel || this.value.length !== 0) {
+            return;
         }
+
+        this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
+        this.isLabelActive = false;
     }
 
     animateLabel(translateY, translateX, scale) {

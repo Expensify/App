@@ -22,9 +22,11 @@ class Switch extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isOn !== this.props.isOn) {
-            this.toggleSwitch();
+        if (prevProps.isOn === this.props.isOn) {
+            return;
         }
+
+        this.toggleSwitch();
     }
 
     toggleSwitch() {

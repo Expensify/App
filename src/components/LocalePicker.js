@@ -50,9 +50,11 @@ const LocalePicker = (props) => {
         <ExpensiPicker
             label={props.size === 'normal' ? translate('preferencesPage.language') : null}
             onChange={(locale) => {
-                if (locale !== props.preferredLocale) {
-                    setLocale(locale);
+                if (locale === props.preferredLocale) {
+                    return;
                 }
+
+                setLocale()
             }}
             items={_.values(localesToLanguages)}
             size={props.size}

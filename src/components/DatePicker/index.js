@@ -55,9 +55,11 @@ class Datepicker extends React.Component {
      * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
      */
     showDatepicker() {
-        if (this.inputRef) {
-            this.inputRef.click();
+        if (!this.inputRef) {
+            return;
         }
+
+        this.inputRef.click();
     }
 
     render() {

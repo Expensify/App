@@ -5,6 +5,7 @@ import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
+import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
 let isQueuePaused = false;
 
@@ -55,7 +56,7 @@ function processOfflineQueue(persistedRequests) {
     // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
     // this once when the app initializes
     networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+    NetworkRequestQueue.clearPersistedRequests();
     didLoadPersistedRequests = true;
 }
 
@@ -121,25 +122,25 @@ function canMakeRequest(request) {
  * @param {Object} request
  * @param {String} request.command
  * @param {Object} request.data
- * @param {Boolean} request.data.doNotRetry
+ * @param {Boolean} request.data.shouldRetry
  * @param {String} [request.data.returnValueList]
  * @return {Boolean}
  */
 function canRetryRequest(request) {
-    const doNotRetry = lodashGet(request, 'data.doNotRetry', false);
-    const logParams = {command: request.command, doNotRetry, isQueuePaused};
+    const shouldRetry = lodashGet(request, 'data.shouldRetry');
+    const logParams = {command: request.command, shouldRetry, isQueuePaused};
     const returnValueList = lodashGet(request, 'data.returnValueList');
     if (returnValueList) {
         logParams.returnValueList = returnValueList;
     }
 
-    if (doNotRetry) {
+    if (!shouldRetry) {
         console.debug('Skipping request that should not be re-tried: ', logParams);
     } else {
         console.debug('Skipping request and re-queueing: ', logParams);
     }
 
-    return !doNotRetry;
+    return shouldRetry;
 }
 
 /**
@@ -156,13 +157,14 @@ function processNetworkRequestQueue() {
         // If we have a request then we need to check if it can be persisted in case we close the tab while offline.
         // We filter persisted requests from the normal Queue to remove duplicates
         networkRequestQueue = _.reject(networkRequestQueue, (request) => {
-            if (!request.data.doNotRetry && request.data.persist) {
+            const shouldRetry = lodashGet(request, 'data.shouldRetry');
+            if (shouldRetry && request.data.persist) {
                 retryableRequests.push(request);
                 return true;
             }
         });
         if (retryableRequests.length) {
-            Onyx.merge(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
+            NetworkRequestQueue.saveRetryableRequests(retryableRequests);
         }
         return;
     }
@@ -175,7 +177,7 @@ function processNetworkRequestQueue() {
     // Some requests should be retried and will end up here if the following conditions are met:
     // - the queue is paused
     // - the request does not have forceNetworkRequest === true
-    // - the request does not have doNotRetry === true
+    // - the request does not have shouldRetry === false
     const requestsToProcessOnNextRun = [];
 
     _.each(networkRequestQueue, (queuedRequest) => {
@@ -216,7 +218,7 @@ function processNetworkRequestQueue() {
     // As multiple client will be sharing the same Queue and NETWORK_REQUEST_QUEUE is synchronized among clients,
     // we only ask Leader client to clear the queue
     if (ActiveClientManager.isClientTheLeader() && didLoadPersistedRequests) {
-        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+        NetworkRequestQueue.clearPersistedRequests();
     }
 
     // User could have bad connectivity and he can go offline multiple times
@@ -259,6 +261,11 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             reject,
             shouldUseSecure,
         };
+
+        // All requests should be retried by default
+        if (_.isUndefined(request.data.shouldRetry)) {
+            request.data.shouldRetry = true;
+        }
 
         // Add the request to a queue of actions to perform
         networkRequestQueue.push(request);

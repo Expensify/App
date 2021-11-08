@@ -1,14 +1,18 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
+// eslint-disable-next-line import/no-cycle
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 
 // eslint-disable-next-line import/no-cycle
 import LogUtil from './Log';
+// eslint-disable-next-line import/no-cycle
+import * as Session from './actions/Session';
 
 let isAuthenticating;
 let credentials;
@@ -91,21 +95,23 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
  */
 function requireParameters(parameterNames, parameters, commandName) {
     parameterNames.forEach((parameterName) => {
-        if (!_(parameters).has(parameterName)
-            || parameters[parameterName] === null
-            || parameters[parameterName] === undefined
+        if (_(parameters).has(parameterName)
+            && parameters[parameterName] !== null
+            && parameters[parameterName] !== undefined
         ) {
-            const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
-            const parametersCopy = _.chain(parameters)
-                .clone()
-                .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
-                .value();
-            const keys = _(parametersCopy).keys().join(', ') || 'none';
-
-            let error = `Parameter ${parameterName} is required for "${commandName}". `;
-            error += `Supplied parameters: ${keys}`;
-            throw new Error(error);
+            return;
         }
+
+        const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
+        const parametersCopy = _.chain(parameters)
+            .clone()
+            .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
+            .value();
+        const keys = _(parametersCopy).keys().join(', ') || 'none';
+
+        let error = `Parameter ${parameterName} is required for "${commandName}". `;
+        error += `Supplied parameters: ${keys}`;
+        throw new Error(error);
     });
 }
 
@@ -153,7 +159,8 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        if (queuedRequest.data.doNotRetry || unableToReauthenticate) {
+        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+        if (!shouldRetry || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;
         }
@@ -182,7 +189,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
     }
 
     // Set an error state and signify we are done loading
-    Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
+    Session.setSessionLoadingAndError(false, 'Cannot connect to server');
 
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
@@ -221,7 +228,7 @@ function Authenticate(parameters) {
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         authToken: parameters.authToken,
-        doNotRetry: true,
+        shouldRetry: false,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
@@ -283,10 +290,7 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {
-                authToken: response.authToken,
-                encryptedAuthToken: response.encryptedAuthToken,
-            });
+            Session.updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
@@ -340,7 +344,7 @@ function AuthenticateWithAccountID(parameters) {
         accountID: parameters.accountID,
         validateCode: parameters.validateCode,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
-        doNotRetry: true,
+        shouldRetry: false,
     });
 }
 
@@ -398,7 +402,7 @@ function User_SignUp(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
- * @param {Boolean} [parameters.doNotRetry]
+ * @param {Boolean} [parameters.shouldRetry]
  * @param {String} [parameters.email]
  * @returns {Promise}
  */
@@ -419,12 +423,12 @@ function CreateLogin(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
- * @param {Boolean} parameters.doNotRetry
+ * @param {Boolean} parameters.shouldRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
-    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'doNotRetry'],
+    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
