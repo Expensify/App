@@ -7,7 +7,7 @@ const keyboardShortcutMap = {};
  * Return the key-value pair for shortcut keys and translate keys
  * @returns {Array}
  */
-function getKeyboardShortcutMap() {
+function getKeyboardShortcuts() {
     const shortcuts = [];
     _.each(keyboardShortcutMap, (descriptionKey, key) => {
         shortcuts.push({key, descriptionKey});
@@ -190,7 +190,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
  */
 const KeyboardShortcut = {
     subscribe,
-    getKeyboardShortcutMap,
+    getKeyboardShortcuts,
 };
 
 export default KeyboardShortcut;

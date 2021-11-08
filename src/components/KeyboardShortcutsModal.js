@@ -75,11 +75,12 @@ class KeyboardShortcutsModal extends React.PureComponent {
     }
 
     render() {
-        const shortcuts = KeyboardShortcut.getKeyboardShortcutMap();
+        const shortcuts = KeyboardShortcut.getKeyboardShortcuts();
+        const modalType = this.props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED;
         return (
             <Modal
                 isVisible={this.state.isOpen}
-                type={CONST.MODAL.MODAL_TYPE.CENTERED}
+                type={modalType}
                 containerStyle={styles.keyboardShortcutModalContainer}
                 onClose={() => this.toggleKeyboardShortcutModal(false)}
             >
