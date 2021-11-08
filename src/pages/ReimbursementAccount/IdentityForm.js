@@ -155,7 +155,7 @@ const IdentityForm = (props) => {
                         </View>
                         <View style={[styles.flex1]}>
                             <StatePicker
-                                value={state}
+                                value={props.state}
                                 onChange={value => props.onFieldChange('addressState', value)}
                                 errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                                 hasError={Boolean(props.errors.state)}

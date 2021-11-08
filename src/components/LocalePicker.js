@@ -54,7 +54,7 @@ const LocalePicker = (props) => {
                     return;
                 }
 
-                setLocale()
+                setLocale();
             }}
             items={_.values(localesToLanguages)}
             size={props.size}
