@@ -136,10 +136,11 @@ function createAndNavigate(name = '') {
  * Delete the policy
  *
  * @param {String} [policyID]
- * @param {Boolean} [shouldAutomaticallyReroute]
+ * @param {Boolean} shouldGrowl
+ * @param {Boolean} shouldAutomaticallyReroute
  * @returns {Promise}
  */
-function deletePolicy(policyID = '', shouldAutomaticallyReroute = true) {
+function deletePolicy(policyID = '', shouldGrowl = true, shouldAutomaticallyReroute = true) {
     return API.Policy_Delete({policyID})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -147,6 +148,10 @@ function deletePolicy(policyID = '', shouldAutomaticallyReroute = true) {
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
                 return;
+            }
+
+            if (shouldGrowl) {
+                Growl.show(translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
             }
 
             // Removing the workspace data from Onyx as well

@@ -659,6 +659,7 @@ export default {
             reconcileCards: 'Reconcile cards',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
+            growlMessageOnDelete: 'Workspace deleted',
         },
         new: {
             newWorkspace: 'New workspace',
