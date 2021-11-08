@@ -47,7 +47,7 @@ const defaultProps = {
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
-
+        this.input = null;
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -55,6 +55,18 @@ class PasswordForm extends React.Component {
             password: '',
             twoFactorAuthCode: '',
         };
+    }
+
+    componentDidMount() {
+        if (this.input) {
+            this.input.focus();
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.visible && this.props.visible) {
+            this.input.focus();
+        }
     }
 
     /**
@@ -88,6 +100,7 @@ class PasswordForm extends React.Component {
             <View style={!this.props.visible && styles.visuallyHidden}>
                 <View style={[styles.mv3]}>
                     <ExpensiTextInput
+                        ref={el => this.input = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
                         autoCompleteType={passwordAutocompleteType}
@@ -97,7 +110,6 @@ class PasswordForm extends React.Component {
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
-                        autoFocus
                         translateX={-18}
                         blurOnSubmit={false}
                     />

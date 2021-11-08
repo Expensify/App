@@ -48,7 +48,7 @@ const defaultProps = {
 class LoginForm extends React.Component {
     constructor(props) {
         super(props);
-
+        this.input = null;
         this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
@@ -56,6 +56,23 @@ class LoginForm extends React.Component {
             formError: false,
             login: '',
         };
+    }
+
+    componentDidMount() {
+        if (canFocusInputOnScreenFocus() && this.input) {
+            this.input.focus();
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.visible && this.props.visible) {
+            this.input.focus();
+
+            if (this.state.login) {
+                // eslint-disable-next-line react/no-did-update-set-state
+                this.setState({login: ''});
+            }
+        }
     }
 
     /**
@@ -105,6 +122,7 @@ class LoginForm extends React.Component {
             <View style={!this.props.visible && styles.visuallyHidden}>
                 <View style={[styles.mt3]}>
                     <ExpensiTextInput
+                        ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
                         autoCompleteType="username"
@@ -116,7 +134,6 @@ class LoginForm extends React.Component {
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        autoFocus={canFocusInputOnScreenFocus()}
                         translateX={-18}
                     />
                 </View>
