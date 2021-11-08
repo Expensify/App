@@ -232,6 +232,8 @@ export default {
         setMyTimezoneAutomatically: 'Configura mi zona horaria automáticamente',
         timezone: 'Zona horaria',
         growlMessageOnSave: 'Tu perfil se ha guardado correctamente',
+        invalidFileMessage: 'Archivo inválido. Pruebe con una imagen diferente.',
+        avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
         online: 'En línea',
         offline: 'Desconectado',
         syncing: 'Sincronizando',
@@ -587,6 +589,14 @@ export default {
         listOfRestrictedBusinesses: 'lista de negocios restringidos',
         incorporationDatePlaceholder: 'Fecha de inicio (aaaa-mm-dd)',
         companyPhonePlaceholder: '(prefijo) + (número)',
+        incorporationTypes: {
+            LLC: 'LLC',
+            CORPORATION: 'Corp',
+            PARTNERSHIP: 'Sociedad',
+            COOPERATIVE: 'Cooperativa',
+            SOLE_PROPRIETORSHIP: 'Propietario único',
+            OTHER: 'Otra',
+        },
     },
     requestorStep: {
         headerTitle: 'Información personal',
@@ -607,7 +617,7 @@ export default {
         reviewingInfo: '¡Gracias! Estamos revisando tu información y nos comunicaremos contigo en breve. Consulte su chat con Concierge ',
         forNextSteps: ' para conocer los próximos pasos para terminar de configurar su cuenta bancaria.',
         letsChatCTA: '¡Sí, vamos a chatear!',
-        letsChatText: '¡Gracias! Todavía tenemos que solucionar un par de cosas, pero será más fácil por chat. ¿Listo para charlar?',
+        letsChatText: '¡Gracias! Necesitamos tu ayuda para verificar la información, pero podemos hacerlo rápidamente a través del chat. ¿Estás listo?',
         letsChatTitle: '¡Vamos a chatear!',
     },
     beneficialOwnersStep: {

@@ -5,18 +5,12 @@ import {
     AppState,
     ActivityIndicator,
 } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Text from '../../../components/Text';
-import {
-    fetchActions,
-    fetchChatReportsByIDs,
-    updateLastReadActionID,
-    setNewMarkerPosition,
-    subscribeToReportTypingEvents,
-    unsubscribeFromReportChannel,
-} from '../../../libs/actions/Report';
+import * as Report from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
 import reportActionPropTypes from './reportActionPropTypes';
@@ -37,6 +31,7 @@ import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionCon
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
+import ONYXKEYS from '../../../ONYXKEYS';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -68,6 +63,9 @@ const propTypes = {
         email: PropTypes.string,
     }),
 
+    /** Are we loading more report actions? */
+    isLoadingReportActions: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
@@ -81,6 +79,7 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
+    isLoadingReportActions: false,
 };
 
 class ReportActionsView extends React.Component {
@@ -98,7 +97,6 @@ class ReportActionsView extends React.Component {
         this.didLayout = false;
 
         this.state = {
-            isLoadingMoreChats: false,
             isMarkerActive: false,
             localUnreadActionCount: this.props.report.unreadActionCount,
         };
@@ -121,9 +119,9 @@ class ReportActionsView extends React.Component {
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
         if (!this.props.report.reportID) {
-            fetchChatReportsByIDs([this.props.reportID], true);
+            Report.fetchChatReportsByIDs([this.props.reportID], true);
         }
-        subscribeToReportTypingEvents(this.props.reportID);
+        Report.subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
             if (ReportActionComposeFocusManager.isFocused()) {
                 this.scrollToListBottom();
@@ -132,11 +130,11 @@ class ReportActionsView extends React.Component {
 
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
-            updateLastReadActionID(this.props.reportID);
+            Report.updateLastReadActionID(this.props.reportID);
         }
 
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
-        fetchActions(this.props.reportID);
+        Report.fetchActions(this.props.reportID);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -151,7 +149,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
+        if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
             return true;
         }
 
@@ -198,7 +196,7 @@ class ReportActionsView extends React.Component {
             // When the last action changes, record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
-                updateLastReadActionID(this.props.reportID);
+                Report.updateLastReadActionID(this.props.reportID);
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
@@ -215,7 +213,7 @@ class ReportActionsView extends React.Component {
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            updateLastReadActionID(this.props.reportID);
+            Report.updateLastReadActionID(this.props.reportID);
             this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
         }
     }
@@ -227,7 +225,7 @@ class ReportActionsView extends React.Component {
 
         AppState.removeEventListener('change', this.onVisibilityChange);
 
-        unsubscribeFromReportChannel(this.props.reportID);
+        Report.unsubscribeFromReportChannel(this.props.reportID);
     }
 
     /**
@@ -236,7 +234,7 @@ class ReportActionsView extends React.Component {
     onVisibilityChange() {
         // only mark as read if visible AND report is open.
         if (Visibility.isVisible() && !this.props.isDrawerOpen) {
-            updateLastReadActionID(this.props.reportID);
+            Report.updateLastReadActionID(this.props.reportID);
         }
     }
 
@@ -257,7 +255,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.state.isLoadingMoreChats) {
+        if (this.props.isLoadingReportActions) {
             return;
         }
 
@@ -270,13 +268,10 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        this.setState({isLoadingMoreChats: true}, () => {
-            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-            // case just get everything starting from 0.
-            const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-            fetchActions(this.props.reportID, offset)
-                .then(() => this.setState({isLoadingMoreChats: false}));
-        });
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
+        // case just get everything starting from 0.
+        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        Report.fetchActionsWithLoadingState(this.props.reportID, offset);
     }
 
     /**
@@ -363,7 +358,7 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         scrollToBottom();
-        updateLastReadActionID(this.props.reportID);
+        Report.updateLastReadActionID(this.props.reportID);
     }
 
     /**
@@ -375,7 +370,7 @@ class ReportActionsView extends React.Component {
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
         const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : (this.props.report.maxSequenceNumber - unreadActionCount) + 1;
-        setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
+        Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
     }
 
 
@@ -544,7 +539,7 @@ class ReportActionsView extends React.Component {
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.state.isLoadingMoreChats
+                    ListFooterComponent={this.props.isLoadingReportActions
                         ? <ActivityIndicator size="small" color={themeColors.spinner} />
                         : null}
                     keyboardShouldPersistTaps="handled"
@@ -566,4 +561,10 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
+    withOnyx({
+        isLoadingReportActions: {
+            key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
+            initWithStoredValues: false,
+        },
+    }),
 )(ReportActionsView);
