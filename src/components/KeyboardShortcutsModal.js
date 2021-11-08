@@ -45,7 +45,6 @@ class KeyboardShortcutsModal extends React.PureComponent {
         }
     }
 
-
     /**
      * Set flag for model visibility
      * @param {Boolean} flag
@@ -73,7 +72,6 @@ class KeyboardShortcutsModal extends React.PureComponent {
             </View>
         );
     }
-
 
     render() {
         const shortcuts = KeyboardShortcut.getKeyboardShortcutMap();

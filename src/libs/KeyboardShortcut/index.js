@@ -3,6 +3,10 @@ import _ from 'underscore';
 const events = {};
 const keyboardShortcutMap = {};
 
+/**
+ * Return the key-value pair for shortcut keys and translate keys
+ * @returns {Array}
+ */
 function getKeyboardShortcutMap() {
     const shortcuts = [];
     _.each(keyboardShortcutMap, (descriptionKey, key) => {
@@ -150,7 +154,6 @@ function addKeyToMap(key, modifiers, descriptionKey) {
     shortcutKey = shortcutKey.join(' + ');
     keyboardShortcutMap[shortcutKey] = descriptionKey;
 }
-
 
 /**
  * Subscribes to a keyboard event.
