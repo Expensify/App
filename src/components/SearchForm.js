@@ -72,7 +72,7 @@ class SearchForm extends Component {
 
             // Then add new sections only if we're not already at our limit
             const searchValueTrimmed = searchValue.trim();
-            if (this.selectedOptions.length < this.props.maxResults) {
+            if (this.state.selectedOptions.length < this.props.maxResults) {
                 sections.push(...this.props.getSearchResults(searchValueTrimmed));
             }
 
