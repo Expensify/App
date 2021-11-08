@@ -33,10 +33,12 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
-        if (val) {
-            currentUserEmail = val.email;
-            currentUserAccountID = val.accountID;
+        if (!val) {
+            return;
         }
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
     },
 });
 
@@ -382,10 +384,12 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             return fetchedReports;
         })
         .catch((err) => {
-            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                // eslint-disable-next-line no-use-before-define
-                handleInaccessibleReport();
+            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
+                return;
             }
+
+            // eslint-disable-next-line no-use-before-define
+            handleInaccessibleReport();
         });
 }
 
@@ -910,6 +914,18 @@ function fetchActions(reportID, offset) {
 }
 
 /**
+ * Get the actions of a report
+ *
+ * @param {Number} reportID
+ * @param {Number} [offset]
+ */
+function fetchActionsWithLoadingState(reportID, offset) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
+    fetchActions(reportID, offset)
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
+}
+
+/**
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
@@ -1133,15 +1149,17 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
     })
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Reverse Optimistic Response
-                reportActionsToMerge[sequenceNumber] = {
-                    ...reportAction,
-                    message: oldMessage,
-                };
-
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            if (response.jsonCode === 200) {
+                return;
             }
+
+            // Reverse Optimistic Response
+            reportActionsToMerge[sequenceNumber] = {
+                ...reportAction,
+                message: oldMessage,
+            };
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
         });
 }
 
@@ -1205,6 +1223,17 @@ function togglePinnedState(report) {
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+}
+
+/**
+ * Immediate indication whether the report has a draft comment.
+ *
+ * @param {String} reportID
+ * @param {Boolean} hasDraft
+ * @returns {Promise}
+ */
+function setReportWithDraft(reportID, hasDraft) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${reportID}`, hasDraft);
 }
 
 /**
@@ -1416,4 +1445,6 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
+    setReportWithDraft,
+    fetchActionsWithLoadingState,
 };

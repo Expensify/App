@@ -101,9 +101,11 @@ class ValidationStep extends React.Component {
         };
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(values[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(values[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
@@ -168,6 +170,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
                     shouldShowBackButton
+                    shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
