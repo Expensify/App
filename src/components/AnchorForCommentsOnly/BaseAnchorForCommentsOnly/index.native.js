@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {Linking, StyleSheet, Pressable} from 'react-native';
@@ -15,6 +16,7 @@ import styles from '../../../styles/styles';
  */
 const BaseAnchorForCommentsOnly = (props) => {
     let linkRef;
+    const rest = _.omit(props, _.keys(propTypes));
     return (
         props.isAttachment
             ? (
@@ -48,8 +50,8 @@ const BaseAnchorForCommentsOnly = (props) => {
                     <Text
                         ref={el => linkRef = el}
                         style={StyleSheet.flatten(props.style)}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...rest}
                     >
                         {props.children}
                     </Text>

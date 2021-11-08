@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
@@ -9,14 +10,13 @@ import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/Context
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
 
-
 /*
  * This is a default anchor component for regular links.
  */
 const BaseAnchorForCommentsOnly = (props) => {
     let linkRef;
+    const rest = _.omit(props, _.keys(propTypes));
     return (
-
         props.isAttachment
             ? (
                 <Pressable onPress={() => {
@@ -53,7 +53,7 @@ const BaseAnchorForCommentsOnly = (props) => {
                             target: props.target,
                         }}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
+                        {...rest}
                     >
                         {props.children}
                     </Text>
