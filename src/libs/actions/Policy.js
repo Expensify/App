@@ -150,7 +150,7 @@ function deletePolicy(policyID = '', shouldAutomaticallyReroute = true) {
             }
 
             // Removing the workspace data from Onyx as well
-            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${response.policyID}`, null);
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
         }).then(() => {
             if (shouldAutomaticallyReroute) {
                 Navigation.dismissModal();

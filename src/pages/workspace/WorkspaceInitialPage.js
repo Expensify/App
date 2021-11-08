@@ -33,7 +33,7 @@ import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
-import {create, deletePolicy} from '../../libs/actions/Policy';
+import {createAndNavigate, deletePolicy} from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Whether the current screen is focused. */
@@ -154,7 +154,7 @@ class WorkspaceInitialPage extends React.Component {
                         {
                             icon: Plus,
                             text: translate('workspace.new.newWorkspace'),
-                            onPress: () => create(),
+                            onPress: () => createAndNavigate(),
                         }, {
                             icon: Trashcan,
                             text: translate('workspace.common.delete'),
