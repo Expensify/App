@@ -74,21 +74,16 @@ const getAllParticipants = (report, personalDetails) => {
     });
 };
 
-const ReportParticipantsPage = ({
-    personalDetails,
-    report,
-    route,
-    translate,
-}) => {
-    const participants = getAllParticipants(report, personalDetails);
+const ReportParticipantsPage = (props) => {
+    const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate(isDefaultRoom(report) ? 'common.members' : 'common.details')}
+                title={props.translate(isDefaultRoom(props.report) ? 'common.members' : 'common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={Navigation.dismissModal}
-                shouldShowBackButton={isDefaultRoom(report)}
+                shouldShowBackButton={isDefaultRoom(props.report)}
             />
             <View
                 pointerEvents="box-none"
@@ -104,7 +99,7 @@ const ReportParticipantsPage = ({
                         }]}
                         onSelectRow={(option) => {
                             Navigation.navigate(ROUTES.getReportParticipantRoute(
-                                route.params.reportID, option.login,
+                                props.route.params.reportID, option.login,
                             ));
                         }}
                         hideSectionHeaders
@@ -121,7 +116,7 @@ const ReportParticipantsPage = ({
 };
 
 ReportParticipantsPage.propTypes = propTypes;
-ReportParticipantsPage.displayName = 'ParticipantsPage';
+ReportParticipantsPage.displayName = 'ReportParticipantsPage';
 
 export default compose(
     withLocalize,

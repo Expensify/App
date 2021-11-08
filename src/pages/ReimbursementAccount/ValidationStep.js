@@ -7,7 +7,7 @@ import _ from 'underscore';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal,
+    validateBankAccount, updateReimbursementAccountDraft, setBankAccountFormValidationErrors, showBankAccountErrorModal, requestResetFreePlanBankAccount,
 } from '../../libs/actions/BankAccounts';
 import {navigateToConciergeChat} from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -23,7 +23,7 @@ import {isRequiredFulfilled} from '../../libs/ValidationUtils';
 import EnableStep from './EnableStep';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import {ChatBubble} from '../../components/Icon/Expensicons';
+import {ChatBubble, RotateLeft} from '../../components/Icon/Expensicons';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 
@@ -101,9 +101,11 @@ class ValidationStep extends React.Component {
         };
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(values[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(values[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
@@ -168,6 +170,7 @@ class ValidationStep extends React.Component {
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
                     shouldShowBackButton
+                    shouldShowStepCounter={!isVerifying}
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
@@ -228,12 +231,20 @@ class ValidationStep extends React.Component {
                         <WorkspaceSection
                             title={this.props.translate('workspace.bankAccount.letsFinishInChat')}
                             icon={ConciergeBlue}
-                            menuItems={[{
-                                title: this.props.translate('validationStep.letsChatCTA'),
-                                icon: ChatBubble,
-                                onPress: navigateToConciergeChat,
-                                shouldShowRightIcon: true,
-                            }]}
+                            menuItems={[
+                                {
+                                    title: this.props.translate('validationStep.letsChatCTA'),
+                                    icon: ChatBubble,
+                                    onPress: navigateToConciergeChat,
+                                    shouldShowRightIcon: true,
+                                },
+                                {
+                                    title: this.props.translate('workspace.bankAccount.noLetsStartOver'),
+                                    icon: RotateLeft,
+                                    shouldShowRightIcon: true,
+                                    onPress: requestResetFreePlanBankAccount,
+                                },
+                            ]}
                         >
                             <Text>
                                 {this.props.translate('validationStep.letsChatText')}

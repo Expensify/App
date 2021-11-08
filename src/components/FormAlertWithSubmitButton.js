@@ -37,6 +37,9 @@ const propTypes = {
     /** Styles for container element */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
+    /** Is the button in a loading state */
+    isLoading: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -45,49 +48,40 @@ const defaultProps = {
     isDisabled: false,
     isMessageHtml: false,
     containerStyles: [],
+    isLoading: false,
 };
 
-const FormAlertWithSubmitButton = ({
-    isAlertVisible,
-    isDisabled,
-    onSubmit,
-    buttonText,
-    translate,
-    onFixTheErrorsLinkPressed,
-    message,
-    isMessageHtml,
-    containerStyles,
-}) => {
+const FormAlertWithSubmitButton = (props) => {
     /**
      * @returns {React.Component}
      */
     function getAlertPrompt() {
         let error = '';
 
-        if (!_.isEmpty(message)) {
-            if (isMessageHtml) {
+        if (!_.isEmpty(props.message)) {
+            if (props.isMessageHtml) {
                 error = (
-                    <RenderHTML html={`<muted-text>${message}</muted-text>`} />
+                    <RenderHTML html={`<muted-text>${props.message}</muted-text>`} />
                 );
             } else {
                 error = (
-                    <Text style={styles.mutedTextLabel}>{message}</Text>
+                    <Text style={styles.mutedTextLabel}>{props.message}</Text>
                 );
             }
         } else {
             error = (
                 <>
                     <Text style={styles.mutedTextLabel}>
-                        {`${translate('common.please')} `}
+                        {`${props.translate('common.please')} `}
                     </Text>
                     <TextLink
                         style={styles.label}
-                        onPress={onFixTheErrorsLinkPressed}
+                        onPress={props.onFixTheErrorsLinkPressed}
                     >
-                        {translate('common.fixTheErrors')}
+                        {props.translate('common.fixTheErrors')}
                     </TextLink>
                     <Text style={styles.mutedTextLabel}>
-                        {` ${translate('common.inTheFormBeforeContinuing')}.`}
+                        {` ${props.translate('common.inTheFormBeforeContinuing')}.`}
                     </Text>
                 </>
             );
@@ -101,8 +95,8 @@ const FormAlertWithSubmitButton = ({
     }
 
     return (
-        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...containerStyles]}>
-            {isAlertVisible && (
+        <View style={[styles.mh5, styles.mb5, styles.flex1, styles.justifyContentEnd, ...props.containerStyles]}>
+            {props.isAlertVisible && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb3]}>
                     <Icon src={Exclamation} fill={colors.red} />
                     {getAlertPrompt()}
@@ -111,9 +105,10 @@ const FormAlertWithSubmitButton = ({
             <Button
                 success
                 pressOnEnter
-                text={buttonText}
-                onPress={onSubmit}
-                isDisabled={isDisabled}
+                text={props.buttonText}
+                onPress={props.onSubmit}
+                isDisabled={props.isDisabled}
+                isLoading={props.isLoading}
             />
         </View>
     );
@@ -121,4 +116,6 @@ const FormAlertWithSubmitButton = ({
 
 FormAlertWithSubmitButton.propTypes = propTypes;
 FormAlertWithSubmitButton.defaultProps = defaultProps;
+FormAlertWithSubmitButton.displayName = 'FormAlertWithSubmitButton';
+
 export default withLocalize(FormAlertWithSubmitButton);

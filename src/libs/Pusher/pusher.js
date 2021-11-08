@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Pusher from './library';
 import TYPE from './EventType';
+// eslint-disable-next-line import/no-cycle
 import Log from '../Log';
 
 let socket;
@@ -147,7 +148,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
 
         // Only call the event callback if we've received the last packet and we don't have any holes in the complete
         // packet.
-        if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === Object.keys(chunkedEvent.chunks).length) {
+        if (chunkedEvent.receivedFinal && chunkedEvent.chunks.length === _.keys(chunkedEvent.chunks).length) {
             eventCallback(JSON.parse(chunkedEvent.chunks.join('')));
             try {
                 eventCallback(JSON.parse(chunkedEvent.chunks.join('')));

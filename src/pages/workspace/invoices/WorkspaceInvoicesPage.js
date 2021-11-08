@@ -18,10 +18,10 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesPage = ({translate, route}) => (
+const WorkspaceInvoicesPage = props => (
     <WorkspacePageWithSections
-        headerText={translate('workspace.common.invoices')}
-        route={route}
+        headerText={props.translate('workspace.common.invoices')}
+        route={props.route}
     >
         {(hasVBA, policyID) => (
             <>

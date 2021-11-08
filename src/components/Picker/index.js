@@ -2,35 +2,25 @@ import React from 'react';
 import RNPickerSelect from 'react-native-picker-select';
 
 import styles from '../../styles/styles';
-import * as pickerPropTypes from './PickerPropTypes';
+import * as pickerPropTypes from './pickerPropTypes';
 import pickerStyles from './pickerStyles';
 
-const Picker = ({
-    onChange,
-    items,
-    placeholder,
-    value,
-    icon,
-    disabled,
-    onOpen,
-    onClose,
-    size,
-}) => (
+const Picker = props => (
     <RNPickerSelect
-        onValueChange={onChange}
-        items={items}
-        style={size === 'normal' ? pickerStyles(disabled) : styles.pickerSmall}
+        onValueChange={props.onChange}
+        items={props.items}
+        style={props.size === 'normal' ? pickerStyles(props.disabled) : styles.pickerSmall}
         useNativeAndroidPickerStyle={false}
-        placeholder={placeholder}
-        value={value}
-        Icon={() => icon(size)}
-        disabled={disabled}
+        placeholder={props.placeholder}
+        value={props.value}
+        Icon={() => props.icon(props.size)}
+        disabled={props.disabled}
         fixAndroidTouchableBug
-        onOpen={onOpen}
-        onClose={onClose}
+        onOpen={props.onOpen}
+        onClose={props.onClose}
         pickerProps={{
-            onFocus: onOpen,
-            onBlur: onClose,
+            onFocus: props.onOpen,
+            onBlur: props.onClose,
         }}
     />
 );

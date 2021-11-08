@@ -76,6 +76,7 @@ class IOUAmountPage extends React.Component {
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
+        this.focusTextInput = this.focusTextInput.bind(this);
 
         this.state = {
             amount: props.selectedAmount,
@@ -83,13 +84,30 @@ class IOUAmountPage extends React.Component {
     }
 
     componentDidMount() {
-        // Component is not initialized yet due to navigation transitions
+        this.focusTextInput();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.iou.selectedCurrencyCode === prevProps.iou.selectedCurrencyCode) {
+            return;
+        }
+
+        this.focusTextInput();
+    }
+
+    /**
+     * Focus text input
+     */
+    focusTextInput() {
+        // Component may not initialized due to navigation transitions
         // Wait until interactions are complete before trying to focus
         InteractionManager.runAfterInteractions(() => {
             // Focus text input
-            if (this.textInput) {
-                this.textInput.focus();
+            if (!this.textInput) {
+                return;
             }
+
+            this.textInput.focus();
         });
     }
 
@@ -144,9 +162,11 @@ class IOUAmountPage extends React.Component {
      * @param {String} amount
      */
     updateAmount(amount) {
-        if (this.validateAmount(amount)) {
-            this.setState({amount: this.stripCommaFromAmount(amount)});
+        if (!this.validateAmount(amount)) {
+            return;
         }
+
+        this.setState({amount: this.stripCommaFromAmount(amount)});
     }
 
     render() {
@@ -208,7 +228,6 @@ class IOUAmountPage extends React.Component {
     }
 }
 
-IOUAmountPage.displayName = 'IOUAmountPage';
 IOUAmountPage.propTypes = propTypes;
 IOUAmountPage.defaultProps = defaultProps;
 

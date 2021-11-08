@@ -41,7 +41,6 @@ class AddPayPalMePage extends React.Component {
             payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
-        this.paypalUsernameInputRef = null;
     }
 
     componentDidMount() {
@@ -49,11 +48,12 @@ class AddPayPalMePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.payPalMeUsername !== this.props.payPalMeUsername) {
-            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({payPalMeUsername: this.props.payPalMeUsername});
+        if (prevProps.payPalMeUsername === this.props.payPalMeUsername) {
+            return;
         }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({payPalMeUsername: this.props.payPalMeUsername});
     }
 
     /**
@@ -73,15 +73,10 @@ class AddPayPalMePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => {
-                if (this.paypalUsernameInputRef) {
-                    this.paypalUsernameInputRef.focus();
-                }
-            }}
-            >
+            <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title="PayPal.me"
+                        title={this.props.translate('common.payPalMe')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -93,7 +88,6 @@ class AddPayPalMePage extends React.Component {
                             </Text>
                             <ExpensiTextInput
                                 label={this.props.translate('addPayPalMePage.payPalMe')}
-                                ref={el => this.paypalUsernameInputRef = el}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.payPalMeUsername}

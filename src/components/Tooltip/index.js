@@ -4,7 +4,7 @@ import {Animated, View} from 'react-native';
 import TooltipRenderedOnPageBody from './TooltipRenderedOnPageBody';
 import Hoverable from '../Hoverable';
 import withWindowDimensions from '../withWindowDimensions';
-import {propTypes, defaultProps} from './TooltipPropTypes';
+import {propTypes, defaultProps} from './tooltipPropTypes';
 import TooltipSense from './TooltipSense';
 
 class Tooltip extends PureComponent {
@@ -54,10 +54,12 @@ class Tooltip extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (this.props.windowWidth !== prevProps.windowWidth || this.props.windowHeight !== prevProps.windowHeight) {
-            this.getWrapperPosition()
-                .then(({x, y}) => this.setStateIfMounted({xOffset: x, yOffset: y}));
+        if (this.props.windowWidth === prevProps.windowWidth && this.props.windowHeight === prevProps.windowHeight) {
+            return;
         }
+
+        this.getWrapperPosition()
+            .then(({x, y}) => this.setStateIfMounted({xOffset: x, yOffset: y}));
     }
 
     componentWillUnmount() {
@@ -72,9 +74,11 @@ class Tooltip extends PureComponent {
      * @param {Object} newState
      */
     setStateIfMounted(newState) {
-        if (this.isComponentMounted) {
-            this.setState(newState);
+        if (!this.isComponentMounted) {
+            return;
         }
+
+        this.setState(newState);
     }
 
     /**

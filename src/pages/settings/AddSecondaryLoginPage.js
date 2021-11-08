@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {View, ScrollView} from 'react-native';
 import _ from 'underscore';
@@ -9,7 +9,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import {setSecondaryLogin} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
@@ -59,7 +59,7 @@ class AddSecondaryLoginPage extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.USER, {error: ''});
+        User.clearUserErrorMessage();
     }
 
     onSecondaryLoginChange(login) {
@@ -75,12 +75,7 @@ class AddSecondaryLoginPage extends Component {
      * Add a secondary login to a user's account
      */
     submitForm() {
-        setSecondaryLogin(this.state.login, this.state.password)
-            .then((response) => {
-                if (response.jsonCode === 200) {
-                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-                }
-            });
+        User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
     }
 
     /**
@@ -96,9 +91,11 @@ class AddSecondaryLoginPage extends Component {
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
-                if (this.phoneNumberInputRef) {
-                    this.phoneNumberInputRef.focus();
+                if (!this.phoneNumberInputRef) {
+                    return;
                 }
+
+                this.phoneNumberInputRef.focus();
             }}
             >
                 <KeyboardAvoidingView>
@@ -164,7 +161,6 @@ class AddSecondaryLoginPage extends Component {
 
 AddSecondaryLoginPage.propTypes = propTypes;
 AddSecondaryLoginPage.defaultProps = defaultProps;
-AddSecondaryLoginPage.displayName = 'AddSecondaryLoginPage';
 
 export default compose(
     withLocalize,

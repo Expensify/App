@@ -23,9 +23,11 @@ class FAB extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isActive !== this.props.isActive) {
-            this.animateFloatingActionButton();
+        if (prevProps.isActive === this.props.isActive) {
+            return;
         }
+
+        this.animateFloatingActionButton();
     }
 
     /**

@@ -16,7 +16,7 @@ import CONST from '../../CONST';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import exampleCheckImage from '../../../assets/images/example-check-image.png';
+import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
@@ -25,6 +25,7 @@ import {
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
+    validateRoutingNumber,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -86,7 +87,7 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !validateRoutingNumber(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
         if (!this.state.hasAcceptedTerms) {
@@ -258,11 +259,11 @@ class BankAccountStep extends React.Component {
                         <Image
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
-                            source={exampleCheckImage}
+                            source={exampleCheckImage(this.props.preferredLocale)}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('bankAccount.routingNumber')}
-                            keyboardType="number-pad"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.routingNumber}
                             onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
                             disabled={shouldDisableInputs}
@@ -271,7 +272,7 @@ class BankAccountStep extends React.Component {
                         <ExpensiTextInput
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
-                            keyboardType="number-pad"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.accountNumber}
                             onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                             disabled={shouldDisableInputs}

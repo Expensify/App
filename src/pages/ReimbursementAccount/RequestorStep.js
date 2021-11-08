@@ -85,29 +85,31 @@ class RequestorStep extends React.Component {
      * Clear the error associated to inputKey if found and store the inputKey new value in the state.
      *
      * @param {String} inputKey
-     * @param {String} value
+     * @param {String|Boolean} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        const renamedFields = {
-            street: 'requestorAddressStreet',
-            city: 'requestorAddressCity',
-            state: 'requestorAddressState',
-            zipCode: 'requestorAddressZipCode',
-            addressStreet: 'requestorAddressStreet',
-            addressCity: 'requestorAddressCity',
-            addressState: 'requestorAddressState',
-            addressZipCode: 'requestorAddressZipCode',
-        };
-        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-        const newState = {[renamedInputKey]: value};
-        this.setState(newState);
-        updateReimbursementAccountDraft(newState);
+        if (inputKey === 'manualAddress') {
+            this.setState({
+                manualAddress: value,
+            });
+        } else {
+            const renamedFields = {
+                addressStreet: 'requestorAddressStreet',
+                addressCity: 'requestorAddressCity',
+                addressState: 'requestorAddressState',
+                addressZipCode: 'requestorAddressZipCode',
+            };
+            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+            const newState = {[renamedInputKey]: value};
+            this.setState(newState);
+            updateReimbursementAccountDraft(newState);
 
-        // dob field has multiple validations/errors, we are handling it temporarily like this.
-        if (inputKey === 'dob') {
-            this.clearError('dobAge');
+            // dob field has multiple validations/errors, we are handling it temporarily like this.
+            if (inputKey === 'dob') {
+                this.clearError('dobAge');
+            }
+            this.clearError(inputKey);
         }
-        this.clearError(inputKey);
     }
 
     /**
@@ -126,9 +128,11 @@ class RequestorStep extends React.Component {
         });
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(this.state[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         if (_.size(errors)) {
             setBankAccountFormValidationErrors(errors);
@@ -214,6 +218,7 @@ class RequestorStep extends React.Component {
                                 zipCode: this.state.requestorAddressZipCode,
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
+                                manualAddress: this.state.manualAddress,
                             }}
                             errors={this.props.reimbursementAccount.errors}
                         />
@@ -272,7 +277,6 @@ class RequestorStep extends React.Component {
 }
 
 RequestorStep.propTypes = propTypes;
-RequestorStep.displayName = 'RequestorStep';
 
 export default compose(
     withLocalize,

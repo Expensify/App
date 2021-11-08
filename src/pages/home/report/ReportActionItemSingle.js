@@ -3,7 +3,7 @@ import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import ReportActionItemFragment from './ReportActionItemFragment';
 import styles from '../../../styles/styles';
 import CONST from '../../../CONST';
@@ -18,7 +18,7 @@ import {withPersonalDetails} from '../../../components/OnyxProvider';
 
 const propTypes = {
     /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** All of the personalDetails */
     personalDetails: PropTypes.objectOf(personalDetailsPropType),
@@ -41,30 +41,24 @@ const showUserDetails = (email) => {
     Navigation.navigate(ROUTES.getDetailsRoute(email));
 };
 
-const ReportActionItemSingle = ({
-    action,
-    personalDetails,
-    children,
-    wrapperStyles,
-    toLocalPhone,
-}) => {
-    const {avatar, displayName, login} = personalDetails[action.actorEmail] || {};
-    const avatarUrl = action.automatic
+const ReportActionItemSingle = (props) => {
+    const {avatar, displayName, login} = props.personalDetails[props.action.actorEmail] || {};
+    const avatarUrl = props.action.automatic
         ? `${CONST.CLOUDFRONT_URL}/images/icons/concierge_2019.svg`
 
         // Use avatar in personalDetails if we have one then fallback to avatar provided by the action
-        : (avatar || action.avatar);
+        : (avatar || props.action.avatar);
 
     // Since the display name for a report action message is delivered with the report history as an array of fragments
     // we'll need to take the displayName from personal details and have it be in the same format for now. Eventually,
     // we should stop referring to the report history items entirely for this information.
     const personArray = displayName
-        ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName}]
-        : action.person;
+        ? [{type: 'TEXT', text: Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName}]
+        : props.action.person;
 
     return (
-        <View style={wrapperStyles}>
-            <Pressable style={styles.alignSelfStart} onPress={() => showUserDetails(action.actorEmail)}>
+        <View style={props.wrapperStyles}>
+            <Pressable style={styles.alignSelfStart} onPress={() => showUserDetails(props.action.actorEmail)}>
                 <Avatar
                     imageStyles={[styles.actionAvatar]}
                     source={avatarUrl}
@@ -72,21 +66,21 @@ const ReportActionItemSingle = ({
             </Pressable>
             <View style={[styles.chatItemRight]}>
                 <View style={[styles.chatItemMessageHeader]}>
-                    <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(action.actorEmail)}>
+                    <Pressable style={[styles.flexShrink1]} onPress={() => showUserDetails(props.action.actorEmail)}>
                         {_.map(personArray, (fragment, index) => (
                             <ReportActionItemFragment
-                                key={`person-${action.sequenceNumber}-${index}`}
+                                key={`person-${props.action.sequenceNumber}-${index}`}
                                 fragment={fragment}
-                                tooltipText={action.actorEmail}
-                                isAttachment={action.isAttachment}
-                                isLoading={action.loading}
+                                tooltipText={props.action.actorEmail}
+                                isAttachment={props.action.isAttachment}
+                                isLoading={props.action.loading}
                                 isSingleLine
                             />
                         ))}
                     </Pressable>
-                    <ReportActionItemDate timestamp={action.timestamp} />
+                    <ReportActionItemDate timestamp={props.action.timestamp} />
                 </View>
-                {children}
+                {props.children}
             </View>
         </View>
     );

@@ -36,6 +36,14 @@ Onyx.connect({
     },
 });
 
+let credentials;
+Onyx.connect({
+    key: ONYXKEYS.CREDENTIALS,
+    callback: (val) => {
+        credentials = val;
+    },
+});
+
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
  */
@@ -286,7 +294,7 @@ function activateWallet(currentStep, parameters) {
                         CONST.WALLET.ERROR.UNABLE_TO_VERIFY,
                     ];
 
-                    if (errorTitles.includes(response.title)) {
+                    if (_.contains(errorTitles, response.title)) {
                         setAdditionalDetailsStep(false, null, response.message);
                         return;
                     }
@@ -820,6 +828,84 @@ function updateReimbursementAccountDraft(bankAccountData) {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, bankAccountData);
 }
 
+/**
+ * Triggers a modal to open allowing the user to reset their bank account
+ */
+function requestResetFreePlanBankAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: true});
+}
+
+/**
+ * Hides modal allowing the user to reset their bank account
+ */
+function cancelResetFreePlanBankAccount() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {shouldShowResetModal: false});
+}
+
+/**
+ * Reset user's reimbursement account. This will delete the bank account.
+ */
+function resetFreePlanBankAccount() {
+    const bankAccountID = lodashGet(reimbursementAccountInSetup, 'bankAccountID');
+    if (!bankAccountID) {
+        throw new Error('Missing bankAccountID when attempting to reset free plan bank account');
+    }
+    if (!credentials || !credentials.login) {
+        throw new Error('Missing credentials when attempting to reset free plan bank account');
+    }
+
+    // Create a copy of the reimbursementAccount data since we are going to optimistically wipe it so the UI changes quickly.
+    // If the API request fails we will set this data back into Onyx.
+    const previousACHData = {...reimbursementAccountInSetup};
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: null, shouldShowResetModal: false});
+    API.DeleteBankAccount({bankAccountID, ownerEmail: credentials.login})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Unable to delete bank account so we restore the bank account details
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: previousACHData});
+                Growl.error('Sorry we were unable to delete this bank account. Please try again later');
+                return;
+            }
+
+            // Reset reimbursement account, and clear draft user input, and the bank account list
+            const achData = {
+                useOnfido: true,
+                policyID: '',
+                isInSetup: true,
+                domainLimit: 0,
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+            };
+            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
+            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
+            Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, []);
+
+            // Clear the NVP for the bank account so the user can add a new one
+            API.SetNameValuePair({name: CONST.NVP.FREE_PLAN_BANK_ACCOUNT_ID, value: ''});
+        });
+}
+
+/*
+ * Checks the given number is a valid US Routing Number
+ * using ABA routingNumber checksum algorithm: http://www.brainjar.com/js/validation/
+ * @param {String} number
+ * @returns {Boolean}
+ */
+function validateRoutingNumber(number) {
+    let n = 0;
+    for (let i = 0; i < number.length; i += 3) {
+        n += (parseInt(number.charAt(i), 10) * 3)
+            + (parseInt(number.charAt(i + 1), 10) * 7)
+            + parseInt(number.charAt(i + 2), 10);
+    }
+
+    // If the resulting sum is an even multiple of ten (but not zero),
+    // the ABA routing number is valid.
+    if (n !== 0 && n % 10 === 0) {
+        return true;
+    }
+    return false;
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -839,4 +925,8 @@ export {
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
+    requestResetFreePlanBankAccount,
+    cancelResetFreePlanBankAccount,
+    resetFreePlanBankAccount,
+    validateRoutingNumber,
 };
