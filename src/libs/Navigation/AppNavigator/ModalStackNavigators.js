@@ -226,10 +226,6 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
     },
-    {
-        Component: OAuthLink,
-        name: 'OAuth_Plaid',
-    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
@@ -257,6 +253,11 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
     name: 'RequestCall_Root',
 }]);
 
+const PlaidOAuthModalStackNavigator = createModalStackNavigator([{
+    Component: OAuthLink,
+    name: 'OAuth_Plaid_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -274,4 +275,5 @@ export {
     ReimbursementAccountModalStackNavigator,
     WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
+    PlaidOAuthModalStackNavigator,
 };

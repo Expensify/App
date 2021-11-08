@@ -182,7 +182,7 @@ export default {
             },
             OAUTH_PLAID_REDIRECT: {
                 screens: {
-                    OAuth_PLaid: ROUTES.OAUTH_PLAID,
+                    OAuth_Plaid_Root: ROUTES.OAUTH_PLAID,
                 },
             },
         },

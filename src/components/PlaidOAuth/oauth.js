@@ -12,8 +12,6 @@ import Navigation from "../../libs/Navigation/Navigation";
 import ROUTES from "../../ROUTES";
 import WorkspaceSection from "../../pages/workspace/WorkspaceSection";
 import {BankArrowPink} from "../Icon/Illustrations";
-import {Bank, RotateLeft} from "../Icon/Expensicons";
-import {requestResetFreePlanBankAccount} from "../../libs/actions/BankAccounts";
 import Text from "../Text";
 import WorkspaceResetBankAccountModal from "../../pages/workspace/WorkspaceResetBankAccountModal";
 
@@ -25,6 +23,7 @@ const OAuthLink = (props, callback, deps) => {
     const onSuccess = React.useCallback((public_token) => {
         // send public_token to server, retrieve access_token and item_id
         // return to "https://example.com" upon completion
+        console.log("in success for OAuthLink");
     }, deps);
     const onExit = (err, metatdata) => {
         console.log(err);
