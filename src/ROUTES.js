@@ -68,6 +68,7 @@ export default {
     REPORT_WITH_ID_DETAILS: 'r/:reportID/details',
     getReportDetailsRoute: reportID => `r/${reportID}/details`,
     LOGIN_WITH_SHORT_LIVED_TOKEN: 'transition',
+    VALIDATE_LOGIN: 'v/:accountID/:validateCode',
 
     // This is a special validation URL that will take the user to /workspace/new after validation. This is used
     // when linking users from e.com in order to share a session in this app.

@@ -1,5 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
+// eslint-disable-next-line import/no-cycle
+import * as Session from './actions/Session';
 
 let signoutCallback = () => {};
 let errorMessage = '';
@@ -10,7 +12,7 @@ Onyx.connect({
         if (!shouldSignOut && val) {
             signoutCallback(errorMessage);
             errorMessage = '';
-            Onyx.set(ONYXKEYS.SHOULD_SIGN_OUT, false);
+            Session.setShouldSignOut(false);
         }
 
         shouldSignOut = val;
@@ -29,7 +31,7 @@ function registerSignoutCallback(callback) {
  */
 function signOut(message) {
     errorMessage = message;
-    Onyx.set(ONYXKEYS.SHOULD_SIGN_OUT, true);
+    Session.setShouldSignOut(true);
 }
 
 export default {

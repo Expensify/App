@@ -15,6 +15,7 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
+import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
 import {hasExpensifyEmails} from '../libs/reportUtils';
 
@@ -117,11 +118,13 @@ const DetailsPage = ({
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text numberOfLines={1}>
-                                            {isSMSLogin
-                                                ? toLocalPhone(getPhoneNumber(details))
-                                                : details.login}
-                                        </Text>
+                                        <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                            <Text numberOfLines={1}>
+                                                {isSMSLogin
+                                                    ? toLocalPhone(getPhoneNumber(details))
+                                                    : details.login}
+                                            </Text>
+                                        </Tooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
