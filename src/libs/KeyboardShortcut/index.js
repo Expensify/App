@@ -4,7 +4,12 @@ const events = {};
 const keyboardShortcutMap = {};
 
 function getKeyboardShortcutMap() {
-    return keyboardShortcutMap;
+    const shortcuts = [];
+    _.each(keyboardShortcutMap, (descriptionKey, key) => {
+        shortcuts.push({key, descriptionKey});
+    });
+
+    return shortcuts;
 }
 
 /**

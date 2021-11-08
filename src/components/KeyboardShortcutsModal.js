@@ -75,11 +75,7 @@ class KeyboardShortcutsModal extends React.PureComponent {
 
 
     render() {
-        const shortcutMap = KeyboardShortcut.getKeyboardShortcutMap();
-        const shortcuts = [];
-        _.each(shortcutMap, (descriptionKey, key) => {
-            shortcuts.push({key, descriptionKey});
-        });
+        const shortcuts = KeyboardShortcut.getKeyboardShortcutMap();
 
         return (
             <Modal
@@ -93,7 +89,7 @@ class KeyboardShortcutsModal extends React.PureComponent {
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
                     <View style={[getKeyboardShortcutModalStyle(this.props.isSmallScreenWidth)]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
-                            {shortcuts.map((shortcut, index) => {
+                            {_.map(shortcuts, (shortcut, index) => {
                                 const isFirstRow = index === 0;
                                 return this.renderRow(shortcut, isFirstRow);
                             })}
