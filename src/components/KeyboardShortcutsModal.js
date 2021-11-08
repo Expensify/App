@@ -1,7 +1,8 @@
 import React from 'react';
-import {View, Text} from 'react-native';
+import {View} from 'react-native';
 import _ from 'underscore';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
+import Text from './Text';
 import Modal from './Modal';
 import CONST from '../CONST';
 import styles, {getKeyboardShortcutModalStyle} from '../styles/styles';
@@ -12,13 +13,11 @@ import KeyboardShortcut from '../libs/KeyboardShortcut';
 import getOperatingSystem from '../libs/getOperatingSystem';
 
 const propTypes = {
-
     /** prop to fetch screen width */
     ...windowDimensionsPropTypes,
 
     /** props to fetch translation functions */
     ...withLocalizePropTypes,
-
 };
 
 class KeyboardShortcutsModal extends React.PureComponent {
