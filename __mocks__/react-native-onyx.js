@@ -1,3 +1,4 @@
+/* eslint-disable rulesdir/prefer-onyx-connect-in-libs */
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 let connectCallbackDelay = 0;
@@ -22,3 +23,4 @@ export default {
     addDelayToConnectCallback,
 };
 export {withOnyx};
+/* eslint-enable rulesdir/prefer-onyx-connect-in-libs */
