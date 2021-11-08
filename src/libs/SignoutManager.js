@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../ONYXKEYS';
 import createCallback from './createCallback';
-import setShouldSignOut from './actions/setShouldSignOut';
+import setShouldSignOut from './actions/Session/setShouldSignOut';
 
 const [signoutCallback, registerSignoutCallback] = createCallback();
 

@@ -9,8 +9,8 @@ import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import Log from './Log';
 import * as Network from './Network';
-import updateSessionAuthTokens from './actions/updateSessionAuthTokens';
-import setSessionLoadingAndError from './actions/setSessionLoadingAndError';
+import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
+import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
 
 let isAuthenticating;
 let credentials;
