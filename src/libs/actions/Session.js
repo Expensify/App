@@ -376,22 +376,6 @@ function clearAccountMessages() {
 }
 
 /**
- * @param {Boolean} loading
- * @param {String} error
- */
-function setSessionLoadingAndError(loading, error) {
-    Onyx.merge(ONYXKEYS.SESSION, {loading, error});
-}
-
-/**
- * @param {String} authToken
- * @param {String} encryptedAuthToken
- */
-function updateSessionAuthTokens(authToken, encryptedAuthToken) {
-    Onyx.merge(ONYXKEYS.SESSION, {authToken, encryptedAuthToken});
-}
-
-/**
  * @param {String} authToken
  * @param {String} password
  */
@@ -511,8 +495,6 @@ export {
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
-    setSessionLoadingAndError,
-    updateSessionAuthTokens,
     validateEmail,
     authenticatePusher,
     reauthenticatePusher,

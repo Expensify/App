@@ -9,7 +9,8 @@ import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
 import Log from './Log';
 import * as Network from './Network';
-import * as Session from './actions/Session';
+import updateSessionAuthTokens from './actions/updateSessionAuthTokens';
+import setSessionLoadingAndError from './actions/setSessionLoadingAndError';
 
 let isAuthenticating;
 let credentials;
@@ -187,7 +188,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
     }
 
     // Set an error state and signify we are done loading
-    Session.setSessionLoadingAndError(false, 'Cannot connect to server');
+    setSessionLoadingAndError(false, 'Cannot connect to server');
 
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
@@ -288,7 +289,7 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Session.updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
