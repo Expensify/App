@@ -157,7 +157,7 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     render() {
-        const {DefaultAvatar} = this.props;
+        const DefaultAvatar = this.props.DefaultAvatar;
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         const indicatorStyles = [

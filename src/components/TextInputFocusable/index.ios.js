@@ -73,7 +73,7 @@ class TextInputFocusable extends React.Component {
 
     render() {
         // Selection Property not worked in IOS properly, So removed from props.
-        const {selection, ...newProps} = this.props;
+        const propsToPass = _.omit(this.props, 'selection');
         return (
             <TextInput
                 placeholderTextColor={themeColors.placeholderText}
@@ -82,7 +82,7 @@ class TextInputFocusable extends React.Component {
                 rejectResponderTermination={false}
                 editable={!this.props.isDisabled}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...newProps}
+                {...propsToPass}
             />
         );
     }

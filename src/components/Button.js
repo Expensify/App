@@ -109,7 +109,7 @@ class Button extends Component {
     }
 
     renderContent() {
-        const {ContentComponent} = this.props;
+        const ContentComponent = this.props.ContentComponent;
         if (ContentComponent) {
             return <ContentComponent />;
         }

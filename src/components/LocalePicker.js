@@ -41,27 +41,24 @@ const localesToLanguages = {
     },
 };
 
-const LocalePicker = ({
-    // eslint-disable-next-line no-shadow
-    preferredLocale, translate, betas, size,
-}) => {
-    if (!Permissions.canUseInternationalization(betas)) {
+const LocalePicker = (props) => {
+    if (!Permissions.canUseInternationalization(props.betas)) {
         return null;
     }
 
     return (
         <ExpensiPicker
-            label={size === 'normal' ? translate('preferencesPage.language') : null}
+            label={props.size === 'normal' ? translate('preferencesPage.language') : null}
             onChange={(locale) => {
-                if (locale === preferredLocale) {
+                if (locale === props.preferredLocale) {
                     return;
                 }
 
-                setLocale(locale);
+                setLocale();
             }}
             items={_.values(localesToLanguages)}
-            size={size}
-            value={preferredLocale}
+            size={props.size}
+            value={props.preferredLocale}
         />
     );
 };
