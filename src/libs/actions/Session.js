@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
@@ -493,13 +492,6 @@ function authenticatePusher(socketID, channelName, callback) {
 }
 
 /**
- * @param {Boolean} shouldSignOut
- */
-function setShouldSignOut(shouldSignOut) {
-    Onyx.set(ONYXKEYS.SHOULD_SIGN_OUT, shouldSignOut);
-}
-
-/**
  * @param {Boolean} shouldShowComposeInput
  */
 function setShouldShowComposeInput(shouldShowComposeInput) {
@@ -524,6 +516,5 @@ export {
     validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    setShouldSignOut,
     setShouldShowComposeInput,
 };
