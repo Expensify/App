@@ -154,11 +154,11 @@ class WorkspaceInitialPage extends React.Component {
                         {
                             icon: Plus,
                             text: translate('workspace.new.newWorkspace'),
-                            onPress: () => createAndNavigate(),
+                            onSelected: () => createAndNavigate(),
                         }, {
                             icon: Trashcan,
                             text: translate('workspace.common.delete'),
-                            onPress: () => this.setState({isDeleteModalOpen: true}),
+                            onSelected: () => this.setState({isDeleteModalOpen: true}),
                         },
                     ]}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
