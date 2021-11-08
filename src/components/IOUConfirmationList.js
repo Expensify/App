@@ -165,16 +165,20 @@ class IOUConfirmationList extends Component {
 
     componentDidMount() {
         // Only add the Venmo option if we're sending a payment
-        if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
-            this.addVenmoPaymentOptionToMenu();
+        if (this.props.iouType !== CONST.IOU.IOU_TYPE.SEND) {
+            return;
         }
+
+        this.addVenmoPaymentOptionToMenu();
     }
 
     componentWillUnmount() {
-        if (this.checkVenmoAvailabilityPromise) {
-            this.checkVenmoAvailabilityPromise.cancel();
-            this.checkVenmoAvailabilityPromise = null;
+        if (!this.checkVenmoAvailabilityPromise) {
+            return;
         }
+
+        this.checkVenmoAvailabilityPromise.cancel();
+        this.checkVenmoAvailabilityPromise = null;
     }
 
     /**
@@ -331,24 +335,25 @@ class IOUConfirmationList extends Component {
      * Adds Venmo, if available, as the second option in the menu of payment options
      */
     addVenmoPaymentOptionToMenu() {
-        // Add Venmo option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber && isValidUSPhone(this.state.participants[0].phoneNumber)) {
-            this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
-            this.checkVenmoAvailabilityPromise
-                .promise
-                .then((isVenmoInstalled) => {
-                    if (!isVenmoInstalled) {
-                        return;
-                    }
-
-                    this.setState(prevState => ({
-                        confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
-                            {text: this.props.translate('iou.settleVenmo'), icon: Venmo},
-                            ...prevState.confirmationButtonOptions.slice(1),
-                        ],
-                    }));
-                });
+        if (this.props.localCurrencyCode !== CONST.CURRENCY.USD || !this.state.participants[0].phoneNumber || !isValidUSPhone(this.state.participants[0].phoneNumber)) {
+            return;
         }
+
+        this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
+        this.checkVenmoAvailabilityPromise
+            .promise
+            .then((isVenmoInstalled) => {
+                if (!isVenmoInstalled) {
+                    return;
+                }
+
+                this.setState(prevState => ({
+                    confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
+                        {text: this.props.translate('iou.settleVenmo'), icon: Venmo},
+                        ...prevState.confirmationButtonOptions.slice(1),
+                    ],
+                }));
+            });
     }
 
     /**

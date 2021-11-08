@@ -81,6 +81,7 @@ export default function (WrappedComponent) {
         }
 
         render() {
+            // eslint-disable-next-line react/destructuring-assignment
             const {forwardedRef, ...rest} = this.props;
             return (
                 <WrappedComponent

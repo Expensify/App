@@ -80,13 +80,13 @@ export default function (WrappedComponent) {
 
         previousRoute = lodashGet(currentRoute, 'path', '');
 
-        const {forwardedRef, policy, ...rest} = props;
+        const rest = _.omit(props, ['forwardedRef', 'policy']);
         return (
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
-                ref={forwardedRef}
-                policy={policy}
+                ref={props.forwardedRef}
+                policy={props.policy}
             />
         );
     };

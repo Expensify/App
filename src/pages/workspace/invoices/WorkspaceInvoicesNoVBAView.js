@@ -21,17 +21,17 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesNoVBAView = ({translate, policyID}) => (
+const WorkspaceInvoicesNoVBAView = props => (
     <>
-        <WorkspaceInvoicesFirstSection policyID={policyID} />
+        <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
         <WorkspaceSection
-            title={translate('workspace.invoices.unlockOnlineInvoiceCollection')}
+            title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
             icon={JewelBoxGreen}
             menuItems={[
                 {
-                    title: translate('workspace.common.bankAccount'),
-                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
+                    title: props.translate('workspace.common.bankAccount'),
+                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
                     icon: Bank,
                     shouldShowRightIcon: true,
                     iconRight: ArrowRight,
@@ -39,7 +39,7 @@ const WorkspaceInvoicesNoVBAView = ({translate, policyID}) => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.invoices.unlockNoVBACopy')}</Text>
+                <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>

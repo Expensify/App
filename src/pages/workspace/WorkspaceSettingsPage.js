@@ -109,14 +109,12 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
-        const {policy} = this.props;
-
         if (!Permissions.canUseFreePlan(this.props.betas)) {
             Log.info('Not showing workspace editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
 
-        if (_.isEmpty(policy)) {
+        if (_.isEmpty(this.props.policy)) {
             return <FullScreenLoadingIndicator />;
         }
 
@@ -128,7 +126,7 @@ class WorkspaceSettingsPage extends React.Component {
                     <FixedFooter style={[styles.w100]}>
                         <Button
                             success
-                            isLoading={policy.isPolicyUpdating}
+                            isLoading={this.props.policy.isPolicyUpdating}
                             text={this.props.translate('workspace.editor.save')}
                             onPress={this.submit}
                             pressOnEnter
@@ -139,7 +137,7 @@ class WorkspaceSettingsPage extends React.Component {
                 {hasVBA => (
                     <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
                         <AvatarWithImagePicker
-                            isUploading={policy.isAvatarUploading}
+                            isUploading={this.props.policy.isAvatarUploading}
                             avatarURL={this.state.previewAvatarURL}
                             size={CONST.AVATAR_SIZE.LARGE}
                             DefaultAvatar={() => (

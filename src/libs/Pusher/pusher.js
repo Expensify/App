@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import Pusher from './library';
 import TYPE from './EventType';
+// eslint-disable-next-line import/no-cycle
 import Log from '../Log';
 
 let socket;

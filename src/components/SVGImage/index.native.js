@@ -2,11 +2,11 @@ import React from 'react';
 import {SvgCssUri} from 'react-native-svg';
 import propTypes from './propTypes';
 
-const SVGImage = ({width, height, src}) => (
+const SVGImage = props => (
     <SvgCssUri
-        width={width}
-        height={height}
-        uri={src}
+        width={props.width}
+        height={props.height}
+        uri={props.src}
     />
 );
 
