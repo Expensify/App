@@ -156,12 +156,12 @@ function addKeyToMap(key, modifiers, descriptionKey) {
  * Subscribes to a keyboard event.
  * @param {String} key The key to watch, i.e. 'K' or 'Escape'
  * @param {Function} callback The callback to call
+ * @param {String} descriptionKey Translation key for shortcut description
  * @param {String|Array} modifiers Can either be shift or control
  * @param {Boolean} captureOnInputs Should we capture the event on inputs too?
- * @param {String} descriptionKey Translation key for shortcut description
  * @returns {Function} clean up method
  */
-function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false, descriptionKey) {
+function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOnInputs = false) {
     const keyCode = getKeyCode(key);
     if (events[keyCode] === undefined) {
         events[keyCode] = [];

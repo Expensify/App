@@ -200,10 +200,10 @@ class AuthScreens extends React.Component {
         // based on the key modifiers pressed and the operating system
         this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe('K', () => {
             Navigation.navigate(ROUTES.SEARCH);
-        }, searchShortcutModifiers, true, 'search');
+        }, 'search', searchShortcutModifiers, true);
         this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
-        }, groupShortcutModifiers, true, 'newGroup');
+        }, 'newGroup', groupShortcutModifiers, true);
     }
 
     shouldComponentUpdate(nextProps) {

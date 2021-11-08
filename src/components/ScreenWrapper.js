@@ -72,7 +72,7 @@ class ScreenWrapper extends React.Component {
             if (!this.props.modal.willAlertModalBecomeVisible) {
                 Navigation.dismissModal();
             }
-        }, [], true, 'escape');
+        }, 'escape', [], true);
 
         this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
             this.setState({didScreenTransitionEnd: true});

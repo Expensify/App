@@ -95,7 +95,7 @@ class Button extends Component {
             if (!this.props.isDisabled && !this.props.isLoading) {
                 this.props.onPress();
             }
-        }, [], true);
+        }, null, [], true);
     }
 
     componentWillUnmount() {
