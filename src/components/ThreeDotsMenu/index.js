@@ -7,7 +7,6 @@ import Icon from '../Icon';
 import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import compose from '../../libs/compose';
 import Tooltip from '../Tooltip';
 import {ThreeDots} from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
@@ -108,8 +107,6 @@ class ThreeDotsMenu extends Component {
 ThreeDotsMenu.propTypes = propTypes;
 ThreeDotsMenu.defaultProps = defaultProps;
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
-export default compose(
-    withLocalize,
-)(ThreeDotsMenu);
+export default withLocalize(ThreeDotsMenu);
 
 export {ThreeDotsMenuItemPropTypes};
