@@ -4,8 +4,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
-import Popover from '../Popover';
-import MenuItem from '../MenuItem';
+import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
@@ -34,11 +33,13 @@ const propTypes = {
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: ThreeDotsMenuItemPropTypes.isRequired,
 
-    /** Offset of x, y for popup alignment  */
-    popupOffset: PropTypes.shape({
-        x: PropTypes.number,
-        y: PropTypes.number,
-    }),
+    /** The anchor position of the menu */
+    anchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }).isRequired,
 };
 
 const defaultProps = {
@@ -47,10 +48,6 @@ const defaultProps = {
     iconStyles: [],
     icon: ThreeDots,
     onIconPress: () => {},
-    popupOffset: {
-        x: -200,
-        y: 40,
-    },
 };
 
 
@@ -120,29 +117,15 @@ class ThreeDotsMenu extends Component {
                         </Pressable>
                     </Tooltip>
                 </View>
-                <Popover
+                <PopoverMenu
                     onClose={this.togglePopupMenu}
                     isVisible={this.state.isPopupMenuActive}
-                    anchorPosition={{
-                        left: this.state.popupMenuIconPosition.x + this.props.popupOffset.x,
-                        top: this.state.popupMenuIconPosition.y + this.props.popupOffset.y,
-                    }}
+                    anchorPosition={this.props.anchorPosition}
+                    onItemSelected={() => this.togglePopupMenu()}
                     animationIn="fadeInDown"
                     animationOut="fadeOutUp"
-                >
-                    {this.props.menuItems.map(({icon, text, onPress: menuItemPress}) => (
-                        <MenuItem
-                            wrapperStyle={styles.mr3}
-                            key={text}
-                            icon={icon}
-                            title={text}
-                            onPress={(e) => {
-                                menuItemPress(e);
-                                this.togglePopupMenu();
-                            }}
-                        />
-                    ))}
-                </Popover>
+                    menuItems={this.props.menuItems}
+                />
             </>
         );
     }

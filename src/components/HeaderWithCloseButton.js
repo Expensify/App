@@ -43,7 +43,16 @@ const propTypes = {
     /** Whether we should show a more options (threedots) button */
     shouldShowThreeDotsButton: PropTypes.bool,
 
+    /** List of menu items for more(three dots) menu */
     threeDotsMenuItems: ThreeDotsMenuItemPropTypes,
+
+    /** The anchor position of the menu */
+    threeDotsAnchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }),
 
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
@@ -79,6 +88,10 @@ const defaultProps = {
     inboxCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],
+    threeDotsAnchorPosition: {
+        top: 0,
+        left: 0,
+    },
 };
 
 const HeaderWithCloseButton = props => (
@@ -127,9 +140,8 @@ const HeaderWithCloseButton = props => (
                     <ThreeDotsMenu
                         menuItems={props.threeDotsMenuItems}
                         onIconPress={props.onThreeDotsButtonPress}
-                        iconStyles={
-                          props.shouldShowCloseButton ? [] : [styles.mr0]
-                        }
+                        iconStyles={[styles.mr0]}
+                        anchorPosition={props.threeDotsAnchorPosition}
                     />
                 )}
 
