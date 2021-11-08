@@ -178,7 +178,7 @@ class AddPlaidBankAccount extends React.Component {
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                {!_.isEmpty(this.props.plaidLinkToken) && (
+                {(!_.isEmpty(this.props.plaidLinkToken) || this.receivedRedirectUri) && (
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
