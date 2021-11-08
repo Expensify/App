@@ -252,7 +252,8 @@ function canProcessRequestImmediately(request) {
  * @returns {Promise}
  */
 function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
-    return new Promise((resolve, reject) => {
+    let requestReference;
+    const promise = new Promise((resolve, reject) => {
         const request = {
             command,
             data,
@@ -261,6 +262,8 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
             reject,
             shouldUseSecure,
         };
+
+        requestReference = request;
 
         // All requests should be retried by default
         if (_.isUndefined(request.data.shouldRetry)) {
@@ -277,6 +280,11 @@ function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSec
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
         processNetworkRequestQueue();
     });
+    promise.cancel = () => {
+        const request = _.find(networkRequestQueue, r => r === requestReference);
+        request.data.isCancelled = true;
+    };
+    return promise;
 }
 
 /**

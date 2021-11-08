@@ -1163,6 +1163,8 @@ function deleteReportComment(reportID, reportAction) {
         });
 }
 
+const previousUpdateLastReadRequests = {};
+
 /**
  * Updates the last read action ID on the report. It optimistically makes the change to the store, and then let's the
  * network layer handle the delayed write.
@@ -1192,8 +1194,12 @@ function updateLastReadActionID(reportID, sequenceNumber) {
     }
     setLocalLastRead(reportID, lastReadSequenceNumber);
 
+    if (previousUpdateLastReadRequests[reportID]) {
+        previousUpdateLastReadRequests.cancel();
+    }
+
     // Mark the report as not having any unread items
-    API.Report_UpdateLastRead({
+    previousUpdateLastReadRequests[reportID] = API.Report_UpdateLastRead({
         accountID: currentUserAccountID,
         reportID,
         sequenceNumber: lastReadSequenceNumber,
