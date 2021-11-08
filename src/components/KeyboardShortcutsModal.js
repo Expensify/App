@@ -40,9 +40,10 @@ class KeyboardShortcutsModal extends React.PureComponent {
     }
 
     componentWillUnmount() {
-        if (this.unsubscribeShortCutModal) {
-            this.unsubscribeShortCutModal();
+        if (!this.unsubscribeShortCutModal) {
+            return;
         }
+        this.unsubscribeShortCutModal();
     }
 
     /**

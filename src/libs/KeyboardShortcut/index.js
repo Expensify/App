@@ -134,11 +134,11 @@ function addKeyToMap(key, modifiers, descriptionKey) {
     let shortcutKey = [key];
     if (typeof modifiers === 'string') {
         shortcutKey.unshift(modifiers);
-    } else if (Array.isArray(modifiers)) {
+    } else if (_.isArray(modifiers)) {
         shortcutKey = [...modifiers, ...shortcutKey];
     }
 
-    shortcutKey = shortcutKey.map((modifierKey) => {
+    shortcutKey = _.map(shortcutKey, (modifierKey) => {
         switch (modifierKey) {
             case 'control':
                 return 'Ctrl';
