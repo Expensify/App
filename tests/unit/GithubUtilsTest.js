@@ -291,6 +291,14 @@ describe('GithubUtils', () => {
                         color: 'f29513',
                     },
                 ],
+                assignees: [
+                    {
+                        login: 'octocat',
+                    },
+                    {
+                        login: 'hubot',
+                    },
+                ],
             },
             {
                 number: 8,
@@ -305,6 +313,14 @@ describe('GithubUtils', () => {
                         name: 'InternalQA',
                         description: 'An Expensifier needs to test this.',
                         color: 'f29513',
+                    },
+                ],
+                assignees: [
+                    {
+                        login: 'octocat',
+                    },
+                    {
+                        login: 'hubot',
                     },
                 ],
             },
@@ -358,6 +374,7 @@ describe('GithubUtils', () => {
         const lineBreak = '\r\n';
         const lineBreakDouble = '\r\n\r\n';
         const indent = '  ';
+        const assignOctocatHubot = ' - @octocat @hubot';
 
         // Valid output which will be reused in the deploy blocker tests
         const allVerifiedExpectedOutput = `${baseExpectedOutput}`
@@ -477,8 +494,8 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${internalQAHeader}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[0]}${lineBreak}${indent}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[1]}${lineBreak}${indent}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${internalQAPRList[0]}${assignOctocatHubot}${lineBreak}${indent}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${internalQAPRList[1]}${assignOctocatHubot}${lineBreak}${indent}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -495,8 +512,8 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${internalQAHeader}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[0]}${lineBreak}${indent}${closedCheckbox}${QA}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[1]}${lineBreak}${indent}${openCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${internalQAPRList[0]}${assignOctocatHubot}${lineBreak}${indent}${closedCheckbox}${QA}`
+                        + `${lineBreakDouble}${listStart}${internalQAPRList[1]}${assignOctocatHubot}${lineBreak}${indent}${openCheckbox}${QA}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })

@@ -190,11 +190,16 @@ class GithubUtils {
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
-                const internalQAPRs = _.pluck(
+                const internalQAPRMap = _.reduce(
                     _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
-                    'html_url',
+                    (map, pr) => {
+                        // eslint-disable-next-line no-param-reassign
+                        map[pr.html_url] = _.pluck(pr.assignees, 'login');
+                        return map;
+                    },
+                    {},
                 );
-                console.log('Found the following Internal QA PRs:', internalQAPRs);
+                console.log('Found the following Internal QA PRs:', internalQAPRMap);
 
                 const noQAPRs = _.pluck(
                     _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
@@ -206,7 +211,7 @@ class GithubUtils {
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
-                    .difference(internalQAPRs)
+                    .difference(_.keys(internalQAPRMap))
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
@@ -229,10 +234,11 @@ class GithubUtils {
                     });
                 }
 
-                if (!_.isEmpty(internalQAPRs)) {
+                if (!_.isEmpty(internalQAPRMap)) {
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
-                    _.each(internalQAPRs, (URL) => {
-                        issueBody += `\r\n\r\n- ${URL}`;
+                    _.each(internalQAPRMap, (assignees, URL) => {
+                        const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
+                        issueBody += `\r\n\r\n- ${URL} -${assigneeMentions}`;
                         issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                     });
                 }
