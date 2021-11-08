@@ -29,7 +29,7 @@ import Navigation from '../Navigation';
 import * as User from '../../actions/User';
 import {setModalVisibility} from '../../actions/Modal';
 import NameValuePair from '../../actions/NameValuePair';
-import {getPolicyList} from '../../actions/Policy';
+import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
 import getOperatingSystem from '../../getOperatingSystem';
@@ -52,16 +52,15 @@ import {
     SettingsModalStackNavigator,
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
-    WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
+import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import defaultScreenOptions from './defaultScreenOptions';
 import * as API from '../../API';
-import {setLocale} from '../../actions/App';
 import {cleanupSession} from '../../actions/Session';
 
 Onyx.connect({
@@ -147,9 +146,7 @@ class AuthScreens extends React.Component {
             nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
         }).then((response) => {
             const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
-            if ((currentPreferredLocale !== CONST.DEFAULT_LOCALE) && (preferredLocale !== currentPreferredLocale)) {
-                setLocale(currentPreferredLocale);
-            } else {
+            if (preferredLocale !== currentPreferredLocale) {
                 Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
             }
         });
@@ -168,15 +165,12 @@ class AuthScreens extends React.Component {
         // Load policies, maybe creating a new policy first.
         Linking.getInitialURL()
             .then((url) => {
-                // url is null on mobile unless the app was opened via a deeplink
-                if (url) {
-                    const path = new URL(url).pathname;
-                    const exitTo = new URLSearchParams(url).get('exitTo');
-                    const shouldCreateFreePolicy = Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN)) && exitTo === ROUTES.WORKSPACE_NEW;
-                    getPolicyList(shouldCreateFreePolicy);
-                } else {
-                    getPolicyList(false);
+                if (this.shouldCreateFreePolicy(url)) {
+                    Policy.createAndGetPolicyList();
+                    return;
                 }
+
+                Policy.getPolicyList();
             });
 
         // Refresh the personal details, timezone and betas every 30 minutes
@@ -228,6 +222,21 @@ class AuthScreens extends React.Component {
         this.interval = null;
     }
 
+    /**
+     * @param {String} [url]
+     * @returns {Boolean}
+     */
+    shouldCreateFreePolicy(url = '') {
+        if (!url) {
+            return false;
+        }
+
+        const path = new URL(url).pathname;
+        const exitTo = new URLSearchParams(url).get('exitTo');
+        return Str.startsWith(path, Str.normalizeUrl(ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN))
+            && exitTo === ROUTES.WORKSPACE_NEW;
+    }
+
     render() {
         const commonModalScreenOptions = {
             headerShown: false,
@@ -273,6 +282,14 @@ class AuthScreens extends React.Component {
                         },
                     }}
                     component={MainDrawerNavigator}
+                />
+                <RootStack.Screen
+                    name="ValidateLogin"
+                    options={{
+                        headerShown: false,
+                        title: 'New Expensify',
+                    }}
+                    component={ValidateLoginPage}
                 />
                 <RootStack.Screen
                     name={SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN}
@@ -353,12 +370,6 @@ class AuthScreens extends React.Component {
                     name="AddPersonalBankAccount"
                     options={modalScreenOptions}
                     component={AddPersonalBankAccountModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="WorkspaceInvite"
-                    options={modalScreenOptions}
-                    component={WorkspaceInviteModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
                 <RootStack.Screen

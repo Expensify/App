@@ -474,11 +474,17 @@ function GetIOUReport(parameters) {
 
 /**
  * @returns {Promise}
+ * @param {String} policyID
  */
-function GetPolicyList() {
+function GetFullPolicy(policyID) {
+    if (!_.isString(policyID)) {
+        throw new Error('[API] Must include a single policyID with calls to API.GetFullPolicy');
+    }
+
     const commandName = 'Get';
     const parameters = {
         returnValueList: 'policyList',
+        policyIDList: [policyID],
     };
     return Network.post(commandName, parameters);
 }
@@ -1132,7 +1138,7 @@ export {
     GetAccountStatus,
     GetShortLivedAuthToken,
     GetIOUReport,
-    GetPolicyList,
+    GetFullPolicy,
     GetPolicySummaryList,
     GetReportSummaryList,
     GetRequestCountryCode,

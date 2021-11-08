@@ -48,6 +48,9 @@ const propTypes = {
     /** Whether we should show a close button */
     shouldShowCloseButton: PropTypes.bool,
 
+    /** Whether we should show the step counter */
+    shouldShowStepCounter: PropTypes.bool,
+
     /** The task ID to associate with the call button, if we show it */
     inboxCallTaskID: PropTypes.string,
 
@@ -72,6 +75,7 @@ const defaultProps = {
     shouldShowInboxCallButton: false,
     shouldShowThreeDotsButton: false,
     shouldShowCloseButton: true,
+    shouldShowStepCounter: true,
     inboxCallTaskID: '',
     stepCounter: null,
     threeDotsMenuItems: [],
@@ -100,7 +104,7 @@ const HeaderWithCloseButton = props => (
             )}
             <Header
                 title={props.title}
-                subtitle={props.stepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
+                subtitle={props.stepCounter && props.shouldShowStepCounter ? props.translate('stepCounter', props.stepCounter) : ''}
             />
             <View style={[styles.reportOptions, styles.flexRow, styles.pr5]}>
                 {
