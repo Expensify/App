@@ -5,7 +5,7 @@ import HeaderWithCloseButton from './HeaderWithCloseButton';
 import Text from './Text';
 import Modal from './Modal';
 import CONST from '../CONST';
-import styles, {getKeyboardShortcutModalStyle} from '../styles/styles';
+import styles from '../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
@@ -59,6 +59,7 @@ class KeyboardShortcutsModal extends React.PureComponent {
             <View
                 style={[
                     styles.keyboardShortcutTableRow,
+                    styles.flex1,
                     isFirstRow && styles.keyboardShortcutTableFirstRow,
                 ]}
                 key={shortcut.key}
@@ -87,14 +88,13 @@ class KeyboardShortcutsModal extends React.PureComponent {
                 <HeaderWithCloseButton title={this.props.translate('keyboardShortCutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
                 <View style={[styles.p5, styles.pt0]}>
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
-                    <View style={[getKeyboardShortcutModalStyle(this.props.isSmallScreenWidth)]}>
+                    <View style={[styles.keyboardShortcutTableWrapper]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
                             {_.map(shortcuts, (shortcut, index) => {
                                 const isFirstRow = index === 0;
                                 return this.renderRow(shortcut, isFirstRow);
                             })}
                         </View>
-
                     </View>
                 </View>
             </Modal>

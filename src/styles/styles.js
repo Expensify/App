@@ -2090,13 +2090,19 @@ const styles = {
         maxWidth: 600,
         maxHeight: '100%',
         flex: '0 0 auto',
-        fontFamily: fontFamily.GTA,
+    },
+
+    keyboardShortcutTableWrapper: {
+        alignItems: 'center',
+        flex: 1,
+        height: 'auto',
+        maxHeight: '100%',
     },
 
     keyboardShortcutTableContainer: {
         display: 'flex',
         width: '100%',
-        borderColor: colors.gray3,
+        borderColor: themeColors.border,
         height: 'auto',
         borderRadius: variables.componentBorderRadius,
         borderWidth: 1,
@@ -2105,7 +2111,7 @@ const styles = {
     keyboardShortcutTableRow: {
         flex: 1,
         flexDirection: 'row',
-        borderColor: colors.gray3,
+        borderColor: themeColors.border,
         flexBasis: 'auto',
         alignSelf: 'stretch',
         borderTopWidth: 1,
@@ -2114,7 +2120,7 @@ const styles = {
     keyboardShortcutTablePrefix: {
         width: '30%',
         borderRightWidth: 1,
-        borderColor: colors.gray3,
+        borderColor: themeColors.border,
     },
 
     keyboardShortcutTableFirstRow: {
@@ -2212,22 +2218,6 @@ const webViewStyles = {
         flex: 1,
     },
 };
-
-/**
- * Styles for the keyboard shortcut modal container based on screen size
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
- */
-function getKeyboardShortcutModalStyle(isSmallScreenWidth) {
-    return {
-        width: isSmallScreenWidth ? '100%' : '90%',
-        alignItems: 'center',
-        flex: 1,
-        height: 'auto',
-        maxHeight: '100%',
-    };
-}
 
 /**
  * Takes safe area insets and returns padding to use for a View
@@ -2538,6 +2528,5 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
-    getKeyboardShortcutModalStyle,
     getLoginPagePromoStyle,
 };
