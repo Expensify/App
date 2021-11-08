@@ -81,24 +81,17 @@ class SignInPage extends Component {
         const welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
         return (
-            <>
-                <SafeAreaView style={[styles.signInPage]}>
-                    <SignInPageLayout
-                        welcomeText={welcomeText}
-                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
-                        shouldShowWelcomeScreenshot={showLoginForm}
-                    >
-                        {!showResendValidationLinkForm
-                            && (
-                                <>
-                                    <LoginForm visible={showLoginForm} />
-                                    <PasswordForm visible={showPasswordForm} />
-                                </>
-                            )}
-                        {showResendValidationLinkForm && <ResendValidationForm />}
-                    </SignInPageLayout>
-                </SafeAreaView>
-            </>
+            <SafeAreaView style={[styles.signInPage]}>
+                <SignInPageLayout
+                    welcomeText={welcomeText}
+                    shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
+                    shouldShowWelcomeScreenshot={showLoginForm}
+                >
+                    <LoginForm visible={showLoginForm} />
+                    <PasswordForm visible={showPasswordForm} />
+                    {showResendValidationLinkForm && <ResendValidationForm />}
+                </SignInPageLayout>
+            </SafeAreaView>
         );
     }
 }
