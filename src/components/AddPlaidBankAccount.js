@@ -110,12 +110,7 @@ class AddPlaidBankAccount extends React.Component {
     componentDidMount() {
         let redirectURI = '';
         if (getPlatform() === 'web') {
-            console.log("in web");
-            // redirectURI = 'https://new.expensify.com/partners/plaid/oauth_web';
-            // redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
-            // redirectURI = 'https://expensify.com.dev/partners/plaid/oauth_callback.php';
-            // https://expensify.com.dev/partners/plaid/oauth_callback.php
-            redirectURI = 'http://localhost:8080/partners/plaid/oauth_web/';
+            redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
         }
         clearPlaidBankAccountsAndToken();
         fetchPlaidLinkToken(redirectURI);
@@ -187,10 +182,6 @@ class AddPlaidBankAccount extends React.Component {
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
                         onExit={this.props.onExitPlaid}
                     />
-                    // <OAuthLink
-                    //     plaidLinkToken={this.props.plaidLinkToken}
-                    //
-                    // />
                 )}
                 {accounts.length > 0 && (
                     <ReimbursementAccountForm

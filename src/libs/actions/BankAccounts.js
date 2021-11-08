@@ -104,7 +104,6 @@ function getPlaidBankAccounts(publicToken, bank) {
             if (response.jsonCode === 666 && response.title === CONST.BANK_ACCOUNT.PLAID.ERROR.TOO_MANY_ATTEMPTS) {
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isPlaidDisabled: true});
             }
-            console.log("getPlaidBank", response);
 
             plaidAccessToken = response.plaidAccessToken;
 

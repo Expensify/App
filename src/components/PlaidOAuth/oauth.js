@@ -15,8 +15,9 @@ import {BankArrowPink} from "../Icon/Illustrations";
 import Text from "../Text";
 import WorkspaceResetBankAccountModal from "../../pages/workspace/WorkspaceResetBankAccountModal";
 
-const OAuthLink = (props, callback, deps) => {
+const OAuthLink = ({plaidLinkToken, props, callback, deps}) => {
     console.log("in OAuthLink");
+    console.log(plaidLinkToken);
     // The Link token from the first Link initialization
     // const linkToken = localStorage.getItem('link_token');
     const linkToken = props.plaidLinkToken;
