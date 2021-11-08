@@ -171,7 +171,9 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
     }
     events[keyCode].push({callback, modifiers: _.isArray(modifiers) ? modifiers : [modifiers], captureOnInputs});
 
-    addKeyToMap(key, modifiers, descriptionKey);
+    if (descriptionKey) {
+        addKeyToMap(key, modifiers, descriptionKey);
+    }
     return () => unsubscribe(key);
 }
 
