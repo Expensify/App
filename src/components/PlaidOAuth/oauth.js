@@ -6,6 +6,16 @@ import {withOnyx} from "react-native-onyx";
 import ONYXKEYS from "../../ONYXKEYS";
 import {plaidLinkDefaultProps, plaidLinkPropTypes} from "../PlaidLink/plaidLinkPropTypes";
 import PlaidLink from "../PlaidLink";
+import ScreenWrapper from "../ScreenWrapper";
+import HeaderWithCloseButton from "../HeaderWithCloseButton";
+import Navigation from "../../libs/Navigation/Navigation";
+import ROUTES from "../../ROUTES";
+import WorkspaceSection from "../../pages/workspace/WorkspaceSection";
+import {BankArrowPink} from "../Icon/Illustrations";
+import {Bank, RotateLeft} from "../Icon/Expensicons";
+import {requestResetFreePlanBankAccount} from "../../libs/actions/BankAccounts";
+import Text from "../Text";
+import WorkspaceResetBankAccountModal from "../../pages/workspace/WorkspaceResetBankAccountModal";
 
 const OAuthLink = (props, callback, deps) => {
     console.log("in OAuthLink");
@@ -20,9 +30,10 @@ const OAuthLink = (props, callback, deps) => {
         console.log(err);
         // handle error...
     };
+    const newRedirecUri = '';
     const config = {
         token: linkToken,
-        receivedRedirectUri: window.location.href, //the redirect URI with an OAuth state ID parameter
+        receivedRedirectUri: encodeURI(window.location.href), //the redirect URI with an OAuth state ID parameter
         onSuccess,
         onExit,
     };
@@ -33,7 +44,41 @@ const OAuthLink = (props, callback, deps) => {
             open();
         }
     }, [ready, open]);
-    return <></>;
+    // return <></>;
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={this.props.translate('workspace.common.bankAccount')}
+                onCloseButtonPress={Navigation.dismissModal}
+                onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
+                shouldShowBackButton
+            />
+            <WorkspaceSection
+                title="TestTitle"
+                icon={BankArrowPink}
+                // menuItems={[
+                //     {
+                //         title: this.props.translate('workspace.bankAccount.continueWithSetup'),
+                //         icon: Bank,
+                //         onPress: this.navigateToBankAccountRoute,
+                //         shouldShowRightIcon: true,
+                //     },
+                //     {
+                //         title: this.props.translate('workspace.bankAccount.startOver'),
+                //         icon: RotateLeft,
+                //         onPress: requestResetFreePlanBankAccount,
+                //         shouldShowRightIcon: true,
+                //     },
+                // ]}
+            >
+                <Text>
+                    {'Test text'}
+                </Text>
+            </WorkspaceSection>
+            <WorkspaceResetBankAccountModal />
+        </ScreenWrapper>
+    );
+
 };
 OAuthLink.propTypes = plaidLinkPropTypes;
 OAuthLink.defaultProps = plaidLinkDefaultProps;

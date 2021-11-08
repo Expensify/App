@@ -103,10 +103,6 @@ export default {
                         path: ROUTES.BANK_ACCOUNT,
                         exact: true,
                     },
-                    OAuth_PLaid: {
-                        path: ROUTES.OAUTH_PLAID,
-                        exact: true,
-                    },
                 },
             },
             Report_Details: {
@@ -182,6 +178,11 @@ export default {
             RequestCall: {
                 screens: {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
+                },
+            },
+            OAUTH_PLAID_REDIRECT: {
+                screens: {
+                    OAuth_PLaid: ROUTES.OAUTH_PLAID,
                 },
             },
         },

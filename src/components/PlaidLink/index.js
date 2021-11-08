@@ -12,8 +12,10 @@ const PlaidLink = (props) => {
     const {open, ready, error} = usePlaidLink({
         token: props.token,
         onSuccess,
+        receivedRedirectUri: null, //the redirect URI with an OAuth state ID parameter
         onExit: (exitError, metadata) => {
             Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
+            console.log(exitError);
             props.onExit();
         },
         onEvent: (event, metadata) => {

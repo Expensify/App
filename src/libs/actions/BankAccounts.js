@@ -50,13 +50,12 @@ Onyx.connect({
  * @param {String} redirectURI
  */
 function fetchPlaidLinkToken(redirectURI) {
-    console.log(redirectURI);
     API.Plaid_GetLinkToken({redirect_uri: redirectURI})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;
             }
-
+            console.log(response);
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
@@ -105,6 +104,7 @@ function getPlaidBankAccounts(publicToken, bank) {
             if (response.jsonCode === 666 && response.title === CONST.BANK_ACCOUNT.PLAID.ERROR.TOO_MANY_ATTEMPTS) {
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isPlaidDisabled: true});
             }
+            console.log("getPlaidBank", response);
 
             plaidAccessToken = response.plaidAccessToken;
 
