@@ -1,4 +1,3 @@
-/* eslint-disable import/no-cycle */
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';

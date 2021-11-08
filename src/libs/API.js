@@ -4,7 +4,6 @@ import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
-// eslint-disable-next-line import/no-cycle
 import redirectToSignIn from './actions/SignInRedirect';
 import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
