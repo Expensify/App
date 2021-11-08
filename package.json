@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "1.1.10-1",
+  "version": "1.1.14-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -61,15 +61,14 @@
     "electron-log": "^4.3.5",
     "electron-serve": "^1.0.0",
     "electron-updater": "^4.3.4",
-    "expensify-common": "git://github.com/Expensify/expensify-common.git#b5d9167a26cfd40beebdfb79958b3bbed1af7b64",
-    "expo-haptics": "^10.0.0",
+    "expensify-common": "git+https://github.com/Expensify/expensify-common.git#b5d9167a26cfd40beebdfb79958b3bbed1af7b64",
     "file-loader": "^6.0.0",
     "html-entities": "^1.3.1",
     "lodash": "4.17.21",
     "metro-config": "^0.64.0",
     "moment": "^2.27.0",
     "moment-timezone": "^0.5.31",
-    "onfido-sdk-ui": "^6.7.2",
+    "onfido-sdk-ui": "^6.15.2",
     "prop-types": "^15.7.2",
     "pusher-js": "^7.0.0",
     "react": "^17.0.2",
@@ -82,6 +81,7 @@
     "react-native-document-picker": "^5.1.0",
     "react-native-gesture-handler": "1.9.0",
     "react-native-google-places-autocomplete": "^2.4.1",
+    "react-native-haptic-feedback": "^1.13.0",
     "react-native-image-pan-zoom": "^2.1.12",
     "react-native-image-picker": "^4.0.3",
     "react-native-keyboard-spacer": "^0.4.1",
@@ -97,7 +97,6 @@
     "react-native-safe-area-context": "^3.1.4",
     "react-native-screens": "^3.0.0",
     "react-native-svg": "^12.1.0",
-    "react-native-unimodules": "^0.13.3",
     "react-native-web": "0.15.7",
     "react-pdf": "^5.2.0",
     "react-plaid-link": "^3.2.0",
@@ -147,7 +146,7 @@
     "electron-notarize": "^1.0.0",
     "electron-reloader": "^1.2.0",
     "eslint": "^7.6.0",
-    "eslint-config-expensify": "^2.0.16",
+    "eslint-config-expensify": "2.0.17",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-detox": "^1.0.0",
     "eslint-plugin-jest": "^24.1.0",
@@ -228,25 +227,5 @@
     "jsxBracketSameLine": true,
     "singleQuote": true,
     "trailingComma": "all"
-  },
-  "react-native-unimodules": {
-    "android": {
-      "exclude": [
-        "expo-face-detector",
-        "expo-constants",
-        "expo-file-system",
-        "expo-image-loader",
-        "expo-permissions"
-      ]
-    },
-    "ios": {
-      "exclude": [
-        "expo-face-detector",
-        "expo-constants",
-        "expo-file-system",
-        "expo-image-loader",
-        "expo-permissions"
-      ]
-    }
   }
 }
