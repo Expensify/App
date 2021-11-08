@@ -140,7 +140,7 @@ const IdentityForm = ({
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
             {!manualAddress && (
-                <div>
+                <View>
                     <AddressSearch
                         label={translate('common.personalAddress')}
                         containerStyles={[styles.mt4]}
@@ -154,10 +154,10 @@ const IdentityForm = ({
                     >
                         Can&apos;t find your address? Enter it manually
                     </TextLink>
-                </div>
+                </View>
             )}
             {manualAddress && (
-                <div>
+                <View>
                     <ExpensiTextInput
                         label={translate('common.personalAddress')}
                         containerStyles={[styles.mt4]}
@@ -194,7 +194,7 @@ const IdentityForm = ({
                         errorText={errors.zipCode ? translate('bankAccount.error.zipCode') : ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     />
-                </div>
+                </View>
             )}
         </View>
     );
