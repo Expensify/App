@@ -80,6 +80,7 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
 const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
+const INTERNAL_QA_LABEL = 'InternalQA';
 
 class GithubUtils {
     /**
@@ -253,6 +254,17 @@ class GithubUtils {
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
+                const internalQAPRMap = _.reduce(
+                    _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
+                    (map, pr) => {
+                        // eslint-disable-next-line no-param-reassign
+                        map[pr.html_url] = _.pluck(pr.assignees, 'login');
+                        return map;
+                    },
+                    {},
+                );
+                console.log('Found the following Internal QA PRs:', internalQAPRMap);
+
                 const noQAPRs = _.pluck(
                     _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
                     'html_url',
@@ -263,6 +275,7 @@ class GithubUtils {
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
+                    .difference(_.keys(internalQAPRMap))
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
@@ -282,6 +295,15 @@ class GithubUtils {
                         issueBody += `\r\n\r\n- ${URL}`;
                         issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                         issueBody += _.contains(accessibleOrNoQAPRs, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
+                    });
+                }
+
+                if (!_.isEmpty(internalQAPRMap)) {
+                    issueBody += '\r\n\r\n\r\n**Internal QA:**';
+                    _.each(internalQAPRMap, (assignees, URL) => {
+                        const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
+                        issueBody += `\r\n\r\n- ${URL} -${assigneeMentions}`;
+                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                     });
                 }
 
