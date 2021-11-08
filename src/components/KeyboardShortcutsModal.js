@@ -75,7 +75,6 @@ class KeyboardShortcutsModal extends React.PureComponent {
 
     render() {
         const shortcuts = KeyboardShortcut.getKeyboardShortcutMap();
-
         return (
             <Modal
                 isVisible={this.state.isOpen}
