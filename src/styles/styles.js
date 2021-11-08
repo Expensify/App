@@ -2088,7 +2088,7 @@ const styles = {
 
     threeDotsPopoverOffset: {
         top: 50,
-        right: 50,
+        right: 60,
     },
 };
 

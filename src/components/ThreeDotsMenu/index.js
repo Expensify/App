@@ -108,8 +108,6 @@ class ThreeDotsMenu extends Component {
 ThreeDotsMenu.propTypes = propTypes;
 ThreeDotsMenu.defaultProps = defaultProps;
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
-export default compose(
-    withLocalize,
-)(ThreeDotsMenu);
+export default withLocalize(ThreeDotsMenu);
 
 export {ThreeDotsMenuItemPropTypes};
