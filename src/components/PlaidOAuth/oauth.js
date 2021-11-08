@@ -15,9 +15,12 @@ import {BankArrowPink} from "../Icon/Illustrations";
 import Text from "../Text";
 import WorkspaceResetBankAccountModal from "../../pages/workspace/WorkspaceResetBankAccountModal";
 
-const OAuthLink = ({plaidLinkToken, props, callback, deps}) => {
+// const OAuthLink = ({plaidLinkToken, props, callback, deps}) => {
+const OAuthLink = ({plaidLinkToken}) => {
     console.log("in OAuthLink");
     console.log(plaidLinkToken);
+    console.log(props);
+
     // The Link token from the first Link initialization
     // const linkToken = localStorage.getItem('link_token');
     const linkToken = props.plaidLinkToken;
@@ -30,7 +33,6 @@ const OAuthLink = ({plaidLinkToken, props, callback, deps}) => {
         console.log(err);
         // handle error...
     };
-    const newRedirecUri = '';
     const config = {
         token: linkToken,
         receivedRedirectUri: encodeURI(window.location.href), //the redirect URI with an OAuth state ID parameter

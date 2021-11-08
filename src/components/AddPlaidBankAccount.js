@@ -103,14 +103,26 @@ class AddPlaidBankAccount extends React.Component {
             institution: {},
         };
 
+        this.receivedRedirectUri = null;
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
     }
 
     componentDidMount() {
+        console.log('in componentDidMount', window.location.href);
+        const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
+        const oauth_state_id = receivedRedirectSearchParams.get('oauth_state_id');
+        console.log(oauth_state_id);
+        // If we're reinitializing the PlaidLink after OAuth, then don't grab the token again
+        if (oauth_state_id) {
+            this.receivedRedirectUri = window.location.href;
+            return;
+        }
+
         let redirectURI = '';
         if (getPlatform() === 'web') {
-            redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
+            // redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
+            redirectURI = 'http://localhost:8080/bank-account';
         }
         clearPlaidBankAccountsAndToken();
         fetchPlaidLinkToken(redirectURI);
@@ -181,6 +193,7 @@ class AddPlaidBankAccount extends React.Component {
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
                         onExit={this.props.onExitPlaid}
+                        receivedRedirectUri={this.receivedRedirectUri}
                     />
                 )}
                 {accounts.length > 0 && (
