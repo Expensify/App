@@ -69,10 +69,12 @@ class ScreenWrapper extends React.Component {
 
     componentDidMount() {
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
-            if (!this.props.modal.willAlertModalBecomeVisible) {
-                Navigation.dismissModal();
+            if (this.props.modal.willAlertModalBecomeVisible) {
+                return;
             }
-        }, 'escape', [], true);
+
+            Navigation.dismissModal();
+        }, [], true);
 
         this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
             this.setState({didScreenTransitionEnd: true});
@@ -121,7 +123,6 @@ class ScreenWrapper extends React.Component {
                                     : this.props.children
                             }
                             <KeyboardShortcutsModal />
-
                         </View>
                     );
                 }}

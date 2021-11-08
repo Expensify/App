@@ -164,14 +164,16 @@ class TextInputFocusable extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.textInput) {
-            document.removeEventListener('dragover', this.dragNDropListener);
-            document.removeEventListener('dragenter', this.dragNDropListener);
-            document.removeEventListener('dragleave', this.dragNDropListener);
-            document.removeEventListener('drop', this.dragNDropListener);
-            this.textInput.removeEventListener('paste', this.handlePaste);
-            this.textInput.removeEventListener('wheel', this.handleWheel);
+        if (!this.textInput) {
+            return;
         }
+
+        document.removeEventListener('dragover', this.dragNDropListener);
+        document.removeEventListener('dragenter', this.dragNDropListener);
+        document.removeEventListener('dragleave', this.dragNDropListener);
+        document.removeEventListener('drop', this.dragNDropListener);
+        this.textInput.removeEventListener('paste', this.handlePaste);
+        this.textInput.removeEventListener('wheel', this.handleWheel);
     }
 
     /**
@@ -312,11 +314,13 @@ class TextInputFocusable extends React.Component {
      * @param {Object} event native Event
      */
     handleWheel(event) {
-        if (event.target === document.activeElement) {
-            this.textInput.scrollTop += event.deltaY;
-            event.preventDefault();
-            event.stopPropagation();
+        if (event.target !== document.activeElement) {
+            return;
         }
+
+        this.textInput.scrollTop += event.deltaY;
+        event.preventDefault();
+        event.stopPropagation();
     }
 
     /**
