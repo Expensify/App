@@ -2085,6 +2085,11 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
+
+    threeDotsPopoverOffset: {
+        top: 50,
+        right: 50,
+    },
 };
 
 const baseCodeTagStyles = {

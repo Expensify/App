@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {
-    View, Pressable, Dimensions,
+    View, Pressable,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
@@ -56,53 +56,27 @@ class ThreeDotsMenu extends Component {
         super(props);
 
         this.togglePopupMenu = this.togglePopupMenu.bind(this);
-        this.measurePopupMenuIconPosition = this.measurePopupMenuIconPosition.bind(this);
-        this.popupMenuIconWrapper = null;
         this.state = {
-            isPopupMenuActive: false,
-            popupMenuIconPosition: {x: 0, y: 0},
+            isPopupMenuVisible: false,
         };
     }
 
-    componentDidMount() {
-        Dimensions.addEventListener('change', this.measurePopupMenuIconPosition);
-    }
-
-    componentWillUnmount() {
-        Dimensions.removeEventListener('change', this.measurePopupMenuIconPosition);
-    }
-
     /**
-     * Toggles the state variable isPopupMenuActive
+     * Toggles the popup menu visibility
      */
     togglePopupMenu() {
         this.setState(prevState => ({
-            isPopupMenuActive: !prevState.isPopupMenuActive,
+            isPopupMenuVisible: !prevState.isPopupMenuVisible,
         }));
-    }
-
-    /**
-     * This gets called onLayout to find the cooridnates of the wrapper for the pop up menu button
-     */
-    measurePopupMenuIconPosition() {
-        if (this.popupMenuIconWrapper) {
-            this.popupMenuIconWrapper.measureInWindow((x, y) => this.setState({
-                popupMenuIconPosition: {x, y},
-            }));
-        }
     }
 
     render() {
         return (
             <>
-                <View
-                    ref={el => this.popupMenuIconWrapper = el}
-                    onLayout={this.measurePopupMenuIconPosition}
-                >
+                <View>
                     <Tooltip text={this.props.translate(this.props.iconTooltip)}>
                         <Pressable
                             onPress={() => {
-                                // Add a prop here?
                                 this.togglePopupMenu();
                                 if (this.props.onIconPress) {
                                     this.props.onIconPress();
@@ -119,7 +93,7 @@ class ThreeDotsMenu extends Component {
                 </View>
                 <PopoverMenu
                     onClose={this.togglePopupMenu}
-                    isVisible={this.state.isPopupMenuActive}
+                    isVisible={this.state.isPopupMenuVisible}
                     anchorPosition={this.props.anchorPosition}
                     onItemSelected={() => this.togglePopupMenu()}
                     animationIn="fadeInDown"

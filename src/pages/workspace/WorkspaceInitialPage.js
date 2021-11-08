@@ -161,7 +161,7 @@ class WorkspaceInitialPage extends React.Component {
                             onPress: () => this.setState({isDeleteModalOpen: true}),
                         },
                     ]}
-                    threeDotsAnchorPosition={{top: 50, right: 60}}
+                    threeDotsAnchorPosition={styles.threeDotsPopoverOffset}
                 />
                 <ScrollView
                     contentContainerStyle={[
