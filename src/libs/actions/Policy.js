@@ -15,9 +15,11 @@ const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
-        if (val && key) {
-            allPolicies[key] = {...allPolicies[key], ...val};
+        if (!val || !key) {
+            return;
         }
+
+        allPolicies[key] = {...allPolicies[key], ...val};
     },
 });
 
@@ -146,15 +148,17 @@ function createAndNavigate(name = '') {
 function getPolicyList() {
     API.GetPolicySummaryList()
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
-                    ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-                }), {});
+            if (data.jsonCode !== 200) {
+                return;
+            }
 
-                if (!_.isEmpty(policyCollection)) {
-                    updateAllPolicies(policyCollection);
-                }
+            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
+                ...memo,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+            }), {});
+
+            if (!_.isEmpty(policyCollection)) {
+                updateAllPolicies(policyCollection);
             }
         });
 }
@@ -175,12 +179,16 @@ function createAndGetPolicyList() {
 function loadFullPolicy(policyID) {
     API.GetFullPolicy(policyID)
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const policy = lodashGet(data, 'policyList[0]', {});
-                if (policy.id) {
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
-                }
+            if (data.jsonCode !== 200) {
+                return;
             }
+
+            const policy = lodashGet(data, 'policyList[0]', {});
+            if (!policy.id) {
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
         });
 }
 

@@ -1,6 +1,8 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line import/no-cycle
 import Log from './Log';
 import Config from '../CONFIG';
 import translations from '../languages/translations';
@@ -11,9 +13,11 @@ let preferredLocale = CONST.DEFAULT_LOCALE;
 Onyx.connect({
     key: ONYXKEYS.NVP_PREFERRED_LOCALE,
     callback: (val) => {
-        if (val) {
-            preferredLocale = val;
+        if (!val) {
+            return;
         }
+
+        preferredLocale = val;
     },
 });
 
@@ -57,7 +61,7 @@ function translate(locale = CONST.DEFAULT_LOCALE, phrase, variables = {}) {
     // Phrase is not found in default language, on production log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION) {
-        const phraseString = Array.isArray(phrase) ? phrase.join('.') : phrase;
+        const phraseString = _.isArray(phrase) ? phrase.join('.') : phrase;
         Log.alert(`${phraseString} was not found in the en locale`);
         return phraseString;
     }

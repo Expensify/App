@@ -20,17 +20,17 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceBillsVBAView = ({translate, policyID}) => (
+const WorkspaceBillsVBAView = props => (
     <>
-        <WorkspaceBillsFirstSection policyID={policyID} />
+        <WorkspaceBillsFirstSection policyID={props.policyID} />
 
         <WorkspaceSection
-            title={translate('workspace.bills.hassleFreeBills')}
+            title={props.translate('workspace.bills.hassleFreeBills')}
             icon={MoneyMousePink}
             menuItems={[
                 {
-                    title: translate('workspace.common.bills'),
-                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
+                    title: props.translate('workspace.common.bills'),
+                    onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Processing,Approved&isAdvancedFilterMode=true`),
                     icon: Bill,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -38,7 +38,7 @@ const WorkspaceBillsVBAView = ({translate, policyID}) => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.bills.VBACopy')}</Text>
+                <Text>{props.translate('workspace.bills.VBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>
