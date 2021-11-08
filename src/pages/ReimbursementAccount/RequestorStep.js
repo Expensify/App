@@ -128,9 +128,11 @@ class RequestorStep extends React.Component {
         });
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(this.state[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         if (_.size(errors)) {
             setBankAccountFormValidationErrors(errors);

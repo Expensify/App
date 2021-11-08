@@ -9,6 +9,7 @@ import {
 } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line import/no-cycle
 import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
@@ -30,9 +31,11 @@ const navigationRef = createNavigationContainerRef();
 let didTapNotificationBeforeReady = false;
 
 function setDidTapNotification() {
-    if (!navigationRef.isReady()) {
-        didTapNotificationBeforeReady = true;
+    if (navigationRef.isReady()) {
+        return;
     }
+
+    didTapNotificationBeforeReady = true;
 }
 
 /**
