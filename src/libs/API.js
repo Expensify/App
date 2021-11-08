@@ -6,9 +6,9 @@ import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
 // eslint-disable-next-line import/no-cycle
 import redirectToSignIn from './actions/SignInRedirect';
-import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
-
+// eslint-disable-next-line import/no-cycle
+import * as Network from './Network';
 // eslint-disable-next-line import/no-cycle
 import LogUtil from './Log';
 // eslint-disable-next-line import/no-cycle
@@ -16,15 +16,30 @@ import * as Session from './actions/Session';
 
 let isAuthenticating;
 let credentials;
+let authToken;
+
+function checkRequiredDataAndSetNetworkReady() {
+    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
+        return;
+    }
+
+    Network.setIsReady(true);
+}
+
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
+    callback: (val) => {
+        credentials = val || null;
+        checkRequiredDataAndSetNetworkReady();
+    },
 });
 
-let authToken;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
+    callback: (val) => {
+        authToken = lodashGet(val, 'authToken', null);
+        checkRequiredDataAndSetNetworkReady();
+    },
 });
 
 /**
@@ -59,18 +74,6 @@ function addDefaultValuesToParameters(command, parameters) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        // If we end up here with no authToken it means we are trying to make an API request before we are signed in.
-        // In this case, we should cancel the current request by pausing the queue and clearing the remaining requests.
-        if (!authToken) {
-            redirectToSignIn();
-
-            LogUtil.info('A request was made without an authToken', false, {command, parameters});
-            Network.pauseRequestQueue();
-            Network.clearRequestQueue();
-            Network.unpauseRequestQueue();
-            return;
-        }
-
         finalParameters.authToken = authToken;
     }
 
@@ -197,7 +200,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
 
 /**
  * @param {Object} parameters
- * @param {String} [parameters.useExpensifyLogin]
+ * @param {Boolean} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
@@ -448,6 +451,7 @@ function Get(parameters, shouldUseSecure = false) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} parameters.forceNetworkRequest
  * @returns {Promise}
  */
 function GetAccountStatus(parameters) {
@@ -1015,14 +1019,13 @@ function DeleteBankAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
  * @returns {Promise}
  */
 function Mobile_GetConstants(parameters) {
     const commandName = 'Mobile_GetConstants';
     requireParameters(['data'], parameters, commandName);
 
-    // Stringinfy the parameters object as we cannot send an object via FormData
+    // Stringify the parameters object as we cannot send an object via FormData
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 
