@@ -1,29 +1,20 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../components/OptionsSelector';
-import {getSearchOptions, getHeaderMessage} from '../libs/OptionsListUtils';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import KeyboardSpacer from '../components/KeyboardSpacer';
-import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
-import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
-import ScreenWrapper from '../components/ScreenWrapper';
-import Timing from '../libs/actions/Timing';
-import CONST from '../CONST';
-import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
+import personalDetailsPropType from './personalDetailsPropType';
+import SearchForm from '../components/SearchForm';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import personalDetailsPropType from './personalDetailsPropType';
+import ONYXKEYS from '../ONYXKEYS';
+import Timing from '../libs/actions/Timing';
+import CONST from '../CONST';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
+import Navigation from '../libs/Navigation/Navigation';
+import ROUTES from '../ROUTES';
+import * as Report from '../libs/actions/Report';
 
 const propTypes = {
-    /* Onyx Props */
-
     /** Beta features list */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
@@ -41,9 +32,6 @@ const propTypes = {
         email: PropTypes.string.isRequired,
     }).isRequired,
 
-    /** Window Dimensions Props */
-    ...windowDimensionsPropTypes,
-
     ...withLocalizePropTypes,
 };
 
@@ -53,15 +41,11 @@ class SearchPage extends Component {
 
         Timing.start(CONST.TIMING.SEARCH_RENDER);
 
-        this.selectReport = this.selectReport.bind(this);
-        this.onChangeText = this.onChangeText.bind(this);
-        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
-
         const {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getSearchOptions(
+        } = OptionsListUtils.getSearchOptions(
             props.reports,
             props.personalDetails,
             '',
@@ -69,67 +53,74 @@ class SearchPage extends Component {
         );
 
         this.state = {
-            searchValue: '',
             recentReports,
             personalDetails,
             userToInvite,
         };
+
+        this.getSearchResults = this.getSearchResults.bind(this);
+        this.getHeaderMessage = this.getHeaderMessage.bind(this);
+        this.selectReport = this.selectReport.bind(this);
     }
 
     componentDidMount() {
         Timing.end(CONST.TIMING.SEARCH_RENDER);
     }
 
-    onChangeText(searchValue = '') {
-        this.setState({searchValue}, this.debouncedUpdateOptions);
-    }
-
     /**
-     * Returns the sections needed for the OptionsSelector
-     *
-     * @returns {Array}
+     * @param {String} searchValue
+     * @returns {Array<Object>}
      */
-    getSections() {
+    getSearchResults(searchValue) {
+        const {
+            recentReports,
+            personalDetails,
+            userToInvite,
+        } = OptionsListUtils.getSearchOptions(
+            this.props.reports,
+            this.props.personalDetails,
+            searchValue,
+            this.props.betas,
+        );
+
         const sections = [{
             title: this.props.translate('common.recents'),
-            data: this.state.recentReports.concat(this.state.personalDetails),
+            data: recentReports.concat(personalDetails),
             shouldShow: true,
             indexOffset: 0,
         }];
 
-        if (this.state.userToInvite) {
+        if (userToInvite) {
             sections.push(({
                 undefined,
-                data: [this.state.userToInvite],
+                data: [userToInvite],
                 shouldShow: true,
                 indexOffset: 0,
             }));
         }
 
+        this.setState({
+            recentReports,
+            personalDetails,
+            userToInvite,
+        });
+
         return sections;
     }
 
-    updateOptions() {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = getSearchOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.state.searchValue.trim(),
-            this.props.betas,
+    /**
+     * @param {String} searchValue
+     * @returns {String}
+     */
+    getHeaderMessage(searchValue) {
+        return OptionsListUtils.getHeaderMessage(
+            !_.isEmpty(this.state.personalDetails) && !_.isEmpty(this.state.recentReports),
+            !_.isEmpty(this.state.userToInvite),
+            searchValue,
         );
-        this.setState({
-            userToInvite,
-            recentReports,
-            personalDetails,
-        });
     }
 
     /**
-     * Reset the search value and redirect to the selected report
-     *
      * @param {Object} option
      */
     selectReport(option) {
@@ -138,13 +129,9 @@ class SearchPage extends Component {
         }
 
         if (option.reportID) {
-            this.setState({
-                searchValue: '',
-            }, () => {
-                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-            });
+            Navigation.navigate(ROUTES.getReportRoute(option.reportID));
         } else {
-            fetchOrCreateChatReport([
+            Report.fetchOrCreateChatReport([
                 this.props.session.email,
                 option.login,
             ]);
@@ -152,39 +139,13 @@ class SearchPage extends Component {
     }
 
     render() {
-        const sections = this.getSections();
-        const headerMessage = getHeaderMessage(
-            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchValue,
-        );
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
-                        />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                            {didScreenTransitionEnd && (
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                hideAdditionalOptionStates
-                                showTitleTooltip
-                            />
-                            )}
-                        </View>
-                        <KeyboardSpacer />
-                    </>
-                )}
-            </ScreenWrapper>
+            <SearchForm
+                title={this.props.translate('common.search')}
+                getSearchResults={this.getSearchResults}
+                getHeaderMessage={this.getHeaderMessage}
+                submit={this.selectReport}
+            />
         );
     }
 }
@@ -193,7 +154,6 @@ SearchPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
-    withWindowDimensions,
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,

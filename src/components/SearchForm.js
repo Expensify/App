@@ -16,26 +16,25 @@ const propTypes = {
     /** Title for the form */
     title: PropTypes.string.isRequired,
 
-    /** Function to get search results. Should return an object w/ */
+    /** Function to get search results. Should return array of sections. */
     getSearchResults: PropTypes.func.isRequired,
+
+    /** Function to generate header message for given selections and search value. */
+    getHeaderMessage: PropTypes.func.isRequired,
 
     /** Function to submit the search result(s) */
     submit: PropTypes.func.isRequired,
 
-    /** Text to display in the submit button for the search form */
+    /** Text to display in the submit button for the search form (only present if maxResults > 1) */
     submitButtonText: PropTypes.string,
 
     /** The maximum number of search results that can be selected */
     maxResults: PropTypes.number,
-
-    /** TODO: Update OptionsListUtils.getHeaderMessage to be more generic */
-    headerMessage: PropTypes.string,
 };
 
 const defaultProps = {
     submitButtonText: '',
     maxResults: 1,
-    headerMessage: '',
 };
 
 class SearchForm extends Component {
@@ -48,7 +47,7 @@ class SearchForm extends Component {
             selectedOptions: [],
         };
 
-        this.updateSearchResults = this.updateSearchResults.bind(this);
+        this.updateSearchResults = _.debounce(this.updateSearchResults.bind(this), 75);
         this.toggleOrSubmit = this.toggleOrSubmit.bind(this);
     }
 
@@ -58,23 +57,28 @@ class SearchForm extends Component {
      * @param {String} searchValue
      */
     updateSearchResults(searchValue) {
-        const sections = [];
-        if (this.props.maxResults > 1) {
-            sections.push({
-                title: undefined,
-                data: this.state.selectedOptions,
-                shouldShow: true,
-                indexOffset: 0,
+        this.setState({searchValue}, () => {
+            const sections = [];
+
+            // First add already-selected options
+            if (this.props.maxResults > 1) {
+                sections.push({
+                    title: undefined,
+                    data: this.state.selectedOptions,
+                    shouldShow: true,
+                    indexOffset: 0,
+                });
+            }
+
+            // Then add new sections only if we're not already at our limit
+            const searchValueTrimmed = searchValue.trim();
+            if (this.selectedOptions.length < this.props.maxResults) {
+                sections.push(...this.props.getSearchResults(searchValueTrimmed));
+            }
+
+            this.setState({
+                sections,
             });
-        }
-
-        if (this.selectedOptions.length < this.props.maxResults) {
-            sections.push(...this.props.getSearchResults(searchValue));
-        }
-
-        this.setState({
-            searchValue: '',
-            sections,
         });
     }
 
@@ -117,7 +121,7 @@ class SearchForm extends Component {
             return this.toggleOption(option);
         }
 
-        this.submit(option);
+        this.props.submit(option);
     }
 
     render() {
@@ -140,7 +144,10 @@ class SearchForm extends Component {
                                         value={this.state.searchValue}
                                         onSelectRow={this.toggleOrSubmit}
                                         onChangeText={this.updateSearchResults}
-                                        headerMessage={this.props.headerMessage}
+                                        headerMessage={this.props.getHeaderMessage(
+                                            this.state.searchValue,
+                                            this.state.selectedOptions.length >= this.props.maxResults,
+                                        )}
                                         disableArrowKeysActions
                                         hideAdditionalOptionStates
                                         forceTextUnreadStyle
@@ -149,7 +156,7 @@ class SearchForm extends Component {
                                         <FixedFooter>
                                             <Button
                                                 success
-                                                onPress={this.props.submit}
+                                                onPress={() => this.props.submit(this.state.selectedOptions)}
                                                 style={[styles.w100]}
                                                 text={this.props.submitButtonText}
                                             />
