@@ -49,9 +49,11 @@ const WorkspaceCardVBANoECardView = props => (
                 ]}
             />
         </WorkspaceSection>
-        {props.user.isCheckingDomain && <Text style={[styles.m5, styles.formError]}>
-            {props.translate('workspace.card.checkingDomain')}
-        </Text>}
+        {props.user.isCheckingDomain && (
+            <Text style={[styles.m5, styles.formError]}>
+                {props.translate('workspace.card.checkingDomain')}
+            </Text>
+        )}
     </>
 );
 
@@ -63,6 +65,6 @@ export default compose(
     withOnyx({
         user: {
             key: ONYXKEYS.USER,
-        }
-    })
+        },
+    }),
 )(WorkspaceCardVBANoECardView);
