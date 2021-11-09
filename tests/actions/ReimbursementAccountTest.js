@@ -6,6 +6,7 @@ import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import BankAccount from '../../src/libs/models/BankAccount';
+import * as Network from '../../src/libs/Network';
 
 const TEST_BANK_ACCOUNT_ID = 1;
 const TEST_BANK_ACCOUNT_CITY = 'Opa-locka';
@@ -34,6 +35,7 @@ Onyx.connect({
 
 beforeEach(() => Onyx.clear()
     .then(() => {
+        Network.setIsReady(true);
         signInWithTestUser();
         return waitForPromisesToResolve();
     }));
