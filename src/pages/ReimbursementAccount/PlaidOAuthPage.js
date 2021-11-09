@@ -7,9 +7,10 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
-    addPersonalBankAccount,
+    addPersonalBankAccount, showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
+import ROUTES from "../../ROUTES";
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -22,9 +23,14 @@ const PlaidOAuthPage = ({
     reimbursementAccount,
 }) => {
     const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
-    const oauth_state_id = receivedRedirectSearchParams.get('oauth_state_id');
+    const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
+    let receivedRedirectURI = window.location.href;
 
-    // Add validation check for stateID or errors
+    // If there's no stateID passed, then setting the redirectURI to null
+    // will return the user to the start of the PLaid flow
+    if (!oauthStateID) {
+        receivedRedirectURI = null;
+    }
 
     // Need to differentiate between personal and business bank account
     // if personal then addPersonalBankAccount(account, password, plaidLinkToken);
@@ -40,7 +46,7 @@ const PlaidOAuthPage = ({
                 // onSubmit={({account, password, plaidLinkToken}) => {
                 //     addPersonalBankAccount(account, password, plaidLinkToken);
                 // }}
-                receivedRedirectURI={window.location.href}
+                receivedRedirectURI={receivedRedirectURI}
                 onExitPlaid={Navigation.dismissModal}
                 plaidLinkToken={plaidLinkToken}
             />
@@ -54,7 +60,6 @@ export default compose(
     withLocalize,
     withOnyx({
         plaidLinkToken: {
-            // If we hit here we've been redirected to reinitialize the PlaidLink
             key: ONYXKEYS.PLAID_LINK_TOKEN,
         },
         plaidBankAccounts: {
