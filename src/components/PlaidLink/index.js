@@ -5,7 +5,6 @@ import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
     console.log("here in index PlaidLink");
-    console.log(props.receivedRedirectUri);
     const onSuccess = useCallback((publicToken, metadata) => {
         props.onSuccess({publicToken, metadata});
     }, []);
@@ -13,7 +12,6 @@ const PlaidLink = (props) => {
     const {open, ready, error} = usePlaidLink({
         token: props.token,
         onSuccess,
-        receivedRedirectUri: props.receivedRedirectUri, //the redirect URI with an OAuth state ID parameter
         onExit: (exitError, metadata) => {
             Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
             console.log(exitError);
@@ -23,6 +21,7 @@ const PlaidLink = (props) => {
             console.log({event, metadata}, '[PlaidLink] onEvent');
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
         },
+        receivedRedirectUri: props.receivedRedirectUri, //the redirect URI with an OAuth state ID parameter
     });
 
     useEffect(() => {

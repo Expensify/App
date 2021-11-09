@@ -15,6 +15,19 @@ import compose from '../../libs/compose';
 import getBankIcon from "../../components/Icon/BankIcons";
 import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg';
 import variables from "../../styles/variables";
+import Log from "../../libs/Log";
+import {getPlaidBankAccounts} from "../../libs/actions/BankAccounts";
+import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import Navigation from '../../libs/Navigation/Navigation';
+import {
+    addPersonalBankAccount,
+} from '../../libs/actions/BankAccounts';
+import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
+
+const propTypes = {
+    ...withLocalizePropTypes,
+};
 
 const PlaidOAuthPage = ({
     plaidLinkToken,
@@ -24,55 +37,90 @@ const PlaidOAuthPage = ({
     const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
     const oauth_state_id = receivedRedirectSearchParams.get('oauth_state_id');
     console.log("in PlaidOAuthPage", oauth_state_id);
-    const bankAccounts = lodashGet(plaidBankAccounts, 'accounts', []);
-    const linkToken = plaidLinkToken;
-    const icon = GenericBank;
-    const iconSize = variables.iconSizeExtraLarge;
-    // const {icon, iconSize} = getBankIcon(this.state.institution.name);
+
+    // Need to differentiate between personal and business bank account
 
     return (
-        <View>
-            <OAuthLink
-                plaidLinkToken={linkToken}
-                receivedRedirectUri={window.location.href}
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={props.translate('bankAccount.addBankAccount')}
+                onCloseButtonPress={Navigation.dismissModal}
             />
-            {bankAccounts.length > 0 && (
-                <ReimbursementAccountForm
-                    onSubmit={this.selectAccount}
-                >
-                    {!_.isEmpty(this.props.text) && (
-                        <Text style={[styles.mb5]}>{this.props.text}</Text>
-                    )}
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
-                        <Icon
-                            src={icon}
-                            height={iconSize}
-                            width={iconSize}
-                        />
-                        <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
-                    </View>
-                    <View style={[styles.mb5]}>
-                        <ExpensiPicker
-                            label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
-                            onChange={(index) => {
-                                this.setState({selectedIndex: Number(index)});
-                                this.clearError('selectedBank');
-                            }}
-                            items={options}
-                            placeholder={_.isUndefined(this.state.selectedIndex) ? {
-                                value: '',
-                                label: this.props.translate('bankAccount.chooseAnAccount'),
-                            } : {}}
-                            value={this.state.selectedIndex}
-                            hasError={this.getErrors().selectedBank}
-                        />
-                    </View>
-                </ReimbursementAccountForm>
-            )}
-        </View>
+            <AddPlaidBankAccount
+                onSubmit={({account, password, plaidLinkToken}) => {
+                    addPersonalBankAccount(account, password, plaidLinkToken);
+                }}
+                receivedRedirectURI={(new URL(window.location.href))}
+                onExitPlaid={Navigation.dismissModal}
+                plaidLinkToken={plaidLinkToken}
+            />
+        </ScreenWrapper>
     );
-}
+};
 
+// const PlaidOAuthPage = ({
+//     plaidLinkToken,
+//     plaidBankAccounts,
+//     reimbursementAccount,
+// }) => {
+//     const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
+//     const oauth_state_id = receivedRedirectSearchParams.get('oauth_state_id');
+//     console.log("in PlaidOAuthPage", oauth_state_id);
+//     const bankAccounts = lodashGet(plaidBankAccounts, 'accounts', []);
+//     const linkToken = plaidLinkToken;
+//     const icon = GenericBank;
+//     const iconSize = variables.iconSizeExtraLarge;
+//     // const {icon, iconSize} = getBankIcon(this.state.institution.name);
+//
+//     return (
+//         <View>
+//             <OAuthLink
+//                 plaidLinkToken={linkToken}
+//                 receivedRedirectUri={window.location.href}
+//                 onSuccess={({publicToken, metadata}) => {
+//                     Log.info('[PlaidLink] Success!');
+//                     console.log('[PlaidLink] Success!');
+//                     getPlaidBankAccounts(publicToken, metadata.institution.name);
+//                     // this.setState({institution: metadata.institution});
+//                 }}
+//             />
+//             {bankAccounts.length > 0 && (
+//                 <ReimbursementAccountForm
+//                     onSubmit={this.selectAccount}
+//                 >
+//                     {!_.isEmpty(this.props.text) && (
+//                         <Text style={[styles.mb5]}>{this.props.text}</Text>
+//                     )}
+//                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
+//                         <Icon
+//                             src={icon}
+//                             height={iconSize}
+//                             width={iconSize}
+//                         />
+//                         <Text style={[styles.ml3, styles.textStrong]}>{this.state.institution.name}</Text>
+//                     </View>
+//                     <View style={[styles.mb5]}>
+//                         <ExpensiPicker
+//                             label={this.props.translate('addPersonalBankAccountPage.chooseAccountLabel')}
+//                             onChange={(index) => {
+//                                 this.setState({selectedIndex: Number(index)});
+//                                 this.clearError('selectedBank');
+//                             }}
+//                             items={options}
+//                             placeholder={_.isUndefined(this.state.selectedIndex) ? {
+//                                 value: '',
+//                                 label: this.props.translate('bankAccount.chooseAnAccount'),
+//                             } : {}}
+//                             value={this.state.selectedIndex}
+//                             hasError={this.getErrors().selectedBank}
+//                         />
+//                     </View>
+//                 </ReimbursementAccountForm>
+//             )}
+//         </View>
+//     );
+// }
+//
 PlaidOAuthPage.displayName = 'PlaidOAuthPage';
 export default compose(
     withLocalize,
