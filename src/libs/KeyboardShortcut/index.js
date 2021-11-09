@@ -1,4 +1,6 @@
 import _ from 'underscore';
+import getOperatingSystem from '../getOperatingSystem';
+import CONST from '../../CONST';
 
 const events = {};
 const keyboardShortcutMap = {};
@@ -132,7 +134,7 @@ function unsubscribe(key) {
  */
 function addKeyToMap(key, modifiers, descriptionKey) {
     let shortcutKey = [key];
-    if (typeof modifiers === 'string') {
+    if (_.isString(modifiers)) {
         shortcutKey.unshift(modifiers);
     } else if (_.isArray(modifiers)) {
         shortcutKey = [...modifiers, ...shortcutKey];
@@ -178,6 +180,16 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 }
 
 /**
+ * Return platform specific modifiers for keys like Control (Cmd)
+ * @param {Array} modifiers
+ * @returns {Array}
+ */
+function getShortcutModifiers(modifiers) {
+    const isMacOS = getOperatingSystem() === CONST.OS.MAC_OS;
+    return _.map(modifiers, modifier => (isMacOS && modifier === 'control' ? 'meta' : 'control'));
+}
+
+/**
  * Module storing the different keyboard shortcut
  *
  * We are using a push/pop model where new event are pushed at the end of an
@@ -191,6 +203,7 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
 const KeyboardShortcut = {
     subscribe,
     getKeyboardShortcuts,
+    getShortcutModifiers,
 };
 
 export default KeyboardShortcut;

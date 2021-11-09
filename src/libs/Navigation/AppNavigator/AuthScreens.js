@@ -32,7 +32,6 @@ import NameValuePair from '../../actions/NameValuePair';
 import * as Policy from '../../actions/Policy';
 import modalCardStyleInterpolator from './modalCardStyleInterpolator';
 import createCustomModalStackNavigator from './createCustomModalStackNavigator';
-import getOperatingSystem from '../../getOperatingSystem';
 import {fetchFreePlanVerifiedBankAccount, fetchUserWallet} from '../../actions/BankAccounts';
 
 // Main drawer navigator
@@ -171,13 +170,8 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
-        let searchShortcutModifiers = ['control'];
-        let groupShortcutModifiers = ['control', 'shift'];
-
-        if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            searchShortcutModifiers = ['meta'];
-            groupShortcutModifiers = ['meta', 'shift'];
-        }
+        const searchShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['control']);
+        const groupShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['control', 'shift']);
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat

@@ -10,7 +10,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
-import getOperatingSystem from '../libs/getOperatingSystem';
+
 
 const propTypes = {
     /** prop to fetch screen width */
@@ -30,10 +30,7 @@ class KeyboardShortcutsModal extends React.PureComponent {
     }
 
     componentDidMount() {
-        let shortcutModifiers = ['control'];
-        if (getOperatingSystem() === CONST.OS.MAC_OS) {
-            shortcutModifiers = ['meta'];
-        }
+        const shortcutModifiers = KeyboardShortcut.getShortcutModifiers(['control']);
         this.unsubscribeShortCutModal = KeyboardShortcut.subscribe('?', () => {
             this.toggleKeyboardShortcutModal(true);
         }, 'openShortcutDialog', shortcutModifiers, true);
