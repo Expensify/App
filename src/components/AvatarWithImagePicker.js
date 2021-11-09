@@ -82,9 +82,11 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     componentDidMount() {
-        if (this.props.isUploading) {
-            this.animation.start();
+        if (!this.props.isUploading) {
+            return;
         }
+
+        this.animation.start();
     }
 
     componentDidUpdate(prevProps) {
@@ -155,7 +157,7 @@ class AvatarWithImagePicker extends React.Component {
     }
 
     render() {
-        const {DefaultAvatar} = this.props;
+        const DefaultAvatar = this.props.DefaultAvatar;
         const additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
 
         const indicatorStyles = [

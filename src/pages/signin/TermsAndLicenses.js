@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import LogoWordmark from '../../../assets/images/expensify-wordmark.svg';
 import LocalePicker from '../../components/LocalePicker';
 
-const TermsAndLicenses = ({translate}) => (
+const TermsAndLicenses = props => (
     <>
         <View
             style={[
@@ -20,40 +20,40 @@ const TermsAndLicenses = ({translate}) => (
             ]}
         >
             <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
-                {translate('termsOfUse.phrase1')}
+                {props.translate('termsOfUse.phrase1')}
             </Text>
             <TextLink
                 style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.TERMS_URL}
             >
                 {' '}
-                {translate('termsOfUse.phrase2')}
+                {props.translate('termsOfUse.phrase2')}
                 {' '}
             </TextLink>
             <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
-                {translate('termsOfUse.phrase3')}
+                {props.translate('termsOfUse.phrase3')}
             </Text>
             <TextLink
                 style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.PRIVACY_URL}
             >
                 {' '}
-                {translate('termsOfUse.phrase4')}
+                {props.translate('termsOfUse.phrase4')}
             </TextLink>
             <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
             <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
-                {translate('termsOfUse.phrase5')}
+                {props.translate('termsOfUse.phrase5')}
                 {' '}
             </Text>
             <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>
-                {translate('termsOfUse.phrase6')}
+                {props.translate('termsOfUse.phrase6')}
             </Text>
             <TextLink
                 style={[styles.textExtraSmallSupporting, styles.link]}
                 href={CONST.LICENSES_URL}
             >
                 {' '}
-                {translate('termsOfUse.phrase7')}
+                {props.translate('termsOfUse.phrase7')}
             </TextLink>
             <Text style={[styles.textAlignCenter, styles.textExtraSmallSupporting]}>.</Text>
         </View>

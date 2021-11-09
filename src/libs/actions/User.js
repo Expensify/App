@@ -1,3 +1,4 @@
+/* eslint-disable import/no-cycle */
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
@@ -60,9 +61,11 @@ function changePasswordAndNavigate(oldPassword, password) {
 
 function getBetas() {
     API.User_GetBetas().then((response) => {
-        if (response.jsonCode === 200) {
-            Onyx.set(ONYXKEYS.BETAS, response.betas);
+        if (response.jsonCode !== 200) {
+            return;
         }
+
+        Onyx.set(ONYXKEYS.BETAS, response.betas);
     });
 }
 
@@ -117,9 +120,11 @@ function setExpensifyNewsStatus(subscribed) {
 
     API.UpdateAccount({subscribed})
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
+            if (response.jsonCode === 200) {
+                return;
             }
+
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
         })
         .catch(() => {
             Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});

@@ -45,16 +45,20 @@ class TextInputFocusable extends React.Component {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
-            this.props.forwardedRef(this.textInput);
+        if (!this.props.forwardedRef || !_.isFunction(this.props.forwardedRef)) {
+            return;
         }
+
+        this.props.forwardedRef(this.textInput);
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.shouldClear && this.props.shouldClear) {
-            this.textInput.clear();
-            this.props.onClear();
+        if (prevProps.shouldClear || !this.props.shouldClear) {
+            return;
         }
+
+        this.textInput.clear();
+        this.props.onClear();
     }
 
     render() {
