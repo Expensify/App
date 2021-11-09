@@ -866,6 +866,8 @@ function Wallet_GetOnfidoSDKToken() {
 }
 
 /**
+ * @param {Object} parameters
+ * @param {String} parameters.redirect_uri
  * @returns {Promise}
  */
 function Plaid_GetLinkToken(parameters) {

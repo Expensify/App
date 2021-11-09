@@ -1,7 +1,7 @@
 import React from 'react';
+import {withOnyx} from 'react-native-onyx';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
-import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -23,7 +23,6 @@ const PlaidOAuthPage = ({
 }) => {
     const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
     const oauth_state_id = receivedRedirectSearchParams.get('oauth_state_id');
-    console.log("in PlaidOAuthPage", oauth_state_id);
 
     // Add validation check for stateID or errors
 
@@ -38,9 +37,9 @@ const PlaidOAuthPage = ({
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <AddPlaidBankAccount
-                onSubmit={({account, password, plaidLinkToken}) => {
-                    addPersonalBankAccount(account, password, plaidLinkToken);
-                }}
+                // onSubmit={({account, password, plaidLinkToken}) => {
+                //     addPersonalBankAccount(account, password, plaidLinkToken);
+                // }}
                 receivedRedirectURI={window.location.href}
                 onExitPlaid={Navigation.dismissModal}
                 plaidLinkToken={plaidLinkToken}
