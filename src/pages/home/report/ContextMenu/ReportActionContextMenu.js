@@ -63,9 +63,11 @@ function hideContextMenu(shouldDelay, onHideCallback = () => {}) {
     // If instance is not same, cancel the hide action
     const instanceID = contextMenuRef.current.instanceID;
     setTimeout(() => {
-        if (contextMenuRef.current.instanceID === instanceID) {
-            contextMenuRef.current.hideContextMenu(onHideCallback);
+        if (contextMenuRef.current.instanceID !== instanceID) {
+            return;
         }
+
+        contextMenuRef.current.hideContextMenu(onHideCallback);
     }, 800);
 }
 

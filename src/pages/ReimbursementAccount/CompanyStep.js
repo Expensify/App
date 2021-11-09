@@ -172,9 +172,11 @@ class CompanyStep extends React.Component {
         }
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(this.state[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
