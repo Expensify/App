@@ -476,7 +476,6 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },

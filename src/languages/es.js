@@ -476,7 +476,6 @@ export default {
     },
     cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
-        noPhoneNumber: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
