@@ -10,9 +10,12 @@ import {
     addPersonalBankAccount, showBankAccountErrorModal,
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
-import ROUTES from "../../ROUTES";
+import PropTypes from "prop-types";
 
 const propTypes = {
+    /** Plaid SDK token to use to initialize the widget */
+    plaidLinkToken: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 

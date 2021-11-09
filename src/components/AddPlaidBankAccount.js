@@ -80,7 +80,7 @@ const propTypes = {
     /** Additional text to display */
     text: PropTypes.string,
 
-    /** If coming from the Plaid OAuth flow, contains stateID */
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
 };
 
