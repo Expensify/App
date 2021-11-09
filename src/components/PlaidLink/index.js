@@ -4,7 +4,7 @@ import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
-    console.log("here in index PlaidLink");
+    console.log("here in index PlaidLink", props.receivedRedirectUri);
     const onSuccess = useCallback((publicToken, metadata) => {
         props.onSuccess({publicToken, metadata});
     }, []);

@@ -93,6 +93,7 @@ const defaultProps = {
     onExitPlaid: () => {},
     onSubmit: () => {},
     text: '',
+    receivedRedirectURI: '',
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -106,7 +107,6 @@ class AddPlaidBankAccount extends React.Component {
             institution: {},
         };
 
-        this.receivedRedirectUri = null;
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
     }
@@ -116,8 +116,15 @@ class AddPlaidBankAccount extends React.Component {
         if (getPlatform() === 'web') {
             redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
         }
-        clearPlaidBankAccountsAndToken();
-        fetchPlaidLinkToken(redirectURI);
+
+        console.log('AddPlaidBank redirectURI', this.props.receivedRedirectURI);
+        console.log('AddPlaidBank linkToken', this.props.plaidLinkToken);
+
+        // If we're coming from re-initialization then we need to reuse the existing plaidLinkToken
+        if (!this.props.receivedRedirectURI && !this.props.plaidLinkToken) {
+            clearPlaidBankAccountsAndToken();
+            fetchPlaidLinkToken(redirectURI);
+        }
     }
 
     /**
@@ -186,7 +193,7 @@ class AddPlaidBankAccount extends React.Component {
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
                         onExit={this.props.onExitPlaid}
-                        receivedRedirectUri={this.props.receivedRedirectUri}
+                        receivedRedirectUri={this.props.receivedRedirectURI}
                     />
                 )}
                 {accounts.length > 0 && (
