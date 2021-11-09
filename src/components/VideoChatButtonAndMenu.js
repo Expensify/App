@@ -83,11 +83,13 @@ class VideoChatButtonAndMenu extends Component {
      * This gets called onLayout to find the cooridnates of the wrapper for the video chat button.
      */
     measureVideoChatIconPosition() {
-        if (this.videoChatIconWrapper) {
-            this.videoChatIconWrapper.measureInWindow((x, y) => this.setState({
-                videoChatIconPosition: {x, y},
-            }));
+        if (!this.videoChatIconWrapper) {
+            return;
         }
+
+        this.videoChatIconWrapper.measureInWindow((x, y) => this.setState({
+            videoChatIconPosition: {x, y},
+        }));
     }
 
     render() {

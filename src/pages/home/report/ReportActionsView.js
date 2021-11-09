@@ -123,9 +123,11 @@ class ReportActionsView extends React.Component {
         }
         Report.subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (ReportActionComposeFocusManager.isFocused()) {
-                this.scrollToListBottom();
+            if (!ReportActionComposeFocusManager.isFocused()) {
+                return;
             }
+
+            this.scrollToListBottom();
         });
 
         // Only mark as read if the report is open
@@ -232,10 +234,11 @@ class ReportActionsView extends React.Component {
      * Records the max action on app visibility change event.
      */
     onVisibilityChange() {
-        // only mark as read if visible AND report is open.
-        if (Visibility.isVisible() && !this.props.isDrawerOpen) {
-            Report.updateLastReadActionID(this.props.reportID);
+        if (!Visibility.isVisible() || this.props.isDrawerOpen) {
+            return;
         }
+
+        Report.updateLastReadActionID(this.props.reportID);
     }
 
     /**
