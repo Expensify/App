@@ -9,7 +9,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
-import OAuthLink from "./PlaidOAuth/oauth";
 import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
@@ -117,10 +116,7 @@ class AddPlaidBankAccount extends React.Component {
             redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
         }
 
-        console.log('AddPlaidBank redirectURI', this.props.receivedRedirectURI);
-        console.log('AddPlaidBank linkToken', this.props.plaidLinkToken);
-
-        // If we're coming from re-initialization then we need to reuse the existing plaidLinkToken
+        // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         if (!this.props.receivedRedirectURI && !this.props.plaidLinkToken) {
             clearPlaidBankAccountsAndToken();
             fetchPlaidLinkToken(redirectURI);
@@ -182,7 +178,6 @@ class AddPlaidBankAccount extends React.Component {
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
-                            console.log('[PlaidLink] Success!');
                             getPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}

@@ -41,6 +41,7 @@ const PlaidOAuthPage = ({
 
     // Need to differentiate between personal and business bank account
 
+
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
