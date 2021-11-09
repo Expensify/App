@@ -15,27 +15,26 @@ import {BankArrowPink} from "../Icon/Illustrations";
 import Text from "../Text";
 import WorkspaceResetBankAccountModal from "../../pages/workspace/WorkspaceResetBankAccountModal";
 
-// const OAuthLink = ({plaidLinkToken, props, callback, deps}) => {
-const OAuthLink = ({plaidLinkToken}) => {
+const OAuthLink = (props) => {
     console.log("in OAuthLink");
-    console.log(plaidLinkToken);
     console.log(props);
 
     // The Link token from the first Link initialization
     // const linkToken = localStorage.getItem('link_token');
     const linkToken = props.plaidLinkToken;
-    const onSuccess = React.useCallback((public_token) => {
+    const onSuccess = React.useCallback((publicToken, metadata) => {
         // send public_token to server, retrieve access_token and item_id
         // return to "https://example.com" upon completion
         console.log("in success for OAuthLink");
-    }, deps);
+        props.onSuccess({publicToken, metadata})
+    }, []);
     const onExit = (err, metatdata) => {
         console.log(err);
         // handle error...
     };
     const config = {
         token: linkToken,
-        receivedRedirectUri: encodeURI(window.location.href), //the redirect URI with an OAuth state ID parameter
+        receivedRedirectUri: props.receivedRedirectUri, //the redirect URI with an OAuth state ID parameter
         onSuccess,
         onExit,
     };
@@ -46,41 +45,7 @@ const OAuthLink = ({plaidLinkToken}) => {
             open();
         }
     }, [ready, open]);
-    // return <></>;
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={this.props.translate('workspace.common.bankAccount')}
-                onCloseButtonPress={Navigation.dismissModal}
-                onBackButtonPress={() => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(this.props.route.params.policyID))}
-                shouldShowBackButton
-            />
-            <WorkspaceSection
-                title="TestTitle"
-                icon={BankArrowPink}
-                // menuItems={[
-                //     {
-                //         title: this.props.translate('workspace.bankAccount.continueWithSetup'),
-                //         icon: Bank,
-                //         onPress: this.navigateToBankAccountRoute,
-                //         shouldShowRightIcon: true,
-                //     },
-                //     {
-                //         title: this.props.translate('workspace.bankAccount.startOver'),
-                //         icon: RotateLeft,
-                //         onPress: requestResetFreePlanBankAccount,
-                //         shouldShowRightIcon: true,
-                //     },
-                // ]}
-            >
-                <Text>
-                    {'Test text'}
-                </Text>
-            </WorkspaceSection>
-            <WorkspaceResetBankAccountModal />
-        </ScreenWrapper>
-    );
-
+    return <></>;
 };
 OAuthLink.propTypes = plaidLinkPropTypes;
 OAuthLink.defaultProps = plaidLinkDefaultProps;

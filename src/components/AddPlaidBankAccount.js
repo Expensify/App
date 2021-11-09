@@ -116,16 +116,15 @@ class AddPlaidBankAccount extends React.Component {
         // If we're reinitializing the PlaidLink after OAuth, then don't grab the token again
         if (oauth_state_id) {
             this.receivedRedirectUri = window.location.href;
-            return;
+        } else {
+            let redirectURI = '';
+            if (getPlatform() === 'web') {
+                // redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
+                redirectURI = 'http://localhost:8080/bank-account';
+            }
+            clearPlaidBankAccountsAndToken();
+            fetchPlaidLinkToken(redirectURI);
         }
-
-        let redirectURI = '';
-        if (getPlatform() === 'web') {
-            // redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
-            redirectURI = 'http://localhost:8080/bank-account';
-        }
-        clearPlaidBankAccountsAndToken();
-        fetchPlaidLinkToken(redirectURI);
     }
 
     /**
@@ -178,11 +177,31 @@ class AddPlaidBankAccount extends React.Component {
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                {(!_.isEmpty(this.props.plaidLinkToken) || this.receivedRedirectUri) && (
+                {/*{!_.isEmpty(this.props.plaidLinkToken) && this.receivedRedirectUri && (*/}
+                {/*    <OAuthLink*/}
+                {/*        plaidLinkToken={this.props.plaidLinkToken}*/}
+                {/*        onSuccess={({publicToken, metadata}) => {*/}
+                {/*            Log.info('[PlaidLink] Success!');*/}
+                {/*            console.log('[PlaidLink] Success!');*/}
+                {/*            getPlaidBankAccounts(publicToken, metadata.institution.name);*/}
+                {/*            this.setState({institution: metadata.institution});*/}
+                {/*        }}*/}
+                {/*        onError={(error) => {*/}
+                {/*            Log.hmmm('[PlaidLink] Error: ', error.message);*/}
+                {/*        }}*/}
+
+                {/*        // User prematurely exited the Plaid flow*/}
+                {/*        // eslint-disable-next-line react/jsx-props-no-multi-spaces*/}
+                {/*        onExit={this.props.onExitPlaid}*/}
+                {/*        receivedRedirectUri={this.receivedRedirectUri}*/}
+                {/*    />*/}
+                {/*)}*/}
+                {!_.isEmpty(this.props.plaidLinkToken) && (
                     <PlaidLink
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
+                            console.log('[PlaidLink] Success!');
                             getPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}

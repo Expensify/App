@@ -20,6 +20,7 @@ const PlaidLink = (props) => {
             props.onExit();
         },
         onEvent: (event, metadata) => {
+            console.log({event, metadata}, '[PlaidLink] onEvent');
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
         },
     });
@@ -33,6 +34,7 @@ const PlaidLink = (props) => {
         if (!ready) {
             return;
         }
+        console.log("gonna hit open");
 
         open();
     }, [ready, error]);
