@@ -17,13 +17,13 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReimbursementAccountLoadingIndicator = ({translate, isSubmittingVerificationsData}) => (
+const ReimbursementAccountLoadingIndicator = props => (
     <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
         <HeaderWithCloseButton
-            title={translate('reimbursementAccountLoadingAnimation.oneMoment')}
+            title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
             onCloseButtonPress={Navigation.dismissModal}
         />
-        {isSubmittingVerificationsData ? (
+        {props.isSubmittingVerificationsData ? (
             <View style={[styles.pageWrapper]}>
                 <Image
                     source={{uri: `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}}
@@ -33,7 +33,7 @@ const ReimbursementAccountLoadingIndicator = ({translate, isSubmittingVerificati
                 />
                 <View style={[styles.ph6]}>
                     <Text style={[styles.textAlignCenter]}>
-                        {translate('reimbursementAccountLoadingAnimation.explanationLine')}
+                        {props.translate('reimbursementAccountLoadingAnimation.explanationLine')}
                     </Text>
                 </View>
             </View>

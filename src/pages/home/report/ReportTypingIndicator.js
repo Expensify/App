@@ -33,13 +33,14 @@ class ReportTypingIndicator extends React.Component {
 
     componentDidUpdate(prevProps) {
         // Make sure we only update the state if there's been a change in who's typing.
-        if (!_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
-            const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), login => this.props.userTypingStatuses[login]);
-
-            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({usersTyping});
+        if (_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
+            return;
         }
+
+        const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), login => this.props.userTypingStatuses[login]);
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({usersTyping});
     }
 
     render() {

@@ -1,5 +1,9 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+import lodashGet from 'lodash/get';
+import {
+    beforeEach, beforeAll, afterEach, jest, describe, it, expect,
+} from '@jest/globals';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
@@ -30,7 +34,14 @@ describe('actions/Report', () => {
             cluster: CONFIG.PUSHER.CLUSTER,
             authEndpoint: `${CONFIG.EXPENSIFY.URL_API_ROOT}api?command=Push_Authenticate`,
         });
+
+        Onyx.init({
+            keys: ONYXKEYS,
+            registerStorageEventListener: () => {},
+        });
     });
+
+    beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
     afterEach(() => {
         // Unsubscribe from account channel after each test since we subscribe in the function
@@ -130,7 +141,7 @@ describe('actions/Report', () => {
         let reportIsPinned;
         Onyx.connect({
             key: `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`,
-            callback: val => reportIsPinned = val.isPinned,
+            callback: val => reportIsPinned = lodashGet(val, 'isPinned'),
         });
 
         // Set up Onyx with some test user data
