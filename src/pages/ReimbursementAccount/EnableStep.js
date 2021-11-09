@@ -113,9 +113,11 @@ class EnableStep extends React.Component {
                                 : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
                     </WorkspaceSection>
-                    {user.isCheckingDomain && <Text style={[styles.formError, styles.m5]}>
-                        {translate('workspace.card.checkingDomain')}
-                    </Text>}
+                    {this.props.user.isCheckingDomain && (
+                        <Text style={[styles.formError, styles.m5]}>
+                            {this.props.translate('workspace.card.checkingDomain')}
+                        </Text>
+                    )}
                 </View>
             </View>
         );
