@@ -2,9 +2,9 @@ import React from 'react';
 import BaseHTMLEngineProvider from './BaseHTMLEngineProvider';
 import {propTypes, defaultProps} from './htmlEnginePropTypes';
 
-const HTMLEngineProvider = ({debug, children}) => (
-    <BaseHTMLEngineProvider debug={debug}>
-        {children}
+const HTMLEngineProvider = props => (
+    <BaseHTMLEngineProvider debug={props.debug}>
+        {props.children}
     </BaseHTMLEngineProvider>
 );
 

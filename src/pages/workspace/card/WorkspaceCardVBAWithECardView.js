@@ -17,20 +17,20 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardVBAWithECardView = ({translate}) => (
+const WorkspaceCardVBAWithECardView = props => (
     <WorkspaceSection
-        title={translate('workspace.card.headerWithEcard')}
+        title={props.translate('workspace.card.headerWithEcard')}
         icon={CreditCardsBlue}
         menuItems={[
             {
-                title: translate('workspace.common.issueAndManageCards'),
+                title: props.translate('workspace.common.issueAndManageCards'),
                 onPress: () => openOldDotLink('domain_companycards'),
                 icon: ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
             },
             {
-                title: translate('workspace.common.reconcileCards'),
+                title: props.translate('workspace.common.reconcileCards'),
                 onPress: () => openOldDotLink('domain_companycards?param={"section":"cardReconciliation"}'),
                 icon: ReceiptSearch,
                 shouldShowRightIcon: true,
@@ -39,15 +39,15 @@ const WorkspaceCardVBAWithECardView = ({translate}) => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <Text>{translate('workspace.card.VBAWithECardCopy')}</Text>
+            <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>
         </View>
 
         <UnorderedList
             items={[
-                translate('workspace.card.benefit1'),
-                translate('workspace.card.benefit2'),
-                translate('workspace.card.benefit3'),
-                translate('workspace.card.benefit4'),
+                props.translate('workspace.card.benefit1'),
+                props.translate('workspace.card.benefit2'),
+                props.translate('workspace.card.benefit3'),
+                props.translate('workspace.card.benefit4'),
             ]}
         />
     </WorkspaceSection>

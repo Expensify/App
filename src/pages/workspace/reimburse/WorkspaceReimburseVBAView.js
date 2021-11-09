@@ -21,15 +21,15 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimburseVBAView = ({translate, policyID}) => (
+const WorkspaceReimburseVBAView = props => (
     <>
         <WorkspaceSection
-            title={translate('workspace.reimburse.captureReceipts')}
+            title={props.translate('workspace.reimburse.captureReceipts')}
             icon={ReceiptYellow}
             menuItems={[
                 {
-                    title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => openOldDotLink(`expenses?policyIDList=${policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                    title: props.translate('workspace.reimburse.viewAllReceipts'),
+                    onPress: () => openOldDotLink(`expenses?policyIDList=${props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
                     icon: Receipt,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -38,23 +38,23 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
         >
             <View style={[styles.mv4]}>
                 <Text>
-                    {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                    {props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
-                    <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                    <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
                 </Text>
             </View>
         </WorkspaceSection>
 
         <WorkspaceSection
-            title={translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+            title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
             icon={BankUserGreen}
             menuItems={[
                 {
-                    title: translate('workspace.reimburse.reimburseReceipts'),
-                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                    title: props.translate('workspace.reimburse.reimburseReceipts'),
+                    onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
                     icon: Bank,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -62,7 +62,7 @@ const WorkspaceReimburseVBAView = ({translate, policyID}) => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>

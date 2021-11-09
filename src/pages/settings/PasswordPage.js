@@ -104,9 +104,11 @@ class PasswordPage extends Component {
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
-                if (this.currentPasswordInputRef) {
-                    this.currentPasswordInputRef.focus();
+                if (!this.currentPasswordInputRef) {
+                    return;
                 }
+
+                this.currentPasswordInputRef.focus();
             }}
             >
                 <KeyboardAvoidingView>

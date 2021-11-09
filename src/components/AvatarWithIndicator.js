@@ -46,9 +46,11 @@ class AvatarWithIndicator extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.props.isSyncing) {
-            this.animation.start();
+        if (!this.props.isSyncing) {
+            return;
         }
+
+        this.animation.start();
     }
 
     componentDidUpdate(prevProps) {

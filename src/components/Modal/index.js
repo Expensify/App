@@ -10,24 +10,30 @@ class Modal extends Component {
     }
 
     componentDidMount() {
-        if (this.props.shouldCloseOnOutsideClick) {
-            document.addEventListener('mousedown', this.closeOnOutsideClick);
+        if (!this.props.shouldCloseOnOutsideClick) {
+            return;
         }
+
+        document.addEventListener('mousedown', this.closeOnOutsideClick);
     }
 
     componentWillUnmount() {
-        if (this.props.shouldCloseOnOutsideClick) {
-            document.removeEventListener('mousedown', this.closeOnOutsideClick);
+        if (!this.props.shouldCloseOnOutsideClick) {
+            return;
         }
+
+        document.removeEventListener('mousedown', this.closeOnOutsideClick);
     }
 
     closeOnOutsideClick(event) {
-        if (this.props.isVisible
-            && this.baseModalRef
-            && !this.baseModalRef.contains(event.target)
-            && this.props.shouldCloseOnOutsideClick) {
-            this.props.onClose();
+        if (!this.props.isVisible
+            || !this.baseModalRef
+            || this.baseModalRef.contains(event.target)
+            || !this.props.shouldCloseOnOutsideClick) {
+            return;
         }
+
+        this.props.onClose();
     }
 
     render() {

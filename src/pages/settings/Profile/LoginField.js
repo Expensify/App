@@ -53,10 +53,12 @@ class LoginField extends Component {
         // Revert checkmark back to "Resend" after 5 seconds
         if (!this.timeout) {
             this.timeout = setTimeout(() => {
-                if (this.timeout) {
-                    this.setState({showCheckmarkIcon: false});
-                    this.timeout = null;
+                if (!this.timeout) {
+                    return;
                 }
+
+                this.setState({showCheckmarkIcon: false});
+                this.timeout = null;
             }, 5000);
         }
     }

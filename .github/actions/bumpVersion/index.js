@@ -181,7 +181,9 @@ exports.updateiOSVersion = function updateiOSVersion(version) {
 /***/ }),
 
 /***/ 7:
-/***/ ((module) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const _ = __nccwpck_require__(571);
 
 const SEMANTIC_VERSION_LEVELS = {
     MAJOR: 'MAJOR',
@@ -199,7 +201,7 @@ const MAX_INCREMENTS = 99;
  */
 const getVersionNumberFromString = (versionString) => {
     const [version, build] = versionString.split('-');
-    const [major, minor, patch] = version.split('.').map(n => Number(n));
+    const [major, minor, patch] = _.map(version.split('.'), n => Number(n));
 
     return [major, minor, patch, Number.isInteger(Number(build)) ? Number(build) : 0];
 };

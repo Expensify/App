@@ -94,9 +94,11 @@ class Onfido extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.onfidoOut) {
-            this.onfidoOut.tearDown();
+        if (!this.onfidoOut) {
+            return;
         }
+
+        this.onfidoOut.tearDown();
     }
 
     render() {
