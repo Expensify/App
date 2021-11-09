@@ -4,7 +4,6 @@ import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 import Log from '../../libs/Log';
 
 const PlaidLink = (props) => {
-    console.log("here in index PlaidLink", props.receivedRedirectUri);
     const onSuccess = useCallback((publicToken, metadata) => {
         props.onSuccess({publicToken, metadata});
     }, []);
@@ -14,11 +13,9 @@ const PlaidLink = (props) => {
         onSuccess,
         onExit: (exitError, metadata) => {
             Log.info('[PlaidLink] Exit: ', false, {exitError, metadata});
-            console.log(exitError);
             props.onExit();
         },
         onEvent: (event, metadata) => {
-            console.log({event, metadata}, '[PlaidLink] onEvent');
             Log.info('[PlaidLink] Event: ', false, {event, metadata});
         },
         receivedRedirectUri: props.receivedRedirectUri, //the redirect URI with an OAuth state ID parameter
@@ -33,7 +30,6 @@ const PlaidLink = (props) => {
         if (!ready) {
             return;
         }
-        console.log("gonna hit open");
 
         open();
     }, [ready, error]);

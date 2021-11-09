@@ -39,8 +39,9 @@ const PlaidOAuthPage = ({
     const oauth_state_id = receivedRedirectSearchParams.get('oauth_state_id');
     console.log("in PlaidOAuthPage", oauth_state_id);
 
-    // Need to differentiate between personal and business bank account
+    // Add validation check for stateID or errors
 
+    // Need to differentiate between personal and business bank account
 
     return (
         <ScreenWrapper>

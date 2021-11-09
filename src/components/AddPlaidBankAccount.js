@@ -92,7 +92,7 @@ const defaultProps = {
     onExitPlaid: () => {},
     onSubmit: () => {},
     text: '',
-    receivedRedirectURI: '',
+    receivedRedirectURI: null,
 };
 
 class AddPlaidBankAccount extends React.Component {
