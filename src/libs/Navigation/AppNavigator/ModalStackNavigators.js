@@ -37,7 +37,7 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
-import OAuthLink from "../../../components/PlaidOAuth/oauth";
+import PlaidOAuthPage from '../../../pages/ReimbursementAccount/PlaidOAuthPage';
 import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
@@ -254,7 +254,7 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
 }]);
 
 const PlaidOAuthModalStackNavigator = createModalStackNavigator([{
-    Component: OAuthLink,
+    Component: PlaidOAuthPage,
     name: 'OAuth_Plaid_Root',
 }]);
 

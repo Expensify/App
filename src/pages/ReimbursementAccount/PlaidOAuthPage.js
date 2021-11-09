@@ -11,16 +11,21 @@ import styles from "../../styles/styles";
 import Icon from "../../components/Icon";
 import ExpensiPicker from "../../components/ExpensiPicker";
 import lodashGet from "lodash/get";
+import compose from '../../libs/compose';
 import getBankIcon from "../../components/Icon/BankIcons";
 import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg';
 import variables from "../../styles/variables";
 
-const PlaidOAuthPage = (props) => {
+const PlaidOAuthPage = ({
+    plaidLinkToken,
+    plaidBankAccounts,
+    reimbursementAccount,
+}) => {
     const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
     const oauth_state_id = receivedRedirectSearchParams.get('oauth_state_id');
     console.log("in PlaidOAuthPage", oauth_state_id);
-    const bankAccounts = lodashGet(this.props.plaidBankAccounts, 'accounts', []);
-    const linkToken = props.plaidLinkToken;
+    const bankAccounts = lodashGet(plaidBankAccounts, 'accounts', []);
+    const linkToken = plaidLinkToken;
     const icon = GenericBank;
     const iconSize = variables.iconSizeExtraLarge;
     // const {icon, iconSize} = getBankIcon(this.state.institution.name);

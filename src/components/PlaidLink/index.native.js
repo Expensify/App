@@ -21,7 +21,6 @@ class PlaidLink extends React.Component {
                 token: this.props.token,
             },
             onSuccess: ({publicToken, metadata}) => {
-                console.log("here in onSuccess", metadata);
                 this.props.onSuccess({publicToken, metadata});
             },
         });
