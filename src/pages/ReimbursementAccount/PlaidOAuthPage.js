@@ -1,21 +1,8 @@
-import React from "react";
-import {View} from 'react-native';
+import React from 'react';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import ONYXKEYS from "../../ONYXKEYS";
-import {withOnyx} from "react-native-onyx";
-import ReimbursementAccountForm from "./ReimbursementAccountForm";
-import _ from "underscore";
-import Text from "../../components/Text";
-import styles from "../../styles/styles";
-import Icon from "../../components/Icon";
-import ExpensiPicker from "../../components/ExpensiPicker";
-import lodashGet from "lodash/get";
+import ONYXKEYS from '../../ONYXKEYS';
+import {withOnyx} from 'react-native-onyx';
 import compose from '../../libs/compose';
-import getBankIcon from "../../components/Icon/BankIcons";
-import GenericBank from '../../../assets/images/bankicons/generic-bank-account.svg';
-import variables from "../../styles/variables";
-import Log from "../../libs/Log";
-import {getPlaidBankAccounts} from "../../libs/actions/BankAccounts";
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -41,6 +28,8 @@ const PlaidOAuthPage = ({
     // Add validation check for stateID or errors
 
     // Need to differentiate between personal and business bank account
+    // if personal then addPersonalBankAccount(account, password, plaidLinkToken);
+    // if business then bankAccountStep -> addPlaidAccount
 
     return (
         <ScreenWrapper>
@@ -60,6 +49,7 @@ const PlaidOAuthPage = ({
     );
 };
 
+PlaidOAuthPage.propTypes = propTypes;
 PlaidOAuthPage.displayName = 'PlaidOAuthPage';
 export default compose(
     withLocalize,
