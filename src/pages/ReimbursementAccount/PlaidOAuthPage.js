@@ -1,6 +1,5 @@
 import React from "react";
 import {View} from 'react-native';
-import OAuthLink from "../../components/PlaidOAuth/oauth";
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from "../../ONYXKEYS";
 import {withOnyx} from "react-native-onyx";

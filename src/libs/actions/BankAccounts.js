@@ -55,7 +55,6 @@ function fetchPlaidLinkToken(redirectURI) {
             if (response.jsonCode !== 200) {
                 return;
             }
-            console.log(response);
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
