@@ -671,6 +671,7 @@ export default {
             benefit3: 'No personal liability',
             benefit4: 'Customizable limits',
             addWorkEmail: 'Add work email address',
+            checkingDomain: 'Hang tight! We are still checking your work email address. Come back in a few minutes for updates.',
         },
         reimburse: {
             captureReceipts: 'Capture receipts',

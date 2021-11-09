@@ -55,7 +55,6 @@ class EnableStep extends React.Component {
         }
 
         const isUsingExpensifyCard = user.isUsingExpensifyCard;
-        const isCheckingDomain = user.isCheckingDomain;
         const account = _.find(bankAccountList, bankAccount => bankAccount.bankAccountID === reimbursementAccount.achData.bankAccountID);
         if (!account) {
             // This shouldn't happen as we can only end up here if we have successfully added a bank account.
@@ -116,10 +115,10 @@ class EnableStep extends React.Component {
                                 ? translate('workspace.bankAccount.accountDescriptionNoCards')
                                 : translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
-                        <Text>
-                            {isCheckingDomain && 'We\'re still checking your work email, please check back in a few minutes.'}
-                        </Text>
                     </WorkspaceSection>
+                    {user.isCheckingDomain && <Text style={[styles.formError, styles.m5]}>
+                        {translate('workspace.card.checkingDomain')}
+                    </Text>}
                 </View>
             </View>
         );

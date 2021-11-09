@@ -673,6 +673,7 @@ export default {
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
+            checkingDomain: '',
         },
         reimburse: {
             captureReceipts: 'Captura recibos',
