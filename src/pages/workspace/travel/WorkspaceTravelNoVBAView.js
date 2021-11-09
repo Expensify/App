@@ -20,15 +20,15 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelNoVBAView = ({translate, policyID}) => (
+const WorkspaceTravelNoVBAView = props => (
     <>
         <WorkspaceSection
-            title={translate('workspace.travel.unlockConciergeBookingTravel')}
+            title={props.translate('workspace.travel.unlockConciergeBookingTravel')}
             icon={JewelBoxYellow}
             menuItems={[
                 {
-                    title: translate('workspace.common.bankAccount'),
-                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
+                    title: props.translate('workspace.common.bankAccount'),
+                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
                     icon: Bank,
                     shouldShowRightIcon: true,
                     iconRight: ArrowRight,
@@ -36,7 +36,7 @@ const WorkspaceTravelNoVBAView = ({translate, policyID}) => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.travel.noVBACopy')}</Text>
+                <Text>{props.translate('workspace.travel.noVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>

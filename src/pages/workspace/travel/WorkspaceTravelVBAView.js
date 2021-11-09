@@ -18,20 +18,20 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceTravelVBAView = ({translate}) => (
+const WorkspaceTravelVBAView = props => (
     <WorkspaceSection
-        title={translate('workspace.travel.packYourBags')}
+        title={props.translate('workspace.travel.packYourBags')}
         icon={RocketOrange}
         menuItems={[
             {
-                title: translate('workspace.common.issueAndManageCards'),
+                title: props.translate('workspace.common.issueAndManageCards'),
                 onPress: () => openOldDotLink('domain_companycards'),
                 icon: ExpensifyCard,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
             },
             {
-                title: translate('workspace.travel.bookTravelWithConcierge'),
+                title: props.translate('workspace.travel.bookTravelWithConcierge'),
                 onPress: () => {
                     navigateToConciergeChat();
                 },
@@ -39,7 +39,7 @@ const WorkspaceTravelVBAView = ({translate}) => (
                 shouldShowRightIcon: true,
             },
             {
-                title: translate('requestorStep.learnMore'),
+                title: props.translate('requestorStep.learnMore'),
                 onPress: () => openExternalLink('https://community.expensify.com/discussion/7066/introducing-concierge-travel'),
                 icon: Info,
                 shouldShowRightIcon: true,
@@ -48,7 +48,7 @@ const WorkspaceTravelVBAView = ({translate}) => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <Text>{translate('workspace.travel.VBACopy')}</Text>
+            <Text>{props.translate('workspace.travel.VBACopy')}</Text>
         </View>
     </WorkspaceSection>
 );

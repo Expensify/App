@@ -18,14 +18,14 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardVBANoECardView = ({user, translate}) => (
+const WorkspaceCardVBANoECardView = props => (
     <>
         <WorkspaceSection
-            title={translate('workspace.card.header')}
+            title={props.translate('workspace.card.header')}
             icon={JewelBoxBlue}
             menuItems={[
                 {
-                    title: translate('workspace.card.addWorkEmail'),
+                    title: props.translate('workspace.card.addWorkEmail'),
                     onPress: () => {
                         Navigation.dismissModal();
                         openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
@@ -37,20 +37,20 @@ const WorkspaceCardVBANoECardView = ({user, translate}) => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.card.VBANoECardCopy')}</Text>
+                <Text>{props.translate('workspace.card.VBANoECardCopy')}</Text>
             </View>
 
             <UnorderedList
                 items={[
-                    translate('workspace.card.benefit1'),
-                    translate('workspace.card.benefit2'),
-                    translate('workspace.card.benefit3'),
-                    translate('workspace.card.benefit4'),
+                    props.translate('workspace.card.benefit1'),
+                    props.translate('workspace.card.benefit2'),
+                    props.translate('workspace.card.benefit3'),
+                    props.translate('workspace.card.benefit4'),
                 ]}
             />
         </WorkspaceSection>
-        {user.isCheckingDomain && <Text style={[styles.m5, styles.formError]}>
-            {translate('workspace.card.checkingDomain')}
+        {props.user.isCheckingDomain && <Text style={[styles.m5, styles.formError]}>
+            {props.translate('workspace.card.checkingDomain')}
         </Text>}
     </>
 );
