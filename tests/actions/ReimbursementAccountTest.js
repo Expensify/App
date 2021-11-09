@@ -7,6 +7,7 @@ import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import BankAccount from '../../src/libs/models/BankAccount';
 import PushNotification from '../../src/libs/Notification/PushNotification';
+import * as Network from '../../src/libs/Network';
 
 PushNotification.register = () => {};
 PushNotification.deregister = () => {};
@@ -38,6 +39,7 @@ Onyx.connect({
 
 beforeEach(() => Onyx.clear()
     .then(() => {
+        Network.setIsReady(true);
         signInWithTestUser();
         return waitForPromisesToResolve();
     }));
