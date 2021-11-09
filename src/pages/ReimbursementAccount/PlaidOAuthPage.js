@@ -1,5 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from "prop-types";
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
@@ -7,10 +8,9 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
-    addPersonalBankAccount, showBankAccountErrorModal,
+    addPersonalBankAccount, setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
-import PropTypes from "prop-types";
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -22,8 +22,6 @@ const propTypes = {
 const PlaidOAuthPage = ({
     plaidLinkToken,
     translate,
-    plaidBankAccounts,
-    reimbursementAccount,
 }) => {
     const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
@@ -46,9 +44,9 @@ const PlaidOAuthPage = ({
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <AddPlaidBankAccount
-                // onSubmit={({account, password, plaidLinkToken}) => {
-                //     addPersonalBankAccount(account, password, plaidLinkToken);
-                // }}
+                onSubmit={({account, password, plaidLinkToken}) => {
+                    addPersonalBankAccount(account, password, plaidLinkToken);
+                }}
                 receivedRedirectURI={receivedRedirectURI}
                 onExitPlaid={Navigation.dismissModal}
                 plaidLinkToken={plaidLinkToken}
