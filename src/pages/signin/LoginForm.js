@@ -59,19 +59,21 @@ class LoginForm extends React.Component {
     }
 
     componentDidMount() {
-        if (canFocusInputOnScreenFocus() && this.input) {
-            this.input.focus();
+        if (!canFocusInputOnScreenFocus() || !this.input) {
+            return;
         }
+        this.input.focus();
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.visible && this.props.visible) {
-            this.input.focus();
+        if (prevProps.visible || !this.props.visible) {
+            return;
+        }
+        this.input.focus();
 
-            if (this.state.login) {
-                // eslint-disable-next-line react/no-did-update-set-state
-                this.setState({login: ''});
-            }
+        if (this.state.login) {
+            // eslint-disable-next-line react/no-did-update-set-state
+            this.setState({login: ''});
         }
     }
 

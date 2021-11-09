@@ -11,9 +11,10 @@ class ExpensiTextInputLabel extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.props.for) {
-            setBrowserAttributes(this.label, 'for', this.props.for);
+        if (!this.props.for) {
+            return;
         }
+        setBrowserAttributes(this.label, 'for', this.props.for);
     }
 
     render() {

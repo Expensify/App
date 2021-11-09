@@ -58,15 +58,17 @@ class PasswordForm extends React.Component {
     }
 
     componentDidMount() {
-        if (this.input) {
-            this.input.focus();
+        if (!this.input) {
+            return;
         }
+        this.input.focus();
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.visible && this.props.visible) {
-            this.input.focus();
+        if (prevProps.visible || !this.props.visible) {
+            return;
         }
+        this.input.focus();
     }
 
     /**
