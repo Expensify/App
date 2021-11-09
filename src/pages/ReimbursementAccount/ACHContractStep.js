@@ -90,9 +90,11 @@ class ACHContractStep extends React.Component {
 
         const errors = {};
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(this.state[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors({...errors, beneficialOwnersErrors});
         return _.every(beneficialOwnersErrors, _.isEmpty) && _.isEmpty(errors);

@@ -101,9 +101,11 @@ class ValidationStep extends React.Component {
         };
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(values[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(values[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;

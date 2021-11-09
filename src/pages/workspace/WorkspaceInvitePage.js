@@ -21,6 +21,7 @@ import CONST, {EXPENSIFY_EMAILS} from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import {openExternalLink} from '../../libs/actions/Link';
 import Text from '../../components/Text';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -41,12 +42,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    /** The policy passed via the route */
-    policy: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
-
     /** URL Route params */
     route: PropTypes.shape({
         /** Params from the URL path */
@@ -56,15 +51,11 @@ const propTypes = {
         }),
     }).isRequired,
 
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
-
 };
 
-const defaultProps = {
-    policy: {
-        name: '',
-    },
-};
+const defaultProps = fullPolicyDefaultProps;
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -350,12 +341,10 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withFullPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policy: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
         },
         betas: {
             key: ONYXKEYS.BETAS,
