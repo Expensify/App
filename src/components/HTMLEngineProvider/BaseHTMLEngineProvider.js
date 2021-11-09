@@ -164,12 +164,14 @@ function CodeRenderer(props) {
         fontStyle: undefined,
     };
 
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
+
     return (
         <InlineCodeBlock
+            defaultRendererProps={defaultRendererProps}
             TDefaultRenderer={props.TDefaultRenderer}
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}
-            defaultRendererProps={props.defaultRendererProps}
             key={props.key}
         />
     );
