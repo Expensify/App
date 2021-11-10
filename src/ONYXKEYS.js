@@ -147,4 +147,7 @@ export default {
 
     // Are report actions loading?
     IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
+
+    // Stores which bank account flow, personal or business
+    IS_ADDING_BBA: 'isAddingBBA',
 };

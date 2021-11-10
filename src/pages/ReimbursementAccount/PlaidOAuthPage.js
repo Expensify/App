@@ -28,7 +28,7 @@ const PlaidOAuthPage = ({
     let receivedRedirectURI = window.location.href;
 
     // If there's no stateID passed, then setting the redirectURI to null
-    // will return the user to the start of the PLaid flow
+    // will return the user to the start of the Plaid flow
     if (!oauthStateID) {
         receivedRedirectURI = null;
     }
