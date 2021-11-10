@@ -23,6 +23,7 @@ import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
+import KeyboardShortcut from '../../../libs/KeyboardShortcut';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -181,6 +182,7 @@ class SidebarLinks extends React.Component {
 
     showSearchPage() {
         Navigation.navigate(ROUTES.SEARCH);
+        KeyboardShortcut.buffer();
     }
 
     render() {

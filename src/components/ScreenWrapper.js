@@ -69,6 +69,7 @@ class ScreenWrapper extends React.Component {
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
             if (!this.props.modal.willAlertModalBecomeVisible) {
                 Navigation.dismissModal();
+                KeyboardShortcut.consumeBuffer();
             }
         }, [], true);
 

@@ -20,6 +20,7 @@ import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import personalDetailsPropType from './personalDetailsPropType';
+import KeyboardShortcut from '../libs/KeyboardShortcut';
 
 const propTypes = {
     /* Onyx Props */
@@ -73,6 +74,7 @@ class SearchPage extends Component {
             recentReports,
             personalDetails,
             userToInvite,
+            didScreenTransitionEnd: false,
         };
     }
 
@@ -159,31 +161,32 @@ class SearchPage extends Component {
             this.state.searchValue,
         );
         return (
-            <ScreenWrapper>
-                {({didScreenTransitionEnd}) => (
-                    <>
-                        <HeaderWithCloseButton
-                            title={this.props.translate('common.search')}
-                            onCloseButtonPress={() => Navigation.dismissModal(true)}
+            <ScreenWrapper
+                onTransitionEnd={() => {
+                    const searchValue = KeyboardShortcut.consumeBuffer();
+                    this.setState({didScreenTransitionEnd: true, searchValue}, this.updateOptions);
+                }}
+            >
+                <HeaderWithCloseButton
+                    title={this.props.translate('common.search')}
+                    onCloseButtonPress={() => Navigation.dismissModal(true)}
+                />
+                <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                    <FullScreenLoadingIndicator visible={!this.state.didScreenTransitionEnd} />
+                    {this.state.didScreenTransitionEnd && (
+                        <OptionsSelector
+                            sections={sections}
+                            value={this.state.searchValue}
+                            onSelectRow={this.selectReport}
+                            onChangeText={this.onChangeText}
+                            headerMessage={headerMessage}
+                            hideSectionHeaders
+                            hideAdditionalOptionStates
+                            showTitleTooltip
                         />
-                        <View style={[styles.flex1, styles.w100, styles.pRelative]}>
-                            <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                            {didScreenTransitionEnd && (
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                hideAdditionalOptionStates
-                                showTitleTooltip
-                            />
-                            )}
-                        </View>
-                        <KeyboardSpacer />
-                    </>
-                )}
+                    )}
+                </View>
+                <KeyboardSpacer />
             </ScreenWrapper>
         );
     }

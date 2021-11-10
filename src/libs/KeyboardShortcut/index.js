@@ -1,6 +1,8 @@
 import _ from 'underscore';
 
 const events = {};
+let keyBuffer = '';
+let keyBufferCallback = null;
 
 /**
  * Checks if an event for that key is configured and if so, runs it.
@@ -124,6 +126,56 @@ function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) 
     return () => unsubscribe(key);
 }
 
+
+/**
+ * Captures all the key inputs until explictly consumed.
+ *
+ * @param {boolean} [captureOnInputs=false] Should we capture the event on inputs too?
+ */
+function buffer(captureOnInputs = false) {
+    if (keyBufferCallback) {
+        return;
+    }
+    keyBufferCallback = (evt) => {
+        if (!captureOnInputs
+            && evt.target.nodeName === 'INPUT'
+            && evt.target.nodeName === 'TEXTAREA'
+            && evt.target.contentEditable === 'true') {
+            return;
+        }
+        let chrCode = 0;
+        if (evt.charCode != null) {
+            chrCode = evt.charCode;
+        } else if (evt.which != null) {
+            chrCode = evt.which;
+        } else if (evt.keyCode != null) {
+            chrCode = evt.keyCode;
+        }
+
+        if (chrCode !== 0) {
+            keyBuffer += String.fromCharCode(chrCode);
+        }
+    };
+
+    document.addEventListener('keypress', keyBufferCallback, {capture: true});
+}
+
+/**
+ * Consume the stored value in buffer and stop further capturing.
+ *
+ * @return {String} captured input
+ */
+function consumeBuffer() {
+    if (!keyBufferCallback) {
+        return '';
+    }
+    const value = keyBuffer;
+    document.removeEventListener('keypress', keyBufferCallback, {capture: true});
+    keyBuffer = '';
+    keyBufferCallback = null;
+    return value;
+}
+
 /**
  * Module storing the different keyboard shortcut
  *
@@ -137,6 +189,9 @@ function subscribe(key, callback, modifiers = 'shift', captureOnInputs = false) 
  */
 const KeyboardShortcut = {
     subscribe,
+    buffer,
+    consumeBuffer,
 };
+
 
 export default KeyboardShortcut;
