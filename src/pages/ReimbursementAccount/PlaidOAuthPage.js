@@ -1,6 +1,6 @@
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from "prop-types";
+import PropTypes from 'prop-types';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';

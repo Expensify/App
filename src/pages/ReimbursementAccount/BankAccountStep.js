@@ -141,7 +141,6 @@ class BankAccountStep extends React.Component {
      * @param {String} params.account.plaidAccountID
      */
     addPlaidAccount(params) {
-        console.log(params);
         setupWithdrawalAccount({
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
