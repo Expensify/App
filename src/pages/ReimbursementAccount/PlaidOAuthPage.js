@@ -11,6 +11,7 @@ import {
     addPersonalBankAccount, setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
+import CONST from "../../CONST";
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -18,6 +19,29 @@ const propTypes = {
 
     ...withLocalizePropTypes,
 };
+
+function addPlaidAccount(params) {
+    console.log(params);
+    setupWithdrawalAccount({
+        acceptTerms: true,
+        setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+
+        // Params passed via the Plaid callback when an account is selected
+        plaidAccessToken: params.plaidLinkToken,
+        accountNumber: params.account.accountNumber,
+        routingNumber: params.account.routingNumber,
+        plaidAccountID: params.account.plaidAccountID,
+        ownershipType: params.account.ownershipType,
+        isSavings: params.account.isSavings,
+        bankName: params.bankName,
+        addressName: params.account.addressName,
+
+        // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
+        country: CONST.COUNTRY.US,
+        currency: CONST.CURRENCY.USD,
+        fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
+    });
+}
 
 const PlaidOAuthPage = ({
     plaidLinkToken,
@@ -44,9 +68,10 @@ const PlaidOAuthPage = ({
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <AddPlaidBankAccount
-                onSubmit={({account, password, plaidLinkToken}) => {
-                    addPersonalBankAccount(account, password, plaidLinkToken);
-                }}
+                // onSubmit={({account, password, plaidLinkToken}) => {
+                //     addPersonalBankAccount(account, password, plaidLinkToken);
+                // }}
+                onSubmit={addPlaidAccount}
                 receivedRedirectURI={receivedRedirectURI}
                 onExitPlaid={Navigation.dismissModal}
                 plaidLinkToken={plaidLinkToken}
