@@ -27,72 +27,11 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import ReimbursementAccountForm from '../../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from '../Icon/BankIcons';
 import Icon from '../Icon';
-import getPlatform from '../../libs/getPlatform/index';
+import plaidBankPropTypes from "./plaidBankPropTypes";
 
 const propTypes = {
     ...withLocalizePropTypes,
-
-    /** Plaid SDK token to use to initialize the widget */
-    plaidLinkToken: PropTypes.string,
-
-    /** Contains list of accounts and loading state while fetching them */
-    plaidBankAccounts: PropTypes.shape({
-        /** Whether we are fetching the bank accounts from the API */
-        loading: PropTypes.bool,
-
-        /** Error object */
-        error: PropTypes.shape({
-            /** Error message */
-            message: PropTypes.string,
-
-            /** Error title */
-            title: PropTypes.string,
-        }),
-
-        /** List of accounts */
-        accounts: PropTypes.arrayOf(PropTypes.shape({
-            /** Masked account number */
-            accountNumber: PropTypes.string,
-
-            /** Name of account */
-            addressName: PropTypes.string,
-
-            /** Has this account has already been added? */
-            alreadyExists: PropTypes.bool,
-
-            /** Is the account a savings account? */
-            isSavings: PropTypes.bool,
-
-            /** Unique identifier for this account in Plaid */
-            plaidAccountID: PropTypes.string,
-
-            /** Routing number for the account */
-            routingNumber: PropTypes.string,
-        })),
-    }),
-
-    /** Fired when the user exits the Plaid flow */
-    onExitPlaid: PropTypes.func,
-
-    /** Fired when the user selects an account and submits the form */
-    onSubmit: PropTypes.func,
-
-    /** Additional text to display */
-    text: PropTypes.string,
-
-    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
-    receivedRedirectURI: PropTypes.string,
-};
-
-const defaultProps = {
-    plaidLinkToken: '',
-    plaidBankAccounts: {
-        loading: false,
-    },
-    onExitPlaid: () => {},
-    onSubmit: () => {},
-    text: '',
-    receivedRedirectURI: null,
+    ...plaidBankPropTypes,
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -111,14 +50,10 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
-        let redirectURI = '';
-        if (getPlatform() === 'web') {
-            redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
-        }
-
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
         if (!this.props.receivedRedirectURI || !this.props.plaidLinkToken) {
+            const redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
             clearPlaidBankAccountsAndToken();
             fetchPlaidLinkToken(redirectURI);
         }
