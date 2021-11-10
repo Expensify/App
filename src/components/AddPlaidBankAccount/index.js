@@ -4,7 +4,6 @@ import {
     ActivityIndicator,
     View,
 } from 'react-native';
-import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Log from '../../libs/Log';
@@ -27,11 +26,11 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import ReimbursementAccountForm from '../../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from '../Icon/BankIcons';
 import Icon from '../Icon';
-import plaidBankPropTypes from "./plaidBankPropTypes";
+import {propTypes, defaultProps} from './plaidBankPropTypes';
 
-const propTypes = {
+const plaidBankPropTypes = {
     ...withLocalizePropTypes,
-    ...plaidBankPropTypes,
+    ...propTypes,
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -165,7 +164,7 @@ class AddPlaidBankAccount extends React.Component {
     }
 }
 
-AddPlaidBankAccount.propTypes = propTypes;
+AddPlaidBankAccount.propTypes = plaidBankPropTypes;
 AddPlaidBankAccount.defaultProps = defaultProps;
 
 export default compose(
