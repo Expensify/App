@@ -396,7 +396,7 @@ class GithubUtils {
                     _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
                     (map, pr) => {
                         // eslint-disable-next-line no-param-reassign
-                        map[pr.html_url] = _.pluck(pr.assignees, 'login');
+                        map[pr.html_url] = _.compact(_.pluck(pr.assignees, 'login'));
                         return map;
                     },
                     {},
@@ -440,8 +440,9 @@ class GithubUtils {
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n\r\n- ${URL} -${assigneeMentions}`;
-                        issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
+                        issueBody += `\r\n${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${URL}`;
+                        issueBody += ` -${assigneeMentions}`;
                     });
                 }
 
