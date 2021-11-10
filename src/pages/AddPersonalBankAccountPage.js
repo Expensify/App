@@ -23,6 +23,7 @@ const AddPersonalBankAccountPage = props => (
                 addPersonalBankAccount(account, password, plaidLinkToken);
             }}
             onExitPlaid={Navigation.dismissModal}
+            isBusinessBankAccount={false}
         />
     </ScreenWrapper>
 );

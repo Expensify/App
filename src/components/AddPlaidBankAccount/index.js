@@ -52,7 +52,9 @@ class AddPlaidBankAccount extends React.Component {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
         if (!this.props.receivedRedirectURI || !this.props.plaidLinkToken) {
-            const redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
+            const redirectURI = this.props.isBusinessBankAccount ?
+                'http://localhost:8080/partners/plaid/oauth_web/business' :
+                'http://localhost:8080/partners/plaid/oauth_web/personal';
             clearPlaidBankAccountsAndToken();
             fetchPlaidLinkToken(redirectURI);
         }

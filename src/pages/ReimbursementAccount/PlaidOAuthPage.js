@@ -11,6 +11,7 @@ import {
     addPersonalBankAccount, setupWithdrawalAccount,
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
+import lodashGet from "lodash/get";
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -29,6 +30,9 @@ const PlaidOAuthPage = props => {
     if (!oauthStateID) {
         receivedRedirectURI = null;
     }
+
+    const bankAccountType = lodashGet(this.props.route, ['params', 'bankAccountType']);
+    console.log(bankAccountType);
 
     // TODO: Need to differentiate between personal and business bank account
     // if personal then addPersonalBankAccount(account, password, plaidLinkToken);
