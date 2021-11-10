@@ -34,6 +34,8 @@ const defaultProps = {
     inline: false,
 };
 
+const inlineTop = Platform.OS === 'ios' ? 1 : 2;
+
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function
 class Icon extends PureComponent {
@@ -44,10 +46,15 @@ class Icon extends PureComponent {
         const IconToRender = this.props.src;
 
         if (inline) {
-            const inlineTop = Platform.OS === 'ios' ? (height === 14 ? 0.5 : 1) : 2;
             return (
                 <View style={{width, height, overflow: 'visible'}}>
-                    <View style={{width, height, position: 'absolute', top: inlineTop}}>
+                    <View style={{
+                        width,
+                        height,
+                        position: 'absolute',
+                        top: inlineTop,
+                    }}
+                    >
                         <IconToRender
                             width={width}
                             height={height}
