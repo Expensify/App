@@ -6,6 +6,7 @@ const {
     shell,
     ipcMain,
 } = require('electron');
+const _ = require('underscore');
 const serve = require('electron-serve');
 const contextMenu = require('electron-context-menu');
 const {autoUpdater} = require('electron-updater');
@@ -41,7 +42,7 @@ autoUpdater.logger.transports.file.level = 'info';
 
 // Send all Console logs to a log file: ~/Library/Logs/new.expensify/main.log
 // See https://www.npmjs.com/package/electron-log
-Object.assign(console, log.functions);
+_.assign(console, log.functions);
 
 // setup Hot reload
 if (isDev) {
@@ -155,18 +156,18 @@ const mainWindow = (() => {
                 }],
             }));
 
-            const appMenu = systemMenu.items.find(item => item.role === 'appmenu');
+            const appMenu = _.find(systemMenu.items, item => item.role === 'appmenu');
             appMenu.submenu.insert(1, updateAppMenuItem);
 
             // On mac, pressing cmd++ actually sends a cmd+=. cmd++ is generally the zoom in shortcut, but this is
             // not properly listened for by electron. Adding in an invisible cmd+= listener fixes this.
-            const viewWindow = systemMenu.items.find(item => item.role === 'viewmenu');
+            const viewWindow = _.find(systemMenu.items, item => item.role === 'viewmenu');
             viewWindow.submenu.append(new MenuItem({
                 role: 'zoomin',
                 accelerator: 'CommandOrControl+=',
                 visible: false,
             }));
-            const windowMenu = systemMenu.items.find(item => item.role === 'windowmenu');
+            const windowMenu = _.find(systemMenu.items, item => item.role === 'windowmenu');
             windowMenu.submenu.append(new MenuItem({type: 'separator'}));
             windowMenu.submenu.append(new MenuItem({
                 label: 'New Expensify',
@@ -193,10 +194,12 @@ const mainWindow = (() => {
 
             // Closing the chat window should just hide it (vs. fully quitting the application)
             browserWindow.on('close', (evt) => {
-                if (!quitting && !hasUpdate) {
-                    evt.preventDefault();
-                    browserWindow.hide();
+                if (quitting || hasUpdate) {
+                    return;
                 }
+
+                evt.preventDefault();
+                browserWindow.hide();
             });
 
             // Initiating a browser-back or browser-forward with mouse buttons should navigate history.
@@ -211,9 +214,11 @@ const mainWindow = (() => {
 
             app.on('before-quit', () => quitting = true);
             app.on('activate', () => {
-                if (!expectedUpdateVersion || app.getVersion() === expectedUpdateVersion) {
-                    browserWindow.show();
+                if (expectedUpdateVersion && app.getVersion() !== expectedUpdateVersion) {
+                    return;
                 }
+
+                browserWindow.show();
             });
 
             // Hide the app if we expected to upgrade to a new version but never did.
@@ -259,9 +264,11 @@ const mainWindow = (() => {
 
         // Start checking for JS updates
         .then((browserWindow) => {
-            if (!isDev) {
-                checkForUpdates(electronUpdater(browserWindow));
+            if (isDev) {
+                return;
             }
+
+            checkForUpdates(electronUpdater(browserWindow));
         });
 });
 

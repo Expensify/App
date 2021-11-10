@@ -24,22 +24,17 @@ const defaultProps = {
     disabled: false,
 };
 
-const Checkbox = ({
-    isChecked,
-    onPress,
-    hasError,
-    disabled,
-}) => (
+const Checkbox = props => (
     <Pressable
-        disabled={disabled}
-        onPress={() => onPress(!isChecked)}
+        disabled={props.disabled}
+        onPress={() => props.onPress(!props.isChecked)}
     >
         <View
             style={[
                 styles.checkboxContainer,
-                isChecked && styles.checkedContainer,
-                hasError && styles.borderColorDanger,
-                disabled && styles.cursorDisabled,
+                props.isChecked && styles.checkedContainer,
+                props.hasError && styles.borderColorDanger,
+                props.disabled && styles.cursorDisabled,
             ]}
         >
             <Icon src={Checkmark} fill="white" height={14} width={14} />

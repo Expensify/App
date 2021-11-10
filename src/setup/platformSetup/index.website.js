@@ -13,17 +13,19 @@ import Visibility from '../../libs/Visibility';
 function webUpdate() {
     HttpUtils.download('version.json')
         .then(({version}) => {
-            if (version !== currentVersion) {
-                if (!Visibility.isVisible()) {
-                    // Page is hidden, refresh immediately
-                    window.location.reload(true);
-                    return;
-                }
+            if (version === currentVersion) {
+                return;
+            }
 
-                // Prompt user to refresh the page
-                if (window.confirm('Refresh the page to get the latest updates!')) {
-                    window.location.reload(true);
-                }
+            if (!Visibility.isVisible()) {
+                // Page is hidden, refresh immediately
+                window.location.reload(true);
+                return;
+            }
+
+            // Prompt user to refresh the page
+            if (window.confirm('Refresh the page to get the latest updates!')) {
+                window.location.reload(true);
             }
         });
 }
@@ -39,9 +41,11 @@ const webUpdater = () => ({
         // That way, it will auto-update silently when they minimize the page,
         // and we don't bug the user any more than necessary :)
         window.addEventListener('visibilitychange', () => {
-            if (!Visibility.isVisible()) {
-                webUpdate();
+            if (Visibility.isVisible()) {
+                return;
             }
+
+            webUpdate();
         });
     },
     update: () => webUpdate(),

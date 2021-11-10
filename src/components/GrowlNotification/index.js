@@ -81,9 +81,11 @@ class GrowlNotification extends Component {
             <FlingGestureHandler
                 direction={Directions.UP}
                 onHandlerStateChange={({nativeEvent}) => {
-                    if (nativeEvent.state === State.ACTIVE) {
-                        this.fling(INACTIVE_POSITION_Y);
+                    if (nativeEvent.state !== State.ACTIVE) {
+                        return;
                     }
+
+                    this.fling(INACTIVE_POSITION_Y);
                 }}
             >
                 <View style={styles.growlNotificationWrapper}>

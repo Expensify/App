@@ -586,6 +586,14 @@ export default {
         listOfRestrictedBusinesses: 'list of restricted businesses',
         incorporationDatePlaceholder: 'Start date (yyyy-mm-dd)',
         companyPhonePlaceholder: 'Phone Number (xxx)xxx-xxxx',
+        incorporationTypes: {
+            LLC: 'LLC',
+            CORPORATION: 'Corp',
+            PARTNERSHIP: 'Partnership',
+            COOPERATIVE: 'Cooperative',
+            SOLE_PROPRIETORSHIP: 'Sole Proprietorship',
+            OTHER: 'Other',
+        },
     },
     requestorStep: {
         headerTitle: 'Personal information',
@@ -719,7 +727,7 @@ export default {
             personalMessagePrompt: 'Add a personal message (optional)',
             pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName}! Download the Expensify mobile app to start tracking your expenses.`,
+            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app to start tracking your expenses.`,
         },
         editor: {
             nameInputLabel: 'Name',
