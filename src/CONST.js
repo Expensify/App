@@ -17,6 +17,8 @@ const CONST = {
         DOMAIN: '@expensify.sms',
     },
     BANK_ACCOUNT: {
+        BUSINESS: 'business',
+        PERSONAL: 'personal',
         PLAID: {
             ALLOWED_THROTTLED_COUNT: 2,
             ERROR: {

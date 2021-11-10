@@ -31,8 +31,8 @@ const PlaidOAuthPage = props => {
         receivedRedirectURI = null;
     }
 
-    const bankAccountType = lodashGet(this.props.route, ['params', 'bankAccountType']);
-    console.log(bankAccountType);
+    const bankAccountType = lodashGet(props.route, ['params', 'bankAccountType']);
+
 
     // TODO: Need to differentiate between personal and business bank account
     // if personal then addPersonalBankAccount(account, password, plaidLinkToken);
