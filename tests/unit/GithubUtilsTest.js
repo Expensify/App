@@ -494,8 +494,8 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${internalQAHeader}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[0]}${assignOctocatHubot}${lineBreak}${indent}${openCheckbox}${QA}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[1]}${assignOctocatHubot}${lineBreak}${indent}${openCheckbox}${QA}`
+                        + `${lineBreak}${openCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
+                        + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })
@@ -512,8 +512,8 @@ describe('GithubUtils', () => {
                         + `${lineBreakDouble}${listStart}${basePRList[5]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${listStart}${basePRList[6]}${lineBreak}${indent}${closedCheckbox}${QA}${lineBreak}${indent}${closedCheckbox}${accessibility}`
                         + `${lineBreakDouble}${internalQAHeader}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[0]}${assignOctocatHubot}${lineBreak}${indent}${closedCheckbox}${QA}`
-                        + `${lineBreakDouble}${listStart}${internalQAPRList[1]}${assignOctocatHubot}${lineBreak}${indent}${openCheckbox}${QA}`
+                        + `${lineBreak}${closedCheckbox}${internalQAPRList[0]}${assignOctocatHubot}`
+                        + `${lineBreak}${openCheckbox}${internalQAPRList[1]}${assignOctocatHubot}`
                         + `${lineBreakDouble}${ccApplauseLeads}`,
                     );
                 })

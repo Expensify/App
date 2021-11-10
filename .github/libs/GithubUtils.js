@@ -238,7 +238,9 @@ class GithubUtils {
                     issueBody += '\r\n\r\n\r\n**Internal QA:**';
                     _.each(internalQAPRMap, (assignees, URL) => {
                         const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
-                        issueBody += `\r\n${URL} ${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'}  ${assigneeMentions}`;
+                        issueBody += `\r\n${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${URL}`;
+                        issueBody += ` -${assigneeMentions}`;
                     });
                 }
 
