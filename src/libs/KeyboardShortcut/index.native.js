@@ -7,6 +7,10 @@ const KeyboardShortcut = {
         return () => {};
     },
     unsubscribe() {},
+    buffer() {},
+    consumeBuffer() {
+        return '';
+    },
 };
 
 export default KeyboardShortcut;
