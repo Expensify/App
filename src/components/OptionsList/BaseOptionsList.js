@@ -1,13 +1,13 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Log from '../libs/Log';
-import styles from '../styles/styles';
-import OptionRow from '../pages/home/sidebar/OptionRow';
-import optionPropTypes from './optionPropTypes';
-import SectionList from './SectionList';
-import Text from './Text';
+import Log from '../../libs/Log';
+import styles from '../../styles/styles';
+import OptionRow from '../../pages/home/sidebar/OptionRow';
+import SectionList from '../SectionList';
+import Text from '../Text';
+import optionPropTypes from '../optionPropTypes';
 
 const propTypes = {
     /** option Background Color */
@@ -82,6 +82,12 @@ const propTypes = {
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
+
+    /** Determines whether the keyboard gets dismissed in response to a drag */
+    keyboardDismissMode: PropTypes.string,
+
+    /** Called when the user begins to drag the scroll view */
+    onScrollBeginDrag: PropTypes.func,
 };
 
 const defaultProps = {
@@ -104,9 +110,11 @@ const defaultProps = {
     optionMode: undefined,
     disableRowInteractivity: false,
     onLayout: undefined,
+    keyboardDismissMode: 'none',
+    onScrollBeginDrag: () => {},
 };
 
-class OptionsList extends Component {
+class BaseOptionsList extends Component {
     constructor(props) {
         super(props);
 
@@ -235,12 +243,8 @@ class OptionsList extends Component {
                     ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
-
-                    // Both `keyboardDismissMode` & `onScrollBeginDrag` props are needed to ensure that virtual keyboard is
-                    // dismissed on all platforms.
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    keyboardDismissMode="on-drag"
-                    onScrollBeginDrag={() => Keyboard.dismiss()}
+                    keyboardDismissMode={this.props.keyboardDismissMode}
+                    onScrollBeginDrag={this.props.onScrollBeginDrag}
                     contentContainerStyle={[...this.props.contentContainerStyles]}
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
@@ -261,10 +265,10 @@ class OptionsList extends Component {
     }
 }
 
-OptionsList.propTypes = propTypes;
-OptionsList.defaultProps = defaultProps;
+BaseOptionsList.propTypes = propTypes;
+BaseOptionsList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <OptionsList {...props} innerRef={ref} />
+    <BaseOptionsList {...props} innerRef={ref} />
 ));
