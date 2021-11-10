@@ -194,7 +194,7 @@ class GithubUtils {
                     _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
                     (map, pr) => {
                         // eslint-disable-next-line no-param-reassign
-                        map[pr.html_url] = _.pluck(pr.assignees, 'login');
+                        map[pr.html_url] = _.compact(_.pluck(pr.assignees, 'login'));
                         return map;
                     },
                     {},
