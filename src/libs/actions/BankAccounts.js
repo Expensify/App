@@ -49,7 +49,7 @@ Onyx.connect({
  *
  * @param {String} redirectURI
  */
-function fetchPlaidLinkToken(redirectURI= null) {
+function fetchPlaidLinkToken(redirectURI = null) {
     API.Plaid_GetLinkToken({redirect_uri: redirectURI})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -814,6 +814,39 @@ function setupWithdrawalAccount(data) {
         });
 }
 
+/**
+ * @param {Object} params
+ * @param {Object} params.account
+ * @param {String} params.account.bankName
+ * @param {Boolean} params.account.isSavings
+ * @param {String} params.account.addressName
+ * @param {String} params.account.ownershipType
+ * @param {String} params.account.accountNumber
+ * @param {String} params.account.routingNumber
+ * @param {String} params.account.plaidAccountID
+ */
+function addPlaidBusinessBankAccount(params) {
+    setupWithdrawalAccount({
+        acceptTerms: true,
+        setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
+
+        // Params passed via the Plaid callback when an account is selected
+        plaidAccessToken: params.plaidLinkToken,
+        accountNumber: params.account.accountNumber,
+        routingNumber: params.account.routingNumber,
+        plaidAccountID: params.account.plaidAccountID,
+        ownershipType: params.account.ownershipType,
+        isSavings: params.account.isSavings,
+        bankName: params.bankName,
+        addressName: params.account.addressName,
+
+        // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
+        country: CONST.COUNTRY.US,
+        currency: CONST.CURRENCY.USD,
+        fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
+    });
+}
+
 function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
@@ -910,6 +943,7 @@ function validateRoutingNumber(number) {
 export {
     activateWallet,
     addPersonalBankAccount,
+    addPlaidBusinessBankAccount,
     clearPlaidBankAccountsAndToken,
     fetchFreePlanVerifiedBankAccount,
     fetchOnfidoToken,

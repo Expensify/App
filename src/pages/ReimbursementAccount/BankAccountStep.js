@@ -20,6 +20,7 @@ import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
+    addPlaidBusinessBankAccount,
     setBankAccountFormValidationErrors,
     setBankAccountSubStep,
     setupWithdrawalAccount,
@@ -49,7 +50,6 @@ class BankAccountStep extends React.Component {
 
         this.toggleTerms = this.toggleTerms.bind(this);
         this.addManualAccount = this.addManualAccount.bind(this);
-        this.addPlaidAccount = this.addPlaidAccount.bind(this);
         this.state = {
             // One of CONST.BANK_ACCOUNT.SETUP_TYPE
             hasAcceptedTerms: ReimbursementAccountUtils.getDefaultStateForField(props, 'acceptTerms', true),
@@ -121,39 +121,6 @@ class BankAccountStep extends React.Component {
             accountNumber: this.state.accountNumber,
             routingNumber: this.state.routingNumber,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
-
-            // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
-            country: CONST.COUNTRY.US,
-            currency: CONST.CURRENCY.USD,
-            fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
-        });
-    }
-
-    /**
-     * @param {Object} params
-     * @param {Object} params.account
-     * @param {String} params.account.bankName
-     * @param {Boolean} params.account.isSavings
-     * @param {String} params.account.addressName
-     * @param {String} params.account.ownershipType
-     * @param {String} params.account.accountNumber
-     * @param {String} params.account.routingNumber
-     * @param {String} params.account.plaidAccountID
-     */
-    addPlaidAccount(params) {
-        setupWithdrawalAccount({
-            acceptTerms: true,
-            setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
-
-            // Params passed via the Plaid callback when an account is selected
-            plaidAccessToken: params.plaidLinkToken,
-            accountNumber: params.account.accountNumber,
-            routingNumber: params.account.routingNumber,
-            plaidAccountID: params.account.plaidAccountID,
-            ownershipType: params.account.ownershipType,
-            isSavings: params.account.isSavings,
-            bankName: params.bankName,
-            addressName: params.account.addressName,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
             country: CONST.COUNTRY.US,
@@ -244,7 +211,7 @@ class BankAccountStep extends React.Component {
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
-                        onSubmit={this.addPlaidAccount}
+                        onSubmit={addPlaidBusinessBankAccount}
                         onExitPlaid={() => setBankAccountSubStep(null)}
                         isBusinessBankAccount
                     />

@@ -8,6 +8,7 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Log from '../../libs/Log';
 import PlaidLink from '../PlaidLink/index';
+import CONST from '../../CONST';
 import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
@@ -51,13 +52,15 @@ class AddPlaidBankAccount extends React.Component {
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
-        if (!this.props.receivedRedirectURI || !this.props.plaidLinkToken) {
-            const redirectURI = this.props.isBusinessBankAccount ?
-                `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.BUSINESS}` :
-                `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.PERSONAL}`;
-            clearPlaidBankAccountsAndToken();
-            fetchPlaidLinkToken(redirectURI);
+        if (this.props.receivedRedirectURI || this.props.plaidLinkToken) {
+            return;
         }
+
+        const redirectURI = this.props.isBusinessBankAccount
+            ? `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.BUSINESS}`
+            : `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.PERSONAL}`;
+        clearPlaidBankAccountsAndToken();
+        fetchPlaidLinkToken(redirectURI);
     }
 
     /**
