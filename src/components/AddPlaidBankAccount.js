@@ -115,8 +115,6 @@ class AddPlaidBankAccount extends React.Component {
         if (getPlatform() === 'web') {
             redirectURI = 'http://localhost:8080/partners/plaid/oauth_web';
         }
-        console.log(this.props.receivedRedirectURI);
-        console.log(this.props.plaidLinkToken);
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
