@@ -7,27 +7,27 @@ import {
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import Log from '../libs/Log';
-import PlaidLink from './PlaidLink';
+import Log from '../../libs/Log';
+import PlaidLink from '../PlaidLink/index';
 import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
     getPlaidBankAccounts,
     setBankAccountFormValidationErrors,
     showBankAccountErrorModal,
-} from '../libs/actions/BankAccounts';
-import ONYXKEYS from '../ONYXKEYS';
-import styles from '../styles/styles';
-import themeColors from '../styles/themes/default';
-import compose from '../libs/compose';
-import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import ExpensiPicker from './ExpensiPicker';
-import Text from './Text';
-import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
-import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
-import getBankIcon from './Icon/BankIcons';
-import Icon from './Icon';
-import getPlatform from '../libs/getPlatform';
+} from '../../libs/actions/BankAccounts';
+import ONYXKEYS from '../../ONYXKEYS';
+import styles from '../../styles/styles';
+import themeColors from '../../styles/themes/default';
+import compose from '../../libs/compose';
+import withLocalize, {withLocalizePropTypes} from '../withLocalize';
+import ExpensiPicker from '../ExpensiPicker';
+import Text from '../Text';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
+import ReimbursementAccountForm from '../../pages/ReimbursementAccount/ReimbursementAccountForm';
+import getBankIcon from '../Icon/BankIcons';
+import Icon from '../Icon';
+import getPlatform from '../../libs/getPlatform/index';
 
 const propTypes = {
     ...withLocalizePropTypes,

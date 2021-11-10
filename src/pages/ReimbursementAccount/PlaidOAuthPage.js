@@ -19,10 +19,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const PlaidOAuthPage = ({
-    plaidLinkToken,
-    translate,
-}) => {
+const PlaidOAuthPage = props => {
     const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
     let receivedRedirectURI = window.location.href;
@@ -40,14 +37,14 @@ const PlaidOAuthPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('bankAccount.addBankAccount')}
+                title={props.translate('bankAccount.addBankAccount')}
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <AddPlaidBankAccount
                 // onSubmit={addPlaidAccount}
                 receivedRedirectURI={receivedRedirectURI}
                 onExitPlaid={Navigation.dismissModal}
-                plaidLinkToken={plaidLinkToken}
+                plaidLinkToken={props.plaidLinkToken}
             />
         </ScreenWrapper>
     );
