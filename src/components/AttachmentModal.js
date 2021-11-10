@@ -63,11 +63,26 @@ class AttachmentModal extends PureComponent {
             isConfirmModalOpen: false,
             file: null,
             sourceURL: props.sourceURL,
+            modalType: CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE,
         };
 
         this.submitAndClose = this.submitAndClose.bind(this);
         this.closeConfirmModal = this.closeConfirmModal.bind(this);
         this.isValidSize = this.isValidSize.bind(this);
+    }
+
+    /**
+     * If our attachment is a PDF, return the unswipeable Modal type.
+     * @param {String} sourceUrl
+     * @param {Object} file
+     * @returns {String}
+     */
+    getModalType(sourceUrl, file) {
+        const modalType = (sourceUrl
+            && (Str.isPDF(sourceUrl) || (file && Str.isPDF(file.name || this.props.translate('attachmentView.unknownFilename')))))
+            ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
+            : CONST.MODAL.MODAL_TYPE.CENTERED;
+        return modalType;
     }
 
     /**
@@ -110,17 +125,10 @@ class AttachmentModal extends PureComponent {
         const attachmentViewStyles = this.props.isSmallScreenWidth
             ? [styles.imageModalImageCenterContainer]
             : [styles.imageModalImageCenterContainer, styles.p5];
-
-        // If our attachment is a PDF, make the Modal unswipeable
-        const modalType = (this.state.sourceURL
-                && (Str.isPDF(this.state.sourceURL) || (this.state.file
-                    && Str.isPDF(this.state.file.name || this.props.translate('attachmentView.unknownFilename')))))
-            ? CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE
-            : CONST.MODAL.MODAL_TYPE.CENTERED;
         return (
             <>
                 <Modal
-                    type={modalType}
+                    type={this.state.modalType}
                     onSubmit={this.submitAndClose}
                     onClose={() => this.setState({isModalOpen: false})}
                     isVisible={this.state.isModalOpen}
@@ -172,9 +180,15 @@ class AttachmentModal extends PureComponent {
                         }
                         if (file instanceof File) {
                             const source = URL.createObjectURL(file);
-                            this.setState({isModalOpen: true, sourceURL: source, file});
+                            const modalType = this.getModalType(source, file);
+                            this.setState({
+                                isModalOpen: true, sourceURL: source, file, modalType,
+                            });
                         } else {
-                            this.setState({isModalOpen: true, sourceURL: file.uri, file});
+                            const modalType = this.getModalType(file.uri, file);
+                            this.setState({
+                                isModalOpen: true, sourceURL: file.uri, file, modalType,
+                            });
                         }
                     },
                     show: () => {
