@@ -148,7 +148,7 @@ jobs:
         uses: Expensify/App/.github/actions/checkBundleVersionStringMatch@main
 
       - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
-        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) }}
+        if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
         uses: actions-ecosystem/action-add-labels@a8ae047fee0ca28235f9764e1c478d2136dc15c1
         with:
           number: ${{ steps.createPullRequest.outputs.pr_number }}
