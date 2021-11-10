@@ -1,7 +1,10 @@
 import React, {PureComponent} from 'react';
+import {View, Platform} from 'react-native';
 import PropTypes from 'prop-types';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
+
+// const inlineTop = Platform.OS === 'ios' ? 0.5 : 2;
 
 const propTypes = {
     /** The asset to render. */
@@ -18,6 +21,9 @@ const propTypes = {
 
     /** Is small icon */
     small: PropTypes.bool,
+
+    /** Is small icon */
+    inline: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -25,15 +31,33 @@ const defaultProps = {
     height: variables.iconSizeNormal,
     fill: themeColors.icon,
     small: false,
+    inline: false,
 };
 
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function
 class Icon extends PureComponent {
     render() {
+        const inline = this.props.inline;
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const IconToRender = this.props.src;
+
+        if (inline) {
+            const inlineTop = Platform.OS === 'ios' ? (height === 14 ? 0.5 : 1) : 2;
+            return (
+                <View style={{width, height, overflow: 'visible'}}>
+                    <View style={{width, height, position: 'absolute', top: inlineTop}}>
+                        <IconToRender
+                            width={width}
+                            height={height}
+                            fill={this.props.fill}
+                        />
+                    </View>
+                </View>
+            );
+        }
+
         return (
             <IconToRender
                 width={width}

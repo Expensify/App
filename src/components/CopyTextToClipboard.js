@@ -52,8 +52,8 @@ class CopyTextToClipboard extends React.Component {
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
                 {this.state.showCheckmark
-                    ? <Icon src={Checkmark} height={14} width={14} />
-                    : <Icon src={ClipboardIcon} height={14} width={14} />}
+                    ? <Icon src={Checkmark} height={14} width={14} inline />
+                    : <Icon src={ClipboardIcon} height={14} width={14} inline />}
             </Text>
         );
     }
