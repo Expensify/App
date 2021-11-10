@@ -31,28 +31,26 @@ const defaultProps = {
     isArchivedRoom: false,
 };
 
-const MultipleAvatars = ({
-    avatarImageURLs, size, secondAvatarStyle, isDefaultChatRoom, isArchivedRoom,
-}) => {
-    const avatarContainerStyles = size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
-    const singleAvatarStyles = size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
+const MultipleAvatars = (props) => {
+    const avatarContainerStyles = props.size === 'small' ? styles.emptyAvatarSmall : styles.emptyAvatar;
+    const singleAvatarStyles = props.size === 'small' ? styles.singleAvatarSmall : styles.singleAvatar;
     const secondAvatarStyles = [
-        size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
-        ...secondAvatarStyle,
+        props.size === 'small' ? styles.secondAvatarSmall : styles.secondAvatar,
+        ...props.secondAvatarStyle,
     ];
 
-    if (!avatarImageURLs.length) {
+    if (!props.avatarImageURLs.length) {
         return null;
     }
 
-    if (avatarImageURLs.length === 1) {
+    if (props.avatarImageURLs.length === 1) {
         return (
             <View style={avatarContainerStyles}>
                 <Avatar
-                    source={avatarImageURLs[0]}
-                    size={size}
-                    isDefaultChatRoom={isDefaultChatRoom}
-                    isArchivedRoom={isArchivedRoom}
+                    source={props.avatarImageURLs[0]}
+                    size={props.size}
+                    isDefaultChatRoom={props.isDefaultChatRoom}
+                    isArchivedRoom={props.isArchivedRoom}
                 />
             </View>
         );
@@ -64,26 +62,26 @@ const MultipleAvatars = ({
                 style={singleAvatarStyles}
             >
                 <Image
-                    source={{uri: avatarImageURLs[0]}}
+                    source={{uri: props.avatarImageURLs[0]}}
                     style={singleAvatarStyles}
                 />
                 <View
                     style={secondAvatarStyles}
                 >
-                    {avatarImageURLs.length === 2 ? (
+                    {props.avatarImageURLs.length === 2 ? (
                         <Image
-                            source={{uri: avatarImageURLs[1]}}
+                            source={{uri: props.avatarImageURLs[1]}}
                             style={singleAvatarStyles}
                         />
                     ) : (
                         <View
                             style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                         >
-                            <Text style={size === 'small'
+                            <Text style={props.size === 'small'
                                 ? styles.avatarInnerTextSmall
                                 : styles.avatarInnerText}
                             >
-                                {`+${avatarImageURLs.length - 1}`}
+                                {`+${props.avatarImageURLs.length - 1}`}
                             </Text>
                         </View>
                     )}

@@ -18,9 +18,11 @@ function scrollToIndex(index) {
  *
  */
 function scrollToBottom() {
-    if (flatListRef.current) {
-        flatListRef.current.scrollToOffset({animated: false, offset: 0});
+    if (!flatListRef.current) {
+        return;
     }
+
+    flatListRef.current.scrollToOffset({animated: false, offset: 0});
 }
 
 export {

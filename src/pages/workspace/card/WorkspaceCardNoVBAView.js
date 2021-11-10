@@ -18,29 +18,29 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardNoVBAView = ({translate, policyID}) => (
+const WorkspaceCardNoVBAView = props => (
     <WorkspaceSection
-        title={translate('workspace.card.header')}
+        title={props.translate('workspace.card.header')}
         icon={JewelBoxBlue}
         menuItems={[
             {
-                title: translate('workspace.common.bankAccount'),
-                onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
+                title: props.translate('workspace.common.bankAccount'),
+                onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
                 icon: Bank,
                 shouldShowRightIcon: true,
             },
         ]}
     >
         <View style={[styles.mv4]}>
-            <Text>{translate('workspace.card.noVBACopy')}</Text>
+            <Text>{props.translate('workspace.card.noVBACopy')}</Text>
         </View>
 
         <UnorderedList
             items={[
-                translate('workspace.card.benefit1'),
-                translate('workspace.card.benefit2'),
-                translate('workspace.card.benefit3'),
-                translate('workspace.card.benefit4'),
+                props.translate('workspace.card.benefit1'),
+                props.translate('workspace.card.benefit2'),
+                props.translate('workspace.card.benefit3'),
+                props.translate('workspace.card.benefit4'),
             ]}
         />
     </WorkspaceSection>
