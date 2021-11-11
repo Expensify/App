@@ -13,19 +13,17 @@ const propTypes = {
  * This is a convenience wrapper around the Modal component for a responsive Popover.
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
-const Popover = (props) => {
-    return (
-        <Modal
-            type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
-            popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...props}
-            fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
-            animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
-            animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
-        />
-    );
-};
+const Popover = props => (
+    <Modal
+        type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+        popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
+        // eslint-disable-next-line react/jsx-props-no-spreading
+        {...props}
+        fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
+        animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
+        animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
+    />
+);
 
 Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
