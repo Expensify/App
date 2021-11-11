@@ -14,16 +14,15 @@ const propTypes = {
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 const Popover = (props) => {
-    const propsWithoutAnimation = _.omit(props, ['animationIn', 'animationOut', 'popoverAnchorPosition']);
     return (
         <Modal
-            type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+            type={props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.POPOVER}
+            popoverAnchorPosition={props.isSmallScreenWidth ? undefined : props.anchorPosition}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...propsWithoutAnimation}
-
-            // Mobile will always has fullscreen menu
-            // eslint-disable-next-line react/jsx-props-no-multi-spaces
-            fullscreen
+            {...props}
+            fullscreen={props.isSmallScreenWidth ? true : props.fullscreen}
+            animationIn={props.isSmallScreenWidth ? undefined : props.animationIn}
+            animationOut={props.isSmallScreenWidth ? undefined : props.animationOut}
         />
     );
 };

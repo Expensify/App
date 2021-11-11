@@ -153,6 +153,7 @@ class SidebarScreen extends Component {
                             animationIn="fadeInLeft"
                             animationOut="fadeOutLeft"
                             onItemSelected={this.onCreateMenuItemSelected}
+                            isSmallScreenWidth={this.props.isSmallScreenWidth}
                             menuItems={[
                                 {
                                     icon: ChatBubble,
