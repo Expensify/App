@@ -774,4 +774,13 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
     },
+    newRoomPage: {
+        newRoom: 'New Room',
+        roomName: 'Room Name',
+        visibility: 'Visibility',
+        restrictedDescription: 'People in your workspace are able to find this room using Search',
+        privateDescription: 'Only people invited to this room are able to find it',
+        createRoom: 'Create Room',
+        roomAlreadyExists: 'A room with this name already exists',
+    },
 };
