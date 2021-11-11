@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import windowDimensionsPropTypes from '../withWindowDimensions/windowDimensionsPropTypes';
+import {windowDimensionsPropTypes} from '../withWindowDimensions';
 import CONST from '../../CONST';
 import stylePropTypes from '../../styles/stylePropTypes';
 

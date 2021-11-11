@@ -19,7 +19,6 @@ const windowDimensionsPropTypes = {
     isMediumScreenWidth: PropTypes.bool.isRequired,
 };
 
-
 export default function (WrappedComponent) {
     const propTypes = {
         forwardedRef: PropTypes.func,

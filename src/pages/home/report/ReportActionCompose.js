@@ -42,10 +42,10 @@ import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
-import * as sidebarOptionPropTypes from '../sidebar/optionPropTypes';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
-import * as OnyxProvider from '../../../components/OnyxProvider';
+import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
 
@@ -72,7 +72,7 @@ const propTypes = {
     myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
 
     /** Personal details of all the users */
-    personalDetails: PropTypes.objectOf(sidebarOptionPropTypes.participantPropTypes),
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     /** The report currently being looked at */
     report: PropTypes.shape({
@@ -740,8 +740,8 @@ export default compose(
     withDrawerState,
     withNavigationFocus,
     withLocalize,
-    OnyxProvider.withPersonalDetails(),
-    OnyxProvider.withNetwork(),
+    withPersonalDetails(),
+    withNetwork(),
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
