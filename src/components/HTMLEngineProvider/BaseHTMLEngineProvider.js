@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import _ from 'underscore';
 import React, {useMemo} from 'react';
-import {TouchableOpacity} from 'react-native';
+import {TouchableOpacity, Linking} from 'react-native';
 import {
     TRenderEngineProvider,
     RenderHTMLConfigProvider,
@@ -66,13 +66,30 @@ function computeEmbeddedMaxWidth(tagName, contentWidth) {
     return contentWidth;
 }
 
-function AnchorRenderer({tnode, key, style}) {
-    const htmlAttribs = tnode.attributes;
+/**
+ * Check if there is an ancestor node with name 'comment'.
+ * Finding node with name 'comment' flags that we are rendering a comment.
+ * @param {TNode} tnode
+ * @returns {Boolean}
+ */
+function isInsideComment(tnode) {
+    let currentNode = tnode;
+    while (currentNode.parent) {
+        if (currentNode.domNode.name === 'comment') {
+            return true;
+        }
+        currentNode = currentNode.parent;
+    }
+    return false;
+}
+
+function AnchorRenderer(props) {
+    const htmlAttribs = props.tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
-    const parentStyle = lodashGet(tnode, 'parent.styles.nativeTextRet', {});
+    const fileName = lodashGet(props.tnode, 'domNode.children[0].data', '');
+    const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
     const internalExpensifyPath = (htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, ''))
         || (htmlAttribs.href.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
 
@@ -84,7 +101,23 @@ function AnchorRenderer({tnode, key, style}) {
                 style={styles.link}
                 onPress={() => Navigation.navigate(internalExpensifyPath)}
             >
-                <TNodeChildrenRenderer tnode={tnode} />
+                <TNodeChildrenRenderer tnode={props.tnode} />
+            </Text>
+        );
+    }
+
+    if (!isInsideComment(props.tnode)) {
+        // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
+        // We don't have this behaviour in other links in NewDot
+        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+        return (
+            <Text
+                style={styles.link}
+                onPress={() => {
+                    Linking.openURL(htmlAttribs.href);
+                }}
+            >
+                <TNodeChildrenRenderer tnode={props.tnode} />
             </Text>
         );
     }
@@ -101,21 +134,19 @@ function AnchorRenderer({tnode, key, style}) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={{...style, ...parentStyle}}
-            key={key}
+            style={{...props.style, ...parentStyle}}
+            key={props.key}
             fileName={fileName}
         >
-            <TNodeChildrenRenderer tnode={tnode} />
+            <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>
     );
 }
 
-function CodeRenderer({
-    key, style, TDefaultRenderer, ...defaultRendererProps
-}) {
+function CodeRenderer(props) {
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
+    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
 
     // Get the correct fontFamily variant based in the fontStyle and fontWeight
     const font = getFontFamilyMonospace({
@@ -133,13 +164,15 @@ function CodeRenderer({
         fontStyle: undefined,
     };
 
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
+
     return (
         <InlineCodeBlock
-            TDefaultRenderer={TDefaultRenderer}
+            defaultRendererProps={defaultRendererProps}
+            TDefaultRenderer={props.TDefaultRenderer}
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}
-            defaultRendererProps={defaultRendererProps}
-            key={key}
+            key={props.key}
         />
     );
 }
@@ -160,8 +193,8 @@ function EditedRenderer(props) {
     );
 }
 
-function ImgRenderer({tnode}) {
-    const htmlAttribs = tnode.attributes;
+function ImgRenderer(props) {
+    const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
     //
@@ -223,6 +256,13 @@ const customHTMLElementModels = {
     edited: defaultHTMLElementModels.span.extend({
         tagName: 'edited',
     }),
+    'muted-text': defaultHTMLElementModels.div.extend({
+        tagName: 'muted-text',
+        mixedUAStyles: styles.mutedTextLabel,
+    }),
+    comment: defaultHTMLElementModels.div.extend({
+        tagName: 'comment',
+    }),
 };
 
 // Define the custom renderer components
@@ -249,9 +289,9 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
-const BaseHTMLEngineProvider = ({children, textSelectable}) => {
+const BaseHTMLEngineProvider = (props) => {
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(() => ({selectable: textSelectable}), [textSelectable]);
+    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable}), [props.textSelectable]);
 
     return (
         <TRenderEngineProvider
@@ -269,7 +309,7 @@ const BaseHTMLEngineProvider = ({children, textSelectable}) => {
                 renderersProps={renderersProps}
                 computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
             >
-                {children}
+                {props.children}
             </RenderHTMLConfigProvider>
         </TRenderEngineProvider>
     );

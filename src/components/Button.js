@@ -92,9 +92,11 @@ class Button extends Component {
 
         // Setup and attach keypress handler for pressing the button with Enter key
         this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
-            if (!this.props.isDisabled && !this.props.isLoading) {
-                this.props.onPress();
+            if (this.props.isDisabled || this.props.isLoading) {
+                return;
             }
+
+            this.props.onPress();
         }, [], true);
     }
 
@@ -107,7 +109,7 @@ class Button extends Component {
     }
 
     renderContent() {
-        const {ContentComponent} = this.props;
+        const ContentComponent = this.props.ContentComponent;
         if (ContentComponent) {
             return <ContentComponent />;
         }
@@ -188,6 +190,5 @@ class Button extends Component {
 
 Button.propTypes = propTypes;
 Button.defaultProps = defaultProps;
-Button.displayName = 'Button';
 
 export default Button;

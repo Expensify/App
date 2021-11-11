@@ -74,45 +74,35 @@ const defaultProps = {
     onPayButtonPressed: null,
 };
 
-const IOUPreview = ({
-    iouReportID,
-    chatReportID,
-    iouReport,
-    personalDetails,
-    session,
-    shouldHidePayButton,
-    onPayButtonPressed,
-    onPreviewPressed,
-    translate,
-}) => {
+const IOUPreview = (props) => {
     // Usually the parent determines whether the IOU Preview is displayed. But as the iouReport total cannot be known
     // until it is stored locally, we need to make this check within the Component after retrieving it. This allows us
     // to handle the loading UI from within this Component instead of needing to declare it within each parent, which
     // would duplicate and complicate the logic
-    if (iouReport.total === 0) {
+    if (props.iouReport.total === 0) {
         return null;
     }
 
-    const sessionEmail = lodashGet(session, 'email', null);
-    const managerEmail = iouReport.managerEmail || '';
-    const ownerEmail = iouReport.ownerEmail || '';
+    const sessionEmail = lodashGet(props.session, 'email', null);
+    const managerEmail = props.iouReport.managerEmail || '';
+    const ownerEmail = props.iouReport.ownerEmail || '';
 
     // Pay button should only be visible to the manager of the report.
     const isCurrentUserManager = managerEmail === sessionEmail;
-    const reportIsLoading = _.isEmpty(iouReport);
+    const reportIsLoading = _.isEmpty(props.iouReport);
 
     if (reportIsLoading) {
-        fetchIOUReportByID(iouReportID, chatReportID);
+        fetchIOUReportByID(props.iouReportID, props.chatReportID);
     }
 
-    const managerName = lodashGet(personalDetails, [managerEmail, 'firstName'], '')
+    const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
                         || Str.removeSMSDomain(managerEmail);
-    const ownerName = lodashGet(personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
-    const managerAvatar = lodashGet(personalDetails, [managerEmail, 'avatar'], '');
-    const ownerAvatar = lodashGet(personalDetails, [ownerEmail, 'avatar'], '');
-    const cachedTotal = iouReport.cachedTotal ? iouReport.cachedTotal.replace(/[()]/g, '') : '';
+    const ownerName = lodashGet(props.personalDetails, [ownerEmail, 'firstName'], '') || Str.removeSMSDomain(ownerEmail);
+    const managerAvatar = lodashGet(props.personalDetails, [managerEmail, 'avatar'], '');
+    const ownerAvatar = lodashGet(props.personalDetails, [ownerEmail, 'avatar'], '');
+    const cachedTotal = props.iouReport.cachedTotal ? props.iouReport.cachedTotal.replace(/[()]/g, '') : '';
     return (
-        <TouchableWithoutFeedback onPress={onPreviewPressed}>
+        <TouchableWithoutFeedback onPress={props.onPreviewPressed}>
             <View style={styles.iouPreviewBox}>
                 {reportIsLoading
                     ? <ActivityIndicator style={styles.iouPreviewBoxLoading} color={themeColors.text} />
@@ -124,7 +114,7 @@ const IOUPreview = ({
                                         <Text style={styles.h1}>
                                             {cachedTotal}
                                         </Text>
-                                        {!iouReport.hasOutstandingIOU && (
+                                        {!props.iouReport.hasOutstandingIOU && (
                                             <View style={styles.iouPreviewBoxCheckmark}>
                                                 <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
                                             </View>
@@ -139,16 +129,16 @@ const IOUPreview = ({
                                 </View>
                             </View>
                             <Text>
-                                {iouReport.hasOutstandingIOU
-                                    ? translate('iou.owes', {manager: managerName, owner: ownerName})
-                                    : translate('iou.paid', {manager: managerName, owner: ownerName})}
+                                {props.iouReport.hasOutstandingIOU
+                                    ? props.translate('iou.owes', {manager: managerName, owner: ownerName})
+                                    : props.translate('iou.paid', {manager: managerName, owner: ownerName})}
                             </Text>
                             {(isCurrentUserManager
-                                && !shouldHidePayButton
-                                && iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
+                                && !props.shouldHidePayButton
+                                && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
                                 <TouchableOpacity
                                     style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
-                                    onPress={onPayButtonPressed}
+                                    onPress={props.onPayButtonPressed}
                                 >
                                     <Text
                                         style={[
@@ -156,7 +146,7 @@ const IOUPreview = ({
                                             styles.buttonSuccessText,
                                         ]}
                                     >
-                                        {translate('iou.pay')}
+                                        {props.translate('iou.pay')}
                                     </Text>
                                 </TouchableOpacity>
                             ))}

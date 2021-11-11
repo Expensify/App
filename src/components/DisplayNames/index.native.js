@@ -3,13 +3,9 @@ import {propTypes, defaultProps} from './displayNamesPropTypes';
 import Text from '../Text';
 
 // As we don't have to show tooltips of the Native platform so we simply render the full display names list.
-const DisplayNames = ({
-    fullTitle,
-    numberOfLines,
-    textStyles,
-}) => (
-    <Text style={textStyles} numberOfLines={numberOfLines}>
-        {fullTitle}
+const DisplayNames = props => (
+    <Text style={props.textStyles} numberOfLines={props.numberOfLines}>
+        {props.fullTitle}
     </Text>
 );
 

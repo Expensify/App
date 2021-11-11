@@ -4,11 +4,14 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import {withNavigation} from '@react-navigation/compat';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import {withOnyx} from 'react-native-onyx';
 import styles, {getSafeAreaPadding} from '../styles/styles';
 import HeaderGap from './HeaderGap';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
 import Navigation from '../libs/Navigation/Navigation';
+import compose from '../libs/compose';
+import ONYXKEYS from '../ONYXKEYS';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -34,6 +37,13 @@ const propTypes = {
         // Method to attach listener to Navigation state.
         addListener: PropTypes.func.isRequired,
     }),
+
+    /** Details about any modals being used */
+    modal: PropTypes.shape({
+        /** Indicates when an Alert modal is about to be visible */
+        willAlertModalBecomeVisible: PropTypes.bool,
+    }),
+
 };
 
 const defaultProps = {
@@ -44,6 +54,7 @@ const defaultProps = {
     navigation: {
         addListener: () => {},
     },
+    modal: {},
 };
 
 class ScreenWrapper extends React.Component {
@@ -56,6 +67,10 @@ class ScreenWrapper extends React.Component {
 
     componentDidMount() {
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
+            if (this.props.modal.willAlertModalBecomeVisible) {
+                return;
+            }
+
             Navigation.dismissModal();
         }, [], true);
 
@@ -115,5 +130,12 @@ class ScreenWrapper extends React.Component {
 
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
-ScreenWrapper.displayName = 'ScreenWrapper';
-export default withNavigation(ScreenWrapper);
+
+export default compose(
+    withNavigation,
+    withOnyx({
+        modal: {
+            key: ONYXKEYS.MODAL,
+        },
+    }),
+)(ScreenWrapper);

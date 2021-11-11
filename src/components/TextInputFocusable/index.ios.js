@@ -55,21 +55,25 @@ class TextInputFocusable extends React.Component {
         // get a ref to the inner textInput element e.g. if we do
         // <constructor ref={el => this.textInput = el} /> this will not
         // return a ref to the component, but rather the HTML element by default
-        if (this.props.forwardedRef && _.isFunction(this.props.forwardedRef)) {
-            this.props.forwardedRef(this.textInput);
+        if (!this.props.forwardedRef || !_.isFunction(this.props.forwardedRef)) {
+            return;
         }
+
+        this.props.forwardedRef(this.textInput);
     }
 
     componentDidUpdate(prevProps) {
-        if (!prevProps.shouldClear && this.props.shouldClear) {
-            this.textInput.clear();
-            this.props.onClear();
+        if (prevProps.shouldClear || !this.props.shouldClear) {
+            return;
         }
+
+        this.textInput.clear();
+        this.props.onClear();
     }
 
     render() {
         // Selection Property not worked in IOS properly, So removed from props.
-        const {selection, ...newProps} = this.props;
+        const propsToPass = _.omit(this.props, 'selection');
         return (
             <TextInput
                 placeholderTextColor={themeColors.placeholderText}
@@ -78,13 +82,12 @@ class TextInputFocusable extends React.Component {
                 rejectResponderTermination={false}
                 editable={!this.props.isDisabled}
                 /* eslint-disable-next-line react/jsx-props-no-spreading */
-                {...newProps}
+                {...propsToPass}
             />
         );
     }
 }
 
-TextInputFocusable.displayName = 'TextInputFocusable';
 TextInputFocusable.propTypes = propTypes;
 TextInputFocusable.defaultProps = defaultProps;
 

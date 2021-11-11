@@ -19,12 +19,14 @@ const run = function () {
             pull_number: pullRequestNumber,
         })
             .then(({data}) => {
-                if (!_.isNull(data.mergeable)) {
-                    console.log('Pull request mergeability is not yet resolved...');
-                    retryCount++;
-                    mergeabilityResolved = true;
-                    isMergeable = data.mergeable;
+                if (_.isNull(data.mergeable)) {
+                    return;
                 }
+
+                console.log('Pull request mergeability is not yet resolved...');
+                retryCount++;
+                mergeabilityResolved = true;
+                isMergeable = data.mergeable;
             })
             .catch((githubError) => {
                 mergeabilityResolved = true;

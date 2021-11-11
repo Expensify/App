@@ -129,6 +129,10 @@ export default {
         marginTop: '40%',
     },
 
+    mb0: {
+        marginBottom: 0,
+    },
+
     mb1: {
         marginBottom: 4,
     },
@@ -260,8 +264,16 @@ export default {
         paddingRight: 32,
     },
 
+    pr15: {
+        paddingRight: 60,
+    },
+
     pl5: {
         paddingLeft: 20,
+    },
+
+    pt0: {
+        paddingTop: 0,
     },
 
     pt2: {

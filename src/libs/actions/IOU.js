@@ -85,7 +85,8 @@ function createIOUTransaction(params) {
         .then((data) => {
             getIOUReportsForNewTransaction([data]);
             Navigation.navigate(ROUTES.getReportRoute(data.chatReportID));
-        })?.catch((error) => {
+        })
+        .catch((error) => {
             Onyx.merge(ONYXKEYS.IOU, {
                 loading: false,
                 creatingIOUTransaction: false,
@@ -108,7 +109,7 @@ function createIOUSplit(params) {
 
     let chatReportID;
     API.CreateChatReport({
-        emailList: params.splits.map(participant => participant.email).join(','),
+        emailList: _.map(params.splits, participant => participant.email).join(','),
     })
         .then((data) => {
             chatReportID = data.reportID;
@@ -134,7 +135,8 @@ function createIOUSplit(params) {
             }
             getIOUReportsForNewTransaction(reportParams);
             Navigation.navigate(ROUTES.getReportRoute(chatReportID));
-        })?.catch((error) => {
+        })
+        .catch((error) => {
             Onyx.merge(ONYXKEYS.IOU, {
                 loading: false,
                 creatingIOUTransaction: false,

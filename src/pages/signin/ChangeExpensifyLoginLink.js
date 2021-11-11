@@ -5,11 +5,11 @@ import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
+import {clearSignInData} from '../../libs/actions/Session';
 
 const propTypes = {
     /** The credentials of the logged in person */
@@ -21,23 +21,23 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ChangeExpensifyLoginLink = ({credentials, translate, toLocalPhone}) => (
+const ChangeExpensifyLoginLink = props => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mb4, styles.mt3]}>
         <Text>
-            {translate('common.not')}
+            {props.translate('common.not')}
             &nbsp;
-            {Str.isSMSLogin(credentials.login)
-                ? toLocalPhone(Str.removeSMSDomain(credentials.login))
-                : Str.removeSMSDomain(credentials.login)}
+            {Str.isSMSLogin(props.credentials.login)
+                ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login))
+                : Str.removeSMSDomain(props.credentials.login)}
             {'? '}
         </Text>
         <TouchableOpacity
             style={[styles.link]}
-            onPress={() => redirectToSignIn()}
+            onPress={clearSignInData}
             underlayColor={themeColors.componentBG}
         >
             <Text style={[styles.link]}>
-                {translate('common.goBack')}
+                {props.translate('common.goBack')}
                 {'.'}
             </Text>
         </TouchableOpacity>

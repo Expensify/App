@@ -1,6 +1,6 @@
 import React from 'react';
 import BasePopoverMenu from './BasePopoverMenu';
-import {propTypes, defaultProps} from './PopoverMenuPropTypes';
+import {propTypes, defaultProps} from './popoverMenuPropTypes';
 
 /**
  * The web implementation of the menu needs to trigger actions before the popup closes
