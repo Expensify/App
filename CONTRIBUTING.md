@@ -61,7 +61,7 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 
 #### Check GitHub for existing proposals from other users
 
-1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided and best proposed solution that addresses the job.
+1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
 
 #### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.
