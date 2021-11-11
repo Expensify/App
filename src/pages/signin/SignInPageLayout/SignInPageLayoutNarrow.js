@@ -11,6 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import scrollViewContentContainerStyles from './signInPageStyles.js';
 import LoginKeyboardAvoidingView from './LoginKeyboardAvoidingView';
+import withKeyboardState from '../../../components/withKeyboardState';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -39,12 +40,11 @@ const SignInPageLayoutNarrow = props => (
         showsVerticalScrollIndicator={false}
         style={[
             styles.h100,
-            styles.signInPageNarrowContentContainer,
             styles.alignSelfCenter,
         ]}
-        contentContainerStyle={[styles.ph5, scrollViewContentContainerStyles]}
+        contentContainerStyle={scrollViewContentContainerStyles}
     >
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, styles.signInPageNarrowContentContainer, styles.alignSelfStretch, styles.ph5]}>
             <LoginKeyboardAvoidingView
                 behavior="position"
                 contentContainerStyle={[
@@ -71,7 +71,7 @@ const SignInPageLayoutNarrow = props => (
                 {props.children}
             </LoginKeyboardAvoidingView>
         </View>
-        <View style={[styles.mb5, styles.alignSelfCenter]}>
+        <View style={[styles.mb5, styles.alignSelfCenter, styles.signInPageNarrowContentContainer, styles.ph5]}>
             <TermsAndLicenses />
         </View>
     </ScrollView>
@@ -83,5 +83,6 @@ SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
 
 export default compose(
     withLocalize,
+    withKeyboardState,
     withSafeAreaInsets,
 )(SignInPageLayoutNarrow);
