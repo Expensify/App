@@ -387,6 +387,19 @@ function CreateChatReport(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.reportName
+ * @param {String} parameters.visibility
+ * @return {Promise}
+ */
+function CreatePolicyRoom(parameters) {
+    const commandName = 'CreatePolicyRoom';
+    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.email
  * @returns {Promise}
  */
@@ -1141,6 +1154,7 @@ export {
     BankAccount_Validate,
     ChangePassword,
     CreateChatReport,
+    CreatePolicyRoom,
     CreateLogin,
     CreatePolicyRoom,
     DeleteLogin,
