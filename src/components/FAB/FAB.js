@@ -3,7 +3,7 @@ import {
     Pressable, Animated, Easing,
 } from 'react-native';
 import Icon from '../Icon';
-import {Plus} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import styles, {getAnimatedFABStyle} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import fabPropTypes from './fabPropTypes';
@@ -72,7 +72,7 @@ class FAB extends PureComponent {
                         getAnimatedFABStyle(rotate, backgroundColor),
                     ]}
                 >
-                    <AnimatedIcon src={Plus} fill={fill} />
+                    <AnimatedIcon src={Expensicons.Plus} fill={fill} />
                 </AnimatedPressable>
             </Tooltip>
         );
