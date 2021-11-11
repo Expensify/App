@@ -6,11 +6,11 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
+import * as attachmentPickerPropTypes from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
-import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
@@ -18,7 +18,7 @@ import launchCamera from './launchCamera';
 import CONST from '../../CONST';
 
 const propTypes = {
-    ...basePropTypes,
+    ...attachmentPickerPropTypes.propTypes,
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -86,12 +86,12 @@ class AttachmentPicker extends Component {
 
         this.menuItemData = [
             {
-                icon: Camera,
+                icon: Expensicons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
-                icon: Gallery,
+                icon: Expensicons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
@@ -102,7 +102,7 @@ class AttachmentPicker extends Component {
         if (this.props.type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
             this.menuItemData.push(
                 {
-                    icon: Paperclip,
+                    icon: Expensicons.Paperclip,
                     textTranslationKey: 'attachmentPicker.chooseDocument',
                     pickAttachment: () => this.showDocumentPicker(),
                 },
@@ -310,7 +310,7 @@ class AttachmentPicker extends Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
-AttachmentPicker.defaultProps = defaultProps;
+AttachmentPicker.defaultProps = attachmentPickerPropTypes.defaultProps;
 
 export default compose(
     withWindowDimensions,

@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '../Checkbox';
-import {propTypes, defaultProps} from './checkboxWithTooltipPropTypes';
+import * as checkboxWithTooltipPropTypes from './checkboxWithTooltipPropTypes';
 import Growl from '../../libs/Growl';
 import withWindowDimensions from '../withWindowDimensions';
 
@@ -42,7 +42,7 @@ class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
     }
 }
 
-CheckboxWithTooltipForMobileWebAndNative.propTypes = propTypes;
-CheckboxWithTooltipForMobileWebAndNative.defaultProps = defaultProps;
+CheckboxWithTooltipForMobileWebAndNative.propTypes = checkboxWithTooltipPropTypes.propTypes;
+CheckboxWithTooltipForMobileWebAndNative.defaultProps = checkboxWithTooltipPropTypes.defaultProps;
 
 export default withWindowDimensions(CheckboxWithTooltipForMobileWebAndNative);
