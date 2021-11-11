@@ -145,7 +145,7 @@ jobs:
 
       - name: Check if ShortVersionString is up to date
         id: isShortVersionStringUpdated
-        uses: Expensify/App/.github/actions/checkBundleVersionStringMatch@f7e47d2b9aac9b97ea8ee376449a2149e3677bb1
+        uses: Expensify/App/.github/actions/checkBundleVersionStringMatch@main
 
       - name: Auto-assign PR if there are merge conflicts or if the bundle versions are mismatched
         if: ${{ !fromJSON(steps.cherryPick.outputs.SHOULD_AUTOMERGE) || !fromJSON(steps.isPullRequestMergeable.outputs.IS_MERGEABLE) || !fromJSON(steps.isShortVersionStringUpdated.outputs.BUNDLE_VERSIONS_MATCH) }}
