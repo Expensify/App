@@ -1,7 +1,10 @@
 import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
-import * as anchorForCommentsOnlyPropTypes from './anchorForCommentsOnlyPropTypes';
+import {
+    propTypes as anchorForCommentsOnlyPropTypes,
+    defaultProps as anchorForCommentsOnlyDefaultProps,
+} from './anchorForCommentsOnlyPropTypes';
 import BaseAnchorForCommentsOnly from './BaseAnchorForCommentsOnly';
 import addEncryptedAuthTokenToURL from '../../libs/addEncryptedAuthTokenToURL';
 
@@ -9,12 +12,12 @@ const propTypes = {
     /** Do we need an auth token to view this link or download the remote resource? */
     isAuthTokenRequired: PropTypes.bool,
 
-    ...anchorForCommentsOnlyPropTypes.propTypes,
+    ...anchorForCommentsOnlyPropTypes,
 };
 
 const defaultProps = {
     isAuthTokenRequired: false,
-    ...anchorForCommentsOnlyPropTypes.defaultProps,
+    ...anchorForCommentsOnlyDefaultProps,
 };
 
 /*

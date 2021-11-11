@@ -6,7 +6,7 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import * as attachmentPickerPropTypes from './attachmentPickerPropTypes';
+import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
@@ -18,7 +18,7 @@ import launchCamera from './launchCamera';
 import CONST from '../../CONST';
 
 const propTypes = {
-    ...attachmentPickerPropTypes.propTypes,
+    ...basePropTypes,
     ...windowDimensionsPropTypes,
     ...withLocalizePropTypes,
 };
@@ -310,7 +310,7 @@ class AttachmentPicker extends Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
-AttachmentPicker.defaultProps = attachmentPickerPropTypes.defaultProps;
+AttachmentPicker.defaultProps = defaultProps;
 
 export default compose(
     withWindowDimensions,

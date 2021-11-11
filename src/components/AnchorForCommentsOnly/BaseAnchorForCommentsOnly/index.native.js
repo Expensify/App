@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {Linking, StyleSheet, Pressable} from 'react-native';
-import * as anchorForCommentsOnlyPropTypes from '../anchorForCommentsOnlyPropTypes';
+import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
 import Text from '../../Text';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
@@ -16,7 +16,7 @@ import styles from '../../../styles/styles';
  */
 const BaseAnchorForCommentsOnly = (props) => {
     let linkRef;
-    const rest = _.omit(props, _.keys(anchorForCommentsOnlyPropTypes.propTypes));
+    const rest = _.omit(props, _.keys(propTypes));
     return (
         props.isAttachment
             ? (
@@ -60,8 +60,8 @@ const BaseAnchorForCommentsOnly = (props) => {
     );
 };
 
-BaseAnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes.propTypes;
-BaseAnchorForCommentsOnly.defaultProps = anchorForCommentsOnlyPropTypes.defaultProps;
+BaseAnchorForCommentsOnly.propTypes = propTypes;
+BaseAnchorForCommentsOnly.defaultProps = defaultProps;
 BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
 
 export default BaseAnchorForCommentsOnly;

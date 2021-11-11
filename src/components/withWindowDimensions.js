@@ -2,9 +2,23 @@ import React, {Component} from 'react';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {Dimensions} from 'react-native';
-import getComponentDisplayName from '../../libs/getComponentDisplayName';
-import variables from '../../styles/variables';
-import windowDimensionsPropTypes from './windowDimensionsPropTypes';
+import getComponentDisplayName from '../libs/getComponentDisplayName';
+import variables from '../styles/variables';
+
+const windowDimensionsPropTypes = {
+    // Width of the window
+    windowWidth: PropTypes.number.isRequired,
+
+    // Height of the window
+    windowHeight: PropTypes.number.isRequired,
+
+    // Is the window width narrow, like on a mobile device?
+    isSmallScreenWidth: PropTypes.bool.isRequired,
+
+    // Is the window width narrow, like on a tablet device?
+    isMediumScreenWidth: PropTypes.bool.isRequired,
+};
+
 
 export default function (WrappedComponent) {
     const propTypes = {
