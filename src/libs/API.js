@@ -1118,6 +1118,19 @@ function UpdatePolicy(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.reportName
+ * @param {String} parameters.visibility
+ * @return {Promise}
+ */
+function CreatePolicyRoom(parameters) {
+    const commandName = 'CreatePolicyRoom';
+    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1129,6 +1142,7 @@ export {
     ChangePassword,
     CreateChatReport,
     CreateLogin,
+    CreatePolicyRoom,
     DeleteLogin,
     DeleteBankAccount,
     Get,
