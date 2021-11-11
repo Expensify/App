@@ -168,7 +168,6 @@ class SearchPage extends Component {
                         />
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
-                            {didScreenTransitionEnd && (
                             <OptionsSelector
                                 sections={sections}
                                 value={this.state.searchValue}
@@ -178,8 +177,8 @@ class SearchPage extends Component {
                                 hideSectionHeaders
                                 hideAdditionalOptionStates
                                 showTitleTooltip
+                                didScreenTransitionEnd={didScreenTransitionEnd}
                             />
-                            )}
                         </View>
                         <KeyboardSpacer />
                     </>
