@@ -394,8 +394,7 @@ function CreateChatReport(parameters) {
  */
 function CreatePolicyRoom(parameters) {
     const commandName = 'CreatePolicyRoom';
-    requireParameters(['policyID', 'reportName', 'visibility'],
-        parameters, commandName);
+    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
