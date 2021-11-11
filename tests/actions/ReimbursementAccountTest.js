@@ -6,11 +6,7 @@ import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
 import BankAccount from '../../src/libs/models/BankAccount';
-import PushNotification from '../../src/libs/Notification/PushNotification';
 import * as Network from '../../src/libs/Network';
-
-PushNotification.register = () => {};
-PushNotification.deregister = () => {};
 
 const TEST_BANK_ACCOUNT_ID = 1;
 const TEST_BANK_ACCOUNT_CITY = 'Opa-locka';
