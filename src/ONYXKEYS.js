@@ -22,6 +22,9 @@ export default {
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    // Boolean flag set when workspace is being created
+    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
