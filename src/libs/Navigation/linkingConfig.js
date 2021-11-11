@@ -102,6 +102,9 @@ export default {
                     Workspace_Invite: {
                         path: ROUTES.WORKSPACE_INVITE,
                     },
+                    Workspace_NewRoom: {
+                        path: ROUTES.WORKSPACE_NEW_ROOM,
+                    },
                     ReimbursementAccount: {
                         path: ROUTES.BANK_ACCOUNT,
                         exact: true,
