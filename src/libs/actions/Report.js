@@ -19,11 +19,9 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {
-    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom,
-} from '../reportUtils';
+import * as ReportUtils from '../reportUtils';
 import Timers from '../Timers';
-import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
+import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 
@@ -127,8 +125,8 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @return {String}
  */
 function getChatReportName(fullReport, chatType) {
-    if (isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${(isArchivedRoom({
+    if (ReportUtils.isDefaultRoom({chatType})) {
+        return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
             chatType,
             stateNum: fullReport.state,
             statusNum: fullReport.status,
@@ -173,7 +171,7 @@ function getSimplifiedReportObject(report) {
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = isDefaultRoom({chatType})
+    const notificationPreference = ReportUtils.isDefaultRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
@@ -590,7 +588,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
         loading: false,
     };
 
@@ -959,7 +957,7 @@ function fetchAllReports(
 
             // If at this point the user still doesn't have a Concierge report, create it for them.
             // This means they were a participant in reports before their account was created (e.g. default rooms)
-            const hasConciergeChat = _.some(returnedReports, report => isConciergeChatReport(report));
+            const hasConciergeChat = _.some(returnedReports, report => ReportUtils.isConciergeChatReport(report));
             if (!hasConciergeChat) {
                 fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
             }
@@ -978,13 +976,13 @@ function fetchAllReports(
                 // data processing by Onyx.
                 const reportIDsWithMissingActions = _.chain(returnedReports)
                     .map(report => report.reportID)
-                    .filter(reportID => isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
+                    .filter(reportID => ReportActions.isReportMissingActions(reportID, reportMaxSequenceNumbers[reportID]))
                     .value();
 
                 // Once we have the reports that are missing actions we will find the intersection between the most
                 // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
                 // set to avoid making too many network requests at once.
-                const reportIDsToFetchActions = _.chain(sortReportsByLastVisited(allReports))
+                const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
                     .map(report => report.reportID)
                     .reverse()
                     .intersection(reportIDsWithMissingActions)
@@ -1000,7 +998,7 @@ function fetchAllReports(
                     reportIDs: reportIDsToFetchActions,
                 });
                 _.each(reportIDsToFetchActions, (reportID) => {
-                    const offset = dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
+                    const offset = ReportActions.dangerouslyGetReportActionsMaxSequenceNumber(reportID, false);
                     fetchActions(reportID, offset);
                 });
 
@@ -1262,7 +1260,7 @@ function handleReportChanged(report) {
     if (report && report.reportID) {
         allReports[report.reportID] = report;
 
-        if (isConciergeChatReport(report)) {
+        if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
         }
     }

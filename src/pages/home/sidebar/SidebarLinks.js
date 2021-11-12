@@ -13,9 +13,9 @@ import ROUTES from '../../../ROUTES';
 import Icon from '../../../components/Icon';
 import Header from '../../../components/Header';
 import OptionsList from '../../../components/OptionsList';
-import {MagnifyingGlass} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import AvatarWithIndicator from '../../../components/AvatarWithIndicator';
-import {getSidebarOptions, getDefaultAvatar} from '../../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../../libs/OptionsListUtils';
 import KeyboardSpacer from '../../../components/KeyboardSpacer';
 import Tooltip from '../../../components/Tooltip';
 import CONST from '../../../CONST';
@@ -82,7 +82,7 @@ const defaultProps = {
     reports: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatar: getDefaultAvatar(),
+        avatar: OptionsListUtils.getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',
@@ -94,7 +94,7 @@ const defaultProps = {
 class SidebarLinks extends React.Component {
     static getRecentReports(props) {
         const activeReportID = parseInt(props.currentlyViewedReportID, 10);
-        const sidebarOptions = getSidebarOptions(
+        const sidebarOptions = OptionsListUtils.getSidebarOptions(
             props.reports,
             props.personalDetails,
             activeReportID,
@@ -223,7 +223,7 @@ class SidebarLinks extends React.Component {
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
                         >
-                            <Icon src={MagnifyingGlass} />
+                            <Icon src={Expensicons.MagnifyingGlass} />
                         </TouchableOpacity>
                     </Tooltip>
                     <TouchableOpacity

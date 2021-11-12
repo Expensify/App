@@ -10,10 +10,7 @@ import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
-import {
-    PayPal,
-    Plus,
-} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
@@ -120,7 +117,7 @@ class PaymentMethodList extends Component {
                 type: MENU_ITEM,
                 title: 'PayPal.me',
                 description: this.props.payPalMeUsername,
-                icon: PayPal,
+                icon: Expensicons.PayPal,
                 onPress: e => this.props.onPress(e, 'payPalMe'),
                 key: 'payPalMePaymentMethod',
             });
@@ -136,7 +133,7 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods.push({
             type: MENU_ITEM,
             title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Plus,
+            icon: Expensicons.Plus,
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,

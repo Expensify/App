@@ -3,13 +3,13 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import {formatPersonalDetails} from './PersonalDetails';
+import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -254,7 +254,7 @@ function removeMembers(members, policyID) {
  */
 function invite(logins, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const newEmployeeList = _.map(logins, login => addSMSDomainIfPhoneNumber(login));
+    const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
@@ -273,7 +273,7 @@ function invite(logins, welcomeNote, policyID) {
         .then((data) => {
             // Save the personalDetails for the invited user in Onyx
             if (data.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(data.personalDetails));
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
                 Navigation.goBack();
                 return;
             }

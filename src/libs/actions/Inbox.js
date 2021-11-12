@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
-import {Inbox_CallUser} from '../API';
+import * as API from '../API';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import * as Report from './Report';
@@ -19,7 +19,7 @@ function requestInboxCall({
     taskID, policyID, firstName, lastName, phoneNumber, email,
 }) {
     Onyx.merge(ONYXKEYS.REQUEST_CALL_FORM, {loading: true});
-    Inbox_CallUser({
+    API.Inbox_CallUser({
         policyID,
         firstName,
         lastName,

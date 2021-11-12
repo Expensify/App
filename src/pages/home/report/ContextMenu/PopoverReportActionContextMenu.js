@@ -3,9 +3,7 @@ import {
     Dimensions,
 } from 'react-native';
 import _ from 'underscore';
-import {
-    deleteReportComment,
-} from '../../../../libs/actions/Report';
+import * as Report from '../../../../libs/actions/Report';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import PopoverWithMeasuredContent from '../../../../components/PopoverWithMeasuredContent';
 import BaseReportActionContextMenu from './BaseReportActionContextMenu';
@@ -227,7 +225,7 @@ class PopoverReportActionContextMenu extends React.Component {
     }
 
     confirmDeleteAndHideModal() {
-        deleteReportComment(this.state.reportID, this.state.reportAction);
+        Report.deleteReportComment(this.state.reportID, this.state.reportAction);
         this.setState({isDeleteCommentConfirmModalVisible: false});
     }
 

@@ -459,24 +459,22 @@ const CONST = {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
     },
+    get EXPENSIFY_EMAILS() {
+        return [
+            this.EMAIL.CONCIERGE,
+            this.EMAIL.CONTRIBUTORS,
+            this.EMAIL.FIRST_RESPONDER,
+            this.EMAIL.HELP,
+            this.EMAIL.QA,
+            this.EMAIL.CHRONOS,
+            this.EMAIL.RECEIPTS,
+            this.EMAIL.BILLS,
+            this.EMAIL.STUDENT_AMBASSADOR,
+            this.EMAIL.QA_TRAVIS,
+            this.EMAIL.SVFG,
+            this.EMAIL.INTEGRATION_TESTING_CREDS,
+        ];
+    },
 };
 
-const EXPENSIFY_EMAILS = [
-    CONST.EMAIL.CONCIERGE,
-    CONST.EMAIL.CONTRIBUTORS,
-    CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.HELP,
-    CONST.EMAIL.QA,
-    CONST.EMAIL.CHRONOS,
-    CONST.EMAIL.RECEIPTS,
-    CONST.EMAIL.BILLS,
-    CONST.EMAIL.STUDENT_AMBASSADOR,
-    CONST.EMAIL.QA_TRAVIS,
-    CONST.EMAIL.SVFG,
-    CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-];
-
-export {
-    EXPENSIFY_EMAILS,
-};
 export default CONST;

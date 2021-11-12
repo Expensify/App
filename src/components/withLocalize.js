@@ -5,7 +5,7 @@ import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
 import {translate} from '../libs/translate';
 import DateUtils from '../libs/DateUtils';
-import {toLocalPhone, fromLocalPhone} from '../libs/LocalePhoneNumber';
+import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import numberFormat from '../libs/numberFormat';
 import CONST from '../CONST';
 
@@ -104,7 +104,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     toLocalPhone(number) {
-        return toLocalPhone(this.props.preferredLocale, number);
+        return LocalePhoneNumber.toLocalPhone(this.props.preferredLocale, number);
     }
 
     /**
@@ -112,7 +112,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     fromLocalPhone(number) {
-        return fromLocalPhone(this.props.preferredLocale, number);
+        return LocalePhoneNumber.fromLocalPhone(this.props.preferredLocale, number);
     }
 
     render() {

@@ -14,7 +14,7 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
-import {setExpensifyNewsStatus, setShouldUseSecureStaging} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Switch from '../../components/Switch';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -78,7 +78,7 @@ const PreferencesPage = (props) => {
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
                                 isOn={lodashGet(props.user, 'expensifyNewsStatus', true)}
-                                onToggle={setExpensifyNewsStatus}
+                                onToggle={User.setExpensifyNewsStatus}
                             />
                         </View>
                     </View>
@@ -115,7 +115,7 @@ const PreferencesPage = (props) => {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         isOn={props.user.shouldUseSecureStaging || false}
-                                        onToggle={setShouldUseSecureStaging}
+                                        onToggle={User.setShouldUseSecureStaging}
                                     />
                                 </View>
                             </View>

@@ -5,7 +5,7 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import {translateLocal} from '../../../libs/translate';
 import CONST from '../../../CONST';
-import {openExternalLink} from '../../../libs/actions/Link';
+import * as Link from '../../../libs/actions/Link';
 
 const termsData = [
     {
@@ -104,7 +104,7 @@ const ShortTermsForm = () => (
                     {' '}
                     <Text
                         style={styles.link}
-                        onPress={() => openExternalLink(CONST.CFPB_PREPAID_URL)}
+                        onPress={() => Link.openExternalLink(CONST.CFPB_PREPAID_URL)}
                     >
                         {CONST.TERMS.CFPB_PREPAID}
                     </Text>
@@ -115,7 +115,7 @@ const ShortTermsForm = () => (
                     {' '}
                     <Text
                         style={styles.link}
-                        onPress={() => openExternalLink(CONST.FEES_URL)}
+                        onPress={() => Link.openExternalLink(CONST.FEES_URL)}
                     >
                         {CONST.TERMS.USE_EXPENSIFY_FEES}
                     </Text>

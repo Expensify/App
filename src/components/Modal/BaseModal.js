@@ -7,7 +7,7 @@ import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/st
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
-import {setModalVisibility, willAlertModalBecomeVisible} from '../../libs/actions/Modal';
+import * as Modal from '../../libs/actions/Modal';
 
 const propTypes = {
     ...modalPropTypes,
@@ -33,7 +33,7 @@ class BaseModal extends PureComponent {
             return;
         }
 
-        willAlertModalBecomeVisible(this.props.isVisible);
+        Modal.willAlertModalBecomeVisible(this.props.isVisible);
     }
 
     componentWillUnmount() {
@@ -47,7 +47,7 @@ class BaseModal extends PureComponent {
      */
     hideModal(callHideCallback = true) {
         if (this.props.shouldSetModalVisibility) {
-            setModalVisibility(false);
+            Modal.setModalVisibility(false);
         }
         if (callHideCallback) {
             this.props.onModalHide();
@@ -87,7 +87,7 @@ class BaseModal extends PureComponent {
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     if (this.props.shouldSetModalVisibility) {
-                        setModalVisibility(true);
+                        Modal.setModalVisibility(true);
                     }
                     this.props.onModalShow();
                 }}

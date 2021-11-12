@@ -19,8 +19,8 @@ import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import Timers from '../Timers';
 import * as Pusher from '../Pusher/pusher';
 import NetworkConnection from '../NetworkConnection';
-import {getUserDetails} from './User';
-import {isNumericWithSpecialChars} from '../ValidationUtils';
+import * as User from './User';
+import * as ValidationUtils from '../ValidationUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -146,7 +146,7 @@ function fetchAccountDetails(login) {
                 }
             } else if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    error: isNumericWithSpecialChars(login)
+                    error: ValidationUtils.isNumericWithSpecialChars(login)
                         ? translateLocal('messages.errorMessageInvalidPhone')
                         : translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
@@ -264,7 +264,7 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
             email,
         });
         if (response.jsonCode === 200) {
-            getUserDetails();
+            User.getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
         } else {
             const error = lodashGet(response, 'message', 'Unable to login.');

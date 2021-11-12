@@ -7,8 +7,8 @@ import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../../../ONYXKEYS';
 import styles from '../../../../styles/styles';
 import OptionsSelector from '../../../../components/OptionsSelector';
-import {getHeaderMessage, getNewChatOptions, isCurrentUser} from '../../../../libs/OptionsListUtils';
-import CONST, {EXPENSIFY_EMAILS} from '../../../../CONST';
+import * as OptionsListUtils from '../../../../libs/OptionsListUtils';
+import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import Button from '../../../../components/Button';
@@ -67,13 +67,13 @@ class IOUParticipantsSplit extends Component {
             recentReports,
             personalDetails,
             userToInvite,
-        } = getNewChatOptions(
+        } = OptionsListUtils.getNewChatOptions(
             props.reports,
             props.personalDetails,
             props.betas,
             '',
             props.participants,
-            EXPENSIFY_EMAILS,
+            CONST.EXPENSIFY_EMAILS,
         );
 
         this.state = {
@@ -123,7 +123,7 @@ class IOUParticipantsSplit extends Component {
             indexOffset: _.reduce(sections, (prev, {data}) => prev + data.length, 0),
         });
 
-        if (this.state.userToInvite && !isCurrentUser(this.state.userToInvite)) {
+        if (this.state.userToInvite && !OptionsListUtils.isCurrentUser(this.state.userToInvite)) {
             sections.push(({
                 undefined,
                 data: [this.state.userToInvite],
@@ -168,13 +168,13 @@ class IOUParticipantsSplit extends Component {
                 recentReports,
                 personalDetails,
                 userToInvite,
-            } = getNewChatOptions(
+            } = OptionsListUtils.getNewChatOptions(
                 this.props.reports,
                 this.props.personalDetails,
                 this.props.betas,
                 isOptionInList ? prevState.searchValue : '',
                 newSelectedOptions,
-                EXPENSIFY_EMAILS,
+                CONST.EXPENSIFY_EMAILS,
             );
             return {
                 recentReports,
@@ -188,7 +188,7 @@ class IOUParticipantsSplit extends Component {
     render() {
         const maxParticipantsReached = this.props.participants.length === CONST.REPORT.MAXIMUM_PARTICIPANTS;
         const sections = this.getSections(maxParticipantsReached);
-        const headerMessage = !maxParticipantsReached ? getHeaderMessage(
+        const headerMessage = !maxParticipantsReached ? OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length + this.state.recentReports.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
@@ -210,13 +210,13 @@ class IOUParticipantsSplit extends Component {
                                 recentReports,
                                 personalDetails,
                                 userToInvite,
-                            } = getNewChatOptions(
+                            } = OptionsListUtils.getNewChatOptions(
                                 this.props.reports,
                                 this.props.personalDetails,
                                 this.props.betas,
                                 searchValue,
                                 [],
-                                EXPENSIFY_EMAILS,
+                                CONST.EXPENSIFY_EMAILS,
                             );
                             this.setState({
                                 searchValue,

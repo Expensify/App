@@ -4,7 +4,7 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
+import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
@@ -43,7 +43,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 
                     // Second, the IOU report needs updated with the new IOU details too
                     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-                    iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, chatReportID);
+                    iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
                 }
             });
 
@@ -193,7 +193,7 @@ function rejectTransaction({
 
             const chatReport = response.reports[chatReportID];
             const iouReport = response.reports[reportID];
-            syncChatAndIOUReports(chatReport, iouReport);
+            Report.syncChatAndIOUReports(chatReport, iouReport);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
@@ -275,7 +275,7 @@ function payIOUReport({
 
             const chatReportStuff = response.reports[chatReportID];
             const iouReportStuff = response.reports[reportID];
-            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
+            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
         .catch((error) => {
             switch (error.message) {

@@ -6,7 +6,7 @@ import {
 import Text from './Text';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
 import Icon from './Icon';
-import {ArrowRight} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -26,7 +26,7 @@ const defaultProps = {
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
-    iconRight: ArrowRight,
+    iconRight: Expensicons.ArrowRight,
     iconStyles: [],
     iconFill: undefined,
     focused: false,

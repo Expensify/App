@@ -8,11 +8,11 @@ import CONST from '../../CONST';
 import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
-import {isDefaultRoom} from '../reportUtils';
-import {getReportIcons, getDefaultAvatar} from '../OptionsListUtils';
+import * as ReportUtils from '../reportUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
-import {isValidLengthForFirstOrLastName} from '../ValidationUtils';
+import * as ValidationUtils from '../ValidationUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -75,8 +75,8 @@ function getDisplayName(login, personalDetail) {
  */
 function getFirstAndLastNameErrors(firstName, lastName) {
     return {
-        firstNameError: isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
-        lastNameError: isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
+        firstNameError: ValidationUtils.isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
+        lastNameError: ValidationUtils.isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
     };
 }
 
@@ -184,12 +184,12 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length <= 0 && !isDefaultRoom(report)) {
+                if (report.participants.length <= 0 && !ReportUtils.isDefaultRoom(report)) {
                     return;
                 }
 
                 const avatars = getReportIcons(report, details);
-                const reportName = isDefaultRoom(report)
+                const reportName = ReportUtils.isDefaultRoom(report)
                     ? report.reportName
                     : _.chain(report.participants)
                         .filter(participant => participant !== currentUserEmail)
@@ -333,7 +333,7 @@ function deleteAvatar(login) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: getDefaultAvatar(login)});
+    mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
     Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
 }
 
@@ -345,7 +345,6 @@ export {
     formatPersonalDetails,
     getFromReportParticipants,
     getDisplayName,
-    getDefaultAvatar,
     getFirstAndLastNameErrors,
     setPersonalDetails,
     setAvatar,

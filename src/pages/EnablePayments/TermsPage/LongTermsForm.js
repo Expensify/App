@@ -7,8 +7,8 @@ import CollapsibleSection from '../../../components/CollapsibleSection';
 import {translateLocal} from '../../../libs/translate';
 import CONST from '../../../CONST';
 import Icon from '../../../components/Icon';
-import {Printer} from '../../../components/Icon/Expensicons';
-import {openExternalLink} from '../../../libs/actions/Link';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Link from '../../../libs/actions/Link';
 
 const termsData = [
     {
@@ -131,10 +131,10 @@ const LongTermsForm = () => (
         </Text>
 
         <View style={styles.flexRow}>
-            <Icon style={styles.flex1} src={Printer} />
+            <Icon style={styles.flex1} src={Expensicons.Printer} />
             <Text
                 style={[styles.link, styles.ml1]}
-                onPress={() => openExternalLink(CONST.FEES_URL)}
+                onPress={() => Link.openExternalLink(CONST.FEES_URL)}
             >
                 {translateLocal('termsStep.longTermsForm.printerFriendlyView')}
             </Text>

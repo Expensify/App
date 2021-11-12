@@ -7,7 +7,7 @@ import ROUTES from '../../ROUTES';
 import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
-import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '../CardUtils';
+import * as CardUtils from '../CardUtils';
 
 /**
  * Calls the API to get the user's bankAccountList, cardList, wallet, and payPalMe
@@ -41,8 +41,8 @@ function getPaymentMethods() {
  * @param {Object} params
  */
 function addBillingCard(params) {
-    const cardMonth = getMonthFromExpirationDateString(params.expirationDate);
-    const cardYear = getYearFromExpirationDateString(params.expirationDate);
+    const cardMonth = CardUtils.getMonthFromExpirationDateString(params.expirationDate);
+    const cardYear = CardUtils.getYearFromExpirationDateString(params.expirationDate);
 
     Onyx.merge(ONYXKEYS.ADD_DEBIT_CARD_FORM, {submitting: true});
     API.AddBillingCard({
@@ -66,7 +66,7 @@ function addBillingCard(params) {
                 addressStreet: params.addressStreet,
                 addressZip: params.addressZipCode,
                 cardMonth,
-                cardNumber: maskCardNumber(params.cardNumber),
+                cardNumber: CardUtils.maskCardNumber(params.cardNumber),
                 cardYear,
                 currency: 'USD',
                 fundID: lodashGet(response, 'fundID', ''),
