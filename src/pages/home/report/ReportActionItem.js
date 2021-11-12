@@ -6,9 +6,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
-import {
-    getReportActionItemStyle,
-} from '../../../styles/getReportActionItemStyles';
+import * as Styles from '../../../styles/styles';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
 import ReportActionItemSingle from './ReportActionItemSingle';
@@ -156,7 +154,7 @@ class ReportActionItem extends Component {
                                 <UnreadActionIndicator />
                             )}
                             <View
-                                style={getReportActionItemStyle(
+                                style={Styles.getReportActionItemStyle(
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,

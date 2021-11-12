@@ -3,7 +3,7 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import * as Report from './Report';
 
 /**
@@ -28,7 +28,7 @@ function requestInboxCall({
     })
         .then((result) => {
             if (result.jsonCode === 200) {
-                Growl.success(translateLocal('requestCallPage.growlMessageOnSave'));
+                Growl.success(Localize.translateLocal('requestCallPage.growlMessageOnSave'));
                 Report.fetchOrCreateChatReport([email, CONST.EMAIL.CONCIERGE], true);
                 return;
             }

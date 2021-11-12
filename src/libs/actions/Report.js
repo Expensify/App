@@ -23,7 +23,7 @@ import * as ReportUtils from '../reportUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -131,7 +131,7 @@ function getChatReportName(fullReport, chatType) {
             stateNum: fullReport.state,
             statusNum: fullReport.status,
         })
-            ? ` (${translateLocal('common.deleted')})`
+            ? ` (${Localize.translateLocal('common.deleted')})`
             : '')}`;
     }
 
@@ -457,7 +457,7 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
     return fetchIOUReport(iouReportID, chatReportID)
         .then((iouReportObject) => {
             if (!iouReportObject && shouldRedirectIfEmpty) {
-                Growl.error(translateLocal('notFound.iouReportNotFound'));
+                Growl.error(Localize.translateLocal('notFound.iouReportNotFound'));
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
@@ -1104,7 +1104,7 @@ function addAction(reportID, text, file) {
     })
         .then((response) => {
             if (response.jsonCode === 408) {
-                Growl.error(translateLocal('reportActionCompose.fileUploadFailed'));
+                Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [optimisticReportActionID]: null,
                 });
@@ -1413,7 +1413,7 @@ function navigateToConciergeChat() {
  * Handle the navigation when report is inaccessible
  */
 function handleInaccessibleReport() {
-    Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+    Growl.error(Localize.translateLocal('notFound.chatYouLookingForCannotBeFound'));
     navigateToConciergeChat();
 }
 

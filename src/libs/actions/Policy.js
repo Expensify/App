@@ -6,7 +6,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import * as OptionsListUtils from '../OptionsListUtils';
@@ -99,7 +99,7 @@ function create(name = '') {
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
                 return;
             }
@@ -241,7 +241,7 @@ function removeMembers(members, policyID) {
 
             // Show the user feedback that the removal failed
             console.error(data.message);
-            Growl.show(translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
+            Growl.show(Localize.translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
         });
 }
 
@@ -283,9 +283,9 @@ function invite(logins, welcomeNote, policyID) {
             policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
 
             // Show the user feedback that the addition failed
-            policyDataWithoutLogin.alertMessage = translateLocal('workspace.invite.genericFailureMessage');
+            policyDataWithoutLogin.alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
             if (data.jsonCode === 402) {
-                policyDataWithoutLogin.alertMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
+                policyDataWithoutLogin.alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
             Onyx.set(key, policyDataWithoutLogin);
@@ -318,13 +318,13 @@ function update(policyID, values, shouldGrowl = false) {
 
             updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
             if (shouldGrowl) {
-                Growl.show(translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             }
         }).catch(() => {
             updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
 
             // Show the user feedback
-            const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });
 }
@@ -347,7 +347,7 @@ function uploadAvatar(policyID, file) {
             }
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
+            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
             Growl.error(errorMessage, 5000);
         });
 }
