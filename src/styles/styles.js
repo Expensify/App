@@ -17,6 +17,7 @@ import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
+import optionAlternateTextCompact from './optionAlternateTextCompact';
 
 const expensiPicker = {
     backgroundColor: 'transparent',
@@ -954,11 +955,7 @@ const styles = {
         lineHeight: 16,
     },
 
-    optionAlternateTextCompact: {
-        flexShrink: 1,
-        flexGrow: 1,
-        flexBasis: 'auto',
-    },
+    optionAlternateTextCompact,
 
     // App Content Wrapper styles
     appContentWrapper: {
