@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
-import {translate} from '../libs/translate';
+import * as Localize from '../libs/Localize';
 import ExpensiPicker from './ExpensiPicker';
 
 const propTypes = {
@@ -33,11 +33,11 @@ const defaultProps = {
 const localesToLanguages = {
     default: {
         value: 'en',
-        label: translate('en', 'preferencesPage.languages.english'),
+        label: Localize.translate('en', 'preferencesPage.languages.english'),
     },
     es: {
         value: 'es',
-        label: translate('es', 'preferencesPage.languages.spanish'),
+        label: Localize.translate('es', 'preferencesPage.languages.spanish'),
     },
 };
 

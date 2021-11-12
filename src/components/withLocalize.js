@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 import ONYXKEYS from '../ONYXKEYS';
-import {translate} from '../libs/translate';
+import * as Localize from '../libs/Localize';
 import DateUtils from '../libs/DateUtils';
 import * as LocalePhoneNumber from '../libs/LocalePhoneNumber';
 import numberFormat from '../libs/numberFormat';
@@ -66,7 +66,7 @@ class LocaleContextProvider extends React.Component {
      * @returns {String}
      */
     translate(phrase, variables) {
-        return translate(this.props.preferredLocale, phrase, variables);
+        return Localize.translate(this.props.preferredLocale, phrase, variables);
     }
 
     /**

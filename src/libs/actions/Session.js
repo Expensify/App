@@ -13,7 +13,7 @@ import Timing from './Timing';
 import CONST from '../../CONST';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import * as Network from '../Network';
 import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
 import Timers from '../Timers';
@@ -147,15 +147,15 @@ function fetchAccountDetails(login) {
             } else if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
                     error: ValidationUtils.isNumericWithSpecialChars(login)
-                        ? translateLocal('messages.errorMessageInvalidPhone')
-                        : translateLocal('loginForm.error.invalidFormatEmailLogin'),
+                        ? Localize.translateLocal('messages.errorMessageInvalidPhone')
+                        : Localize.translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
             } else {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
             }
         })
         .catch(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessageRetry')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('session.offlineMessageRetry')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -244,7 +244,7 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal(error.message), loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
         });
 }
 
@@ -317,7 +317,7 @@ function setPassword(password, validateCode, accountID) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('setPasswordPage.accountNotValidated')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});

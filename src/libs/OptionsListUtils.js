@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import * as ReportUtils from './reportUtils';
-import {translate} from './translate';
+import * as Localize from './Localize';
 import Permissions from './Permissions';
 import md5 from './md5';
 
@@ -701,21 +701,21 @@ function getSidebarOptions(
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return translate(preferredLocale, 'messages.maxParticipantsReached');
+        return Localize.translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
-        return translate(preferredLocale, 'messages.noPhoneNumber');
+        return Localize.translate(preferredLocale, 'messages.noPhoneNumber');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return translate(preferredLocale, 'messages.noPhoneNumber');
+            return Localize.translate(preferredLocale, 'messages.noPhoneNumber');
         }
 
-        return translate(preferredLocale, 'common.noResultsFound');
+        return Localize.translate(preferredLocale, 'common.noResultsFound');
     }
 
     return '';

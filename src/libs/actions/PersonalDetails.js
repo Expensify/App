@@ -11,7 +11,7 @@ import NameValuePair from './NameValuePair';
 import * as ReportUtils from '../reportUtils';
 import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import * as ValidationUtils from '../ValidationUtils';
 
 let currentUserEmail = '';
@@ -38,7 +38,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatarThumbnail;
     }
 
-    return getDefaultAvatar(login);
+    return OptionsListUtils.getDefaultAvatar(login);
 }
 
 /**
@@ -75,8 +75,8 @@ function getDisplayName(login, personalDetail) {
  */
 function getFirstAndLastNameErrors(firstName, lastName) {
     return {
-        firstNameError: ValidationUtils.isValidLengthForFirstOrLastName(firstName) ? '' : translateLocal('personalDetails.error.firstNameLength'),
-        lastNameError: ValidationUtils.isValidLengthForFirstOrLastName(lastName) ? '' : translateLocal('personalDetails.error.lastNameLength'),
+        firstNameError: ValidationUtils.isValidLengthForFirstOrLastName(firstName) ? '' : Localize.translateLocal('personalDetails.error.firstNameLength'),
+        lastNameError: ValidationUtils.isValidLengthForFirstOrLastName(lastName) ? '' : Localize.translateLocal('personalDetails.error.lastNameLength'),
     };
 }
 
@@ -188,7 +188,7 @@ function getFromReportParticipants(reports) {
                     return;
                 }
 
-                const avatars = getReportIcons(report, details);
+                const avatars = OptionsListUtils.getReportIcons(report, details);
                 const reportName = ReportUtils.isDefaultRoom(report)
                     ? report.reportName
                     : _.chain(report.participants)
@@ -246,12 +246,12 @@ function setPersonalDetails(details, shouldGrowl) {
                 mergeLocalPersonalDetails(details);
 
                 if (shouldGrowl) {
-                    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
                 }
             } else if (response.jsonCode === 400) {
-                Growl.error(translateLocal('personalDetails.error.firstNameLength'), 3000);
+                Growl.error(Localize.translateLocal('personalDetails.error.firstNameLength'), 3000);
             } else if (response.jsonCode === 401) {
-                Growl.error(translateLocal('personalDetails.error.lastNameLength'), 3000);
+                Growl.error(Localize.translateLocal('personalDetails.error.lastNameLength'), 3000);
             }
         }).catch((error) => {
             console.debug('Error while setting personal details', error);
@@ -317,9 +317,9 @@ function setAvatar(file) {
         .catch((error) => {
             setPersonalDetails({avatarUploading: false});
             if (error.jsonCode === 405 || error.jsonCode === 502) {
-                Growl.show(translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+                Growl.show(Localize.translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
             } else {
-                Growl.show(translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+                Growl.show(Localize.translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
             }
         });
 }
@@ -334,7 +334,7 @@ function deleteAvatar(login) {
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
     mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
-    Growl.show(translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+    Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
 }
 
 // When the app reconnects from being offline, fetch all of the personal details
