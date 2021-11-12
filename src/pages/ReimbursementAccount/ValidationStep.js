@@ -152,7 +152,6 @@ class ValidationStep extends React.Component {
     }
 
     render() {
-        const test = '';
         const state = lodashGet(this.props, 'reimbursementAccount.achData.state');
 
         // If a user tries to navigate directly to the validate page we'll show them the EnableStep
