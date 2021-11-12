@@ -1,5 +1,8 @@
 module.exports = {
-    extends: 'expensify',
+    extends: [
+        'expensify',
+        'plugin:react-native-a11y/all',
+    ],
     parser: 'babel-eslint',
     ignorePatterns: ['!.*', 'src/vendor', '.github/actions/**/index.js'],
     plugins: ['detox'],

@@ -150,6 +150,7 @@
     "eslint-loader": "^4.0.2",
     "eslint-plugin-detox": "^1.0.0",
     "eslint-plugin-jest": "^24.1.0",
+    "eslint-plugin-react-native-a11y": "^3.0.0",
     "flipper-plugin-bridgespy-client": "^0.1.9",
     "flipper-plugin-react-native-performance": "^0.6.0",
     "html-webpack-plugin": "^4.3.0",
