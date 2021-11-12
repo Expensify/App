@@ -154,6 +154,7 @@ class ImageView extends PureComponent {
                             styles.h100,
                         ]}
                         resizeMode="center"
+                        accessibilityIgnoresInvertColors
                     />
                 </View>
             );
@@ -214,6 +215,7 @@ class ImageView extends PureComponent {
                         source={{uri: this.props.url}}
                         style={getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale)}
                         resizeMode={this.state.isZoomed ? 'contain' : 'center'}
+                        accessibilityIgnoresInvertColors
                     />
                 </Pressable>
             </View>

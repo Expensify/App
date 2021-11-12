@@ -7,6 +7,7 @@ const SVGImage = props => (
     <Image
         style={getWidthAndHeightStyle(props.width, props.height)}
         source={props.src}
+        accessibilityIgnoresInvertColors
     />
 );
 

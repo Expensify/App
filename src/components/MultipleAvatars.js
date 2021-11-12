@@ -64,6 +64,7 @@ const MultipleAvatars = (props) => {
                 <Image
                     source={{uri: props.avatarImageURLs[0]}}
                     style={singleAvatarStyles}
+                    accessibilityIgnoresInvertColors
                 />
                 <View
                     style={secondAvatarStyles}
@@ -72,6 +73,7 @@ const MultipleAvatars = (props) => {
                         <Image
                             source={{uri: props.avatarImageURLs[1]}}
                             style={singleAvatarStyles}
+                            accessibilityIgnoresInvertColors
                         />
                     ) : (
                         <View

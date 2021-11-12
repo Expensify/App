@@ -79,6 +79,7 @@ class ImageWithSizeCalculation extends PureComponent {
                 ]}
                 source={{uri: this.props.url}}
                 resizeMode="contain"
+                accessibilityIgnoresInvertColors
             />
         );
     }

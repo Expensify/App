@@ -48,7 +48,7 @@ class Avatar extends PureComponent {
             <View pointerEvents="none" style={this.props.containerStyles}>
                 {this.props.isDefaultChatRoom
                     ? <RoomAvatar avatarStyle={imageStyle} isArchived={this.props.isArchivedRoom} />
-                    : <Image source={{uri: this.props.source}} style={imageStyle} />}
+                    : <Image source={{uri: this.props.source}} style={imageStyle} accessibilityIgnoresInvertColors />}
             </View>
         );
     }

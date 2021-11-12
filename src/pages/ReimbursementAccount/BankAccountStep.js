@@ -260,6 +260,7 @@ class BankAccountStep extends React.Component {
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
                             source={exampleCheckImage(this.props.preferredLocale)}
+                            accessibilityIgnoresInvertColors
                         />
                         <ExpensiTextInput
                             label={this.props.translate('bankAccount.routingNumber')}

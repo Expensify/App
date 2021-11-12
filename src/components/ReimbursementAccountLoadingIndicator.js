@@ -30,6 +30,7 @@ const ReimbursementAccountLoadingIndicator = props => (
                     style={[
                         styles.loadingVBAAnimation,
                     ]}
+                    accessibilityIgnoresInvertColors
                 />
                 <View style={[styles.ph6]}>
                     <Text style={[styles.textAlignCenter]}>
