@@ -47,7 +47,7 @@ class Icon extends PureComponent {
 
         if (inline) {
             return (
-                <View style={{width, height, overflow: 'visible'}}>
+                <View style={{width, height, overflow: 'visible', backgroundColor: 'transparent'}}>
                     <View style={{
                         width,
                         height,

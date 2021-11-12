@@ -53,9 +53,12 @@ class CopyTextToClipboard extends React.Component {
                 style={[styles.flexRow, styles.cursorPointer]}
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
-                {this.state.showCheckmark
-                    ? <Icon src={Checkmark} height={iconSize} width={iconSize} inline />
-                    : <Icon src={ClipboardIcon} height={iconSize} width={iconSize} inline />}
+                <Icon
+                    src={this.state.showCheckmark ? Checkmark : ClipboardIcon}
+                    height={iconSize}
+                    width={iconSize}
+                    inline
+                />
             </Text>
         );
     }
