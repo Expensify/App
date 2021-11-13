@@ -29,7 +29,6 @@ const defaultProps = {
     betas: [],
 };
 
-
 /**
  * Get the most recently accessed report for the user
  *
@@ -50,7 +49,7 @@ const MainDrawerNavigator = (props) => {
 
     // Wait until reports are fetched and there is a reportID in initialParams
     if (!initialParams.reportID) {
-        return <FullScreenLoadingIndicator visible />;
+        return <FullScreenLoadingIndicator />;
     }
 
     // After the app initializes and reports are available the home navigation is mounted

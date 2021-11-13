@@ -14,23 +14,27 @@ const propTypes = {
 
     /** Should the input be styled for errors  */
     hasError: PropTypes.bool,
+
+    /** Should the input be disabled  */
+    disabled: PropTypes.bool,
 };
 
 const defaultProps = {
     hasError: false,
+    disabled: false,
 };
 
-const Checkbox = ({
-    isChecked,
-    onPress,
-    hasError,
-}) => (
-    <Pressable onPress={() => onPress(!isChecked)}>
+const Checkbox = props => (
+    <Pressable
+        disabled={props.disabled}
+        onPress={() => props.onPress(!props.isChecked)}
+    >
         <View
             style={[
                 styles.checkboxContainer,
-                isChecked && styles.checkedContainer,
-                hasError && styles.borderColorDanger,
+                props.isChecked && styles.checkedContainer,
+                props.hasError && styles.borderColorDanger,
+                props.disabled && styles.cursorDisabled,
             ]}
         >
             <Icon src={Checkmark} fill="white" height={14} width={14} />

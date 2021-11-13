@@ -175,6 +175,52 @@ Empty functions (noop) should be declare as arrow functions with no whitespace i
     }
     ```
 
+## Object / Array Methods
+
+We have standardized on using [underscore.js](https://underscorejs.org/) methods for objects and collections instead of the native [Array instance methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#instance_methods). This is mostly to maintain consistency, but there are some type safety features and conveniences that underscore methods provide us e.g. the ability to iterate over an object and the lack of a `TypeError` thrown if a variable is `undefined`.
+
+    ```javascript
+    // Bad
+    myArray.forEach(item => doSomething(item));
+    // Good
+    _.each(myArray, item => doSomething(item));
+
+    // Bad
+    const myArray = Object.keys(someObject).map(key => doSomething(someObject[key]));
+    // Good
+    const myArray = _.map(someObject, (value, key) => doSomething(value));
+
+    // Bad
+    myCollection.includes('item');
+    // Good
+    _.contains(myCollection, 'item');
+
+    // Bad
+    const modifiedArray = someArray.filter(filterFunc).map(mapFunc);
+    // Good
+    const modifiedArray = _.chain(someArray)
+        .filter(filterFunc)
+        .map(mapFunc)
+        .value();
+    ```
+
+## Accessing Object Properties and Default Values
+
+Use `lodashGet()` to safely access object properties and `||` to short circuit null or undefined values that are not guaranteed to exist in a consistent way throughout the codebase. In the rare case that you want to consider a falsy value as usable and the `||` operator prevents this then be explicit about this in your code and check for the type using an underscore method e.g. `_.isBoolean(value)` or `_.isEqual(0)`.
+
+   ```javascript
+   // Bad
+   const value = somePossiblyNullThing ?? 'default';
+   // Good
+   const value = somePossiblyNullThing || 'default';
+   // Bad
+   const value = someObject.possiblyUndefinedProperty?.nestedProperty || 'default';
+   // Bad
+   const value = (someObject && someObject.possiblyUndefinedProperty && someObject.possiblyUndefinedProperty.nestedProperty) || 'default';
+   // Good
+   const value = lodashGet(someObject, 'possiblyUndefinedProperty.nestedProperty', 'default');
+   ```
+
 ## JSDocs
 - Avoid docs that don't add any additional information.
 - Always document parameters and return values.
@@ -218,9 +264,7 @@ const {name, accountID, email} = data;
 
 **React Components**
 
-- Avoid destructuring props and state at the *same time*. It makes the source of a given variable unclear.
-- Avoid destructuring either props or state when there are other variables declared in a render block. This helps us quickly know which variables are from props, state, or declared inside the render.
-- Use parameter destructuring for stateless function components when there are no additional variable declarations in the render.
+Don't destructure props or state. It makes the source of a given variable unclear. This guideline helps us quickly know which variables are from props, state, or from some other scope.
 
 ```javascript
 // Bad
@@ -230,12 +274,20 @@ render() {
 	...
 }
 
-// Good
+// Bad
 const UserInfo = ({name, email}) => (
-	<div>
-		<p>Name: {name}</p>
-		<p>Email: {email}</p>
-	</div>
+	<View>
+		<Text>Name: {name}</Text>
+		<Text>Email: {email}</Text>
+	</View>
+);
+
+// Good
+const UserInfo = props => (
+    <View>
+        <Text>Name: {props.name}</Text>
+        <Text>Email: {props.email}</Text>
+    </View>
 );
 ```
 
@@ -247,7 +299,23 @@ ES6 provides two ways to export a module from a file: `named export` and `defaul
 - Files with multiple exports should always use named exports
 - Files with a single method or variable export are OK to use named exports
 - Mixing default and named exports in a single file is OK (e.g. in a self contained module), but should rarely be used
-- All exports should be declared at the bottom of the file
+- All exports (both default and named) should happen at the bottom of the file
+- Do **not** export individual features inline.
+
+```javascript
+// Bad
+export const something = 'nope';
+export const somethingElse = 'stop';
+
+// Good
+const something = 'yep';
+const somethingElse = 'go';
+
+export {
+    something,
+    somethingElse,
+};
+```
 
 ## Classes and constructors
 
@@ -292,7 +360,8 @@ So, if a new language feature isn't something we have agreed to support it's off
 Here are a couple of things we would ask that you *avoid* to help maintain consistency in our codebase:
 
 - **Async/Await** - Use the native `Promise` instead
-- **Optional Chaining** - Use `lodash/get` to fetch a nested value instead
+- **Optional Chaining** - Use `lodashGet()` to fetch a nested value instead
+- **Null Coalescing Operator** - Use `lodashGet()` or `||` to set a default value for a possibly `undefined` or `null` variable
 
 # React Coding Standards
 
@@ -648,7 +717,25 @@ From React's documentation -
 >Props and composition give you all the flexibility you need to customize a component’s look and behavior in an explicit and safe way. Remember that components may accept arbitrary props, including primitive values, React elements, or functions.
 >If you want to reuse non-UI functionality between components, we suggest extracting it into a separate JavaScript module. The components may import it and use that function, object, or a class, without extending it.
 
-Use *[Higher order components](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+Use an HOC a.k.a. *[Higher order component](https://reactjs.org/docs/higher-order-components.html)* if you find a use case where you need inheritance.
+
+If several HOC need to be combined there is a `compose()` utility. But we should not use this utility when there is only one HOC.
+
+```javascript
+// Bad
+export default compose(
+    withLocalize,
+)(MyComponent);
+
+// Good
+export default compose(
+    withLocalize,
+    withWindowDimensions,
+)(MyComponent);
+
+// Good
+export default withLocalize(MyComponent)
+```
 
 **Note:** If you find that none of these approaches work for you, please ask an Expensify engineer for guidance via Slack or GitHub.
 

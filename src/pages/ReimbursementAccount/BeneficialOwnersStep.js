@@ -90,9 +90,11 @@ class BeneficialOwnersStep extends React.Component {
 
         const errors = {};
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(this.state[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors({...errors, beneficialOwnersErrors});
         return _.every(beneficialOwnersErrors, _.isEmpty) && _.isEmpty(errors);
@@ -134,8 +136,15 @@ class BeneficialOwnersStep extends React.Component {
      */
     clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
         this.setState((prevState) => {
+            const renamedFields = {
+                addressStreet: 'street',
+                addressCity: 'city',
+                addressState: 'state',
+                addressZipCode: 'zipCode',
+            };
+            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             const beneficialOwners = [...prevState.beneficialOwners];
-            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [inputKey]: value};
+            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
             updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });

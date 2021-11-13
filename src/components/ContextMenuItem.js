@@ -47,9 +47,11 @@ class ContextMenuItem extends Component {
     }
 
     componentWillUnmount() {
-        if (this.successResetTimer) {
-            clearTimeout(this.successResetTimer);
+        if (!this.successResetTimer) {
+            return;
         }
+
+        clearTimeout(this.successResetTimer);
     }
 
     /**
@@ -114,6 +116,5 @@ class ContextMenuItem extends Component {
 
 ContextMenuItem.propTypes = propTypes;
 ContextMenuItem.defaultProps = defaultProps;
-ContextMenuItem.displayName = 'ContextMenuItem';
 
 export default ContextMenuItem;

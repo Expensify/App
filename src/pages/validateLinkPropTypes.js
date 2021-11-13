@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 
-export default PropTypes.shape({
+const propTypes = PropTypes.shape({
     // The name of the route
     name: PropTypes.string,
 
@@ -16,3 +16,12 @@ export default PropTypes.shape({
         validateCode: PropTypes.string,
     }),
 });
+
+const defaultProps = {
+    params: {},
+};
+
+export {
+    propTypes,
+    defaultProps,
+};

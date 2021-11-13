@@ -33,10 +33,12 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
-        if (val) {
-            currentUserEmail = val.email;
-            currentUserAccountID = val.accountID;
+        if (!val) {
+            return;
         }
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
     },
 });
 
@@ -267,7 +269,7 @@ function fetchIOUReport(iouReportID, chatReportID) {
         }
         return getSimplifiedIOUReport(iouReportData, chatReportID);
     }).catch((error) => {
-        console.debug(`[Report] Failed to populate IOU Collection: ${error.message}`);
+        Log.hmmm('[Report] Failed to populate IOU Collection:', error.message);
     });
 }
 
@@ -290,7 +292,7 @@ function fetchIOUReportID(debtorEmail) {
             // If there is no IOU report for this user then we will assume it has been paid and do nothing here.
             // All reports are initialized with hasOutstandingIOU: false. Since the IOU report we were looking for has
             // been settled then there's nothing more to do.
-            console.debug('GetIOUReport returned a reportID of 0, not fetching IOU report data');
+            Log.info('GetIOUReport returned a reportID of 0, not fetching IOU report data');
             return;
         }
         return iouReportID;
@@ -378,14 +380,16 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, simplifiedReports);
 
             // Fetch the personal details if there are any
-            PersonalDetails.getFromReportParticipants(Object.values(simplifiedReports));
+            PersonalDetails.getFromReportParticipants(_.values(simplifiedReports));
             return fetchedReports;
         })
         .catch((err) => {
-            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                // eslint-disable-next-line no-use-before-define
-                handleInaccessibleReport();
+            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
+                return;
             }
+
+            // eslint-disable-next-line no-use-before-define
+            handleInaccessibleReport();
         });
 }
 
@@ -525,7 +529,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.html,
+            lastMessageText: message.text,
         });
     }
 }
@@ -604,26 +608,26 @@ function updateReportWithNewAction(
     }
 
     if (!ActiveClientManager.isClientTheLeader()) {
-        console.debug('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
+        Log.info('[LOCAL_NOTIFICATION] Skipping notification because this client is not the leader');
         return;
     }
 
     // We don't want to send a local notification if the user preference is daily or mute
     if (notificationPreference === 'mute' || notificationPreference === 'daily') {
         // eslint-disable-next-line max-len
-        console.debug(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
+        Log.info(`[LOCAL_NOTIFICATION] No notification because user preference is to be notified: ${notificationPreference}`);
         return;
     }
 
     // If this comment is from the current user we don't want to parrot whatever they wrote back to them.
     if (isFromCurrentUser) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
+        Log.info('[LOCAL_NOTIFICATION] No notification because comment is from the currently logged in user');
         return;
     }
 
     // If we are currently viewing this report do not show a notification.
     if (reportID === lastViewedReportID && Visibility.isVisible()) {
-        console.debug('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
+        Log.info('[LOCAL_NOTIFICATION] No notification because it was a comment for the current report');
         return;
     }
 
@@ -639,7 +643,7 @@ function updateReportWithNewAction(
         const oldestUnreadSeq = (updatedReportObject.maxSequenceNumber - updatedReportObject.unreadActionCount) + 1;
         setNewMarkerPosition(reportID, oldestUnreadSeq);
     }
-    console.debug('[LOCAL_NOTIFICATION] Creating notification');
+    Log.info('[LOCAL_NOTIFICATION] Creating notification');
     LocalNotification.showCommentNotification({
         reportAction,
         onClick: () => {
@@ -910,6 +914,18 @@ function fetchActions(reportID, offset) {
 }
 
 /**
+ * Get the actions of a report
+ *
+ * @param {Number} reportID
+ * @param {Number} [offset]
+ */
+function fetchActionsWithLoadingState(reportID, offset) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
+    fetchActions(reportID, offset)
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
+}
+
+/**
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
@@ -929,9 +945,7 @@ function fetchAllReports(
             }
 
             // The cast here is necessary as Get rvl='chatList' may return an int or Array
-            const reportIDs = String(response.chatList)
-                .split(',')
-                .filter(_.identity);
+            const reportIDs = _.filter(String(response.chatList).split(','), _.identity);
 
             // Get all the chat reports if they have any, otherwise create one with concierge
             if (reportIDs.length > 0) {
@@ -978,11 +992,11 @@ function fetchAllReports(
                     .value();
 
                 if (_.isEmpty(reportIDsToFetchActions)) {
-                    console.debug('[Report] Local reportActions up to date. Not fetching additional actions.');
+                    Log.info('[Report] Local reportActions up to date. Not fetching additional actions.');
                     return;
                 }
 
-                console.debug('[Report] Fetching reportActions for reportIDs: ', {
+                Log.info('[Report] Fetching reportActions for reportIDs: ', false, {
                     reportIDs: reportIDsToFetchActions,
                 });
                 _.each(reportIDsToFetchActions, (reportID) => {
@@ -1135,15 +1149,17 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
     })
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Reverse Optimistic Response
-                reportActionsToMerge[sequenceNumber] = {
-                    ...reportAction,
-                    message: oldMessage,
-                };
-
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            if (response.jsonCode === 200) {
+                return;
             }
+
+            // Reverse Optimistic Response
+            reportActionsToMerge[sequenceNumber] = {
+                ...reportAction,
+                message: oldMessage,
+            };
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
         });
 }
 
@@ -1207,6 +1223,17 @@ function togglePinnedState(report) {
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+}
+
+/**
+ * Immediate indication whether the report has a draft comment.
+ *
+ * @param {String} reportID
+ * @param {Boolean} hasDraft
+ * @returns {Promise}
+ */
+function setReportWithDraft(reportID, hasDraft) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${reportID}`, hasDraft);
 }
 
 /**
@@ -1392,6 +1419,31 @@ function handleInaccessibleReport() {
     navigateToConciergeChat();
 }
 
+/**
+ * Creates a policy room and fetches it
+ * @param {String} policyID
+ * @param {String} reportName
+ * @param {String} visibility
+ * @return {Promise}
+ */
+function createPolicyRoom(policyID, reportName, visibility) {
+    return API.CreatePolicyRoom({policyID, reportName, visibility})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Log.hmmm(response.message);
+                return;
+            }
+            return fetchChatReportsByIDs([response.reportID]);
+        })
+        .then(([{reportID}]) => {
+            if (!reportID) {
+                Log.hmmm('Unable to grab policy room after creation');
+                return;
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1418,4 +1470,7 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
+    setReportWithDraft,
+    fetchActionsWithLoadingState,
+    createPolicyRoom,
 };

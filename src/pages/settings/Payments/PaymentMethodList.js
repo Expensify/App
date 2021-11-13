@@ -3,7 +3,8 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles from '../../../styles/styles';
+import lodashGet from 'lodash/get';
+import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -14,6 +15,7 @@ import {
     Plus,
 } from '../../../components/Icon/Expensicons';
 import getBankIcon from '../../../components/Icon/BankIcons';
+import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
 const MENU_ITEM = 'menuItem';
 
@@ -24,23 +26,14 @@ const propTypes = {
     /** Are we loading payments from the server? */
     isLoadingPayments: PropTypes.bool,
 
+    /** Is the payment options menu open / active? */
+    isAddPaymentMenuActive: PropTypes.bool,
+
     /** User's paypal.me username if they have one */
     payPalMeUsername: PropTypes.string,
 
     /** Array of bank account objects */
-    bankAccountList: PropTypes.arrayOf(PropTypes.shape({
-        /** The name of the institution (bank of america, etc */
-        addressName: PropTypes.string,
-
-        /** The masked bank account number */
-        accountNumber: PropTypes.string,
-
-        /** The bankAccountID in the bankAccounts db */
-        bankAccountID: PropTypes.number,
-
-        /** The bank account type */
-        type: PropTypes.string,
-    })),
+    bankAccountList: PropTypes.arrayOf(bankAccountPropTypes),
 
     /** Array of card objects */
     cardList: PropTypes.arrayOf(PropTypes.shape({
@@ -62,6 +55,7 @@ const defaultProps = {
     bankAccountList: [],
     cardList: [],
     isLoadingPayments: false,
+    isAddPaymentMenuActive: false,
 };
 
 class PaymentMethodList extends Component {
@@ -81,25 +75,27 @@ class PaymentMethodList extends Component {
 
         _.each(this.props.bankAccountList, (bankAccount) => {
             // Add all bank accounts besides the wallet
-            if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
-                const formattedBankAccountNumber = bankAccount.accountNumber
-                    ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
-                        bankAccount.accountNumber.slice(-4)
-                    }`
-                    : null;
-                const {icon, iconSize} = getBankIcon(bankAccount.additionalData.bankName);
-                combinedPaymentMethods.push({
-                    type: MENU_ITEM,
-                    title: bankAccount.addressName,
-
-                    // eslint-disable-next-line
-                    description: formattedBankAccountNumber,
-                    icon,
-                    iconSize,
-                    onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
-                    key: `bankAccount-${bankAccount.bankAccountID}`,
-                });
+            if (bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET) {
+                return;
             }
+
+            const formattedBankAccountNumber = bankAccount.accountNumber
+                ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
+                    bankAccount.accountNumber.slice(-4)
+                }`
+                : null;
+            const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
+            combinedPaymentMethods.push({
+                type: MENU_ITEM,
+                title: bankAccount.addressName,
+
+                // eslint-disable-next-line
+                description: formattedBankAccountNumber,
+                icon,
+                iconSize,
+                onPress: e => this.props.onPress(e, bankAccount.bankAccountID),
+                key: `bankAccount-${bankAccount.bankAccountID}`,
+            });
         });
 
         _.each(this.props.cardList, (card) => {
@@ -144,6 +140,8 @@ class PaymentMethodList extends Component {
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
+            iconFill: this.props.isAddPaymentMenuActive ? getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.props.isAddPaymentMenuActive ? [getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;
@@ -167,8 +165,10 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
+                    iconFill={item.iconFill}
                     iconHeight={item.iconSize}
                     iconWidth={item.iconSize}
+                    wrapperStyle={item.wrapperStyle}
                 />
             );
         }

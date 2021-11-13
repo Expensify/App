@@ -19,6 +19,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import {isValidPaypalUsername} from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -37,9 +38,9 @@ class AddPayPalMePage extends React.Component {
 
         this.state = {
             payPalMeUsername: props.payPalMeUsername,
+            payPalMeUsernameError: false,
         };
         this.setPayPalMeUsername = this.setPayPalMeUsername.bind(this);
-        this.paypalUsernameInputRef = null;
     }
 
     componentDidMount() {
@@ -47,17 +48,24 @@ class AddPayPalMePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.payPalMeUsername !== this.props.payPalMeUsername) {
-            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({payPalMeUsername: this.props.payPalMeUsername});
+        if (prevProps.payPalMeUsername === this.props.payPalMeUsername) {
+            return;
         }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({payPalMeUsername: this.props.payPalMeUsername});
     }
 
     /**
      * Sets the payPalMeUsername for the current user
      */
     setPayPalMeUsername() {
+        const isValid = isValidPaypalUsername(this.state.payPalMeUsername);
+        if (!isValid) {
+            this.setState({payPalMeUsernameError: true});
+            return;
+        }
+        this.setState({payPalMeUsernameError: false});
         NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, this.state.payPalMeUsername, ONYXKEYS.NVP_PAYPAL_ME_ADDRESS);
         Growl.show(this.props.translate('addPayPalMePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
         Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
@@ -65,15 +73,10 @@ class AddPayPalMePage extends React.Component {
 
     render() {
         return (
-            <ScreenWrapper onTransitionEnd={() => {
-                if (this.paypalUsernameInputRef) {
-                    this.paypalUsernameInputRef.focus();
-                }
-            }}
-            >
+            <ScreenWrapper>
                 <KeyboardAvoidingView>
                     <HeaderWithCloseButton
-                        title="PayPal.me"
+                        title={this.props.translate('common.payPalMe')}
                         shouldShowBackButton
                         onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS)}
                         onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -85,13 +88,14 @@ class AddPayPalMePage extends React.Component {
                             </Text>
                             <ExpensiTextInput
                                 label={this.props.translate('addPayPalMePage.payPalMe')}
-                                ref={el => this.paypalUsernameInputRef = el}
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.payPalMeUsername}
                                 placeholder={this.props.translate('addPayPalMePage.yourPayPalUsername')}
-                                onChangeText={text => this.setState({payPalMeUsername: text})}
+                                onChangeText={text => this.setState({payPalMeUsername: text, payPalMeUsernameError: false})}
                                 returnKeyType="done"
+                                hasError={this.state.payPalMeUsernameError}
+                                errorText={this.state.payPalMeUsernameError ? this.props.translate('addPayPalMePage.formatError') : ''}
                             />
                         </View>
                     </View>

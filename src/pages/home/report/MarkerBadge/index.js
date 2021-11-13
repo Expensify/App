@@ -120,6 +120,5 @@ class MarkerBadge extends PureComponent {
 
 MarkerBadge.propTypes = propTypes;
 MarkerBadge.defaultProps = defaultProps;
-MarkerBadge.displayName = 'MarkerBadge';
 
 export default withLocalize(MarkerBadge);

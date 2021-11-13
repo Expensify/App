@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View} from 'react-native';
+import {View, Dimensions} from 'react-native';
 import {Document, Page} from 'react-pdf/dist/esm/entry.webpack';
 import styles from '../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -28,6 +28,7 @@ class PDFView extends PureComponent {
         super(props);
         this.state = {
             numPages: null,
+            windowWidth: Dimensions.get('window').width,
         };
         this.onDocumentLoadSuccess = this.onDocumentLoadSuccess.bind(this);
     }
@@ -43,18 +44,18 @@ class PDFView extends PureComponent {
     }
 
     render() {
-        const {isSmallScreenWidth, windowWidth} = this.props;
-        const pdfContainerWidth = windowWidth - 100;
+        const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
             ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        const pageWidth = isSmallScreenWidth ? windowWidth - 30 : pageWidthOnLargeScreen;
+        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
 
         return (
             <View
                 style={[styles.PDFView, this.props.style]}
+                onLayout={event => this.setState({windowWidth: event.nativeEvent.layout.width})}
             >
                 <Document
-                    loading={<FullScreenLoadingIndicator visible />}
+                    loading={<FullScreenLoadingIndicator />}
                     file={this.props.sourceURL}
                     options={{
                         cMapUrl: 'cmaps/',

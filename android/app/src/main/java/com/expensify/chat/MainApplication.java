@@ -1,7 +1,5 @@
 package com.expensify.chat;
 
-import com.expensify.chat.generated.BasePackageList;
-
 import android.content.Context;
 import android.database.CursorWindow;
 import androidx.multidex.MultiDexApplication;
@@ -16,16 +14,11 @@ import com.plaid.PlaidPackage;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Arrays;
 
-import org.unimodules.adapters.react.ModuleRegistryAdapter;
-import org.unimodules.adapters.react.ReactModuleRegistryProvider;
 import com.facebook.react.bridge.JSIModulePackage;
 import com.swmansion.reanimated.ReanimatedJSIModulePackage;
 
 public class MainApplication extends MultiDexApplication implements ReactApplication {
-
-  private final ReactModuleRegistryProvider mModuleRegistryProvider = new ReactModuleRegistryProvider(new BasePackageList().getPackageList(), null);
 
   private final ReactNativeHost mReactNativeHost =
       new ReactNativeHost(this) {
@@ -43,11 +36,6 @@ public class MainApplication extends MultiDexApplication implements ReactApplica
           packages.add(new PlaidPackage());
           packages.add(new ExpensifyAppPackage());
 
-          // Add unimodules
-          List<ReactPackage> unimodules = Arrays.<ReactPackage>asList(
-            new ModuleRegistryAdapter(mModuleRegistryProvider)
-          );
-          packages.addAll(unimodules);
           return packages;
         }
 

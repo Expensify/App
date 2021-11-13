@@ -65,6 +65,9 @@ const propTypes = {
         phoneNumber: PropTypes.string,
     })).isRequired,
 
+    /** Whether this is an IOU split and belongs to a group report */
+    isGroupSplit: PropTypes.bool.isRequired,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -161,14 +164,21 @@ class IOUConfirmationList extends Component {
     }
 
     componentDidMount() {
+        // Only add the Venmo option if we're sending a payment
+        if (this.props.iouType !== CONST.IOU.IOU_TYPE.SEND) {
+            return;
+        }
+
         this.addVenmoPaymentOptionToMenu();
     }
 
     componentWillUnmount() {
-        if (this.checkVenmoAvailabilityPromise) {
-            this.checkVenmoAvailabilityPromise.cancel();
-            this.checkVenmoAvailabilityPromise = null;
+        if (!this.checkVenmoAvailabilityPromise) {
+            return;
         }
+
+        this.checkVenmoAvailabilityPromise.cancel();
+        this.checkVenmoAvailabilityPromise = null;
     }
 
     /**
@@ -325,24 +335,25 @@ class IOUConfirmationList extends Component {
      * Adds Venmo, if available, as the second option in the menu of payment options
      */
     addVenmoPaymentOptionToMenu() {
-        // Add Venmo option
-        if (this.props.localCurrencyCode === CONST.CURRENCY.USD && this.state.participants[0].phoneNumber && isValidUSPhone(this.state.participants[0].phoneNumber)) {
-            this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
-            this.checkVenmoAvailabilityPromise
-                .promise
-                .then((isVenmoInstalled) => {
-                    if (!isVenmoInstalled) {
-                        return;
-                    }
-
-                    this.setState(prevState => ({
-                        confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
-                            {text: this.props.translate('iou.settleVenmo'), icon: Venmo},
-                            ...prevState.confirmationButtonOptions.slice(1),
-                        ],
-                    }));
-                });
+        if (this.props.localCurrencyCode !== CONST.CURRENCY.USD || !this.state.participants[0].phoneNumber || !isValidUSPhone(this.state.participants[0].phoneNumber)) {
+            return;
         }
+
+        this.checkVenmoAvailabilityPromise = makeCancellablePromise(isAppInstalled('venmo'));
+        this.checkVenmoAvailabilityPromise
+            .promise
+            .then((isVenmoInstalled) => {
+                if (!isVenmoInstalled) {
+                    return;
+                }
+
+                this.setState(prevState => ({
+                    confirmationButtonOptions: [...prevState.confirmationButtonOptions.slice(0, 1),
+                        {text: this.props.translate('iou.settleVenmo'), icon: Venmo},
+                        ...prevState.confirmationButtonOptions.slice(1),
+                    ],
+                }));
+            });
     }
 
     /**
@@ -380,13 +391,11 @@ class IOUConfirmationList extends Component {
         }
 
         this.setState((prevState) => {
-            const newParticipants = _.reject(prevState.participants, participant => (
-                participant.login === option.login
-            ));
-
-            newParticipants.push({
-                ...option,
-                selected: !option.selected,
+            const newParticipants = _.map(prevState.participants, (participant) => {
+                if (participant.login === option.login) {
+                    return {...option, selected: !option.selected};
+                }
+                return participant;
             });
             return {participants: newParticipants};
         });
@@ -408,7 +417,7 @@ class IOUConfirmationList extends Component {
                         canSelectMultipleOptions={this.props.hasMultipleParticipants}
                         selectedOptions={this.getSelectedOptions()}
                         onSelectRow={toggleOption}
-                        disableRowInteractivity={!this.props.hasMultipleParticipants}
+                        disableRowInteractivity={!this.props.isGroupSplit}
                         optionHoveredStyle={hoverStyle}
                     />
                 </ScrollView>
@@ -432,7 +441,6 @@ class IOUConfirmationList extends Component {
                         options={this.state.confirmationButtonOptions}
                         isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
                         isLoading={this.props.iou.loading && !this.props.network.isOffline}
-                        menuHeaderText={this.props.translate('iou.choosePaymentMethod')}
                         onPress={this.onPress}
                     />
                 </FixedFooter>
@@ -441,7 +449,6 @@ class IOUConfirmationList extends Component {
     }
 }
 
-IOUConfirmationList.displayName = 'IOUConfirmPage';
 IOUConfirmationList.propTypes = propTypes;
 IOUConfirmationList.defaultProps = defaultProps;
 

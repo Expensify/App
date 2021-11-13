@@ -5,7 +5,7 @@ export default function asyncOpenURL(promise, url) {
         return;
     }
 
-    promise.then(() => {
-        Linking.openURL(url);
+    promise.then((params) => {
+        Linking.openURL(typeof url === 'string' ? url : url(params));
     });
 }

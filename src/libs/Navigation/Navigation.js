@@ -1,5 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
+import {Keyboard} from 'react-native';
 import {
     StackActions,
     DrawerActions,
@@ -8,6 +9,8 @@ import {
 } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
+// eslint-disable-next-line import/no-cycle
+import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
@@ -20,7 +23,7 @@ Onyx.connect({
     callback: val => isLoggedIn = Boolean(val && val.authToken),
 });
 
-export const navigationRef = createNavigationContainerRef();
+const navigationRef = createNavigationContainerRef();
 
 // This flag indicates that we're trying to deeplink to a report when react-navigation is not fully loaded yet.
 // If true, this flag will cause the drawer to start in a closed state (which is not the default for small screens)
@@ -28,9 +31,11 @@ export const navigationRef = createNavigationContainerRef();
 let didTapNotificationBeforeReady = false;
 
 function setDidTapNotification() {
-    if (!navigationRef.isReady()) {
-        didTapNotificationBeforeReady = true;
+    if (navigationRef.isReady()) {
+        return;
     }
+
+    didTapNotificationBeforeReady = true;
 }
 
 /**
@@ -39,10 +44,11 @@ function setDidTapNotification() {
  */
 function openDrawer() {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] openDrawer failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] openDrawer failed because navigation ref was not yet ready');
         return;
     }
     navigationRef.current.dispatch(DrawerActions.openDrawer());
+    Keyboard.dismiss();
 }
 
 /**
@@ -51,7 +57,7 @@ function openDrawer() {
  */
 function closeDrawer() {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] closeDrawer failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] closeDrawer failed because navigation ref was not yet ready');
         return;
     }
     navigationRef.current.dispatch(DrawerActions.closeDrawer());
@@ -74,12 +80,12 @@ function getDefaultDrawerState(isSmallScreenWidth) {
  */
 function goBack(shouldOpenDrawer = true) {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] goBack failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] goBack failed because navigation ref was not yet ready');
         return;
     }
 
     if (!navigationRef.current.canGoBack()) {
-        console.debug('Unable to go back');
+        Log.hmmm('[Navigation] Unable to go back');
         if (shouldOpenDrawer) {
             openDrawer();
         }
@@ -95,7 +101,7 @@ function goBack(shouldOpenDrawer = true) {
  */
 function navigate(route = ROUTES.HOME) {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] navigate failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] navigate failed because navigation ref was not yet ready', {route});
         return;
     }
 
@@ -125,11 +131,11 @@ function navigate(route = ROUTES.HOME) {
 /**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
- * @param {Boolean} shouldOpenDrawer
+ * @param {Boolean} [shouldOpenDrawer]
  */
 function dismissModal(shouldOpenDrawer = false) {
     if (!navigationRef.isReady()) {
-        console.debug('[Navigation] dismissModal failed because navigation ref was not yet ready');
+        Log.hmmm('[Navigation] dismissModal failed because navigation ref was not yet ready');
         return;
     }
 
@@ -137,39 +143,10 @@ function dismissModal(shouldOpenDrawer = false) {
         ? shouldOpenDrawer
         : false;
 
-    let isLeavingDrawerNavigator;
-
-    // This should take us to the first view of the modal's stack navigator
-    navigationRef.current.dispatch((state) => {
-        // If this is a nested drawer navigator then we pop the screen and
-        // prevent calling goBack() as it's default behavior is to toggle open the active drawer
-        if (state.type === 'drawer') {
-            isLeavingDrawerNavigator = true;
-            return StackActions.pop();
-        }
-
-        // If there are multiple routes then we can pop back to the first route
-        if (state.routes.length > 1) {
-            return StackActions.popToTop();
-        }
-
-        // Otherwise, we are already on the last page of a modal so just do nothing here as goBack() will navigate us
-        // back to the screen we were on before we opened the modal.
-        return StackActions.pop(0);
-    });
-
-    if (isLeavingDrawerNavigator) {
-        return;
+    CustomActions.navigateBackToRootDrawer(navigationRef);
+    if (normalizedShouldOpenDrawer) {
+        openDrawer();
     }
-
-    // Navigate back to where we were before we launched the modal
-    goBack(shouldOpenDrawer);
-
-    if (!normalizedShouldOpenDrawer) {
-        return;
-    }
-
-    openDrawer();
 }
 
 /**
@@ -231,4 +208,8 @@ export default {
     closeDrawer,
     getDefaultDrawerState,
     setDidTapNotification,
+};
+
+export {
+    navigationRef,
 };

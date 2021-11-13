@@ -5,11 +5,16 @@ import CONFIG from '../../CONFIG';
  *
  * @returns {Boolean}
  */
-export const canCapturePerformanceMetrics = () => CONFIG.CAPTURE_METRICS;
+const canCapturePerformanceMetrics = () => CONFIG.CAPTURE_METRICS;
 
 /**
  * Is capturing Onyx stats enabled.
  *
  * @returns {Boolean}
  */
-export const canCaptureOnyxMetrics = () => CONFIG.ONYX_METRICS;
+const canCaptureOnyxMetrics = () => CONFIG.ONYX_METRICS;
+
+export {
+    canCapturePerformanceMetrics,
+    canCaptureOnyxMetrics,
+};

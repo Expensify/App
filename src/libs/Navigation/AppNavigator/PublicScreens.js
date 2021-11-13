@@ -5,13 +5,11 @@ import SetPasswordPage from '../../../pages/SetPasswordPage';
 import ValidateLoginPage from '../../../pages/ValidateLoginPage';
 import LogInWithShortLivedTokenPage from '../../../pages/LogInWithShortLivedTokenPage';
 import SCREENS from '../../../SCREENS';
-import LoginWithValidateCodePage from '../../../pages/LoginWithValidateCodePage';
-import LoginWithValidateCode2FAPage from '../../../pages/LoginWithValidateCode2FAPage';
 import defaultScreenOptions from './defaultScreenOptions';
 
 const RootStack = createStackNavigator();
 
-export default () => (
+const PublicScreens = () => (
     <RootStack.Navigator>
         <RootStack.Screen
             name={SCREENS.HOME}
@@ -33,25 +31,8 @@ export default () => (
             options={defaultScreenOptions}
             component={SetPasswordPage}
         />
-        <RootStack.Screen
-            name={SCREENS.LOGIN_WITH_VALIDATE_CODE_NEW_WORKSPACE}
-            options={defaultScreenOptions}
-            component={LoginWithValidateCodePage}
-        />
-        <RootStack.Screen
-            name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_NEW_WORKSPACE}
-            options={defaultScreenOptions}
-            component={LoginWithValidateCode2FAPage}
-        />
-        <RootStack.Screen
-            name={SCREENS.LOGIN_WITH_VALIDATE_CODE_WORKSPACE_CARD}
-            options={defaultScreenOptions}
-            component={LoginWithValidateCodePage}
-        />
-        <RootStack.Screen
-            name={SCREENS.LOGIN_WITH_VALIDATE_CODE_2FA_WORKSPACE_CARD}
-            options={defaultScreenOptions}
-            component={LoginWithValidateCode2FAPage}
-        />
     </RootStack.Navigator>
 );
+
+PublicScreens.displayName = 'PublicScreens';
+export default PublicScreens;

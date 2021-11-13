@@ -16,7 +16,7 @@ import CONST from '../../CONST';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import exampleCheckImage from '../../../assets/images/example-check-image.png';
+import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
@@ -25,12 +25,15 @@ import {
     setupWithdrawalAccount,
     showBankAccountErrorModal,
     updateReimbursementAccountDraft,
+    validateRoutingNumber,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
+import WorkspaceSection from '../workspace/WorkspaceSection';
+import {BankMouseGreen} from '../../components/Icon/Illustrations';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -84,7 +87,7 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !validateRoutingNumber(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
         if (!this.state.hasAcceptedTerms) {
@@ -149,7 +152,7 @@ class BankAccountStep extends React.Component {
             plaidAccountID: params.account.plaidAccountID,
             ownershipType: params.account.ownershipType,
             isSavings: params.account.isSavings,
-            bankName: params.account.bankName,
+            bankName: params.bankName,
             addressName: params.account.addressName,
 
             // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
@@ -167,21 +170,32 @@ class BankAccountStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('bankAccount.addBankAccount')}
-                    stepCounter={subStep && {step: 1, total: 5}}
+                    title={this.props.translate('workspace.common.bankAccount')}
+                    stepCounter={subStep ? {step: 1, total: 5} : undefined}
                     onCloseButtonPress={Navigation.dismissModal}
-                    onBackButtonPress={() => setBankAccountSubStep(null)}
-                    shouldShowBackButton={Boolean(subStep)}
+                    onBackButtonPress={() => {
+                        // If we have a subStep then we will remove otherwise we will go back
+                        if (subStep) {
+                            setBankAccountSubStep(null);
+                            return;
+                        }
+                        Navigation.goBack();
+                    }}
+                    shouldShowBackButton
                 />
                 {!subStep && (
                     <>
                         <View style={[styles.flex1]}>
+                            <WorkspaceSection
+                                icon={BankMouseGreen}
+                                title={this.props.translate('workspace.bankAccount.streamlinePayments')}
+                            />
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
                             </Text>
                             <MenuItem
                                 icon={Bank}
-                                title={this.props.translate('bankAccount.logIntoYourBank')}
+                                title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
                                 onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                                 disabled={this.props.isPlaidDisabled || !this.props.user.validated}
                                 shouldShowRightIcon
@@ -245,11 +259,11 @@ class BankAccountStep extends React.Component {
                         <Image
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
-                            source={exampleCheckImage}
+                            source={exampleCheckImage(this.props.preferredLocale)}
                         />
                         <ExpensiTextInput
                             label={this.props.translate('bankAccount.routingNumber')}
-                            keyboardType="number-pad"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.routingNumber}
                             onChangeText={value => this.clearErrorAndSetValue('routingNumber', value)}
                             disabled={shouldDisableInputs}
@@ -258,7 +272,7 @@ class BankAccountStep extends React.Component {
                         <ExpensiTextInput
                             containerStyles={[styles.mt4]}
                             label={this.props.translate('bankAccount.accountNumber')}
-                            keyboardType="number-pad"
+                            keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             value={this.state.accountNumber}
                             onChangeText={value => this.clearErrorAndSetValue('accountNumber', value)}
                             disabled={shouldDisableInputs}

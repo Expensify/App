@@ -2,6 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../../ONYXKEYS';
+import * as ActiveClients from '../actions/ActiveClients';
 
 const clientID = Str.guid();
 const maxClients = 20;
@@ -21,7 +22,7 @@ Onyx.connect({
         activeClients = !val ? [] : val;
         if (activeClients.length >= maxClients) {
             activeClients.shift();
-            Onyx.set(ONYXKEYS.ACTIVE_CLIENTS, activeClients);
+            ActiveClients.setActiveClients(activeClients);
         }
     },
 });
@@ -30,7 +31,8 @@ Onyx.connect({
  * Add our client ID to the list of active IDs
  */
 function init() {
-    Onyx.merge(ONYXKEYS.ACTIVE_CLIENTS, [clientID]).then(isInitialized);
+    ActiveClients.addClient(clientID)
+        .then(isInitialized);
 }
 
 function isReady() {

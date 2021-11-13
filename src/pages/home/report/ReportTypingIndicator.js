@@ -26,22 +26,21 @@ class ReportTypingIndicator extends React.Component {
         super(props);
 
         const usersTyping = props.userTypingStatuses
-            ? Object.keys(props.userTypingStatuses)
-                .filter(login => props.userTypingStatuses[login])
+            ? _.filter(_.keys(props.userTypingStatuses), login => props.userTypingStatuses[login])
             : [];
         this.state = {usersTyping};
     }
 
     componentDidUpdate(prevProps) {
         // Make sure we only update the state if there's been a change in who's typing.
-        if (!_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
-            const usersTyping = Object.keys(this.props.userTypingStatuses)
-                .filter(login => this.props.userTypingStatuses[login]);
-
-            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({usersTyping});
+        if (_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
+            return;
         }
+
+        const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), login => this.props.userTypingStatuses[login]);
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({usersTyping});
     }
 
     render() {
@@ -53,34 +52,20 @@ class ReportTypingIndicator extends React.Component {
                 return <View style={[styles.chatItemComposeSecondaryRow]} />;
             case 1:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                        </Text>
-                    </View>
-                );
-            case 2:
-                return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('common.and')} `}
-                            {getDisplayName(this.state.usersTyping[1])}
-                            {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                        </Text>
+                    <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow]}>
+                        <View style={[styles.chatItemComposeSecondaryRowOffset, styles.flexShrink1]}>
+                            <Text
+                                style={[styles.chatItemComposeSecondaryRowSubText]}
+                                numberOfLines={1}
+                            >
+                                {getDisplayName(this.state.usersTyping[0])}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
+                                {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                            </Text>
+                        </View>
                     </View>
                 );
             default:
@@ -104,7 +89,6 @@ class ReportTypingIndicator extends React.Component {
 
 ReportTypingIndicator.propTypes = propTypes;
 ReportTypingIndicator.defaultProps = defaultProps;
-ReportTypingIndicator.displayName = 'ReportTypingIndicator';
 
 export default compose(
     withLocalize,

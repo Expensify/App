@@ -1,7 +1,7 @@
 import React from 'react';
 import CONST from '../CONST';
 
-export const growlRef = React.createRef();
+const growlRef = React.createRef();
 
 /**
  * Show the growl notification
@@ -38,4 +38,8 @@ export default {
     show,
     error,
     success,
+};
+
+export {
+    growlRef,
 };

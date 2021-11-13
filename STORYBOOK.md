@@ -38,7 +38,7 @@ Here's an example story:
 import React from 'react';
 import Button from '../components/Button';
 
-export default {
+const story = {
 	// Title field will determine how the story displays in the sidebar
     title: 'Components/Button',
     component: Button,
@@ -48,10 +48,15 @@ export default {
 const Template = args => <Button {...args} />;
 
 // Each story must be exported with a named export
-export const Default = Template.bind({});
+const Default = Template.bind({});
 Default.args = {
     text: 'Save & Continue',
     success: true,
+};
+
+export default story;
+export {
+    Default,
 };
 ```
 

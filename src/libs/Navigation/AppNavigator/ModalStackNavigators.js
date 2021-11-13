@@ -10,7 +10,7 @@ import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import IOUSendPage from '../../../pages/iou/IOUSendPage';
 import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
-import SettingsInitialPage from '../../../pages/settings/InitialPage';
+import SettingsInitialPage from '../../../pages/settings/InitialSettingsPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
@@ -28,7 +28,16 @@ import WorkspaceInvitePage from '../../../pages/workspace/WorkspaceInvitePage';
 import ReimbursementAccountPage from '../../../pages/ReimbursementAccount/ReimbursementAccountPage';
 import RequestCallPage from '../../../pages/RequestCallPage';
 import ReportDetailsPage from '../../../pages/ReportDetailsPage';
-import WorkspaceEditorPage from '../../../pages/workspace/WorkspaceEditorPage';
+import WorkspaceSettingsPage from '../../../pages/workspace/WorkspaceSettingsPage';
+import WorkspaceInitialPage from '../../../pages/workspace/WorkspaceInitialPage';
+import WorkspaceCardPage from '../../../pages/workspace/card/WorkspaceCardPage';
+import WorkspaceReimbursePage from '../../../pages/workspace/reimburse/WorkspaceReimbursePage';
+import WorkspaceInvoicesPage from '../../../pages/workspace/invoices/WorkspaceInvoicesPage';
+import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPage';
+import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
+import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
+import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
     cardStyle: styles.navigationScreenCardStyle,
@@ -46,15 +55,14 @@ function createModalStackNavigator(screens) {
     const ModalStackNavigator = createStackNavigator();
     return () => (
         <ModalStackNavigator.Navigator
-            screenOptions={{
-                ...defaultSubRouteOptions,
-            }}
+            screenOptions={defaultSubRouteOptions}
         >
             {_.map(screens, screen => (
                 <ModalStackNavigator.Screen
                     key={screen.name}
                     name={screen.name}
                     component={screen.Component}
+                    initialParams={screen.initialParams}
                 />
             ))}
         </ModalStackNavigator.Navigator>
@@ -86,6 +94,10 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
 {
     Component: IOUCurrencySelection,
     name: 'IOU_Send_Currency',
+},
+{
+    Component: EnablePaymentsPage,
+    name: 'IOU_Enable_Payments',
 }]);
 
 const IOUDetailsModalStackNavigator = createModalStackNavigator([{
@@ -170,6 +182,51 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         Component: SettingsAddDebitCardPage,
         name: 'Settings_Add_Debit_Card',
     },
+    {
+        Component: WorkspaceInitialPage,
+        name: 'Workspace_Initial',
+    },
+    {
+        Component: WorkspaceSettingsPage,
+        name: 'Workspace_Settings',
+    },
+    {
+        Component: WorkspaceCardPage,
+        name: 'Workspace_Card',
+    },
+    {
+        Component: WorkspaceReimbursePage,
+        name: 'Workspace_Reimburse',
+    },
+    {
+        Component: WorkspaceBillsPage,
+        name: 'Workspace_Bills',
+    },
+    {
+        Component: WorkspaceInvoicesPage,
+        name: 'Workspace_Invoices',
+    },
+    {
+        Component: WorkspaceTravelPage,
+        name: 'Workspace_Travel',
+    },
+    {
+        Component: WorkspaceMembersPage,
+        name: 'Workspace_Members',
+    },
+    {
+        Component: WorkspaceBankAccountPage,
+        name: 'Workspace_BankAccount',
+    },
+    {
+        Component: WorkspaceInvitePage,
+        name: 'Workspace_Invite',
+    },
+    {
+        Component: ReimbursementAccountPage,
+        name: 'ReimbursementAccount',
+        initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
+    },
 ]);
 
 const EnablePaymentsStackNavigator = createModalStackNavigator([{
@@ -187,19 +244,9 @@ const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     name: 'ReimbursementAccount_Root',
 }]);
 
-const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
-    Component: WorkspaceInvitePage,
-    name: 'WorkspaceInvite_Root',
-}]);
-
 const RequestCallModalStackNavigator = createModalStackNavigator([{
     Component: RequestCallPage,
     name: 'RequestCall_Root',
-}]);
-
-const WorkspaceEditorNavigator = createModalStackNavigator([{
-    Component: WorkspaceEditorPage,
-    name: 'WorkspaceEditor_Root',
 }]);
 
 export {
@@ -217,7 +264,5 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
-    WorkspaceEditorNavigator,
 };

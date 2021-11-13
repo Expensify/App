@@ -159,9 +159,11 @@ class IOUCurrencySelection extends Component {
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
-                if (this.textInput) {
-                    this.textInput.focus();
+                if (!this.textInput) {
+                    return;
                 }
+
+                this.textInput.focus();
             }}
             >
                 <KeyboardAvoidingView>
@@ -232,7 +234,6 @@ class IOUCurrencySelection extends Component {
 
 IOUCurrencySelection.propTypes = propTypes;
 IOUCurrencySelection.defaultProps = defaultProps;
-IOUCurrencySelection.displayName = 'IOUCurrencySelection';
 
 export default compose(
     withLocalize,
