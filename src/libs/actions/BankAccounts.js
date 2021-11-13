@@ -693,6 +693,7 @@ function setupWithdrawalAccount(data) {
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
             let isErrorHTML = false;
             const errors = {};
+            console.log(currentStep);
 
             if (response.jsonCode === 200 && !error) {
                 // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
@@ -826,6 +827,7 @@ function setupWithdrawalAccount(data) {
  * @param {String} params.account.plaidAccountID
  */
 function addPlaidBusinessBankAccount(params) {
+    console.log(params);
     setupWithdrawalAccount({
         acceptTerms: true,
         setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,

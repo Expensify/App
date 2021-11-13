@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -14,12 +15,21 @@ import {
     addPersonalBankAccount,
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
+import ROUTES from "../../ROUTES";
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
     plaidLinkToken: PropTypes.string.isRequired,
 
     ...withLocalizePropTypes,
+};
+
+const onSubmit = (params, bankAccountType) => {
+    bankAccountType === CONST.BANK_ACCOUNT.BUSINESS
+        ? addPlaidBusinessBankAccount(params) : ({account, password, plaidLinkToken}) => {
+            addPersonalBankAccount(account, password, plaidLinkToken);
+        };
+    Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute('420CE21A85AC96F0'));
 };
 
 const PlaidOAuthPage = (props) => {
@@ -41,14 +51,17 @@ const PlaidOAuthPage = (props) => {
                 onCloseButtonPress={Navigation.dismissModal}
             />
             <AddPlaidBankAccount
-                onSubmit={bankAccountType === CONST.BANK_ACCOUNT.BUSINESS
-                    ? addPlaidBusinessBankAccount : ({account, password, plaidLinkToken}) => {
-                        addPersonalBankAccount(account, password, plaidLinkToken);
-                    }}
+                onSubmit={params => onSubmit(params, bankAccountType)}
                 receivedRedirectURI={receivedRedirectURI}
                 onExitPlaid={Navigation.dismissModal}
                 plaidLinkToken={props.plaidLinkToken}
             />
+            {/*<AddPlaidBankAccount*/}
+            {/*    onSubmit={addPlaidBusinessBankAccount}*/}
+            {/*    receivedRedirectURI={receivedRedirectURI}*/}
+            {/*    onExitPlaid={Navigation.dismissModal}*/}
+            {/*    plaidLinkToken={props.plaidLinkToken}*/}
+            {/*/>*/}
         </ScreenWrapper>
     );
 };

@@ -33,6 +33,7 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
+import Button from "../../components/Button";
 
 const propTypes = {
     /** List of betas */
@@ -206,10 +207,12 @@ class ReimbursementAccountPage extends React.Component {
                 </ScreenWrapper>
             );
         }
-
+        console.log(">>>>", currentStep);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
+                    <Button onClick={() => this.setState({test: "test"})}>Click me to rerender</Button>
+
                     {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                         <BankAccountStep
                             achData={achData}
