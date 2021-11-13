@@ -9,15 +9,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import {
-    fetchActions,
-    fetchChatReportsByIDs,
-    updateLastReadActionID,
-    setNewMarkerPosition,
-    subscribeToReportTypingEvents,
-    unsubscribeFromReportChannel,
-} from '../../../libs/actions/Report';
-import Text from '../../../components/Text';
 import * as Report from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
