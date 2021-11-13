@@ -113,6 +113,7 @@ const HeaderWithCloseButton = props => (
                         style={[styles.touchableButtonImage, styles.mr0]}
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('common.close')}
+                        accessibilityHint="Closes the menu"
                     >
                         <Icon src={Close} />
                     </TouchableOpacity>

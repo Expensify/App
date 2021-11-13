@@ -142,6 +142,7 @@ class SidebarScreen extends Component {
                             <FAB
                                 accessibilityLabel={this.props.translate('sidebarScreen.fabNewChat')}
                                 accessibilityRole="button"
+                                accessibilityHint="Creates a new chat"
                                 isActive={this.state.isCreateMenuActive}
                                 onPress={this.toggleCreateMenu}
                             />

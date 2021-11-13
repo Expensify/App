@@ -213,6 +213,7 @@ class SidebarLinks extends React.Component {
                         textSize="large"
                         title={this.props.translate('sidebarScreen.headerChat')}
                         accessibilityLabel={this.props.translate('sidebarScreen.headerChat')}
+                        accessibilityHint=""
                         accessibilityRole="text"
                         shouldShowEnvironmentBadge
                     />
@@ -220,6 +221,7 @@ class SidebarLinks extends React.Component {
                         <TouchableOpacity
                             accessibilityLabel={this.props.translate('sidebarScreen.buttonSearch')}
                             accessibilityRole="button"
+                            accessibilityHint="Searches your past chats"
                             style={[styles.flexRow, styles.ph5]}
                             onPress={this.showSearchPage}
                         >
@@ -229,6 +231,7 @@ class SidebarLinks extends React.Component {
                     <TouchableOpacity
                         accessibilityLabel={this.props.translate('sidebarScreen.buttonMySettings')}
                         accessibilityRole="button"
+                        accessibilityHint="Opens the settings page"
                         onPress={this.props.onAvatarClick}
                     >
                         <AvatarWithIndicator

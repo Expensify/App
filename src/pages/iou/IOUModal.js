@@ -327,6 +327,7 @@ class IOUModal extends Component {
                                             style={[styles.touchableButtonImage, styles.mr0]}
                                             accessibilityRole="button"
                                             accessibilityLabel={this.props.translate('common.close')}
+                                            accessibilityHint="Closes the IOU menu"
                                         >
                                             <Icon src={Close} />
                                         </TouchableOpacity>

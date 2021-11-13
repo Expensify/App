@@ -85,6 +85,7 @@ class ContextMenuItem extends Component {
                         <Pressable
                             focusable
                             accessibilityLabel={text}
+                            accessibilityHint="This is a menu item"
                             onPress={this.triggerPressAndUpdateSuccess}
                             style={
                                 ({hovered, pressed}) => [
