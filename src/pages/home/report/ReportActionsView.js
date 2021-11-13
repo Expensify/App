@@ -37,8 +37,8 @@ import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
 import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
-import {isDefaultRoom} from '../../../libs/reportUtils';
-import ChatBeginningText from '../../../components/ChatBeginningText';
+import * as ReportUtils from '../../../libs/reportUtils';
+import ReportWelcomeText from '../../../components/ReportWelcomeText';
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -505,6 +505,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        const {isDefaultRoom} = ReportUtils;
         const isDefaultChatRoom = isDefaultRoom(this.props.report);
 
         // Comments have not loaded at all yet do nothing
@@ -520,9 +521,9 @@ class ReportActionsView extends React.Component {
                         <EmptyStateAvatars
                             avatarImageURLs={this.props.report.icons}
                             secondAvatarStyle={[styles.secondAvatarHovered]}
-                            isCustomChatRoom={isDefaultChatRoom}
+                            isDefaultChatRoom={isDefaultChatRoom}
                         />
-                        <ChatBeginningText report={this.props.report} isDefaultChatRoom={isDefaultChatRoom} />
+                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isDefaultChatRoom} />
                     </View>
                 </View>
             );

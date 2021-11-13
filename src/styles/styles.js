@@ -1554,7 +1554,7 @@ const styles = {
         marginLeft: -16,
     },
 
-    chatOverLay: {
+    screenBlur: {
         position: 'absolute',
         top: 0,
         right: 0,
