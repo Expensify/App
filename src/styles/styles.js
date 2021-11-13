@@ -1847,7 +1847,7 @@ const styles = {
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        shadowColor: colors.black,
+        shadowColor: '#000',
         ...spacing.p5,
     },
 
@@ -2091,7 +2091,7 @@ const styles = {
     },
 
     iPhoneXSafeArea: {
-        backgroundColor: '#000000',
+        backgroundColor: colors.black,
         flex: 1,
     },
 };
