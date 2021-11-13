@@ -21,23 +21,22 @@ const defaultProps = {
 };
 
 const EmptyStateAvatars = (props) => {
-    const {avatarImageURLs, isDefaultChatRoom} = props;
-    if (!avatarImageURLs.length) {
+    if (!props.avatarImageURLs.length) {
         return null;
     }
 
-    if (avatarImageURLs.length === 1 || isDefaultChatRoom) {
+    if (props.avatarImageURLs.length === 1 || props.isDefaultChatRoom) {
         return (
             <Avatar
-                source={avatarImageURLs[0]}
+                source={props.avatarImageURLs[0]}
                 imageStyles={[styles.avatarLarge]}
-                isDefaultChatRoom={isDefaultChatRoom}
+                isDefaultChatRoom={props.isDefaultChatRoom}
             />
         );
     }
 
     // avatarImageURLsToDisplay
-    const avatarImageURLsToDisplay = avatarImageURLs.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
+    const avatarImageURLsToDisplay = props.avatarImageURLs.slice(0, CONST.REPORT.MAX_PREVIEW_AVATARS);
 
     return (
         <View pointerEvents="none">
@@ -46,7 +45,7 @@ const EmptyStateAvatars = (props) => {
                     <View key={val} style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <Image source={{uri: val}} style={[styles.emptyStateAvatar]} />
 
-                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
+                        {index === CONST.REPORT.MAX_PREVIEW_AVATARS - 1 && props.avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS !== 0 && (
                             <>
                                 <View
                                     style={[
@@ -55,7 +54,7 @@ const EmptyStateAvatars = (props) => {
                                     ]}
                                 />
                                 <Text style={styles.avatarInnerTextChat}>
-                                    {`+${avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
+                                    {`+${props.avatarImageURLs.length - CONST.REPORT.MAX_PREVIEW_AVATARS}`}
                                 </Text>
                             </>
                         )}
