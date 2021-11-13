@@ -12,7 +12,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import Navigation from '../../libs/Navigation/Navigation';
 import {
     addPlaidBusinessBankAccount,
-    addPersonalBankAccount,
+    addPersonalBankAccount, setBankAccountSubStep,
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import ROUTES from "../../ROUTES";
@@ -33,13 +33,12 @@ const onSubmit = (params, bankAccountType) => {
 };
 
 const PlaidOAuthPage = (props) => {
-    const receivedRedirectSearchParams = (new URL(window.location.href)).searchParams;
+    let receivedRedirectURI = window.location.href;
+    const receivedRedirectSearchParams = (new URL(receivedRedirectURI)).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
     const bankAccountType = lodashGet(props.route, ['params', 'bankAccountType']);
-    let receivedRedirectURI = window.location.href;
 
-    // If there's no stateID passed, then setting the redirectURI to null
-    // will return the user to the start of the Plaid flow
+    // If there's no stateID passed, then return user to start of Plaid flow by setting the redirectURI to null
     if (!oauthStateID) {
         receivedRedirectURI = null;
     }
@@ -53,7 +52,10 @@ const PlaidOAuthPage = (props) => {
             <AddPlaidBankAccount
                 onSubmit={params => onSubmit(params, bankAccountType)}
                 receivedRedirectURI={receivedRedirectURI}
-                onExitPlaid={Navigation.dismissModal}
+                onExitPlaid={() => {
+                    setBankAccountSubStep(null);
+                    Navigation.dismissModal();
+                }}
                 plaidLinkToken={props.plaidLinkToken}
             />
             {/*<AddPlaidBankAccount*/}

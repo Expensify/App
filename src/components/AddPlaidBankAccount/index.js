@@ -28,6 +28,7 @@ import ReimbursementAccountForm from '../../pages/ReimbursementAccount/Reimburse
 import getBankIcon from '../Icon/BankIcons';
 import Icon from '../Icon';
 import {propTypes, defaultProps} from './plaidBankPropTypes';
+import CONFIG from "../../CONFIG";
 
 const plaidBankPropTypes = {
     ...withLocalizePropTypes,
@@ -52,7 +53,7 @@ class AddPlaidBankAccount extends React.Component {
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
-        if (this.props.receivedRedirectURI || this.props.plaidLinkToken) {
+        if (this.props.receivedRedirectURI && this.props.plaidLinkToken) {
             return;
         }
 
@@ -70,6 +71,16 @@ class AddPlaidBankAccount extends React.Component {
      */
     getAccounts() {
         return lodashGet(this.props.plaidBankAccounts, 'accounts', []);
+    }
+
+    getRedirectURI() {
+        let redirectURI = '';
+        if (/staging/.test(process.env.EXPENSIFY_URL_CASH)) {
+            redirectURI = 'staging.expensify.com';
+            //https://staging.new.expensify.com/
+            return redirectURI;
+        }
+        redirectURI = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}`;
     }
 
     /**
