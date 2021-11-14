@@ -1471,6 +1471,7 @@ const styles = {
         flexDirection: 'row',
         padding: 20,
         alignItems: 'center',
+        maxWidth: '100%',
     },
 
     notFoundSafeArea: {
