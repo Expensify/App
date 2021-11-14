@@ -3,23 +3,18 @@ import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
 import propTypes from './expensiTextInputLabelPropTypes';
 
-const ExpensiTextInputLabel = ({
-    label,
-    labelTranslateX,
-    labelTranslateY,
-    labelScale,
-}) => (
+const ExpensiTextInputLabel = props => (
     <Animated.Text
         style={[
             styles.expensiTextInputLabel,
             styles.expensiTextInputLabelTransformation(
-                labelTranslateY,
-                labelTranslateX,
-                labelScale,
+                props.labelTranslateY,
+                props.labelTranslateX,
+                props.labelScale,
             ),
         ]}
     >
-        {label}
+        {props.label}
     </Animated.Text>
 );
 

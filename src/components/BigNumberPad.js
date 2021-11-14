@@ -17,7 +17,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-const BigNumberPad = ({numberPressed}) => (
+const BigNumberPad = props => (
     <View style={[styles.flexColumn, styles.w100]}>
         {_.map(padNumbers, (row, rowIndex) => (
             <View key={`NumberPadRow-${rowIndex}`} style={[styles.flexRow, styles.mt3]}>
@@ -30,7 +30,7 @@ const BigNumberPad = ({numberPressed}) => (
                             key={column}
                             style={[styles.flex1, marginLeft]}
                             text={column}
-                            onPress={() => numberPressed(column)}
+                            onPress={() => props.numberPressed(column)}
                         />
                     );
                 })}

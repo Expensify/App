@@ -19,9 +19,11 @@ function onComposerFocus(callback) {
  *
  */
 function focus() {
-    if (_.isFunction(focusCallback)) {
-        focusCallback();
+    if (!_.isFunction(focusCallback)) {
+        return;
     }
+
+    focusCallback();
 }
 
 /**

@@ -10,6 +10,7 @@ import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import {translate} from './translate';
 import * as PersonalDetails from './actions/PersonalDetails';
+import * as CurrentDate from './actions/CurrentDate';
 
 let timezone = CONST.DEFAULT_TIME_ZONE;
 Onyx.connect({
@@ -97,7 +98,7 @@ function timestampToRelative(locale, timestamp) {
  */
 const updateCurrentDate = _.throttle(() => {
     const currentDate = moment().format('YYYY-MM-DD');
-    Onyx.set(ONYXKEYS.CURRENT_DATE, currentDate);
+    CurrentDate.setCurrentDate(currentDate);
 }, 1000 * 60 * 60 * 3); // 3 hours
 
 /**

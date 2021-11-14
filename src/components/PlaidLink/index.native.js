@@ -27,9 +27,11 @@ class PlaidLink extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.listener) {
-            this.listener.remove();
+        if (!this.listener) {
+            return;
         }
+
+        this.listener.remove();
     }
 
     /**

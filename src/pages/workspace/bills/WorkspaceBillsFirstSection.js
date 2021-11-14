@@ -35,21 +35,16 @@ const propTypes = {
     user: userPropTypes.isRequired,
 };
 
-const WorkspaceBillsFirstSection = ({
-    translate,
-    policyID,
-    session,
-    user,
-}) => {
-    const emailDomain = Str.extractEmailDomain(session.email);
+const WorkspaceBillsFirstSection = (props) => {
+    const emailDomain = Str.extractEmailDomain(props.session.email);
     return (
         <WorkspaceSection
-            title={translate('workspace.bills.manageYourBills')}
+            title={props.translate('workspace.bills.manageYourBills')}
             icon={InvoiceOrange}
             menuItems={[
                 {
-                    title: translate('workspace.bills.viewAllBills'),
-                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
+                    title: props.translate('workspace.bills.viewAllBills'),
+                    onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
                     icon: Bill,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -58,8 +53,8 @@ const WorkspaceBillsFirstSection = ({
         >
             <View style={[styles.mv4]}>
                 <Text>
-                    {translate('workspace.bills.askYourVendorsBeforeEmail')}
-                    {user.isFromPublicDomain ? (
+                    {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
+                    {props.user.isFromPublicDomain ? (
                         <TouchableOpacity
                             onPress={() => openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
@@ -71,7 +66,7 @@ const WorkspaceBillsFirstSection = ({
                             textStyles={[styles.textBlue]}
                         />
                     )}
-                    <Text>{translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
+                    <Text>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
                 </Text>
             </View>
         </WorkspaceSection>

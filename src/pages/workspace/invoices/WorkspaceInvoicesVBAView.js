@@ -20,17 +20,17 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
+const WorkspaceInvoicesVBAView = props => (
     <>
-        <WorkspaceInvoicesFirstSection policyID={policyID} />
+        <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
         <WorkspaceSection
-            title={translate('workspace.invoices.moneyBackInAFlash')}
+            title={props.translate('workspace.invoices.moneyBackInAFlash')}
             icon={MoneyMousePink}
             menuItems={[
                 {
-                    title: translate('workspace.invoices.viewUnpaidInvoices'),
-                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`),
+                    title: props.translate('workspace.invoices.viewUnpaidInvoices'),
+                    onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Processing&isAdvancedFilterMode=true`),
                     icon: CircleHourglass,
                     shouldShowRightIcon: true,
                     iconRight: NewWindow,
@@ -38,7 +38,7 @@ const WorkspaceInvoicesVBAView = ({translate, policyID}) => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.invoices.unlockVBACopy')}</Text>
+                <Text>{props.translate('workspace.invoices.unlockVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>
