@@ -79,7 +79,7 @@ class LoginForm extends React.Component {
             return;
         }
 
-        const phoneLogin = this.state.login.replace(/((?!\n)[()-\s\t])/g, '');
+        const phoneLogin = this.state.login.replace(/((?!\n)[,()-\s\t])/g, '');
         const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
 
         if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {
