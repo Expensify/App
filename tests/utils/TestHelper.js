@@ -13,7 +13,7 @@ import waitForPromisesToResolve from './waitForPromisesToResolve';
  * @param {String} authToken
  * @return {Promise}
  */
-function signInWithTestUser(accountID, login, password = 'Password1', authToken = 'asdfqwerty') {
+function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty') {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({

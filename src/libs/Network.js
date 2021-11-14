@@ -5,8 +5,11 @@ import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
+// eslint-disable-next-line import/no-cycle
+import LogUtil from './Log';
 import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
+let isReady = false;
 let isQueuePaused = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -24,6 +27,8 @@ let onError = () => {};
 
 let didLoadPersistedRequests;
 let isOffline;
+
+const PROCESS_REQUEST_DELAY_MS = 1000;
 
 /**
  * Process the offline NETWORK_REQUEST_QUEUE
@@ -97,14 +102,28 @@ Onyx.connect({
 });
 
 /**
+ * @param {Boolean} val
+ */
+function setIsReady(val) {
+    isReady = val;
+}
+
+/**
  * Checks to see if a request can be made.
  *
  * @param {Object} request
+ * @param {String} request.type
+ * @param {String} request.command
  * @param {Object} request.data
  * @param {Boolean} request.data.forceNetworkRequest
  * @return {Boolean}
  */
 function canMakeRequest(request) {
+    if (!isReady) {
+        LogUtil.hmmm('Trying to make a request when Network is not ready', {command: request.command, type: request.type});
+        return false;
+    }
+
     // These requests are always made even when the queue is paused
     if (request.data.forceNetworkRequest === true) {
         return true;
@@ -202,13 +221,6 @@ function processNetworkRequestQueue() {
             ? enhanceParameters(queuedRequest.command, requestData)
             : requestData;
 
-        // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
-        // has paused the queue and if this is the case we must return. We don't retry these requests
-        // since if a request is made without an authToken we sign out the user.
-        if (!canMakeRequest(queuedRequest)) {
-            return;
-        }
-
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
@@ -232,7 +244,7 @@ function processNetworkRequestQueue() {
 }
 
 // Process our write queue very often
-setInterval(processNetworkRequestQueue, 1000);
+setInterval(processNetworkRequestQueue, PROCESS_REQUEST_DELAY_MS);
 
 /**
  * @param {Object} request
@@ -331,9 +343,11 @@ function registerErrorHandler(callback) {
 export {
     post,
     pauseRequestQueue,
+    PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,
     registerParameterEnhancer,
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
+    setIsReady,
 };

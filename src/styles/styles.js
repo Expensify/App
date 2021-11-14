@@ -2126,6 +2126,11 @@ const styles = {
     keyboardShortcutTableFirstRow: {
         borderTopWidth: 0,
     },
+
+    googleListView: {
+        transform: [{scale: 0}],
+
+    },
 };
 
 const baseCodeTagStyles = {

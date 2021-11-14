@@ -14,13 +14,13 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardVBANoECardView = ({translate}) => (
+const WorkspaceCardVBANoECardView = props => (
     <WorkspaceSection
-        title={translate('workspace.card.header')}
+        title={props.translate('workspace.card.header')}
         icon={JewelBoxBlue}
         menuItems={[
             {
-                title: translate('workspace.card.chatWithConcierge'),
+                title: props.translate('workspace.card.chatWithConcierge'),
                 onPress: () => {
                     Navigation.dismissModal();
                     navigateToConciergeChat();
@@ -31,20 +31,20 @@ const WorkspaceCardVBANoECardView = ({translate}) => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <Text>{translate('workspace.card.VBANoECardCopy')}</Text>
+            <Text>{props.translate('workspace.card.VBANoECardCopy')}</Text>
         </View>
 
         <UnorderedList
             items={[
-                translate('workspace.card.benefit1'),
-                translate('workspace.card.benefit2'),
-                translate('workspace.card.benefit3'),
-                translate('workspace.card.benefit4'),
+                props.translate('workspace.card.benefit1'),
+                props.translate('workspace.card.benefit2'),
+                props.translate('workspace.card.benefit3'),
+                props.translate('workspace.card.benefit4'),
             ]}
         />
 
         <View style={[styles.mv4]}>
-            <Text>{translate('workspace.card.conciergeCanHelp')}</Text>
+            <Text>{props.translate('workspace.card.conciergeCanHelp')}</Text>
         </View>
     </WorkspaceSection>
 );
