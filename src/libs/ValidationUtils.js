@@ -236,7 +236,7 @@ function isValidUSPhone(phoneNumber) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
+    return /^\+?\d*$/.test(input.replace(/((?!\n)[()-\s\t])/g, ''));
 }
 
 /**

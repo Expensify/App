@@ -79,7 +79,10 @@ class LoginForm extends React.Component {
             return;
         }
 
-        if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
+        const phoneLogin = this.state.login.replace(/((?!\n)[()-\s\t])/g, '');
+        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+
+        if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {
             if (isNumericWithSpecialChars(this.state.login)) {
                 this.setState({formError: 'messages.errorMessageInvalidPhone'});
             } else {
@@ -93,7 +96,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        fetchAccountDetails(this.state.login);
+        fetchAccountDetails(isValidPhoneLogin ? phoneLogin : this.state.login);
     }
 
     render() {
