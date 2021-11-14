@@ -1444,6 +1444,15 @@ function createPolicyRoom(policyID, reportName, visibility) {
         });
 }
 
+/**
+ * Get the last read sequence number for a report
+ * @param {String|Number} reportID
+ * @return {Number}
+ */
+function getLastReadSequenceNumber(reportID) {
+    return lastReadSequenceNumbers[reportID];
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1473,4 +1482,5 @@ export {
     setReportWithDraft,
     fetchActionsWithLoadingState,
     createPolicyRoom,
+    getLastReadSequenceNumber,
 };
