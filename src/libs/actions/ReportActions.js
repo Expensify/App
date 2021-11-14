@@ -84,7 +84,7 @@ function getDeletedCommentsCount(reportID, lastSequenceNumber) {
     }
 
     return _.reduce(reportActions[reportID], (deletedMessages, action) => {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber < lastSequenceNumber) {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber <= lastSequenceNumber) {
             return deletedMessages;
         }
 
