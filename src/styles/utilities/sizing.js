@@ -8,6 +8,10 @@ export default {
         height: '100%',
     },
 
+    mnh100: {
+        minHeight: '100%',
+    },
+
     w100: {
         width: '100%',
     },
