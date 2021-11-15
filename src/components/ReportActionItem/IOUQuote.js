@@ -25,24 +25,19 @@ const defaultProps = {
     onViewDetailsPressed: () => {},
 };
 
-const IOUQuote = ({
-    action,
-    shouldShowViewDetailsLink,
-    onViewDetailsPressed,
-    translate,
-}) => (
+const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
-        {_.map(action.message, (fragment, index) => (
-            <View key={`iouQuote-${action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
+        {_.map(props.action.message, (fragment, index) => (
+            <View key={`iouQuote-${props.action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
                 <Text style={[styles.chatItemMessage]}>
                     {fragment.text}
                 </Text>
-                {shouldShowViewDetailsLink && (
+                {props.shouldShowViewDetailsLink && (
                     <Text
                         style={[styles.chatItemMessageLink, styles.alignSelfStart]}
-                        onPress={onViewDetailsPressed}
+                        onPress={props.onViewDetailsPressed}
                     >
-                        {translate('iou.viewDetails')}
+                        {props.translate('iou.viewDetails')}
                     </Text>
                 )}
             </View>

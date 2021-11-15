@@ -24,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars,
+    isValidDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars, isValidAddress, isValidZipCode,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -145,6 +145,16 @@ class CompanyStep extends React.Component {
     validate() {
         const errors = {};
 
+        if (this.state.manualAddress) {
+            if (!isValidAddress(this.state.addressStreet)) {
+                errors.addressStreet = true;
+            }
+
+            if (!isValidZipCode(this.state.addressZipCode)) {
+                errors.addressZipCode = true;
+            }
+        }
+
         if (!isValidURL(this.state.website)) {
             errors.website = true;
         }
@@ -162,9 +172,11 @@ class CompanyStep extends React.Component {
         }
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(this.state[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
@@ -205,13 +217,62 @@ class CompanyStep extends React.Component {
                         disabled={shouldDisableCompanyName}
                         errorText={this.getErrorText('companyName')}
                     />
-                    <AddressSearch
-                        label={this.props.translate('common.companyAddress')}
-                        containerStyles={[styles.mt4]}
-                        value={this.getFormattedAddressValue()}
-                        onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
-                        errorText={this.getErrorText('addressStreet')}
-                    />
+                    {!this.state.manualAddress && (
+                        <div>
+                            <AddressSearch
+                                label={this.props.translate('common.companyAddress')}
+                                containerStyles={[styles.mt4]}
+                                value={this.getFormattedAddressValue()}
+                                onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                errorText={this.getErrorText('addressStreet')}
+                            />
+                            <TextLink
+                                style={[styles.textMicro]}
+                                onPress={() => this.setState({manualAddress: true})}
+                            >
+                                Can&apos;t find your address? Enter it manually
+                            </TextLink>
+                        </div>
+                    )}
+                    {this.state.manualAddress && (
+                        <div>
+                            <ExpensiTextInput
+                                label={this.props.translate('common.companyAddress')}
+                                containerStyles={[styles.mt4]}
+                                onChangeText={value => this.clearErrorAndSetValue('addressStreet', value)}
+                                value={this.state.addressStreet}
+                                errorText={this.getErrorText('addressStreet')}
+                            />
+                            <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
+                            <View style={[styles.flexRow, styles.mt4]}>
+                                <View style={[styles.flex2, styles.mr2]}>
+                                    <ExpensiTextInput
+                                        label={this.props.translate('common.city')}
+                                        onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
+                                        value={this.state.addressCity}
+                                        errorText={this.getErrorText('addressCity')}
+                                        translateX={-14}
+                                    />
+                                </View>
+                                <View style={[styles.flex1]}>
+                                    <StatePicker
+                                        onChange={value => this.clearErrorAndSetValue('addressState', value)}
+                                        value={this.state.addressState}
+                                        hasError={this.getErrors().addressState}
+                                    />
+                                </View>
+                            </View>
+                            <ExpensiTextInput
+                                label={this.props.translate('common.zip')}
+                                containerStyles={[styles.mt4]}
+                                keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
+                                value={this.state.addressZipCode}
+                                errorText={this.getErrorText('addressZipCode')}
+                            />
+                        </div>
+                    )}
+
                     <ExpensiTextInput
                         label={this.props.translate('common.phoneNumber')}
                         containerStyles={[styles.mt4]}

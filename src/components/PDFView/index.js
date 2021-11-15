@@ -44,11 +44,10 @@ class PDFView extends PureComponent {
     }
 
     render() {
-        const {isSmallScreenWidth} = this.props;
         const pdfContainerWidth = this.state.windowWidth - 100;
         const pageWidthOnLargeScreen = (pdfContainerWidth <= variables.pdfPageMaxWidth)
             ? pdfContainerWidth : variables.pdfPageMaxWidth;
-        const pageWidth = isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
+        const pageWidth = this.props.isSmallScreenWidth ? this.state.windowWidth - 30 : pageWidthOnLargeScreen;
 
         return (
             <View

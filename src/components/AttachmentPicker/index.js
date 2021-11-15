@@ -8,9 +8,11 @@ import * as attachmentPickerPropTypes from './attachmentPickerPropTypes';
  * @returns {String|undefined} Picker will accept all file types when its undefined
  */
 function getAcceptableFileTypes(type) {
-    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-        return 'image/*';
+    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        return;
     }
+
+    return 'image/*';
 }
 
 /**

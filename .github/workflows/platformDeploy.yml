@@ -410,6 +410,7 @@ jobs:
           WEB: ${{ needs.web.result }}
 
       - name: 'Announces the deploy in the #announce Slack room'
+        if: ${{ success() }}
         uses: 8398a7/action-slack@v3
         with:
           status: custom
@@ -426,6 +427,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
 
       - name: 'Announces the deploy in the #deployer Slack room'
+        if: ${{ success() }}
         uses: 8398a7/action-slack@v3
         with:
           status: custom
@@ -443,7 +445,7 @@ jobs:
 
       - name: 'Announces a production deploy in the #expensify-open-source Slack room'
         uses: 8398a7/action-slack@v3
-        if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
+        if: ${{ success() && fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         with:
           status: custom
           custom_payload: |

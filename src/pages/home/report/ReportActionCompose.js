@@ -179,9 +179,11 @@ class ReportActionCompose extends React.Component {
 
     componentDidMount() {
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
-                this.focus(false);
+            if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
+                return;
             }
+
+            this.focus(false);
         });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
@@ -218,9 +220,11 @@ class ReportActionCompose extends React.Component {
      * @param {Number|String} skinTone
      */
     setPreferredSkinTone(skinTone) {
-        if (skinTone !== this.props.preferredSkinTone) {
-            User.setPreferredSkinTone(skinTone);
+        if (skinTone === this.props.preferredSkinTone) {
+            return;
         }
+
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**
@@ -290,16 +294,18 @@ class ReportActionCompose extends React.Component {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
-            if (this.textInput) {
-                if (!shouldelay) {
-                    this.textInput.focus();
-                } else {
-                    // Keyboard is not opened after Emoji Picker is closed
-                    // SetTimeout is used as a workaround
-                    // https://github.com/react-native-modal/react-native-modal/issues/114
-                    // We carefully choose a delay. 50ms is found enough for keyboard to open.
-                    setTimeout(() => this.textInput.focus(), 50);
-                }
+            if (!this.textInput) {
+                return;
+            }
+
+            if (!shouldelay) {
+                this.textInput.focus();
+            } else {
+                // Keyboard is not opened after Emoji Picker is closed
+                // SetTimeout is used as a workaround
+                // https://github.com/react-native-modal/react-native-modal/issues/114
+                // We carefully choose a delay. 50ms is found enough for keyboard to open.
+                setTimeout(() => this.textInput.focus(), 50);
             }
         });
     }
@@ -356,26 +362,28 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (e) {
-            // Submit the form when Enter is pressed
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.submitForm();
-            }
+        if (!e) {
+            return;
+        }
 
-            // Trigger the edit box for last sent message if ArrowUp is pressed
-            if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
-                e.preventDefault();
+        // Submit the form when Enter is pressed
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.submitForm();
+        }
 
-                const reportActionKey = _.find(
-                    _.keys(this.props.reportActions).reverse(),
-                    key => canEditReportAction(this.props.reportActions[key]),
-                );
+        // Trigger the edit box for last sent message if ArrowUp is pressed
+        if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+            e.preventDefault();
 
-                if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
-                    const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
-                }
+            const reportActionKey = _.find(
+                _.keys(this.props.reportActions).reverse(),
+                key => canEditReportAction(this.props.reportActions[key]),
+            );
+
+            if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
+                const {reportActionID, message} = this.props.reportActions[reportActionKey];
+                saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
             }
         }
     }
@@ -393,11 +401,13 @@ class ReportActionCompose extends React.Component {
      * This gets called onLayout to find the cooridnates of the Anchor for the Emoji Picker.
      */
     measureEmojiPopoverAnchorPosition() {
-        if (this.emojiPopoverAnchor) {
-            this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
-                emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
-            }));
+        if (!this.emojiPopoverAnchor) {
+            return;
         }
+
+        this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
+            emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
+        }));
     }
 
 
@@ -415,17 +425,17 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
-        const {selection} = this.state;
-        const newComment = this.comment.slice(0, selection.start)
-            + emoji + this.comment.slice(selection.end, this.comment.length);
+        const newComment = this.comment.slice(0, this.state.selection.start)
+            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
         this.textInput.setNativeProps({
             text: newComment,
         });
-        const updatedSelection = {
-            start: selection.start + emoji.length,
-            end: selection.start + emoji.length,
-        };
-        this.setState({selection: updatedSelection});
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
+            },
+        }));
         this.updateComment(newComment);
     }
 
@@ -433,9 +443,11 @@ class ReportActionCompose extends React.Component {
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
-        if (this.emojiSearchInput) {
-            this.emojiSearchInput.focus();
+        if (!this.emojiSearchInput) {
+            return;
         }
+
+        this.emojiSearchInput.focus();
     }
 
     /**
@@ -611,14 +623,18 @@ class ReportActionCompose extends React.Component {
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
                                     onDragEnter={(e, isOriginComposer) => {
-                                        if (isOriginComposer) {
-                                            this.setState({isDraggingOver: true});
+                                        if (!isOriginComposer) {
+                                            return;
                                         }
+
+                                        this.setState({isDraggingOver: true});
                                     }}
                                     onDragOver={(e, isOriginComposer) => {
-                                        if (isOriginComposer) {
-                                            this.setState({isDraggingOver: true});
+                                        if (!isOriginComposer) {
+                                            return;
                                         }
+
+                                        this.setState({isDraggingOver: true});
                                     }}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {

@@ -41,33 +41,27 @@ const defaultProps = {
     style: {},
 };
 
-const FullNameInputRow = ({
-    translate,
-    onChangeFirstName, onChangeLastName,
-    firstName, firstNameError,
-    lastName, lastNameError,
-    style,
-}) => {
-    const additionalStyles = _.isArray(style) ? style : [style];
+const FullNameInputRow = (props) => {
+    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
         <View style={[styles.flexRow, ...additionalStyles]}>
             <View style={styles.flex1}>
                 <ExpensiTextInput
-                    label={translate('common.firstName')}
-                    value={firstName}
-                    errorText={firstNameError}
-                    onChangeText={onChangeFirstName}
-                    placeholder={translate('profilePage.john')}
+                    label={props.translate('common.firstName')}
+                    value={props.firstName}
+                    errorText={props.firstNameError}
+                    onChangeText={props.onChangeFirstName}
+                    placeholder={props.translate('profilePage.john')}
                     translateX={-10}
                 />
             </View>
             <View style={[styles.flex1, styles.ml2]}>
                 <ExpensiTextInput
-                    label={translate('common.lastName')}
-                    value={lastName}
-                    errorText={lastNameError}
-                    onChangeText={onChangeLastName}
-                    placeholder={translate('profilePage.doe')}
+                    label={props.translate('common.lastName')}
+                    value={props.lastName}
+                    errorText={props.lastNameError}
+                    onChangeText={props.onChangeLastName}
+                    placeholder={props.translate('profilePage.doe')}
                     translateX={-10}
                 />
             </View>

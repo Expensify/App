@@ -29,9 +29,11 @@ class BaseModal extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isVisible !== this.props.isVisible) {
-            willAlertModalBecomeVisible(this.props.isVisible);
+        if (prevProps.isVisible === this.props.isVisible) {
+            return;
         }
+
+        willAlertModalBecomeVisible(this.props.isVisible);
     }
 
     componentWillUnmount() {

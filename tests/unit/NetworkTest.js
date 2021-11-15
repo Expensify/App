@@ -1,10 +1,16 @@
 import _ from 'underscore';
 import Onyx from 'react-native-onyx';
+
+import {
+    beforeEach, jest, test, expect, afterEach,
+} from '@jest/globals';
 import * as API from '../../src/libs/API';
 import {signInWithTestUser} from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import * as Network from '../../src/libs/Network';
+import {fetchAccountDetails} from '../../src/libs/actions/Session';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -21,6 +27,12 @@ Onyx.init({
 });
 
 beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
+
+afterEach(() => {
+    Network.setIsReady(false);
+    Onyx.addDelayToConnectCallback(0);
+    jest.clearAllMocks();
+});
 
 test('failing to reauthenticate while offline should not log out user', () => {
     // Given a test user login and account ID
@@ -208,4 +220,54 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
             expect(personalDetailsList).toEqual(TEST_PERSONAL_DETAILS);
             expect(chatList).toEqual(TEST_CHAT_LIST);
         });
+});
+
+test('retry network request if auth and credentials are not read from Onyx yet', () => {
+    // For this test we're having difficulty creating a situation where Onyx.connect() has not yet run
+    // because some Onyx.connect callbacks are already registered in API.js (which happens before this
+    // unit test is setup), so in order to test an scenario where the auth token and credentials hasn't
+    // been read from storage we set Network.setIsReady(false) and trigger an update in the Onyx.connect
+    // callbacks registered in API.js merging an empty object.
+
+    // Given a test user login and account ID
+    const TEST_USER_LOGIN = 'test@testguy.com';
+
+    // Given a delay to the Onyx.connect callbacks
+    const ONYX_DELAY_MS = 3000;
+    Onyx.addDelayToConnectCallback(ONYX_DELAY_MS);
+
+    // Given initial state to Network
+    Network.setIsReady(false);
+
+    // Given any initial value to trigger an update
+    Onyx.merge(ONYXKEYS.CREDENTIALS, {});
+    Onyx.merge(ONYXKEYS.SESSION, {});
+
+    // Given some mock functions to track the isReady
+    // flag in Network and the http requests made
+    const spyNetworkSetIsReady = jest.spyOn(Network, 'setIsReady');
+    const spyHttpUtilsXhr = jest.spyOn(HttpUtils, 'xhr').mockImplementation(() => Promise.resolve({}));
+
+    // When we make an arbitrary request that can be retried
+    // And we wait for the Onyx.callbacks to be set
+    fetchAccountDetails(TEST_USER_LOGIN);
+    return waitForPromisesToResolve().then(() => {
+        // Then we expect not having the Network ready and not making an http request
+        expect(spyNetworkSetIsReady).not.toHaveBeenCalled();
+        expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
+
+        // When we resolve Onyx.connect callbacks
+        jest.advanceTimersByTime(ONYX_DELAY_MS);
+
+        // Then we should expect call Network.setIsReady(true)
+        // And We should expect not making an http request yet
+        expect(spyNetworkSetIsReady).toHaveBeenLastCalledWith(true);
+        expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
+
+        // When we run processNetworkRequestQueue in the setInterval of Network.js
+        jest.advanceTimersByTime(Network.PROCESS_REQUEST_DELAY_MS);
+
+        // Then we should expect a retry of the network request
+        expect(spyHttpUtilsXhr).toHaveBeenCalled();
+    });
 });
