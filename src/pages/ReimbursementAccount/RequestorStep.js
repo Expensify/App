@@ -88,28 +88,22 @@ class RequestorStep extends React.Component {
      * @param {String|Boolean} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        if (inputKey === 'manualAddress') {
-            this.setState({
-                manualAddress: value,
-            });
-        } else {
-            const renamedFields = {
-                addressStreet: 'requestorAddressStreet',
-                addressCity: 'requestorAddressCity',
-                addressState: 'requestorAddressState',
-                addressZipCode: 'requestorAddressZipCode',
-            };
-            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-            const newState = {[renamedInputKey]: value};
-            this.setState(newState);
-            updateReimbursementAccountDraft(newState);
+        const renamedFields = {
+            addressStreet: 'requestorAddressStreet',
+            addressCity: 'requestorAddressCity',
+            addressState: 'requestorAddressState',
+            addressZipCode: 'requestorAddressZipCode',
+        };
+        const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+        const newState = {[renamedInputKey]: value};
+        this.setState(newState);
+        updateReimbursementAccountDraft(newState);
 
-            // dob field has multiple validations/errors, we are handling it temporarily like this.
-            if (inputKey === 'dob') {
-                this.clearError('dobAge');
-            }
-            this.clearError(inputKey);
+        // dob field has multiple validations/errors, we are handling it temporarily like this.
+        if (inputKey === 'dob') {
+            this.clearError('dobAge');
         }
+        this.clearError(inputKey);
     }
 
     /**
@@ -119,10 +113,10 @@ class RequestorStep extends React.Component {
         const errors = validateIdentity({
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            street: this.state.requestorAddressStreet,
-            state: this.state.requestorAddressState,
-            city: this.state.requestorAddressCity,
-            zipCode: this.state.requestorAddressZipCode,
+            addressStreet: this.state.requestorAddressStreet,
+            addressState: this.state.requestorAddressState,
+            addressCity: this.state.requestorAddressCity,
+            addressZipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
         });
@@ -212,13 +206,12 @@ class RequestorStep extends React.Component {
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,
-                                street: this.state.requestorAddressStreet,
-                                city: this.state.requestorAddressCity,
-                                state: this.state.requestorAddressState,
-                                zipCode: this.state.requestorAddressZipCode,
+                                addressStreet: this.state.requestorAddressStreet,
+                                addressCity: this.state.requestorAddressCity,
+                                addressState: this.state.requestorAddressState,
+                                addressZipCode: this.state.requestorAddressZipCode,
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
-                                manualAddress: this.state.manualAddress,
                             }}
                             errors={this.props.reimbursementAccount.errors}
                         />

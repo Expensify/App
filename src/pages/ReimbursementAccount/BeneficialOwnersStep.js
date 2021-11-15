@@ -85,7 +85,16 @@ class BeneficialOwnersStep extends React.Component {
     validate() {
         let beneficialOwnersErrors = [];
         if (this.state.hasOtherBeneficialOwners) {
-            beneficialOwnersErrors = _.map(this.state.beneficialOwners, validateIdentity);
+            beneficialOwnersErrors = _.map(this.state.beneficialOwners, beneficialOwner => validateIdentity({
+                firstName: beneficialOwner.firstName,
+                lastName: beneficialOwner.lastName,
+                addressStreet: beneficialOwner.street,
+                addressState: beneficialOwner.state,
+                addressCity: beneficialOwner.city,
+                addressZipCode: beneficialOwner.zipCode,
+                dob: beneficialOwner.dob,
+                ssnLast4: beneficialOwner.ssnLast4,
+            }));
         }
 
         const errors = {};
@@ -153,7 +162,7 @@ class BeneficialOwnersStep extends React.Component {
         if (inputKey === 'dob') {
             this.clearError(`beneficialOwnersErrors.${ownerIndex}.dobAge`);
         }
-        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${renamedInputKey}`);
+        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${inputKey}`);
     }
 
     submit() {
@@ -246,10 +255,10 @@ class BeneficialOwnersStep extends React.Component {
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',
-                                            street: owner.street || '',
-                                            city: owner.city || '',
-                                            state: owner.state || '',
-                                            zipCode: owner.zipCode || '',
+                                            addressStreet: owner.street || '',
+                                            addressCity: owner.city || '',
+                                            addressState: owner.state || '',
+                                            addressZipCode: owner.zipCode || '',
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
