@@ -24,7 +24,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars,
+    isValidDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars, isValidAddress, isValidZipCode,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -128,6 +128,14 @@ class CompanyStep extends React.Component {
     validate() {
         const errors = {};
 
+        if (!isValidAddress(this.state.addressStreet)) {
+            errors.addressStreet = true;
+        }
+
+        if (!isValidZipCode(this.state.addressZipCode)) {
+            errors.addressZipCode = true;
+        }
+
         if (!isValidURL(this.state.website)) {
             errors.website = true;
         }
@@ -145,9 +153,11 @@ class CompanyStep extends React.Component {
         }
 
         _.each(this.requiredFields, (inputKey) => {
-            if (!isRequiredFulfilled(this.state[inputKey])) {
-                errors[inputKey] = true;
+            if (isRequiredFulfilled(this.state[inputKey])) {
+                return;
             }
+
+            errors[inputKey] = true;
         });
         setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
@@ -256,7 +266,7 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <ExpensiPicker
                             label={this.props.translate('companyStep.companyType')}
-                            items={_.map(CONST.INCORPORATION_TYPES, (label, value) => ({value, label}))}
+                            items={_.map(this.props.translate('companyStep.incorporationTypes'), (label, value) => ({value, label}))}
                             onChange={value => this.clearErrorAndSetValue('incorporationType', value)}
                             value={this.state.incorporationType}
                             placeholder={{value: '', label: '-'}}

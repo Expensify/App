@@ -97,7 +97,6 @@ class SidebarLinks extends React.Component {
         const sidebarOptions = getSidebarOptions(
             props.reports,
             props.personalDetails,
-            props.draftComments,
             activeReportID,
             props.priorityMode,
             props.betas,
@@ -110,7 +109,7 @@ class SidebarLinks extends React.Component {
         if (reports.length === 0) {
             return [];
         }
-        const unreadReports = _.filter(reports, report => report.unreadActionCount > 0);
+        const unreadReports = _.filter(reports, report => report && report.unreadActionCount > 0);
         return unreadReports;
     }
 
@@ -274,9 +273,6 @@ export default compose(
     withOnyx({
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
-        },
-        draftComments: {
-            key: ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT,
         },
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,

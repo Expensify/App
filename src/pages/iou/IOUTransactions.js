@@ -75,25 +75,26 @@ class IOUTransactions extends Component {
         return (
             <View style={[styles.mt3]}>
                 {_.map(this.props.reportActions, (reportAction) => {
-                    if (reportAction.originalMessage
-                        && reportAction.originalMessage.IOUReportID === this.props.iouReportID) {
-                        const rejectableTransactions = this.getRejectableTransactions();
-                        const canBeRejected = _.contains(rejectableTransactions,
-                            reportAction.originalMessage.IOUTransactionID);
-                        const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
-                        return (
-                            <ReportTransaction
-                                chatReportID={this.props.chatReportID}
-                                iouReportID={this.props.iouReportID}
-                                action={reportAction}
-                                key={reportAction.sequenceNumber}
-                                canBeRejected={canBeRejected}
-                                rejectButtonLabelText={isCurrentUserTransactionCreator
-                                    ? this.props.translate('common.cancel')
-                                    : this.props.translate('iou.decline')}
-                            />
-                        );
+                    if (!reportAction.originalMessage || reportAction.originalMessage.IOUReportID !== this.props.iouReportID) {
+                        return;
                     }
+
+                    const rejectableTransactions = this.getRejectableTransactions();
+                    const canBeRejected = _.contains(rejectableTransactions,
+                        reportAction.originalMessage.IOUTransactionID);
+                    const isCurrentUserTransactionCreator = this.props.userEmail === reportAction.actorEmail;
+                    return (
+                        <ReportTransaction
+                            chatReportID={this.props.chatReportID}
+                            iouReportID={this.props.iouReportID}
+                            action={reportAction}
+                            key={reportAction.sequenceNumber}
+                            canBeRejected={canBeRejected}
+                            rejectButtonLabelText={isCurrentUserTransactionCreator
+                                ? this.props.translate('common.cancel')
+                                : this.props.translate('iou.decline')}
+                        />
+                    );
                 })}
             </View>
         );
