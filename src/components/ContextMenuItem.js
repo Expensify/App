@@ -47,9 +47,11 @@ class ContextMenuItem extends Component {
     }
 
     componentWillUnmount() {
-        if (this.successResetTimer) {
-            clearTimeout(this.successResetTimer);
+        if (!this.successResetTimer) {
+            return;
         }
+
+        clearTimeout(this.successResetTimer);
     }
 
     /**

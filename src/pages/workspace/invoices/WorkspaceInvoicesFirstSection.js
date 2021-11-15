@@ -20,21 +20,21 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
+const WorkspaceInvoicesFirstSection = props => (
     <WorkspaceSection
-        title={translate('workspace.invoices.invoiceClientsAndCustomers')}
+        title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
         icon={MoneyEnvelopeBlue}
         menuItems={[
             {
-                title: translate('workspace.invoices.sendInvoice'),
+                title: props.translate('workspace.invoices.sendInvoice'),
                 onPress: () => openOldDotLink('reports?param={"createInvoice":true}'),
                 icon: Send,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
             },
             {
-                title: translate('workspace.invoices.viewAllInvoices'),
-                onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
+                title: props.translate('workspace.invoices.viewAllInvoices'),
+                onPress: () => openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
                 icon: Invoice,
                 shouldShowRightIcon: true,
                 iconRight: NewWindow,
@@ -43,7 +43,7 @@ const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
     >
         <View style={[styles.mv4]}>
             <Text>
-                {translate('workspace.invoices.invoiceFirstSectionCopy')}
+                {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
             </Text>
         </View>
     </WorkspaceSection>

@@ -1,9 +1,8 @@
 import _ from 'underscore';
-import Onyx from 'react-native-onyx';
 import NetInfo from './NetInfo';
-import ONYXKEYS from '../ONYXKEYS';
 import AppStateMonitor from './AppStateMonitor';
 import promiseAllSettled from './promiseAllSettled';
+import * as Network from './actions/Network';
 
 // NetInfo.addEventListener() returns a function used to unsubscribe the
 // listener so we must create a reference to it and call it in stopListeningForReconnect()
@@ -20,9 +19,9 @@ const reconnectionCallbacks = [];
  */
 const triggerReconnectionCallbacks = _.throttle((reason) => {
     logInfo(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-    Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, true);
+    Network.setIsLoadingAfterReconnect(true);
     promiseAllSettled(_.map(reconnectionCallbacks, callback => callback()))
-        .then(() => Onyx.set(ONYXKEYS.IS_LOADING_AFTER_RECONNECT, false));
+        .then(() => Network.setIsLoadingAfterReconnect(false));
 }, 5000, {trailing: false});
 
 /**
@@ -32,7 +31,7 @@ const triggerReconnectionCallbacks = _.throttle((reason) => {
  * @param {Boolean} isCurrentlyOffline
  */
 function setOfflineStatus(isCurrentlyOffline) {
-    Onyx.merge(ONYXKEYS.NETWORK, {isOffline: isCurrentlyOffline});
+    Network.setIsOffline(isCurrentlyOffline);
 
     // When reconnecting, ie, going from offline to online, all the reconnection callbacks
     // are triggered (this is usually Actions that need to re-download data from the server)

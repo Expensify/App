@@ -217,10 +217,12 @@ class AttachmentPicker extends Component {
       */
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
-            if (!RNDocumentPicker.isCancel(error)) {
-                this.showGeneralAlert(error.message);
-                throw error;
+            if (RNDocumentPicker.isCancel(error)) {
+                return;
             }
+
+            this.showGeneralAlert(error.message);
+            throw error;
         });
     }
 
@@ -228,9 +230,11 @@ class AttachmentPicker extends Component {
       * Triggers the `onPicked` callback with the selected attachment
       */
     completeAttachmentSelection() {
-        if (this.state.result) {
-            this.state.onPicked(this.state.result);
+        if (!this.state.result) {
+            return;
         }
+
+        this.state.onPicked(this.state.result);
     }
 
     /**

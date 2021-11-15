@@ -87,7 +87,7 @@ const run = function () {
             .then((actor) => {
                 // Create comment on each pull request (one after another to avoid throttling issues)
                 const deployMessage = getDeployMessage(actor, 'Deployed');
-                prList.reduce((promise, pr) => promise.then(() => commentPR(pr, deployMessage)), Promise.resolve());
+                _.reduce(prList, (promise, pr) => promise.then(() => commentPR(pr, deployMessage)), Promise.resolve());
             });
     }
 
@@ -107,7 +107,7 @@ const run = function () {
         })
         .then(({data}) => {
             const isCP = /Merge pull request #\d+ from Expensify\/.*-?cherry-pick-staging-\d+/.test(data.message);
-            prList.reduce((promise, PR) => promise
+            _.reduce(prList, (promise, PR) => promise
 
                 // Then, for each PR, find out who merged it and determine the deployer
                 .then(() => GithubUtils.octokit.pulls.get({
