@@ -32,6 +32,8 @@ const propTypes = {
     ignoreLabelTranslateX: PropTypes.bool,
 
     forceActiveLabel: PropTypes.bool,
+    
+    autoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -43,6 +45,7 @@ const defaultProps = {
     translateX: -22,
     inputStyle: [],
     ignoreLabelTranslateX: false,
+    autoFocus: false,
 
     /**
      * To be able to function as either controlled or uncontrolled component we should not
