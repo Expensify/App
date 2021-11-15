@@ -35,6 +35,7 @@ const defaultProps = {
     iconType: 'icon',
     onPress: () => {},
     interactive: true,
+    href: undefined,
 };
 
 const MenuItem = props => (
@@ -44,6 +45,10 @@ const MenuItem = props => (
                 return;
             }
 
+            if (props.href) {
+                e.preventDefault();
+            }
+
             props.onPress(e);
         }}
         style={({hovered, pressed}) => ([
@@ -51,6 +56,8 @@ const MenuItem = props => (
             getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
             ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
         ])}
+        accessibilityRole={props.href ? 'link' : 'button'}
+        href={props.href}
         disabled={props.disabled}
     >
         {({hovered, pressed}) => (

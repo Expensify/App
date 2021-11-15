@@ -39,6 +39,7 @@ const AboutPage = (props) => {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
             icon: Eye,
             iconRight: NewWindow,
+            href: CONST.GITHUB_URL,
             action: () => {
                 openExternalLink(CONST.GITHUB_URL);
             },
@@ -47,6 +48,7 @@ const AboutPage = (props) => {
             translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
             icon: MoneyBag,
             iconRight: NewWindow,
+            href: CONST.UPWORK_URL,
             action: () => {
                 openExternalLink(CONST.UPWORK_URL);
             },
@@ -101,6 +103,7 @@ const AboutPage = (props) => {
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
+                            href={item.href}
                             shouldShowRightIcon
                         />
                     ))}

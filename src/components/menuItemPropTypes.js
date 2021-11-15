@@ -57,6 +57,9 @@ const propTypes = {
 
     /** Whether the menu item should be interactive at all */
     interactive: PropTypes.bool,
+
+    /** Render the item as a link. This adds link related context in browser environments */
+    href: PropTypes.string,
 };
 
 export default propTypes;
