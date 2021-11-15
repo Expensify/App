@@ -683,7 +683,7 @@ export default {
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
             addWorkEmail: 'Añadir correo electrónico de trabajo',
-            checkingDomain: '',
+            checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
         },
         reimburse: {
             captureReceipts: 'Captura recibos',

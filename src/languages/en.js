@@ -681,7 +681,7 @@ export default {
             benefit3: 'No personal liability',
             benefit4: 'Customizable limits',
             addWorkEmail: 'Add work email address',
-            checkingDomain: 'Hang tight! We are still checking your work email address. Come back in a few minutes for updates.',
+            checkingDomain: 'Hang tight! We are still working on enabling your Expensify Cards. Check back here in a few minutes.',
         },
         reimburse: {
             captureReceipts: 'Capture receipts',
