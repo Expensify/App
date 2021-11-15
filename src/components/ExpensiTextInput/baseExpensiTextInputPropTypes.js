@@ -32,7 +32,8 @@ const propTypes = {
     ignoreLabelTranslateX: PropTypes.bool,
 
     forceActiveLabel: PropTypes.bool,
-    
+
+    /** Should the input auto focus? */
     autoFocus: PropTypes.bool,
 };
 
