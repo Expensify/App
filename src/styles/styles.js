@@ -2088,6 +2088,11 @@ const styles = {
     googleListView: {
         transform: [{scale: 0}],
     },
+
+    iPhoneXSafeArea: {
+        backgroundColor: colors.black,
+        flex: 1,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -2191,6 +2196,8 @@ function getSafeAreaPadding(insets) {
     return {
         paddingTop: insets.top,
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
+        paddingLeft: insets.left * variables.safeInsertPercentage,
+        paddingRight: insets.right * variables.safeInsertPercentage,
     };
 }
 
@@ -2403,6 +2410,8 @@ function getModalPaddingStyles({
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
+    safeAreaPaddingLeft,
+    safeAreaPaddingRight,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
@@ -2413,6 +2422,8 @@ function getModalPaddingStyles({
         paddingBottom: shouldAddBottomSafeAreaPadding
             ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
             : modalContainerStylePaddingBottom || 0,
+        paddingLeft: safeAreaPaddingLeft || 0,
+        paddingRight: safeAreaPaddingRight || 0,
     };
 }
 
