@@ -479,8 +479,7 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907.',
-        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
+        errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {
