@@ -129,6 +129,8 @@ class VideoChatButtonAndMenu extends Component {
                     }}
                     animationIn="fadeInDown"
                     animationOut="fadeOutUp"
+                    animationInTiming={1}
+                    animationOutTiming={1}
                 >
                     {_.map(this.menuItemData, ({icon, text, onPress}) => (
                         <MenuItem
