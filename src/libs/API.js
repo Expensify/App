@@ -1131,6 +1131,17 @@ function CreatePolicyRoom(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters 
+ * @param {String} parameters.reportID
+ * @returns {Promise}
+ */
+function JoinRestrictedPolicyRoom(parameters) {
+    const commandName = 'JoinRestrictedPolicyRoom';
+    requireParameters(['reportID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1155,6 +1166,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
+    JoinRestrictedPolicyRoom,
     Log,
     PayIOU,
     PayWithWallet,
