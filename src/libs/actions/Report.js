@@ -1444,6 +1444,11 @@ function createPolicyRoom(policyID, reportName, visibility) {
         });
 }
 
+//
+function joinRestrictedPolicyRoom(reportID) {
+
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1473,4 +1478,5 @@ export {
     setReportWithDraft,
     fetchActionsWithLoadingState,
     createPolicyRoom,
+    joinRestrictedPolicyRoom,
 };
