@@ -184,6 +184,10 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        VISIBILITY: {
+            RESTRICTED: 'restricted',
+            PRIVATE: 'private',
+        },
     },
     MODAL: {
         MODAL_TYPE: {

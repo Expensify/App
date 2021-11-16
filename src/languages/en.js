@@ -783,5 +783,6 @@ export default {
         createRoom: 'Create Room',
         roomAlreadyExists: 'A room with this name already exists',
         social: 'social',
+        selectAWorkspace: 'Select a workspace',
     },
 };
