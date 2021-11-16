@@ -16,6 +16,9 @@ const propTypes = {
     /** Callback fired when the menu is completely closed */
     onMenuHide: PropTypes.func,
 
+    /* Timing for AnimationIn */
+    disableAnimation: PropTypes.bool,
+
     ...createMenuPropTypes,
     ...windowDimensionsPropTypes,
 };
@@ -23,6 +26,7 @@ const propTypes = {
 const defaultProps = {
     ...defaultCreateMenuPropTypes,
     onMenuHide: () => {},
+    disableAnimation: true,
 };
 
 class BasePopoverMenu extends PureComponent {
@@ -35,8 +39,8 @@ class BasePopoverMenu extends PureComponent {
                 onModalHide={this.props.onMenuHide}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
-                animationInTiming={!this.props.isSmallScreenWidth ? 1 : undefined}
-                animationOutTiming={!this.props.isSmallScreenWidth ? 1 : undefined}
+                animationInTiming={this.props.disableAnimation && !this.props.isSmallScreenWidth ? 1 : undefined}
+                animationOutTiming={this.props.disableAnimation && !this.props.isSmallScreenWidth ? 1 : undefined}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                     {!_.isEmpty(this.props.headerText) && (

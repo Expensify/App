@@ -152,6 +152,7 @@ class SidebarScreen extends Component {
                             anchorPosition={styles.createMenuPositionSidebar}
                             animationIn="fadeInLeft"
                             animationOut="fadeOutLeft"
+                            disableAnimation={false}
                             onItemSelected={this.onCreateMenuItemSelected}
                             menuItems={[
                                 {
