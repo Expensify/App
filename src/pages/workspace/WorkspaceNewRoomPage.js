@@ -33,6 +33,12 @@ class WorkspaceNewRoomPage extends React.Component {
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
         };
+        this.workspaceOptions = [];
+        this.onSubmit = this.onSubmit.bind(this);
+    }
+
+    componentDidMount() {
+        this.workspaceOptions = _.map(this.props.policies, policy => ({label: policy.name, key: policy.id, value: policy.id}));
     }
 
     onSubmit() {
@@ -43,7 +49,6 @@ class WorkspaceNewRoomPage extends React.Component {
         const selectedWorkspaceName = this.state.policyID
             ? this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`].name
             : '';
-        console.log(">>>>", selectedWorkspaceName);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -62,7 +67,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         value={selectedWorkspaceName}
                         label={this.props.translate('workspace.common.workspace')}
                         placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                        items={_.map(this.props.policies, policy => ({label: policy.name, key: policy.id, value: policy.id}))}
+                        items={this.workspaceOptions}
                         onChange={policyID => this.setState({policyID})}
                     />
                 </View>
