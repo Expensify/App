@@ -1446,7 +1446,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
 
 //
 function joinRestrictedPolicyRoom(reportID) {
-
+    API.joinRestrictedPolicyRoom({reportID});
 }
 
 export {

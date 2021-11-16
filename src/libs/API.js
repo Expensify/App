@@ -1132,7 +1132,7 @@ function CreatePolicyRoom(parameters) {
 }
 
 /**
- * @param {Object} parameters 
+ * @param {Object} parameters
  * @param {String} parameters.reportID
  * @returns {Promise}
  */
