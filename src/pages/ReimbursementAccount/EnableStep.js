@@ -16,7 +16,6 @@ import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import {navigateToConciergeChat} from '../../libs/actions/Report';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';

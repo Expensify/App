@@ -8,7 +8,6 @@ import {Mail} from '../../../components/Icon/Expensicons';
 import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';
-import {navigateToConciergeChat} from '../../../libs/actions/Report';
 import Navigation from '../../../libs/Navigation/Navigation';
 import {openOldDotLink} from '../../../libs/actions/Link';
 import {subscribeToExpensifyCardUpdates} from '../../../libs/actions/User';
