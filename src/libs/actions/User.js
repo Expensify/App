@@ -288,6 +288,10 @@ function subscribeToUserEvents() {
  * Subscribes to Expensify Card updates when checking loginList for private domains
  */
 function subscribeToExpensifyCardUpdates() {
+    if (!currentUserAccountID) {
+        return;
+    }
+
     const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
 
     // Handle Expensify Card approval flow updates
