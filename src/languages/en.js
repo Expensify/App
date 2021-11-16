@@ -66,6 +66,7 @@ export default {
         notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
+        deletedCommentMessage: 'Comment deleted',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
         todayAt: 'Today at',
