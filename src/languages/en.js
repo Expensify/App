@@ -782,5 +782,6 @@ export default {
         privateDescription: 'Only people invited to this room are able to find it',
         createRoom: 'Create Room',
         roomAlreadyExists: 'A room with this name already exists',
+        social: 'social',
     },
 };
