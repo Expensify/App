@@ -560,6 +560,24 @@ const styles = {
         textAlignVertical: 'center',
     },
 
+    textInputWithPrefix: {
+        textInput: {
+            outlineStyle: 'none',
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+            flex: 1,
+        },
+        prefix: {
+            paddingRight: 12,
+            color: themeColors.text,
+            fontFamily: fontFamily.GTA,
+            fontSize: variables.fontSizeNormal,
+            textAlignVertical: 'center',
+        },
+    },
+
     expensiPickerContainer: {
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
