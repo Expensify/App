@@ -235,7 +235,7 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyName')}
                     />
                     {!this.state.manualAddress && (
-                        <div>
+                        <>
                             <AddressSearch
                                 label={this.props.translate('common.companyAddress')}
                                 containerStyles={[styles.mt4]}
@@ -249,10 +249,10 @@ class CompanyStep extends React.Component {
                             >
                                 Can&apos;t find your address? Enter it manually
                             </TextLink>
-                        </div>
+                        </>
                     )}
                     {this.state.manualAddress && (
-                        <div>
+                        <>
                             <ExpensiTextInput
                                 label={this.props.translate('common.companyAddress')}
                                 containerStyles={[styles.mt4]}
@@ -287,7 +287,7 @@ class CompanyStep extends React.Component {
                                 value={this.state.addressZipCode}
                                 errorText={this.getErrorText('addressZipCode')}
                             />
-                        </div>
+                        </>
                     )}
 
                     <ExpensiTextInput
