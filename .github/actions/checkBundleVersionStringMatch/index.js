@@ -15,6 +15,8 @@ const {PLIST_PATH} = __nccwpck_require__(322);
 const bundleVersion = execSync(`/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" ${PLIST_PATH}`);
 const shortBundleVersion = execSync(`/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" ${PLIST_PATH}`);
 
+console.log(`Bundle Version: ${bundleVersion}`);
+console.log(`Short Bundle Version: ${shortBundleVersion}`);
 if (shortBundleVersion !== (bundleVersion.split('-') || [''])[0]) {
     console.log('Bundle Versions do not match');
     core.setOutput('BUNDLE_VERSIONS_MATCH', false);
