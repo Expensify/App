@@ -542,7 +542,7 @@ class ReportActionsView extends React.Component {
                 <MarkerBadge
                     active={this.state.isMarkerActive}
                     count={this.state.localUnreadActionCount}
-                    onClick={scrollToBottom}
+                    onClick={this.scrollToListBottom}
                     onClose={this.hideMarker}
                 />
                 <InvertedFlatList
