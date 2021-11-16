@@ -575,6 +575,7 @@ const styles = {
         iconContainer: {
             top: 16,
             right: 12,
+            zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
