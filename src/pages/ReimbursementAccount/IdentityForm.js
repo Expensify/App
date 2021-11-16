@@ -133,7 +133,7 @@ const IdentityForm = (props) => {
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
-            {props.manualAddress ? (
+            {props.values.manualAddress ? (
                 <>
                     <ExpensiTextInput
                         label={props.translate('common.personalAddress')}
