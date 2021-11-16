@@ -1101,7 +1101,6 @@ const styles = {
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
-        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {

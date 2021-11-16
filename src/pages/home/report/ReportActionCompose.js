@@ -12,7 +12,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
-import moment from 'moment';
 import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
@@ -53,7 +52,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
-import {canEditReportAction, hasExpensifyEmails, isArchivedRoom} from '../../../libs/reportUtils';
+import {canEditReportAction, isArchivedRoom, shouldShowReportRecipientLocalTime as canShowReportRecipientLocalTime} from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
@@ -480,20 +479,12 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
         const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const shouldShowReportRecipientLocalTime = !hasExpensifyEmails(reportParticipants)
-            && !hasMultipleParticipants
-            && reportRecipient
-            && reportRecipientTimezone
-            && currentUserTimezone.selected
-            && reportRecipientTimezone.selected
-            && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+        const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
