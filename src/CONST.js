@@ -2,6 +2,8 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 
 const CONST = {
+    ANIMATED_TRANSITION: 300,
+
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
