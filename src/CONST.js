@@ -287,18 +287,21 @@ const CONST = {
     COMPOSER_MAX_HEIGHT: 116,
 
     EMAIL: {
-        CHRONOS: 'chronos@expensify.com',
         CONCIERGE: 'concierge@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
         HELP: 'help@expensify.com',
+        RECEIPTS: 'receipts@expensify.com',
+        CHRONOS: 'chronos@expensify.com',
         QA: 'qa@expensify.com',
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         BILLS: 'bills@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        ACCOUNTING: 'accounting@expensify.com',
+        PAYROLL: 'payroll@expensify.com',
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        ADMIN: 'admin@expensify.com',
     },
 
     ENVIRONMENT: {
@@ -463,17 +466,20 @@ const CONST = {
 
 const EXPENSIFY_EMAILS = [
     CONST.EMAIL.CONCIERGE,
+    CONST.EMAIL.HELP,
+    CONST.EMAIL.RECEIPTS,
+    CONST.EMAIL.CHRONOS,
+    CONST.EMAIL.QA,
     CONST.EMAIL.CONTRIBUTORS,
     CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.HELP,
-    CONST.EMAIL.QA,
-    CONST.EMAIL.CHRONOS,
-    CONST.EMAIL.RECEIPTS,
+    CONST.EMAIL.QA_TRAVIS,
     CONST.EMAIL.BILLS,
     CONST.EMAIL.STUDENT_AMBASSADOR,
-    CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.ACCOUNTING,
+    CONST.EMAIL.PAYROLL,
     CONST.EMAIL.SVFG,
     CONST.EMAIL.INTEGRATION_TESTING_CREDS,
+    CONST.EMAIL.ADMIN,
 ];
 
 export {
