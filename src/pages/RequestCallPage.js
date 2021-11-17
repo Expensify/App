@@ -106,13 +106,13 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-
+        const phoneNumber = this.state.phoneNumber.replace(/((?!\n)[()-\s\t])/g, '');
         requestInboxCall({
+            phoneNumber,
             taskID: this.props.route.params.taskID,
             policyID: personalPolicy.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: this.state.phoneNumber,
             email: this.props.session.email,
         });
     }
@@ -137,7 +137,8 @@ class RequestCallPage extends Component {
         if (_.isEmpty(this.state.phoneNumber.trim())) {
             return this.props.translate('messages.noPhoneNumber');
         }
-        if (!Str.isValidPhone(this.state.phoneNumber)) {
+        const phoneNumber = this.state.phoneNumber.replace(/((?!\n)[()-\s\t])/g, '');
+        if (!Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
         return '';
