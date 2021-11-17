@@ -138,6 +138,7 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
+        sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
@@ -157,7 +158,9 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
-        beFirstPersonToComment: 'Sé el primero en comentar',
+        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con',
+        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada',
+        beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,

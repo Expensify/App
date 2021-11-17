@@ -138,6 +138,7 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
+        sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
@@ -157,7 +158,9 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        beFirstPersonToComment: 'Be the first person to comment',
+        beginningOfChatHistory: 'This is the beginning of your chat history with',
+        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private',
+        beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,

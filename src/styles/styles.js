@@ -1577,6 +1577,34 @@ const styles = {
         height: 80,
     },
 
+    emptyStateAvatar: {
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
+        borderRadius: 100,
+        borderColor: themeColors.componentBG,
+        borderWidth: 4,
+        marginLeft: -16,
+    },
+
+    screenBlur: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: colors.dark,
+        opacity: 0.5,
+    },
+
+    avatarInnerTextChat: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeNormal,
+        left: 1,
+        textAlign: 'center',
+        fontWeight: 'normal',
+        position: 'absolute',
+    },
+
     displayName: {
         fontSize: variables.fontSizeLarge,
         fontFamily: fontFamily.GTA_BOLD,
