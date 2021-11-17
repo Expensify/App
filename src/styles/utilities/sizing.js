@@ -11,13 +11,9 @@ export default {
     w20: {
         width: '20%',
     },
-  
+
     mnh100: {
         minHeight: '100%',
-    },
-
-    w100: {
-        width: '100%',
     },
 
     w50: {
