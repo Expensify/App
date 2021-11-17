@@ -158,7 +158,8 @@ export default {
     },
     reportActionsView: {
         beginningOfChatHistory: 'This is the beginning of your chat history with',
-        beginningOfChatHistoryPrivate: ({name}) => `This is the beginning of the private ${name} room, invite others by @mentioning them.`,
+        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private',
+        beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,

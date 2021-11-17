@@ -505,8 +505,7 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
-        const {isDefaultRoom} = ReportUtils;
-        const isDefaultChatRoom = isDefaultRoom(this.props.report);
+        const isDefaultChatRoom = ReportUtils.isDefaultRoom(this.props.report);
 
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {

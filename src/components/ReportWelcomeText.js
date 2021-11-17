@@ -66,9 +66,11 @@ const ReportWelcomeText = (props) => {
         <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
             <Text>
                 {!props.shouldIncludeParticipants
-                    ? `${props.translate('reportActionsView.beginningOfChatHistoryPrivate', {name: lodashGet(chatUsers, '[0].displayName', '')})}`
+                    ? `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`
                     : `${props.translate('reportActionsView.beginningOfChatHistory')} `}
             </Text>
+            {!props.shouldIncludeParticipants && <Text style={[styles.textStrong]}>{` ${lodashGet(chatUsers, '[0].displayName', '')}`}</Text>}
+            {!props.shouldIncludeParticipants && <Text>{props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}</Text>}
             {props.shouldIncludeParticipants
             && (
                 <>
