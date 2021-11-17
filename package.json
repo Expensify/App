@@ -56,7 +56,6 @@
     "@react-navigation/native": "6.0.5",
     "@react-navigation/stack": "6.0.10",
     "babel-plugin-transform-remove-console": "^6.9.4",
-    "babel-polyfill": "^6.26.0",
     "dotenv": "^8.2.0",
     "electron-context-menu": "^2.3.0",
     "electron-log": "^4.3.5",

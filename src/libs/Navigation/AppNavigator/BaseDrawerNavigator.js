@@ -3,9 +3,9 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
 import Navigation from '../Navigation';
-import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** Screens to be passed in the Drawer */
@@ -30,7 +30,6 @@ const propTypes = {
     /** Window Dimensions props */
     ...windowDimensionsPropTypes,
 };
-
 const Drawer = createDrawerNavigator();
 
 const BaseDrawerNavigator = (props) => {
