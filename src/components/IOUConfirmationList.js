@@ -164,6 +164,10 @@ class IOUConfirmationList extends Component {
     }
 
     componentDidMount() {
+        // We need to wait for the transition animation to end before focusing the TextInput,
+        // otherwise the TextInput isn't animated correctly
+        setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+
         // Only add the Venmo option if we're sending a payment
         if (this.props.iouType !== CONST.IOU.IOU_TYPE.SEND) {
             return;
@@ -190,12 +194,6 @@ class IOUConfirmationList extends Component {
         } else {
             this.props.onConfirm(this.getSplits());
         }
-    }
-
-    componentDidMount() {
-        // We need to wait for the transition animation to end before focusing the TextInput,
-        // otherwise the TextInput isn't animated correctly
-        setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
     }
 
     /**
