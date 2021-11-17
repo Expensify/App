@@ -142,8 +142,6 @@ class PaymentsPage extends React.Component {
                             top: this.state.anchorPositionTop,
                             left: this.state.anchorPositionLeft,
                         }}
-                        animationInTiming={1}
-                        animationOutTiming={1}
                     >
                         {!this.props.payPalMeUsername && (
                             <MenuItem

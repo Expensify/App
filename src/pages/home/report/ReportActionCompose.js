@@ -666,8 +666,6 @@ class ReportActionCompose extends React.Component {
                         onModalShow={this.focusEmojiSearchInput}
                         onModalHide={() => this.focus(true)}
                         hideModalContentWhileAnimating
-                        animationInTiming={1}
-                        animationOutTiming={1}
                         anchorPosition={{
                             bottom: this.props.windowHeight - this.state.emojiPopoverAnchorPosition.vertical,
                             left: this.state.emojiPopoverAnchorPosition.horizontal - CONST.EMOJI_PICKER_SIZE,
