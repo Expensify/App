@@ -784,6 +784,6 @@ export default {
         privateDescription: 'Sólo las personas que están invitadas a esta sala pueden encontrarla',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExists: 'Ya existe una sala con este nombre',
-        social: 'TODO',
+        social: 'Social',
     },
 };
