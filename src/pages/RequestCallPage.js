@@ -134,11 +134,8 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        if (_.isEmpty(this.state.phoneNumber.trim())) {
-            return this.props.translate('messages.noPhoneNumber');
-        }
         const phoneNumber = this.state.phoneNumber.replace(/((?!\n)[()-\s\t])/g, '');
-        if (!Str.isValidPhone(phoneNumber)) {
+        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
         return '';
@@ -237,7 +234,7 @@ class RequestCallPage extends Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
-                                placeholder="+14158675309"
+                                placeholder="2109400803"
                                 errorText={this.state.phoneNumberError}
                                 onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}
