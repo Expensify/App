@@ -674,10 +674,10 @@ export default {
         card: {
             header: 'Unlock free Expensify Cards',
             headerWithEcard: 'Cards are ready!',
-            noVBACopy: 'Connect a bank account to issue unlimited Expensify Cards for your workspace members and access all of these incredible benefits:',
+            noVBACopy: 'Connect a bank account to issue Expensify Cards to your workspace members, and access these incredible benefits and more:',
             VBANoECardCopy: 'Add a work email address to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
             conciergeCanHelp: 'Concierge can help you add a work email address to enable the Expensify Card.',
-            VBAWithECardCopy: 'Enjoy all these incredible benefits:',
+            VBAWithECardCopy: 'Access these incredible benefits and more:',
             benefit1: 'Up to 2% cash back',
             benefit2: 'Digital and physical cards',
             benefit3: 'No personal liability',
