@@ -20,8 +20,6 @@ import {PayPal, Bank, CreditCard} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import NameValuePair from '../../../libs/actions/NameValuePair';
-import CONST from '../../../CONST';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Permissions from '../../../libs/Permissions';
