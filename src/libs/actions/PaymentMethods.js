@@ -9,6 +9,7 @@ import Growl from '../Growl';
 import {translateLocal} from '../translate';
 import Navigation from '../Navigation/Navigation';
 import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '../CardUtils';
+import NameValuePair from './NameValuePair';
 
 function deleteDebitCard(fundID) {
     return API.DeleteFund({fundID}).then((response) => {
@@ -16,6 +17,11 @@ function deleteDebitCard(fundID) {
             Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
         }
     });
+}
+
+function deletePayPalMe() {
+    NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, '');
+    Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, null);
 }
 
 /**
@@ -125,6 +131,7 @@ function clearDebitCardFormErrorAndSubmit() {
 
 export {
     deleteDebitCard,
+    deletePayPalMe,
     getPaymentMethods,
     setWalletLinkedAccount,
     addBillingCard,
