@@ -150,4 +150,7 @@ export default {
 
     // Are report actions loading?
     IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
+
+    // Is report data loading?
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 };
