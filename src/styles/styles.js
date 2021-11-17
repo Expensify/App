@@ -1290,6 +1290,7 @@ const styles = {
         width: 64,
         backgroundColor: themeColors.icon,
         borderRadius: 64,
+        overflow: 'hidden',
     },
 
     secondAvatar: {
