@@ -16,7 +16,7 @@ const propTypes = {
     /** Callback fired when the menu is completely closed */
     onMenuHide: PropTypes.func,
 
-    /* Timing for AnimationIn */
+    /* Whether disable the animations */
     disableAnimation: PropTypes.bool,
 
     ...createMenuPropTypes,
