@@ -60,7 +60,7 @@ jobs:
   cherryPick:
     needs: [validateActor, createNewVersion]
     if: ${{ always() && fromJSON(needs.validateActor.outputs.IS_DEPLOYER) }}
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       # Version: 2.3.4
       - name: Checkout staging branch
