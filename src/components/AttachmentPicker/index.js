@@ -1,6 +1,6 @@
 import React from 'react';
 import CONST from '../../CONST';
-import * as attachmentPickerPropTypes from './AttachmentPickerPropTypes';
+import * as attachmentPickerPropTypes from './attachmentPickerPropTypes';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
@@ -8,9 +8,11 @@ import * as attachmentPickerPropTypes from './AttachmentPickerPropTypes';
  * @returns {String|undefined} Picker will accept all file types when its undefined
  */
 function getAcceptableFileTypes(type) {
-    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-        return 'image/*';
+    if (type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
+        return;
     }
+
+    return 'image/*';
 }
 
 /**

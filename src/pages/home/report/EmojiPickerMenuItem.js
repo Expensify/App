@@ -18,11 +18,6 @@ const propTypes = {
 
     /** Whether this menu item is currently highlighted or not */
     isHighlighted: PropTypes.bool,
-
-    /** Override default emojiItem style */
-    // eslint-disable-next-line react/forbid-prop-types
-    emojiItemStyle: PropTypes.any,
-
 };
 
 const EmojiPickerMenuItem = props => (
@@ -34,7 +29,7 @@ const EmojiPickerMenuItem = props => (
             styles.pv1,
             getButtonBackgroundColorStyle(getButtonState(false, pressed)),
             props.isHighlighted ? styles.emojiItemHighlighted : {},
-            props.emojiItemStyle ? props.emojiItemStyle : styles.emojiItem,
+            styles.emojiItem,
         ])}
     >
         <Hoverable onHoverIn={props.onHover}>
@@ -50,7 +45,6 @@ EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 EmojiPickerMenuItem.defaultProps = {
     isHighlighted: false,
     onHover: () => {},
-    emojiItemStyle: undefined,
 };
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList

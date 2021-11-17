@@ -5,21 +5,15 @@ import {
     AppState,
     ActivityIndicator,
 } from 'react-native';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Text from '../../../components/Text';
-import {
-    fetchActions,
-    fetchChatReportsByIDs,
-    updateLastReadActionID,
-    setNewMarkerPosition,
-    subscribeToReportTypingEvents,
-    unsubscribeFromReportChannel,
-} from '../../../libs/actions/Report';
+import * as Report from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
-import ReportActionPropTypes from './ReportActionPropTypes';
+import reportActionPropTypes from './reportActionPropTypes';
 import InvertedFlatList from '../../../components/InvertedFlatList';
 import {lastItem} from '../../../libs/CollectionUtils';
 import Visibility from '../../../libs/Visibility';
@@ -37,6 +31,12 @@ import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionCon
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
+import ONYXKEYS from '../../../ONYXKEYS';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
+import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
+import {shouldShowReportRecipientLocalTime as canShowReportRecipientLocalTime} from '../../../libs/reportUtils';
+
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -60,13 +60,22 @@ const propTypes = {
     }),
 
     /** Array of report actions for this report */
-    reportActions: PropTypes.objectOf(PropTypes.shape(ReportActionPropTypes)),
+    reportActions: PropTypes.objectOf(PropTypes.shape(reportActionPropTypes)),
 
     /** The session of the logged in person */
     session: PropTypes.shape({
         /** Email of the logged in person */
         email: PropTypes.string,
     }),
+
+    /** Are we loading more report actions? */
+    isLoadingReportActions: PropTypes.bool,
+
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
 
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
@@ -81,6 +90,9 @@ const defaultProps = {
     },
     reportActions: {},
     session: {},
+    isLoadingReportActions: false,
+    personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -98,7 +110,6 @@ class ReportActionsView extends React.Component {
         this.didLayout = false;
 
         this.state = {
-            isLoadingMoreChats: false,
             isMarkerActive: false,
             localUnreadActionCount: this.props.report.unreadActionCount,
         };
@@ -121,17 +132,24 @@ class ReportActionsView extends React.Component {
         // If the reportID is not found then we have either not loaded this chat or the user is unable to access it.
         // We will attempt to fetch it and redirect if still not accessible.
         if (!this.props.report.reportID) {
-            fetchChatReportsByIDs([this.props.reportID], true);
+            Report.fetchChatReportsByIDs([this.props.reportID], true);
         }
-        subscribeToReportTypingEvents(this.props.reportID);
+        Report.subscribeToReportTypingEvents(this.props.reportID);
         this.keyboardEvent = Keyboard.addListener('keyboardDidShow', () => {
-            if (ReportActionComposeFocusManager.isFocused()) {
-                this.scrollToListBottom();
+            if (!ReportActionComposeFocusManager.isFocused()) {
+                return;
             }
+
+            this.scrollToListBottom();
         });
-        updateLastReadActionID(this.props.reportID);
+
+        // Only mark as read if the report is open
+        if (!this.props.isDrawerOpen) {
+            Report.updateLastReadActionID(this.props.reportID);
+        }
+
         this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
-        fetchActions(this.props.reportID);
+        Report.fetchActions(this.props.reportID);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -146,7 +164,7 @@ class ReportActionsView extends React.Component {
             return true;
         }
 
-        if (nextState.isLoadingMoreChats !== this.state.isLoadingMoreChats) {
+        if (nextProps.isLoadingReportActions !== this.props.isLoadingReportActions) {
             return true;
         }
 
@@ -193,7 +211,7 @@ class ReportActionsView extends React.Component {
             // When the last action changes, record the max action
             // This will make the unread indicator go away if you receive comments in the same chat you're looking at
             if (shouldRecordMaxAction) {
-                updateLastReadActionID(this.props.reportID);
+                Report.updateLastReadActionID(this.props.reportID);
             }
 
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
@@ -210,7 +228,7 @@ class ReportActionsView extends React.Component {
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            updateLastReadActionID(this.props.reportID);
+            Report.updateLastReadActionID(this.props.reportID);
             this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
         }
     }
@@ -222,16 +240,18 @@ class ReportActionsView extends React.Component {
 
         AppState.removeEventListener('change', this.onVisibilityChange);
 
-        unsubscribeFromReportChannel(this.props.reportID);
+        Report.unsubscribeFromReportChannel(this.props.reportID);
     }
 
     /**
      * Records the max action on app visibility change event.
      */
     onVisibilityChange() {
-        if (Visibility.isVisible()) {
-            updateLastReadActionID(this.props.reportID);
+        if (!Visibility.isVisible() || this.props.isDrawerOpen) {
+            return;
         }
+
+        Report.updateLastReadActionID(this.props.reportID);
     }
 
     /**
@@ -251,7 +271,7 @@ class ReportActionsView extends React.Component {
      */
     loadMoreChats() {
         // Only fetch more if we are not already fetching so that we don't initiate duplicate requests.
-        if (this.state.isLoadingMoreChats) {
+        if (this.props.isLoadingReportActions) {
             return;
         }
 
@@ -264,13 +284,10 @@ class ReportActionsView extends React.Component {
             return;
         }
 
-        this.setState({isLoadingMoreChats: true}, () => {
-            // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
-            // case just get everything starting from 0.
-            const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
-            fetchActions(this.props.reportID, offset)
-                .then(() => this.setState({isLoadingMoreChats: false}));
-        });
+        // Retrieve the next REPORT.ACTIONS.LIMIT sized page of comments, unless we're near the beginning, in which
+        // case just get everything starting from 0.
+        const offset = Math.max(minSequenceNumber - CONST.REPORT.ACTIONS.LIMIT, 0);
+        Report.fetchActionsWithLoadingState(this.props.reportID, offset);
     }
 
     /**
@@ -357,7 +374,7 @@ class ReportActionsView extends React.Component {
      */
     scrollToListBottom() {
         scrollToBottom();
-        updateLastReadActionID(this.props.reportID);
+        Report.updateLastReadActionID(this.props.reportID);
     }
 
     /**
@@ -369,7 +386,7 @@ class ReportActionsView extends React.Component {
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
         const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : (this.props.report.maxSequenceNumber - unreadActionCount) + 1;
-        setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
+        Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
     }
 
 
@@ -393,11 +410,13 @@ class ReportActionsView extends React.Component {
      * @param {Boolean} [shouldResetLocalCount=false] Whether count should increment or reset
      */
     updateLocalUnreadActionCount(shouldResetLocalCount = false) {
-        this.setState(prevState => ({
-            localUnreadActionCount: shouldResetLocalCount
+        this.setState((prevState) => {
+            const localUnreadActionCount = shouldResetLocalCount
                 ? this.props.report.unreadActionCount
-                : prevState.localUnreadActionCount + this.props.report.unreadActionCount,
-        }));
+                : prevState.localUnreadActionCount + this.props.report.unreadActionCount;
+            this.updateUnreadIndicatorPosition(localUnreadActionCount);
+            return {localUnreadActionCount};
+        });
     }
 
     /**
@@ -516,6 +535,7 @@ class ReportActionsView extends React.Component {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
+        const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         return (
             <>
@@ -530,13 +550,13 @@ class ReportActionsView extends React.Component {
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
                     onEndReached={this.loadMoreChats}
                     onEndReachedThreshold={0.75}
-                    ListFooterComponent={this.state.isLoadingMoreChats
+                    ListFooterComponent={this.props.isLoadingReportActions
                         ? <ActivityIndicator size="small" color={themeColors.spinner} />
                         : null}
                     keyboardShouldPersistTaps="handled"
@@ -558,4 +578,14 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
+    withPersonalDetails(),
+    withOnyx({
+        isLoadingReportActions: {
+            key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
+            initWithStoredValues: false,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+    }),
 )(ReportActionsView);

@@ -2,8 +2,9 @@ import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
+import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST from '../CONST';
+import CONST, {EXPENSIFY_EMAILS} from '../CONST';
 
 let sessionEmail;
 Onyx.connect({
@@ -77,17 +78,6 @@ function canDeleteReportAction(reportAction) {
         && reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT;
 }
 
-
-/**
- * Given a collection of reports returns the most recently accessed one
- *
- * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
- * @returns {Object}
- */
-function findLastAccessedReport(reports) {
-    return _.last(sortReportsByLastVisited(reports));
-}
-
 /**
  * Whether the provided report is a default room
  * @param {Object} report
@@ -100,6 +90,23 @@ function isDefaultRoom(report) {
         CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
     ], lodashGet(report, ['chatType'], ''));
+}
+
+/**
+ * Given a collection of reports returns the most recently accessed one
+ *
+ * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
+ * @param {Boolean} [ignoreDefaultRooms]
+ * @returns {Object}
+ */
+function findLastAccessedReport(reports, ignoreDefaultRooms) {
+    let sortedReports = sortReportsByLastVisited(reports);
+
+    if (ignoreDefaultRooms) {
+        sortedReports = _.filter(sortedReports, report => !isDefaultRoom(report));
+    }
+
+    return _.last(sortedReports);
 }
 
 /**
@@ -152,6 +159,37 @@ function isConciergeChatReport(report) {
         && report.participants[0] === CONST.EMAIL.CONCIERGE;
 }
 
+/**
+ * Returns true if there is any automated expensify account in emails
+ * @param {Array} emails
+ * @returns {Boolean}
+ */
+function hasExpensifyEmails(emails) {
+    return _.intersection(emails, EXPENSIFY_EMAILS).length > 0;
+}
+
+/**
+ * Whether the time row should be shown for a report.
+ * @param {Array<Object>} personalDetails
+ * @param {Object} myPersonalDetails
+ * @param {Object} report
+ * @return {Boolean}
+ */
+function shouldShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
+    const reportParticipants = lodashGet(report, 'participants', []);
+    const hasMultipleParticipants = reportParticipants.length > 1;
+    const reportRecipient = personalDetails[reportParticipants[0]];
+    const currentUserTimezone = lodashGet(myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
+    const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
+    return !hasExpensifyEmails(reportParticipants)
+        && !hasMultipleParticipants
+        && reportRecipient
+        && reportRecipientTimezone
+        && currentUserTimezone.selected
+        && reportRecipientTimezone.selected
+        && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -163,4 +201,6 @@ export {
     getDefaultRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,
+    hasExpensifyEmails,
+    shouldShowReportRecipientLocalTime,
 };

@@ -5,7 +5,11 @@ import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
+// eslint-disable-next-line import/no-cycle
+import LogUtil from './Log';
+import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
+let isReady = false;
 let isQueuePaused = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -23,6 +27,8 @@ let onError = () => {};
 
 let didLoadPersistedRequests;
 let isOffline;
+
+const PROCESS_REQUEST_DELAY_MS = 1000;
 
 /**
  * Process the offline NETWORK_REQUEST_QUEUE
@@ -55,7 +61,7 @@ function processOfflineQueue(persistedRequests) {
     // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
     // this once when the app initializes
     networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+    NetworkRequestQueue.clearPersistedRequests();
     didLoadPersistedRequests = true;
 }
 
@@ -96,14 +102,28 @@ Onyx.connect({
 });
 
 /**
+ * @param {Boolean} val
+ */
+function setIsReady(val) {
+    isReady = val;
+}
+
+/**
  * Checks to see if a request can be made.
  *
  * @param {Object} request
+ * @param {String} request.type
+ * @param {String} request.command
  * @param {Object} request.data
  * @param {Boolean} request.data.forceNetworkRequest
  * @return {Boolean}
  */
 function canMakeRequest(request) {
+    if (!isReady) {
+        LogUtil.hmmm('Trying to make a request when Network is not ready', {command: request.command, type: request.type});
+        return false;
+    }
+
     // These requests are always made even when the queue is paused
     if (request.data.forceNetworkRequest === true) {
         return true;
@@ -121,25 +141,25 @@ function canMakeRequest(request) {
  * @param {Object} request
  * @param {String} request.command
  * @param {Object} request.data
- * @param {Boolean} request.data.doNotRetry
+ * @param {Boolean} request.data.shouldRetry
  * @param {String} [request.data.returnValueList]
  * @return {Boolean}
  */
 function canRetryRequest(request) {
-    const doNotRetry = lodashGet(request, 'data.doNotRetry', false);
-    const logParams = {command: request.command, doNotRetry, isQueuePaused};
+    const shouldRetry = lodashGet(request, 'data.shouldRetry');
+    const logParams = {command: request.command, shouldRetry, isQueuePaused};
     const returnValueList = lodashGet(request, 'data.returnValueList');
     if (returnValueList) {
         logParams.returnValueList = returnValueList;
     }
 
-    if (doNotRetry) {
+    if (!shouldRetry) {
         console.debug('Skipping request that should not be re-tried: ', logParams);
     } else {
         console.debug('Skipping request and re-queueing: ', logParams);
     }
 
-    return !doNotRetry;
+    return shouldRetry;
 }
 
 /**
@@ -156,13 +176,14 @@ function processNetworkRequestQueue() {
         // If we have a request then we need to check if it can be persisted in case we close the tab while offline.
         // We filter persisted requests from the normal Queue to remove duplicates
         networkRequestQueue = _.reject(networkRequestQueue, (request) => {
-            if (!request.data.doNotRetry && request.data.persist) {
+            const shouldRetry = lodashGet(request, 'data.shouldRetry');
+            if (shouldRetry && request.data.persist) {
                 retryableRequests.push(request);
                 return true;
             }
         });
         if (retryableRequests.length) {
-            Onyx.merge(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
+            NetworkRequestQueue.saveRetryableRequests(retryableRequests);
         }
         return;
     }
@@ -175,7 +196,7 @@ function processNetworkRequestQueue() {
     // Some requests should be retried and will end up here if the following conditions are met:
     // - the queue is paused
     // - the request does not have forceNetworkRequest === true
-    // - the request does not have doNotRetry === true
+    // - the request does not have shouldRetry === false
     const requestsToProcessOnNextRun = [];
 
     _.each(networkRequestQueue, (queuedRequest) => {
@@ -189,7 +210,7 @@ function processNetworkRequestQueue() {
         }
 
         const requestData = queuedRequest.data;
-        const requestEmail = requestData.email ?? '';
+        const requestEmail = lodashGet(requestData, 'email', '');
 
         // If we haven't passed an email in the request data, set it to the current user's email
         if (email && _.isEmpty(requestEmail)) {
@@ -200,13 +221,6 @@ function processNetworkRequestQueue() {
             ? enhanceParameters(queuedRequest.command, requestData)
             : requestData;
 
-        // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
-        // has paused the queue and if this is the case we must return. We don't retry these requests
-        // since if a request is made without an authToken we sign out the user.
-        if (!canMakeRequest(queuedRequest)) {
-            return;
-        }
-
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
@@ -216,7 +230,7 @@ function processNetworkRequestQueue() {
     // As multiple client will be sharing the same Queue and NETWORK_REQUEST_QUEUE is synchronized among clients,
     // we only ask Leader client to clear the queue
     if (ActiveClientManager.isClientTheLeader() && didLoadPersistedRequests) {
-        Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, []);
+        NetworkRequestQueue.clearPersistedRequests();
     }
 
     // User could have bad connectivity and he can go offline multiple times
@@ -230,7 +244,15 @@ function processNetworkRequestQueue() {
 }
 
 // Process our write queue very often
-setInterval(processNetworkRequestQueue, 1000);
+setInterval(processNetworkRequestQueue, PROCESS_REQUEST_DELAY_MS);
+
+/**
+ * @param {Object} request
+ * @returns {Boolean}
+ */
+function canProcessRequestImmediately(request) {
+    return lodashGet(request, 'data.shouldProcessImmediately', true);
+}
 
 /**
  * Perform a queued post request
@@ -243,15 +265,26 @@ setInterval(processNetworkRequestQueue, 1000);
  */
 function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
     return new Promise((resolve, reject) => {
-        // Add the write request to a queue of actions to perform
-        networkRequestQueue.push({
+        const request = {
             command,
             data,
             type,
             resolve,
             reject,
             shouldUseSecure,
-        });
+        };
+
+        // All requests should be retried by default
+        if (_.isUndefined(request.data.shouldRetry)) {
+            request.data.shouldRetry = true;
+        }
+
+        // Add the request to a queue of actions to perform
+        networkRequestQueue.push(request);
+
+        if (!canProcessRequestImmediately(request)) {
+            return;
+        }
 
         // Try to fire off the request as soon as it's queued so we don't add a delay to every queued command
         processNetworkRequestQueue();
@@ -310,9 +343,11 @@ function registerErrorHandler(callback) {
 export {
     post,
     pauseRequestQueue,
+    PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,
     registerParameterEnhancer,
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
+    setIsReady,
 };

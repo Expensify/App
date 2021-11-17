@@ -22,9 +22,11 @@ class Switch extends Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isOn !== this.props.isOn) {
-            this.toggleSwitch();
+        if (prevProps.isOn === this.props.isOn) {
+            return;
         }
+
+        this.toggleSwitch();
     }
 
     toggleSwitch() {
@@ -37,13 +39,11 @@ class Switch extends Component {
 
     render() {
         const switchTransform = {transform: [{translateX: this.offsetX}]};
-        const {isOn, onToggle} = this.props;
-
         return (
             <TouchableOpacity
-                style={[styles.switchTrack, !isOn && styles.switchInactive]}
+                style={[styles.switchTrack, !this.props.isOn && styles.switchInactive]}
                 activeOpacity={0.8}
-                onPress={() => onToggle(!isOn)}
+                onPress={() => this.props.onToggle(!this.props.isOn)}
             >
                 <Animated.View style={[styles.switchThumb, switchTransform]} />
             </TouchableOpacity>
@@ -52,6 +52,5 @@ class Switch extends Component {
 }
 
 Switch.propTypes = propTypes;
-Switch.displayName = 'Switch';
 
 export default Switch;

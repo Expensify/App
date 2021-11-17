@@ -6,7 +6,6 @@ import {
 import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
-import compose from '../../libs/compose';
 
 const propTypes = {
     /** URL to full-sized image */
@@ -214,7 +213,7 @@ class ImageView extends PureComponent {
                     <Image
                         source={{uri: this.props.url}}
                         style={getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale)}
-                        resizeMode="contain"
+                        resizeMode={this.state.isZoomed ? 'contain' : 'center'}
                     />
                 </Pressable>
             </View>
@@ -223,6 +222,4 @@ class ImageView extends PureComponent {
 }
 
 ImageView.propTypes = propTypes;
-export default compose(
-    withWindowDimensions,
-)(ImageView);
+export default withWindowDimensions(ImageView);

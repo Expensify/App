@@ -3,14 +3,14 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import ONYXKEYS from '../../ONYXKEYS';
 import IOUQuote from './IOUQuote';
-import ReportActionPropTypes from '../../pages/home/report/ReportActionPropTypes';
+import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import IOUPreview from './IOUPreview';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 
 const propTypes = {
     /** All the data of the action */
-    action: PropTypes.shape(ReportActionPropTypes).isRequired,
+    action: PropTypes.shape(reportActionPropTypes).isRequired,
 
     /** The associated chatReport */
     chatReportID: PropTypes.number.isRequired,
@@ -32,26 +32,22 @@ const defaultProps = {
     },
 };
 
-const IOUAction = ({
-    action,
-    chatReportID,
-    isMostRecentIOUReportAction,
-}) => {
+const IOUAction = (props) => {
     const launchDetailsModal = () => {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
+        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
     return (
         <>
             <IOUQuote
-                action={action}
-                shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
+                action={props.action}
+                shouldShowViewDetailsLink={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {((isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID))
-                || (action.originalMessage.type === 'pay')) && (
+            {((props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID))
+                || (props.action.originalMessage.type === 'pay')) && (
                     <IOUPreview
-                        iouReportID={action.originalMessage.IOUReportID}
-                        chatReportID={chatReportID}
+                        iouReportID={props.action.originalMessage.IOUReportID}
+                        chatReportID={props.chatReportID}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
                     />

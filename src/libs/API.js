@@ -1,23 +1,45 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
+// eslint-disable-next-line import/no-cycle
 import redirectToSignIn from './actions/SignInRedirect';
-import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
+// eslint-disable-next-line import/no-cycle
+import * as Network from './Network';
+// eslint-disable-next-line import/no-cycle
+import LogUtil from './Log';
+// eslint-disable-next-line import/no-cycle
+import * as Session from './actions/Session';
 
 let isAuthenticating;
 let credentials;
+let authToken;
+
+function checkRequiredDataAndSetNetworkReady() {
+    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
+        return;
+    }
+
+    Network.setIsReady(true);
+}
+
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
+    callback: (val) => {
+        credentials = val || null;
+        checkRequiredDataAndSetNetworkReady();
+    },
 });
 
-let authToken;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
+    callback: (val) => {
+        authToken = lodashGet(val, 'authToken', null);
+        checkRequiredDataAndSetNetworkReady();
+    },
 });
 
 /**
@@ -52,17 +74,6 @@ function addDefaultValuesToParameters(command, parameters) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        // If we end up here with no authToken it means we are trying to make an API request before we are signed in.
-        // In this case, we should cancel the current request by pausing the queue and clearing the remaining requests.
-        if (!authToken) {
-            redirectToSignIn();
-
-            console.debug('A request was made without an authToken', {command, parameters});
-            Network.pauseRequestQueue();
-            Network.clearRequestQueue();
-            return;
-        }
-
         finalParameters.authToken = authToken;
     }
 
@@ -87,21 +98,23 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
  */
 function requireParameters(parameterNames, parameters, commandName) {
     parameterNames.forEach((parameterName) => {
-        if (!_(parameters).has(parameterName)
-            || parameters[parameterName] === null
-            || parameters[parameterName] === undefined
+        if (_(parameters).has(parameterName)
+            && parameters[parameterName] !== null
+            && parameters[parameterName] !== undefined
         ) {
-            const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
-            const parametersCopy = _.chain(parameters)
-                .clone()
-                .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
-                .value();
-            const keys = _(parametersCopy).keys().join(', ') || 'none';
-
-            let error = `Parameter ${parameterName} is required for "${commandName}". `;
-            error += `Supplied parameters: ${keys}`;
-            throw new Error(error);
+            return;
         }
+
+        const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
+        const parametersCopy = _.chain(parameters)
+            .clone()
+            .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
+            .value();
+        const keys = _(parametersCopy).keys().join(', ') || 'none';
+
+        let error = `Parameter ${parameterName} is required for "${commandName}". `;
+        error += `Supplied parameters: ${keys}`;
+        throw new Error(error);
     });
 }
 
@@ -149,7 +162,8 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        if (queuedRequest.data.doNotRetry || unableToReauthenticate) {
+        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+        if (!shouldRetry || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;
         }
@@ -171,10 +185,14 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
-    console.debug('[API] Handled error when making request', error);
+    if (queuedRequest.command !== 'Log') {
+        LogUtil.hmmm('[API] Handled error when making request', error);
+    } else {
+        console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
+    }
 
     // Set an error state and signify we are done loading
-    Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
+    Session.setSessionLoadingAndError(false, 'Cannot connect to server');
 
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
@@ -182,13 +200,14 @@ Network.registerErrorHandler((queuedRequest, error) => {
 
 /**
  * @param {Object} parameters
- * @param {String} [parameters.useExpensifyLogin]
+ * @param {Boolean} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
  * @param {String} [parameters.twoFactorAuthCode]
  * @param {String} [parameters.email]
+ * @param {String} [parameters.authToken]
  * @returns {Promise}
  */
 function Authenticate(parameters) {
@@ -211,7 +230,8 @@ function Authenticate(parameters) {
         partnerUserID: parameters.partnerUserID,
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
-        doNotRetry: true,
+        authToken: parameters.authToken,
+        shouldRetry: false,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
@@ -273,10 +293,7 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {
-                authToken: response.authToken,
-                encryptedAuthToken: response.encryptedAuthToken,
-            });
+            Session.updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
@@ -300,7 +317,7 @@ function reauthenticate(command = '') {
             // If we experience something other than a network error then redirect the user to sign in
             redirectToSignIn(error.message);
 
-            console.debug('Redirecting to Sign In because we failed to reauthenticate', {
+            LogUtil.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                 command,
                 error: error.message,
             });
@@ -330,9 +347,19 @@ function AuthenticateWithAccountID(parameters) {
         accountID: parameters.accountID,
         validateCode: parameters.validateCode,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
-        doNotRetry: true,
+        shouldRetry: false,
     });
 }
+
+/**
+ * @param {Object} parameters
+ * @returns {Promise}
+ */
+function AddBillingCard(parameters) {
+    const commandName = 'User_AddBillingCard';
+    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+}
+
 
 /**
  * @param {Object} parameters
@@ -342,7 +369,7 @@ function AuthenticateWithAccountID(parameters) {
  */
 function ChangePassword(parameters) {
     const commandName = 'ChangePassword';
-    requireParameters(['oldPassword', 'password'], parameters, commandName);
+    requireParameters(['password'], parameters, commandName);
     return Network.post(commandName, parameters);
 }
 
@@ -378,7 +405,7 @@ function User_SignUp(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
- * @param {Boolean} [parameters.doNotRetry]
+ * @param {Boolean} [parameters.shouldRetry]
  * @param {String} [parameters.email]
  * @returns {Promise}
  */
@@ -399,12 +426,12 @@ function CreateLogin(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
- * @param {Boolean} parameters.doNotRetry
+ * @param {Boolean} parameters.shouldRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
-    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'doNotRetry'],
+    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -424,6 +451,7 @@ function Get(parameters, shouldUseSecure = false) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} parameters.forceNetworkRequest
  * @returns {Promise}
  */
 function GetAccountStatus(parameters) {
@@ -433,11 +461,11 @@ function GetAccountStatus(parameters) {
 }
 
 /**
- * Returns a validate code for this account
+ * Returns a short lived authToken for this account
  * @returns {Promise}
  */
-function GetAccountValidateCode() {
-    const commandName = 'GetAccountValidateCode';
+function GetShortLivedAuthToken() {
+    const commandName = 'GetShortLivedAuthToken';
     return Network.post(commandName);
 }
 
@@ -454,11 +482,17 @@ function GetIOUReport(parameters) {
 
 /**
  * @returns {Promise}
+ * @param {String} policyID
  */
-function GetPolicyList() {
+function GetFullPolicy(policyID) {
+    if (!_.isString(policyID)) {
+        throw new Error('[API] Must include a single policyID with calls to API.GetFullPolicy');
+    }
+
     const commandName = 'Get';
     const parameters = {
         returnValueList: 'policyList',
+        policyIDList: [policyID],
     };
     return Network.post(commandName, parameters);
 }
@@ -965,7 +999,7 @@ function BankAccount_SetupWithdrawal(parameters) {
 
     requireParameters(['currentStep'], parameters, commandName);
     return Network.post(
-        commandName, {additionalData: JSON.stringify(additionalData), password: parameters.password},
+        commandName, {additionalData: JSON.stringify(additionalData)},
         CONST.NETWORK.METHOD.POST,
         true,
     );
@@ -973,14 +1007,25 @@ function BankAccount_SetupWithdrawal(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
+ * @param {Number} parameters.bankAccountID
+ * @param {String} parameters.ownerEmail
+ * @returns {Promise}
+ */
+function DeleteBankAccount(parameters) {
+    const commandName = 'DeleteBankAccount';
+    requireParameters(['bankAccountID', 'ownerEmail'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @returns {Promise}
  */
 function Mobile_GetConstants(parameters) {
     const commandName = 'Mobile_GetConstants';
     requireParameters(['data'], parameters, commandName);
 
-    // Stringinfy the parameters object as we cannot send an object via FormData
+    // Stringify the parameters object as we cannot send an object via FormData
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 
@@ -1073,9 +1118,23 @@ function UpdatePolicy(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.reportName
+ * @param {String} parameters.visibility
+ * @return {Promise}
+ */
+function CreatePolicyRoom(parameters) {
+    const commandName = 'CreatePolicyRoom';
+    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
+    AddBillingCard,
     BankAccount_Create,
     BankAccount_Get,
     BankAccount_SetupWithdrawal,
@@ -1083,12 +1142,14 @@ export {
     ChangePassword,
     CreateChatReport,
     CreateLogin,
+    CreatePolicyRoom,
     DeleteLogin,
+    DeleteBankAccount,
     Get,
     GetAccountStatus,
-    GetAccountValidateCode,
+    GetShortLivedAuthToken,
     GetIOUReport,
-    GetPolicyList,
+    GetFullPolicy,
     GetPolicySummaryList,
     GetReportSummaryList,
     GetRequestCountryCode,

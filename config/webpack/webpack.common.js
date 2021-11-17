@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const path = require('path');
 const {IgnorePlugin} = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
@@ -7,7 +8,7 @@ const CustomVersionFilePlugin = require('./CustomVersionFilePlugin');
 
 // Check for a --platform command line argument (default to 'web')
 // If it is 'web', we want to ignore .desktop.js files, and if it is 'desktop', we want to ignore .website.js files.
-const platformIndex = process.argv.findIndex(arg => arg === '--platform');
+const platformIndex = _.findIndex(process.argv, arg => arg === '--platform');
 const platform = (platformIndex > 0) ? process.argv[platformIndex + 1] : 'web';
 const platformExclude = platform === 'web' ? new RegExp(/\.desktop\.js$/) : new RegExp(/\.website\.js$/);
 
@@ -21,6 +22,7 @@ const includeModules = [
     'react-native-onyx',
     'react-native-gesture-handler',
     'react-native-flipper',
+    'react-native-google-places-autocomplete',
 ].join('|');
 
 const webpackConfig = {

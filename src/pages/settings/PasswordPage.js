@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {View, ScrollView} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import {isEmpty} from 'underscore';
 
@@ -13,12 +13,14 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
-import {changePassword} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import InlineErrorText from '../../components/InlineErrorText';
+import {clearAccountMessages} from '../../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -58,7 +60,7 @@ class PasswordPage extends Component {
     }
 
     componentWillUnmount() {
-        Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
+        clearAccountMessages();
     }
 
     onBlurNewPassword() {
@@ -92,12 +94,7 @@ class PasswordPage extends Component {
 
 
     handleChangePassword() {
-        changePassword(this.state.currentPassword, this.state.newPassword)
-            .then((response) => {
-                if (response.jsonCode === 200) {
-                    Navigation.navigate(ROUTES.SETTINGS);
-                }
-            });
+        User.changePasswordAndNavigate(this.state.currentPassword, this.state.newPassword);
     }
 
     doPasswordsMatch() {
@@ -107,9 +104,11 @@ class PasswordPage extends Component {
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
-                if (this.currentPasswordInputRef) {
-                    this.currentPasswordInputRef.focus();
+                if (!this.currentPasswordInputRef) {
+                    return;
                 }
+
+                this.currentPasswordInputRef.focus();
             }}
             >
                 <KeyboardAvoidingView>
@@ -170,9 +169,9 @@ class PasswordPage extends Component {
                             </Text>
                         )}
                         {this.state.shouldShowPasswordConfirmError && (
-                            <Text style={[styles.formError, styles.mt1]}>
+                            <InlineErrorText>
                                 {this.props.translate('setPasswordPage.passwordsDontMatch')}
-                            </Text>
+                            </InlineErrorText>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
@@ -195,7 +194,6 @@ class PasswordPage extends Component {
     }
 }
 
-PasswordPage.displayName = 'PasswordPage';
 PasswordPage.propTypes = propTypes;
 PasswordPage.defaultProps = defaultProps;
 

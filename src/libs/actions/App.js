@@ -1,11 +1,10 @@
-import {AppState, Linking} from 'react-native';
+import {AppState} from 'react-native';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import CONFIG from '../../CONFIG';
 import Performance from '../Performance';
 import Timing from './Timing';
 
@@ -22,6 +21,12 @@ Onyx.connect({
     key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: val => isSidebarLoaded = val,
     initWithStoredValues: false,
+});
+
+let currentPreferredLocale;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: val => currentPreferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
 /**
@@ -41,17 +46,17 @@ function setLocale(locale) {
     Onyx.merge(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
 }
 
-/**
- * This links to a page in e.com ensuring the user is logged in.
- * It does so by getting a validate code and redirecting to the validate URL with exitTo set to the URL
- * we want to visit
- * @param {string} url relative URL starting with `/` to open in expensify.com
- */
-function openSignedInLink(url = '') {
-    API.GetAccountValidateCode().then((response) => {
-        const exitToURL = url ? `?exitTo=${url}` : '';
-        const validateCodeUrl = `v/${currentUserAccountID}/${response.validateCode}${exitToURL}`;
-        Linking.openURL(CONFIG.EXPENSIFY.URL_EXPENSIFY_COM + validateCodeUrl);
+function getLocale() {
+    API.Get({
+        returnValueList: 'nameValuePairs',
+        nvpNames: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    }).then((response) => {
+        const preferredLocale = lodashGet(response, ['nameValuePairs', 'preferredLocale'], CONST.DEFAULT_LOCALE);
+        if (preferredLocale === currentPreferredLocale) {
+            return;
+        }
+
+        Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, preferredLocale);
     });
 }
 
@@ -74,9 +79,14 @@ AppState.addEventListener('change', (nextAppState) => {
     appState = nextAppState;
 });
 
+function triggerUpdateAvailable() {
+    Onyx.merge(ONYXKEYS.UPDATE_AVAILABLE, true);
+}
+
 export {
     setCurrentURL,
     setLocale,
-    openSignedInLink,
     setSidebarLoaded,
+    getLocale,
+    triggerUpdateAvailable,
 };

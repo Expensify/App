@@ -1,3 +1,5 @@
+import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
@@ -40,26 +42,24 @@ const defaultProps = {
     user: {},
 };
 
-const PreferencesPage = ({
-    priorityMode, user, translate, environment,
-}) => {
+const PreferencesPage = (props) => {
     const priorityModes = {
         default: {
             value: CONST.PRIORITY_MODE.DEFAULT,
-            label: translate('preferencesPage.mostRecent'),
-            description: translate('preferencesPage.mostRecentModeDescription'),
+            label: props.translate('preferencesPage.mostRecent'),
+            description: props.translate('preferencesPage.mostRecentModeDescription'),
         },
         gsd: {
             value: CONST.PRIORITY_MODE.GSD,
-            label: translate('preferencesPage.focus'),
-            description: translate('preferencesPage.focusModeDescription'),
+            label: props.translate('preferencesPage.focus'),
+            description: props.translate('preferencesPage.focusModeDescription'),
         },
     };
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('common.preferences')}
+                title={props.translate('common.preferences')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -67,33 +67,33 @@ const PreferencesPage = ({
             <View style={styles.pageWrapper}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
                     <Text style={[styles.formLabel]} numberOfLines={1}>
-                        {translate('common.notifications')}
+                        {props.translate('common.notifications')}
                     </Text>
                     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                         <View style={styles.flex4}>
                             <Text>
-                                {translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                             </Text>
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
-                                isOn={user.expensifyNewsStatus ?? true}
+                                isOn={lodashGet(props.user, 'expensifyNewsStatus', true)}
                                 onToggle={setExpensifyNewsStatus}
                             />
                         </View>
                     </View>
                     <View style={[styles.mb2, styles.w100]}>
                         <ExpensiPicker
-                            label={translate('preferencesPage.priorityMode')}
+                            label={props.translate('preferencesPage.priorityMode')}
                             onChange={
                                 mode => NameValuePair.set(CONST.NVP.PRIORITY_MODE, mode, ONYXKEYS.NVP_PRIORITY_MODE)
                             }
-                            items={Object.values(priorityModes)}
-                            value={priorityMode}
+                            items={_.values(priorityModes)}
+                            value={props.priorityMode}
                         />
                     </View>
                     <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
-                        {priorityModes[priorityMode].description}
+                        {priorityModes[props.priorityMode].description}
                     </Text>
                     <View style={[styles.mb2]}>
                         <LocalePicker />
@@ -101,7 +101,7 @@ const PreferencesPage = ({
 
                     {/* If we are in the staging environment then we have the option to switch from using the staging secure endpoint or the production secure endpoint. This enables QA */}
                     {/* and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido */}
-                    {environment === CONST.ENVIRONMENT.STAGING && (
+                    {props.environment === CONST.ENVIRONMENT.STAGING && (
                         <>
                             <Text style={[styles.formLabel]} numberOfLines={1}>
                                 Test Preferences
@@ -114,7 +114,7 @@ const PreferencesPage = ({
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
-                                        isOn={user.shouldUseSecureStaging || false}
+                                        isOn={props.user.shouldUseSecureStaging || false}
                                         onToggle={setShouldUseSecureStaging}
                                     />
                                 </View>

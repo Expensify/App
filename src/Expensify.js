@@ -2,7 +2,7 @@ import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
 import {View, AppState} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
+import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
 import * as ActiveClientManager from './libs/ActiveClientManager';
@@ -16,6 +16,16 @@ import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
 import {growlRef} from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
+import Log from './libs/Log';
+
+Onyx.registerLogger(({level, message}) => {
+    if (level === 'alert') {
+        Log.alert(message);
+        console.error(message);
+    } else {
+        Log.info(message);
+    }
+});
 
 const propTypes = {
     /* Onyx Props */
@@ -114,9 +124,11 @@ class Expensify extends PureComponent {
     }
 
     initializeClient() {
-        if (Visibility.isVisible()) {
-            ActiveClientManager.init();
+        if (!Visibility.isVisible()) {
+            return;
         }
+
+        ActiveClientManager.init();
     }
 
     hideSplash() {

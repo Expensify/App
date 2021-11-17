@@ -1,11 +1,12 @@
 /**
  * The react native image/document pickers work for iOS/Android, but we want to wrap them both within AttachmentPicker
  */
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
-import * as basePropTypes from './AttachmentPickerPropTypes';
+import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
@@ -65,7 +66,7 @@ function getDataForUpload(fileData) {
         name: fileData.fileName || fileData.name || 'chat_attachment',
         type: fileData.type,
         uri: fileData.uri,
-        size: fileData.size,
+        size: fileData.fileSize || fileData.size,
     };
 }
 
@@ -86,12 +87,12 @@ class AttachmentPicker extends Component {
         this.menuItemData = [
             {
                 icon: Camera,
-                text: this.props.translate('attachmentPicker.takePhoto'),
+                textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
                 icon: Gallery,
-                text: this.props.translate('attachmentPicker.chooseFromGallery'),
+                textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
         ];
@@ -102,7 +103,7 @@ class AttachmentPicker extends Component {
             this.menuItemData.push(
                 {
                     icon: Paperclip,
-                    text: this.props.translate('attachmentPicker.chooseDocument'),
+                    textTranslationKey: 'attachmentPicker.chooseDocument',
                     pickAttachment: () => this.showDocumentPicker(),
                 },
             );
@@ -119,14 +120,17 @@ class AttachmentPicker extends Component {
       * @param {ImagePickerResponse|DocumentPickerResponse} attachment
       */
     pickAttachment(attachment) {
-        if (attachment) {
-            if (attachment.width === -1 || attachment.height === -1) {
-                this.showImageCorruptionAlert();
-                return;
-            }
-            const result = getDataForUpload(attachment);
-            this.completeAttachmentSelection(result);
+        if (!attachment) {
+            return;
         }
+
+        if (attachment.width === -1 || attachment.height === -1) {
+            this.showImageCorruptionAlert();
+            return;
+        }
+
+        const result = getDataForUpload(attachment);
+        this.completeAttachmentSelection(result);
     }
 
     /**
@@ -210,10 +214,12 @@ class AttachmentPicker extends Component {
       */
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
-            if (!RNDocumentPicker.isCancel(error)) {
-                this.showGeneralAlert(error.message);
-                throw error;
+            if (RNDocumentPicker.isCancel(error)) {
+                return;
             }
+
+            this.showGeneralAlert(error.message);
+            throw error;
         });
     }
 
@@ -221,9 +227,11 @@ class AttachmentPicker extends Component {
       * Triggers the `onPicked` callback with the selected attachment
       */
     completeAttachmentSelection() {
-        if (this.state.result) {
-            this.state.onPicked(this.state.result);
+        if (!this.state.result) {
+            return;
         }
+
+        this.state.onPicked(this.state.result);
     }
 
     /**
@@ -284,11 +292,11 @@ class AttachmentPicker extends Component {
                 >
                     <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
                         {
-                             this.menuItemData.map(item => (
+                             _.map(this.menuItemData, item => (
                                  <MenuItem
-                                     key={item.text}
+                                     key={item.textTranslationKey}
                                      icon={item.icon}
-                                     title={item.text}
+                                     title={this.props.translate(item.textTranslationKey)}
                                      onPress={() => this.selectItem(item)}
                                  />
                              ))
@@ -302,7 +310,8 @@ class AttachmentPicker extends Component {
 }
 
 AttachmentPicker.propTypes = propTypes;
-AttachmentPicker.displayName = 'AttachmentPicker';
+AttachmentPicker.defaultProps = defaultProps;
+
 export default compose(
     withWindowDimensions,
     withLocalize,

@@ -23,7 +23,9 @@ import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import {getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom} from '../../libs/reportUtils';
+import {
+    getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom, hasExpensifyEmails,
+} from '../../libs/reportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
@@ -88,10 +90,15 @@ const HeaderView = (props) => {
     const isDefaultChatRoom = isDefaultRoom(props.report);
     const title = isDefaultChatRoom
         ? props.report.reportName
-        : displayNamesWithTooltips.map(({displayName}) => displayName).join(', ');
+        : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
     const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
-    const isConcierge = participants.length === 1 && participants.includes(CONST.EMAIL.CONCIERGE);
+    const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
+    const isAutomatedExpensifyAccount = (participants.length === 1 && hasExpensifyEmails(participants));
+
+    // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
+    // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
+    const shouldShowCallButton = isConcierge || !isAutomatedExpensifyAccount;
 
     return (
         <View style={[styles.appContentHeader]} nativeID="drag-area">
@@ -162,7 +169,7 @@ const HeaderView = (props) => {
                                 <IOUBadge iouReportID={props.report.iouReportID} />
                             )}
 
-                            <VideoChatButtonAndMenu isConcierge={isConcierge} />
+                            {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} />}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
                                     onPress={() => togglePinnedState(props.report)}

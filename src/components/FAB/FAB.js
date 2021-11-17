@@ -7,6 +7,8 @@ import {Plus} from '../Icon/Expensicons';
 import styles, {getAnimatedFABStyle} from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import fabPropTypes from './fabPropTypes';
+import Tooltip from '../Tooltip';
+import withLocalize from '../withLocalize';
 
 const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 AnimatedIcon.displayName = 'AnimatedIcon';
@@ -17,13 +19,15 @@ AnimatedPressable.displayName = 'AnimatedPressable';
 class FAB extends PureComponent {
     constructor(props) {
         super(props);
-        this.animatedValue = new Animated.Value(0);
+        this.animatedValue = new Animated.Value(props.isActive ? 1 : 0);
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isActive !== this.props.isActive) {
-            this.animateFloatingActionButton();
+        if (prevProps.isActive === this.props.isActive) {
+            return;
         }
+
+        this.animateFloatingActionButton();
     }
 
     /**
@@ -58,20 +62,22 @@ class FAB extends PureComponent {
         });
 
         return (
-            <AnimatedPressable
-                accessibilityLabel={this.props.accessibilityLabel}
-                accessibilityRole={this.props.accessibilityRole}
-                onPress={this.props.onPress}
-                style={[
-                    styles.floatingActionButton,
-                    getAnimatedFABStyle(rotate, backgroundColor),
-                ]}
-            >
-                <AnimatedIcon src={Plus} fill={fill} />
-            </AnimatedPressable>
+            <Tooltip absolute text={this.props.translate('common.new')}>
+                <AnimatedPressable
+                    accessibilityLabel={this.props.accessibilityLabel}
+                    accessibilityRole={this.props.accessibilityRole}
+                    onPress={this.props.onPress}
+                    style={[
+                        styles.floatingActionButton,
+                        getAnimatedFABStyle(rotate, backgroundColor),
+                    ]}
+                >
+                    <AnimatedIcon src={Plus} fill={fill} />
+                </AnimatedPressable>
+            </Tooltip>
         );
     }
 }
 
 FAB.propTypes = fabPropTypes;
-export default FAB;
+export default withLocalize(FAB);
