@@ -41,6 +41,7 @@ const defaultProps = {
 const AddressSearch = (props) => {
     const googlePlacesRef = useRef();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+    const [isSelected, setIsSelected] = useState(true);
     useEffect(() => {
         if (!googlePlacesRef.current) {
             return;
@@ -86,10 +87,15 @@ const AddressSearch = (props) => {
         <GooglePlacesAutocomplete
             ref={googlePlacesRef}
             fetchDetails
+            onBlur={() => {
+                if(!isSelected){
+                    googlePlacesRef.current.setAddressText("")
+                }}}
             suppressDefaultStyles
             enablePoweredByContainer={false}
             onPress={(data, details) => {
                 saveLocationDetails(details);
+                setIsSelected(true)
 
                 // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                 setDisplayListViewBorder(false);
@@ -109,9 +115,15 @@ const AddressSearch = (props) => {
                 label: props.label,
                 containerStyles: props.containerStyles,
                 errorText: props.errorText,
+                onKeyPress: (event) => {
+                    if(event.key == 'Tab' && !isSelected){
+                        googlePlacesRef.current.setAddressText("")
+                    }
+                },
                 onChangeText: (text) => {
                     const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
-
+                    setIsSelected(false)
+                    
                     // Ensure whether an address is selected already or has address value initialized.
                     if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
                         saveLocationDetails({});
