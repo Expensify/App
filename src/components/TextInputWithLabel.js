@@ -32,7 +32,7 @@ const propTypes = {
     /** Whether to disable the field and style */
     disabled: PropTypes.bool,
 
-    /** Callback to execute the text input is modified */
+    /** Callback to execute when the text input is modified */
     onChangeText: PropTypes.func,
 };
 
