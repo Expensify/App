@@ -191,6 +191,7 @@ const CONST = {
             PRIVATE: 'private',
         },
         MAX_PREVIEW_AVATARS: 4,
+        MAX_ROOM_NAME_LENGTH: 80,
     },
     MODAL: {
         MODAL_TYPE: {

@@ -65,7 +65,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         prefixCharacter="#"
                         placeholder={this.props.translate('newRoomPage.social')}
                         containerStyles={[styles.mb5]}
-                        onChangeText={roomName => this.setState({roomName: roomName.replace(/ /g, '_')})}
+                        onChangeText={roomName => this.setState({roomName: roomName.replace(/ /g, '_').substring(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)})}
                         value={this.state.roomName.substr(1)}
                     />
                     <ExpensiPicker
