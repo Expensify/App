@@ -20,7 +20,7 @@ import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
 import {
-    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom,
+    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom, isPolicyRoom,
 } from '../reportUtils';
 import Timers from '../Timers';
 import {dangerouslyGetReportActionsMaxSequenceNumber, isReportMissingActions} from './ReportActions';
@@ -142,6 +142,10 @@ function getChatReportName(fullReport, chatType) {
         })
             ? ` (${translateLocal('common.deleted')})`
             : '')}`;
+    }
+
+    if (isPolicyRoom({chatType})) {
+        return fullReport.reportName;
     }
 
     const {sharedReportList} = fullReport;
@@ -364,6 +368,10 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             const reportIOUData = {};
             _.each(fetchedReports, (report) => {
                 const simplifiedReport = getSimplifiedReportObject(report);
+                if (report.reportID > 400) {
+                    console.log(">>>> report", report);
+                    console.log(">>>> simplifiedReport", simplifiedReport);
+                }
                 simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
             });
 
@@ -1444,14 +1452,14 @@ function createPolicyRoom(policyID, reportName, visibility) {
     return API.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode !== 200) {
-                Log.hmmm(response.message);
+                Growl.error(response.message);
                 return;
             }
             return fetchChatReportsByIDs([response.reportID]);
         })
         .then(([{reportID}]) => {
             if (!reportID) {
-                Log.hmmm('Unable to grab policy room after creation');
+                Log.error('Unable to grab policy room after creation', reportID);
                 return;
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));

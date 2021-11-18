@@ -570,7 +570,7 @@ const styles = {
             flex: 1,
         },
         prefix: {
-            paddingRight: 12,
+            paddingRight: 10,
             color: themeColors.text,
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,

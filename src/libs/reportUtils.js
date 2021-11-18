@@ -93,6 +93,16 @@ function isDefaultRoom(report) {
 }
 
 /**
+ * Whether the provided report is a policy room
+ * @param {Object} report
+ * @param {String} report.chatType
+ * @returns {Boolean}
+ */
+function isPolicyRoom(report) {
+    return lodashGet(report, ['chatType'], '') === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
+}
+
+/**
  * Given a collection of reports returns the most recently accessed one
  *
  * @param {Record<String, {lastVisitedTimestamp, reportID}>|Array<{lastVisitedTimestamp, reportID}>} reports
@@ -198,6 +208,7 @@ export {
     canDeleteReportAction,
     sortReportsByLastVisited,
     isDefaultRoom,
+    isPolicyRoom,
     getDefaultRoomSubtitle,
     isArchivedRoom,
     isConciergeChatReport,

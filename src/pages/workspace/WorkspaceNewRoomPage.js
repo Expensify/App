@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import withFullPolicy, {fullPolicyDefaultProps, fullPolicyPropTypes} from './withFullPolicy';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
@@ -18,6 +19,13 @@ import FixedFooter from '../../components/FixedFooter';
 import {createPolicyRoom} from '../../libs/actions/Report';
 
 const propTypes = {
+    /** All reports shared with the user */
+    reports: PropTypes.shape({
+        reportName: PropTypes.string.isRequired,
+        type: PropTypes.string.isRequired,
+        policyID: PropTypes.string.isRequired,
+    }).isRequired,
+
     ...fullPolicyPropTypes,
 
     ...withLocalizePropTypes,
@@ -36,15 +44,22 @@ class WorkspaceNewRoomPage extends React.Component {
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             isLoading: false,
+            error: '',
         };
         this.workspaceOptions = [];
-        this.modifyRoomName = this.modifyRoomName.bind(this);
+        this.onWorkspaceSelect = this.onWorkspaceSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+        this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
     }
 
     componentDidMount() {
         const workspaces = _.filter(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.FREE);
         this.workspaceOptions = _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}));
+    }
+
+    onWorkspaceSelect(policyID) {
+        this.setState({policyID});
+        this.checkAndModifyRoomName(this.state.roomName);
     }
 
     onSubmit() {
@@ -58,21 +73,33 @@ class WorkspaceNewRoomPage extends React.Component {
      * - Max length 80 characters
      * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
      * - Must be lowercase
+     * Also checks to see if this room name already exists, and displays an error message if so.
      * @param {String} roomName
      *
      * @returns {String}
      */
-    modifyRoomName(roomName) {
+    checkAndModifyRoomName(roomName) {
         const modifiedRoomNameWithoutHash = roomName.substr(1)
             .replace(/ /g, '_')
             .replace(/[^a-zA-Z\d_]/g, '')
             .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
             .toLowerCase();
-        return `#${modifiedRoomNameWithoutHash}`;
+        const finalRoomName = `#${modifiedRoomNameWithoutHash}`;
+
+        const isExistingRoomName = _.some(
+            _.values(this.props.reports),
+            report => report.policyID === this.state.policyID && report.reportName === finalRoomName,
+        );
+        if (isExistingRoomName) {
+            this.setState({error: this.props.translate('newRoomPage.roomAlreadyExists')});
+        } else {
+            this.setState({error: ''});
+        }
+        return finalRoomName;
     }
 
     render() {
-        const shouldDisableSubmit = !this.state.roomName || !this.state.policyID;
+        const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -85,15 +112,16 @@ class WorkspaceNewRoomPage extends React.Component {
                         prefixCharacter="#"
                         placeholder={this.props.translate('newRoomPage.social')}
                         containerStyles={[styles.mb5]}
-                        onChangeText={roomName => this.setState({roomName: this.modifyRoomName(roomName)})}
+                        onChangeText={roomName => this.setState({roomName: this.checkAndModifyRoomName(roomName)})}
                         value={this.state.roomName.substr(1)}
+                        errorText={this.state.error}
                     />
                     <ExpensiPicker
                         value={this.state.policyID}
                         label={this.props.translate('workspace.common.workspace')}
                         placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                         items={this.workspaceOptions}
-                        onChange={policyID => this.setState({policyID})}
+                        onChange={this.onWorkspaceSelect}
                         containerStyles={[styles.mb5]}
                     />
                     <ExpensiPicker
@@ -132,6 +160,9 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        reports: {
+            key: ONYXKEYS.COLLECTION.REPORT,
         },
     }),
     withLocalize,

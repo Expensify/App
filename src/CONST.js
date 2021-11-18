@@ -175,6 +175,7 @@ const CONST = {
             POLICY_ANNOUNCE: 'policyAnnounce',
             POLICY_ADMINS: 'policyAdmins',
             DOMAIN_ALL: 'domainAll',
+            POLICY_ROOM: 'policyRoom',
         },
         STATE_NUM: {
             OPEN: 0,
