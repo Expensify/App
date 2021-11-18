@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
-import Text from './Text';
-import styles from '../styles/styles';
+import Text from '../Text';
+import styles from '../../styles/styles';
 
 const propTypes = {
     /** Prefix character */
@@ -31,17 +31,19 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
     ? <TextInput {..._.omit(props, ['prefixCharacter', 'errorText'])} />
     : (
         <View
-                style={[
-                    styles.textInputWithPrefix.container,
-                    props.disabled ? styles.inputDisabled : undefined,
-                    props.errorText ? styles.errorOutline : undefined,
-                ]}
+            style={[
+                styles.textInputWithPrefix.container,
+                {paddingTop: 0},
+                props.disabled ? styles.inputDisabled : undefined,
+                props.errorText ? styles.errorOutline : undefined,
+            ]}
         >
-            <Text style={styles.textInputWithPrefix.prefix}>{props.prefixCharacter}</Text>
+            <Text style={[styles.textInputWithPrefix.prefix, {paddingTop: 10}]}>{props.prefixCharacter}</Text>
             <TextInput
                 style={[
                     styles.textInputWithPrefix.textInput,
                     styles.noOutline,
+                    {height: 40},
                 ]}
                 onChangeText={text => props.onChangeText(`${props.prefixCharacter}${text}`)}
                 // eslint-disable-next-line react/jsx-props-no-spreading
