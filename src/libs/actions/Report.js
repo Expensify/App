@@ -368,10 +368,6 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             const reportIOUData = {};
             _.each(fetchedReports, (report) => {
                 const simplifiedReport = getSimplifiedReportObject(report);
-                if (report.reportID > 400) {
-                    console.log(">>>> report", report);
-                    console.log(">>>> simplifiedReport", simplifiedReport);
-                }
                 simplifiedReports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = simplifiedReport;
             });
 
