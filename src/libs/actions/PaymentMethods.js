@@ -66,6 +66,9 @@ function setWalletLinkedAccount(password, bankAccountID, fundID) {
             } else {
                 Growl.show(translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
             }
+        })
+        .catch(() => {
+            Growl.show(translateLocal('paymentsPage.setDefaultFailure'), CONST.GROWL.ERROR, 5000);
         });
 }
 
