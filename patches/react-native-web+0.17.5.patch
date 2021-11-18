@@ -1,0 +1,338 @@
+diff --git a/node_modules/react-native-web/dist/cjs/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/cjs/vendor/react-native/VirtualizedList/index.js
+index f7f19fb..1dc1734 100644
+--- a/node_modules/react-native-web/dist/cjs/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/dist/cjs/vendor/react-native/VirtualizedList/index.js
+@@ -101,7 +101,15 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+   var _proto = VirtualizedList.prototype;
+ 
+-  // scrollToEnd may be janky without getItemLayout prop
++  _proto.pushOrUnshift = function pushOrUnshift(input, item) {
++    if (this.props.inverted) {
++      input.unshift(item);
++    } else {
++      input.push(item);
++    }
++  } // scrollToEnd may be janky without getItemLayout prop
++  ;
++
+   _proto.scrollToEnd = function scrollToEnd(params) {
+     var animated = params ? params.animated : true;
+     var veryLast = this.props.getItemCount(this.props.data) - 1;
+@@ -511,6 +519,11 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+     };
+ 
+     _this._onScroll = function (e) {
++      var contentOffset = _this.props.inverted ? {
++        x: -e.nativeEvent.contentOffset.x,
++        y: -e.nativeEvent.contentOffset.y
++      } : e.nativeEvent.contentOffset;
++
+       _this._nestedChildLists.forEach(function (childList) {
+         childList.ref && childList.ref._onScroll(e);
+       });
+@@ -525,7 +538,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+       var contentLength = _this._selectLength(e.nativeEvent.contentSize);
+ 
+-      var offset = _this._selectOffset(e.nativeEvent.contentOffset);
++      var offset = _this._selectOffset(contentOffset);
+ 
+       var dOffset = offset - _this._scrollMetrics.offset;
+ 
+@@ -798,7 +811,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+     } else if (_this.props.onViewableItemsChanged) {
+       var onViewableItemsChanged = _this.props.onViewableItemsChanged;
+ 
+-      _this._viewabilityTuples.push({
++      _this.pushOrUnshift(_this._viewabilityTuples, {
+         viewabilityHelper: new _ViewabilityHelper.default(_this.props.viewabilityConfig),
+         onViewableItemsChanged: onViewableItemsChanged
+       });
+@@ -898,10 +911,10 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+       _this2._indicesToKeys.set(ii, key);
+ 
+       if (stickyIndicesFromProps.has(ii + stickyOffset)) {
+-        stickyHeaderIndices.push(cells.length);
++        _this2.pushOrUnshift(stickyHeaderIndices, cells.length);
+       }
+ 
+-      cells.push( /*#__PURE__*/React.createElement(CellRenderer, {
++      _this2.pushOrUnshift(cells, /*#__PURE__*/React.createElement(CellRenderer, {
+         CellRendererComponent: CellRendererComponent,
+         ItemSeparatorComponent: ii < end ? ItemSeparatorComponent : undefined,
+         cellKey: key,
+@@ -922,6 +935,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+           _this2._cellRefs[key] = _ref;
+         }
+       }));
++
+       prevCellKey = key;
+     };
+ 
+@@ -967,14 +981,14 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+     if (ListHeaderComponent) {
+       if (stickyIndicesFromProps.has(0)) {
+-        stickyHeaderIndices.push(0);
++        this.pushOrUnshift(stickyHeaderIndices, 0);
+       }
+ 
+       var element = /*#__PURE__*/React.isValidElement(ListHeaderComponent) ? ListHeaderComponent :
+       /*#__PURE__*/
+       // $FlowFixMe
+       React.createElement(ListHeaderComponent, null);
+-      cells.push( /*#__PURE__*/React.createElement(_VirtualizedListContext.VirtualizedListCellContextProvider, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(_VirtualizedListContext.VirtualizedListCellContextProvider, {
+         cellKey: this._getCellKey() + '-header',
+         key: "$header"
+       }, /*#__PURE__*/React.createElement(_View.default, {
+@@ -1014,7 +1028,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+               var stickyBlock = this._getFrameMetricsApprox(ii);
+ 
+               var leadSpace = stickyBlock.offset - initBlock.offset - (this.props.initialScrollIndex ? 0 : initBlock.length);
+-              cells.push(
++              this.pushOrUnshift(cells,
+               /*#__PURE__*/
+ 
+               /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment
+@@ -1028,7 +1042,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+               this._pushCells(cells, stickyHeaderIndices, stickyIndicesFromProps, ii, ii, inversionStyle);
+ 
+               var trailSpace = this._getFrameMetricsApprox(first).offset - (stickyBlock.offset + stickyBlock.length);
+-              cells.push(
++              this.pushOrUnshift(cells,
+               /*#__PURE__*/
+ 
+               /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment
+@@ -1051,7 +1065,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+           var firstSpace = this._getFrameMetricsApprox(first).offset - (_initBlock.offset + _initBlock.length);
+ 
+-          cells.push(
++          this.pushOrUnshift(cells,
+           /*#__PURE__*/
+ 
+           /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment
+@@ -1084,7 +1098,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+         var endFrame = this._getFrameMetricsApprox(end);
+ 
+         var tailSpacerLength = endFrame.offset + endFrame.length - (lastFrame.offset + lastFrame.length);
+-        cells.push(
++        this.pushOrUnshift(cells,
+         /*#__PURE__*/
+ 
+         /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+@@ -1101,7 +1115,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+       // $FlowFixMe
+       React.createElement(ListEmptyComponent, null);
+ 
+-      cells.push( /*#__PURE__*/React.cloneElement(_element, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.cloneElement(_element, {
+         key: '$empty',
+         onLayout: function onLayout(event) {
+           _this3._onLayoutEmpty(event);
+@@ -1120,7 +1134,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+       // $FlowFixMe
+       React.createElement(ListFooterComponent, null);
+ 
+-      cells.push( /*#__PURE__*/React.createElement(_VirtualizedListContext.VirtualizedListCellContextProvider, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(_VirtualizedListContext.VirtualizedListCellContextProvider, {
+         cellKey: this._getFooterCellKey(),
+         key: "$footer"
+       }, /*#__PURE__*/React.createElement(_View.default, {
+@@ -1298,7 +1312,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+ 
+       if (frame.inLayout) {
+-        framesInLayout.push(frame);
++        this.pushOrUnshift(framesInLayout, frame);
+       }
+     }
+ 
+@@ -1621,14 +1635,10 @@ function describeNestedLists(childList) {
+ 
+ var styles = _StyleSheet.default.create({
+   verticallyInverted: {
+-    transform: [{
+-      scaleY: -1
+-    }]
++    flexDirection: 'column-reverse'
+   },
+   horizontallyInverted: {
+-    transform: [{
+-      scaleX: -1
+-    }]
++    flexDirection: 'row-reverse'
+   },
+   row: {
+     flexDirection: 'row'
+diff --git a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+index 05a53ed..cefc623 100644
+--- a/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
++++ b/node_modules/react-native-web/dist/vendor/react-native/VirtualizedList/index.js
+@@ -83,7 +83,15 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+   var _proto = VirtualizedList.prototype;
+ 
+-  // scrollToEnd may be janky without getItemLayout prop
++  _proto.pushOrUnshift = function pushOrUnshift(input, item) {
++    if (this.props.inverted) {
++      input.unshift(item);
++    } else {
++      input.push(item);
++    }
++  } // scrollToEnd may be janky without getItemLayout prop
++  ;
++
+   _proto.scrollToEnd = function scrollToEnd(params) {
+     var animated = params ? params.animated : true;
+     var veryLast = this.props.getItemCount(this.props.data) - 1;
+@@ -493,6 +501,11 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+     };
+ 
+     _this._onScroll = function (e) {
++      var contentOffset = _this.props.inverted ? {
++        x: -e.nativeEvent.contentOffset.x,
++        y: -e.nativeEvent.contentOffset.y
++      } : e.nativeEvent.contentOffset;
++
+       _this._nestedChildLists.forEach(function (childList) {
+         childList.ref && childList.ref._onScroll(e);
+       });
+@@ -507,7 +520,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+       var contentLength = _this._selectLength(e.nativeEvent.contentSize);
+ 
+-      var offset = _this._selectOffset(e.nativeEvent.contentOffset);
++      var offset = _this._selectOffset(contentOffset);
+ 
+       var dOffset = offset - _this._scrollMetrics.offset;
+ 
+@@ -780,7 +793,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+     } else if (_this.props.onViewableItemsChanged) {
+       var onViewableItemsChanged = _this.props.onViewableItemsChanged;
+ 
+-      _this._viewabilityTuples.push({
++      _this.pushOrUnshift(_this._viewabilityTuples, {
+         viewabilityHelper: new ViewabilityHelper(_this.props.viewabilityConfig),
+         onViewableItemsChanged: onViewableItemsChanged
+       });
+@@ -880,10 +893,10 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+       _this2._indicesToKeys.set(ii, key);
+ 
+       if (stickyIndicesFromProps.has(ii + stickyOffset)) {
+-        stickyHeaderIndices.push(cells.length);
++        _this2.pushOrUnshift(stickyHeaderIndices, cells.length);
+       }
+ 
+-      cells.push( /*#__PURE__*/React.createElement(CellRenderer, {
++      _this2.pushOrUnshift(cells, /*#__PURE__*/React.createElement(CellRenderer, {
+         CellRendererComponent: CellRendererComponent,
+         ItemSeparatorComponent: ii < end ? ItemSeparatorComponent : undefined,
+         cellKey: key,
+@@ -904,6 +917,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+           _this2._cellRefs[key] = _ref;
+         }
+       }));
++
+       prevCellKey = key;
+     };
+ 
+@@ -949,14 +963,14 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+     if (ListHeaderComponent) {
+       if (stickyIndicesFromProps.has(0)) {
+-        stickyHeaderIndices.push(0);
++        this.pushOrUnshift(stickyHeaderIndices, 0);
+       }
+ 
+       var element = /*#__PURE__*/React.isValidElement(ListHeaderComponent) ? ListHeaderComponent :
+       /*#__PURE__*/
+       // $FlowFixMe
+       React.createElement(ListHeaderComponent, null);
+-      cells.push( /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
+         cellKey: this._getCellKey() + '-header',
+         key: "$header"
+       }, /*#__PURE__*/React.createElement(View, {
+@@ -996,7 +1010,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+               var stickyBlock = this._getFrameMetricsApprox(ii);
+ 
+               var leadSpace = stickyBlock.offset - initBlock.offset - (this.props.initialScrollIndex ? 0 : initBlock.length);
+-              cells.push(
++              this.pushOrUnshift(cells,
+               /*#__PURE__*/
+ 
+               /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment
+@@ -1010,7 +1024,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+               this._pushCells(cells, stickyHeaderIndices, stickyIndicesFromProps, ii, ii, inversionStyle);
+ 
+               var trailSpace = this._getFrameMetricsApprox(first).offset - (stickyBlock.offset + stickyBlock.length);
+-              cells.push(
++              this.pushOrUnshift(cells,
+               /*#__PURE__*/
+ 
+               /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment
+@@ -1033,7 +1047,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+           var firstSpace = this._getFrameMetricsApprox(first).offset - (_initBlock.offset + _initBlock.length);
+ 
+-          cells.push(
++          this.pushOrUnshift(cells,
+           /*#__PURE__*/
+ 
+           /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment
+@@ -1066,7 +1080,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+         var endFrame = this._getFrameMetricsApprox(end);
+ 
+         var tailSpacerLength = endFrame.offset + endFrame.length - (lastFrame.offset + lastFrame.length);
+-        cells.push(
++        this.pushOrUnshift(cells,
+         /*#__PURE__*/
+ 
+         /* $FlowFixMe(>=0.111.0 site=react_native_fb) This comment suppresses
+@@ -1083,7 +1097,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+       // $FlowFixMe
+       React.createElement(ListEmptyComponent, null);
+ 
+-      cells.push( /*#__PURE__*/React.cloneElement(_element, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.cloneElement(_element, {
+         key: '$empty',
+         onLayout: function onLayout(event) {
+           _this3._onLayoutEmpty(event);
+@@ -1102,7 +1116,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+       // $FlowFixMe
+       React.createElement(ListFooterComponent, null);
+ 
+-      cells.push( /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
++      this.pushOrUnshift(cells, /*#__PURE__*/React.createElement(VirtualizedListCellContextProvider, {
+         cellKey: this._getFooterCellKey(),
+         key: "$footer"
+       }, /*#__PURE__*/React.createElement(View, {
+@@ -1280,7 +1294,7 @@ var VirtualizedList = /*#__PURE__*/function (_React$PureComponent) {
+ 
+ 
+       if (frame.inLayout) {
+-        framesInLayout.push(frame);
++        this.pushOrUnshift(framesInLayout, frame);
+       }
+     }
+ 
+@@ -1603,14 +1617,10 @@ function describeNestedLists(childList) {
+ 
+ var styles = StyleSheet.create({
+   verticallyInverted: {
+-    transform: [{
+-      scaleY: -1
+-    }]
++    flexDirection: 'column-reverse'
+   },
+   horizontallyInverted: {
+-    transform: [{
+-      scaleX: -1
+-    }]
++    flexDirection: 'row-reverse'
+   },
+   row: {
+     flexDirection: 'row'
