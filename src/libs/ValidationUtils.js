@@ -2,6 +2,7 @@ import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import LoginUtil from './LoginUtil';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -253,7 +254,7 @@ function isValidUSPhone(phoneNumber) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
+    return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
