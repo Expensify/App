@@ -1118,6 +1118,15 @@ function addAction(reportID, text, file) {
 }
 
 /**
+ * Get the last read sequence number for a report
+ * @param {String|Number} reportID
+ * @return {Number}
+ */
+function getLastReadSequenceNumber(reportID) {
+    return lastReadSequenceNumbers[reportID];
+}
+
+/**
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {Number} reportID
@@ -1139,7 +1148,9 @@ function deleteReportComment(reportID, reportAction) {
         ],
     };
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+        setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+    });
 
     // Try to delete the comment by calling the API
     API.Report_EditComment({
@@ -1158,8 +1169,9 @@ function deleteReportComment(reportID, reportAction) {
                 ...reportAction,
                 message: oldMessage,
             };
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+                setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+            });
         });
 }
 
@@ -1442,15 +1454,6 @@ function createPolicyRoom(policyID, reportName, visibility) {
             }
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         });
-}
-
-/**
- * Get the last read sequence number for a report
- * @param {String|Number} reportID
- * @return {Number}
- */
-function getLastReadSequenceNumber(reportID) {
-    return lastReadSequenceNumbers[reportID];
 }
 
 export {
