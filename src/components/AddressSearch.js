@@ -91,7 +91,6 @@ const AddressSearch = (props) => {
                 if (isSelected) {
                     return;
                 }
-                
                 googlePlacesRef.current.setAddressText('');
             }}
             suppressDefaultStyles
