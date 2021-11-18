@@ -31,12 +31,12 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
     ? <TextInput {..._.omit(props, ['prefixCharacter', 'errorText'])} />
     : (
         <View
-            style={[
-                styles.textInputWithPrefix.container,
-                {paddingTop: 0},
-                props.disabled ? styles.inputDisabled : undefined,
-                props.errorText ? styles.errorOutline : undefined,
-            ]}
+                style={[
+                    styles.textInputWithPrefix.container,
+                    {paddingTop: 0},
+                    props.disabled ? styles.inputDisabled : undefined,
+                    props.errorText ? styles.errorOutline : undefined,
+                ]}
         >
             <Text style={[styles.textInputWithPrefix.prefix, {paddingTop: 10}]}>{props.prefixCharacter}</Text>
             <TextInput
