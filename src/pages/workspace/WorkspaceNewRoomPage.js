@@ -13,6 +13,8 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import Button from '../../components/Button';
+import FixedFooter from '../../components/FixedFooter';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -46,6 +48,7 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     render() {
+        const shouldDisableSubmit = !this.state.roomName || !this.state.policyID;
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -53,8 +56,6 @@ class WorkspaceNewRoomPage extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative, styles.p5]}>
-
-                    {/* TODO: This TextInput component is deprecated since it doesn't use our new ExpensiTextInput styles */}
                     <TextInputWithLabel
                         label={this.props.translate('newRoomPage.roomName')}
                         prefixCharacter="#"
@@ -70,7 +71,6 @@ class WorkspaceNewRoomPage extends React.Component {
                         onChange={policyID => this.setState({policyID})}
                         containerStyles={[styles.mb5]}
                     />
-
                     <ExpensiPicker
                         value={CONST.REPORT.VISIBILITY.RESTRICTED}
                         label={this.props.translate('newRoomPage.visibility')}
@@ -81,7 +81,15 @@ class WorkspaceNewRoomPage extends React.Component {
                         onChange={visibility => this.setState({visibility})}
                     />
                 </View>
-
+                <FixedFooter>
+                    <Button
+                        isDisabled={shouldDisableSubmit}
+                        success
+                        onPress={this.onSubmit}
+                        style={[styles.w100]}
+                        text={this.props.translate('newRoomPage.createRoom')}
+                    />
+                </FixedFooter>
             </ScreenWrapper>
         );
     }

@@ -9,7 +9,6 @@ import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import Text from '../../../components/Text';
 import * as Report from '../../../libs/actions/Report';
 import ReportActionItem from './ReportActionItem';
 import styles from '../../../styles/styles';
@@ -31,7 +30,15 @@ import PopoverReportActionContextMenu from './ContextMenu/PopoverReportActionCon
 import variables from '../../../styles/variables';
 import MarkerBadge from './MarkerBadge';
 import Performance from '../../../libs/Performance';
+import EmptyStateAvatars from '../../../components/EmptyStateAvatars';
+import * as ReportUtils from '../../../libs/reportUtils';
+import ReportWelcomeText from '../../../components/ReportWelcomeText';
 import ONYXKEYS from '../../../ONYXKEYS';
+import {withPersonalDetails} from '../../../components/OnyxProvider';
+import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
+import {participantPropTypes} from '../sidebar/optionPropTypes';
+import {shouldShowReportRecipientLocalTime as canShowReportRecipientLocalTime} from '../../../libs/reportUtils';
+
 
 const propTypes = {
     /** The ID of the report actions will be created for */
@@ -66,6 +73,12 @@ const propTypes = {
     /** Are we loading more report actions? */
     isLoadingReportActions: PropTypes.bool,
 
+    /** The personal details of the person who is logged in */
+    myPersonalDetails: PropTypes.shape(currentUserPersonalDetailsPropsTypes),
+
+    /** Personal details of all the users */
+    personalDetails: PropTypes.objectOf(participantPropTypes),
+
     ...windowDimensionsPropTypes,
     ...withDrawerPropTypes,
     ...withLocalizePropTypes,
@@ -80,6 +93,8 @@ const defaultProps = {
     reportActions: {},
     session: {},
     isLoadingReportActions: false,
+    personalDetails: {},
+    myPersonalDetails: {},
 };
 
 class ReportActionsView extends React.Component {
@@ -503,6 +518,8 @@ class ReportActionsView extends React.Component {
     }
 
     render() {
+        const isDefaultChatRoom = ReportUtils.isDefaultRoom(this.props.report);
+
         // Comments have not loaded at all yet do nothing
         if (!_.size(this.props.reportActions)) {
             return null;
@@ -512,9 +529,14 @@ class ReportActionsView extends React.Component {
         if (_.size(this.props.reportActions) === 1) {
             return (
                 <View style={[styles.chatContent, styles.chatContentEmpty]}>
-                    <Text>
-                        {this.props.translate('reportActionsView.beFirstPersonToComment')}
-                    </Text>
+                    <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.flex1]}>
+                        <EmptyStateAvatars
+                            avatarImageURLs={this.props.report.icons}
+                            secondAvatarStyle={[styles.secondAvatarHovered]}
+                            isDefaultChatRoom={isDefaultChatRoom}
+                        />
+                        <ReportWelcomeText report={this.props.report} shouldIncludeParticipants={!isDefaultChatRoom} />
+                    </View>
                 </View>
             );
         }
@@ -522,6 +544,7 @@ class ReportActionsView extends React.Component {
         // Native mobile does not render updates flatlist the changes even though component did update called.
         // To notify there something changes we can use extraData prop to flatlist
         const extraData = (!this.props.isDrawerOpen && this.props.isSmallScreenWidth) ? this.props.report.newMarkerSequenceNumber : undefined;
+        const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         return (
             <>
@@ -536,7 +559,7 @@ class ReportActionsView extends React.Component {
                     data={this.sortedReportActions}
                     renderItem={this.renderItem}
                     CellRendererComponent={this.renderCell}
-                    contentContainerStyle={styles.chatContentScrollView}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldShowReportRecipientLocalTime && styles.pt0]}
                     keyExtractor={this.keyExtractor}
                     initialRowHeight={32}
                     initialNumToRender={this.calculateInitialNumToRender()}
@@ -564,10 +587,14 @@ export default compose(
     withWindowDimensions,
     withDrawerState,
     withLocalize,
+    withPersonalDetails(),
     withOnyx({
         isLoadingReportActions: {
             key: ONYXKEYS.IS_LOADING_REPORT_ACTIONS,
             initWithStoredValues: false,
+        },
+        myPersonalDetails: {
+            key: ONYXKEYS.MY_PERSONAL_DETAILS,
         },
     }),
 )(ReportActionsView);

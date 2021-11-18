@@ -1,0 +1,105 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import lodashGet from 'lodash/get';
+import Str from 'expensify-common/lib/str';
+import {withOnyx} from 'react-native-onyx';
+import _ from 'underscore';
+import styles from '../styles/styles';
+import Text from './Text';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
+import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
+import ONYXKEYS from '../ONYXKEYS';
+
+
+const personalDetailsPropTypes = PropTypes.shape({
+    /** The login of the person (either email or phone number) */
+    login: PropTypes.string.isRequired,
+
+    /** The URL of the person's avatar (there should already be a default avatar if
+    the person doesn't have their own avatar uploaded yet) */
+    avatar: PropTypes.string.isRequired,
+
+    /** This is either the user's full name, or their login if full name is an empty string */
+    displayName: PropTypes.string.isRequired,
+});
+
+const propTypes = {
+    /** Whether it is a default Chat Room */
+    shouldIncludeParticipants: PropTypes.bool,
+
+    /** The report currently being looked at */
+    report: PropTypes.oneOfType([PropTypes.object]),
+
+    /** All of the personal details for everyone */
+    personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
+
+    ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    report: {},
+    shouldIncludeParticipants: true,
+};
+
+const ReportWelcomeText = (props) => {
+    const participants = lodashGet(props.report, 'participants', []);
+    const isMultipleParticipant = participants.length > 1;
+    const displayNamesWithTooltips = _.map(
+        getPersonalDetailsForLogins(participants, props.personalDetails),
+        ({
+            displayName, firstName, login, pronouns,
+        }) => {
+            const longName = displayName || Str.removeSMSDomain(login);
+            const longNameLocalized = Str.isSMSLogin(longName) ? props.toLocalPhone(longName) : longName;
+            const shortName = firstName || longNameLocalized;
+            return {
+                displayName: isMultipleParticipant ? shortName : longNameLocalized,
+                tooltip: Str.removeSMSDomain(login),
+                pronouns,
+            };
+        },
+    );
+    const chatUsers = props.shouldIncludeParticipants ? displayNamesWithTooltips : [{displayName: props.report.reportName}];
+
+    return (
+        <Text style={[styles.mt3, styles.w70, styles.textAlignCenter]}>
+            <Text>
+                {!props.shouldIncludeParticipants
+                    ? `${props.translate('reportActionsView.beginningOfChatHistoryPrivatePartOne')}`
+                    : `${props.translate('reportActionsView.beginningOfChatHistory')} `}
+            </Text>
+            {!props.shouldIncludeParticipants && <Text style={[styles.textStrong]}>{` ${lodashGet(chatUsers, '[0].displayName', '')}`}</Text>}
+            {!props.shouldIncludeParticipants && <Text>{props.translate('reportActionsView.beginningOfChatHistoryPrivatePartTwo')}</Text>}
+            {props.shouldIncludeParticipants
+            && (
+                <>
+                    {_.map(chatUsers, ({displayName, pronouns}, index) => (
+                        <Text key={displayName}>
+                            <Text style={[styles.textStrong]}>
+                                {displayName}
+                            </Text>
+                            {!_.isEmpty(pronouns) && <Text>{` (${pronouns})`}</Text>}
+                            {(index === chatUsers.length - 1) && <Text>.</Text>}
+                            {(index === chatUsers.length - 2) && <Text>{` ${props.translate('common.and')} `}</Text>}
+                            {(index < chatUsers.length - 2) && <Text>, </Text>}
+                        </Text>
+                    ))}
+                </>
+            )}
+        </Text>
+    );
+};
+
+ReportWelcomeText.defaultProps = defaultProps;
+ReportWelcomeText.propTypes = propTypes;
+ReportWelcomeText.displayName = 'ReportWelcomeText';
+
+export default compose(
+    withLocalize,
+    withOnyx({
+        personalDetails: {
+            key: ONYXKEYS.PERSONAL_DETAILS,
+        },
+    }),
+)(ReportWelcomeText);
