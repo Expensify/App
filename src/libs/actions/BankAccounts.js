@@ -828,6 +828,8 @@ function deleteBankAccount(bankAccountID) {
         if (response.jsonCode === 200) {
             Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: null});
         }
+    }).catch(() => {
+        Growl.show(translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
     });
 }
 
