@@ -12,11 +12,15 @@ import {maskCardNumber, getMonthFromExpirationDateString, getYearFromExpirationD
 import NameValuePair from './NameValuePair';
 
 function deleteDebitCard(fundID) {
-    return API.DeleteFund({fundID}).then((response) => {
-        if (response.jsonCode === 200) {
-            Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
-        }
-    });
+    return API.DeleteFund({fundID})
+        .then((response) => {
+            if (response.jsonCode === 200) {
+                Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
+            }
+        })
+        .catch(() => {
+            Growl.show(translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
+        });
 }
 
 function deletePayPalMe() {
