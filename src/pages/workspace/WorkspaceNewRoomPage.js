@@ -38,6 +38,7 @@ class WorkspaceNewRoomPage extends React.Component {
             isLoading: false,
         };
         this.workspaceOptions = [];
+        this.modifyRoomName = this.modifyRoomName.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
 
@@ -50,6 +51,24 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({isLoading: true});
         createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility)
             .then(() => this.setState({isLoading: false}));
+    }
+
+    /**
+     * Modifies the room name to follow our conventions:
+     * - Max length 80 characters
+     * - Cannot not include space or special characters, and we automatically apply an underscore for spaces
+     * - Must be lowercase
+     * @param {String} roomName
+     *
+     * @returns {String}
+     */
+    modifyRoomName(roomName) {
+        const modifiedRoomNameWithoutHash = roomName.substr(1)
+            .replace(/ /g, '_')
+            .replace(/[^a-zA-Z\d_]/g, '')
+            .substr(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)
+            .toLowerCase();
+        return `#${modifiedRoomNameWithoutHash}`;
     }
 
     render() {
@@ -66,7 +85,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         prefixCharacter="#"
                         placeholder={this.props.translate('newRoomPage.social')}
                         containerStyles={[styles.mb5]}
-                        onChangeText={roomName => this.setState({roomName: roomName.replace(/ /g, '_').substring(0, CONST.REPORT.MAX_ROOM_NAME_LENGTH)})}
+                        onChangeText={roomName => this.setState({roomName: this.modifyRoomName(roomName)})}
                         value={this.state.roomName.substr(1)}
                     />
                     <ExpensiPicker
