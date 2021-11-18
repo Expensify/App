@@ -790,5 +790,6 @@ export default {
         createRoom: 'Crea una sala de chat',
         roomAlreadyExists: 'Ya existe una sala con este nombre',
         social: 'social',
+        selectAWorkspace: 'Seleccionar un espacio de trabajo',
     },
 };
