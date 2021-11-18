@@ -499,8 +499,6 @@ const styles = {
         height: '100%',
         backgroundColor: themeColors.componentBG,
         overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'row',
     },
     expensiTextInputLabel: {
         position: 'absolute',
@@ -546,14 +544,6 @@ const styles = {
         padding: 0,
         left,
     }),
-    expensiTextInputPrefix: {
-        paddingLeft: 12,
-        color: themeColors.text,
-        fontFamily: fontFamily.GTA,
-        fontSize: variables.fontSizeNormal,
-        textAlignVertical: 'center',
-        display: 'flex',
-    },
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
