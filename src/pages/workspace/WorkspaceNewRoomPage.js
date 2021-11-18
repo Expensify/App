@@ -53,7 +53,7 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     componentDidMount() {
-        const workspaces = _.filter(this.props.policies, policy => policy.type === CONST.POLICY.TYPE.FREE);
+        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
         this.workspaceOptions = _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}));
     }
 
