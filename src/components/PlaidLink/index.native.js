@@ -1,5 +1,5 @@
 import React from 'react';
-import {NativeEventEmitter, Platform} from 'react-native';
+import {NativeEventEmitter} from 'react-native';
 import {openLink, useDeepLinkRedirector} from 'react-native-plaid-link-sdk';
 import Log from '../../libs/Log';
 import CONST from '../../CONST';
