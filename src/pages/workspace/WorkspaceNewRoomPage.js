@@ -13,7 +13,6 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -56,7 +55,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 <View style={[styles.flex1, styles.w100, styles.pRelative, styles.p5]}>
 
                     {/* TODO: This TextInput component is deprecated since it doesn't use our new ExpensiTextInput styles */}
-                    <ExpensiTextInput
+                    <TextInputWithLabel
                         label={this.props.translate('newRoomPage.roomName')}
                         prefixCharacter="#"
                         placeholder={this.props.translate('newRoomPage.social')}

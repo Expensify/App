@@ -9,7 +9,6 @@ import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
-import Text from '../Text';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -12;
 const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
@@ -165,44 +164,41 @@ class BaseExpensiTextInput extends Component {
                                 (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
                             ]}
                         >
-                            {/*{this.props.prefixCharacter && <Text style={styles.expensiTextInputPrefix}>{this.props.prefixCharacter}</Text>}*/}
-                            <View style={[styles.flex1]}>
-                                {hasLabel ? (
-                                    <>
-                                        {/* Adding this background to the label only for multiline text input,
-                                        to prevent text overlaping with label when scrolling */}
-                                        {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} />}
-                                        <ExpensiTextInputLabel
-                                            label={this.props.label}
-                                            labelTranslateX={
-                                                this.props.ignoreLabelTranslateX
-                                                    ? new Animated.Value(0)
-                                                    : this.state.labelTranslateX
-                                            }
-                                            labelTranslateY={this.state.labelTranslateY}
-                                            labelScale={this.state.labelScale}
-                                        />
-                                    </>
-                                ) : null}
-                                <TextInput
-                                    ref={(ref) => {
-                                        if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
-                                        this.input = ref;
-                                    }}
-                                    // eslint-disable-next-line
-                                    {...inputProps}
-                                    value={this.props.value}
-                                    placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
-                                    placeholderTextColor={themeColors.placeholderText}
-                                    underlineColorAndroid="transparent"
-                                    style={[this.props.inputStyle, !hasLabel && styles.pv0]}
-                                    multiline={this.props.multiline}
-                                    onFocus={this.onFocus}
-                                    onBlur={this.onBlur}
-                                    onChangeText={this.setValue}
-                                    onPressOut={this.props.onPress}
-                                />
-                            </View>
+                            {hasLabel ? (
+                                <>
+                                    {/* Adding this background to the label only for multiline text input,
+                                    to prevent text overlaping with label when scrolling */}
+                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} />}
+                                    <ExpensiTextInputLabel
+                                        label={this.props.label}
+                                        labelTranslateX={
+                                            this.props.ignoreLabelTranslateX
+                                                ? new Animated.Value(0)
+                                                : this.state.labelTranslateX
+                                        }
+                                        labelTranslateY={this.state.labelTranslateY}
+                                        labelScale={this.state.labelScale}
+                                    />
+                                </>
+                            ) : null}
+                            <TextInput
+                                ref={(ref) => {
+                                    if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                    this.input = ref;
+                                }}
+                                // eslint-disable-next-line
+                                {...inputProps}
+                                value={this.props.value}
+                                placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
+                                placeholderTextColor={themeColors.placeholderText}
+                                underlineColorAndroid="transparent"
+                                style={[this.props.inputStyle, !hasLabel && styles.pv0]}
+                                multiline={this.props.multiline}
+                                onFocus={this.onFocus}
+                                onBlur={this.onBlur}
+                                onChangeText={this.setValue}
+                                onPressOut={this.props.onPress}
+                            />
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
