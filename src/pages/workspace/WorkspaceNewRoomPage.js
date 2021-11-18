@@ -13,6 +13,7 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
+import ExpensiTextInput from '../../components/ExpensiTextInput';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -46,9 +47,6 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     render() {
-        const selectedWorkspaceName = this.state.policyID
-            ? this.props.policies[`${ONYXKEYS.COLLECTION.POLICY}${this.state.policyID}`].name
-            : '';
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
@@ -56,7 +54,9 @@ class WorkspaceNewRoomPage extends React.Component {
                     onCloseButtonPress={() => Navigation.dismissModal()}
                 />
                 <View style={[styles.flex1, styles.w100, styles.pRelative, styles.p5]}>
-                    <TextInputWithLabel
+
+                    {/* TODO: This TextInput component is deprecated since it doesn't use our new ExpensiTextInput styles */}
+                    <ExpensiTextInput
                         label={this.props.translate('newRoomPage.roomName')}
                         prefixCharacter="#"
                         placeholder={this.props.translate('newRoomPage.social')}
@@ -64,11 +64,22 @@ class WorkspaceNewRoomPage extends React.Component {
                         onChangeText={roomName => this.setState({roomName})}
                     />
                     <ExpensiPicker
-                        value={selectedWorkspaceName}
+                        value={this.state.policyID}
                         label={this.props.translate('workspace.common.workspace')}
                         placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
                         items={this.workspaceOptions}
                         onChange={policyID => this.setState({policyID})}
+                        containerStyles={[styles.mb5]}
+                    />
+
+                    <ExpensiPicker
+                        value={CONST.REPORT.VISIBILITY.RESTRICTED}
+                        label={this.props.translate('newRoomPage.visibility')}
+                        items={[
+                            {label: 'Restricted', value: CONST.REPORT.VISIBILITY.RESTRICTED},
+                            {label: 'Private', value: CONST.REPORT.VISIBILITY.PRIVATE},
+                        ]}
+                        onChange={visibility => this.setState({visibility})}
                     />
                 </View>
 
