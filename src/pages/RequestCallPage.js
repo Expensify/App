@@ -24,6 +24,7 @@ import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import {getFirstAndLastNameErrors} from '../libs/actions/PersonalDetails';
+import LoginUtil from '../libs/LoginUtil';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -112,7 +113,7 @@ class RequestCallPage extends Component {
             policyID: personalPolicy.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            phoneNumber: this.state.phoneNumber,
+            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             email: this.props.session.email,
         });
     }
@@ -134,10 +135,8 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        if (_.isEmpty(this.state.phoneNumber.trim())) {
-            return this.props.translate('messages.noPhoneNumber');
-        }
-        if (!Str.isValidPhone(this.state.phoneNumber)) {
+        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
         return '';
@@ -236,7 +235,7 @@ class RequestCallPage extends Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
-                                placeholder="+14158675309"
+                                placeholder="2109400803"
                                 errorText={this.state.phoneNumberError}
                                 onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}

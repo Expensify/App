@@ -66,6 +66,7 @@ export default {
         notifications: 'Notifications',
         na: 'N/A',
         noResultsFound: 'No results found',
+        deletedCommentMessage: 'Comment deleted',
         timePrefix: 'It\'s',
         conjunctionFor: 'for',
         todayAt: 'Today at',
@@ -137,6 +138,7 @@ export default {
         sendAttachment: 'Send attachment',
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
+        sayHello: 'Say hello!',
         blockedFromConcierge: 'Communication is barred',
         youAppearToBeOffline: 'You appear to be offline.',
         fileUploadFailed: 'Upload failed. File is not supported.',
@@ -156,7 +158,9 @@ export default {
         deleteConfirmation: 'Are you sure you want to delete this comment?',
     },
     reportActionsView: {
-        beFirstPersonToComment: 'Be the first person to comment',
+        beginningOfChatHistory: 'This is the beginning of your chat history with',
+        beginningOfChatHistoryPrivatePartOne: 'This is the beginning of the private',
+        beginningOfChatHistoryPrivatePartTwo: ' room, invite others by @mentioning them.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} new message${count > 1 ? 's' : ''}`,
@@ -444,6 +448,7 @@ export default {
             addressStreet: 'Please enter a valid street address that is not a PO Box',
             addressState: 'Please select a valid state',
             incorporationDate: 'Please enter a valid date',
+            incorporationDateFuture: 'Incorporation date cannot be in the future',
             incorporationState: 'Please enter a valid state',
             industryCode: 'Please enter a valid industry classification code. Must be 6 digits.',
             restrictedBusiness: 'Please confirm company is not on the list of restricted businesses',
@@ -478,8 +483,7 @@ export default {
     },
     cameraPermissionsNotGranted: 'Camera permissions not granted',
     messages: {
-        noPhoneNumber: 'Please enter a phone number including the country code e.g +447814266907.',
-        errorMessageInvalidPhone: 'That doesn’t look like a valid phone number. Try again with the country code. e.g. +15005550006',
+        errorMessageInvalidPhone: 'Please enter a valid phone number without brackets or dashes. If you\'re outside the US please include your country code, eg. +447782339811',
         maxParticipantsReached: 'You\'ve reached the maximum number of participants for a group chat.',
     },
     onfidoStep: {

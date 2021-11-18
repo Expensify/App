@@ -198,6 +198,7 @@ class BaseExpensiTextInput extends Component {
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
                                 onPressOut={this.props.onPress}
+                                translateX={this.props.translateX}
                             />
                         </View>
                     </TouchableWithoutFeedback>
