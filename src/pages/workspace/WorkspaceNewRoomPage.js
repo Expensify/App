@@ -21,9 +21,9 @@ import {createPolicyRoom} from '../../libs/actions/Report';
 const propTypes = {
     /** All reports shared with the user */
     reports: PropTypes.shape({
-        reportName: PropTypes.string.isRequired,
-        type: PropTypes.string.isRequired,
-        policyID: PropTypes.string.isRequired,
+        reportName: PropTypes.string,
+        type: PropTypes.string,
+        policyID: PropTypes.string,
     }).isRequired,
 
     ...fullPolicyPropTypes,
