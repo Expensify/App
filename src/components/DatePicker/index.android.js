@@ -59,7 +59,6 @@ class DatePicker extends React.Component {
                         value={this.props.value ? moment(this.props.value).toDate() : new Date()}
                         mode="date"
                         onChange={this.raiseDateChange}
-                        minimumDate={this.props.minimumDate}
                         maximumDate={this.props.maximumDate}
                     />
                 )}

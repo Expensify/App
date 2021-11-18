@@ -13,9 +13,6 @@ const propTypes = {
      */
     value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
 
-    /* Restricts for selectable min date range in the picker */
-    minimumDate: PropTypes.instanceOf(Date),
-
     /* Restricts for selectable max date range for the picker */
     maximumDate: PropTypes.instanceOf(Date),
 };
@@ -23,7 +20,6 @@ const propTypes = {
 const defaultProps = {
     ...defaultFieldPropTypes,
     value: undefined,
-    minimumDate: undefined,
     maximumDate: undefined,
 };
 
