@@ -11,7 +11,6 @@ import {
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
-    setBankAccountFormValidationErrors,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -97,10 +96,10 @@ class CompanyStep extends React.Component {
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
-
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.clearError = ReimbursementAccountUtils.clearError.bind(this);
+        this.getErrors = ReimbursementAccountUtils.getErrors.bind(this);
+        this.setErrors = ReimbursementAccountUtils.setErrors.bind(this);
+        this.getErrorText = ReimbursementAccountUtils.getErrorText.bind(this, this.errorTranslationKeys);
     }
 
     /**
@@ -159,7 +158,7 @@ class CompanyStep extends React.Component {
 
             errors[inputKey] = true;
         });
-        setBankAccountFormValidationErrors(errors);
+        this.setErrors(errors);
         return _.size(errors) === 0;
     }
 
@@ -188,6 +187,7 @@ class CompanyStep extends React.Component {
                 />
                 <ReimbursementAccountForm
                     onSubmit={this.submit}
+                    formErrors={this.getErrors()}
                 >
                     <Text>{this.props.translate('companyStep.subtitle')}</Text>
                     <ExpensiTextInput

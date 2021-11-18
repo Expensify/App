@@ -13,7 +13,6 @@ import IdentityForm from './IdentityForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
     goToWithdrawalAccountSetupStep,
-    setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
@@ -26,6 +25,8 @@ import {
     getDefaultStateForField,
     clearError,
     getErrorText,
+    getErrors,
+    setErrors,
 } from '../../libs/ReimbursementAccountUtils';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
@@ -68,15 +69,10 @@ class BeneficialOwnersStep extends React.Component {
             certifyTrueInformation: 'beneficialOwnersStep.error.certify',
         };
 
-        this.clearError = inputKey => clearError(this.props, inputKey);
-        this.getErrorText = inputKey => getErrorText(this.props, this.errorTranslationKeys, inputKey);
-    }
-
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
+        this.clearError = clearError.bind(this);
+        this.setErrors = setErrors.bind(this);
+        this.getErrors = getErrors.bind(this);
+        this.getErrorText = getErrorText.bind(this, this.errorTranslationKeys);
     }
 
     /**
@@ -105,7 +101,7 @@ class BeneficialOwnersStep extends React.Component {
 
             errors[inputKey] = true;
         });
-        setBankAccountFormValidationErrors({...errors, beneficialOwnersErrors});
+        this.setErrors({...errors, beneficialOwnersErrors});
         return _.every(beneficialOwnersErrors, _.isEmpty) && _.isEmpty(errors);
     }
 
@@ -118,9 +114,7 @@ class BeneficialOwnersStep extends React.Component {
             updateReimbursementAccountDraft({beneficialOwners: null});
             updateReimbursementAccountDraft({beneficialOwners});
 
-            // Clear errors
-            setBankAccountFormValidationErrors({});
-            return {beneficialOwners};
+            return {beneficialOwners, errors: {}};
         });
     }
 
@@ -204,6 +198,7 @@ class BeneficialOwnersStep extends React.Component {
                 />
                 <ReimbursementAccountForm
                     onSubmit={this.submit}
+                    formErrors={this.getErrors()}
                 >
                     <Text style={[styles.mb5]}>
                         <Text>{this.props.translate('beneficialOwnersStep.checkAllThatApply')}</Text>

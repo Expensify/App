@@ -13,7 +13,6 @@ import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
     getPlaidBankAccounts,
-    setBankAccountFormValidationErrors,
     showBankAccountErrorModal,
 } from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
@@ -101,8 +100,9 @@ class AddPlaidBankAccount extends React.Component {
             institution: {},
         };
 
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearError = ReimbursementAccountUtils.clearError.bind(this);
+        this.getErrors = ReimbursementAccountUtils.getErrors.bind(this);
+        this.setErrors = ReimbursementAccountUtils.setErrors.bind(this);
     }
 
     componentDidMount() {
@@ -127,7 +127,7 @@ class AddPlaidBankAccount extends React.Component {
         if (_.isUndefined(this.state.selectedIndex)) {
             errors.selectedBank = true;
         }
-        setBankAccountFormValidationErrors(errors);
+        this.setErrors(errors);
         return _.size(errors) === 0;
     }
 
@@ -180,6 +180,7 @@ class AddPlaidBankAccount extends React.Component {
                 {accounts.length > 0 && (
                     <ReimbursementAccountForm
                         onSubmit={this.selectAccount}
+                        formErrors={this.getErrors()}
                     >
                         {!_.isEmpty(this.props.text) && (
                             <Text style={[styles.mb5]}>{this.props.text}</Text>

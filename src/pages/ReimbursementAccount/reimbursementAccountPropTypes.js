@@ -29,10 +29,4 @@ export default PropTypes.shape({
 
     /** Error set when handling the API response */
     error: PropTypes.string,
-
-    /** Object containing various errors */
-    errors: PropTypes.objectOf(PropTypes.oneOfType([
-        PropTypes.bool,
-        PropTypes.arrayOf(PropTypes.objectOf(PropTypes.bool)),
-    ])),
 });

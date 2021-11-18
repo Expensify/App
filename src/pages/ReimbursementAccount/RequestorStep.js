@@ -15,12 +15,11 @@ import Text from '../../components/Text';
 import {
     showBankAccountErrorModal,
     goToWithdrawalAccountSetupStep,
-    setBankAccountFormValidationErrors,
     setupWithdrawalAccount,
     updateReimbursementAccountDraft,
 } from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
-import {isRequiredFulfilled, validateIdentity} from '../../libs/ValidationUtils';
+import {validateIdentity} from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -28,17 +27,14 @@ import {
     getDefaultStateForField,
     clearError,
     getErrors,
+    setErrors,
 } from '../../libs/ReimbursementAccountUtils';
 import Log from '../../libs/Log';
 import Growl from '../../libs/Growl';
-import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import {openExternalLink} from '../../libs/actions/Link';
 
 const propTypes = {
-    /** Bank account currently in setup */
-    reimbursementAccount: reimbursementAccountPropTypes.isRequired,
-
     ...withLocalizePropTypes,
 };
 
@@ -63,22 +59,9 @@ class RequestorStep extends React.Component {
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
 
-        // Required fields not validated by `validateIdentity`
-        this.requiredFields = [
-            'firstName',
-            'lastName',
-            'isControllingOfficer',
-        ];
-
-        // Map a field to the key of the error's translation
-        this.errorTranslationKeys = {
-            firstName: 'bankAccount.error.firstName',
-            lastName: 'bankAccount.error.lastName',
-            isControllingOfficer: 'requestorStep.isControllingOfficerError',
-        };
-
-        this.clearError = inputKey => clearError(this.props, inputKey);
-        this.getErrors = () => getErrors(this.props);
+        this.clearError = clearError.bind(this);
+        this.setErrors = setErrors.bind(this);
+        this.getErrors = getErrors.bind(this);
     }
 
     /**
@@ -120,16 +103,11 @@ class RequestorStep extends React.Component {
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
         });
-
-        _.each(this.requiredFields, (inputKey) => {
-            if (isRequiredFulfilled(this.state[inputKey])) {
-                return;
-            }
-
-            errors[inputKey] = true;
-        });
+        if (!this.state.isControllingOfficer) {
+            errors.isControllingOfficer = true;
+        }
         if (_.size(errors)) {
-            setBankAccountFormValidationErrors(errors);
+            this.setErrors(errors);
             showBankAccountErrorModal();
             return false;
         }
@@ -182,6 +160,7 @@ class RequestorStep extends React.Component {
                 ) : (
                     <ReimbursementAccountForm
                         onSubmit={this.submit}
+                        formErrors={this.getErrors()}
                     >
                         <Text>{this.props.translate('requestorStep.subtitle')}</Text>
                         <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
@@ -213,7 +192,7 @@ class RequestorStep extends React.Component {
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
                             }}
-                            errors={this.props.reimbursementAccount.errors}
+                            errors={this.getErrors()}
                         />
                         <CheckboxWithLabel
                             isChecked={this.state.isControllingOfficer}
@@ -274,9 +253,6 @@ RequestorStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
-        reimbursementAccount: {
-            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-        },
         reimbursementAccountDraft: {
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },

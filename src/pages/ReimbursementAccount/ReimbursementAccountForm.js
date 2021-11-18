@@ -20,27 +20,46 @@ const propTypes = {
     /** Called when the form is submitted */
     onSubmit: PropTypes.func.isRequired,
 
+    /** Object containing various errors */
+    // eslint-disable-next-line react/no-unused-prop-types
+    formErrors: PropTypes.objectOf(PropTypes.oneOfType([
+        PropTypes.bool,
+        PropTypes.arrayOf(PropTypes.objectOf(PropTypes.bool)),
+    ])),
+
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     reimbursementAccount: {},
+    formErrors: {},
 };
 
 class ReimbursementAccountForm extends React.Component {
-    render() {
-        const isErrorVisible = _.size(lodashGet(this.props, 'reimbursementAccount.errors', {})) > 0
-            || lodashGet(this.props, 'reimbursementAccount.errorModalMessage', '').length > 0
+    /**
+     * Checks if we have errors or not
+     *
+     * @returns {Boolean}
+     */
+    isErrorVisible() {
+        if (lodashGet(this.props, 'reimbursementAccount.errorModalMessage', '').length > 0
 
             // @TODO once all validation errors show in multiples we can remove this check
-            || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0;
+            || lodashGet(this.props, 'reimbursementAccount.error', '').length > 0) {
+            return true;
+        }
 
+        // Check considering that a key may have an array of objects (i.e. beneficial owners)
+        const formErrors = lodashGet(this.props, 'formErrors', {});
+        return _.any(formErrors, value => value === true || (_.isArray(value) && _.any(value, _.size)));
+    }
+
+    render() {
         const currentStep = lodashGet(
             this.props,
             'reimbursementAccount.achData.currentStep',
             CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
         );
-
         return (
             <ScrollView
                 style={[styles.w100, styles.flex1]}
@@ -53,7 +72,7 @@ class ReimbursementAccountForm extends React.Component {
                     {this.props.children}
                 </View>
                 <FormAlertWithSubmitButton
-                    isAlertVisible={isErrorVisible}
+                    isAlertVisible={this.isErrorVisible()}
                     buttonText={currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION ? this.props.translate('validationStep.buttonText') : this.props.translate('common.saveAndContinue')}
                     onSubmit={this.props.onSubmit}
                     onFixTheErrorsLinkPressed={() => {

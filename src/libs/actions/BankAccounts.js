@@ -618,17 +618,6 @@ function validateBankAccount(bankAccountID, validateCode) {
 }
 
 /**
- * Set the current fields with errors.
- *
- * @param {String} errors
- */
-function setBankAccountFormValidationErrors(errors) {
-    // We set 'errors' to null first because we don't have a way yet to replace a specific property like 'errors' without merging it
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors: null});
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {errors});
-}
-
-/**
  * Set the current error message.
  *
  * @param {String} error
@@ -653,7 +642,7 @@ function setBankAccountSubStep(subStep) {
  */
 function setupWithdrawalAccount(data) {
     let nextStep;
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: '', errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: true, errorModalMessage: ''});
 
     const newACHData = {
         ...reimbursementAccountInSetup,
@@ -691,7 +680,6 @@ function setupWithdrawalAccount(data) {
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
             let isErrorHTML = false;
-            const errors = {};
 
             if (response.jsonCode === 200 && !error) {
                 // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
@@ -781,7 +769,7 @@ function setupWithdrawalAccount(data) {
                     if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_ROUTING_NUMBER
                         || response.message === CONST.BANK_ACCOUNT.ERROR.MAX_ROUTING_NUMBER
                     ) {
-                        errors.routingNumber = true;
+                        error = translateLocal('bankAccount.error.routingNumber');
                         achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
                         error = translateLocal('bankAccount.error.incorporationState');
@@ -796,10 +784,6 @@ function setupWithdrawalAccount(data) {
             // Go to next step
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
-            if (_.size(errors)) {
-                setBankAccountFormValidationErrors(errors);
-                showBankAccountErrorModal();
-            }
             if (error) {
                 showBankAccountFormValidationError(error);
                 showBankAccountErrorModal(error, isErrorHTML);
@@ -814,7 +798,7 @@ function setupWithdrawalAccount(data) {
 }
 
 function hideBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: ''});
 }
 
 function setWorkspaceIDForReimbursementAccount(workspaceID) {
@@ -921,7 +905,6 @@ export {
     hideBankAccountErrors,
     showBankAccountErrorModal,
     showBankAccountFormValidationError,
-    setBankAccountFormValidationErrors,
     setWorkspaceIDForReimbursementAccount,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,

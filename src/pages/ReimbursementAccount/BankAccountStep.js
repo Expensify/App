@@ -20,7 +20,6 @@ import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
-    setBankAccountFormValidationErrors,
     setBankAccountSubStep,
     setupWithdrawalAccount,
     showBankAccountErrorModal,
@@ -63,9 +62,10 @@ class BankAccountStep extends React.Component {
             accountNumber: 'bankAccount.error.accountNumber',
         };
 
-        this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
-        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.clearError = ReimbursementAccountUtils.clearError.bind(this);
+        this.setErrors = ReimbursementAccountUtils.setErrors.bind(this);
+        this.getErrors = ReimbursementAccountUtils.getErrors.bind(this);
+        this.getErrorText = ReimbursementAccountUtils.getErrorText.bind(this, this.errorTranslationKeys);
     }
 
     toggleTerms() {
@@ -94,7 +94,7 @@ class BankAccountStep extends React.Component {
             errors.hasAcceptedTerms = true;
         }
 
-        setBankAccountFormValidationErrors(errors);
+        this.setErrors(errors);
         return _.size(errors) === 0;
     }
 
@@ -252,6 +252,7 @@ class BankAccountStep extends React.Component {
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ReimbursementAccountForm
                         onSubmit={this.addManualAccount}
+                        formErrors={this.getErrors()}
                     >
                         <Text style={[styles.mb5]}>
                             {this.props.translate('bankAccount.checkHelpLine')}
