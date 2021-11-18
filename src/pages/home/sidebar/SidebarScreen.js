@@ -24,6 +24,7 @@ import {
     Receipt,
     NewWorkspace,
     Send,
+    Hashtag,
 } from '../../../components/Icon/Expensicons';
 import Permissions from '../../../libs/Permissions';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -169,7 +170,7 @@ class SidebarScreen extends Component {
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
                                 {
-                                    icon: Users,
+                                    icon: Hashtag,
                                     text: this.props.translate('sidebarScreen.newRoom'),
                                     onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
                                 },
