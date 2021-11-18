@@ -48,11 +48,12 @@ class AddPayPalMePage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.payPalMeUsername !== this.props.payPalMeUsername) {
-            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({payPalMeUsername: this.props.payPalMeUsername});
+        if (prevProps.payPalMeUsername === this.props.payPalMeUsername) {
+            return;
         }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({payPalMeUsername: this.props.payPalMeUsername});
     }
 
     /**

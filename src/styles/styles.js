@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -172,30 +173,6 @@ const styles = {
 
     textUppercase: {
         textTransform: 'uppercase',
-    },
-
-    background100: {
-        backgroundSize: '100% 100%',
-    },
-
-    backgroundGreen: {
-        backgroundColor: colors.green,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg)`,
-    },
-
-    backgroundOrange: {
-        backgroundColor: colors.orange,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg)`,
-    },
-
-    backgroundPink: {
-        backgroundColor: colors.pink,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg)`,
-    },
-
-    backgroundBlue: {
-        backgroundColor: colors.blue,
-        backgroundImage: `url(${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg)`,
     },
 
     colorReversed: {
@@ -598,6 +575,7 @@ const styles = {
         iconContainer: {
             top: 16,
             right: 12,
+            zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
@@ -1124,7 +1102,6 @@ const styles = {
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
-        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1313,6 +1290,7 @@ const styles = {
         width: 64,
         backgroundColor: themeColors.icon,
         borderRadius: 64,
+        overflow: 'hidden',
     },
 
     secondAvatar: {
@@ -1598,6 +1576,34 @@ const styles = {
     avatarLarge: {
         width: 80,
         height: 80,
+    },
+
+    emptyStateAvatar: {
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
+        borderRadius: 100,
+        borderColor: themeColors.componentBG,
+        borderWidth: 4,
+        marginLeft: -16,
+    },
+
+    screenBlur: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: colors.dark,
+        opacity: 0.5,
+    },
+
+    avatarInnerTextChat: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeNormal,
+        left: 1,
+        textAlign: 'center',
+        fontWeight: 'normal',
+        position: 'absolute',
     },
 
     displayName: {
@@ -2108,6 +2114,15 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
+
+    googleListView: {
+        transform: [{scale: 0}],
+    },
+
+    iPhoneXSafeArea: {
+        backgroundColor: colors.black,
+        flex: 1,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -2211,6 +2226,8 @@ function getSafeAreaPadding(insets) {
     return {
         paddingTop: insets.top,
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
+        paddingLeft: insets.left * variables.safeInsertPercentage,
+        paddingRight: insets.right * variables.safeInsertPercentage,
     };
 }
 
@@ -2423,6 +2440,8 @@ function getModalPaddingStyles({
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
+    safeAreaPaddingLeft,
+    safeAreaPaddingRight,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
@@ -2433,6 +2452,8 @@ function getModalPaddingStyles({
         paddingBottom: shouldAddBottomSafeAreaPadding
             ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
             : modalContainerStylePaddingBottom || 0,
+        paddingLeft: safeAreaPaddingLeft || 0,
+        paddingRight: safeAreaPaddingRight || 0,
     };
 }
 
@@ -2462,6 +2483,33 @@ function getEmojiPickerStyle(isSmallScreenWidth) {
     };
 }
 
+/**
+ * Get the random promo color and image for Login page
+ *
+ * @return {Object}
+ */
+function getLoginPagePromoStyle() {
+    const promos = [
+        {
+            backgroundColor: colors.green,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg`,
+        },
+        {
+            backgroundColor: colors.orange,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg`,
+        },
+        {
+            backgroundColor: colors.pink,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg`,
+        },
+        {
+            backgroundColor: colors.blue,
+            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
+        },
+    ];
+    return promos[_.random(0, 3)];
+}
+
 export default styles;
 export {
     getSafeAreaPadding,
@@ -2483,4 +2531,5 @@ export {
     getModalPaddingStyles,
     getFontFamilyMonospace,
     getEmojiPickerStyle,
+    getLoginPagePromoStyle,
 };

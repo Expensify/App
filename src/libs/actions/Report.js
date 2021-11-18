@@ -33,10 +33,12 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         // When signed out, val is undefined
-        if (val) {
-            currentUserEmail = val.email;
-            currentUserAccountID = val.accountID;
+        if (!val) {
+            return;
         }
+
+        currentUserEmail = val.email;
+        currentUserAccountID = val.accountID;
     },
 });
 
@@ -77,6 +79,13 @@ const lastReadSequenceNumbers = {};
 // Map of optimistic report action IDs. These should be cleared when replaced by a recent fetch of report history
 // since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
 const optimisticReportActionIDs = {};
+
+// Boolean to indicate if report data is loading from the API or not.
+let isReportDataLoading = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    callback: val => isReportDataLoading = val,
+});
 
 /**
  * Checks the report to see if there are any unread action items
@@ -166,7 +175,7 @@ function getSimplifiedReportObject(report) {
     // We convert the line-breaks in html to space ' ' before striping the tags
     const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '');
+        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
@@ -382,10 +391,12 @@ function fetchChatReportsByIDs(chatList, shouldRedirectIfInaccessible = false) {
             return fetchedReports;
         })
         .catch((err) => {
-            if (err.message === CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
-                // eslint-disable-next-line no-use-before-define
-                handleInaccessibleReport();
+            if (err.message !== CONST.REPORT.ERROR.INACCESSIBLE_REPORT) {
+                return;
             }
+
+            // eslint-disable-next-line no-use-before-define
+            handleInaccessibleReport();
         });
 }
 
@@ -525,7 +536,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.text,
+            lastMessageText: message.text || `[${translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -910,6 +921,18 @@ function fetchActions(reportID, offset) {
 }
 
 /**
+ * Get the actions of a report
+ *
+ * @param {Number} reportID
+ * @param {Number} [offset]
+ */
+function fetchActionsWithLoadingState(reportID, offset) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, true);
+    fetchActions(reportID, offset)
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_REPORT_ACTIONS, false));
+}
+
+/**
  * Get all of our reports
  *
  * @param {Boolean} shouldRecordHomePageTiming whether or not performance timing should be measured
@@ -920,6 +943,7 @@ function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
     return API.Get({
         returnValueList: 'chatList',
     })
@@ -940,6 +964,7 @@ function fetchAllReports(
         })
         .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+            Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
 
             // If at this point the user still doesn't have a Concierge report, create it for them.
             // This means they were a participant in reports before their account was created (e.g. default rooms)
@@ -1133,15 +1158,17 @@ function deleteReportComment(reportID, reportAction) {
         sequenceNumber,
     })
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                // Reverse Optimistic Response
-                reportActionsToMerge[sequenceNumber] = {
-                    ...reportAction,
-                    message: oldMessage,
-                };
-
-                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            if (response.jsonCode === 200) {
+                return;
             }
+
+            // Reverse Optimistic Response
+            reportActionsToMerge[sequenceNumber] = {
+                ...reportAction,
+                message: oldMessage,
+            };
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
         });
 }
 
@@ -1155,6 +1182,11 @@ function deleteReportComment(reportID, reportAction) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
+    // If report data is loading, we can't update the last read sequence number because it is obsolete
+    if (isReportDataLoading) {
+        return;
+    }
+
     // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
     // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
     // the side of caution and do nothing in this case.
@@ -1205,6 +1237,17 @@ function togglePinnedState(report) {
  */
 function saveReportComment(reportID, comment) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, comment);
+}
+
+/**
+ * Immediate indication whether the report has a draft comment.
+ *
+ * @param {String} reportID
+ * @param {Boolean} hasDraft
+ * @returns {Promise}
+ */
+function setReportWithDraft(reportID, hasDraft) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${reportID}`, hasDraft);
 }
 
 /**
@@ -1390,6 +1433,31 @@ function handleInaccessibleReport() {
     navigateToConciergeChat();
 }
 
+/**
+ * Creates a policy room and fetches it
+ * @param {String} policyID
+ * @param {String} reportName
+ * @param {String} visibility
+ * @return {Promise}
+ */
+function createPolicyRoom(policyID, reportName, visibility) {
+    return API.CreatePolicyRoom({policyID, reportName, visibility})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Log.hmmm(response.message);
+                return;
+            }
+            return fetchChatReportsByIDs([response.reportID]);
+        })
+        .then(([{reportID}]) => {
+            if (!reportID) {
+                Log.hmmm('Unable to grab policy room after creation');
+                return;
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1416,4 +1484,7 @@ export {
     syncChatAndIOUReports,
     navigateToConciergeChat,
     handleInaccessibleReport,
+    setReportWithDraft,
+    fetchActionsWithLoadingState,
+    createPolicyRoom,
 };
