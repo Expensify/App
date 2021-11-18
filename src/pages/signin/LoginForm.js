@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {isNumericWithSpecialChars} from '../../libs/ValidationUtils';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,7 +80,7 @@ class LoginForm extends React.Component {
             return;
         }
 
-        const phoneLogin = this.state.login.replace(/((?!\n)[()-\s\t])/g, '');
+        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
         const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
 
         if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {

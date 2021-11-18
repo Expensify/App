@@ -24,6 +24,7 @@ import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
 import {getFirstAndLastNameErrors} from '../libs/actions/PersonalDetails';
+import LoginUtil from '../libs/LoginUtil';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -106,13 +107,13 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-        const phoneNumber = this.state.phoneNumber.replace(/((?!\n)[()-\s\t])/g, '');
+
         requestInboxCall({
-            phoneNumber,
             taskID: this.props.route.params.taskID,
             policyID: personalPolicy.id,
             firstName: this.state.firstName,
             lastName: this.state.lastName,
+            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
             email: this.props.session.email,
         });
     }
@@ -134,7 +135,7 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        const phoneNumber = this.state.phoneNumber.replace(/((?!\n)[()-\s\t])/g, '');
+        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
         if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
