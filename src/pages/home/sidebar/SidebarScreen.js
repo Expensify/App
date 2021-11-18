@@ -168,6 +168,11 @@ class SidebarScreen extends Component {
                                     text: this.props.translate('sidebarScreen.newGroup'),
                                     onSelected: () => Navigation.navigate(ROUTES.NEW_GROUP),
                                 },
+                                {
+                                    icon: Users,
+                                    text: this.props.translate('sidebarScreen.newRoom'),
+                                    onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_NEW_ROOM),
+                                },
                                 ...(Permissions.canUseIOUSend(this.props.betas) ? [
                                     {
                                         icon: Send,

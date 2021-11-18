@@ -174,6 +174,7 @@ export default {
         fabAction: 'New chat',
         newChat: 'New chat',
         newGroup: 'New group',
+        newRoom: 'New Room',
         headerChat: 'Chats',
         buttonSearch: 'Search',
         buttonMySettings: 'My settings',
