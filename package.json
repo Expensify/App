@@ -7,7 +7,6 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "postinstall": "./build/react-native-web.sh",
     "android": "npm run check-metro-bundler-port && react-native run-android",
     "ios": "npm run check-metro-bundler-port && react-native run-ios",
     "ipad": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
