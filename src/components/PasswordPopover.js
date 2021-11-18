@@ -42,9 +42,22 @@ class PasswordPopover extends Component {
     constructor(props) {
         super(props);
 
+        this.passwordInput = undefined;
+
+        this.focusInput = this.focusInput.bind(this);
+
         this.state = {
             password: '',
         };
+    }
+
+    /**
+     * Focus the password input
+     */
+    focusInput() {
+        if (this.passwordInput) {
+            this.passwordInput.focus();
+        }
     }
 
     render() {
@@ -53,6 +66,7 @@ class PasswordPopover extends Component {
                 isVisible={this.props.isVisible}
                 onClose={this.props.onClose}
                 anchorPosition={this.props.anchorPosition}
+                onModalShow={this.focusInput}
             >
                 <View
                     style={styles.m2}
@@ -73,6 +87,7 @@ class PasswordPopover extends Component {
                             styles.w100,
                         ]}
                         onChangeText={password => this.setState({password})}
+                        ref={el => this.passwordInput = el}
                         onSubmitEditing={() => this.props.onSubmit(this.state.password)}
                         autoFocus
                         secureTextEntry
