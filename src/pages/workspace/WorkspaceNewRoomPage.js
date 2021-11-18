@@ -15,6 +15,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
 import FixedFooter from '../../components/FixedFooter';
+import {createPolicyRoom} from '../../libs/actions/Report';
 
 const propTypes = {
     ...fullPolicyPropTypes,
@@ -34,6 +35,7 @@ class WorkspaceNewRoomPage extends React.Component {
             roomName: '',
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
+            isLoading: false,
         };
         this.workspaceOptions = [];
         this.onSubmit = this.onSubmit.bind(this);
@@ -44,7 +46,9 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     onSubmit() {
-
+        this.setState({isLoading: true});
+        createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility)
+            .then(() => this.setState({isLoading: false}));
     }
 
     render() {
@@ -61,7 +65,8 @@ class WorkspaceNewRoomPage extends React.Component {
                         prefixCharacter="#"
                         placeholder={this.props.translate('newRoomPage.social')}
                         containerStyles={[styles.mb5]}
-                        onChangeText={roomName => this.setState({roomName})}
+                        onChangeText={roomName => this.setState({roomName: roomName.replace(/ /g, '_')})}
+                        value={this.state.roomName.substr(1)}
                     />
                     <ExpensiPicker
                         value={this.state.policyID}
@@ -83,6 +88,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 </View>
                 <FixedFooter>
                     <Button
+                        isLoading={this.state.isLoading}
                         isDisabled={shouldDisableSubmit}
                         success
                         onPress={this.onSubmit}
