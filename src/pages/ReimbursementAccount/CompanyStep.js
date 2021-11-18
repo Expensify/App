@@ -23,7 +23,7 @@ import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import {
-    isValidDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars, isValidAddress, isValidZipCode,
+    isValidDate, isValidPastDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars, isValidAddress, isValidZipCode,
 } from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -122,6 +122,17 @@ class CompanyStep extends React.Component {
     }
 
     /**
+     * Clear both errors associated with incorporation date, and set the new value.
+     *
+     * @param {String} value
+     */
+    clearDateErrorsAndSetValue(value) {
+        this.clearError('incorporationDate');
+        this.clearError('incorporationDateFuture');
+        this.setValue({incorporationDate: value});
+    }
+
+    /**
      * @returns {Boolean}
      */
     validate() {
@@ -145,6 +156,10 @@ class CompanyStep extends React.Component {
 
         if (!isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
+        }
+
+        if (!isValidPastDate(this.state.incorporationDate)) {
+            errors.incorporationDateFuture = true;
         }
 
         if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
@@ -276,10 +291,10 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <DatePicker
                             label={this.props.translate('companyStep.incorporationDate')}
-                            onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
+                            onChange={this.clearDateErrorsAndSetValue}
                             value={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            errorText={this.getErrorText('incorporationDate')}
+                            errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
                             translateX={-14}
                         />
                     </View>

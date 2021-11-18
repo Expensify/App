@@ -239,12 +239,6 @@ function getDomainInfo() {
                 const {isFromPublicDomain} = response;
                 Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 
-                // If the user is not on a public domain we'll want to know whether they are on a domain that has
-                // already provisioned the Expensify card
-                if (isFromPublicDomain) {
-                    return;
-                }
-
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
