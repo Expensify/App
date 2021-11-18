@@ -93,6 +93,7 @@ class CompanyStep extends React.Component {
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
+            incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
@@ -100,6 +101,7 @@ class CompanyStep extends React.Component {
         this.getErrors = ReimbursementAccountUtils.getErrors.bind(this);
         this.setErrors = ReimbursementAccountUtils.setErrors.bind(this);
         this.getErrorText = ReimbursementAccountUtils.getErrorText.bind(this, this.errorTranslationKeys);
+        this.clearDateErrorsAndSetValue = this.clearDateErrorsAndSetValue.bind(this);
     }
 
     /**
