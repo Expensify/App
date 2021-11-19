@@ -281,6 +281,10 @@ class ReportActionCompose extends React.Component {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
         }
 
+        if (_.size(this.props.reportActions) === 1) {
+            return this.props.translate('reportActionCompose.sayHello');
+        }
+
         return this.props.translate('reportActionCompose.writeSomething');
     }
 
@@ -605,7 +609,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus={this.shouldFocusInputOnScreenFocus}
+                                    autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
                                     multiline
                                     ref={this.setTextInputRef}
                                     textAlignVertical="top"
