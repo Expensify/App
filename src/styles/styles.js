@@ -2011,6 +2011,10 @@ const styles = {
         width: variables.sideBarWidth - 70,
     },
 
+    deletePopover: {
+        width: variables.sideBarWidth - 54,
+    },
+
     cardOverlay: {
         backgroundColor: themeColors.modalBackdrop,
         position: 'absolute',

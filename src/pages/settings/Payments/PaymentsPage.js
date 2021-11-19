@@ -23,6 +23,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Permissions from '../../../libs/Permissions';
+import ConfirmPopover from '../../../components/ConfirmPopover';
 
 const PAYPAL = 'payPalMe';
 const DEBIT_CARD = 'debitCard';
@@ -55,6 +56,7 @@ class PaymentsPage extends React.Component {
             shouldShowAddPaymentMenu: false,
             shouldShowDefaultDeleteMenu: false,
             shouldShowPasswordPrompt: false,
+            shouldShowConfirmPopover: false,
             selectedPaymentMethod: {},
             formattedSelectedPaymentMethod: {},
             anchorPositionTop: 0,
@@ -264,8 +266,8 @@ class PaymentsPage extends React.Component {
                             onPress={() => {
                                 this.setState({
                                     shouldShowDefaultDeleteMenu: false,
+                                    shouldShowConfirmPopover: true,
                                 });
-                                this.deletePaymentMethod();
                             }}
                             style={[
                                 styles.button,
@@ -290,6 +292,27 @@ class PaymentsPage extends React.Component {
                         onSubmit={this.callPasswordCallbackAndHidePopover}
                         submitButtonText={this.state.passwordButtonText}
                         isDangerousAction={this.state.isDangerousAction}
+                    />
+                    <ConfirmPopover
+                        isVisible={this.state.shouldShowConfirmPopover}
+                        title="Are you sure you want to delete this account?"
+                        confirmText="Delete"
+                        cancelText="Cancel"
+                        anchorPosition={{
+                            top: this.state.anchorPositionTop,
+                            left: this.state.anchorPositionLeft,
+                        }}
+                        onConfirm={() => {
+                            this.setState({
+                                shouldShowConfirmPopover: false,
+                            });
+                            this.deletePaymentMethod();
+                        }}
+                        onCancel={() => {
+                            this.setState({shouldShowConfirmPopover: false});
+                        }}
+                        shouldShowCancelButton
+                        danger
                     />
                 </KeyboardAvoidingView>
             </ScreenWrapper>
