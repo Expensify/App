@@ -62,11 +62,19 @@ class WorkspaceNewRoomPage extends React.Component {
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
+    /**
+     * Called when a workspace is selected. Also calls checkAndModifyRoomName,
+     * which displays an error if the given roomName exists on the newly selected workspace.
+     * @param {String} policyID
+     */
     onWorkspaceSelect(policyID) {
         this.setState({policyID});
         this.checkAndModifyRoomName(this.state.roomName);
     }
 
+    /**
+     * Called when the "Create Room" button is pressed.
+     */
     onSubmit() {
         this.setState({isLoading: true});
         createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility)

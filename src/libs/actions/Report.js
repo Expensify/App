@@ -1438,7 +1438,7 @@ function handleInaccessibleReport() {
 }
 
 /**
- * Creates a policy room and fetches it
+ * Creates a policy room, fetches it, and navigates to it.
  * @param {String} policyID
  * @param {String} reportName
  * @param {String} visibility
