@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Header from './Header';
@@ -78,29 +78,34 @@ const ConfirmPopover = props => (
             >
                 {props.title}
             </Text>
-            <Button
-                success
+            <TouchableOpacity
                 danger={props.danger}
                 style={[
                     styles.button,
                     styles.mv2,
                     styles.defaultOrDeleteButton,
+                    props.danger ? styles.buttonDanger : styles.buttonSuccess,
                 ]}
                 onPress={props.onConfirm}
-                pressOnEnter
-                text={props.confirmText || props.translate('common.yes')}
-            />
+            >
+                <Text style={[styles.buttonText]}>
+                    {props.confirmText || props.translate('common.yes')}
+                </Text>
+            </TouchableOpacity>
             {props.shouldShowCancelButton
             && (
-                <Button
+                <TouchableOpacity
                     style={[
                         styles.button,
                         styles.mv2,
                         styles.defaultOrDeleteButton,
                     ]}
                     onPress={props.onCancel}
-                    text={props.cancelText || props.translate('common.no')}
-                />
+                >
+                    <Text style={[styles.buttonText]}>
+                        {props.cancelText || props.translate('common.no')}
+                    </Text>
+                </TouchableOpacity>
             )}
         </View>
     </Popover>
