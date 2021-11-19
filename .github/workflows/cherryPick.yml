@@ -69,17 +69,17 @@ jobs:
           ref: staging
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Decrypt GPG key
+      - name: Decrypt Botify GPG key
         if: github.actor == 'OSBotify'
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
-      - name: Import the GPG Key
+      - name: Import Botify GPG Key
         if: github.actor == 'OSBotify'
         run: cd .github/workflows && gpg --import OSBotify-private-key.asc
 
-      - name: Set up git
+      - name: Set up git for Botify
         if: github.actor == 'OSBotify'
         run: |
           git config user.signingkey DBF63700F60F5530
