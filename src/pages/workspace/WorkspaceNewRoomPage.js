@@ -54,7 +54,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
     componentDidUpdate(prevProps) {
         const filterWorkspaces = policy => policy && policy.type === CONST.POLICY.TYPE.FREE;
-        const prevPropsWorkspaces =_.filter(prevProps.policies, filterWorkspaces);
+        const prevPropsWorkspaces = _.filter(prevProps.policies, filterWorkspaces);
         const workspaces = _.filter(this.props.policies, filterWorkspaces);
         if (prevPropsWorkspaces === workspaces) {
             return;
