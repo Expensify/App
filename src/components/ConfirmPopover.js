@@ -1,15 +1,12 @@
 import React from 'react';
 import {View, TouchableOpacity} from 'react-native';
-import _ from 'underscore';
 import PropTypes from 'prop-types';
 import Header from './Header';
 import styles from '../styles/styles';
 import Popover from './Popover';
-import CONST from '../CONST';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import Button from './Button';
 import Text from './Text';
 
 const propTypes = {
@@ -69,15 +66,14 @@ const ConfirmPopover = props => (
                 styles.deletePopover,
             ]}
         >
-            <Text
+            <Header
                 style={[
                     styles.h1,
                     styles.mv2,
                     styles.alignSelfCenter,
                 ]}
-            >
-                {props.title}
-            </Text>
+                title={props.title}
+            />
             <TouchableOpacity
                 danger={props.danger}
                 style={[
