@@ -10,18 +10,19 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {ChatBubble, Close} from '../../components/Icon/Expensicons';
+import {Mail, Close} from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import {navigateToConciergeChat} from '../../libs/actions/Report';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
+import {openOldDotLink} from '../../libs/actions/Link';
+import {subscribeToExpensifyCardUpdates} from '../../libs/actions/User';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -72,10 +73,11 @@ class EnableStep extends React.Component {
         }];
         if (!isUsingExpensifyCard) {
             menuItems.unshift({
-                title: this.props.translate('workspace.bankAccount.chatWithConcierge'),
-                icon: ChatBubble,
+                title: this.props.translate('workspace.bankAccount.addWorkEmail'),
+                icon: Mail,
                 onPress: () => {
-                    navigateToConciergeChat();
+                    openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
             });
@@ -111,6 +113,11 @@ class EnableStep extends React.Component {
                                 : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
                     </WorkspaceSection>
+                    {this.props.user.isCheckingDomain && (
+                        <Text style={[styles.formError, styles.m5]}>
+                            {this.props.translate('workspace.card.checkingDomain')}
+                        </Text>
+                    )}
                 </View>
             </View>
         );
