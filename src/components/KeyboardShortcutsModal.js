@@ -27,12 +27,15 @@ class KeyboardShortcutsModal extends React.Component {
         this.state = {
             isOpen: false,
         };
+
+        this.showKeyboardShortcutModal = this.showKeyboardShortcutModal.bind(this);
+        this.hideKeyboardShortcutModal = this.hideKeyboardShortcutModal.bind(this);
     }
 
     componentDidMount() {
-        const shortcutModifiers = KeyboardShortcut.getShortcutModifiers(['control']);
+        const shortcutModifiers = KeyboardShortcut.getShortcutModifiers(['CTRL']);
         this.unsubscribeShortcutModal = KeyboardShortcut.subscribe('?', () => {
-            this.toggleKeyboardShortcutModal(true);
+            this.showKeyboardShortcutModal();
         }, 'openShortcutDialog', shortcutModifiers, true);
     }
 
@@ -43,11 +46,12 @@ class KeyboardShortcutsModal extends React.Component {
         this.unsubscribeShortcutModal();
     }
 
-    /**
-     * @param {Boolean} flag
-     */
-    toggleKeyboardShortcutModal(flag) {
-        this.setState({isOpen: flag});
+    showKeyboardShortcutModal() {
+        this.setState({isOpen: true});
+    }
+
+    hideKeyboardShortcutModal() {
+        this.setState({isOpen: false});
     }
 
     renderRow(shortcut, isFirstRow) {
@@ -78,9 +82,9 @@ class KeyboardShortcutsModal extends React.Component {
                 isVisible={this.state.isOpen}
                 type={modalType}
                 containerStyle={styles.keyboardShortcutModalContainer}
-                onClose={() => this.toggleKeyboardShortcutModal(false)}
+                onClose={() => this.hideKeyboardShortcutModal()}
             >
-                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
+                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={() => this.hideKeyboardShortcutModal()} />
                 <View style={[styles.p5, styles.pt0]}>
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
