@@ -150,6 +150,11 @@ const CONST = {
             shortcutKey: 'Escape',
             modifiers: [],
         },
+        ENTER: {
+            descriptionKey: null,
+            shortcutKey: 'Enter',
+            modifiers: [],
+        },
     },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'Ctrl',
