@@ -31,7 +31,7 @@ jobs:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Import the GPG Key
-        run: gpg --import OSBotify-private-key.asc
+        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
 
       - name: Set up git
         run: |
