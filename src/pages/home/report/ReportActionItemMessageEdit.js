@@ -82,6 +82,10 @@ class ReportActionItemMessageEdit extends React.Component {
         this.textInput.setNativeProps({text: newDraft});
         this.setState({draft: newDraft});
 
+        /**
+         * This component is rendered only when draft is set to a non-empty string. In order to prevent component
+         * unmount when user deletes content of textarea, we set previous message instead of empty string.
+         */
         if (newDraft.trim().length > 0) {
             this.debouncedSaveDraft(newDraft);
         } else {
@@ -112,6 +116,9 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
+        /**
+         * To prevent re-mount after user saves edit before debounce duration, we cancel debounce here.
+         */
         this.debouncedSaveDraft.cancel();
 
         const trimmedNewDraft = this.state.draft.trim();
