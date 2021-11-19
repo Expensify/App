@@ -216,8 +216,6 @@ class ReimbursementAccountPage extends React.Component {
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
-                    <Button onClick={() => this.setState({test: "test"})}>Click me to rerender</Button>
-
                     {currentStep === CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT && (
                         <BankAccountStep
                             achData={achData}

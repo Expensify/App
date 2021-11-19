@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -58,29 +57,22 @@ const PlaidOAuthPage = (props) => {
 
     return (
         <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate('bankAccount.addBankAccount')}
-                onCloseButtonPress={Navigation.dismissModal}
-            />
-            <ReimbursementAccountPage
-                receivedRedirectURI={receivedRedirectURI}
-                existingPlaidLinkToken={props.plaidLinkToken}
-            />
-            {/*<AddPlaidBankAccount*/}
-            {/*    onSubmit={params => onSubmit(params, bankAccountType, props.reimbursementAccount)}*/}
-            {/*    receivedRedirectURI={receivedRedirectURI}*/}
-            {/*    onExitPlaid={() => {*/}
-            {/*        setBankAccountSubStep(null);*/}
-            {/*        Navigation.dismissModal();*/}
-            {/*    }}*/}
-            {/*    plaidLinkToken={props.plaidLinkToken}*/}
-            {/*/>*/}
-            {/*<AddPlaidBankAccount*/}
-            {/*    onSubmit={addPlaidBusinessBankAccount}*/}
-            {/*    receivedRedirectURI={receivedRedirectURI}*/}
-            {/*    onExitPlaid={Navigation.dismissModal}*/}
-            {/*    plaidLinkToken={props.plaidLinkToken}*/}
-            {/*/>*/}
+            {bankAccountType === CONST.BANK_ACCOUNT.BUSINESS ? (
+                <ReimbursementAccountPage
+                    receivedRedirectURI={receivedRedirectURI}
+                    existingPlaidLinkToken={props.plaidLinkToken}
+                />
+            ) : (
+                <AddPlaidBankAccount
+                    onSubmit={({account, password, plaidLinkToken}) => {
+                        addPersonalBankAccount(account, password, plaidLinkToken);
+                    }}
+                    onExitPlaid={Navigation.dismissModal}
+                    isBusinessBankAccount={false}
+                    existingPlaidLinkToken={props.plaidLinkToken}
+                    receivedRedirectURI={receivedRedirectURI}
+                />
+            )}
         </ScreenWrapper>
     );
 };
