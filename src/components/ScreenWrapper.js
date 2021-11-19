@@ -13,6 +13,7 @@ import onScreenTransitionEnd from '../libs/onScreenTransitionEnd';
 import Navigation from '../libs/Navigation/Navigation';
 import compose from '../libs/compose';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 const propTypes = {
     /** Array of additional styles to add */
@@ -68,13 +69,14 @@ class ScreenWrapper extends React.Component {
     }
 
     componentDidMount() {
-        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ESCAPE;
+        this.unsubscribeEscapeKey = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
             if (this.props.modal.willAlertModalBecomeVisible) {
                 return;
             }
 
             Navigation.dismissModal();
-        }, 'escape', [], true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
 
         this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
             this.setState({didScreenTransitionEnd: true});

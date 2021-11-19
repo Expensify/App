@@ -129,6 +129,28 @@ const CONST = {
             DEFAULT: 'shift',
         },
     },
+    KEYBOARD_SHORTCUTS: {
+        SEARCH: {
+            descriptionKey: 'search',
+            shortcutKey: 'K',
+            modifiers: ['CTRL'],
+        },
+        NEW_GROUP: {
+            descriptionKey: 'newGroup',
+            shortcutKey: 'K',
+            modifiers: ['CTRL', 'SHIFT'],
+        },
+        SHORTCUT_MODAL: {
+            descriptionKey: 'openShortcutDialog',
+            shortcutKey: '?',
+            modifiers: ['CTRL', 'SHIFT'],
+        },
+        ESCAPE: {
+            descriptionKey: 'escape',
+            shortcutKey: 'Escape',
+            modifiers: [],
+        },
+    },
     KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
         CONTROL: 'Ctrl',
         META: 'Cmd',

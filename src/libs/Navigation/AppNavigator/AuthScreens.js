@@ -170,18 +170,21 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
-        const searchShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['CTRL']);
-        const groupShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['CTRL', 'SHIFT']);
+        const searchShortcutConfig = CONST.KEYBOARD_SHORTCUTS.SEARCH;
+        const searchShortcutModifiers = KeyboardShortcut.getShortcutModifiers(searchShortcutConfig.modifiers);
+
+        const groupShortcutConfig = CONST.KEYBOARD_SHORTCUTS.NEW_GROUP;
+        const groupShortcutModifiers = KeyboardShortcut.getShortcutModifiers(groupShortcutConfig.modifiers);
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
         // based on the key modifiers pressed and the operating system
-        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe('K', () => {
+        this.unsubscribeSearchShortcut = KeyboardShortcut.subscribe(searchShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.SEARCH);
-        }, 'search', searchShortcutModifiers, true);
-        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe('K', () => {
+        }, groupShortcutConfig.descriptionKey, searchShortcutModifiers, true);
+        this.unsubscribeGroupShortcut = KeyboardShortcut.subscribe(groupShortcutConfig.shortcutKey, () => {
             Navigation.navigate(ROUTES.NEW_GROUP);
-        }, 'newGroup', groupShortcutModifiers, true);
+        }, groupShortcutConfig.descriptionKey, groupShortcutModifiers, true);
     }
 
     shouldComponentUpdate(nextProps) {
