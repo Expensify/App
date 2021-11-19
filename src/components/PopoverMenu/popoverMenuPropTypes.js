@@ -47,7 +47,7 @@ const propTypes = {
     /** Optional non-interactive text to display as a header for any create menu */
     headerText: PropTypes.string,
 
-    /* Whether disable the animations */
+    /** Whether disable the animations */
     disableAnimation: PropTypes.bool,
 };
 

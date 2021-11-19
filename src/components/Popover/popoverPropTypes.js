@@ -13,7 +13,7 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
-    /* Whether disable the animations */
+    /** Whether disable the animations */
     disableAnimation: PropTypes.bool,
 };
 
