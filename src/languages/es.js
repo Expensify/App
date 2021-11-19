@@ -776,7 +776,7 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
     },
-    keyboardShortCutModal: {
+    keyboardShortcutModal: {
         title: 'Atajos de teclado',
         subtitle: 'Ahorra tiempo con estos atajos de teclado:',
         shortcuts: {

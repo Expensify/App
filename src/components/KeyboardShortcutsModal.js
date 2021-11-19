@@ -20,7 +20,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class KeyboardShortcutsModal extends React.PureComponent {
+class KeyboardShortcutsModal extends React.Component {
     constructor(props) {
         super(props);
 
@@ -31,20 +31,19 @@ class KeyboardShortcutsModal extends React.PureComponent {
 
     componentDidMount() {
         const shortcutModifiers = KeyboardShortcut.getShortcutModifiers(['control']);
-        this.unsubscribeShortCutModal = KeyboardShortcut.subscribe('?', () => {
+        this.unsubscribeShortcutModal = KeyboardShortcut.subscribe('?', () => {
             this.toggleKeyboardShortcutModal(true);
         }, 'openShortcutDialog', shortcutModifiers, true);
     }
 
     componentWillUnmount() {
-        if (!this.unsubscribeShortCutModal) {
+        if (!this.unsubscribeShortcutModal) {
             return;
         }
-        this.unsubscribeShortCutModal();
+        this.unsubscribeShortcutModal();
     }
 
     /**
-     * Set flag for model visibility
      * @param {Boolean} flag
      */
     toggleKeyboardShortcutModal(flag) {
@@ -65,7 +64,7 @@ class KeyboardShortcutsModal extends React.PureComponent {
                     <Text>{shortcut.key}</Text>
                 </View>
                 <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
-                    <Text>{this.props.translate(`keyboardShortCutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
+                    <Text>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>
                 </View>
             </View>
         );
@@ -81,9 +80,9 @@ class KeyboardShortcutsModal extends React.PureComponent {
                 containerStyle={styles.keyboardShortcutModalContainer}
                 onClose={() => this.toggleKeyboardShortcutModal(false)}
             >
-                <HeaderWithCloseButton title={this.props.translate('keyboardShortCutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
+                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={() => this.toggleKeyboardShortcutModal(false)} />
                 <View style={[styles.p5, styles.pt0]}>
-                    <Text style={styles.mb5}>{this.props.translate('keyboardShortCutModal.subtitle')}</Text>
+                    <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
                         <View style={[styles.alignItemsCenter, styles.keyboardShortcutTableContainer]}>
                             {_.map(shortcuts, (shortcut, index) => {

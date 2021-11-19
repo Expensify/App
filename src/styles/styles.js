@@ -2129,7 +2129,6 @@ const styles = {
 
     googleListView: {
         transform: [{scale: 0}],
-
     },
 };
 
