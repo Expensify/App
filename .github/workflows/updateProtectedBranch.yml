@@ -66,6 +66,7 @@ jobs:
         run: |
           git config user.signingkey DBF63700F60F5530
           git config commit.gpgsign true
+          git config user.name OSBotify
           git config user.email infra+osbotify@expensify.com
 
       - name: Create temporary branch to resolve conflicts
