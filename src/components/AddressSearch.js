@@ -83,6 +83,15 @@ const AddressSearch = (props) => {
         }
     };
 
+    const checkPressingTab = (event) => {
+        if (event.key !== 'Tab') {
+            return;
+        }
+        if (isSelected) {
+            return;
+        }
+        googlePlacesRef.current.setAddressText('');
+    };
     return (
         <GooglePlacesAutocomplete
             ref={googlePlacesRef}
@@ -118,14 +127,12 @@ const AddressSearch = (props) => {
                 containerStyles: props.containerStyles,
                 errorText: props.errorText,
                 onKeyPress: (event) => {
-                    if (event.key === 'Tab' && !isSelected) {
-                        googlePlacesRef.current.setAddressText('');
-                    }
+                    checkPressingTab(event);
                 },
                 onChangeText: (text) => {
                     const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
                     setIsSelected(false);
-                    
+
                     // Ensure whether an address is selected already or has address value initialized.
                     if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
                         saveLocationDetails({});
