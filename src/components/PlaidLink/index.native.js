@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import {useEffect} from 'react';
 import {NativeEventEmitter} from 'react-native';
 import {openLink, useDeepLinkRedirector} from 'react-native-plaid-link-sdk';
 import Log from '../../libs/Log';
