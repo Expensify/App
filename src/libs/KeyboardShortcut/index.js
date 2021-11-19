@@ -141,18 +141,7 @@ function addKeyToMap(key, modifiers, descriptionKey) {
         shortcutKey = [...modifiers, ...shortcutKey];
     }
 
-    shortcutKey = _.map(shortcutKey, (modifierKey) => {
-        switch (modifierKey) {
-            case 'control':
-                return 'Ctrl';
-            case 'meta':
-                return 'Cmd';
-            case 'shift':
-                return 'Shift';
-            default:
-                return modifierKey;
-        }
-    });
+    shortcutKey = _.map(shortcutKey, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
 
     shortcutKey = shortcutKey.join(' + ');
     keyboardShortcutMap[shortcutKey] = descriptionKey;

@@ -170,8 +170,8 @@ class AuthScreens extends React.Component {
 
         Timing.end(CONST.TIMING.HOMEPAGE_INITIAL_RENDER);
 
-        const searchShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['control']);
-        const groupShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['control', 'shift']);
+        const searchShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['CTRL']);
+        const groupShortcutModifiers = KeyboardShortcut.getShortcutModifiers(['CTRL', 'SHIFT']);
 
         // Listen for the key K being pressed so that focus can be given to
         // the chat switcher, or new group chat
