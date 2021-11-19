@@ -117,7 +117,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     publishDraft() {
         /**
-         * To prevent re-mount after user saves edit before debounce duration, we cancel debounce here.
+         * To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel debounce here.
          */
         this.debouncedSaveDraft.cancel();
 
