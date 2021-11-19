@@ -687,12 +687,17 @@ export default {
             headerWithEcard: '¡Tus tarjetas están listas!',
             noVBACopy: 'Conecte una cuenta bancaria para emitir tarjetas Expensify a los miembros de su espacio de trabajo y acceda a estos increíbles beneficios y más:',
             VBANoECardCopy: 'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
+<<<<<<< HEAD
             VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
+=======
+            VBAWithECardCopy: 'Disfruta de todas estas increíbles ventajas:',
+>>>>>>> ceba16fbc (Merge pull request #6319 from Expensify/cmartins-autoApproveTriggerCleanUp)
             benefit1: 'Hasta un 2% de devolución en tus gastos',
             benefit2: 'Tarjetas digitales y físicas',
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
-            chatWithConcierge: 'Chatea con Concierge',
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
+            checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
         },
         reimburse: {
             captureReceipts: 'Captura recibos',
@@ -756,9 +761,9 @@ export default {
             streamlinePayments: 'Optimiza pagos',
             oneMoreThing: '¡Una cosa más!',
             allSet: '¡Todo listo!',
-            accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta. Concierge puede ayudarte a añadir tu correo de trabajo para activar la Tarjeta Expensify.',
+            accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.\n\nPor favor añade un correo electrónico de trabajo como tu nombre de usuario secundario para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',
-            chatWithConcierge: 'Chat con Concierge',
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
             letsFinishInChat: '¡Continuemos en el chat!',
             almostDone: '¡Casi listo!',
             disconnectBankAccount: 'Desconectar cuenta bancaria',

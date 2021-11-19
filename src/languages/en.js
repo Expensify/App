@@ -685,12 +685,17 @@ export default {
             headerWithEcard: 'Cards are ready!',
             noVBACopy: 'Connect a bank account to issue Expensify Cards to your workspace members, and access these incredible benefits and more:',
             VBANoECardCopy: 'Add a work email address to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
+<<<<<<< HEAD
             VBAWithECardCopy: 'Access these incredible benefits and more:',
+=======
+            VBAWithECardCopy: 'Enjoy all these incredible benefits:',
+>>>>>>> ceba16fbc (Merge pull request #6319 from Expensify/cmartins-autoApproveTriggerCleanUp)
             benefit1: 'Up to 2% cash back',
             benefit2: 'Digital and physical cards',
             benefit3: 'No personal liability',
             benefit4: 'Customizable limits',
-            chatWithConcierge: 'Chat with Concierge',
+            addWorkEmail: 'Add work email address',
+            checkingDomain: 'Hang tight! We are still working on enabling your Expensify Cards. Check back here in a few minutes.',
         },
         reimburse: {
             captureReceipts: 'Capture receipts',
@@ -754,9 +759,9 @@ export default {
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
             allSet: 'You\'re all set!',
-            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nConcierge can help you add a work email address to enable the Expensify Card.',
+            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nPlease add a work email address as a secondary login to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
-            chatWithConcierge: 'Chat with Concierge',
+            addWorkEmail: 'Add work email address',
             letsFinishInChat: 'Let\'s finish in chat!',
             almostDone: 'Almost done!',
             disconnectBankAccount: 'Disconnect bank account',
