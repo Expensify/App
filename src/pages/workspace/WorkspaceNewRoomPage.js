@@ -53,12 +53,10 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        const filterWorkspaces = policy => policy && policy.type === CONST.POLICY.TYPE.FREE;
-        const prevPropsWorkspaces = _.filter(prevProps.policies, filterWorkspaces);
-        const workspaces = _.filter(this.props.policies, filterWorkspaces);
-        if (prevPropsWorkspaces.length === workspaces.length) {
+        if (this.props.policies.length === prevProps.policies.length) {
             return;
         }
+        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
 
         // eslint-disable-next-line react/no-did-update-set-state
         this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
