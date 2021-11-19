@@ -1131,6 +1131,12 @@ function CreatePolicyRoom(parameters) {
     return Network.post(commandName, parameters);
 }
 
+function LeaveUserPolicyRoom(parameters) {
+    const commandName = 'LeaveUserPolicyRoom';
+    requireParameters(['reportID'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1155,6 +1161,7 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
+    LeaveUserPolicyRoom,
     Log,
     PayIOU,
     PayWithWallet,
