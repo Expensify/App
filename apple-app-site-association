@@ -12,7 +12,8 @@
                     "/v/*",
                     "/bank-account/*",
                     "/iou/*",
-                    "/enable-payments/*"
+                    "/enable-payments/*",
+                    "/partners/plaid/oauth_ios"
                 ]
             }
         ]
