@@ -33,7 +33,6 @@ import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceResetBankAccountModal from '../workspace/WorkspaceResetBankAccountModal';
-import Button from "../../components/Button";
 
 const propTypes = {
     /** List of betas */
@@ -212,7 +211,6 @@ class ReimbursementAccountPage extends React.Component {
                 </ScreenWrapper>
             );
         }
-        console.log("ReimbursementAccountPage", currentStep);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
