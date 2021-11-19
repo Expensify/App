@@ -45,11 +45,11 @@ class ExpensiPicker extends PureComponent {
             <>
                 <View
                     style={[
-                        ...this.props.containerStyles,
                         styles.expensiPickerContainer,
                         this.state.isOpen && styles.borderColorFocus,
                         this.props.isDisabled && styles.inputDisabled,
                         this.props.hasError && styles.borderColorDanger,
+                        ...this.props.containerStyles,
                     ]}
                 >
                     {this.props.label && (
