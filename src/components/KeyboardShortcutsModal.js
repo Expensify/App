@@ -11,7 +11,6 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 
-
 const propTypes = {
     /** prop to fetch screen width */
     ...windowDimensionsPropTypes,

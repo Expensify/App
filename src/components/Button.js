@@ -99,7 +99,7 @@ class Button extends Component {
                 return;
             }
             this.props.onPress();
-        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers7, true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
     componentWillUnmount() {
