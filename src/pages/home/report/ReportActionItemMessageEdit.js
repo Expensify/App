@@ -47,7 +47,7 @@ class ReportActionItemMessageEdit extends React.Component {
         super(props);
         this.updateDraft = this.updateDraft.bind(this);
         this.deleteDraft = this.deleteDraft.bind(this);
-        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000, true);
+        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000);
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -81,7 +81,12 @@ class ReportActionItemMessageEdit extends React.Component {
     updateDraft(newDraft) {
         this.textInput.setNativeProps({text: newDraft});
         this.setState({draft: newDraft});
-        this.debouncedSaveDraft(newDraft);
+
+        if (newDraft.trim().length > 0) {
+            this.debouncedSaveDraft(newDraft);
+        } else {
+            this.debouncedSaveDraft(this.props.action.originalMessage.html);
+        }
     }
 
     /**
@@ -96,9 +101,10 @@ class ReportActionItemMessageEdit extends React.Component {
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
+     * @param {String} newDraft
      */
-    debouncedSaveDraft() {
-        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
+    debouncedSaveDraft(newDraft) {
+        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
     }
 
     /**
@@ -106,6 +112,8 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
+        this.debouncedSaveDraft.cancel();
+
         const trimmedNewDraft = this.state.draft.trim();
         editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
