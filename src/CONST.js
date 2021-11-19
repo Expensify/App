@@ -1,5 +1,6 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
+const PLATFORM_OS_MACOS = 'Mac OS';
 
 const CONST = {
     // 50 megabytes in bytes
@@ -118,6 +119,15 @@ const CONST = {
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
+    },
+    KEYBOARD_SHORTCUT_MODIFIERS: {
+        CTRL: {
+            DEFAULT: 'control',
+            [PLATFORM_OS_MACOS]: 'meta',
+        },
+        SHIFT: {
+            DEFAULT: 'shift',
+        },
     },
     CURRENCY: {
         USD: 'USD',
@@ -360,7 +370,7 @@ const CONST = {
 
     OS: {
         WINDOWS: 'Windows',
-        MAC_OS: 'Mac OS',
+        MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
         IOS: 'iOS',
         LINUX: 'Linux',

@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import getOperatingSystem from '../getOperatingSystem';
 import CONST from '../../CONST';
 
@@ -185,8 +186,15 @@ function subscribe(key, callback, descriptionKey, modifiers = 'shift', captureOn
  * @returns {Array}
  */
 function getShortcutModifiers(modifiers) {
-    const isMacOS = getOperatingSystem() === CONST.OS.MAC_OS;
-    return _.map(modifiers, modifier => (isMacOS && modifier === 'control' ? 'meta' : 'control'));
+    const operatingSystem = getOperatingSystem();
+    return _.map(modifiers, (modifier) => {
+        if (!_.has(CONST.KEYBOARD_SHORTCUT_MODIFIERS, modifier)) {
+            return modifier;
+        }
+
+        const platformModifiers = CONST.KEYBOARD_SHORTCUT_MODIFIERS[modifier];
+        return lodashGet(platformModifiers, operatingSystem, platformModifiers.DEFAULT || modifier);
+    });
 }
 
 /**
