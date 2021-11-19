@@ -15,6 +15,7 @@ function deleteDebitCard(fundID) {
     return API.DeleteFund({fundID})
         .then((response) => {
             if (response.jsonCode === 200) {
+                Growl.show("Debit Card successfully deleted!", CONST.GROWL.ERROR, 3000);
                 Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
             }
         })
