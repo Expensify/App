@@ -85,7 +85,7 @@ class ReportActionItemMessageEdit extends React.Component {
         if (newDraft.trim().length > 0) {
             this.debouncedSaveDraft(newDraft);
         } else {
-            this.debouncedSaveDraft(this.props.action.originalMessage.html);
+            this.debouncedSaveDraft(this.props.action.message[0].html);
         }
     }
 
