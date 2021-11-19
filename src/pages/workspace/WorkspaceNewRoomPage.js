@@ -45,16 +45,23 @@ class WorkspaceNewRoomPage extends React.Component {
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
             isLoading: false,
             error: '',
+            workspaceOptions: [],
         };
-        this.workspaceOptions = [];
         this.onWorkspaceSelect = this.onWorkspaceSelect.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
     }
 
-    componentDidMount() {
-        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
-        this.workspaceOptions = _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}));
+    componentDidUpdate(prevProps) {
+        const filterWorkspaces = policy => policy && policy.type === CONST.POLICY.TYPE.FREE;
+        const prevPropsWorkspaces =_.filter(prevProps.policies, filterWorkspaces);
+        const workspaces = _.filter(this.props.policies, filterWorkspaces);
+        if (prevPropsWorkspaces === workspaces) {
+            return;
+        }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
     }
 
     onWorkspaceSelect(policyID) {
@@ -120,7 +127,7 @@ class WorkspaceNewRoomPage extends React.Component {
                         value={this.state.policyID}
                         label={this.props.translate('workspace.common.workspace')}
                         placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                        items={this.workspaceOptions}
+                        items={this.state.workspaceOptions}
                         onChange={this.onWorkspaceSelect}
                         containerStyles={[styles.mb5]}
                     />
