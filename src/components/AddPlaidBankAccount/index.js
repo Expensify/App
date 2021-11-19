@@ -51,9 +51,12 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
+        console.log("in AddPlaid", this.props.receivedRedirectURI);
+        console.log("in AddPlaid", this.props.plaidLinkToken);
+        console.log("in AddPlaid", this.props.existingPlaidLinkToken);
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
-        if (this.props.receivedRedirectURI && this.props.plaidLinkToken) {
+        if (this.props.receivedRedirectURI && (this.props.existingPlaidLinkToken || this.props.plaidLinkToken)) {
             return;
         }
 
@@ -103,6 +106,7 @@ class AddPlaidBankAccount extends React.Component {
 
         const account = this.getAccounts()[this.state.selectedIndex];
         const bankName = lodashGet(this.props.plaidBankAccounts, 'bankName');
+        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.existingPlaidLinkToken;
         this.props.onSubmit({
             bankName,
             account,
@@ -116,17 +120,20 @@ class AddPlaidBankAccount extends React.Component {
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
+        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) || !_.isEmpty(this.props.existingPlaidLinkToken);
+        const plaidLinkTokenToUse = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.existingPlaidLinkToken;
+
         return (
             <>
-                {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
+                {(plaidLinkToken || this.props.plaidBankAccounts.loading)
                     && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />
                         </View>
                     )}
-                {!_.isEmpty(this.props.plaidLinkToken) && (
+                {plaidLinkToken && (
                     <PlaidLink
-                        token={this.props.plaidLinkToken}
+                        token={plaidLinkTokenToUse}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
                             getPlaidBankAccounts(publicToken, metadata.institution.name);

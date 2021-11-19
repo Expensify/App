@@ -19,6 +19,7 @@ export default {
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
     OAUTH_PLAID: 'partners/plaid/oauth_web/:bankAccountType',
+    // OAUTH_PLAID: '',
     HOME: '',
     SETTINGS: 'settings',
     SETTINGS_PROFILE: 'settings/profile',

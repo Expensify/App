@@ -57,6 +57,9 @@ const propTypes = {
         }),
     }),
 
+    receivedRedirectURI: PropTypes.string,
+    existingPlaidLinkToken: PropTypes.string,
+
     ...withLocalizePropTypes,
 };
 
@@ -69,6 +72,8 @@ const defaultProps = {
             stepToOpen: '',
         },
     },
+    receivedRedirectURI: null,
+    existingPlaidLinkToken: '',
 };
 
 class ReimbursementAccountPage extends React.Component {
@@ -207,7 +212,7 @@ class ReimbursementAccountPage extends React.Component {
                 </ScreenWrapper>
             );
         }
-        console.log(">>>>", currentStep);
+        console.log("ReimbursementAccountPage", currentStep);
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -217,6 +222,8 @@ class ReimbursementAccountPage extends React.Component {
                         <BankAccountStep
                             achData={achData}
                             isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
+                            receivedRedirectURI={this.props.receivedRedirectURI}
+                            existingPlaidLinkToken={this.props.existingPlaidLinkToken}
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (

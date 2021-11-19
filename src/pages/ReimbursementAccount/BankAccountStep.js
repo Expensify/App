@@ -20,6 +20,7 @@ import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
+    addPersonalBankAccount,
     addPlaidBusinessBankAccount,
     setBankAccountFormValidationErrors,
     setBankAccountSubStep,
@@ -35,13 +36,23 @@ import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {BankMouseGreen} from '../../components/Icon/Illustrations';
+import lodashGet from "lodash/get";
+import PropTypes from "prop-types";
 
 const propTypes = {
     /** Bank account currently in setup */
     // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
+    receivedRedirectURI: PropTypes.string,
+    existingPlaidLinkToken: PropTypes.string,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    receivedRedirectURI: null,
+    existingPlaidLinkToken: '',
 };
 
 class BankAccountStep extends React.Component {
@@ -135,6 +146,7 @@ class BankAccountStep extends React.Component {
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
         const subStep = this.props.achData.subStep;
         console.log("BankAccountStep", this.props.achData);
+        console.log(isFromPlaid);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -215,6 +227,8 @@ class BankAccountStep extends React.Component {
                         onSubmit={addPlaidBusinessBankAccount}
                         onExitPlaid={() => setBankAccountSubStep(null)}
                         isBusinessBankAccount
+                        receivedRedirectURI={this.props.receivedRedirectURI}
+                        existingPlaidLinkToken={this.props.existingPlaidLinkToken}
                     />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
@@ -270,6 +284,8 @@ class BankAccountStep extends React.Component {
 }
 
 BankAccountStep.propTypes = propTypes;
+BankAccountStep.defaultProps = defaultProps;
+
 export default compose(
     withLocalize,
     withOnyx({

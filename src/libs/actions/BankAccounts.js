@@ -796,6 +796,7 @@ function setupWithdrawalAccount(data) {
             }
 
             // Go to next step
+            console.log("Before go to withdrawal account", nextStep);
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (_.size(errors)) {

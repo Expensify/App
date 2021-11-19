@@ -15,6 +15,8 @@ const propTypes = {
 
     /** If the bank account being added is a business bank account */
     isBusinessBankAccount: PropTypes.bool,
+
+    existingPlaidLinkToken: PropTypes.string,
 };
 
 const defaultProps = {

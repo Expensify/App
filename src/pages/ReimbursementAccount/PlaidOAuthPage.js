@@ -16,6 +16,7 @@ import {
 } from '../../libs/actions/BankAccounts';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import ROUTES from "../../ROUTES";
+import ReimbursementAccountPage from "./ReimbursementAccountPage";
 
 const propTypes = {
     /** Plaid SDK token to use to initialize the widget */
@@ -24,15 +25,27 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const onSubmit = (params, bankAccountType) => {
+const onSubmit = (params, bankAccountType, reimbursementAccount) => {
     bankAccountType === CONST.BANK_ACCOUNT.BUSINESS
         ? addPlaidBusinessBankAccount(params) : ({account, password, plaidLinkToken}) => {
             addPersonalBankAccount(account, password, plaidLinkToken);
         };
-    Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute('420CE21A85AC96F0'));
+    // const promise = bankAccountType === CONST.BANK_ACCOUNT.BUSINESS
+    //     ? addPlaidBusinessBankAccount(params) : ({account, password, plaidLinkToken}) => {
+    //         addPersonalBankAccount(account, password, plaidLinkToken);
+    //     };
+    // promise.then(() => {
+    //     console.log("Here in resolved promise", ROUTES.getWorkspaceBankAccountRoute('420CE21A85AC96F0'));
+    //     Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute('420CE21A85AC96F0'));
+    // })
+    console.log(ROUTES.getWorkspaceBankAccountRoute('420CE21A85AC96F0'));
+    console.log(reimbursementAccount);
+    // Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute('420CE21A85AC96F0'));
+    // console.log(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
 };
 
 const PlaidOAuthPage = (props) => {
+    console.log(props);
     let receivedRedirectURI = window.location.href;
     const receivedRedirectSearchParams = (new URL(receivedRedirectURI)).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
@@ -49,15 +62,19 @@ const PlaidOAuthPage = (props) => {
                 title={props.translate('bankAccount.addBankAccount')}
                 onCloseButtonPress={Navigation.dismissModal}
             />
-            <AddPlaidBankAccount
-                onSubmit={params => onSubmit(params, bankAccountType)}
+            <ReimbursementAccountPage
                 receivedRedirectURI={receivedRedirectURI}
-                onExitPlaid={() => {
-                    setBankAccountSubStep(null);
-                    Navigation.dismissModal();
-                }}
-                plaidLinkToken={props.plaidLinkToken}
+                existingPlaidLinkToken={props.plaidLinkToken}
             />
+            {/*<AddPlaidBankAccount*/}
+            {/*    onSubmit={params => onSubmit(params, bankAccountType, props.reimbursementAccount)}*/}
+            {/*    receivedRedirectURI={receivedRedirectURI}*/}
+            {/*    onExitPlaid={() => {*/}
+            {/*        setBankAccountSubStep(null);*/}
+            {/*        Navigation.dismissModal();*/}
+            {/*    }}*/}
+            {/*    plaidLinkToken={props.plaidLinkToken}*/}
+            {/*/>*/}
             {/*<AddPlaidBankAccount*/}
             {/*    onSubmit={addPlaidBusinessBankAccount}*/}
             {/*    receivedRedirectURI={receivedRedirectURI}*/}
@@ -75,6 +92,9 @@ export default compose(
     withOnyx({
         plaidLinkToken: {
             key: ONYXKEYS.PLAID_LINK_TOKEN,
+        },
+        reimbursementAccount: {
+            key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
 )(PlaidOAuthPage);
