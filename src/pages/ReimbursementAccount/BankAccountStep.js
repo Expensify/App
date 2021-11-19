@@ -144,9 +144,12 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const subStep = this.props.achData.subStep;
+        const shouldReinitializedPlaidLink = this.props.existingPlaidLinkToken && this.props.receivedRedirectURI;
+        const subStep = shouldReinitializedPlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
+
         console.log("BankAccountStep", this.props.achData);
         console.log(isFromPlaid);
+        console.log(subStep);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton

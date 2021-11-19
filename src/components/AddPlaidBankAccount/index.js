@@ -125,7 +125,7 @@ class AddPlaidBankAccount extends React.Component {
 
         return (
             <>
-                {(plaidLinkToken || this.props.plaidBankAccounts.loading)
+                {(!plaidLinkToken || this.props.plaidBankAccounts.loading)
                     && (
                         <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                             <ActivityIndicator color={themeColors.spinner} size="large" />
