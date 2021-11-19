@@ -144,10 +144,6 @@ function getChatReportName(fullReport, chatType) {
             : '')}`;
     }
 
-    if (isPolicyRoom({chatType})) {
-        return fullReport.reportName;
-    }
-
     const {sharedReportList} = fullReport;
     return _.chain(sharedReportList)
         .map(participant => participant.email)
