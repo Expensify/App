@@ -387,7 +387,7 @@ class ReportActionsView extends React.Component {
         // Since we want the New marker to remain in place even if newer messages come in, we set it once on mount.
         // We determine the last read action by deducting the number of unread actions from the total number.
         // Then, we add 1 because we want the New marker displayed over the oldest unread sequence.
-        const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : (this.props.report.maxSequenceNumber - unreadActionCount) + 1;
+        const oldestUnreadSequenceNumber = unreadActionCount === 0 ? 0 : Report.getLastReadSequenceNumber(this.props.report.reportID) + 1;
         Report.setNewMarkerPosition(this.props.reportID, oldestUnreadSequenceNumber);
     }
 
