@@ -13,7 +13,7 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
-import {changePassword} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -94,12 +94,7 @@ class PasswordPage extends Component {
 
 
     handleChangePassword() {
-        changePassword(this.state.currentPassword, this.state.newPassword)
-            .then((response) => {
-                if (response.jsonCode === 200) {
-                    Navigation.navigate(ROUTES.SETTINGS);
-                }
-            });
+        User.changePasswordAndNavigate(this.state.currentPassword, this.state.newPassword);
     }
 
     doPasswordsMatch() {
@@ -109,9 +104,11 @@ class PasswordPage extends Component {
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
-                if (this.currentPasswordInputRef) {
-                    this.currentPasswordInputRef.focus();
+                if (!this.currentPasswordInputRef) {
+                    return;
                 }
+
+                this.currentPasswordInputRef.focus();
             }}
             >
                 <KeyboardAvoidingView>

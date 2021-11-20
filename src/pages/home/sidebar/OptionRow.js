@@ -80,37 +80,22 @@ const defaultProps = {
     disableRowInteractivity: false,
 };
 
-const OptionRow = ({
-    backgroundColor,
-    hoverStyle,
-    option,
-    optionIsFocused,
-    onSelectRow,
-    hideAdditionalOptionStates,
-    showSelectedState,
-    isSelected,
-    forceTextUnreadStyle,
-    showTitleTooltip,
-    isDisabled,
-    mode,
-    disableRowInteractivity,
-    toLocalPhone,
-}) => {
-    const textStyle = optionIsFocused
+const OptionRow = (props) => {
+    const textStyle = props.optionIsFocused
         ? styles.sidebarLinkActiveText
         : styles.sidebarLinkText;
-    const textUnreadStyle = (option.isUnread || forceTextUnreadStyle)
+    const textUnreadStyle = (props.option.isUnread || props.forceTextUnreadStyle)
         ? [textStyle, styles.sidebarLinkTextUnread] : [textStyle];
-    const displayNameStyle = mode === 'compact'
+    const displayNameStyle = props.mode === 'compact'
         ? [styles.optionDisplayName, ...textUnreadStyle, styles.optionDisplayNameCompact, styles.mr2]
         : [styles.optionDisplayName, ...textUnreadStyle];
-    const alternateTextStyle = mode === 'compact'
+    const alternateTextStyle = props.mode === 'compact'
         ? [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.optionAlternateTextCompact]
         : [textStyle, styles.optionAlternateText, styles.textLabelSupporting, styles.mt1];
-    const contentContainerStyles = mode === 'compact'
+    const contentContainerStyles = props.mode === 'compact'
         ? [styles.flex1, styles.flexRow, styles.overflowHidden, styles.alignItemsCenter]
         : [styles.flex1];
-    const sidebarInnerRowStyle = StyleSheet.flatten(mode === 'compact' ? [
+    const sidebarInnerRowStyle = StyleSheet.flatten(props.mode === 'compact' ? [
         styles.chatLinkRowPressable,
         styles.flexGrow1,
         styles.optionItemAvatarNameWrapper,
@@ -123,18 +108,18 @@ const OptionRow = ({
         styles.sidebarInnerRow,
         styles.justifyContentCenter,
     ]);
-    const hoveredBackgroundColor = hoverStyle && hoverStyle.backgroundColor
-        ? hoverStyle.backgroundColor
-        : backgroundColor;
+    const hoveredBackgroundColor = props.hoverStyle && props.hoverStyle.backgroundColor
+        ? props.hoverStyle.backgroundColor
+        : props.backgroundColor;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const isMultipleParticipant = lodashGet(option, 'participantsList.length', 0) > 1;
+    const isMultipleParticipant = lodashGet(props.option, 'participantsList.length', 0) > 1;
     const displayNamesWithTooltips = _.map(
 
         // We only create tooltips for the first 10 users or so since some reports have hundreds of users causing
         // performance to degrade.
-        (option.participantsList || []).slice(0, 10),
+        (props.option.participantsList || []).slice(0, 10),
         ({displayName, firstName, login}) => {
-            const displayNameTrimmed = Str.isSMSLogin(login) ? toLocalPhone(displayName) : displayName;
+            const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
 
             return {
                 displayName: (isMultipleParticipant ? firstName : displayNameTrimmed) || Str.removeSMSDomain(login),
@@ -146,8 +131,8 @@ const OptionRow = ({
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
-                    onPress={() => onSelectRow(option)}
-                    disabled={disableRowInteractivity}
+                    onPress={() => props.onSelectRow(props.option)}
+                    disabled={props.disableRowInteractivity}
                     activeOpacity={0.8}
                     style={[
                         styles.flexRow,
@@ -155,10 +140,10 @@ const OptionRow = ({
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
-                        getBackgroundColorStyle(backgroundColor),
-                        optionIsFocused ? styles.sidebarLinkActive : null,
-                        hovered && !optionIsFocused ? hoverStyle : null,
-                        isDisabled && styles.cursorDisabled,
+                        getBackgroundColorStyle(props.backgroundColor),
+                        props.optionIsFocused ? styles.sidebarLinkActive : null,
+                        hovered && !props.optionIsFocused ? props.hoverStyle : null,
+                        props.isDisabled && styles.cursorDisabled,
                     ]}
                 >
                     <View style={sidebarInnerRowStyle}>
@@ -169,70 +154,70 @@ const OptionRow = ({
                             ]}
                         >
                             {
-                                !_.isEmpty(option.icons)
+                                !_.isEmpty(props.option.icons)
                                 && (
                                     <MultipleAvatars
-                                        avatarImageURLs={option.icons}
-                                        size={mode === 'compact' ? 'small' : 'default'}
+                                        avatarImageURLs={props.option.icons}
+                                        size={props.mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
-                                            getBackgroundAndBorderStyle(backgroundColor),
-                                            optionIsFocused
+                                            getBackgroundAndBorderStyle(props.backgroundColor),
+                                            props.optionIsFocused
                                                 ? getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                 : undefined,
-                                            hovered && !optionIsFocused
+                                            hovered && !props.optionIsFocused
                                                 ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
-                                        isDefaultChatRoom={option.isDefaultChatRoom}
-                                        isArchivedRoom={option.isArchivedRoom}
+                                        isDefaultChatRoom={props.option.isDefaultChatRoom}
+                                        isArchivedRoom={props.option.isArchivedRoom}
                                     />
                                 )
                             }
                             <View style={contentContainerStyles}>
                                 <DisplayNames
-                                    fullTitle={option.text}
+                                    fullTitle={props.option.text}
                                     displayNamesWithTooltips={displayNamesWithTooltips}
-                                    tooltipEnabled={showTitleTooltip}
+                                    tooltipEnabled={props.showTitleTooltip}
                                     numberOfLines={1}
                                     textStyles={displayNameStyle}
-                                    shouldUseFullTitle={option.isDefaultChatRoom}
+                                    shouldUseFullTitle={props.option.isDefaultChatRoom}
                                 />
-                                {option.alternateText ? (
+                                {props.option.alternateText ? (
                                     <Text
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
-                                        {option.alternateText}
+                                        {props.option.alternateText}
                                     </Text>
                                 ) : null}
                             </View>
-                            {option.descriptiveText ? (
+                            {props.option.descriptiveText ? (
                                 <View style={[styles.flexWrap]}>
                                     <Text style={[styles.textLabel]}>
-                                        {option.descriptiveText}
+                                        {props.option.descriptiveText}
                                     </Text>
                                 </View>
                             ) : null}
-                            {showSelectedState && (
+                            {props.showSelectedState && (
                                 <View style={[styles.selectCircle]}>
-                                    {isSelected && (
+                                    {props.isSelected && (
                                         <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
                                     )}
                                 </View>
                             )}
                         </View>
                     </View>
-                    {!hideAdditionalOptionStates && (
+                    {!props.hideAdditionalOptionStates && (
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                            {option.hasDraftComment && (
+                            {props.option.hasDraftComment && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pencil} height={16} width={16} />
                                 </View>
                             )}
-                            {option.hasOutstandingIOU && (
-                                <IOUBadge iouReportID={option.iouReportID} />
+                            {props.option.hasOutstandingIOU && (
+                                <IOUBadge iouReportID={props.option.iouReportID} />
                             )}
-                            {option.isPinned && (
+                            {props.option.isPinned && (
                                 <View style={styles.ml2}>
                                     <Icon src={Pin} height={16} width={16} />
                                 </View>

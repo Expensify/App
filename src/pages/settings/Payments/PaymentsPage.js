@@ -228,12 +228,14 @@ class PaymentsPage extends React.Component {
                                     title={this.props.translate('common.payPalMe')}
                                     icon={PayPal}
                                     onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                                    wrapperStyle={styles.pr15}
                                 />
                             )}
                             <MenuItem
                                 title={this.props.translate('common.debitCard')}
                                 icon={CreditCard}
                                 onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
+                                wrapperStyle={styles.pr15}
                             />
                         </View>
                     </Popover>

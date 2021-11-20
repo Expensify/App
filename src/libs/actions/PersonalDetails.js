@@ -184,22 +184,24 @@ function getFromReportParticipants(reports) {
             // skip over default rooms which aren't named by participants.
             const reportsToUpdate = {};
             _.each(reports, (report) => {
-                if (report.participants.length > 0 || isDefaultRoom(report)) {
-                    const avatars = getReportIcons(report, details);
-                    const reportName = isDefaultRoom(report)
-                        ? report.reportName
-                        : _.chain(report.participants)
-                            .filter(participant => participant !== currentUserEmail)
-                            .map(participant => lodashGet(
-                                formattedPersonalDetails,
-                                [participant, 'displayName'],
-                                participant,
-                            ))
-                            .value()
-                            .join(', ');
-
-                    reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
+                if (report.participants.length <= 0 && !isDefaultRoom(report)) {
+                    return;
                 }
+
+                const avatars = getReportIcons(report, details);
+                const reportName = isDefaultRoom(report)
+                    ? report.reportName
+                    : _.chain(report.participants)
+                        .filter(participant => participant !== currentUserEmail)
+                        .map(participant => lodashGet(
+                            formattedPersonalDetails,
+                            [participant, 'displayName'],
+                            participant,
+                        ))
+                        .value()
+                        .join(', ');
+
+                reportsToUpdate[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = {icons: avatars, reportName};
             });
 
             // We use mergeCollection such that it updates ONYXKEYS.COLLECTION.REPORT in one go.
@@ -302,12 +304,24 @@ function fetchLocalCurrency() {
  */
 function setAvatar(file) {
     setPersonalDetails({avatarUploading: true});
-    API.User_UploadAvatar({file}).then((response) => {
-        // Once we get the s3url back, update the personal details for the user with the new avatar URL
-        if (response.jsonCode === 200) {
+    API.User_UploadAvatar({file})
+        .then((response) => {
+            // Once we get the s3url back, update the personal details for the user with the new avatar URL
+            if (response.jsonCode !== 200) {
+                const error = new Error();
+                error.jsonCode = response.jsonCode;
+                throw error;
+            }
             setPersonalDetails({avatar: response.s3url, avatarUploading: false}, true);
-        }
-    });
+        })
+        .catch((error) => {
+            setPersonalDetails({avatarUploading: false});
+            if (error.jsonCode === 405 || error.jsonCode === 502) {
+                Growl.show(translateLocal('profilePage.invalidFileMessage'), CONST.GROWL.ERROR, 3000);
+            } else {
+                Growl.show(translateLocal('profilePage.avatarUploadFailureMessage'), CONST.GROWL.ERROR, 3000);
+            }
+        });
 }
 
 /**

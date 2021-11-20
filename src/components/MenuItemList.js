@@ -12,9 +12,9 @@ const defaultProps = {
     menuItems: [],
 };
 
-const MenuItemList = ({menuItems}) => (
+const MenuItemList = props => (
     <>
-        {_.map(menuItems, menuItemProps => (
+        {_.map(props.menuItems, menuItemProps => (
             <MenuItem
                 key={menuItemProps.title}
                 // eslint-disable-next-line react/jsx-props-no-spreading

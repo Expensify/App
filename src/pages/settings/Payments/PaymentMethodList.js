@@ -87,27 +87,28 @@ class PaymentMethodList extends Component {
 
         _.each(this.props.bankAccountList, (bankAccount) => {
             // Add all bank accounts besides the wallet
-            if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
-                const formattedBankAccountNumber = bankAccount.accountNumber
-                    ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
-                        bankAccount.accountNumber.slice(-4)
-                    }`
-                    : null;
-                const isDefault = this.props.userWallet.walletLinkedAccountType === 'bankAccount' && this.props.userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
-                const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
-                combinedPaymentMethods.push({
-                    type: MENU_ITEM,
-                    title: bankAccount.addressName,
-
-                    // eslint-disable-next-line
-                    description: formattedBankAccountNumber,
-                    icon,
-                    iconSize,
-                    onPress: e => this.props.onPress(e, 'bankAccount', bankAccount),
-                    key: `bankAccount-${bankAccount.bankAccountID}`,
-                    isDefault,
-                });
+            if (bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET) {
+                return;
             }
+            const formattedBankAccountNumber = bankAccount.accountNumber
+                ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
+                    bankAccount.accountNumber.slice(-4)
+                }`
+                : null;
+            const isDefault = this.props.userWallet.walletLinkedAccountType === 'bankAccount' && this.props.userWallet.walletLinkedAccountID === bankAccount.bankAccountID;
+            const {icon, iconSize} = getBankIcon(lodashGet(bankAccount, 'additionalData.bankName', ''));
+            combinedPaymentMethods.push({
+                type: MENU_ITEM,
+                title: bankAccount.addressName,
+
+                // eslint-disable-next-line
+                description: formattedBankAccountNumber,
+                icon,
+                iconSize,
+                onPress: e => this.props.onPress(e, 'bankAccount', bankAccount),
+                key: `bankAccount-${bankAccount.bankAccountID}`,
+                isDefault,
+            });
         });
 
         _.each(this.props.cardList, (card) => {
