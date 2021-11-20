@@ -21,6 +21,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import {addSMSDomainIfPhoneNumber, getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
@@ -126,6 +127,7 @@ class IOUModal extends Component {
         this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
 
         this.state = {
+            previousStepIndex: 0,
             currentStepIndex: 0,
             participants: participantsWithDetails,
 
@@ -164,6 +166,25 @@ class IOUModal extends Component {
         if (prevProps.iou.selectedCurrencyCode
             !== this.props.iou.selectedCurrencyCode) {
             setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
+        }
+    }
+
+    /**
+     * Decides our animation type based on whether we're increasing or decreasing
+     * our step index.
+     * @returns {String}
+    */
+    getDirection() {
+        if (this.state.previousStepIndex < this.state.currentStepIndex) {
+            return 'in';
+        }
+        if (this.state.previousStepIndex > this.state.currentStepIndex) {
+            return 'out';
+        }
+
+        // Doesn't animate the step when first opening the modal
+        if (this.state.previousStepIndex === this.state.currentStepIndex) {
+            return null;
         }
     }
 
@@ -216,6 +237,7 @@ class IOUModal extends Component {
             return;
         }
         this.setState(prevState => ({
+            previousStepIndex: prevState.currentStepIndex,
             currentStepIndex: prevState.currentStepIndex - 1,
         }));
     }
@@ -228,6 +250,7 @@ class IOUModal extends Component {
             return;
         }
         this.setState(prevState => ({
+            previousStepIndex: prevState.currentStepIndex,
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
     }
@@ -341,37 +364,51 @@ class IOUModal extends Component {
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
-                                        <IOUAmountPage
-                                            onStepComplete={(amount) => {
-                                                this.setState({amount});
-                                                this.navigateToNextStep();
-                                            }}
-                                            reportID={reportID}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            selectedAmount={this.state.amount}
-                                            navigation={this.props.navigation}
-                                        />
+                                        <AnimatedStep
+                                            direction={this.getDirection()}
+                                            style={[styles.flex1, styles.pageWrapper]}
+                                        >
+                                            <IOUAmountPage
+                                                onStepComplete={(amount) => {
+                                                    this.setState({amount});
+                                                    this.navigateToNextStep();
+                                                }}
+                                                reportID={reportID}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                selectedAmount={this.state.amount}
+                                                navigation={this.props.navigation}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
-                                        <IOUParticipantsPage
-                                            participants={this.state.participants}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            onAddParticipants={this.addParticipants}
-                                            onStepComplete={this.navigateToNextStep}
-                                        />
+                                        <AnimatedStep
+                                            style={[styles.flex1]}
+                                            direction={this.getDirection()}
+                                        >
+                                            <IOUParticipantsPage
+                                                participants={this.state.participants}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                onAddParticipants={this.addParticipants}
+                                                onStepComplete={this.navigateToNextStep}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
-                                        <IOUConfirmPage
-                                            onConfirm={this.createTransaction}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            participants={this.state.participants}
-                                            iouAmount={this.state.amount}
-                                            comment={this.state.comment}
-                                            onUpdateComment={this.updateComment}
-                                            iouType={this.props.iouType}
-                                            localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
-                                            isGroupSplit={this.steps.length === 2}
-                                        />
+                                        <AnimatedStep
+                                            direction={this.getDirection()}
+                                        >
+                                            <IOUConfirmPage
+                                                onConfirm={this.createTransaction}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                participants={this.state.participants}
+                                                iouAmount={this.state.amount}
+                                                comment={this.state.comment}
+                                                onUpdateComment={this.updateComment}
+                                                iouType={this.props.iouType}
+                                                localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
+                                                isGroupSplit={this.steps.length === 2}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                 </>
                             )}

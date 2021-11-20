@@ -164,6 +164,10 @@ class IOUConfirmationList extends Component {
     }
 
     componentDidMount() {
+        // We need to wait for the transition animation to end before focusing the TextInput,
+        // otherwise the TextInput isn't animated correctly
+        setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+
         // Only add the Venmo option if we're sending a payment
         if (this.props.iouType !== CONST.IOU.IOU_TYPE.SEND) {
             return;
@@ -423,12 +427,12 @@ class IOUConfirmationList extends Component {
                 </ScrollView>
                 <View style={[styles.ph5, styles.pv5, styles.flexGrow1, styles.flexShrink0, styles.iouConfirmComment]}>
                     <ExpensiTextInput
+                        ref={el => this.textInput = el}
                         label={this.props.translate('iOUConfirmationList.whatsItFor')}
                         value={this.props.comment}
                         onChangeText={this.props.onUpdateComment}
                         placeholder={this.props.translate('common.optional')}
                         placeholderTextColor={themeColors.placeholderText}
-                        autoFocus
                     />
                 </View>
                 <FixedFooter>
