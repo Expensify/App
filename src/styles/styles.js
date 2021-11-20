@@ -2008,10 +2008,10 @@ const styles = {
 
 
     defaultOrDeleteButton: {
-        width: variables.sideBarWidth - 70,
+        width: '100%',
     },
 
-    deletePopover: {
+    defaultDeletePopover: {
         width: variables.sideBarWidth - 54,
     },
 

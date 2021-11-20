@@ -220,7 +220,7 @@ class PaymentsPage extends React.Component {
                         <View
                             style={[
                                 styles.m2,
-                                styles.deletePopover,
+                                styles.defaultDeletePopover,
                             ]}
                         >
                             {!this.props.payPalMeUsername && (
@@ -245,49 +245,56 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        {this.props.isSmallScreenWidth && (
-                            <MenuItem
-                                title={this.state.formattedSelectedPaymentMethod.title}
-                                icon={Bank}
-                                description={this.state.formattedSelectedPaymentMethod.description}
-                                onPress={() => {}}
-                            />
-                        )}
-                        <TouchableOpacity
-                            onPress={() => {
-                                this.setState({
-                                    shouldShowPasswordPrompt: true,
-                                    shouldShowDefaultDeleteMenu: false,
-                                    passwordButtonText: 'Make Default Payment Method',
-                                    isDangerousAction: false,
-                                    passwordFormCallback: this.makeDefaultPaymentMethod,
-                                });
-                            }}
-                            style={[styles.button, styles.mh2, styles.mt2, styles.defaultOrDeleteButton]}
-                        >
-                            <Text style={[styles.buttonText]}>
-                                Make Default Payment Method
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            onPress={() => {
-                                this.setState({
-                                    shouldShowDefaultDeleteMenu: false,
-                                    shouldShowConfirmPopover: true,
-                                });
-                            }}
+                        <View
                             style={[
-                                styles.button,
-                                styles.buttonDanger,
-                                styles.mh2,
-                                styles.mv2,
-                                styles.defaultOrDeleteButton,
+                                styles.m2,
+                                !this.props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
                             ]}
                         >
-                            <Text style={[styles.buttonText]}>
-                                {this.props.translate('common.delete')}
-                            </Text>
-                        </TouchableOpacity>
+                            {this.props.isSmallScreenWidth && (
+                                <MenuItem
+                                    title={this.state.formattedSelectedPaymentMethod.title}
+                                    icon={Bank}
+                                    description={this.state.formattedSelectedPaymentMethod.description}
+                                    onPress={() => {}}
+                                />
+                            )}
+                            <TouchableOpacity
+                                onPress={() => {
+                                    this.setState({
+                                        shouldShowPasswordPrompt: true,
+                                        shouldShowDefaultDeleteMenu: false,
+                                        passwordButtonText: 'Make Default Payment Method',
+                                        isDangerousAction: false,
+                                        passwordFormCallback: this.makeDefaultPaymentMethod,
+                                    });
+                                }}
+                                style={[styles.button, styles.mv2, styles.alignSelfCenter, styles.defaultOrDeleteButton]}
+                            >
+                                <Text style={[styles.buttonText]}>
+                                    Make Default Payment Method
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    this.setState({
+                                        shouldShowDefaultDeleteMenu: false,
+                                        shouldShowConfirmPopover: true,
+                                    });
+                                }}
+                                style={[
+                                    styles.button,
+                                    styles.buttonDanger,
+                                    styles.mv2,
+                                    styles.alignSelfCenter,
+                                    styles.defaultOrDeleteButton,
+                                ]}
+                            >
+                                <Text style={[styles.buttonText]}>
+                                    {this.props.translate('common.delete')}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
                     </Popover>
                     <PasswordPopover
                         isVisible={this.state.shouldShowPasswordPrompt}

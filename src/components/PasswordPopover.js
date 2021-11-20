@@ -69,7 +69,10 @@ class PasswordPopover extends Component {
                 onModalShow={this.focusInput}
             >
                 <View
-                    style={styles.m2}
+                    style={[
+                        styles.m2,
+                        styles.defaultDeletePopover,
+                    ]}
                 >
                     <Text
                         style={[

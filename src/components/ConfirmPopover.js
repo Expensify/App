@@ -63,7 +63,7 @@ const ConfirmPopover = props => (
         <View
             style={[
                 styles.m2,
-                styles.deletePopover,
+                styles.defaultDeletePopover,
             ]}
         >
             <Header
@@ -81,6 +81,7 @@ const ConfirmPopover = props => (
                     styles.mv2,
                     styles.defaultOrDeleteButton,
                     props.danger ? styles.buttonDanger : styles.buttonSuccess,
+                    styles.alignSelfCenter,
                 ]}
                 onPress={props.onConfirm}
             >
@@ -95,6 +96,7 @@ const ConfirmPopover = props => (
                         styles.button,
                         styles.mv2,
                         styles.defaultOrDeleteButton,
+                        styles.alignSelfCenter,
                     ]}
                     onPress={props.onCancel}
                 >
