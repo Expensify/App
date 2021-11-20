@@ -54,7 +54,7 @@ class EmojiPickerMenu extends Component {
         // For this reason to make headers work, we need to have the header be the only rendered element in its row
         // If this number is changed, emojis.js will need to be updated to have the proper number of spacer elements
         // around each header.
-        this.numColumns = 8;
+        this.numColumns = CONST.EMOJI_NUM_PER_ROW;
 
         // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)

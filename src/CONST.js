@@ -266,6 +266,8 @@ const CONST = {
 
     EMOJI_SPACER: 'SPACER',
 
+    EMOJI_NUM_PER_ROW: 8,
+
     LOGIN_TYPE: {
         PHONE: 'phone',
         EMAIL: 'email',
