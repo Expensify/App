@@ -6,6 +6,8 @@ import Text from './Text';
 import TextInputFocusable from './TextInputFocusable';
 import Popover from './Popover';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import compose from '../libs/compose';
+import withWindowDimensions from './withWindowDimensions';
 
 const propTypes = {
     /** Is the popover currently showing? */
@@ -71,7 +73,7 @@ class PasswordPopover extends Component {
                 <View
                     style={[
                         styles.m2,
-                        styles.defaultDeletePopover,
+                        !this.props.isSmallScreenWidth ? styles.defaultDeletePopover: '',
                     ]}
                 >
                     <Text
@@ -116,4 +118,7 @@ class PasswordPopover extends Component {
 
 PasswordPopover.propTypes = propTypes;
 PasswordPopover.defaultProps = defaultProps;
-export default withLocalize(PasswordPopover);
+export default compose(
+    withWindowDimensions,
+    withLocalize,
+)(PasswordPopover);
