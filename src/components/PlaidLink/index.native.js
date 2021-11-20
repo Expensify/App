@@ -7,8 +7,8 @@ import nativeModule from './nativeModule';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
 
-const PlaidLink  = (props) => {
-    let listener = undefined;
+const PlaidLink = (props) => {
+    let listener;
     useDeepLinkRedirector();
     useEffect(() => {
         const emitter = new NativeEventEmitter(nativeModule);
@@ -36,7 +36,7 @@ const PlaidLink  = (props) => {
             }
 
             listener.remove();
-        }
+        };
     }, []);
 
     return null;
