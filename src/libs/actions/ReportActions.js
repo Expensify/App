@@ -73,18 +73,18 @@ function isReportMissingActions(reportID, maxKnownSequenceNumber) {
 }
 
 /**
- * Get the count of deleted messages upto a sequence number of a report
+ * Get the count of deleted messages after a sequence number of a report
  * @param {Number|String} reportID
- * @param {Number} lastSequenceNumber
+ * @param {Number} sequenceNumber
  * @return {Number}
  */
-function getDeletedCommentsCount(reportID, lastSequenceNumber) {
+function getDeletedCommentsCount(reportID, sequenceNumber) {
     if (!reportActions[reportID]) {
         return 0;
     }
 
     return _.reduce(reportActions[reportID], (deletedMessages, action) => {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber <= lastSequenceNumber) {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADDCOMMENT || action.sequenceNumber <= sequenceNumber) {
             return deletedMessages;
         }
 
