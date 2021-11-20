@@ -19,7 +19,7 @@ This project and everyone participating in it is governed by the Expensify [Code
 At this time, we are not hiring contractors in Crimea, North Korea, Russia, Iran, Cuba, or Syria.
 
 ## Asking Questions
-If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and we'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
+If you have any general questions, please ask in the #expensify-open-source Slack channel. To request an invite to the channel, just email contributors@expensify.com with the subject `Slack Channel Invite` and include a link to your Upwork profile. We'll send you an invite! The Expensify team will not be able to respond to direct messages in Slack.
 
 If you are hired for an Upwork job and have any job-specific questions, please ask in the GitHub issue or pull request. This will ensure that the person addressing your question has as much context as possible.
 
@@ -59,9 +59,9 @@ In this scenario, it’s possible that you found a bug or enhancement that we ha
 ## Working on Expensify Jobs
 *Reminder: For technical guidance please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
-#### Express interest for the job on Upwork.com
+#### Check GitHub for existing proposals from other users
 
-1. If you are interested in working on a job posted in Upwork, click **Submit a Proposal** in Upwork to express your interest to the Expensify team.
+1. Expensify reviews all solution proposals on a first come first serve basis. If you see other contributors have already proposed a solution, you can still provide a solution proposal and we will review it. We look for the earliest provided, best proposed solution that addresses the job.
 
 #### Make sure you can reproduce the problem
 2. Use your test account(s) to reproduce the problem by following the steps in the GitHub issue.

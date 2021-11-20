@@ -15,9 +15,11 @@ const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
-        if (val && key) {
-            allPolicies[key] = {...allPolicies[key], ...val};
+        if (!val || !key) {
+            return;
         }
+
+        allPolicies[key] = {...allPolicies[key], ...val};
     },
 });
 
@@ -92,9 +94,11 @@ function updateAllPolicies(policyCollection) {
  * @returns {Promise}
  */
 function create(name = '') {
+    Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
     return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
+            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');
@@ -181,15 +185,17 @@ function deletePolicy(policyID = '', shouldGrowl = true, shouldAutomaticallyRero
 function getPolicyList() {
     API.GetPolicySummaryList()
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
-                    ...memo,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-                }), {});
+            if (data.jsonCode !== 200) {
+                return;
+            }
 
-                if (!_.isEmpty(policyCollection)) {
-                    updateAllPolicies(policyCollection);
-                }
+            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
+                ...memo,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+            }), {});
+
+            if (!_.isEmpty(policyCollection)) {
+                updateAllPolicies(policyCollection);
             }
         });
 }
@@ -210,12 +216,16 @@ function createAndGetPolicyList() {
 function loadFullPolicy(policyID) {
     API.GetFullPolicy(policyID)
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const policy = lodashGet(data, 'policyList[0]', {});
-                if (policy.id) {
-                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
-                }
+            if (data.jsonCode !== 200) {
+                return;
             }
+
+            const policy = lodashGet(data, 'policyList[0]', {});
+            if (!policy.id) {
+                return;
+            }
+
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
         });
 }
 

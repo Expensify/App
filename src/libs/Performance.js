@@ -21,13 +21,14 @@ let rnPerformance;
 function diffObject(object, base) {
     function changes(obj, comparisonObject) {
         return lodashTransform(obj, (result, value, key) => {
-            if (!_.isEqual(value, comparisonObject[key])) {
-                // eslint-disable-next-line no-param-reassign
-                result[key] = (
-                    _.isObject(value) && _.isObject(comparisonObject[key]))
-                    ? changes(value, comparisonObject[key])
-                    : value;
+            if (_.isEqual(value, comparisonObject[key])) {
+                return;
             }
+
+            // eslint-disable-next-line no-param-reassign
+            result[key] = (_.isObject(value) && _.isObject(comparisonObject[key]))
+                ? changes(value, comparisonObject[key])
+                : value;
         });
     }
     return changes(object, base);

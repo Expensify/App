@@ -43,21 +43,25 @@ class BaseExpensiTextInput extends Component {
 
     componentDidMount() {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (this.props.autoFocus && this.input) {
-            this.input.focus();
+        if (!this.props.autoFocus || !this.input) {
+            return;
         }
+
+        this.input.focus();
     }
 
     componentDidUpdate(prevProps) {
         // activate or deactivate the label when value is changed programmatically from outside
-        if (prevProps.value !== this.props.value) {
-            this.value = this.props.value;
+        if (prevProps.value === this.props.value) {
+            return;
+        }
 
-            if (this.props.value) {
-                this.activateLabel();
-            } else if (!this.state.isFocused) {
-                this.deactivateLabel();
-            }
+        this.value = this.props.value;
+
+        if (this.props.value) {
+            this.activateLabel();
+        } else if (!this.state.isFocused) {
+            this.deactivateLabel();
         }
     }
 
@@ -100,21 +104,25 @@ class BaseExpensiTextInput extends Component {
     }
 
     activateLabel() {
-        if (this.value.length >= 0 && !this.isLabelActive) {
-            this.animateLabel(
-                ACTIVE_LABEL_TRANSLATE_Y,
-                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
-                ACTIVE_LABEL_SCALE,
-            );
-            this.isLabelActive = true;
+        if (this.value.length < 0 || this.isLabelActive) {
+            return;
         }
+
+        this.animateLabel(
+            ACTIVE_LABEL_TRANSLATE_Y,
+            ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
+            ACTIVE_LABEL_SCALE,
+        );
+        this.isLabelActive = true;
     }
 
     deactivateLabel() {
-        if (!this.props.forceActiveLabel && this.value.length === 0) {
-            this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
-            this.isLabelActive = false;
+        if (this.props.forceActiveLabel || this.value.length !== 0) {
+            return;
         }
+
+        this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
+        this.isLabelActive = false;
     }
 
     animateLabel(translateY, translateX, scale) {
@@ -138,28 +146,14 @@ class BaseExpensiTextInput extends Component {
     }
 
     render() {
-        const {
-            label,
-            value,
-            placeholder,
-            errorText,
-            hasError,
-            containerStyles,
-            inputStyle,
-            ignoreLabelTranslateX,
-            innerRef,
-            autoFocus,
-            multiline,
-            ...inputProps
-        } = this.props;
-
-        const hasLabel = Boolean(label.length);
+        const inputProps = _.omit(this.props, _.keys(propTypes));
+        const hasLabel = Boolean(this.props.label.length);
         return (
             <View>
                 <View
                     style={[
-                        !multiline && styles.componentHeightLarge,
-                        ...containerStyles,
+                        !this.props.multiline && styles.componentHeightLarge,
+                        ...this.props.containerStyles,
                     ]}
                 >
                     <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
@@ -167,18 +161,18 @@ class BaseExpensiTextInput extends Component {
                             style={[
                                 styles.expensiTextInputContainer,
                                 this.state.isFocused && styles.borderColorFocus,
-                                (hasError || errorText) && styles.borderColorDanger,
+                                (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
                             ]}
                         >
                             {hasLabel ? (
                                 <>
                                     {/* Adding this background to the label only for multiline text input,
                                     to prevent text overlaping with label when scrolling */}
-                                    {multiline && <View style={styles.expensiTextInputLabelBackground} />}
+                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} />}
                                     <ExpensiTextInputLabel
-                                        label={label}
+                                        label={this.props.label}
                                         labelTranslateX={
-                                            ignoreLabelTranslateX
+                                            this.props.ignoreLabelTranslateX
                                                 ? new Animated.Value(0)
                                                 : this.state.labelTranslateX
                                         }
@@ -189,28 +183,29 @@ class BaseExpensiTextInput extends Component {
                             ) : null}
                             <TextInput
                                 ref={(ref) => {
-                                    if (typeof innerRef === 'function') { innerRef(ref); }
+                                    if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                     this.input = ref;
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                value={value}
-                                placeholder={(this.state.isFocused || !label) ? placeholder : null}
+                                value={this.props.value}
+                                placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
                                 placeholderTextColor={themeColors.placeholderText}
                                 underlineColorAndroid="transparent"
-                                style={[inputStyle, !hasLabel && styles.pv0]}
-                                multiline={multiline}
+                                style={[this.props.inputStyle, !hasLabel && styles.pv0]}
+                                multiline={this.props.multiline}
                                 onFocus={this.onFocus}
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
                                 onPressOut={this.props.onPress}
+                                translateX={this.props.translateX}
                             />
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {!_.isEmpty(errorText) && (
+                {!_.isEmpty(this.props.errorText) && (
                     <InlineErrorText>
-                        {errorText}
+                        {this.props.errorText}
                     </InlineErrorText>
                 )}
             </View>

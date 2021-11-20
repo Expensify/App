@@ -50,7 +50,7 @@ class WorkspaceInitialPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const {policy} = this.props;
+        const policy = this.props.policy;
         this.openEditor = this.openEditor.bind(this);
         this.toggleDeleteModal = this.toggleDeleteModal.bind(this);
         this.confirmDeleteAndHideModal = this.confirmDeleteAndHideModal.bind(this);
@@ -134,18 +134,14 @@ class WorkspaceInitialPage extends React.Component {
 
 
     render() {
-        const {
-            translate, isSmallScreenWidth, policy, isFocused,
-        } = this.props;
-
-        if (_.isEmpty(policy)) {
+        if (_.isEmpty(this.props.policy)) {
             return <FullScreenLoadingIndicator />;
         }
 
         return (
             <ScreenWrapper>
                 <HeaderWithCloseButton
-                    title={translate('workspace.common.workspace')}
+                    title={this.props.translate('workspace.common.workspace')}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                     onCloseButtonPress={() => Navigation.dismissModal()}
@@ -153,11 +149,11 @@ class WorkspaceInitialPage extends React.Component {
                     threeDotsMenuItems={[
                         {
                             icon: Plus,
-                            text: translate('workspace.new.newWorkspace'),
+                            text: this.props.translate('workspace.new.newWorkspace'),
                             onSelected: () => createAndNavigate(),
                         }, {
                             icon: Trashcan,
-                            text: translate('workspace.common.delete'),
+                            text: this.props.translate('workspace.common.delete'),
                             onSelected: () => this.setState({isDeleteModalOpen: true}),
                         },
                     ]}
@@ -177,12 +173,12 @@ class WorkspaceInitialPage extends React.Component {
                                     style={[styles.pRelative, styles.avatarLarge]}
                                     onPress={this.openEditor}
                                 >
-                                    {policy.avatarURL
+                                    {this.props.policy.avatarURL
                                         ? (
                                             <Avatar
                                                 containerStyles={styles.avatarLarge}
                                                 imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                                source={policy.avatarURL}
+                                                source={this.props.policy.avatarURL}
                                             />
                                         )
                                         : (
@@ -195,7 +191,7 @@ class WorkspaceInitialPage extends React.Component {
                                         )}
                                 </Pressable>
 
-                                {policy.name && (
+                                {!_.isEmpty(this.props.policy.name) && (
                                     <Pressable
                                         style={[
                                             styles.alignSelfCenter,
@@ -205,7 +201,7 @@ class WorkspaceInitialPage extends React.Component {
                                         ]}
                                         onPress={this.openEditor}
                                     >
-                                        <Tooltip text={policy.name}>
+                                        <Tooltip text={this.props.policy.name}>
                                             <Text
                                                 numberOfLines={1}
                                                 style={[
@@ -213,7 +209,7 @@ class WorkspaceInitialPage extends React.Component {
                                                     styles.alignSelfCenter,
                                                 ]}
                                             >
-                                                {policy.name}
+                                                {this.props.policy.name}
                                             </Text>
                                         </Tooltip>
                                     </Pressable>
@@ -221,11 +217,11 @@ class WorkspaceInitialPage extends React.Component {
                             </View>
                         </View>
                         {_.map(this.menuItems, (item) => {
-                            const shouldFocus = isSmallScreenWidth ? !isFocused && item.isActive : item.isActive;
+                            const shouldFocus = this.props.isSmallScreenWidth ? !this.props.isFocused && item.isActive : item.isActive;
                             return (
                                 <MenuItem
                                     key={item.translationKey}
-                                    title={translate(item.translationKey)}
+                                    title={this.props.translate(item.translationKey)}
                                     icon={item.icon}
                                     iconRight={item.iconRight}
                                     onPress={() => item.action()}
@@ -238,13 +234,13 @@ class WorkspaceInitialPage extends React.Component {
                     </View>
                 </ScrollView>
                 <ConfirmModal
-                    title={this.props.translate('workspace.common.delete')}
+                    title={this.props.this.props.translate('workspace.common.delete')}
                     isVisible={this.state.isDeleteModalOpen}
                     onConfirm={this.confirmDeleteAndHideModal}
                     onCancel={() => this.toggleDeleteModal(false)}
-                    prompt={this.props.translate('workspace.common.deleteConfirmation')}
-                    confirmText={this.props.translate('common.delete')}
-                    cancelText={this.props.translate('common.cancel')}
+                    prompt={this.props.this.props.translate('workspace.common.deleteConfirmation')}
+                    confirmText={this.props.this.props.translate('common.delete')}
+                    cancelText={this.props.this.props.translate('common.cancel')}
                 />
             </ScreenWrapper>
         );
