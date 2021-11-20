@@ -64,11 +64,11 @@ const ConfirmPopover = props => (
             style={[
                 styles.m2,
                 styles.defaultDeletePopover,
+                styles.alignItemsCenter,
             ]}
         >
             <Header
                 style={[
-                    styles.h1,
                     styles.mv2,
                     styles.alignSelfCenter,
                 ]}
