@@ -49,7 +49,6 @@ const defaultProps = {
     onIconPress: () => {},
 };
 
-
 class ThreeDotsMenu extends Component {
     constructor(props) {
         super(props);
