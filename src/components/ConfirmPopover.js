@@ -64,7 +64,7 @@ const ConfirmPopover = props => (
             style={[
                 styles.m2,
                 styles.alignItemsCenter,
-                !props.isSmallScreenWidth ? styles.defaultDeletePopover: '',
+                !props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
             ]}
         >
             <Header

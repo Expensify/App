@@ -828,6 +828,8 @@ function deleteBankAccount(bankAccountID) {
         if (response.jsonCode === 200) {
             Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: null});
             Growl.show("Bank account successfully deleted!", CONST.GROWL.ERROR, 3000);
+        } else {
+            Growl.show(translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
         }
     }).catch(() => {
         Growl.show(translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);

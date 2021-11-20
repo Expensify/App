@@ -14,7 +14,12 @@ import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
 import {deleteBankAccount} from '../../../libs/actions/BankAccounts';
-import {deleteDebitCard, deletePayPalMe, getPaymentMethods, setWalletLinkedAccount} from '../../../libs/actions/PaymentMethods';
+import {
+    deleteDebitCard,
+    deletePayPalMe,
+    getPaymentMethods,
+    setWalletLinkedAccount,
+} from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import {PayPal, Bank, CreditCard} from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';

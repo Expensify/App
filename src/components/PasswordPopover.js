@@ -57,9 +57,10 @@ class PasswordPopover extends Component {
      * Focus the password input
      */
     focusInput() {
-        if (this.passwordInput) {
-            this.passwordInput.focus();
+        if (!this.passwordInput) {
+            return;
         }
+        this.passwordInput.focus();
     }
 
     render() {
@@ -73,7 +74,7 @@ class PasswordPopover extends Component {
                 <View
                     style={[
                         styles.m2,
-                        !this.props.isSmallScreenWidth ? styles.defaultDeletePopover: '',
+                        !this.props.isSmallScreenWidth ? styles.defaultDeletePopover : '',
                     ]}
                 >
                     <Text

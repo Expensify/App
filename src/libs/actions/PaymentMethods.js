@@ -15,8 +15,10 @@ function deleteDebitCard(fundID) {
     return API.DeleteFund({fundID})
         .then((response) => {
             if (response.jsonCode === 200) {
-                Growl.show("Debit Card successfully deleted!", CONST.GROWL.ERROR, 3000);
+                Growl.show('Debit Card successfully deleted!', CONST.GROWL.ERROR, 3000);
                 Onyx.merge(ONYXKEYS.CARD_LIST, {[fundID]: null});
+            } else {
+                Growl.show(translateLocal('common.genericErrorMessage'), CONST.GROWL.ERROR, 3000);
             }
         })
         .catch(() => {
@@ -27,7 +29,7 @@ function deleteDebitCard(fundID) {
 function deletePayPalMe() {
     NameValuePair.set(CONST.NVP.PAYPAL_ME_ADDRESS, '');
     Onyx.merge(ONYXKEYS.NVP_PAYPAL_ME_ADDRESS, null);
-    Growl.show("PayPal.me successfully deleted!", CONST.GROWL.ERROR, 3000);
+    Growl.show('PayPal.me successfully deleted!', CONST.GROWL.ERROR, 3000);
 }
 
 /**
