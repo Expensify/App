@@ -140,11 +140,9 @@ function createAndNavigate(name = '') {
  * Delete the policy
  *
  * @param {String} [policyID]
- * @param {Boolean} shouldGrowl
- * @param {Boolean} shouldAutomaticallyReroute
  * @returns {Promise}
  */
-function deletePolicy(policyID = '', shouldGrowl = true, shouldAutomaticallyReroute = true) {
+function deletePolicy(policyID) {
     return API.Policy_Delete({policyID})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -154,17 +152,13 @@ function deletePolicy(policyID = '', shouldGrowl = true, shouldAutomaticallyRero
                 return;
             }
 
-            if (shouldGrowl) {
-                Growl.show(translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
-            }
+            Growl.show(translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
 
             // Removing the workspace data from Onyx as well
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
         }).then(() => {
-            if (shouldAutomaticallyReroute) {
-                Navigation.dismissModal();
-                Navigation.navigate(ROUTES.HOME);
-            }
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.HOME);
             return Promise.resolve();
         });
 }
