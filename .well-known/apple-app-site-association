@@ -10,19 +10,19 @@
                     },
                     {
                         "/": "/settings/*",
-                        "comment": "Settigns and its subsections"
+                        "comment": "Profile and app settings"
                     },
                     {
                         "/": "/setpassword/*",
-                        "comment": "Setup password"
+                        "comment": "Passoword setup"
                     },
                     {
                         "/": "/details/*",
-                        "comment": "Info about other users"
+                        "comment": "Details of another users"
                     },
                     {
                         "/": "/v/*",
-                        "comment": "Validation steps"
+                        "comment": "Account validation"
                     },
                     {
                         "/": "/bank-account/*",
@@ -30,11 +30,11 @@
                     },
                     {
                         "/": "/iou/*",
-                        "comment": "I owe you "
+                        "comment": "I Owe You reports"
                     },
                     {
                         "/": "/enable-payments/*",
-                        "comment": "Setup of payments"
+                        "comment": "Payments setup"
                     },
                     {
                         "/": "/partners/plaid/oauth_ios",
