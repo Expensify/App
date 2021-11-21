@@ -108,8 +108,8 @@ function getDynamicSpacing(emojiCount) {
  * @param {Array} frequentlyUsedEmojis
  * @returns {Array}
  */
-function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis) {
-    if (!frequentlyUsedEmojis || !frequentlyUsedEmojis.length === 0) {
+function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) {
+    if (frequentlyUsedEmojis.length === 0) {
         return emojis;
     }
 
@@ -131,11 +131,11 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis) {
  */
 function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     let updatedFrequentlyUsedEmojis = frequentlyUsedEmojis;
-    const emojiCount = frequentlyUsedEmojis[newEmoji.unicode] + 1;
+    const emojiCount = frequentlyUsedEmojis[newEmoji.code] + 1;
     updatedFrequentlyUsedEmojis = lodash(updatedFrequentlyUsedEmojis).toPairs().orderBy([1], ['desc']).take((CONST.EMOJI_NUM_PER_ROW * CONST.EMOJI_FREQUENT_ROW_COUNT) - 1)
         .fromPairs()
         .value();
-    updatedFrequentlyUsedEmojis[newEmoji.unicode] = emojiCount;
+    updatedFrequentlyUsedEmojis[newEmoji.code] = emojiCount;
     setFrequentlyUsedEmojis(updatedFrequentlyUsedEmojis);
 }
 

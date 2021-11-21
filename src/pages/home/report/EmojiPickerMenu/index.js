@@ -14,6 +14,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../../components/withLo
 import compose from '../../../../libs/compose';
 import getOperatingSystem from '../../../../libs/getOperatingSystem';
 import EmojiSkinToneList from '../EmojiSkinToneList';
+import {getDynamicHeaderIndices, mergeEmojisWithFrequentlyUsedEmojis} from '../../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -62,17 +63,19 @@ class EmojiPickerMenu extends Component {
         // around each header.
         this.numColumns = CONST.EMOJI_NUM_PER_ROW;
 
+        const allEmojis = mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+
         // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
         // If more emojis are ever added to emojis.js this will need to be updated or things will break
-        this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
+        this.unfilteredHeaderIndices = getDynamicHeaderIndices(allEmojis);
 
         // If we're on Windows, don't display the flag emojis (the last category),
         // since Windows doesn't support them (and only displays country codes instead)
         this.emojis = getOperatingSystem() === CONST.OS.WINDOWS
-            ? emojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
-            : emojis;
+            ? allEmojis.slice(0, this.unfilteredHeaderIndices.pop() * this.numColumns)
+            : allEmojis;
 
         this.filterEmojis = _.debounce(this.filterEmojis.bind(this), 300);
         this.highlightAdjacentEmoji = this.highlightAdjacentEmoji.bind(this);
