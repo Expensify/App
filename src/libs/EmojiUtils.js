@@ -1,5 +1,7 @@
 import _ from 'underscore';
+import lodash from 'lodash';
 import CONST from '../CONST';
+import {setFrequentlyUsedEmojis} from './actions/User';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -122,6 +124,22 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis) {
     return allEmojis;
 }
 
+/**
+ * Update the frequently used emojis list by usage and sync with API
+ * @param {Array} frequentlyUsedEmojis
+ * @param {Object} newEmoji
+ */
+function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
+    let updatedFrequentlyUsedEmojis = frequentlyUsedEmojis;
+    const emojiCount = frequentlyUsedEmojis[newEmoji.unicode] + 1;
+    updatedFrequentlyUsedEmojis = lodash(updatedFrequentlyUsedEmojis).toPairs().orderBy([1], ['desc']).take((CONST.EMOJI_NUM_PER_ROW * CONST.EMOJI_FREQUENT_ROW_COUNT) - 1)
+        .fromPairs()
+        .value();
+    updatedFrequentlyUsedEmojis[newEmoji.unicode] = emojiCount;
+    setFrequentlyUsedEmojis(updatedFrequentlyUsedEmojis);
+}
+
+
 export {
     getEmojiUnicode,
     trimEmojiUnicode,
@@ -129,4 +147,5 @@ export {
     getDynamicHeaderIndices,
     getDynamicSpacing,
     mergeEmojisWithFrequentlyUsedEmojis,
+    addToFrequentlyUsedEmojis,
 };

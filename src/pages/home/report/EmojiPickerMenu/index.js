@@ -28,6 +28,12 @@ const propTypes = {
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func,
 
+    /** User's frequently used emojis */
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
+        code: PropTypes.string.isRequired,
+        keywords: PropTypes.arrayOf(PropTypes.string),
+    })).isRequired,
+
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
 
@@ -118,7 +124,7 @@ class EmojiPickerMenu extends Component {
 
             // Select the currently highlighted emoji if enter is pressed
             if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
-                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code, this.state.filteredEmojis[this.state.highlightedIndex]);
                 return;
             }
 
@@ -345,7 +351,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={this.props.onEmojiSelected}
+                onPress={emoji => this.props.onEmojiSelected(emoji, item)}
                 onHover={() => this.setState({highlightedIndex: index})}
                 emoji={emojiCode}
                 isHighlighted={index === this.state.highlightedIndex}
