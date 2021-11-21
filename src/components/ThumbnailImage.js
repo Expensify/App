@@ -50,19 +50,19 @@ class ThumbnailImage extends PureComponent {
             : this.props.previewSourceURL;
 
         return (
-            <View
-                style={[
-                    getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
-                    styles.alignItemsCenter,
-                    styles.justifyContentCenter,
-                    styles.overflowHidden,
-                ]}
-            >
-                <ImageWithSizeCalculation
-                    style={this.props.style}
-                    url={url}
-                    onMeasure={this.updateImageSize}
-                />
+            <View style={[this.props.style, styles.overflowHidden]}>
+                <View
+                    style={[
+                        getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                    ]}
+                >
+                    <ImageWithSizeCalculation
+                        url={url}
+                        onMeasure={this.updateImageSize}
+                    />
+                </View>
             </View>
         );
     }
