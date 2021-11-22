@@ -8,7 +8,7 @@ import positioning from './utilities/positioning';
  * @param {Boolean} [isHovered]
  * @returns {Object}
  */
-export function getReportActionItemStyle(isHovered = false) {
+function getReportActionItemStyle(isHovered = false) {
     return {
         display: 'flex',
         justifyContent: 'space-between',
@@ -27,7 +27,7 @@ export function getReportActionItemStyle(isHovered = false) {
  * @param {Boolean} isReportActionItemGrouped
  * @returns {Object}
  */
-export function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
+function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGrouped) {
     return {
         ...(isReportActionItemGrouped ? positioning.tn8 : positioning.tn4),
         ...positioning.r4,
@@ -35,3 +35,8 @@ export function getMiniReportActionContextMenuWrapperStyle(isReportActionItemGro
         zIndex: 1,
     };
 }
+
+export {
+    getMiniReportActionContextMenuWrapperStyle,
+    getReportActionItemStyle,
+};
