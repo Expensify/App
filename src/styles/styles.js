@@ -562,22 +562,22 @@ const styles = {
 
     textInputWithPrefix: {
         container: {
-            display: 'flex',
-            flexDirection: 'row',
             backgroundColor: themeColors.componentBG,
-            borderRadius: variables.componentBorderRadiusNormal,
-            height: variables.inputComponentSizeNormal,
             borderColor: themeColors.border,
             borderWidth: 1,
+            borderRadius: variables.componentBorderRadiusNormal,
             color: themeColors.text,
+            display: 'flex',
+            flexDirection: 'row',
             fontFamily: fontFamily.GTA,
             fontSize: variables.fontSizeNormal,
+            height: variables.inputComponentSizeNormal,
+            marginBottom: 4,
+            paddingBottom: 10,
             paddingLeft: 12,
             paddingRight: 12,
             paddingTop: 10,
-            paddingBottom: 10,
             textAlignVertical: 'center',
-            marginBottom: 4,
         },
         textInput: {
             outlineStyle: 'none',
