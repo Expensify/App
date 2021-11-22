@@ -45,10 +45,10 @@ const defaultProps = {
 
 class Avatar extends PureComponent {
     avatarSource(imageStyle){
-        if(!this.props.network.isOffline){
-            return(<Image source={{uri: this.props.source}} style={imageStyle}/>)
+        if (!this.props.network.isOffline) {
+            return(<Image source={{uri: this.props.source}} style={imageStyle}/>);
         } else {
-           return(<Icon width={'100%'} height={'100%'} src={Profile} fill={colors.green}/>)
+           return(<Icon width={'100%'} height={'100%'} src={Profile} fill={colors.green}/>);
         }
     }
 
