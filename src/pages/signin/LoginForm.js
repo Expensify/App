@@ -16,6 +16,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {isNumericWithSpecialChars} from '../../libs/ValidationUtils';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
@@ -79,7 +80,10 @@ class LoginForm extends React.Component {
             return;
         }
 
-        if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
+        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
+        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+
+        if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {
             if (isNumericWithSpecialChars(this.state.login)) {
                 this.setState({formError: 'messages.errorMessageInvalidPhone'});
             } else {
@@ -93,7 +97,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        fetchAccountDetails(this.state.login);
+        fetchAccountDetails(isValidPhoneLogin ? phoneLogin : this.state.login);
     }
 
     render() {
