@@ -52,9 +52,7 @@ class AddressSearch extends PureComponent {
             // Gather the values from the Google details
             const streetNumber = getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
             const streetName = getAddressComponent(addressComponents, 'route', 'long_name') || '';
-
             const addressStreet = `${streetNumber} ${streetName}`.trim();
-
             let addressCity = getAddressComponent(addressComponents, 'locality', 'long_name');
             if (!addressCity) {
                 addressCity = getAddressComponent(addressComponents, 'sublocality', 'long_name');
