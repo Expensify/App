@@ -1,13 +1,19 @@
 import React from 'react';
 import {KeyboardAvoidingView, ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
+import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SVGImage from '../../../components/SVGImage';
-import styles, {getBackgroundColorStyle, getLoginPagePromoStyle} from '../../../styles/styles';
+import styles, {getBackgroundColorStyle, getLoginPagePromoStyle, getModalPaddingStyles} from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import compose from '../../../libs/compose';
+import scrollViewContentContainerStyles from './signInPageStyles.js';
+import LoginKeyboardAvoidingView from './LoginKeyboardAvoidingView';
+import withKeyboardState from '../../../components/withKeyboardState';
+
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -34,33 +40,41 @@ const SignInPageLayoutWide = props => (
             <ScrollView
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
-                style={styles.signInPageWideLeftContainer}
-                contentContainerStyle={[styles.ph6, styles.flexColumn]}
+                style={[
+                    styles.h100,
+                    styles.alignSelfCenter,
+                    styles.signInPageWideLeftContainer,
+                ]}
+                contentContainerStyle={[scrollViewContentContainerStyles, styles.ph6]}
             >
-                <KeyboardAvoidingView
-                    behavior="position"
-                    style={[
-                        styles.flex1,
-                        styles.mt40Percentage,
-                        styles.alignSelfCenter,
-                        styles.w100,
-                        styles.ph4,
-                    ]}
-                >
-                    <View style={[styles.signInPageLogo, styles.mt6, styles.mb5]}>
-                        <ExpensifyCashLogo
-                            width={variables.componentSizeLarge}
-                            height={variables.componentSizeLarge}
-                        />
-                    </View>
-                    {props.shouldShowWelcomeText && (
-                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                            {props.welcomeText}
-                        </Text>
-                    )}
-                    {props.children}
-                </KeyboardAvoidingView>
-                <View style={[styles.mv5, styles.ph4, styles.w100, styles.alignSelfCenter]}>
+                <View style={[styles.flex1, styles.alignSelfStretch, styles.ph4]}>
+                    <LoginKeyboardAvoidingView
+                        behavior="position"
+                        contentContainerStyle={[
+                            styles.signInPageWideLeftContentMargin,
+                            styles.mb3,
+                            getModalPaddingStyles({
+                                shouldAddBottomSafeAreaPadding: true,
+                                modalContainerStylePaddingBottom: 20,
+                                safeAreaPaddingBottom: props.insets.bottom,
+                            }),
+                        ]}
+                    >
+                        <View style={[styles.componentHeightLarge, styles.mt6, styles.mb5]}>
+                            <ExpensifyCashLogo
+                                width={variables.componentSizeLarge}
+                                height={variables.componentSizeLarge}
+                            />
+                        </View>
+                        {props.shouldShowWelcomeText && (
+                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                {props.welcomeText}
+                            </Text>
+                        )}
+                        {props.children}
+                    </LoginKeyboardAvoidingView>
+                </View>
+                <View style={[styles.mb5, styles.alignSelfCenter, styles.ph5]}>
                     <TermsAndLicenses />
                 </View>
             </ScrollView>
@@ -83,4 +97,8 @@ const SignInPageLayoutWide = props => (
 SignInPageLayoutWide.propTypes = propTypes;
 SignInPageLayoutWide.displayName = 'SignInPageLayoutWide';
 
-export default withLocalize(SignInPageLayoutWide);
+export default compose(
+    withLocalize,
+    withKeyboardState,
+    withSafeAreaInsets,
+)(SignInPageLayoutWide);

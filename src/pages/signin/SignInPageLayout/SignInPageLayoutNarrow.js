@@ -48,7 +48,7 @@ const SignInPageLayoutNarrow = props => (
             <LoginKeyboardAvoidingView
                 behavior="position"
                 contentContainerStyle={[
-                    styles.mt40Percentage,
+                    styles.signInPageNarrowContentMargin,
                     styles.mb3,
                     getModalPaddingStyles({
                         shouldAddBottomSafeAreaPadding: true,
