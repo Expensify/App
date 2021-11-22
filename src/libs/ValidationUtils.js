@@ -249,6 +249,14 @@ function isValidUSPhone(phoneNumber) {
 }
 
 /**
+ * @param {String} password
+ * @returns {Boolean}
+ */
+function isValidPassword(password) {
+    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+}
+
+/**
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  * @param {String} input
  * @returns {Boolean}
@@ -281,6 +289,7 @@ export {
     isValidUSPhone,
     isValidURL,
     validateIdentity,
+    isValidPassword,
     isNumericWithSpecialChars,
     isValidLengthForFirstOrLastName,
     isValidPaypalUsername,
