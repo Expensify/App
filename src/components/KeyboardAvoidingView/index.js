@@ -1,6 +1,5 @@
-/**
+/*
  * This is a KeyboardAvoidingView only enabled for ios && disabled for all other platforms
- * @param {Node}
  */
 import PropTypes from 'prop-types';
 

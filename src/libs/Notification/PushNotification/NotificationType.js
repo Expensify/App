@@ -1,5 +1,5 @@
 /**
- * See https://github.com/Expensify/Web-Expensify/blob/master/lib/MobilePushNotifications.php for the various
+ * See https://github.com/Expensify/Web-Expensify/blob/main/lib/MobilePushNotifications.php for the various
  * types of push notifications sent by our API.
  */
 export default {

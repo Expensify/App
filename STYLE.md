@@ -264,9 +264,7 @@ const {name, accountID, email} = data;
 
 **React Components**
 
-- Avoid destructuring props and state at the *same time*. It makes the source of a given variable unclear.
-- Avoid destructuring either props or state when there are other variables declared in a render block. This helps us quickly know which variables are from props, state, or declared inside the render.
-- Use parameter destructuring for stateless function components when there are no additional variable declarations in the render.
+Don't destructure props or state. It makes the source of a given variable unclear. This guideline helps us quickly know which variables are from props, state, or from some other scope.
 
 ```javascript
 // Bad
@@ -276,12 +274,20 @@ render() {
 	...
 }
 
-// Good
+// Bad
 const UserInfo = ({name, email}) => (
-	<div>
-		<p>Name: {name}</p>
-		<p>Email: {email}</p>
-	</div>
+	<View>
+		<Text>Name: {name}</Text>
+		<Text>Email: {email}</Text>
+	</View>
+);
+
+// Good
+const UserInfo = props => (
+    <View>
+        <Text>Name: {props.name}</Text>
+        <Text>Email: {props.email}</Text>
+    </View>
 );
 ```
 

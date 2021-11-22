@@ -17,7 +17,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const AppDownloadLinksPage = ({translate}) => {
+const AppDownloadLinksPage = (props) => {
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.appDownloadLinks.android.label',
@@ -42,7 +42,7 @@ const AppDownloadLinksPage = ({translate}) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('initialSettingsPage.aboutPage.appDownloadLinks')}
+                title={props.translate('initialSettingsPage.aboutPage.appDownloadLinks')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -51,7 +51,7 @@ const AppDownloadLinksPage = ({translate}) => {
                 {_.map(menuItems, item => (
                     <MenuItem
                         key={item.translationKey}
-                        title={translate(item.translationKey)}
+                        title={props.translate(item.translationKey)}
                         icon={item.icon}
                         iconRight={item.iconRight}
                         onPress={() => item.action()}
