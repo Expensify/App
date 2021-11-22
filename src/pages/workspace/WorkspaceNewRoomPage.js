@@ -56,6 +56,8 @@ class WorkspaceNewRoomPage extends React.Component {
         if (this.props.policies.length === prevProps.policies.length) {
             return;
         }
+
+        // Workspaces are policies with type === 'free'
         const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
 
         // eslint-disable-next-line react/no-did-update-set-state
