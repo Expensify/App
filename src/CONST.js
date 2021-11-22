@@ -2,6 +2,8 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 
 const CONST = {
+    ANIMATED_TRANSITION: 300,
+
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
@@ -184,6 +186,7 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        MAX_PREVIEW_AVATARS: 4,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -287,18 +290,21 @@ const CONST = {
     COMPOSER_MAX_HEIGHT: 116,
 
     EMAIL: {
-        CHRONOS: 'chronos@expensify.com',
         CONCIERGE: 'concierge@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
         HELP: 'help@expensify.com',
+        RECEIPTS: 'receipts@expensify.com',
+        CHRONOS: 'chronos@expensify.com',
         QA: 'qa@expensify.com',
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         BILLS: 'bills@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        ACCOUNTING: 'accounting@expensify.com',
+        PAYROLL: 'payroll@expensify.com',
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        ADMIN: 'admin@expensify.com',
     },
 
     ENVIRONMENT: {
@@ -428,9 +434,11 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
     },
+
     PHONE_MAX_LENGTH: 15,
     PHONE_MIN_LENGTH: 5,
     REGEX: {
+        SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
@@ -463,17 +471,20 @@ const CONST = {
 
 const EXPENSIFY_EMAILS = [
     CONST.EMAIL.CONCIERGE,
+    CONST.EMAIL.HELP,
+    CONST.EMAIL.RECEIPTS,
+    CONST.EMAIL.CHRONOS,
+    CONST.EMAIL.QA,
     CONST.EMAIL.CONTRIBUTORS,
     CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.HELP,
-    CONST.EMAIL.QA,
-    CONST.EMAIL.CHRONOS,
-    CONST.EMAIL.RECEIPTS,
+    CONST.EMAIL.QA_TRAVIS,
     CONST.EMAIL.BILLS,
     CONST.EMAIL.STUDENT_AMBASSADOR,
-    CONST.EMAIL.QA_TRAVIS,
+    CONST.EMAIL.ACCOUNTING,
+    CONST.EMAIL.PAYROLL,
     CONST.EMAIL.SVFG,
     CONST.EMAIL.INTEGRATION_TESTING_CREDS,
+    CONST.EMAIL.ADMIN,
 ];
 
 export {
