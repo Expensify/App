@@ -109,16 +109,9 @@ class ReportScreen extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        console.log("Previous comment: ", prevProps.comment);
-        console.log("New comment: ", this.props.comment);
-
-        console.log("Previous route: ", prevProps.route);
-        console.log("New route: ", this.props.route);
         if (this.props.route.params.reportID === prevProps.route.params.reportID) {
             return;
-        } else {
         }
-
 
         this.prepareTransition();
         this.storeCurrentlyViewedReport();
