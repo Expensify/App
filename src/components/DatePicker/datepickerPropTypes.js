@@ -12,11 +12,15 @@ const propTypes = {
      * `onChange` would always be called with a Date (or null)
      */
     value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+
+    /* Restricts for selectable max date range for the picker */
+    maximumDate: PropTypes.instanceOf(Date),
 };
 
 const defaultProps = {
     ...defaultFieldPropTypes,
     value: undefined,
+    maximumDate: undefined,
 };
 
 export {propTypes, defaultProps};

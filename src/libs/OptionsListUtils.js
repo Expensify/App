@@ -47,9 +47,11 @@ const reportsWithDraft = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
     callback: (hasDraft, key) => {
-        if (key) {
-            reportsWithDraft[key] = hasDraft;
+        if (!key) {
+            return;
         }
+
+        reportsWithDraft[key] = hasDraft;
     },
 });
 
@@ -57,9 +59,11 @@ const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy, key) => {
-        if (policy && key && policy.name) {
-            policies[key] = policy;
+        if (!policy || !key || !policy.name) {
+            return;
         }
+
+        policies[key] = policy;
     },
 });
 
@@ -67,9 +71,11 @@ const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     callback: (iouReport, key) => {
-        if (iouReport && key && iouReport.ownerEmail) {
-            iouReports[key] = iouReport;
+        if (!iouReport || !key || !iouReport.ownerEmail) {
+            return;
         }
+
+        iouReports[key] = iouReport;
     },
 });
 
@@ -701,14 +707,14 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     }
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
-        return translate(preferredLocale, 'messages.noPhoneNumber');
+        return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return translate(preferredLocale, 'messages.noPhoneNumber');
+            return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
         return translate(preferredLocale, 'common.noResultsFound');

@@ -29,9 +29,11 @@ class BaseModal extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isVisible !== this.props.isVisible) {
-            willAlertModalBecomeVisible(this.props.isVisible);
+        if (prevProps.isVisible === this.props.isVisible) {
+            return;
         }
+
+        willAlertModalBecomeVisible(this.props.isVisible);
     }
 
     componentWillUnmount() {
@@ -114,11 +116,15 @@ class BaseModal extends PureComponent {
                         const {
                             paddingTop: safeAreaPaddingTop,
                             paddingBottom: safeAreaPaddingBottom,
+                            paddingLeft: safeAreaPaddingLeft,
+                            paddingRight: safeAreaPaddingRight,
                         } = getSafeAreaPadding(insets);
 
                         const modalPaddingStyles = getModalPaddingStyles({
                             safeAreaPaddingTop,
                             safeAreaPaddingBottom,
+                            safeAreaPaddingLeft,
+                            safeAreaPaddingRight,
                             shouldAddBottomSafeAreaPadding,
                             shouldAddTopSafeAreaPadding,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,

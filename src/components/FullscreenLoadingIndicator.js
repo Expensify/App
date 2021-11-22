@@ -22,14 +22,15 @@ const defaultProps = {
 /**
  * Loading indication component intended to cover the whole page, while the page prepares for initial render
  *
+ * @param {Object} props
  * @returns {JSX.Element}
  */
-const FullScreenLoadingIndicator = ({visible, style}) => {
-    if (!visible) {
+const FullScreenLoadingIndicator = (props) => {
+    if (!props.visible) {
         return null;
     }
 
-    const additionalStyles = _.isArray(style) ? style : [style];
+    const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, ...additionalStyles]}>
             <ActivityIndicator color={themeColors.spinner} size="large" />

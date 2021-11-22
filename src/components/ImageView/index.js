@@ -213,7 +213,7 @@ class ImageView extends PureComponent {
                     <Image
                         source={{uri: this.props.url}}
                         style={getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale)}
-                        resizeMode="contain"
+                        resizeMode={this.state.isZoomed ? 'contain' : 'center'}
                     />
                 </Pressable>
             </View>

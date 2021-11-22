@@ -10,18 +10,19 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {ChatBubble, Close} from '../../components/Icon/Expensicons';
+import {Mail, Close} from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import {navigateToConciergeChat} from '../../libs/actions/Report';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
+import {openOldDotLink} from '../../libs/actions/Link';
+import {subscribeToExpensifyCardUpdates} from '../../libs/actions/User';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -44,17 +45,14 @@ class EnableStep extends React.Component {
     }
 
     render() {
-        const {
-            user, reimbursementAccount, translate, bankAccountList,
-        } = this.props;
-        if (this.props.isLoadingPaymentMethods || _.isEmpty(bankAccountList)) {
+        if (this.props.isLoadingPaymentMethods || _.isEmpty(this.props.bankAccountList)) {
             return (
                 <FullScreenLoadingIndicator />
             );
         }
 
-        const isUsingExpensifyCard = user.isUsingExpensifyCard;
-        const account = _.find(bankAccountList, bankAccount => bankAccount.bankAccountID === reimbursementAccount.achData.bankAccountID);
+        const isUsingExpensifyCard = this.props.user.isUsingExpensifyCard;
+        const account = _.find(this.props.bankAccountList, bankAccount => bankAccount.bankAccountID === this.props.reimbursementAccount.achData.bankAccountID);
         if (!account) {
             // This shouldn't happen as we can only end up here if we have successfully added a bank account.
             // But in case it does we'll throw here directly so it can be caught by the error boundary.
@@ -63,7 +61,7 @@ class EnableStep extends React.Component {
 
         const {icon, iconSize} = getBankIcon(account.additionalData.bankName);
         const formattedBankAccountNumber = account.accountNumber
-            ? `${translate('paymentMethodList.accountLastFour')} ${
+            ? `${this.props.translate('paymentMethodList.accountLastFour')} ${
                 account.accountNumber.slice(-4)
             }`
             : '';
@@ -75,10 +73,11 @@ class EnableStep extends React.Component {
         }];
         if (!isUsingExpensifyCard) {
             menuItems.unshift({
-                title: translate('workspace.bankAccount.chatWithConcierge'),
-                icon: ChatBubble,
+                title: this.props.translate('workspace.bankAccount.addWorkEmail'),
+                icon: Mail,
                 onPress: () => {
-                    navigateToConciergeChat();
+                    openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
             });
@@ -87,14 +86,14 @@ class EnableStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={translate('workspace.common.bankAccount')}
+                    title={this.props.translate('workspace.common.bankAccount')}
                     onCloseButtonPress={Navigation.dismissModal}
                     shouldShowBackButton
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flex1]}>
                     <WorkspaceSection
-                        title={!isUsingExpensifyCard ? translate('workspace.bankAccount.oneMoreThing') : translate('workspace.bankAccount.allSet')}
+                        title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
                         IconComponent={() => (!isUsingExpensifyCard ? <Icon src={ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
                         menuItems={menuItems}
                     >
@@ -110,10 +109,15 @@ class EnableStep extends React.Component {
                         />
                         <Text>
                             {!isUsingExpensifyCard
-                                ? translate('workspace.bankAccount.accountDescriptionNoCards')
-                                : translate('workspace.bankAccount.accountDescriptionWithCards')}
+                                ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
+                                : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
                     </WorkspaceSection>
+                    {this.props.user.isCheckingDomain && (
+                        <Text style={[styles.formError, styles.m5]}>
+                            {this.props.translate('workspace.card.checkingDomain')}
+                        </Text>
+                    )}
                 </View>
             </View>
         );
