@@ -80,6 +80,15 @@ class ReportActionItem extends Component {
             || this.state.isContextMenuActive !== nextState.isContextMenuActive;
     }
 
+    componentDidUpdate(prevProps) {
+        if (prevProps.draftMessage || !this.props.draftMessage) {
+            return;
+        }
+
+        // Only focus the input when user edits a message, skip it for existing drafts being edited of the report.
+        this.textInput.focus();
+    }
+
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -127,6 +136,7 @@ class ReportActionItem extends Component {
                             draftMessage={this.props.draftMessage}
                             reportID={this.props.reportID}
                             index={this.props.index}
+                            ref={el => this.textInput = el}
                     />
                 );
         }
@@ -139,7 +149,7 @@ class ReportActionItem extends Component {
                 preventDefaultContentMenu={!this.props.draftMessage}
 
             >
-                <Hoverable resetsOnClickOutside={false}>
+                <Hoverable resetsOnClickOutside>
                     {hovered => (
                         <View>
                             {this.props.shouldDisplayNewIndicator && (
@@ -191,8 +201,7 @@ export default compose(
     withReportActionsDrafts({
         propName: 'draftMessage',
         transformValue: (drafts, props) => {
-            const {reportID, action} = props;
-            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}_${action.reportActionID}`;
+            const draftKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${props.reportID}_${props.action.reportActionID}`;
             return lodashGet(drafts, draftKey, '');
         },
     }),

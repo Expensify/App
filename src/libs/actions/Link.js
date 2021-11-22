@@ -35,20 +35,26 @@ function showGrowlIfOffline() {
  * @param {String} url
  */
 function openOldDotLink(url) {
-    if (!showGrowlIfOffline()) {
-        // eslint-disable-next-line max-len
-        const buildOldDotURL = ({shortLivedAuthToken}) => `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
-        asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
+    if (showGrowlIfOffline()) {
+        return;
     }
+
+    function buildOldDotURL({shortLivedAuthToken}) {
+        return `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+    }
+
+    asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
 }
 
 /**
  * @param {String} url
  */
 function openExternalLink(url) {
-    if (!showGrowlIfOffline()) {
-        Linking.openURL(url);
+    if (showGrowlIfOffline()) {
+        return;
     }
+
+    Linking.openURL(url);
 }
 
 export {

@@ -1,8 +1,9 @@
-import Onyx from 'react-native-onyx';
-import ONYXKEYS from '../ONYXKEYS';
+import * as Session from './actions/Session';
 
 export default (shouldShowComposeInput, isSmallScreenWidth) => {
-    if (isSmallScreenWidth) {
-        Onyx.merge(ONYXKEYS.SESSION, {shouldShowComposeInput});
+    if (!isSmallScreenWidth) {
+        return;
     }
+
+    Session.setShouldShowComposeInput(shouldShowComposeInput);
 };

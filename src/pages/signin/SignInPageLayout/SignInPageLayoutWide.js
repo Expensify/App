@@ -1,8 +1,8 @@
 import React from 'react';
 import {KeyboardAvoidingView, ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
-import styles from '../../../styles/styles';
+import SVGImage from '../../../components/SVGImage';
+import styles, {getBackgroundColorStyle, getLoginPagePromoStyle} from '../../../styles/styles';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import variables from '../../../styles/variables';
@@ -26,8 +26,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const backgroundStyles = [styles.backgroundBlue, styles.backgroundGreen, styles.backgroundOrange, styles.backgroundPink];
-const backgroundStyle = backgroundStyles[_.random(0, 3)];
+const backgroundStyle = getLoginPagePromoStyle();
 
 const SignInPageLayoutWide = props => (
     <View style={[styles.flex1, styles.signInPageInner]}>
@@ -67,12 +66,16 @@ const SignInPageLayoutWide = props => (
             </ScrollView>
             <View style={[
                 styles.flexGrow1,
-                styles.flexRow,
-                styles.background100,
-                backgroundStyle,
+                getBackgroundColorStyle(backgroundStyle.backgroundColor),
                 props.isMediumScreenWidth && styles.alignItemsCenter,
             ]}
-            />
+            >
+                <SVGImage
+                    width="100%"
+                    height="100%"
+                    src={backgroundStyle.backgroundImageUri}
+                />
+            </View>
         </View>
     </View>
 );

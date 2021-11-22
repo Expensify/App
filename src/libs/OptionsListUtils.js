@@ -43,13 +43,27 @@ Onyx.connect({
     callback: val => preferredLocale = val || CONST.DEFAULT_LOCALE,
 });
 
+const reportsWithDraft = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
+    callback: (hasDraft, key) => {
+        if (!key) {
+            return;
+        }
+
+        reportsWithDraft[key] = hasDraft;
+    },
+});
+
 const policies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (policy, key) => {
-        if (policy && key && policy.name) {
-            policies[key] = policy;
+        if (!policy || !key || !policy.name) {
+            return;
         }
+
+        policies[key] = policy;
     },
 });
 
@@ -57,9 +71,11 @@ const iouReports = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_IOUS,
     callback: (iouReport, key) => {
-        if (iouReport && key && iouReport.ownerEmail) {
-            iouReports[key] = iouReport;
+        if (!iouReport || !key || !iouReport.ownerEmail) {
+            return;
         }
+
+        iouReports[key] = iouReport;
     },
 });
 
@@ -179,25 +195,33 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
 }
 
 /**
+ * Determines whether a report has a draft comment.
+ *
+ * @param {Object} report
+ * @return {Boolean}
+ */
+function hasReportDraftComment(report) {
+    return report
+        && reportsWithDraft
+        && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
+}
+
+/**
  * Creates a report list option
  *
  * @param {Array<Object>} personalDetailList
  * @param {Object} [report]
- * @param {Object} draftComments
  * @param {Boolean} showChatPreviewLine
  * @param {Boolean} forcePolicyNamePreview
  * @returns {Object}
  */
-function createOption(personalDetailList, report, draftComments, {
+function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
     const isDefaultChatRoom = isDefaultRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
-    const reportDraftComment = report
-        && draftComments
-        && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
-
+    const hasDraftComment = hasReportDraftComment(report);
     const hasOutstandingIOU = lodashGet(report, 'hasOutstandingIOU', false);
     const iouReport = hasOutstandingIOU
         ? lodashGet(iouReports, `${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, {})
@@ -243,7 +267,7 @@ function createOption(personalDetailList, report, draftComments, {
         phoneNumber: !hasMultipleParticipants ? personalDetail.phoneNumber : null,
         payPalMeAddress: !hasMultipleParticipants ? personalDetail.payPalMeAddress : null,
         isUnread: report ? report.unreadActionCount > 0 : null,
-        hasDraftComment: _.size(reportDraftComment) > 0,
+        hasDraftComment,
         keyForList: report ? String(report.reportID) : personalDetail.login,
         searchText: getSearchText(report, personalDetailList, isDefaultChatRoom),
         isPinned: lodashGet(report, 'isPinned', false),
@@ -314,13 +338,12 @@ function isCurrentUser(userDetails) {
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {Object} options
  * @returns {Object}
  * @private
  */
-function getOptions(reports, personalDetails, draftComments, activeReportID, {
+function getOptions(reports, personalDetails, activeReportID, {
     betas = [],
     selectedOptions = [],
     maxRecentReportsToShow = 0,
@@ -367,9 +390,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             return;
         }
 
-        const reportDraftComment = report
-            && draftComments
-            && lodashGet(draftComments, `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`, '');
+        const hasDraftComment = hasReportDraftComment(report);
         const iouReportOwner = lodashGet(report, 'hasOutstandingIOU', false)
             ? lodashGet(iouReports, [`${ONYXKEYS.COLLECTION.REPORT_IOUS}${report.iouReportID}`, 'ownerEmail'], '')
             : '';
@@ -377,7 +398,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         const reportContainsIOUDebt = iouReportOwner && iouReportOwner !== currentUserLogin;
         const shouldFilterReportIfEmpty = !showReportsWithNoComments && report.lastMessageTimestamp === 0;
         const shouldFilterReportIfRead = hideReadReports && report.unreadActionCount === 0;
-        const shouldShowReportIfHasDraft = showReportsWithDrafts && reportDraftComment && reportDraftComment.length > 0;
+        const shouldShowReportIfHasDraft = showReportsWithDrafts && hasDraftComment;
         const shouldFilterReport = shouldFilterReportIfEmpty || shouldFilterReportIfRead;
         if (report.reportID !== activeReportID
             && !report.isPinned
@@ -398,14 +419,14 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
         if (logins.length <= 1) {
             reportMapForLogins[logins[0]] = report;
         }
-        allReportOptions.push(createOption(reportPersonalDetails, report, draftComments, {
+        allReportOptions.push(createOption(reportPersonalDetails, report, {
             showChatPreviewLine,
             forcePolicyNamePreview,
         }));
     });
 
     const allPersonalDetailsOptions = _.map(personalDetails, personalDetail => (
-        createOption([personalDetail], reportMapForLogins[personalDetail.login], draftComments, {
+        createOption([personalDetail], reportMapForLogins[personalDetail.login], {
             showChatPreviewLine,
             forcePolicyNamePreview,
         })
@@ -522,7 +543,7 @@ function getOptions(reports, personalDetails, draftComments, activeReportID, {
             ? `+${countryCodeByIP}${searchValue}`
             : searchValue;
         const userInvitePersonalDetails = getPersonalDetailsForLogins([login], personalDetails);
-        userToInvite = createOption(userInvitePersonalDetails, null, draftComments, {
+        userToInvite = createOption(userInvitePersonalDetails, null, {
             showChatPreviewLine,
         });
         userToInvite.icons = [defaultAvatarForUserToInvite];
@@ -550,7 +571,7 @@ function getSearchOptions(
     searchValue = '',
     betas,
 ) {
-    return getOptions(reports, personalDetails, {}, 0, {
+    return getOptions(reports, personalDetails, 0, {
         betas,
         searchValue,
         includeRecentReports: true,
@@ -618,7 +639,7 @@ function getNewChatOptions(
     selectedOptions = [],
     excludeLogins = [],
 ) {
-    return getOptions(reports, personalDetails, {}, 0, {
+    return getOptions(reports, personalDetails, 0, {
         betas,
         searchValue,
         selectedOptions,
@@ -635,7 +656,6 @@ function getNewChatOptions(
  *
  * @param {Object} reports
  * @param {Object} personalDetails
- * @param {Object} draftComments
  * @param {Number} activeReportID
  * @param {String} priorityMode
  * @param {Array<String>} betas
@@ -644,7 +664,6 @@ function getNewChatOptions(
 function getSidebarOptions(
     reports,
     personalDetails,
-    draftComments,
     activeReportID,
     priorityMode,
     betas,
@@ -662,7 +681,7 @@ function getSidebarOptions(
         };
     }
 
-    return getOptions(reports, personalDetails, draftComments, activeReportID, {
+    return getOptions(reports, personalDetails, activeReportID, {
         betas,
         includeRecentReports: true,
         includeMultipleParticipantReports: true,
@@ -688,14 +707,14 @@ function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, ma
     }
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
-        return translate(preferredLocale, 'messages.noPhoneNumber');
+        return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return translate(preferredLocale, 'messages.noPhoneNumber');
+            return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
         return translate(preferredLocale, 'common.noResultsFound');

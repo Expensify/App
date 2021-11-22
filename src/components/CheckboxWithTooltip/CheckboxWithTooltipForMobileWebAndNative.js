@@ -12,9 +12,11 @@ class CheckboxWithTooltipForMobileWebAndNative extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.props.toggleTooltip) {
-            Growl.show(this.props.text, this.props.growlType, 3000);
+        if (!this.props.toggleTooltip) {
+            return;
         }
+
+        Growl.show(this.props.text, this.props.growlType, 3000);
     }
 
     /**
