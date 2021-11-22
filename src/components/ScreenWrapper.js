@@ -67,9 +67,11 @@ class ScreenWrapper extends React.Component {
 
     componentDidMount() {
         this.unsubscribeEscapeKey = KeyboardShortcut.subscribe('Escape', () => {
-            if (!this.props.modal.willAlertModalBecomeVisible) {
-                Navigation.dismissModal();
+            if (this.props.modal.willAlertModalBecomeVisible) {
+                return;
             }
+
+            Navigation.dismissModal();
         }, [], true);
 
         this.unsubscribeTransitionEnd = onScreenTransitionEnd(this.props.navigation, () => {
@@ -128,7 +130,7 @@ class ScreenWrapper extends React.Component {
 
 ScreenWrapper.propTypes = propTypes;
 ScreenWrapper.defaultProps = defaultProps;
-ScreenWrapper.displayName = 'ScreenWrapper';
+
 export default compose(
     withNavigation,
     withOnyx({

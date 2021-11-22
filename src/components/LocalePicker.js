@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
@@ -40,25 +41,24 @@ const localesToLanguages = {
     },
 };
 
-const LocalePicker = ({
-    // eslint-disable-next-line no-shadow
-    preferredLocale, translate, betas, size,
-}) => {
-    if (!Permissions.canUseInternationalization(betas)) {
+const LocalePicker = (props) => {
+    if (!Permissions.canUseInternationalization(props.betas)) {
         return null;
     }
 
     return (
         <ExpensiPicker
-            label={size === 'normal' ? translate('preferencesPage.language') : null}
+            label={props.size === 'normal' ? props.translate('preferencesPage.language') : null}
             onChange={(locale) => {
-                if (locale !== preferredLocale) {
-                    setLocale(locale);
+                if (locale === props.preferredLocale) {
+                    return;
                 }
+
+                setLocale(locale);
             }}
-            items={Object.values(localesToLanguages)}
-            size={size}
-            value={preferredLocale}
+            items={_.values(localesToLanguages)}
+            size={props.size}
+            value={props.preferredLocale}
         />
     );
 };

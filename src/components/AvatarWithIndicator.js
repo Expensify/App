@@ -9,6 +9,8 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import {Sync} from './Icon/Expensicons';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
+import Tooltip from './Tooltip';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
 
 const propTypes = {
     /** Is user active? */
@@ -22,12 +24,18 @@ const propTypes = {
 
     // Whether we show the sync indicator
     isSyncing: PropTypes.bool,
+
+    /** To show a tooltip on hover */
+    tooltipText: PropTypes.string,
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     isActive: false,
     size: 'default',
     isSyncing: false,
+    tooltipText: '',
 };
 
 class AvatarWithIndicator extends PureComponent {
@@ -38,9 +46,11 @@ class AvatarWithIndicator extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.props.isSyncing) {
-            this.animation.start();
+        if (!this.props.isSyncing) {
+            return;
         }
+
+        this.animation.start();
     }
 
     componentDidUpdate(prevProps) {
@@ -55,6 +65,24 @@ class AvatarWithIndicator extends PureComponent {
         this.animation.stop();
     }
 
+    /**
+     * Returns user status as text
+     *
+     * @returns {String}
+     */
+    userStatus() {
+        if (this.props.isSyncing) {
+            return this.props.translate('profilePage.syncing');
+        }
+
+        if (this.props.isActive) {
+            return this.props.translate('profilePage.online');
+        }
+
+        if (!this.props.isActive) {
+            return this.props.translate('profilePage.offline');
+        }
+    }
 
     render() {
         const indicatorStyles = [
@@ -69,20 +97,24 @@ class AvatarWithIndicator extends PureComponent {
             <View
                 style={[this.props.size === 'large' ? styles.avatarLarge : styles.sidebarAvatar]}
             >
-                <Avatar
-                    imageStyles={[this.props.size === 'large' ? styles.avatarLarge : null]}
-                    source={this.props.source}
-                />
-                <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
-                    {this.props.isSyncing && (
-                        <Icon
-                            src={Sync}
-                            fill={themeColors.textReversed}
-                            width={6}
-                            height={6}
-                        />
-                    )}
-                </Animated.View>
+                <Tooltip text={this.props.tooltipText}>
+                    <Avatar
+                        imageStyles={[this.props.size === 'large' ? styles.avatarLarge : null]}
+                        source={this.props.source}
+                    />
+                </Tooltip>
+                <Tooltip text={this.userStatus()} absolute>
+                    <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
+                        {this.props.isSyncing && (
+                            <Icon
+                                src={Sync}
+                                fill={themeColors.textReversed}
+                                width={6}
+                                height={6}
+                            />
+                        )}
+                    </Animated.View>
+                </Tooltip>
             </View>
         );
     }
@@ -90,5 +122,4 @@ class AvatarWithIndicator extends PureComponent {
 
 AvatarWithIndicator.defaultProps = defaultProps;
 AvatarWithIndicator.propTypes = propTypes;
-AvatarWithIndicator.displayName = 'AvatarWithIndicator';
-export default AvatarWithIndicator;
+export default withLocalize(AvatarWithIndicator);

@@ -286,6 +286,5 @@ class PopoverReportActionContextMenu extends React.Component {
 }
 
 PopoverReportActionContextMenu.propTypes = propTypes;
-PopoverReportActionContextMenu.displayName = 'PopoverReportActionContextMenu';
 
 export default withLocalize(PopoverReportActionContextMenu);

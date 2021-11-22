@@ -133,7 +133,7 @@ class ReportDetailsPage extends Component {
                                 isArchivedRoom={isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
-                                source={{uri: this.props.report.icons[0]}}
+                                source={this.props.report.icons[0]}
                             />
                             <View style={styles.reportDetailsRoomInfo}>
                                 <DisplayNames
@@ -175,7 +175,7 @@ class ReportDetailsPage extends Component {
                                                     notificationPreference,
                                                 );
                                             }}
-                                            items={Object.values(this.notificationPreferencesOptions)}
+                                            items={_.values(this.notificationPreferencesOptions)}
                                             value={this.props.report.notificationPreference}
                                         />
                                     </View>
@@ -183,7 +183,7 @@ class ReportDetailsPage extends Component {
                             </View>
                         )}
                     </View>
-                    {this.menuItems.map((item) => {
+                    {_.map(this.menuItems, (item) => {
                         const keyTitle = item.translationKey ? this.props.translate(item.translationKey) : item.title;
                         return (
                             <MenuItem
@@ -204,7 +204,6 @@ class ReportDetailsPage extends Component {
     }
 }
 
-ReportDetailsPage.displayName = 'ReportDetailsPage';
 ReportDetailsPage.propTypes = propTypes;
 
 export default compose(

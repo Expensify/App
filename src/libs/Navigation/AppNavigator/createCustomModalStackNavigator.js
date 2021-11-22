@@ -6,6 +6,11 @@ import {StackRouter} from '@react-navigation/routers';
 import {StackView} from '@react-navigation/stack';
 import ClickAwayHandler from './ClickAwayHandler';
 
+const propTypes = {
+    children: PropTypes.node.isRequired,
+};
+
+// eslint-disable-next-line react/destructuring-assignment
 const CustomRootStackNavigator = ({
     children,
     ...rest
@@ -35,8 +40,7 @@ const CustomRootStackNavigator = ({
     );
 };
 
-CustomRootStackNavigator.propTypes = {
-    children: PropTypes.node.isRequired,
-};
+CustomRootStackNavigator.propTypes = propTypes;
+CustomRootStackNavigator.displayName = 'CustomRootStackNavigator';
 
 export default createNavigatorFactory(CustomRootStackNavigator);

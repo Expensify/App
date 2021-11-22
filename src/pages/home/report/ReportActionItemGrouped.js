@@ -8,13 +8,14 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
-const ReportActionItemGrouped = ({children}) => (
+const ReportActionItemGrouped = props => (
     <View style={[styles.chatItem]}>
         <View style={[styles.chatItemRightGrouped]}>
-            {children}
+            {props.children}
         </View>
     </View>
 );
 
 ReportActionItemGrouped.propTypes = propTypes;
+ReportActionItemGrouped.displayName = 'ReportActionItemGrouped';
 export default ReportActionItemGrouped;

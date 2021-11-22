@@ -1,7 +1,8 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-
+import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import LoginUtil from './LoginUtil';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -57,6 +58,23 @@ function isValidDate(date) {
 }
 
 /**
+ * Validate that date entered isn't a future date.
+ *
+ * @param {String|Date} date
+ * @returns {Boolean} true if valid
+ */
+function isValidPastDate(date) {
+    if (!date) {
+        return false;
+    }
+
+    const pastDate = moment().subtract(1000, 'years');
+    const currentDate = moment();
+    const testDate = moment(date).startOf('day');
+    return testDate.isValid() && testDate.isBetween(pastDate, currentDate);
+}
+
+/**
  * Used to validate a value that is "required".
  *
  * @param {*} value
@@ -76,14 +94,23 @@ function isRequiredFulfilled(value) {
 }
 
 /**
- * Validates that this is a valid expiration date
- * in the MM/YY or MM/YYYY format
+ * Validates that this is a valid expiration date. Supports the following formats:
+ * 1. MM/YY
+ * 2. MM/YYYY
+ * 3. MMYY
+ * 4. MMYYYY
  *
  * @param {String} string
  * @returns {Boolean}
  */
 function isValidExpirationDate(string) {
-    return CONST.REGEX.CARD_EXPIRATION_DATE.test(string);
+    if (!CONST.REGEX.CARD_EXPIRATION_DATE.test(string)) {
+        return false;
+    }
+
+    // Use the last of the month to check if the expiration date is in the future or not
+    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
+    return moment(expirationDate).endOf('month').isAfter(moment());
 }
 
 /**
@@ -227,7 +254,7 @@ function isValidUSPhone(phoneNumber) {
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
+    return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -243,6 +270,7 @@ export {
     meetsAgeRequirements,
     isValidAddress,
     isValidDate,
+    isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
     isValidDebitCard,

@@ -3,12 +3,16 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import OptionsList from './OptionsList';
+import CONST from '../CONST';
 import styles from '../styles/styles';
 import optionPropTypes from './optionPropTypes';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ExpensiTextInput from './ExpensiTextInput';
 
 const propTypes = {
+    /** Wether we should wait before focusing the TextInput, useful when using transitions  */
+    shouldDelayFocus: PropTypes.bool,
+
     /** Callback to fire when a row is tapped */
     onSelectRow: PropTypes.func,
 
@@ -67,6 +71,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+    shouldDelayFocus: false,
     onSelectRow: () => {},
     placeholderText: '',
     selectedOptions: [],
@@ -94,7 +99,11 @@ class OptionsSelector extends Component {
     }
 
     componentDidMount() {
-        this.textInput.focus();
+        if (this.props.shouldDelayFocus) {
+            setTimeout(() => this.textInput.focus(), CONST.ANIMATED_TRANSITION);
+        } else {
+            this.textInput.focus();
+        }
     }
 
     /**

@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {View, ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -25,7 +26,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const AboutPage = ({translate}) => {
+const AboutPage = (props) => {
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
@@ -60,7 +61,7 @@ const AboutPage = ({translate}) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('initialSettingsPage.about')}
+                title={props.translate('initialSettingsPage.about')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
@@ -89,14 +90,14 @@ const AboutPage = ({translate}) => {
                                 {version}
                             </Text>
                             <Text style={[styles.baseFontStyle, styles.mv5]}>
-                                {translate('initialSettingsPage.aboutPage.description')}
+                                {props.translate('initialSettingsPage.aboutPage.description')}
                             </Text>
                         </View>
                     </View>
-                    {menuItems.map(item => (
+                    {_.map(menuItems, item => (
                         <MenuItem
                             key={item.translationKey}
-                            title={translate(item.translationKey)}
+                            title={props.translate(item.translationKey)}
                             icon={item.icon}
                             iconRight={item.iconRight}
                             onPress={() => item.action()}
@@ -109,7 +110,7 @@ const AboutPage = ({translate}) => {
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
                     >
-                        {translate(
+                        {props.translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
                         {' '}
@@ -117,12 +118,12 @@ const AboutPage = ({translate}) => {
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openExternalLink(CONST.TERMS_URL)}
                         >
-                            {translate(
+                            {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
                         </Text>
                         {' '}
-                        {translate(
+                        {props.translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
                         {' '}
@@ -130,7 +131,7 @@ const AboutPage = ({translate}) => {
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => openExternalLink(CONST.PRIVACY_URL)}
                         >
-                            {translate(
+                            {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
                         </Text>

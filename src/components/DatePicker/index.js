@@ -30,6 +30,9 @@ class Datepicker extends React.Component {
         // Adds nice native datepicker on web/desktop. Not possible to set this through props
         this.inputRef.setAttribute('type', 'date');
         this.inputRef.classList.add('expensify-datepicker');
+        if (this.props.maximumDate) {
+            this.inputRef.setAttribute('max', moment(this.props.maximumDate).format(CONST.DATE.MOMENT_FORMAT_STRING));
+        }
     }
 
     /**
@@ -55,37 +58,28 @@ class Datepicker extends React.Component {
      * don't make this very obvious. To avoid confusion we open the datepicker when the user focuses the field
      */
     showDatepicker() {
-        if (this.inputRef) {
-            this.inputRef.click();
+        if (!this.inputRef) {
+            return;
         }
+
+        this.inputRef.click();
     }
 
     render() {
-        const {
-            label,
-            placeholder,
-            hasError,
-            errorText,
-            translateX,
-            containerStyles,
-            disabled,
-            isSmallScreenWidth,
-        } = this.props;
-
         return (
             <ExpensiTextInput
-                forceActiveLabel={!isSmallScreenWidth}
+                forceActiveLabel={!this.props.isSmallScreenWidth}
                 ref={input => this.inputRef = input}
                 onFocus={this.showDatepicker}
-                label={label}
+                label={this.props.label}
                 onChangeText={this.raiseDateChange}
                 defaultValue={this.defaultValue}
-                placeholder={placeholder}
-                hasError={hasError}
-                errorText={errorText}
-                containerStyles={containerStyles}
-                translateX={translateX}
-                disabled={disabled}
+                placeholder={this.props.placeholder}
+                hasError={this.props.hasError}
+                errorText={this.props.errorText}
+                containerStyles={this.props.containerStyles}
+                translateX={this.props.translateX}
+                disabled={this.props.disabled}
             />
         );
     }

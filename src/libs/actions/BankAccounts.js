@@ -294,7 +294,7 @@ function activateWallet(currentStep, parameters) {
                         CONST.WALLET.ERROR.UNABLE_TO_VERIFY,
                     ];
 
-                    if (errorTitles.includes(response.title)) {
+                    if (_.contains(errorTitles, response.title)) {
                         setAdditionalDetailsStep(false, null, response.message);
                         return;
                     }
@@ -867,8 +867,15 @@ function resetFreePlanBankAccount() {
                 return;
             }
 
-            // Clear reimbursement account, draft user input, and the bank account list
-            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {});
+            // Reset reimbursement account, and clear draft user input, and the bank account list
+            const achData = {
+                useOnfido: true,
+                policyID: '',
+                isInSetup: true,
+                domainLimit: 0,
+                currentStep: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT,
+            };
+            Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData});
             Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT, null);
             Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, []);
 

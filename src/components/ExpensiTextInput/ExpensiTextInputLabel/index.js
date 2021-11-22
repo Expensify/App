@@ -1,27 +1,22 @@
 import React, {memo} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import propTypes from './propTypes';
+import propTypes from './expensiTextInputLabelPropTypes';
 
-const ExpensiTextInputLabel = ({
-    label,
-    labelTranslateY,
-    labelTranslateX,
-    labelScale,
-}) => (
+const ExpensiTextInputLabel = props => (
     <Animated.Text
         style={[
             styles.expensiTextInputLabel,
             styles.expensiTextInputLabelDesktop,
             styles.expensiTextInputLabelTransformation(
-                labelTranslateY,
-                labelTranslateX,
-                labelScale,
+                props.labelTranslateY,
+                props.labelTranslateX,
+                props.labelScale,
             ),
         ]}
         pointerEvents="none"
     >
-        {label}
+        {props.label}
     </Animated.Text>
 );
 

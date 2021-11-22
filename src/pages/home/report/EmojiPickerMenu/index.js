@@ -105,53 +105,59 @@ class EmojiPickerMenu extends Component {
      * Setup and attach keypress/mouse handlers for highlight navigation.
      */
     setupEventHandlers() {
-        if (document) {
-            this.keyDownHandler = (keyBoardEvent) => {
-                if (keyBoardEvent.key.startsWith('Arrow')) {
-                    // Move the highlight when arrow keys are pressed
-                    this.highlightAdjacentEmoji(keyBoardEvent.key);
-                    return;
-                }
-
-                // Select the currently highlighted emoji if enter is pressed
-                if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
-                    this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
-                    return;
-                }
-
-                // We allow typing in the search box if any key is pressed apart from Arrow keys.
-                if (this.searchInput && !this.searchInput.isFocused()) {
-                    this.setState({selectTextOnFocus: false});
-                    this.searchInput.value = '';
-                    this.searchInput.focus();
-
-                    // Re-enable selection on the searchInput
-                    this.setState({selectTextOnFocus: true});
-                }
-            };
-
-            // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
-            // event handler attached to document root. To fix this, trigger event handler in Capture phase.
-            document.addEventListener('keydown', this.keyDownHandler, true);
-
-            // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
-            this.mouseMoveHandler = () => {
-                if (this.state.arePointerEventsDisabled) {
-                    this.setState({arePointerEventsDisabled: false});
-                }
-            };
-            document.addEventListener('mousemove', this.mouseMoveHandler);
+        if (!document) {
+            return;
         }
+
+        this.keyDownHandler = (keyBoardEvent) => {
+            if (keyBoardEvent.key.startsWith('Arrow')) {
+                // Move the highlight when arrow keys are pressed
+                this.highlightAdjacentEmoji(keyBoardEvent.key);
+                return;
+            }
+
+            // Select the currently highlighted emoji if enter is pressed
+            if (keyBoardEvent.key === 'Enter' && this.state.highlightedIndex !== -1) {
+                this.props.onEmojiSelected(this.state.filteredEmojis[this.state.highlightedIndex].code);
+                return;
+            }
+
+            // We allow typing in the search box if any key is pressed apart from Arrow keys.
+            if (this.searchInput && !this.searchInput.isFocused()) {
+                this.setState({selectTextOnFocus: false});
+                this.searchInput.value = '';
+                this.searchInput.focus();
+
+                // Re-enable selection on the searchInput
+                this.setState({selectTextOnFocus: true});
+            }
+        };
+
+        // Keyboard events are not bubbling on TextInput in RN-Web, Bubbling was needed for this event to trigger
+        // event handler attached to document root. To fix this, trigger event handler in Capture phase.
+        document.addEventListener('keydown', this.keyDownHandler, true);
+
+        // Re-enable pointer events and hovering over EmojiPickerItems when the mouse moves
+        this.mouseMoveHandler = () => {
+            if (!this.state.arePointerEventsDisabled) {
+                return;
+            }
+
+            this.setState({arePointerEventsDisabled: false});
+        };
+        document.addEventListener('mousemove', this.mouseMoveHandler);
     }
 
     /**
      * Cleanup all mouse/keydown event listeners that we've set up
      */
     cleanupEventHandlers() {
-        if (document) {
-            document.removeEventListener('keydown', this.keyDownHandler, true);
-            document.removeEventListener('mousemove', this.mouseMoveHandler);
+        if (!document) {
+            return;
         }
+
+        document.removeEventListener('keydown', this.keyDownHandler, true);
+        document.removeEventListener('mousemove', this.mouseMoveHandler);
     }
 
     /**
@@ -245,8 +251,7 @@ class EmojiPickerMenu extends Component {
         // If there are headers in the emoji array, so we need to offset by their heights as well
         let numHeaders = 0;
         if (this.state.filteredEmojis.length === this.emojis.length) {
-            numHeaders = this.unfilteredHeaderIndices
-                .filter(i => this.state.highlightedIndex > i * this.numColumns).length;
+            numHeaders = _.filter(this.unfilteredHeaderIndices, i => this.state.highlightedIndex > i * this.numColumns).length;
         }
 
         // Calculate the scroll offset at the bottom of the currently highlighted emoji

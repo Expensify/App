@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React, {Component} from 'react';
 import {View, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
@@ -20,11 +21,14 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import {addSMSDomainIfPhoneNumber, getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
+import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
+import ROUTES from '../../ROUTES';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -76,6 +80,9 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
+    /** The user's current wallet status and step */
+    userWallet: userWalletPropTypes.userWallet,
+
     ...withLocalizePropTypes,
 };
 
@@ -88,6 +95,7 @@ const defaultProps = {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
+    userWallet: {},
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
@@ -106,18 +114,20 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
-        const participantsWithDetails = getPersonalDetailsForLogins(participants, props.personalDetails)
-            .map(personalDetails => ({
-                login: personalDetails.login,
-                text: personalDetails.displayName,
-                alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
-                icons: [personalDetails.avatar],
-                keyForList: personalDetails.login,
-                payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
-                phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
-            }));
+        const participantsWithDetails = _.map(getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
+            login: personalDetails.login,
+            text: personalDetails.displayName,
+            alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
+            icons: [personalDetails.avatar],
+            keyForList: personalDetails.login,
+            payPalMeAddress: lodashGet(personalDetails, 'payPalMeAddress', ''),
+            phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
+        }));
+        this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
+        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
 
         this.state = {
+            previousStepIndex: 0,
             currentStepIndex: 0,
             participants: participantsWithDetails,
 
@@ -160,6 +170,25 @@ class IOUModal extends Component {
     }
 
     /**
+     * Decides our animation type based on whether we're increasing or decreasing
+     * our step index.
+     * @returns {String}
+    */
+    getDirection() {
+        if (this.state.previousStepIndex < this.state.currentStepIndex) {
+            return 'in';
+        }
+        if (this.state.previousStepIndex > this.state.currentStepIndex) {
+            return 'out';
+        }
+
+        // Doesn't animate the step when first opening the modal
+        if (this.state.previousStepIndex === this.state.currentStepIndex) {
+            return null;
+        }
+    }
+
+    /**
      * Retrieve title for current step, based upon current step and type of IOU
      *
      * @returns {String}
@@ -173,7 +202,7 @@ class IOUModal extends Component {
                     currency: this.props.iou.selectedCurrencyCode,
                 },
             );
-            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (this.isSendRequest) {
                 return this.props.translate('iou.send', {
                     amount: formattedAmount,
                 });
@@ -185,7 +214,7 @@ class IOUModal extends Component {
             );
         }
         if (currentStepIndex === 0) {
-            if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            if (this.isSendRequest) {
                 return this.props.translate('iou.sendMoney');
             }
             return this.props.translate(this.props.hasMultipleParticipants ? 'iou.splitBill' : 'iou.requestMoney');
@@ -208,6 +237,7 @@ class IOUModal extends Component {
             return;
         }
         this.setState(prevState => ({
+            previousStepIndex: prevState.currentStepIndex,
             currentStepIndex: prevState.currentStepIndex - 1,
         }));
     }
@@ -220,6 +250,7 @@ class IOUModal extends Component {
             return;
         }
         this.setState(prevState => ({
+            previousStepIndex: prevState.currentStepIndex,
             currentStepIndex: prevState.currentStepIndex + 1,
         }));
     }
@@ -240,6 +271,12 @@ class IOUModal extends Component {
      */
     createTransaction(splits) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
+
+        // If the user is trying to send money, then they need to upgrade to a GOLD wallet
+        if (this.isSendRequest && !this.hasGoldWallet) {
+            Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
+            return;
+        }
 
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
@@ -327,37 +364,51 @@ class IOUModal extends Component {
                             {didScreenTransitionEnd && (
                                 <>
                                     {currentStep === Steps.IOUAmount && (
-                                        <IOUAmountPage
-                                            onStepComplete={(amount) => {
-                                                this.setState({amount});
-                                                this.navigateToNextStep();
-                                            }}
-                                            reportID={reportID}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            selectedAmount={this.state.amount}
-                                            navigation={this.props.navigation}
-                                        />
+                                        <AnimatedStep
+                                            direction={this.getDirection()}
+                                            style={[styles.flex1, styles.pageWrapper]}
+                                        >
+                                            <IOUAmountPage
+                                                onStepComplete={(amount) => {
+                                                    this.setState({amount});
+                                                    this.navigateToNextStep();
+                                                }}
+                                                reportID={reportID}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                selectedAmount={this.state.amount}
+                                                navigation={this.props.navigation}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUParticipants && (
-                                        <IOUParticipantsPage
-                                            participants={this.state.participants}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            onAddParticipants={this.addParticipants}
-                                            onStepComplete={this.navigateToNextStep}
-                                        />
+                                        <AnimatedStep
+                                            style={[styles.flex1]}
+                                            direction={this.getDirection()}
+                                        >
+                                            <IOUParticipantsPage
+                                                participants={this.state.participants}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                onAddParticipants={this.addParticipants}
+                                                onStepComplete={this.navigateToNextStep}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
-                                        <IOUConfirmPage
-                                            onConfirm={this.createTransaction}
-                                            hasMultipleParticipants={this.props.hasMultipleParticipants}
-                                            participants={this.state.participants}
-                                            iouAmount={this.state.amount}
-                                            comment={this.state.comment}
-                                            onUpdateComment={this.updateComment}
-                                            iouType={this.props.iouType}
-                                            localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
-                                            isGroupSplit={this.steps.length === 2}
-                                        />
+                                        <AnimatedStep
+                                            direction={this.getDirection()}
+                                        >
+                                            <IOUConfirmPage
+                                                onConfirm={this.createTransaction}
+                                                hasMultipleParticipants={this.props.hasMultipleParticipants}
+                                                participants={this.state.participants}
+                                                iouAmount={this.state.amount}
+                                                comment={this.state.comment}
+                                                onUpdateComment={this.updateComment}
+                                                iouType={this.props.iouType}
+                                                localCurrencyCode={this.props.myPersonalDetails.localCurrencyCode}
+                                                isGroupSplit={this.steps.length === 2}
+                                            />
+                                        </AnimatedStep>
                                     )}
                                 </>
                             )}
@@ -371,7 +422,6 @@ class IOUModal extends Component {
 
 IOUModal.propTypes = propTypes;
 IOUModal.defaultProps = defaultProps;
-IOUModal.displayName = 'IOUModal';
 
 export default compose(
     withLocalize,
@@ -390,6 +440,9 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IOUModal);

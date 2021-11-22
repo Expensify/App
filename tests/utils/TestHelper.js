@@ -13,7 +13,7 @@ import waitForPromisesToResolve from './waitForPromisesToResolve';
  * @param {String} authToken
  * @return {Promise}
  */
-function signInWithTestUser(accountID, login, password = 'Password1', authToken = 'asdfqwerty') {
+function signInWithTestUser(accountID = 1, login = 'test@user.com', password = 'Password1', authToken = 'asdfqwerty') {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
     HttpUtils.xhr.mockImplementation(() => Promise.resolve({
@@ -60,13 +60,10 @@ function signInWithTestUser(accountID, login, password = 'Password1', authToken 
  * @returns {Promise}
  */
 function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) {
-    // Mock xhr()
+    const originalXHR = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn();
 
-    // Get the personalDetails
     HttpUtils.xhr
-
-        // fetchPersonalDetails
         .mockImplementationOnce(() => Promise.resolve({
             accountID,
             email,
@@ -74,7 +71,10 @@ function fetchPersonalDetailsForTestUser(accountID, email, personalDetailsList) 
         }));
 
     fetchPersonalDetails();
-    return waitForPromisesToResolve();
+    return waitForPromisesToResolve()
+        .then(() => {
+            HttpUtils.xhr = originalXHR;
+        });
 }
 
 export {

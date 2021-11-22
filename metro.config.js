@@ -4,6 +4,7 @@
  */
 
 const {getDefaultConfig} = require('metro-config');
+const _ = require('underscore');
 
 /* eslint arrow-body-style: 0 */
 module.exports = (() => {
@@ -11,7 +12,7 @@ module.exports = (() => {
         .then((config) => {
             return {
                 resolver: {
-                    assetExts: config.resolver.assetExts.filter(ext => ext !== 'svg'),
+                    assetExts: _.filter(config.resolver.assetExts, ext => ext !== 'svg'),
                     sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'svg'],
                 },
                 transformer: {

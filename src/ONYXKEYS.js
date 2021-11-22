@@ -22,6 +22,9 @@ export default {
     // Boolean flag set whenever the sidebar has loaded
     IS_SIDEBAR_LOADED: 'isSidebarLoaded',
 
+    // Boolean flag set when workspace is being created
+    IS_CREATING_WORKSPACE: 'isCreatingWorkspace',
+
     NETWORK_REQUEST_QUEUE: 'networkRequestQueue',
 
     // What the active route is for our navigator. Global route that determines what views to display.
@@ -94,6 +97,7 @@ export default {
         REPORT_USER_IS_TYPING: 'reportUserIsTyping_',
         REPORT_IOUS: 'reportIOUs_',
         POLICY: 'policy_',
+        REPORTS_WITH_DRAFT: 'reportWithDraft_',
     },
 
     // Indicates which locale should be used
@@ -137,4 +141,16 @@ export default {
 
     // Set when we are loading payment methods
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
+
+    // Stores values for the add debit card form
+    ADD_DEBIT_CARD_FORM: 'addDebitCardForm',
+
+    // Stores values for the request call form
+    REQUEST_CALL_FORM: 'requestCallForm',
+
+    // Are report actions loading?
+    IS_LOADING_REPORT_ACTIONS: 'isLoadingReportActions',
+
+    // Is report data loading?
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 };

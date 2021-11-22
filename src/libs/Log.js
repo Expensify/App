@@ -1,3 +1,6 @@
+// Making an exception to this rule here since we don't need an "action" for Log and Log should just be used directly. Creating a Log
+// action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
+/* eslint-disable rulesdir/no-api-in-views */
 import Logger from 'expensify-common/lib/Logger';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
@@ -21,6 +24,7 @@ let timeout = null;
  */
 function serverLoggingCallback(logger, params) {
     const requestParams = params;
+    requestParams.shouldProcessImmediately = false;
     requestParams.expensifyCashAppVersion = `expensifyCash[${getPlatform()}]${version}`;
     if (requestParams.parameters) {
         requestParams.parameters = JSON.stringify(params.parameters);
