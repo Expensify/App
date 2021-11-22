@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import SignoutManager from '../SignoutManager';
 import ONYXKEYS from '../../ONYXKEYS';
+import HttpUtils from '../HttpUtils';
 
 let currentActiveClients;
 Onyx.connect({
@@ -20,6 +21,7 @@ Onyx.connect({
  * @param {String} errorMessage
  */
 function clearStorageAndRedirect(errorMessage) {
+    HttpUtils.abortPendingRequests();
     const activeClients = currentActiveClients;
     const preferredLocale = currentPreferredLocale;
 
