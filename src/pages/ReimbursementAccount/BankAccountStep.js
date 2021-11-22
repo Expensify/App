@@ -246,7 +246,6 @@ class BankAccountStep extends React.Component {
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSubmit={this.addPlaidAccount}
                         onExitPlaid={() => setBankAccountSubStep(null)}
-
                     />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (

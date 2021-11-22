@@ -2,13 +2,16 @@ const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 
 const CONST = {
+    get ANDROID_PACKAGE_NAME() {
+        return 'com.expensify.chat';
+    },
     ANIMATED_TRANSITION: 300,
 
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
     APP_DOWNLOAD_LINKS: {
-        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
+        ANDROID: `https://play.google.com/store/apps/details?id=${this.ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: `${NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
     },
@@ -136,7 +139,7 @@ const CONST = {
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
-    PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
+    PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${this.ANDROID_PACKAGE_NAME}&hl=en`,
     ADD_SECONDARY_LOGIN_URL: 'settings?param={%22section%22:%22account%22}',
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
