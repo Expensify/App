@@ -755,9 +755,6 @@ export default compose(
         betas: {
             key: ONYXKEYS.BETAS,
         },
-        comment: {
-            key: ({reportID}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`,
-        },
         modal: {
             key: ONYXKEYS.MODAL,
         },

@@ -34,6 +34,9 @@ const propTypes = {
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: PropTypes.bool,
 
+    /** The comment left by the user */
+    comment: PropTypes.string,
+
     /** Whether or not to show the Compose Input */
     session: PropTypes.shape({
         shouldShowComposeInput: PropTypes.bool,
@@ -63,6 +66,7 @@ const propTypes = {
 
 const defaultProps = {
     isSidebarLoaded: false,
+    comment: '',
     session: {
         shouldShowComposeInput: true,
     },
@@ -189,6 +193,7 @@ class ReportScreen extends React.Component {
                             <ReportActionCompose
                                 onSubmit={this.onSubmitComment}
                                 reportID={reportID}
+                                comment={this.props.comment}
                                 reportActions={this.props.reportActions}
                                 report={this.props.report}
                             />
@@ -217,6 +222,9 @@ export default withOnyx({
     },
     report: {
         key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT}${getReportID(route)}`,
+    },
+    comment: {
+        key: ({route}) => `${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${getReportID(route)}`,
     },
     betas: {
         key: ONYXKEYS.BETAS,
