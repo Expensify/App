@@ -791,5 +791,6 @@ export default {
         roomAlreadyExists: 'Ya existe una sala con este nombre',
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
+        growlMessageOnError: 'Unable to create policy room, please check your connection and try again.',
     },
 };
