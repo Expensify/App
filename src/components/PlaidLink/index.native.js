@@ -1,26 +1,21 @@
 import {useEffect} from 'react';
-import {NativeEventEmitter} from 'react-native';
-import {openLink, useDeepLinkRedirector} from 'react-native-plaid-link-sdk';
+import {openLink, useDeepLinkRedirector, usePlaidEmitter} from 'react-native-plaid-link-sdk';
 import Log from '../../libs/Log';
 import CONST from '../../CONST';
-import nativeModule from './nativeModule';
 import {plaidLinkPropTypes, plaidLinkDefaultProps} from './plaidLinkPropTypes';
 
 
 const PlaidLink = (props) => {
-    let listener;
     useDeepLinkRedirector();
+    usePlaidEmitter((event) => {
+        Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
+        if (event.eventName === CONST.PLAID.EVENT.ERROR) {
+            props.onError(event.metadata);
+        } else if (event.eventName === CONST.PLAID.EVENT.EXIT) {
+            props.onExit();
+        }
+    });
     useEffect(() => {
-        const emitter = new NativeEventEmitter(nativeModule);
-        listener = emitter.addListener('onEvent', (event) => {
-            Log.info('[PlaidLink] Handled Plaid Event: ', false, event);
-            if (event.eventName === CONST.PLAID.EVENT.ERROR) {
-                props.onError(event.metadata);
-            } else if (event.eventName === CONST.PLAID.EVENT.EXIT) {
-                props.onExit();
-            }
-        });
-
         openLink({
             tokenConfig: {
                 token: props.token,
@@ -29,14 +24,6 @@ const PlaidLink = (props) => {
                 props.onSuccess({publicToken, metadata});
             },
         });
-
-        return () => {
-            if (listener) {
-                return;
-            }
-
-            listener.remove();
-        };
     }, []);
 
     return null;
