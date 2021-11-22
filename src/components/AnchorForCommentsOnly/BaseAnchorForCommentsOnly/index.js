@@ -32,16 +32,17 @@ const BaseAnchorForCommentsOnly = (props) => {
             )
             : (
                 <PressableWithSecondaryInteraction
+                    inline
                     onSecondaryInteraction={
-                            (event) => {
-                                showContextMenu(
-                                    CONTEXT_MENU_TYPES.LINK,
-                                    event,
-                                    props.href,
-                                    lodashGet(linkRef, 'current'),
-                                );
-                            }
+                        (event) => {
+                            showContextMenu(
+                                CONTEXT_MENU_TYPES.LINK,
+                                event,
+                                props.href,
+                                lodashGet(linkRef, 'current'),
+                            );
                         }
+                    }
                 >
                     <Text
                         ref={el => linkRef = el}

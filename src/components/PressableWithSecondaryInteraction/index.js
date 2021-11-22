@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Pressable} from 'react-native';
+import {Pressable, Text as RNText} from 'react-native';
 import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
 
 /**
@@ -39,8 +39,9 @@ class PressableWithSecondaryInteraction extends Component {
 
     render() {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
+        const Node = this.props.inline ? RNText : Pressable;
         return (
-            <Pressable
+            <Node
                 onPressIn={this.props.onPressIn}
                 delayLongPress={200}
                 onLongPress={this.props.onSecondaryInteraction}
@@ -51,7 +52,7 @@ class PressableWithSecondaryInteraction extends Component {
                 {...defaultPressableProps}
             >
                 {this.props.children}
-            </Pressable>
+            </Node>
         );
     }
 }
