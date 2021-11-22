@@ -34,7 +34,7 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
                 style={[
                     styles.textInputWithPrefix.container,
                     {paddingTop: 0},
-                    props.disabled ? styles.inputDisabled : undefined,
+                    props.disabled && styles.inputDisabled,
                     props.errorText ? styles.errorOutline : undefined,
                 ]}
         >
