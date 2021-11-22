@@ -1457,7 +1457,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
-            Growl.error('Unable to create policy room, please check your connection and try again.');
+            Growl.error(translateLocal('newRoomPage.growlMessageOnError'));
         });
 }
 
