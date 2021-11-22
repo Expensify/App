@@ -8,7 +8,7 @@ import styles from '../styles/styles';
 import Text from './Text';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import {getPersonalDetailsForLogins} from '../libs/OptionsListUtils';
+import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 
 
@@ -46,7 +46,7 @@ const ReportWelcomeText = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
-        getPersonalDetailsForLogins(participants, props.personalDetails),
+        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
         ({
             displayName, firstName, login, pronouns,
         }) => {
