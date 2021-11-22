@@ -190,6 +190,10 @@ Network.registerResponseHandler((queuedRequest, response) => {
 });
 
 Network.registerErrorHandler((queuedRequest, error) => {
+    if (error.name === 'AbortError') {
+        Log.info('[API] request aborted', false, queuedRequest);
+        return;
+    }
     if (queuedRequest.command !== 'Log') {
         Log.hmmm('[API] Handled error when making request', error);
     } else {

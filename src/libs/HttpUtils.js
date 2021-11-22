@@ -10,19 +10,24 @@ Onyx.connect({
     callback: val => shouldUseSecureStaging = (val && _.isBoolean(val.shouldUseSecureStaging)) ? val.shouldUseSecureStaging : false,
 });
 
+const NON_ABORTABLE_COMMANDS = ['Log', 'DeleteLogin'];
+let abortController = new AbortController();
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  *
  * @param {String} url
- * @param {String} method
- * @param {Object} body
+ * @param {String} [method='get']
+ * @param {Object} [body=null]
+ * @param {Boolean} [canAbort=true]
  * @returns {Promise}
  */
-function processHTTPRequest(url, method = 'get', body = null) {
+function processHTTPRequest(url, method = 'get', body = null, canAbort = true) {
     return fetch(url, {
         method,
         body,
+        signal: canAbort ? abortController.signal : undefined,
     })
         .then(response => response.json());
 }
@@ -44,7 +49,9 @@ function xhr(command, data, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = 
         apiRoot = CONST.STAGING_SECURE_URL;
     }
 
-    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData);
+    const canAbort = !_.contains(NON_ABORTABLE_COMMANDS, command);
+
+    return processHTTPRequest(`${apiRoot}api?command=${command}`, type, formData, canAbort);
 }
 
 /**
@@ -64,7 +71,13 @@ function download(relativePath) {
     return processHTTPRequest(`${siteRoot}${strippedRelativePath}`);
 }
 
+function abortPendingRequests() {
+    abortController.abort();
+    abortController = new AbortController();
+}
+
 export default {
     download,
     xhr,
+    abortPendingRequests,
 };
