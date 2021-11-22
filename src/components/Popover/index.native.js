@@ -14,7 +14,7 @@ const propTypes = {
  * On small screen widths, it uses BottomDocked modal type, and a Popover type on wide screen widths.
  */
 const Popover = (props) => {
-    const propsWithoutAnimation = _.omit(props, ['animationIn', 'animationOut', 'popoverAnchorPosition']);
+    const propsWithoutAnimation = _.omit(props, ['animationIn', 'animationOut', 'popoverAnchorPosition', 'disableAnimation']);
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}

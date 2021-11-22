@@ -94,9 +94,11 @@ function updateAllPolicies(policyCollection) {
  * @returns {Promise}
  */
 function create(name = '') {
+    Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
     return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
+            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
                 const errorMessage = translateLocal('workspace.new.genericFailureMessage');

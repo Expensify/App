@@ -12,6 +12,9 @@ const propTypes = {
         bottom: PropTypes.number,
         left: PropTypes.number,
     }),
+
+    /** Whether disable the animations */
+    disableAnimation: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -19,6 +22,7 @@ const defaultProps = {
 
     // Anchor position is optional only because it is not relevant on mobile
     anchorPosition: {},
+    disableAnimation: true,
 };
 
 export {propTypes, defaultProps};

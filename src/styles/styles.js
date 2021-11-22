@@ -575,6 +575,7 @@ const styles = {
         iconContainer: {
             top: 16,
             right: 12,
+            zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
@@ -1101,7 +1102,6 @@ const styles = {
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
-        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1290,6 +1290,7 @@ const styles = {
         width: 64,
         backgroundColor: themeColors.icon,
         borderRadius: 64,
+        overflow: 'hidden',
     },
 
     secondAvatar: {
@@ -1575,6 +1576,34 @@ const styles = {
     avatarLarge: {
         width: 80,
         height: 80,
+    },
+
+    emptyStateAvatar: {
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
+        borderRadius: 100,
+        borderColor: themeColors.componentBG,
+        borderWidth: 4,
+        marginLeft: -16,
+    },
+
+    screenBlur: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: colors.dark,
+        opacity: 0.5,
+    },
+
+    avatarInnerTextChat: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeNormal,
+        left: 1,
+        textAlign: 'center',
+        fontWeight: 'normal',
+        position: 'absolute',
     },
 
     displayName: {
@@ -2089,6 +2118,11 @@ const styles = {
     googleListView: {
         transform: [{scale: 0}],
     },
+
+    iPhoneXSafeArea: {
+        backgroundColor: colors.black,
+        flex: 1,
+    },
 };
 
 const baseCodeTagStyles = {
@@ -2192,6 +2226,8 @@ function getSafeAreaPadding(insets) {
     return {
         paddingTop: insets.top,
         paddingBottom: insets.bottom * variables.safeInsertPercentage,
+        paddingLeft: insets.left * variables.safeInsertPercentage,
+        paddingRight: insets.right * variables.safeInsertPercentage,
     };
 }
 
@@ -2404,6 +2440,8 @@ function getModalPaddingStyles({
     shouldAddTopSafeAreaPadding,
     safeAreaPaddingTop,
     safeAreaPaddingBottom,
+    safeAreaPaddingLeft,
+    safeAreaPaddingRight,
     modalContainerStylePaddingTop,
     modalContainerStylePaddingBottom,
 }) {
@@ -2414,6 +2452,8 @@ function getModalPaddingStyles({
         paddingBottom: shouldAddBottomSafeAreaPadding
             ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
             : modalContainerStylePaddingBottom || 0,
+        paddingLeft: safeAreaPaddingLeft || 0,
+        paddingRight: safeAreaPaddingRight || 0,
     };
 }
 
