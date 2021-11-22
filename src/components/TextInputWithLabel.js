@@ -67,7 +67,7 @@ const TextInputWithLabel = props => (
             )}
         </View>
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
-        <TextInputWithPrefix {...props} />
+        <TextInputWithPrefix {...(_.omit(props, 'helpLinkText', 'helpLinkURL', 'containerStyles', 'label'))} />
         {props.errorText !== '' && (
             <Text style={[styles.formError]}>{props.errorText}</Text>
         )}
