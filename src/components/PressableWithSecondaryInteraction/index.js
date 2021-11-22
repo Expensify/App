@@ -1,7 +1,8 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
-import {Pressable, Text as RNText} from 'react-native';
+import {Pressable} from 'react-native';
 import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
+import styles from '../../styles/styles';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed, or right-clicked.
@@ -39,9 +40,11 @@ class PressableWithSecondaryInteraction extends Component {
 
     render() {
         const defaultPressableProps = _.omit(this.props, ['onSecondaryInteraction', 'children', 'onLongPress']);
-        const Node = this.props.inline ? RNText : Pressable;
+
+        // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
         return (
-            <Node
+            <Pressable
+                style={this.props.inline && styles.dInline}
                 onPressIn={this.props.onPressIn}
                 onLongPress={this.props.onSecondaryInteraction}
                 onPressOut={this.props.onPressOut}
@@ -51,7 +54,7 @@ class PressableWithSecondaryInteraction extends Component {
                 {...defaultPressableProps}
             >
                 {this.props.children}
-            </Node>
+            </Pressable>
         );
     }
 }
