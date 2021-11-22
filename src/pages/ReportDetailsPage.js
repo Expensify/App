@@ -133,7 +133,7 @@ class ReportDetailsPage extends Component {
                                 isArchivedRoom={ReportUtils.isArchivedRoom(this.props.report)}
                                 containerStyles={[styles.singleAvatarLarge, styles.mb4]}
                                 imageStyles={[styles.singleAvatarLarge]}
-                                source={{uri: this.props.report.icons[0]}}
+                                source={this.props.report.icons[0]}
                             />
                             <View style={styles.reportDetailsRoomInfo}>
                                 <DisplayNames

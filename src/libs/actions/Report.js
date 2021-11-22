@@ -78,6 +78,13 @@ const lastReadSequenceNumbers = {};
 // since we will then be up to date and any optimistic actions that are still waiting to be replaced can be removed.
 const optimisticReportActionIDs = {};
 
+// Boolean to indicate if report data is loading from the API or not.
+let isReportDataLoading = true;
+Onyx.connect({
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    callback: val => isReportDataLoading = val,
+});
+
 /**
  * Checks the report to see if there are any unread action items
  *
@@ -104,7 +111,7 @@ function getUnreadActionCount(report) {
 
     // There are unread items if the last one the user has read is less
     // than the highest sequence number we have
-    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber;
+    const unreadActionCount = report.reportActionCount - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(report.reportID, lastReadSequenceNumber);
     return Math.max(0, unreadActionCount);
 }
 
@@ -166,7 +173,7 @@ function getSimplifiedReportObject(report) {
     // We convert the line-breaks in html to space ' ' before striping the tags
     const lastMessageText = lastActionMessage
         .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '');
+        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
@@ -416,7 +423,7 @@ function setLocalLastRead(reportID, lastReadSequenceNumber) {
 
     // Determine the number of unread actions by deducting the last read sequence from the total. If, for some reason,
     // the last read sequence is higher than the actual last sequence, let's just assume all actions are read
-    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber, 0);
+    const unreadActionCount = Math.max(reportMaxSequenceNumber - lastReadSequenceNumber - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumber), 0);
 
     // Update the report optimistically.
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
@@ -527,7 +534,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.text,
+            lastMessageText: message.text || `[${translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -934,6 +941,7 @@ function fetchAllReports(
     shouldRecordHomePageTiming = false,
     shouldDelayActionsFetch = false,
 ) {
+    Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
     return API.Get({
         returnValueList: 'chatList',
     })
@@ -954,6 +962,7 @@ function fetchAllReports(
         })
         .then((returnedReports) => {
             Onyx.set(ONYXKEYS.INITIAL_REPORT_DATA_LOADED, true);
+            Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
 
             // If at this point the user still doesn't have a Concierge report, create it for them.
             // This means they were a participant in reports before their account was created (e.g. default rooms)
@@ -1116,6 +1125,15 @@ function addAction(reportID, text, file) {
 }
 
 /**
+ * Get the last read sequence number for a report
+ * @param {String|Number} reportID
+ * @return {Number}
+ */
+function getLastReadSequenceNumber(reportID) {
+    return lastReadSequenceNumbers[reportID];
+}
+
+/**
  * Deletes a comment from the report, basically sets it as empty string
  *
  * @param {Number} reportID
@@ -1137,7 +1155,9 @@ function deleteReportComment(reportID, reportAction) {
         ],
     };
 
-    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+        setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+    });
 
     // Try to delete the comment by calling the API
     API.Report_EditComment({
@@ -1156,8 +1176,9 @@ function deleteReportComment(reportID, reportAction) {
                 ...reportAction,
                 message: oldMessage,
             };
-
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge);
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, reportActionsToMerge).then(() => {
+                setLocalLastRead(reportID, getLastReadSequenceNumber(reportID));
+            });
         });
 }
 
@@ -1171,6 +1192,11 @@ function deleteReportComment(reportID, reportAction) {
  *  is last read (meaning that the entire report history has been read)
  */
 function updateLastReadActionID(reportID, sequenceNumber) {
+    // If report data is loading, we can't update the last read sequence number because it is obsolete
+    if (isReportDataLoading) {
+        return;
+    }
+
     // If we aren't specifying a sequenceNumber and have no valid maxSequenceNumber for this report then we should not
     // update the last read. Most likely, we have just created the report and it has no comments. But we should err on
     // the side of caution and do nothing in this case.
@@ -1181,7 +1207,9 @@ function updateLastReadActionID(reportID, sequenceNumber) {
 
     // Need to subtract 1 from sequenceNumber so that the "New" marker appears in the right spot (the last read
     // action). If 1 isn't subtracted then the "New" marker appears one row below the action (the first unread action)
-    const lastReadSequenceNumber = (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID];
+    // Note: sequenceNumber can be 1 for the first message, so we can't use
+    // (sequenceNumber - 1) || reportMaxSequenceNumbers[reportID] because the first expression results in 0 which is falsy.
+    const lastReadSequenceNumber = _.isNumber(sequenceNumber) ? (sequenceNumber - 1) : reportMaxSequenceNumbers[reportID];
 
     // We call this method in many cases where there's nothing to update because we already updated it, so we avoid
     // doing an unnecessary server call if the last read is the same one we had already
@@ -1417,6 +1445,31 @@ function handleInaccessibleReport() {
     navigateToConciergeChat();
 }
 
+/**
+ * Creates a policy room and fetches it
+ * @param {String} policyID
+ * @param {String} reportName
+ * @param {String} visibility
+ * @return {Promise}
+ */
+function createPolicyRoom(policyID, reportName, visibility) {
+    return API.CreatePolicyRoom({policyID, reportName, visibility})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                Log.hmmm(response.message);
+                return;
+            }
+            return fetchChatReportsByIDs([response.reportID]);
+        })
+        .then(([{reportID}]) => {
+            if (!reportID) {
+                Log.hmmm('Unable to grab policy room after creation');
+                return;
+            }
+            Navigation.navigate(ROUTES.getReportRoute(reportID));
+        });
+}
+
 export {
     fetchAllReports,
     fetchActions,
@@ -1445,4 +1498,6 @@ export {
     handleInaccessibleReport,
     setReportWithDraft,
     fetchActionsWithLoadingState,
+    createPolicyRoom,
+    getLastReadSequenceNumber,
 };

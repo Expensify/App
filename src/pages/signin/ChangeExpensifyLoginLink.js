@@ -22,7 +22,7 @@ const propTypes = {
 };
 
 const ChangeExpensifyLoginLink = props => (
-    <View style={[styles.changeExpensifyLoginLinkContainer, styles.mb4, styles.mt3]}>
+    <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
         <Text>
             {props.translate('common.not')}
             &nbsp;

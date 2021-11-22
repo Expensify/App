@@ -86,6 +86,7 @@ class CompanyStep extends React.Component {
             website: 'bankAccount.error.website',
             companyTaxID: 'bankAccount.error.taxID',
             incorporationDate: 'bankAccount.error.incorporationDate',
+            incorporationDateFuture: 'bankAccount.error.incorporationDateFuture',
             incorporationType: 'bankAccount.error.companyType',
             hasNoConnectionToCannabis: 'bankAccount.error.restrictedBusiness',
         };
@@ -93,6 +94,7 @@ class CompanyStep extends React.Component {
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+        this.clearDateErrorsAndSetValue = this.clearDateErrorsAndSetValue.bind(this);
     }
 
     getFormattedAddressValue() {
@@ -132,6 +134,17 @@ class CompanyStep extends React.Component {
     }
 
     /**
+     * Clear both errors associated with incorporation date, and set the new value.
+     *
+     * @param {String} value
+     */
+    clearDateErrorsAndSetValue(value) {
+        this.clearError('incorporationDate');
+        this.clearError('incorporationDateFuture');
+        this.setValue({incorporationDate: value});
+    }
+
+    /**
      * @returns {Boolean}
      */
     validate() {
@@ -157,6 +170,10 @@ class CompanyStep extends React.Component {
 
         if (!ValidationUtils.isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
+        }
+
+        if (!ValidationUtils.isValidPastDate(this.state.incorporationDate)) {
+            errors.incorporationDateFuture = true;
         }
 
         if (!ValidationUtils.isValidPhoneWithSpecialChars(this.state.companyPhone)) {
@@ -210,7 +227,7 @@ class CompanyStep extends React.Component {
                         errorText={this.getErrorText('companyName')}
                     />
                     {!this.state.manualAddress && (
-                        <div>
+                        <>
                             <AddressSearch
                                 label={this.props.translate('common.companyAddress')}
                                 containerStyles={[styles.mt4]}
@@ -224,10 +241,10 @@ class CompanyStep extends React.Component {
                             >
                                 Can&apos;t find your address? Enter it manually
                             </TextLink>
-                        </div>
+                        </>
                     )}
                     {this.state.manualAddress && (
-                        <div>
+                        <>
                             <ExpensiTextInput
                                 label={this.props.translate('common.companyAddress')}
                                 containerStyles={[styles.mt4]}
@@ -262,7 +279,7 @@ class CompanyStep extends React.Component {
                                 value={this.state.addressZipCode}
                                 errorText={this.getErrorText('addressZipCode')}
                             />
-                        </div>
+                        </>
                     )}
 
                     <ExpensiTextInput
@@ -306,11 +323,12 @@ class CompanyStep extends React.Component {
                     <View style={styles.mt4}>
                         <DatePicker
                             label={this.props.translate('companyStep.incorporationDate')}
-                            onChange={value => this.clearErrorAndSetValue('incorporationDate', value)}
+                            onChange={this.clearDateErrorsAndSetValue}
                             value={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
-                            errorText={this.getErrorText('incorporationDate')}
+                            errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
                             translateX={-14}
+                            maximumDate={new Date()}
                         />
                     </View>
                     <View style={styles.mt4}>

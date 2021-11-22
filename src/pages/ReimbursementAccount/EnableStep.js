@@ -16,12 +16,13 @@ import getBankIcon from '../../components/Icon/BankIcons';
 import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import * as Report from '../../libs/actions/Report';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
+import * as Link from '../../libs/actions/Link';
+import * as User from '../../libs/actions/User';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -72,10 +73,11 @@ class EnableStep extends React.Component {
         }];
         if (!isUsingExpensifyCard) {
             menuItems.unshift({
-                title: this.props.translate('workspace.bankAccount.chatWithConcierge'),
-                icon: Expensicons.ChatBubble,
+                title: this.props.translate('workspace.bankAccount.addWorkEmail'),
+                icon: Expensicons.Mail,
                 onPress: () => {
-                    Report.navigateToConciergeChat();
+                    Link.openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    User.subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
             });
@@ -112,6 +114,11 @@ class EnableStep extends React.Component {
                                 : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
                         </Text>
                     </WorkspaceSection>
+                    {this.props.user.isCheckingDomain && (
+                        <Text style={[styles.formError, styles.m5]}>
+                            {this.props.translate('workspace.card.checkingDomain')}
+                        </Text>
+                    )}
                 </View>
             </View>
         );
