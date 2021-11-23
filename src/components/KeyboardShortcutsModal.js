@@ -68,10 +68,10 @@ class KeyboardShortcutsModal extends React.Component {
                     styles.flex1,
                     isFirstRow && styles.keyboardShortcutTableFirstRow,
                 ]}
-                key={shortcut.key}
+                key={shortcut.displayName}
             >
                 <View style={[styles.dFlex, styles.p2, styles.keyboardShortcutTablePrefix]}>
-                    <Text>{shortcut.key}</Text>
+                    <Text>{shortcut.displayName}</Text>
                 </View>
                 <View style={[styles.flex1, styles.p2, styles.alignSelfStretch]}>
                     <Text>{this.props.translate(`keyboardShortcutModal.shortcuts.${shortcut.descriptionKey}`)}</Text>

@@ -11,12 +11,7 @@ const keyboardShortcutMap = {};
  * @returns {Array}
  */
 function getKeyboardShortcuts() {
-    const shortcuts = [];
-    _.each(keyboardShortcutMap, (descriptionKey, key) => {
-        shortcuts.push({key, descriptionKey});
-    });
-
-    return shortcuts;
+    return _.values(keyboardShortcutMap);
 }
 
 /**
@@ -134,17 +129,22 @@ function unsubscribe(key) {
  * @param {String} descriptionKey Translation key for shortcut description
  */
 function addKeyToMap(key, modifiers, descriptionKey) {
-    let shortcutKey = [key];
+    let displayName = [key];
     if (_.isString(modifiers)) {
-        shortcutKey.unshift(modifiers);
+        displayName.unshift(modifiers);
     } else if (_.isArray(modifiers)) {
-        shortcutKey = [...modifiers, ...shortcutKey];
+        displayName = [...modifiers, ...displayName];
     }
 
-    shortcutKey = _.map(shortcutKey, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
+    displayName = _.map(displayName, modifier => lodashGet(CONST.KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME, modifier.toUpperCase(), modifier));
 
-    shortcutKey = shortcutKey.join(' + ');
-    keyboardShortcutMap[shortcutKey] = descriptionKey;
+    displayName = displayName.join(' + ');
+    keyboardShortcutMap[displayName] = {
+        shortcutKey: key,
+        descriptionKey,
+        displayName,
+        modifiers,
+    };
 }
 
 /**
