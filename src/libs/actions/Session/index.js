@@ -1,26 +1,25 @@
-/* eslint-disable import/no-cycle */
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import redirectToSignIn from './SignInRedirect';
-import * as API from '../API';
-import CONFIG from '../../CONFIG';
-import Log from '../Log';
-import PushNotification from '../Notification/PushNotification';
-import Timing from './Timing';
-import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import {translateLocal} from '../translate';
-import * as Network from '../Network';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
-import Timers from '../Timers';
-import * as Pusher from '../Pusher/pusher';
-import NetworkConnection from '../NetworkConnection';
-import {getUserDetails} from './User';
-import {isNumericWithSpecialChars} from '../ValidationUtils';
+import ONYXKEYS from '../../../ONYXKEYS';
+import redirectToSignIn from '../SignInRedirect';
+import * as API from '../../API';
+import CONFIG from '../../../CONFIG';
+import Log from '../../Log';
+import PushNotification from '../../Notification/PushNotification';
+import Timing from '../Timing';
+import CONST from '../../../CONST';
+import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import {translateLocal} from '../../translate';
+import * as Network from '../../Network';
+import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
+import Timers from '../../Timers';
+import * as Pusher from '../../Pusher/pusher';
+import NetworkConnection from '../../NetworkConnection';
+import {getUserDetails} from '../User';
+import {isNumericWithSpecialChars} from '../../ValidationUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -377,22 +376,6 @@ function clearAccountMessages() {
 }
 
 /**
- * @param {Boolean} loading
- * @param {String} error
- */
-function setSessionLoadingAndError(loading, error) {
-    Onyx.merge(ONYXKEYS.SESSION, {loading, error});
-}
-
-/**
- * @param {String} authToken
- * @param {String} encryptedAuthToken
- */
-function updateSessionAuthTokens(authToken, encryptedAuthToken) {
-    Onyx.merge(ONYXKEYS.SESSION, {authToken, encryptedAuthToken});
-}
-
-/**
  * @param {String} authToken
  * @param {String} password
  */
@@ -493,13 +476,6 @@ function authenticatePusher(socketID, channelName, callback) {
 }
 
 /**
- * @param {Boolean} shouldSignOut
- */
-function setShouldSignOut(shouldSignOut) {
-    Onyx.set(ONYXKEYS.SHOULD_SIGN_OUT, shouldSignOut);
-}
-
-/**
  * @param {Boolean} shouldShowComposeInput
  */
 function setShouldShowComposeInput(shouldShowComposeInput) {
@@ -519,11 +495,8 @@ export {
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
-    setSessionLoadingAndError,
-    updateSessionAuthTokens,
     validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    setShouldSignOut,
     setShouldShowComposeInput,
 };

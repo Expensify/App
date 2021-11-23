@@ -9,7 +9,6 @@ import {
 } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line import/no-cycle
 import Log from '../Log';
 import linkTo from './linkTo';
 import ROUTES from '../../ROUTES';
