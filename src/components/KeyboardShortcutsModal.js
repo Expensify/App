@@ -54,6 +54,12 @@ class KeyboardShortcutsModal extends React.Component {
         this.setState({isOpen: false});
     }
 
+    /**
+     * Render single row for the Keyboard shortcuts with description
+     * @param {Object} shortcut
+     * @param {Boolean} isFirstRow
+     * @returns {*}
+     */
     renderRow(shortcut, isFirstRow) {
         return (
             <View
@@ -77,14 +83,15 @@ class KeyboardShortcutsModal extends React.Component {
     render() {
         const shortcuts = KeyboardShortcut.getKeyboardShortcuts();
         const modalType = this.props.isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED;
+
         return (
             <Modal
                 isVisible={this.state.isOpen}
                 type={modalType}
                 containerStyle={styles.keyboardShortcutModalContainer}
-                onClose={() => this.hideKeyboardShortcutModal()}
+                onClose={this.hideKeyboardShortcutModal}
             >
-                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={() => this.hideKeyboardShortcutModal()} />
+                <HeaderWithCloseButton title={this.props.translate('keyboardShortcutModal.title')} onCloseButtonPress={this.hideKeyboardShortcutModal} />
                 <View style={[styles.p5, styles.pt0]}>
                     <Text style={styles.mb5}>{this.props.translate('keyboardShortcutModal.subtitle')}</Text>
                     <View style={[styles.keyboardShortcutTableWrapper]}>
