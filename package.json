@@ -7,7 +7,6 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "postinstall": "./build/react-native-web.sh",
     "android": "npm run check-metro-bundler-port && react-native run-android",
     "ios": "npm run check-metro-bundler-port && react-native run-ios",
     "ipad": "npm run check-metro-bundler-port && react-native run-ios --simulator=\"iPad Pro (12.9-inch) (4th generation)\"",
@@ -98,7 +97,7 @@
     "react-native-safe-area-context": "^3.1.4",
     "react-native-screens": "^3.0.0",
     "react-native-svg": "^12.1.0",
-    "react-native-web": "git+https://github.com/Expensify/react-native-web.git#bfe201af25f9bd465af203b02fc978515b96e956",
+    "react-native-web": "0.15.7",
     "react-pdf": "^5.2.0",
     "react-plaid-link": "^3.2.0",
     "react-web-config": "^1.0.0",
