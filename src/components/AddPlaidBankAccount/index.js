@@ -28,7 +28,8 @@ import ReimbursementAccountForm from '../../pages/ReimbursementAccount/Reimburse
 import getBankIcon from '../Icon/BankIcons';
 import Icon from '../Icon';
 import {propTypes, defaultProps} from './plaidBankPropTypes';
-import CONFIG from "../../CONFIG";
+import ROUTES from '../../ROUTES';
+import {removeTrailingForwardSlash} from '../../libs/Url';
 
 const plaidBankPropTypes = {
     ...withLocalizePropTypes,
@@ -52,21 +53,14 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
-        console.log("in AddPlaid", this.props.receivedRedirectURI);
-        console.log("in AddPlaid", this.props.plaidLinkToken);
-        console.log("in AddPlaid", this.props.existingPlaidLinkToken);
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
         if (this.props.receivedRedirectURI && (this.props.existingPlaidLinkToken || this.props.plaidLinkToken)) {
             return;
         }
 
-        // const redirectURI = this.props.isBusinessBankAccount
-        //     ? `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.BUSINESS}`
-        //     : `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.PERSONAL}`;
-        const redirectURI = `http://localhost:8080/bank-account`;
         clearPlaidBankAccountsAndToken();
-        fetchPlaidLinkToken(redirectURI);
+        fetchPlaidLinkToken(this.getRedirectURI());
     }
 
     /**
@@ -78,14 +72,18 @@ class AddPlaidBankAccount extends React.Component {
         return lodashGet(this.props.plaidBankAccounts, 'accounts', []);
     }
 
+    /**
+     * @returns {String}
+     */
     getRedirectURI() {
-        let redirectURI = '';
+        let redirectURI;
+        let bankAccountRoute = window.location.href.includes('personal') ? ROUTES.BANK_ACCOUNT_PERSONAL : removeTrailingForwardSlash(ROUTES.getBankAccountRoute());
         if (/staging/.test(process.env.EXPENSIFY_URL_CASH)) {
-            redirectURI = 'staging.expensify.com';
-            //https://staging.new.expensify.com/
+            redirectURI = `${CONST.STAGING_NEW_EXPENSIFY_URL}/${bankAccountRoute}`;
             return redirectURI;
         }
-        redirectURI = `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}`;
+        redirectURI = `${CONST.NEW_EXPENSIFY_URL}/${bankAccountRoute}`;
+        return `http://localhost:8080/${bankAccountRoute}`;
     }
 
     /**

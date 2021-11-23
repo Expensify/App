@@ -133,7 +133,7 @@ const IdentityForm = (props) => {
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
-            {props.manualAddress ? (
+            {props.values.manualAddress ? (
                 <>
                     <ExpensiTextInput
                         label={props.translate('common.personalAddress')}
@@ -155,7 +155,7 @@ const IdentityForm = (props) => {
                         </View>
                         <View style={[styles.flex1]}>
                             <StatePicker
-                                value={props.state}
+                                value={props.values.state}
                                 onChange={value => props.onFieldChange('addressState', value)}
                                 errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                                 hasError={Boolean(props.errors.state)}
