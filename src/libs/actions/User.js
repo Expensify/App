@@ -343,4 +343,5 @@ export {
     setPreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
+    subscribeToExpensifyCardUpdates,
 };
