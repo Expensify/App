@@ -947,6 +947,18 @@ function validateRoutingNumber(number) {
     return false;
 }
 
+function getOAuthReceivedRedirectURI() {
+    let receivedRedirectURI = window.location.href;
+    const receivedRedirectSearchParams = (new URL(receivedRedirectURI)).searchParams;
+    const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
+
+    // If there's no stateID passed, then return user to start of Plaid flow by setting the redirectURI to null
+    if (!oauthStateID) {
+        receivedRedirectURI = null;
+    }
+    return receivedRedirectURI;
+}
+
 export {
     activateWallet,
     addPersonalBankAccount,
@@ -956,6 +968,7 @@ export {
     fetchOnfidoToken,
     fetchPlaidLinkToken,
     fetchUserWallet,
+    getOAuthReceivedRedirectURI,
     getPlaidBankAccounts,
     goToWithdrawalAccountSetupStep,
     setupWithdrawalAccount,

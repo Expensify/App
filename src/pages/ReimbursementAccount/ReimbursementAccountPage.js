@@ -9,6 +9,7 @@ import Log from '../../libs/Log';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import {
     fetchFreePlanVerifiedBankAccount,
+    getOAuthReceivedRedirectURI,
     hideBankAccountErrors,
 } from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -82,15 +83,9 @@ class ReimbursementAccountPage extends React.Component {
 
         // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
         fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
-        this.receivedRedirectURI = window.location.href;
-        const receivedRedirectSearchParams = (new URL(this.receivedRedirectURI)).searchParams;
-        const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
-        const bankAccountType = lodashGet(this.props.route, ['params', 'bankAccountType']);
 
-        // If there's no stateID passed, then return user to start of Plaid flow by setting the redirectURI to null
-        if (!oauthStateID) {
-            this.receivedRedirectURI = null;
-        }
+        // If we are coming back from the Plaid OAuth flow
+        this.receivedRedirectURI = getOAuthReceivedRedirectURI();
     }
 
     componentDidUpdate(prevProps) {
@@ -208,7 +203,6 @@ class ReimbursementAccountPage extends React.Component {
                 </View>
             );
         }
-        console.log("throttled date", throttledDate);
 
         if (errorComponent) {
             return (
