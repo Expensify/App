@@ -149,7 +149,7 @@ class ReportActionItem extends Component {
                 preventDefaultContentMenu={!this.props.draftMessage}
 
             >
-                <Hoverable resetsOnClickOutside={false}>
+                <Hoverable resetsOnClickOutside>
                     {hovered => (
                         <View>
                             {this.props.shouldDisplayNewIndicator && (
