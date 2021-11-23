@@ -20,8 +20,6 @@ import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import {
-    addPersonalBankAccount,
-    addPlaidBusinessBankAccount,
     setBankAccountFormValidationErrors,
     setBankAccountSubStep,
     setupWithdrawalAccount,
