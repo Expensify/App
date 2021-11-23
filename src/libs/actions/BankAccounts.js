@@ -49,12 +49,13 @@ Onyx.connect({
  *
  * @param {String} redirectURI
  */
-function fetchPlaidLinkToken(redirectURI = null) {
+function fetchPlaidLinkToken(redirectURI) {
     API.Plaid_GetLinkToken({redirect_uri: redirectURI})
         .then((response) => {
             if (response.jsonCode !== 200) {
                 return;
             }
+            console.log("Fetched plaidLink token", response);
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
@@ -684,11 +685,14 @@ function setupWithdrawalAccount(data) {
         ));
         newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
+    console.log("newACHData", newACHData);
 
     API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
+            console.log("response", response);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
+            console.log("in .then with currentStep", currentStep);
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
             let isErrorHTML = false;

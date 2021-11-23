@@ -44,6 +44,7 @@ class AddPlaidBankAccount extends React.Component {
         this.state = {
             selectedIndex: undefined,
             institution: {},
+            plaidConnectionErrors: {},
         };
 
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
@@ -60,9 +61,10 @@ class AddPlaidBankAccount extends React.Component {
             return;
         }
 
-        const redirectURI = this.props.isBusinessBankAccount
-            ? `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.BUSINESS}`
-            : `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.PERSONAL}`;
+        // const redirectURI = this.props.isBusinessBankAccount
+        //     ? `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.BUSINESS}`
+        //     : `http://localhost:8080/partners/plaid/oauth_web/${CONST.BANK_ACCOUNT.PERSONAL}`;
+        const redirectURI = `http://localhost:8080/bank-account`;
         clearPlaidBankAccountsAndToken();
         fetchPlaidLinkToken(redirectURI);
     }
@@ -110,7 +112,7 @@ class AddPlaidBankAccount extends React.Component {
         this.props.onSubmit({
             bankName,
             account,
-            plaidLinkToken: this.props.plaidLinkToken,
+            plaidLinkToken: plaidLinkToken,
         });
     }
 
@@ -141,6 +143,7 @@ class AddPlaidBankAccount extends React.Component {
                         }}
                         onError={(error) => {
                             Log.hmmm('[PlaidLink] Error: ', error.message);
+                            // this.setState({plaidConnectionErrors: error});
                         }}
 
                         // User prematurely exited the Plaid flow

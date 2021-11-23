@@ -153,6 +153,7 @@ class BankAccountStep extends React.Component {
      * @param {String} params.account.plaidAccountID
      */
     addPlaidAccount(params) {
+        console.log("addPlaidAccount", params);
         setupWithdrawalAccount({
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
@@ -182,8 +183,8 @@ class BankAccountStep extends React.Component {
         const subStep = shouldReinitializedPlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
 
         console.log("BankAccountStep", this.props.achData);
-        console.log(isFromPlaid);
-        console.log(subStep);
+        console.log("BankAccountStep isFromPlaid", isFromPlaid);
+        console.log("BankAccountStep subStep", subStep);
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton

@@ -20,7 +20,6 @@ const propTypes = {
 };
 
 const PlaidOAuthPage = (props) => {
-    console.log(props);
     let receivedRedirectURI = window.location.href;
     const receivedRedirectSearchParams = (new URL(receivedRedirectURI)).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');

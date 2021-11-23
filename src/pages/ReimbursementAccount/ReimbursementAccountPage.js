@@ -82,6 +82,15 @@ class ReimbursementAccountPage extends React.Component {
 
         // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
         fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+        this.receivedRedirectURI = window.location.href;
+        const receivedRedirectSearchParams = (new URL(this.receivedRedirectURI)).searchParams;
+        const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
+        const bankAccountType = lodashGet(this.props.route, ['params', 'bankAccountType']);
+
+        // If there's no stateID passed, then return user to start of Plaid flow by setting the redirectURI to null
+        if (!oauthStateID) {
+            this.receivedRedirectURI = null;
+        }
     }
 
     componentDidUpdate(prevProps) {
@@ -199,6 +208,7 @@ class ReimbursementAccountPage extends React.Component {
                 </View>
             );
         }
+        console.log("throttled date", throttledDate);
 
         if (errorComponent) {
             return (
@@ -218,8 +228,10 @@ class ReimbursementAccountPage extends React.Component {
                         <BankAccountStep
                             achData={achData}
                             isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
-                            receivedRedirectURI={this.props.receivedRedirectURI}
-                            existingPlaidLinkToken={this.props.existingPlaidLinkToken}
+                            // receivedRedirectURI={this.props.receivedRedirectURI}
+                            receivedRedirectURI={this.receivedRedirectURI}
+                            // existingPlaidLinkToken={this.props.existingPlaidLinkToken}
+                            existingPlaidLinkToken={this.props.plaidLinkToken}
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (
@@ -259,6 +271,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        plaidLinkToken: {
+            key: ONYXKEYS.PLAID_LINK_TOKEN,
         },
     }),
     withLocalize,
