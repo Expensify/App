@@ -111,7 +111,7 @@ You are first required to build the tests, then you can run them:
 ### iOS
 1. If running on the iOS simulator pressing `⌘D` will open the debugging menu.
 2. This will allow you to attach a debugger in your IDE, React Developer Tools, or your browser.
-3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools)
+3. For more information on how to attach a debugger, see [React Native Debugging Documentation](https://reactnative.dev/docs/debugging#chrome-developer-tools).
 
 Alternatively, you can also setup debugger using [Flipper](https://fbflipper.com/). After installation, press `⌘D` and select "Open Debugger". This will open Flipper window. To view data stored by Onyx, go to Plugin Manager and install `async-storage` plugin.
 
