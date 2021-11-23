@@ -1,9 +1,10 @@
 import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
-import {View, PanResponder} from 'react-native';
+import {View, InteractionManager, PanResponder} from 'react-native';
+import Image from 'react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
+import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
-import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
 import styles, {getWidthAndHeightStyle} from '../../styles/styles';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
@@ -23,8 +24,8 @@ class ImageView extends PureComponent {
         super(props);
 
         this.state = {
-            imageWidth: 100,
-            imageHeight: 100,
+            imageWidth: undefined,
+            imageHeight: undefined,
         };
 
         // Use the default double click interval from the ImageZoom library
@@ -37,6 +38,27 @@ class ImageView extends PureComponent {
         // PanResponder used to capture how many touches are active on the attachment image
         this.panResponder = PanResponder.create({
             onStartShouldSetPanResponder: this.updatePanResponderTouches.bind(this),
+        });
+    }
+
+    componentDidMount() {
+        // Wait till animations are over to prevent stutter in navigation animation
+        InteractionManager.runAfterInteractions(() => this.calculateImageSize());
+    }
+
+    calculateImageSize() {
+        if (!this.props.url) {
+            return;
+        }
+        ImageSize.getSize(this.props.url).then(({width, height}) => {
+            let imageWidth = width;
+            let imageHeight = height;
+            const aspectRatio = (imageHeight / imageWidth);
+            if (imageWidth > this.props.windowWidth) {
+                imageWidth = Math.round(this.props.windowWidth);
+                imageHeight = Math.round(imageWidth * aspectRatio);
+            }
+            this.setState({imageHeight, imageWidth});
         });
     }
 
@@ -59,6 +81,26 @@ class ImageView extends PureComponent {
     render() {
         // Default windowHeight accounts for the modal header height
         const windowHeight = this.props.windowHeight - variables.contentHeaderHeight;
+
+        // Display thumbnail until Image size calculation is complete
+        if (!this.state.imageWidth || !this.state.imageHeight) {
+            return (
+                <View
+                    style={[
+                        styles.w100,
+                        styles.h100,
+                        styles.alignItemsCenter,
+                        styles.justifyContentCenter,
+                        styles.overflowHidden,
+                        styles.errorOutline,
+                    ]}
+                >
+                    <Image source={{uri: this.props.url}} style={getWidthAndHeightStyle(100, 100)} resizeMode={Image.resizeMode.contain} />
+                </View>
+            );
+        }
+
+        // Zoom view should be loaded only after measuring actual image dimensions, otherwise it causes blurred images on Android
         return (
             <View
                 style={[
@@ -102,23 +144,14 @@ class ImageView extends PureComponent {
                         this.imageZoomScale = scale;
                     }}
                 >
-                    <ImageWithSizeCalculation
-                        style={getWidthAndHeightStyle(this.state.imageWidth, this.state.imageHeight)}
-                        url={this.props.url}
-                        onMeasure={({width, height}) => {
-                            let imageWidth = width;
-                            let imageHeight = height;
-                            const aspectRatio = imageWidth / imageHeight;
-                            if (imageWidth > this.props.windowWidth) {
-                                imageWidth = this.props.windowWidth;
-                                imageHeight = imageWidth / aspectRatio;
-                            } else if (imageHeight > this.props.windowHeight) {
-                                imageHeight = this.props.windowHeight;
-                                imageWidth = imageHeight * aspectRatio;
-                            }
-
-                            this.setState({imageHeight, imageWidth});
-                        }}
+                    <Image
+                        style={[
+                            styles.w100,
+                            styles.h100,
+                            this.props.style,
+                        ]}
+                        source={{uri: this.props.url}}
+                        resizeMode={Image.resizeMode.contain}
                     />
                     {/**
                      Create an invisible view on top of the image so we can capture and set the amount of touches before
