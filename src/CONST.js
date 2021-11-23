@@ -143,7 +143,7 @@ const CONST = {
         SHORTCUT_MODAL: {
             descriptionKey: 'openShortcutDialog',
             shortcutKey: '?',
-            modifiers: ['CTRL', 'SHIFT'],
+            modifiers: ['CTRL'],
         },
         ESCAPE: {
             descriptionKey: 'escape',
