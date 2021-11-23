@@ -178,11 +178,6 @@ export default {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
-            OAUTH_PLAID_REDIRECT: {
-                screens: {
-                    OAuth_Plaid_Root: ROUTES.OAUTH_PLAID,
-                },
-            },
         },
     },
 };

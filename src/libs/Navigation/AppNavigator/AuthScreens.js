@@ -54,7 +54,6 @@ import {
     AddPersonalBankAccountModalStackNavigator,
     RequestCallModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    PlaidOAuthModalStackNavigator,
 } from './ModalStackNavigators';
 import SCREENS from '../../../SCREENS';
 import Timers from '../../Timers';
@@ -367,12 +366,6 @@ class AuthScreens extends React.Component {
                     name="IOU_Send"
                     options={modalScreenOptions}
                     component={IOUSendModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
-                <RootStack.Screen
-                    name="OAUTH_PLAID_REDIRECT"
-                    options={modalScreenOptions}
-                    component={PlaidOAuthModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>

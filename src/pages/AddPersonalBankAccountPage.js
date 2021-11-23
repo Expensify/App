@@ -28,7 +28,6 @@ const AddPersonalBankAccountPage = props => {
                     addPersonalBankAccount(account, password, plaidLinkToken);
                 }}
                 onExitPlaid={Navigation.dismissModal}
-                isBusinessBankAccount={false}
                 receivedRedirectURI={receivedRedirectURI}
                 existingPlaidLinkToken={props.plaidLinkToken}
             />

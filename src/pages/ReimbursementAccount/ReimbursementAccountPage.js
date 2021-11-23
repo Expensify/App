@@ -222,9 +222,7 @@ class ReimbursementAccountPage extends React.Component {
                         <BankAccountStep
                             achData={achData}
                             isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
-                            // receivedRedirectURI={this.props.receivedRedirectURI}
                             receivedRedirectURI={this.receivedRedirectURI}
-                            // existingPlaidLinkToken={this.props.existingPlaidLinkToken}
                             existingPlaidLinkToken={this.props.plaidLinkToken}
                         />
                     )}
