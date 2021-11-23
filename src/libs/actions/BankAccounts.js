@@ -55,7 +55,6 @@ function fetchPlaidLinkToken(redirectURI) {
             if (response.jsonCode !== 200) {
                 return;
             }
-            console.log("Fetched plaidLink token", response);
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
@@ -685,19 +684,15 @@ function setupWithdrawalAccount(data) {
         ));
         newACHData.accountNumber = unmaskedAccount.accountNumber;
     }
-    console.log("newACHData", newACHData);
 
     API.BankAccount_SetupWithdrawal(newACHData)
         .then((response) => {
-            console.log("response", response);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {...newACHData}});
             const currentStep = newACHData.currentStep;
-            console.log("in .then with currentStep", currentStep);
             let achData = lodashGet(response, 'achData', {});
             let error = lodashGet(achData, CONST.BANK_ACCOUNT.VERIFICATIONS.ERROR_MESSAGE);
             let isErrorHTML = false;
             const errors = {};
-            console.log(currentStep);
 
             if (response.jsonCode === 200 && !error) {
                 // Save an NVP with the bankAccountID for this account. This is temporary since we are not showing lists
@@ -800,7 +795,6 @@ function setupWithdrawalAccount(data) {
             }
 
             // Go to next step
-            console.log("Before go to withdrawal account", nextStep);
             goToWithdrawalAccountSetupStep(nextStep, achData);
 
             if (_.size(errors)) {
@@ -818,40 +812,6 @@ function setupWithdrawalAccount(data) {
             console.error(response.stack);
             showBankAccountErrorModal(translateLocal('common.genericErrorMessage'));
         });
-}
-
-/**
- * @param {Object} params
- * @param {Object} params.account
- * @param {String} params.account.bankName
- * @param {Boolean} params.account.isSavings
- * @param {String} params.account.addressName
- * @param {String} params.account.ownershipType
- * @param {String} params.account.accountNumber
- * @param {String} params.account.routingNumber
- * @param {String} params.account.plaidAccountID
- */
-function addPlaidBusinessBankAccount(params) {
-    console.log(params);
-    setupWithdrawalAccount({
-        acceptTerms: true,
-        setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
-
-        // Params passed via the Plaid callback when an account is selected
-        plaidAccessToken: params.plaidLinkToken,
-        accountNumber: params.account.accountNumber,
-        routingNumber: params.account.routingNumber,
-        plaidAccountID: params.account.plaidAccountID,
-        ownershipType: params.account.ownershipType,
-        isSavings: params.account.isSavings,
-        bankName: params.bankName,
-        addressName: params.account.addressName,
-
-        // Note: These are hardcoded as we're not supporting AU bank accounts for the free plan
-        country: CONST.COUNTRY.US,
-        currency: CONST.CURRENCY.USD,
-        fieldsType: CONST.BANK_ACCOUNT.FIELDS_TYPE.LOCAL,
-    });
 }
 
 function hideBankAccountErrors() {
@@ -962,7 +922,6 @@ function getOAuthReceivedRedirectURI() {
 export {
     activateWallet,
     addPersonalBankAccount,
-    addPlaidBusinessBankAccount,
     clearPlaidBankAccountsAndToken,
     fetchFreePlanVerifiedBankAccount,
     fetchOnfidoToken,

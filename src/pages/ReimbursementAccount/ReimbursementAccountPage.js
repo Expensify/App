@@ -57,9 +57,6 @@ const propTypes = {
         }),
     }),
 
-    receivedRedirectURI: PropTypes.string,
-    existingPlaidLinkToken: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
@@ -72,8 +69,6 @@ const defaultProps = {
             stepToOpen: '',
         },
     },
-    receivedRedirectURI: null,
-    existingPlaidLinkToken: '',
 };
 
 class ReimbursementAccountPage extends React.Component {
