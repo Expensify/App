@@ -6,7 +6,7 @@ import styles from '../styles/styles';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
 import Icon from './Icon';
-import {Paperclip, Download} from './Icon/Expensicons';
+import {Paperclip, Download, Sync} from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Text from './Text';
@@ -24,6 +24,9 @@ const propTypes = {
     /** Flag to show/hide download icon */
     shouldShowDownloadIcon: PropTypes.bool,
 
+    /** Flag to show the loading indicator */
+    shouldShowLoadingSpinnerIcon: PropTypes.bool,
+
     ...withLocalizePropTypes,
 };
 
@@ -32,6 +35,7 @@ const defaultProps = {
         name: '',
     },
     shouldShowDownloadIcon: false,
+    shouldShowLoadingSpinnerIcon: false,
 };
 
 const AttachmentView = (props) => {
@@ -69,6 +73,13 @@ const AttachmentView = (props) => {
                         <Icon src={Download} />
                     </Tooltip>
                 </View>
+            )}
+            {props.shouldShowLoadingSpinnerIcon && (
+            <View style={styles.ml2}>
+                <Tooltip text={props.translate('common.downloading')}>
+                    <Icon src={Sync} />
+                </Tooltip>
+            </View>
             )}
         </View>
     );

@@ -39,6 +39,7 @@ export default {
         recents: 'Recents',
         close: 'Close',
         download: 'Download',
+        downloading: 'Downloading',
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
