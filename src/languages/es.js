@@ -286,6 +286,12 @@ export default {
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la nueva contraseña',
+        errors: {
+            currentPassword: 'Contraseña actual es requerido',
+            confirmNewPassword: 'Confirma la nueva contraseña es requerido',
+            newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
+            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        },
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
