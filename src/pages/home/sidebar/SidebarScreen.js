@@ -38,12 +38,16 @@ const propTypes = {
     /* Flag for new users used to open the Global Create menu on first load */
     isFirstTimeNewExpensifyUser: PropTypes.bool,
 
+    /* Is workspace is being created by the user? */
+    isCreatingWorkspace: PropTypes.bool,
+
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     isFirstTimeNewExpensifyUser: false,
+    isCreatingWorkspace: false,
 };
 
 class SidebarScreen extends Component {
@@ -150,8 +154,6 @@ class SidebarScreen extends Component {
                             onClose={this.toggleCreateMenu}
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
-                            animationIn="fadeInLeft"
-                            animationOut="fadeOutLeft"
                             onItemSelected={this.onCreateMenuItemSelected}
                             isSmallScreenWidth={this.props.isSmallScreenWidth}
                             menuItems={[
@@ -186,7 +188,7 @@ class SidebarScreen extends Component {
                                         onSelected: () => Navigation.navigate(ROUTES.IOU_BILL),
                                     },
                                 ] : []),
-                                ...(Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
+                                ...(!this.props.isCreatingWorkspace && Permissions.canUseFreePlan(this.props.betas) && !Policy.isAdminOfFreePolicy(this.props.allPolicies) ? [
                                     {
                                         icon: NewWorkspace,
                                         iconWidth: 46,
@@ -221,6 +223,9 @@ export default compose(
         },
         isFirstTimeNewExpensifyUser: {
             key: ONYXKEYS.NVP_IS_FIRST_TIME_NEW_EXPENSIFY_USER,
+        },
+        isCreatingWorkspace: {
+            key: ONYXKEYS.IS_CREATING_WORKSPACE,
         },
     }),
 )(SidebarScreen);
