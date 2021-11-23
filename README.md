@@ -379,7 +379,7 @@ The [preDeploy workflow](https://github.com/Expensify/App/blob/main/.github/work
 The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/deploy.yml) is really quite simple. It runs when code is pushed to the `staging` or `production` branches, and:
 
 - If `staging` was updated, it creates a tag matching the new version, and pushes tags.
-- If `production` was updated, it creates a GitHub Release for the new version
+- If `production` was updated, it creates a GitHub Release for the new version.
 
 ### platformDeploy
 The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.
