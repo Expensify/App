@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import lodashHas from 'lodash/has';
 import Onyx from 'react-native-onyx';
-import {getReimbursementAccountInSetup} from './store';
+import * as store from './store';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 
@@ -50,7 +50,7 @@ function getIndexByStepID(stepID) {
  */
 function getNextStepID(stepID) {
     const nextStepIndex = Math.min(
-        getIndexByStepID(stepID || getReimbursementAccountInSetup().currentStep) + 1,
+        getIndexByStepID(stepID || store.getReimbursementAccountInSetup().currentStep) + 1,
         WITHDRAWAL_ACCOUNT_STEPS.length - 1,
     );
     return lodashGet(WITHDRAWAL_ACCOUNT_STEPS, [nextStepIndex, 'id'], CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
@@ -75,7 +75,7 @@ function getNextStepToComplete(achData) {
  * @param {Object} achData
  */
 function goToWithdrawalAccountSetupStep(stepID, achData) {
-    const newACHData = {...getReimbursementAccountInSetup()};
+    const newACHData = {...store.getReimbursementAccountInSetup()};
 
     // If we go back to Requestor Step, reset any validation and previously answered questions from expectID.
     if (!newACHData.useOnfido && stepID === CONST.BANK_ACCOUNT.STEP.REQUESTOR) {

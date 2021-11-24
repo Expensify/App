@@ -2,14 +2,14 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import BankAccount from '../../models/BankAccount';
-import {getPlaidBankAccounts} from '../Plaid';
+import * as Plaid from '../Plaid';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {getReimbursementAccountInSetup} from './store';
+import * as store from './store';
 import * as API from '../../API';
-import {setBankAccountFormValidationErrors, showBankAccountErrorModal, showBankAccountFormValidationError} from './errors';
-import {translateLocal} from '../../translate';
-import {getNextStepID, goToWithdrawalAccountSetupStep} from './navigation';
+import * as errors from './errors';
+import * as Localize from '../../Localize';
+import * as navigation from './navigation';
 
 /**
  * @private
@@ -37,7 +37,7 @@ function getBankAccountListAndGoToValidateStep(updatedACHData) {
             achData.bankAccountInReview = needsToPassLatestChecks
                 || achData.state === BankAccount.STATE.VERIFYING;
 
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
+            navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.VALIDATION, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
 }
@@ -112,7 +112,7 @@ function getNextStep(updatedACHData) {
         return currentStep;
     }
 
-    return getNextStepID();
+    return navigation.getNextStepID();
 }
 
 /**
@@ -134,24 +134,24 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
 
     if (response.jsonCode === 402) {
         if (hasAccountOrRoutingError(response)) {
-            setBankAccountFormValidationErrors({routingNumber: true});
-            showBankAccountErrorModal();
+            errors.setBankAccountFormValidationErrors({routingNumber: true});
+            errors.showBankAccountErrorModal();
         } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
-            error = translateLocal('bankAccount.error.incorporationState');
+            error = Localize.translateLocal('bankAccount.error.incorporationState');
         } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
-            error = translateLocal('bankAccount.error.companyType');
+            error = Localize.translateLocal('bankAccount.error.companyType');
         } else {
             console.error(response.message);
         }
     }
 
     if (error) {
-        showBankAccountFormValidationError(error);
-        showBankAccountErrorModal(error, isErrorHTML);
+        errors.showBankAccountFormValidationError(error);
+        errors.showBankAccountErrorModal(error, isErrorHTML);
     }
 
     // Go to next step
-    goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), {
+    navigation.goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), {
         ...responseACHData,
         subStep: hasAccountOrRoutingError(response),
     });
@@ -164,7 +164,7 @@ function showSetupWithdrawalAccountErrors(response, verificationsError, updatedA
  */
 function mergeParamsWithLocalACHData(data) {
     const updatedACHData = {
-        ...getReimbursementAccountInSetup(),
+        ...store.getReimbursementAccountInSetup(),
         ...data,
 
         // This param tells Web-Secure that this bank account is from NewDot so we can modify links back to the correct
@@ -184,7 +184,7 @@ function mergeParamsWithLocalACHData(data) {
 
     // If we are setting up a Plaid account replace the accountNumber with the unmasked number
     if (data.plaidAccountID) {
-        const unmaskedAccount = _.find(getPlaidBankAccounts(), bankAccount => (
+        const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
             bankAccount.plaidAccountID === data.plaidAccountID
         ));
         updatedACHData.accountNumber = unmaskedAccount.accountNumber;
@@ -204,7 +204,7 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
 
     if (achData.useOnfido) {
         if (needsToDoOnfido(achData)) {
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
+            navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
                 ...achData,
                 sdkToken: getOnfidoTokenAndStatusFromACHData(achData).token,
             });
@@ -215,7 +215,7 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
         // Don't go to next step if Requestor Step needs to ask some questions
         const questions = getRequestorQuestions(requestorResponse);
         if (!_.isEmpty(questions)) {
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
+            navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
                 ...achData,
                 questions,
             });
@@ -224,7 +224,7 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
         }
     }
 
-    goToWithdrawalAccountSetupStep(nextStep, achData);
+    navigation.goToWithdrawalAccountSetupStep(nextStep, achData);
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
 }
 
@@ -317,13 +317,13 @@ function setupWithdrawalAccount(params) {
             }
 
             // Go to next step
-            goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
+            navigation.goToWithdrawalAccountSetupStep(getNextStep(updatedACHData), responseACHData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         })
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...updatedACHData}});
             console.error(response.stack);
-            showBankAccountErrorModal(translateLocal('common.genericErrorMessage'));
+            errors.showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
         });
 }
 

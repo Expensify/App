@@ -3,8 +3,8 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import * as API from '../../API';
 import BankAccount from '../../models/BankAccount';
 import CONST from '../../../CONST';
-import {translateLocal} from '../../translate';
-import {showBankAccountErrorModal} from './errors';
+import * as Localize from '../../Localize';
+import * as errors from './errors';
 
 /**
  * @param {Number} bankAccountID
@@ -40,13 +40,13 @@ function validateBankAccount(bankAccountID, validateCode) {
 
             // If the validation amounts entered were incorrect, show specific error
             if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
-                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                errors.showBankAccountErrorModal(Localize.translateLocal('bankAccount.error.validationAmounts'));
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 return;
             }
 
             // We are generically showing any other backend errors that might pop up in the validate step
-            showBankAccountErrorModal(response.message);
+            errors.showBankAccountErrorModal(response.message);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
         });
 }

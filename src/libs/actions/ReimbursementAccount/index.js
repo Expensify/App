@@ -1,11 +1,13 @@
 import Onyx from 'react-native-onyx';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {showBankAccountErrorModal, setBankAccountFormValidationErrors, showBankAccountFormValidationError} from './errors';
-import {goToWithdrawalAccountSetupStep} from './navigation';
 import validateBankAccount from './validateBankAccount';
 import setupWithdrawalAccount from './setupWithdrawalAccount';
 import fetchFreePlanVerifiedBankAccount from './fetchFreePlanVerifiedBankAccount';
 import resetFreePlanBankAccount from './resetFreePlanBankAccount';
+
+
+export {goToWithdrawalAccountSetupStep} from './navigation';
+export {showBankAccountErrorModal, setBankAccountFormValidationErrors, showBankAccountFormValidationError} from './errors';
 
 /**
  * Set the current sub step in first step of adding withdrawal bank account
@@ -48,10 +50,6 @@ function cancelResetFreePlanBankAccount() {
 export {
     setupWithdrawalAccount,
     fetchFreePlanVerifiedBankAccount,
-    goToWithdrawalAccountSetupStep,
-    showBankAccountErrorModal,
-    showBankAccountFormValidationError,
-    setBankAccountFormValidationErrors,
     resetFreePlanBankAccount,
     validateBankAccount,
     setBankAccountSubStep,

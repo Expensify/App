@@ -1,7 +1,9 @@
 import _ from 'underscore';
 import CONST from '../../CONST';
 import * as API from '../API';
-import {
+import * as Plaid from './Plaid';
+
+export {
     setupWithdrawalAccount,
     fetchFreePlanVerifiedBankAccount,
     goToWithdrawalAccountSetupStep,
@@ -17,7 +19,7 @@ import {
     requestResetFreePlanBankAccount,
     cancelResetFreePlanBankAccount,
 } from './ReimbursementAccount';
-import {
+export {
     fetchPlaidBankAccounts,
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
@@ -25,7 +27,7 @@ import {
     getBankName,
     getPlaidAccessToken,
 } from './Plaid';
-import {
+export {
     fetchOnfidoToken,
     activateWallet,
     fetchUserWallet,
@@ -39,7 +41,7 @@ import {
  * @param {String} plaidLinkToken
  */
 function addPersonalBankAccount(account, password, plaidLinkToken) {
-    const unmaskedAccount = _.find(getPlaidBankAccounts(), bankAccount => (
+    const unmaskedAccount = _.find(Plaid.getPlaidBankAccounts(), bankAccount => (
         bankAccount.plaidAccountID === account.plaidAccountID
     ));
     API.BankAccount_Create({
@@ -58,14 +60,14 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
             isInSetup: true,
             bankAccountInReview: null,
             currentStep: 'AccountOwnerInformationStep',
-            bankName: getBankName(),
+            bankName: Plaid.getBankName(),
             plaidAccountID: unmaskedAccount.plaidAccountID,
             ownershipType: '',
             acceptTerms: true,
             country: 'US',
             currency: CONST.CURRENCY.USD,
             fieldsType: 'local',
-            plaidAccessToken: getPlaidAccessToken(),
+            plaidAccessToken: Plaid.getPlaidAccessToken(),
         }),
     })
         .then((response) => {
@@ -79,25 +81,5 @@ function addPersonalBankAccount(account, password, plaidLinkToken) {
 }
 
 export {
-    activateWallet,
     addPersonalBankAccount,
-    clearPlaidBankAccountsAndToken,
-    fetchFreePlanVerifiedBankAccount,
-    fetchOnfidoToken,
-    fetchPlaidLinkToken,
-    fetchUserWallet,
-    fetchPlaidBankAccounts,
-    goToWithdrawalAccountSetupStep,
-    setupWithdrawalAccount,
-    validateBankAccount,
-    hideBankAccountErrors,
-    showBankAccountErrorModal,
-    showBankAccountFormValidationError,
-    setBankAccountFormValidationErrors,
-    setWorkspaceIDForReimbursementAccount,
-    setBankAccountSubStep,
-    updateReimbursementAccountDraft,
-    requestResetFreePlanBankAccount,
-    cancelResetFreePlanBankAccount,
-    resetFreePlanBankAccount,
 };

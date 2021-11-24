@@ -4,8 +4,8 @@ import lodashGet from 'lodash/get';
 import * as API from '../../API';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {getNextStepToComplete, goToWithdrawalAccountSetupStep} from './navigation';
-import {getReimbursementAccountInSetup, getReimbursementAccountWorkspaceID} from './store';
+import * as navigation from './navigation';
+import * as store from './store';
 import BankAccount from '../../models/BankAccount';
 
 /**
@@ -111,8 +111,8 @@ function getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTr
 
     // To determine if there's any step we can go to we will look at the data from the server first then whatever is in device storage.
     const currentStep = achData.currentStep
-        ? getNextStepToComplete(achData)
-        : getReimbursementAccountInSetup().currentStep;
+        ? navigation.getNextStepToComplete(achData)
+        : store.getReimbursementAccountInSetup().currentStep;
 
     if (achData.isInSetup) {
         return currentStep || CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT;
@@ -170,7 +170,7 @@ function buildACHData(bankAccount, hasTriedToUpgrade, subStep) {
     return {
         ...(bankAccount ? bankAccount.toACHData() : {}),
         useOnfido: true,
-        policyID: getReimbursementAccountWorkspaceID() || '',
+        policyID: store.getReimbursementAccountWorkspaceID() || '',
         isInSetup: !bankAccount || bankAccount.isInSetup(),
         bankAccountInReview: getIsBankAccountInReview(bankAccount, hasTriedToUpgrade),
         domainLimit: 0,
@@ -199,13 +199,13 @@ function fetchFreePlanVerifiedBankAccount(stepToOpen, localBankAccountState) {
             bankAccount, kycVerificationsMigration, throttledDate, maxAttemptsReached, isPlaidDisabled,
         }) => {
             // If we already have a substep stored locally then we will add that to the new achData
-            const subStep = lodashGet(getReimbursementAccountInSetup(), 'subStep', '');
+            const subStep = lodashGet(store.getReimbursementAccountInSetup(), 'subStep', '');
             const hasTriedToUpgrade = getHasTriedToUpgrade(bankAccount, kycVerificationsMigration);
             const achData = buildACHData(bankAccount, hasTriedToUpgrade, subStep);
-            const stepFromStorage = getReimbursementAccountInSetup().currentStep;
+            const stepFromStorage = store.getReimbursementAccountInSetup().currentStep;
             const currentStep = getCurrentStep(stepToOpen, stepFromStorage, achData, bankAccount, hasTriedToUpgrade);
 
-            goToWithdrawalAccountSetupStep(currentStep, achData);
+            navigation.goToWithdrawalAccountSetupStep(currentStep, achData);
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
                 throttledDate,
                 maxAttemptsReached,
