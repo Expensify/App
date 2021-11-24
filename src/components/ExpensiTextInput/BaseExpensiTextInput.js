@@ -10,8 +10,8 @@ import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
 
-const ACTIVE_LABEL_TRANSLATE_Y = 5;
-const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
+const ACTIVE_LABEL_TRANSLATE_Y = 4;
+const ACTIVE_LABEL_TRANSLATE_X = -4;
 const ACTIVE_LABEL_SCALE = 0.8668;
 
 const INACTIVE_LABEL_TRANSLATE_Y = 16;
@@ -28,8 +28,7 @@ class BaseExpensiTextInput extends Component {
         this.state = {
             isFocused: false,
             labelTranslateY: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelTranslateX: new Animated.Value(activeLabel
-                ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
+            labelTranslateX: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_X : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
         };
 
@@ -110,7 +109,7 @@ class BaseExpensiTextInput extends Component {
 
         this.animateLabel(
             ACTIVE_LABEL_TRANSLATE_Y,
-            ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
+            ACTIVE_LABEL_TRANSLATE_X,
             ACTIVE_LABEL_SCALE,
         );
         this.isLabelActive = true;
@@ -198,7 +197,6 @@ class BaseExpensiTextInput extends Component {
                                 onBlur={this.onBlur}
                                 onChangeText={this.setValue}
                                 onPressOut={this.props.onPress}
-                                translateX={this.props.translateX}
                             />
                         </View>
                     </TouchableWithoutFeedback>
