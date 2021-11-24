@@ -9,7 +9,7 @@
     </h1>
 </div>
 
-#### Table of contents
+#### Table of Contents
 * [Local Development](#local-development)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
@@ -224,7 +224,7 @@ created to house a collection of items in plural form and using camelCase (eg: p
 Files should be named after the component/function/constants they export, respecting the casing used for it. ie:
 
 - If you export a constant named `CONST` it's file/directory should be named the `CONST`.
-- If you export a component named `Text` the file/directory should be named `Text`
+- If you export a component named `Text` the file/directory should be named `Text`.
 - If you export a function named `guid` the file/directory should be named `guid`.
 - For files that are utilities that export several functions/classes use the UpperCamelCase version ie: `DateUtils`.
 - HOCs should be named in camelCase like withOnyx.
@@ -373,13 +373,13 @@ The [preDeploy workflow](https://github.com/Expensify/App/blob/main/.github/work
 - Otherwise:
   - Create a new version by triggering the [`createNewVersion` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/createNewVersion.yml)
   - Use the [`updateProtectedBranch` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/updateProtectedBranch.yml) to update the `staging` branch.
-- Also, if the pull request has the `CP Staging` label, it will execute the [`cherryPick` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/cherryPick.yml) to deploy the pull request directly to staging, even if the `StagingDeployCash` is locked
+- Also, if the pull request has the `CP Staging` label, it will execute the [`cherryPick` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/cherryPick.yml) to deploy the pull request directly to staging, even if the `StagingDeployCash` is locked.
 
 ### deploy
 The [`deploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/deploy.yml) is really quite simple. It runs when code is pushed to the `staging` or `production` branches, and:
 
 - If `staging` was updated, it creates a tag matching the new version, and pushes tags.
-- If `production` was updated, it creates a GitHub Release for the new version
+- If `production` was updated, it creates a GitHub Release for the new version.
 
 ### platformDeploy
 The [`platformDeploy` workflow](https://github.com/Expensify/App/blob/main/.github/workflows/platformDeploy.yml) is what actually runs the deployment on all four platforms (iOS, Android, Web, macOS Desktop). It runs a staging deploy whenever a new tag is pushed to GitHub, and runs a production deploy whenever a new release is created.

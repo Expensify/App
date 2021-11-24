@@ -258,6 +258,7 @@ class PopoverReportActionContextMenu extends React.Component {
                     onModalHide={this.runAndResetOnPopoverHide}
                     anchorPosition={this.state.popoverAnchorPosition}
                     animationIn="fadeIn"
+                    disableAnimation={false}
                     animationOutTiming={1}
                     measureContent={this.measureContent}
                     shouldSetModalVisibility={false}

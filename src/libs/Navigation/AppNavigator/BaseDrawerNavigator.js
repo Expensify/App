@@ -3,8 +3,8 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
-import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
+import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
 import Navigation from '../Navigation';
 
 const propTypes = {
@@ -35,6 +35,8 @@ const Drawer = createDrawerNavigator();
 const BaseDrawerNavigator = (props) => {
     const content = (
         <Drawer.Navigator
+            backBehavior="none"
+            key={`BaseDrawerNavigator${props.isSmallScreenWidth}`}
             defaultStatus={Navigation.getDefaultDrawerState(props.isSmallScreenWidth)}
             sceneContainerStyle={styles.navigationSceneContainer}
             drawerContent={props.drawerContent}

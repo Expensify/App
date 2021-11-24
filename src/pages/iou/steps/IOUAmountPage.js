@@ -171,7 +171,7 @@ class IOUAmountPage extends React.Component {
 
     render() {
         return (
-            <View style={[styles.flex1, styles.pageWrapper]}>
+            <>
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
@@ -223,7 +223,7 @@ class IOUAmountPage extends React.Component {
                         text={this.props.translate('common.next')}
                     />
                 </View>
-            </View>
+            </>
         );
     }
 }
