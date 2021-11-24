@@ -66,6 +66,7 @@ export default {
         notifications: 'Notificaciones',
         na: 'N/A',
         noResultsFound: 'No se han encontrado resultados',
+        deletedCommentMessage: 'Comentario borrado',
         timePrefix: 'Son las',
         conjunctionFor: 'para',
         todayAt: 'Hoy a las',
@@ -137,6 +138,7 @@ export default {
         sendAttachment: 'Enviar adjunto',
         addAttachment: 'Agregar archivo adjunto',
         writeSomething: 'Escribe algo...',
+        sayHello: 'Di hola!',
         blockedFromConcierge: 'Comunicación no permitida',
         youAppearToBeOffline: 'Parece que estás desconectado.',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
@@ -156,7 +158,9 @@ export default {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar este comentario?',
     },
     reportActionsView: {
-        beFirstPersonToComment: 'Sé el primero en comentar',
+        beginningOfChatHistory: 'Aquí comienza tu historial de conversaciones con',
+        beginningOfChatHistoryPrivatePartOne: 'Este es el principio de la sala privada',
+        beginningOfChatHistoryPrivatePartTwo: ', invita a otros @mencionándolos.',
     },
     reportActionsViewMarkerBadge: {
         newMsg: ({count}) => `${count} mensaje${count > 1 ? 's' : ''} nuevo${count > 1 ? 's' : ''}`,
@@ -282,6 +286,12 @@ export default {
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la nueva contraseña',
+        errors: {
+            currentPassword: 'Contraseña actual es requerido',
+            confirmNewPassword: 'Confirma la nueva contraseña es requerido',
+            newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
+            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        },
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
@@ -444,6 +454,7 @@ export default {
             addressStreet: 'Ingresa una calle de dirección válida que no sea un apartado postal',
             addressState: 'Por favor, selecciona un estado',
             incorporationDate: 'Ingresa una fecha válida',
+            incorporationDateFuture: 'La fecha de incorporación no puede ser futura',
             incorporationState: 'Ingresa un estado válido',
             industryCode: 'Ingresa un código de clasificación de industria válido',
             restrictedBusiness: 'Confirma que la empresa no está en la lista de negocios restringidos',
@@ -478,8 +489,7 @@ export default {
     },
     cameraPermissionsNotGranted: 'No has habilitado los permisos para acceder a la cámara',
     messages: {
-        noPhoneNumber: 'Por favor escribe un número de teléfono que incluya el código de país e.g +447814266907.',
-        errorMessageInvalidPhone: 'El teléfono no es valido. Inténtalo de nuevo agregando el código de país. P. ej.: +15005550006',
+        errorMessageInvalidPhone: 'Por favor, introduce un número de teléfono válido sin paréntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional. P. ej. +447782339811',
         maxParticipantsReached: 'Has llegado al número máximo de participantes para un grupo.',
     },
     onfidoStep: {
@@ -675,15 +685,15 @@ export default {
         card: {
             header: 'Desbloquea Tarjetas Expensify gratis',
             headerWithEcard: '¡Tus tarjetas están listas!',
-            noVBACopy: 'Conecta una cuenta bancaria para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
+            noVBACopy: 'Conecte una cuenta bancaria para emitir tarjetas Expensify a los miembros de su espacio de trabajo y acceda a estos increíbles beneficios y más:',
             VBANoECardCopy: 'Agrega tu correo electrónico de trabajo para emitir Tarjetas Expensify ilimitadas para los miembros de tu espacio de trabajo y acceder a todas estas increíbles ventajas:',
-            conciergeCanHelp: 'Concierge te puede ayudar a añadir un correo electrónico de trabajo para activar la Tarjeta Expensify.',
-            VBAWithECardCopy: 'Disfruta de todas estas increíbles ventajas:',
+            VBAWithECardCopy: 'Acceda a estos increíbles beneficios y más:',
             benefit1: 'Hasta un 2% de devolución en tus gastos',
             benefit2: 'Tarjetas digitales y físicas',
             benefit3: 'Sin responsabilidad personal',
             benefit4: 'Límites personalizables',
-            chatWithConcierge: 'Chatea con Concierge',
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
+            checkingDomain: '¡Un momento! Estamos todavía trabajando para habilitar tu Tarjeta Expensify. Vuelve aquí en unos minutos.',
         },
         reimburse: {
             captureReceipts: 'Captura recibos',
@@ -729,7 +739,7 @@ export default {
             personalMessagePrompt: 'Agregar un mensaje personal (Opcional)',
             pleaseSelectUser: 'Asegúrese de que el correo electrónico o el número de teléfono sean válidos (e.g. +15005550006).',
             genericFailureMessage: 'Se produjo un error al invitar al usuario al espacio de trabajo. Vuelva a intentarlo..',
-            welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify para comenzar a rastrear sus gastos.`,
+            welcomeNote: ({workspaceName}) => `¡Has sido invitado a ${workspaceName}! Descargue la aplicación móvil Expensify en use.expensify.com/download para comenzar a rastrear sus gastos.`,
         },
         editor: {
             nameInputLabel: 'Nombre',
@@ -747,9 +757,9 @@ export default {
             streamlinePayments: 'Optimiza pagos',
             oneMoreThing: '¡Una cosa más!',
             allSet: '¡Todo listo!',
-            accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta. Concierge puede ayudarte a añadir tu correo de trabajo para activar la Tarjeta Expensify.',
+            accountDescriptionNoCards: 'Esta cuenta bancaria se utilizará para reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.\n\nPor favor añade un correo electrónico de trabajo como tu nombre de usuario secundario para activar la Tarjeta Expensify.',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas, todo desde la misma cuenta.',
-            chatWithConcierge: 'Chat con Concierge',
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
             letsFinishInChat: '¡Continuemos en el chat!',
             almostDone: '¡Casi listo!',
             disconnectBankAccount: 'Desconectar cuenta bancaria',
@@ -775,5 +785,15 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+    },
+    keyboardShortcutModal: {
+        title: 'Atajos de teclado',
+        subtitle: 'Ahorra tiempo con estos atajos de teclado:',
+        shortcuts: {
+            openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            escape: 'Diálogos de escape',
+            search: 'Abrir diálogo de búsqueda',
+            newGroup: 'Nueva pantalla de grupo',
+        },
     },
 };
