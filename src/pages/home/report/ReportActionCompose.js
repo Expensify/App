@@ -12,7 +12,8 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
-import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -673,7 +674,7 @@ class ReportActionCompose extends React.Component {
                     <Pressable
                         style={({hovered, pressed}) => ([
                             styles.chatItemEmojiButton,
-                            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                         ])}
                         ref={el => this.emojiPopoverAnchor = el}
                         onLayout={this.measureEmojiPopoverAnchorPosition}
@@ -684,7 +685,7 @@ class ReportActionCompose extends React.Component {
                             <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
                                 <Icon
                                     src={Expensicons.Emoji}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                                 />
                             </Tooltip>
                         )}

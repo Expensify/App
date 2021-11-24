@@ -4,7 +4,9 @@ import PropTypes from 'prop-types';
 import {createDrawerNavigator} from '@react-navigation/drawer';
 import {View} from 'react-native';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
-import styles, {getNavigationDrawerStyle, getNavigationDrawerType} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
+
 import Navigation from '../Navigation';
 
 const propTypes = {
@@ -43,8 +45,8 @@ const BaseDrawerNavigator = (props) => {
             screenOptions={{
                 cardStyle: styles.navigationScreenCardStyle,
                 headerShown: false,
-                drawerType: getNavigationDrawerType(props.isSmallScreenWidth),
-                drawerStyle: getNavigationDrawerStyle(
+                drawerType: StyleUtils.getNavigationDrawerType(props.isSmallScreenWidth),
+                drawerStyle: StyleUtils.getNavigationDrawerStyle(
                     props.isSmallScreenWidth,
                 ),
                 swipeEdgeWidth: 500,

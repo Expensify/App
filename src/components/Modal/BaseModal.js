@@ -3,7 +3,8 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
@@ -119,9 +120,9 @@ class BaseModal extends PureComponent {
                             paddingBottom: safeAreaPaddingBottom,
                             paddingLeft: safeAreaPaddingLeft,
                             paddingRight: safeAreaPaddingRight,
-                        } = getSafeAreaPadding(insets);
+                        } = StyleUtils.getSafeAreaPadding(insets);
 
-                        const modalPaddingStyles = getModalPaddingStyles({
+                        const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
                             safeAreaPaddingTop,
                             safeAreaPaddingBottom,
                             safeAreaPaddingLeft,

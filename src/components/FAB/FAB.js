@@ -4,7 +4,8 @@ import {
 } from 'react-native';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
-import styles, {getAnimatedFABStyle} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import fabPropTypes from './fabPropTypes';
 import Tooltip from '../Tooltip';
@@ -69,7 +70,7 @@ class FAB extends PureComponent {
                     onPress={this.props.onPress}
                     style={[
                         styles.floatingActionButton,
-                        getAnimatedFABStyle(rotate, backgroundColor),
+                        StyleUtils.getAnimatedFABStyle(rotate, backgroundColor),
                     ]}
                 >
                     <AnimatedIcon src={Expensicons.Plus} fill={fill} />

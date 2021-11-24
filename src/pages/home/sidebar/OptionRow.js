@@ -8,7 +8,8 @@ import {
     StyleSheet,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
-import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -140,7 +141,7 @@ const OptionRow = (props) => {
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
-                        getBackgroundColorStyle(props.backgroundColor),
+                        StyleUtils.getBackgroundColorStyle(props.backgroundColor),
                         props.optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !props.optionIsFocused ? props.hoverStyle : null,
                         props.isDisabled && styles.cursorDisabled,
@@ -160,12 +161,12 @@ const OptionRow = (props) => {
                                         avatarImageURLs={props.option.icons}
                                         size={props.mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
-                                            getBackgroundAndBorderStyle(props.backgroundColor),
+                                            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
                                             props.optionIsFocused
-                                                ? getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                 : undefined,
                                             hovered && !props.optionIsFocused
-                                                ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
                                         isDefaultChatRoom={props.option.isDefaultChatRoom}

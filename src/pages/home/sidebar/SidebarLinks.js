@@ -4,7 +4,8 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import styles, {getSafeAreaMargins} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import ONYXKEYS from '../../../ONYXKEYS';
 import safeAreaInsetPropTypes from '../../safeAreaInsetPropTypes';
 import compose from '../../../libs/compose';
@@ -242,7 +243,7 @@ class SidebarLinks extends React.Component {
                 <OptionsList
                     contentContainerStyles={[
                         styles.sidebarListContainer,
-                        {paddingBottom: getSafeAreaMargins(this.props.insets).marginBottom},
+                        {paddingBottom: StyleUtils.getSafeAreaMargins(this.props.insets).marginBottom},
                     ]}
                     sections={sections}
                     focusedIndex={_.findIndex(this.state.orderedReports, (

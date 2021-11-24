@@ -2,7 +2,8 @@ import React from 'react';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
-import styles, {getModalPaddingStyles} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
@@ -50,7 +51,7 @@ const SignInPageLayoutNarrow = props => (
                 contentContainerStyle={[
                     styles.mt40Percentage,
                     styles.mb3,
-                    getModalPaddingStyles({
+                    StyleUtils.getModalPaddingStyles({
                         shouldAddBottomSafeAreaPadding: true,
                         modalContainerStylePaddingBottom: 20,
                         safeAreaPaddingBottom: props.insets.bottom,
