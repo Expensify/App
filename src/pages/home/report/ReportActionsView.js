@@ -145,12 +145,13 @@ class ReportActionsView extends React.Component {
             this.scrollToListBottom();
         });
 
+        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+
         // Only mark as read if the report is open
         if (!this.props.isDrawerOpen) {
             Report.updateLastReadActionID(this.props.reportID);
         }
 
-        this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
         Report.fetchActions(this.props.reportID);
     }
 
@@ -210,12 +211,6 @@ class ReportActionsView extends React.Component {
                 this.scrollToListBottom();
             }
 
-            // When the last action changes, record the max action
-            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
-            if (shouldRecordMaxAction) {
-                Report.updateLastReadActionID(this.props.reportID);
-            }
-
             if (lodashGet(lastAction, 'actorEmail', '') !== lodashGet(this.props.session, 'email', '')) {
                 // Only update the unread count when MarkerBadge is visible
                 // Otherwise marker will be shown on scrolling up from the bottom even if user have read those messages
@@ -226,12 +221,18 @@ class ReportActionsView extends React.Component {
                 // show new MarkerBadge when there is a new message
                 this.toggleMarker();
             }
+
+            // When the last action changes, record the max action
+            // This will make the unread indicator go away if you receive comments in the same chat you're looking at
+            if (shouldRecordMaxAction) {
+                Report.updateLastReadActionID(this.props.reportID);
+            }
         } else if (shouldRecordMaxAction && (
             prevProps.isDrawerOpen !== this.props.isDrawerOpen
             || prevProps.isSmallScreenWidth !== this.props.isSmallScreenWidth
         )) {
-            Report.updateLastReadActionID(this.props.reportID);
             this.updateUnreadIndicatorPosition(this.props.report.unreadActionCount);
+            Report.updateLastReadActionID(this.props.reportID);
         }
     }
 
