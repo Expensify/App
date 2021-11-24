@@ -9,6 +9,7 @@ import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
+import {View} from 'react-native-web';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -103,7 +104,7 @@ class Onfido extends React.Component {
 
     render() {
         return (
-            <div id={CONST.ONFIDO.CONTAINER_ID} />
+            <View nativeID={CONST.ONFIDO.CONTAINER_ID} />
         );
     }
 }
