@@ -170,7 +170,7 @@ function getSimplifiedReportObject(report) {
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
-    let lastMessageText;
+    let lastMessageText = null;
     if (report.reportActionCount > 0) {
         // We are removing any html tags from the message html since we cannot access the text version of any comments as
         // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
@@ -178,8 +178,6 @@ function getSimplifiedReportObject(report) {
         lastMessageText = lastActionMessage
             .replace(/((<br[^>]*>)+)/gi, ' ')
             .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
-    } else {
-        lastMessageText = null;
     }
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
