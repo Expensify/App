@@ -1,11 +1,11 @@
 import React from 'react';
 import {Image} from 'react-native';
-import * as Styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import propTypes from './propTypes';
 
 const SVGImage = props => (
     <Image
-        style={Styles.getWidthAndHeightStyle(props.width, props.height)}
+        style={StyleUtils.getWidthAndHeightStyle(props.width, props.height)}
         source={props.src}
     />
 );

@@ -6,7 +6,7 @@ import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import * as Styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import CONST from '../../../CONST';
 import compose from '../../compose';
@@ -212,7 +212,7 @@ class AuthScreens extends React.Component {
         };
         const modalScreenOptions = {
             ...commonModalScreenOptions,
-            cardStyle: Styles.getNavigationModalCardStyle(this.props.isSmallScreenWidth),
+            cardStyle: StyleUtils.getNavigationModalCardStyle(this.props.isSmallScreenWidth),
             cardStyleInterpolator: props => modalCardStyleInterpolator(this.props.isSmallScreenWidth, false, props),
             cardOverlayEnabled: true,
 
