@@ -1,6 +1,7 @@
 import './index.css';
 import lodashGet from 'lodash/get';
 import React from 'react';
+import {View} from 'react-native-web';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
@@ -9,7 +10,6 @@ import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
-import {View} from 'react-native-web';
 
 const propTypes = {
     ...withLocalizePropTypes,
