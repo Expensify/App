@@ -9,6 +9,7 @@ import variables from '../../styles/variables';
 import colors from '../../styles/colors';
 import fontWeightBold from '../../styles/fontWeight/bold';
 import fontFamily from '../../styles/fontFamily';
+import getPlatform from '../../libs/getPlatform';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -94,7 +95,7 @@ class Onfido extends React.Component {
     }
 
     componentWillUnmount() {
-        if (!this.onfidoOut) {
+        if (!this.onfidoOut || getPlatform() === 'desktop') {
             return;
         }
 
