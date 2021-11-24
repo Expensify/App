@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {Pressable, Text as RNText} from 'react-native';
-import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
+import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 
 /**
  * This is a special Pressable that calls onSecondaryInteraction when LongPressed.
@@ -11,6 +11,7 @@ import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTy
  * @returns {React.Component}
  */
 const PressableWithSecondaryInteraction = (props) => {
+    // Use Text node for inline mode to prevent content overflow.
     const Node = props.inline ? RNText : Pressable;
     return (
         <Node
@@ -33,8 +34,8 @@ const PressableWithSecondaryInteraction = (props) => {
     );
 };
 
-PressableWithSecondaryInteraction.propTypes = propTypes;
-PressableWithSecondaryInteraction.defaultProps = defaultProps;
+PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
+PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 PressableWithSecondaryInteraction.displayName = 'PressableWithSecondaryInteraction';
 
 export default forwardRef((props, ref) => (
