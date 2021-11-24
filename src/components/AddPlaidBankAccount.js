@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink/index';
 import CONST from '../CONST';
@@ -29,12 +30,6 @@ import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
 import ROUTES from '../ROUTES';
 import {removeTrailingForwardSlash} from '../libs/Url';
-import PropTypes from 'prop-types';
-
-// const plaidBankPropTypes = {
-//     ...withLocalizePropTypes,
-//     ...propTypes,
-// };
 
 const plaidBankPropTypes = {
     ...withLocalizePropTypes,
@@ -103,6 +98,7 @@ const defaultProps = {
     onSubmit: () => {},
     text: '',
     receivedRedirectURI: null,
+    existingPlaidLinkToken: '',
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -114,7 +110,6 @@ class AddPlaidBankAccount extends React.Component {
         this.state = {
             selectedIndex: undefined,
             institution: {},
-            plaidConnectionErrors: {},
         };
 
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
@@ -122,7 +117,6 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
-        console.log("in no directory plaidLink");
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
         if (this.props.receivedRedirectURI && (this.props.existingPlaidLinkToken || this.props.plaidLinkToken)) {
@@ -147,7 +141,7 @@ class AddPlaidBankAccount extends React.Component {
      */
     getRedirectURI() {
         let redirectURI;
-        let bankAccountRoute = window.location.href.includes('personal') ? ROUTES.BANK_ACCOUNT_PERSONAL : removeTrailingForwardSlash(ROUTES.getBankAccountRoute());
+        const bankAccountRoute = window.location.href.includes('personal') ? ROUTES.BANK_ACCOUNT_PERSONAL : removeTrailingForwardSlash(ROUTES.getBankAccountRoute());
         if (/staging/.test(process.env.EXPENSIFY_URL_CASH)) {
             redirectURI = `${CONST.STAGING_NEW_EXPENSIFY_URL}/${bankAccountRoute}`;
             return redirectURI;
@@ -180,7 +174,7 @@ class AddPlaidBankAccount extends React.Component {
         this.props.onSubmit({
             bankName,
             account,
-            plaidLinkToken: plaidLinkToken,
+            plaidLinkToken,
         });
     }
 

@@ -13,7 +13,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const AddPersonalBankAccountPage = props => {
+const AddPersonalBankAccountPage = (props) => {
     // If we are coming back from the Plaid OAuth flow
     const receivedRedirectURI = getOAuthReceivedRedirectURI();
 
@@ -33,7 +33,7 @@ const AddPersonalBankAccountPage = props => {
             />
         </ScreenWrapper>
     );
-}
+};
 
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';

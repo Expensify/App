@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import {
@@ -13,7 +14,6 @@ import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-// import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -35,8 +35,6 @@ import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceSection from '../workspace/WorkspaceSection';
 import {BankMouseGreen} from '../../components/Icon/Illustrations';
-import lodashGet from "lodash/get";
-import PropTypes from "prop-types";
 
 const propTypes = {
     /** Bank account currently in setup */
