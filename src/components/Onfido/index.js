@@ -1,7 +1,7 @@
 import './index.css';
 import lodashGet from 'lodash/get';
 import React from 'react';
-import {View} from 'react-native-web';
+import {View} from 'react-native';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
