@@ -11,7 +11,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import ONYXKEYS from '../../ONYXKEYS';
-import {fetchFreePlanVerifiedBankAccount} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import BankAccount from '../../libs/models/BankAccount';
 import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursementAccountPropTypes';
 import userPropTypes from '../settings/userPropTypes';
@@ -55,7 +55,7 @@ const defaultProps = {
 class WorkspacePageWithSections extends React.Component {
     componentDidMount() {
         const achState = lodashGet(this.props.reimbursementAccount, 'achData.state', '');
-        fetchFreePlanVerifiedBankAccount('', achState);
+        BankAccounts.fetchFreePlanVerifiedBankAccount('', achState);
     }
 
     render() {

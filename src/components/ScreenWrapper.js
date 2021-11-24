@@ -5,7 +5,8 @@ import {View} from 'react-native';
 import {withNavigation} from '@react-navigation/compat';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
 import {withOnyx} from 'react-native-onyx';
-import styles, {getSafeAreaPadding} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import HeaderGap from './HeaderGap';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
@@ -97,7 +98,7 @@ class ScreenWrapper extends React.Component {
         return (
             <SafeAreaInsetsContext.Consumer>
                 {(insets) => {
-                    const {paddingTop, paddingBottom} = getSafeAreaPadding(insets);
+                    const {paddingTop, paddingBottom} = StyleUtils.getSafeAreaPadding(insets);
                     const paddingStyle = {};
 
                     if (this.props.includePaddingTop) {

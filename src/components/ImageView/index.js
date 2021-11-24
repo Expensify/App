@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {
     View, Image, Pressable,
 } from 'react-native';
-import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -180,8 +181,8 @@ class ImageView extends PureComponent {
             >
                 <Pressable
                     style={{
-                        ...getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale, this.state.containerHeight),
-                        ...getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
+                        ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale, this.state.containerHeight),
+                        ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
                         ...this.state.isZoomed ? styles.pRelative : styles.pAbsolute,
                         ...styles.flex1,
                     }}

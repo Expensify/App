@@ -1,7 +1,7 @@
 import lodashGet from 'lodash/get';
 import lodashUnset from 'lodash/unset';
 import lodashCloneDeep from 'lodash/cloneDeep';
-import {setBankAccountFormValidationErrors} from './actions/BankAccounts';
+import * as BankAccounts from './actions/BankAccounts';
 
 /**
  * Get the default state for input fields in the VBA flow
@@ -39,7 +39,7 @@ function clearError(props, path) {
     // Clear the existing errors
     const newErrors = lodashCloneDeep(errors);
     lodashUnset(newErrors, path);
-    setBankAccountFormValidationErrors(newErrors);
+    BankAccounts.setBankAccountFormValidationErrors(newErrors);
 }
 
 /**
