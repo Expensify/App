@@ -7,6 +7,7 @@ const KeyboardShortcut = {
         return () => {};
     },
     unsubscribe() {},
+    getKeyboardShortcutMap() {},
 };
 
 export default KeyboardShortcut;

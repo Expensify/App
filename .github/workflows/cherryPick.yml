@@ -35,7 +35,7 @@ jobs:
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
           ref: main
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65
         with:
@@ -67,25 +67,7 @@ jobs:
         uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f
         with:
           ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-
-      - name: Decrypt Botify GPG key
-        if: github.actor == 'OSBotify'
-        run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
-        env:
-          LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
-
-      - name: Import Botify GPG Key
-        if: github.actor == 'OSBotify'
-        run: cd .github/workflows && gpg --import OSBotify-private-key.asc
-
-      - name: Set up git for Botify
-        if: github.actor == 'OSBotify'
-        run: |
-          git config user.signingkey DBF63700F60F5530
-          git config commit.gpgsign true
-          git config user.name OSBotify
-          git config user.email infra+osbotify@expensify.com
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create branch for new pull request
         run: |
