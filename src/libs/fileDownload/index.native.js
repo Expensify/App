@@ -116,36 +116,38 @@ function handleDownload(url, fileName) {
  * @returns {Promise} fileName
  */
 export default function fileDownload(url, fileName) {
-    const permissionError = {
-        title: 'Access Needed',
-        // eslint-disable-next-line max-len
-        message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
-        options: [
-            {
-                text: 'Cancel',
-                style: 'cancel',
-            },
-            {
-                text: 'Settings',
-                onPress: () => Linking.openSettings(),
-            },
-        ],
-    };
+    return new Promise((resolve) => {
+        const permissionError = {
+            title: 'Access Needed',
+            // eslint-disable-next-line max-len
+            message: 'NewExpensify does not have access to save attachments. To enable access, tap Settings and allow access.',
+            options: [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Settings',
+                    onPress: () => Linking.openSettings(),
+                },
+            ],
+        };
 
-    // permission check for android
-    if (getPlatform() === 'android') {
-        hasAndroidPermission().then((hasPermission) => {
-            if (hasPermission) {
-                return handleDownload(url, fileName);
-            }
+        // permission check for android
+        if (getPlatform() === 'android') {
+            hasAndroidPermission().then((hasPermission) => {
+                if (hasPermission) {
+                    handleDownload(url, fileName).then(() => resolve());
+                }
 
-            showAlert(permissionError);
-            return Promise.resolve();
-        }).catch(() => {
-            showAlert(permissionError);
-            return Promise.resolve();
-        });
-    } else {
-        return handleDownload(url, fileName);
-    }
+                showAlert(permissionError);
+                return resolve();
+            }).catch(() => {
+                showAlert(permissionError);
+                return resolve();
+            });
+        } else {
+            handleDownload(url, fileName).then(() => resolve());
+        }
+    });
 }
