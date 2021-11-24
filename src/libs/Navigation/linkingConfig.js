@@ -143,7 +143,6 @@ export default {
                 screens: {
                     IOU_Request_Root: ROUTES.IOU_REQUEST_WITH_REPORT_ID,
                     IOU_Request_Currency: ROUTES.IOU_REQUEST_CURRENCY,
-                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             IOU_Bill: {
@@ -156,6 +155,7 @@ export default {
                 screens: {
                     IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
                     IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
+                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             IOU_Details: {
