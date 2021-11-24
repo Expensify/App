@@ -2115,6 +2115,47 @@ const styles = {
         flex: 1,
     },
 
+    keyboardShortcutModalContainer: {
+        maxWidth: 600,
+        maxHeight: '100%',
+        flex: '0 0 auto',
+    },
+
+    keyboardShortcutTableWrapper: {
+        alignItems: 'center',
+        flex: 1,
+        height: 'auto',
+        maxHeight: '100%',
+    },
+
+    keyboardShortcutTableContainer: {
+        display: 'flex',
+        width: '100%',
+        borderColor: themeColors.border,
+        height: 'auto',
+        borderRadius: variables.componentBorderRadius,
+        borderWidth: 1,
+    },
+
+    keyboardShortcutTableRow: {
+        flex: 1,
+        flexDirection: 'row',
+        borderColor: themeColors.border,
+        flexBasis: 'auto',
+        alignSelf: 'stretch',
+        borderTopWidth: 1,
+    },
+
+    keyboardShortcutTablePrefix: {
+        width: '30%',
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    keyboardShortcutTableFirstRow: {
+        borderTopWidth: 0,
+    },
+
     googleListView: {
         transform: [{scale: 0}],
     },
@@ -2296,18 +2337,30 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} imgWidth
  * @param {Number} imgHeight
  * @param {Number} zoomScale
+ * @param {Number} containerHeight
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale) {
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight) {
     if (imgWidth === 0 || imgHeight === 0) {
         return {
             height: isZoomed ? '250%' : '100%',
             width: isZoomed ? '250%' : '100%',
         };
     }
+    if (isZoomed) {
+        return {
+            height: `${(imgHeight * zoomScale)}px`,
+            width: `${(imgWidth * zoomScale)}px`,
+        };
+    }
+
+    const top = `${(containerHeight - imgHeight) / 2}px`;
+    const left = `calc(50% - ${imgWidth / 2}px)`;
     return {
-        height: isZoomed ? `${(imgHeight * zoomScale)}px` : '100%',
-        width: isZoomed ? `${(imgWidth * zoomScale)}px` : '100%',
+        height: `${imgHeight}px`,
+        width: `${imgWidth}px`,
+        top,
+        left,
     };
 }
 

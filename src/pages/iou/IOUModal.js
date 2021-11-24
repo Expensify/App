@@ -393,6 +393,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
+                                            style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
                                             <IOUConfirmPage

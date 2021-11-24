@@ -10,6 +10,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
+import CONST from '../CONST';
 
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -53,10 +54,15 @@ const ReportWelcomeText = (props) => {
             const longName = displayName || Str.removeSMSDomain(login);
             const longNameLocalized = Str.isSMSLogin(longName) ? props.toLocalPhone(longName) : longName;
             const shortName = firstName || longNameLocalized;
+            let finalPronouns = pronouns;
+            if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
+                const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
+                finalPronouns = props.translate(`pronouns.${localeKey}`);
+            }
             return {
                 displayName: isMultipleParticipant ? shortName : longNameLocalized,
                 tooltip: Str.removeSMSDomain(login),
-                pronouns,
+                pronouns: finalPronouns,
             };
         },
     );

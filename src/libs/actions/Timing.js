@@ -1,5 +1,4 @@
 import getPlatform from '../getPlatform';
-// eslint-disable-next-line import/no-cycle
 import * as API from '../API';
 import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';

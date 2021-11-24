@@ -11,7 +11,7 @@ const propTypes = {
     style: PropTypes.arrayOf(PropTypes.object),
 
     /** Whether we're animating the step in or out */
-    direction: PropTypes.string,
+    direction: PropTypes.oneOf(['in', 'out']),
 };
 
 const defaultProps = {
@@ -36,7 +36,7 @@ const AnimatedStep = (props) => {
             duration={CONST.ANIMATED_TRANSITION}
             animation={getAnimationStyle(props.direction)}
             useNativeDriver
-            style={[...props.style]}
+            style={props.style}
         >
             {props.children}
         </Animatable.View>
