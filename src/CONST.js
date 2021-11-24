@@ -1,5 +1,6 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
+const PLATFORM_OS_MACOS = 'Mac OS';
 
 const CONST = {
     get ANDROID_PACKAGE_NAME() {
@@ -123,6 +124,47 @@ const CONST = {
     PLATFORM: {
         IOS: 'ios',
         ANDROID: 'android',
+    },
+    KEYBOARD_SHORTCUT_MODIFIERS: {
+        CTRL: {
+            DEFAULT: 'control',
+            [PLATFORM_OS_MACOS]: 'meta',
+        },
+        SHIFT: {
+            DEFAULT: 'shift',
+        },
+    },
+    KEYBOARD_SHORTCUTS: {
+        SEARCH: {
+            descriptionKey: 'search',
+            shortcutKey: 'K',
+            modifiers: ['CTRL'],
+        },
+        NEW_GROUP: {
+            descriptionKey: 'newGroup',
+            shortcutKey: 'K',
+            modifiers: ['CTRL', 'SHIFT'],
+        },
+        SHORTCUT_MODAL: {
+            descriptionKey: 'openShortcutDialog',
+            shortcutKey: '?',
+            modifiers: ['CTRL'],
+        },
+        ESCAPE: {
+            descriptionKey: 'escape',
+            shortcutKey: 'Escape',
+            modifiers: [],
+        },
+        ENTER: {
+            descriptionKey: null,
+            shortcutKey: 'Enter',
+            modifiers: [],
+        },
+    },
+    KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
+        CONTROL: 'Ctrl',
+        META: 'Cmd',
+        SHIFT: 'Shift',
     },
     CURRENCY: {
         USD: 'USD',
@@ -369,7 +411,7 @@ const CONST = {
 
     OS: {
         WINDOWS: 'Windows',
-        MAC_OS: 'Mac OS',
+        MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
         IOS: 'iOS',
         LINUX: 'Linux',
