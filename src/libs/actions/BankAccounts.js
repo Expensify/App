@@ -908,6 +908,10 @@ function validateRoutingNumber(number) {
 }
 
 function getOAuthReceivedRedirectURI() {
+    if (!window.location) {
+        return null;
+    }
+
     let receivedRedirectURI = window.location.href;
     const receivedRedirectSearchParams = (new URL(receivedRedirectURI)).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
