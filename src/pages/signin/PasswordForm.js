@@ -9,7 +9,7 @@ import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
-import {signIn, resetPassword} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
@@ -75,7 +75,7 @@ class PasswordForm extends React.Component {
             formError: null,
         });
 
-        signIn(this.state.password, this.state.twoFactorAuthCode);
+        Session.signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {
@@ -96,7 +96,7 @@ class PasswordForm extends React.Component {
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
-                            onPress={resetPassword}
+                            onPress={Session.resetPassword}
                             underlayColor={themeColors.componentBG}
                         >
                             <Text style={[styles.link]}>

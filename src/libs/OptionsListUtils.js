@@ -6,10 +6,8 @@ import lodashOrderBy from 'lodash/orderBy';
 import Str from 'expensify-common/lib/str';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-import {
-    getReportParticipantsTitle, isDefaultRoom, getDefaultRoomSubtitle, isArchivedRoom,
-} from './reportUtils';
-import {translate} from './translate';
+import * as ReportUtils from './reportUtils';
+import * as Localize from './Localize';
 import Permissions from './Permissions';
 import md5 from './md5';
 
@@ -183,7 +181,7 @@ function getSearchText(report, personalDetailList, isDefaultChatRoom) {
         searchTerms.push(..._.map(report.reportName.split(','), name => name.trim()));
 
         if (isDefaultChatRoom) {
-            const defaultRoomSubtitle = getDefaultRoomSubtitle(report, policies);
+            const defaultRoomSubtitle = ReportUtils.getDefaultRoomSubtitle(report, policies);
             searchTerms.push(...defaultRoomSubtitle);
             searchTerms.push(..._.map(defaultRoomSubtitle.split(','), name => name.trim()));
         } else {
@@ -218,7 +216,7 @@ function hasReportDraftComment(report) {
 function createOption(personalDetailList, report, {
     showChatPreviewLine = false, forcePolicyNamePreview = false,
 }) {
-    const isDefaultChatRoom = isDefaultRoom(report);
+    const isDefaultChatRoom = ReportUtils.isDefaultRoom(report);
     const hasMultipleParticipants = personalDetailList.length > 1 || isDefaultChatRoom;
     const personalDetail = personalDetailList[0];
     const hasDraftComment = hasReportDraftComment(report);
@@ -235,7 +233,7 @@ function createOption(personalDetailList, report, {
         + Str.htmlDecode(report.lastMessageText)
         : '';
 
-    const tooltipText = getReportParticipantsTitle(lodashGet(report, ['participants'], []));
+    const tooltipText = ReportUtils.getReportParticipantsTitle(lodashGet(report, ['participants'], []));
 
     let text;
     let alternateText;
@@ -243,7 +241,7 @@ function createOption(personalDetailList, report, {
         text = lodashGet(report, ['reportName'], '');
         alternateText = (showChatPreviewLine && !forcePolicyNamePreview && lastMessageText)
             ? lastMessageText
-            : getDefaultRoomSubtitle(report, policies);
+            : ReportUtils.getDefaultRoomSubtitle(report, policies);
     } else {
         text = hasMultipleParticipants
             ? _.map(personalDetailList, ({firstName, login}) => firstName || Str.removeSMSDomain(login))
@@ -276,7 +274,7 @@ function createOption(personalDetailList, report, {
         isIOUReportOwner: lodashGet(iouReport, 'ownerEmail', '') === currentUserLogin,
         iouReportAmount: lodashGet(iouReport, 'total', 0),
         isDefaultChatRoom,
-        isArchivedRoom: isArchivedRoom(report),
+        isArchivedRoom: ReportUtils.isArchivedRoom(report),
     };
 }
 
@@ -408,7 +406,7 @@ function getOptions(reports, personalDetails, activeReportID, {
             return;
         }
 
-        if (isDefaultRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
+        if (ReportUtils.isDefaultRoom(report) && (!Permissions.canUseDefaultRooms(betas) || excludeDefaultRooms)) {
             return;
         }
 
@@ -703,21 +701,21 @@ function getSidebarOptions(
  */
 function getHeaderMessage(hasSelectableOptions, hasUserToInvite, searchValue, maxParticipantsReached = false) {
     if (maxParticipantsReached) {
-        return translate(preferredLocale, 'messages.maxParticipantsReached');
+        return Localize.translate(preferredLocale, 'messages.maxParticipantsReached');
     }
 
     if (searchValue && CONST.REGEX.DIGITS_AND_PLUS.test(searchValue) && !Str.isValidPhone(searchValue)) {
-        return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+        return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
     }
 
     // Without a search value, it would be very confusing to see a search validation message.
     // Therefore, this skips the validation when there is no search value.
     if (searchValue && !hasSelectableOptions && !hasUserToInvite) {
         if (/^\d+$/.test(searchValue)) {
-            return translate(preferredLocale, 'messages.errorMessageInvalidPhone');
+            return Localize.translate(preferredLocale, 'messages.errorMessageInvalidPhone');
         }
 
-        return translate(preferredLocale, 'common.noResultsFound');
+        return Localize.translate(preferredLocale, 'common.noResultsFound');
     }
 
     return '';
@@ -749,7 +747,7 @@ function getCurrencyListForSections(currencyOptions, searchValue) {
  */
 function getReportIcons(report, personalDetails) {
     // Default rooms have a specific avatar so we can return any non-empty array
-    if (isDefaultRoom(report)) {
+    if (ReportUtils.isDefaultRoom(report)) {
         return [''];
     }
     const sortedParticipants = _.map(report.participants, dmParticipant => ({

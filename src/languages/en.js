@@ -286,6 +286,12 @@ export default {
         newPassword: 'New password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         confirmNewPassword: 'Confirm new password',
+        errors: {
+            currentPassword: 'Current password is required',
+            confirmNewPassword: 'Confirm password is required',
+            newPasswordSameAsOld: 'New password must be different than your old password',
+            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+        },
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
@@ -677,15 +683,15 @@ export default {
         card: {
             header: 'Unlock free Expensify Cards',
             headerWithEcard: 'Cards are ready!',
-            noVBACopy: 'Connect a bank account to issue unlimited Expensify Cards for your workspace members and access all of these incredible benefits:',
+            noVBACopy: 'Connect a bank account to issue Expensify Cards to your workspace members, and access these incredible benefits and more:',
             VBANoECardCopy: 'Add a work email address to issue unlimited Expensify Cards for your workspace members, as well as all of these incredible benefits:',
-            conciergeCanHelp: 'Concierge can help you add a work email address to enable the Expensify Card.',
-            VBAWithECardCopy: 'Enjoy all these incredible benefits:',
+            VBAWithECardCopy: 'Access these incredible benefits and more:',
             benefit1: 'Up to 2% cash back',
             benefit2: 'Digital and physical cards',
             benefit3: 'No personal liability',
             benefit4: 'Customizable limits',
-            chatWithConcierge: 'Chat with Concierge',
+            addWorkEmail: 'Add work email address',
+            checkingDomain: 'Hang tight! We are still working on enabling your Expensify Cards. Check back here in a few minutes.',
         },
         reimburse: {
             captureReceipts: 'Capture receipts',
@@ -731,7 +737,7 @@ export default {
             personalMessagePrompt: 'Add a personal message (optional)',
             pleaseSelectUser: 'Please select a user from contacts.',
             genericFailureMessage: 'An error occurred inviting the user to the workspace, please try again.',
-            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app to start tracking your expenses.`,
+            welcomeNote: ({workspaceName}) => `You have been invited to ${workspaceName || 'a workspace'}! Download the Expensify mobile app at use.expensify.com/download to start tracking your expenses.`,
         },
         editor: {
             nameInputLabel: 'Name',
@@ -749,9 +755,9 @@ export default {
             streamlinePayments: 'Streamline payments',
             oneMoreThing: 'One more thing!',
             allSet: 'You\'re all set!',
-            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nConcierge can help you add a work email address to enable the Expensify Card.',
+            accountDescriptionNoCards: 'This bank account will be used to reimburse expenses, collect invoices, and pay bills all from the same account.\n\nPlease add a work email address as a secondary login to enable the Expensify Card.',
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills all from the same account.',
-            chatWithConcierge: 'Chat with Concierge',
+            addWorkEmail: 'Add work email address',
             letsFinishInChat: 'Let\'s finish in chat!',
             almostDone: 'Almost done!',
             disconnectBankAccount: 'Disconnect bank account',
@@ -777,5 +783,15 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+    },
+    keyboardShortcutModal: {
+        title: 'Keyboard Shortcuts',
+        subtitle: 'Save time with these handy keyboard shortcuts:',
+        shortcuts: {
+            openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            escape: 'Escape Dialogs',
+            search: 'Open search dialog',
+            newGroup: 'New group screen',
+        },
     },
 };
