@@ -1,6 +1,6 @@
 import React from 'react';
 import CONST from '../../CONST';
-import * as attachmentPickerPropTypes from './attachmentPickerPropTypes';
+import {propTypes, defaultProps} from './attachmentPickerPropTypes';
 
 /**
  * Returns acceptable FileTypes based on ATTACHMENT_PICKER_TYPE
@@ -54,6 +54,6 @@ class AttachmentPicker extends React.Component {
     }
 }
 
-AttachmentPicker.propTypes = attachmentPickerPropTypes.propTypes;
-AttachmentPicker.defaultProps = attachmentPickerPropTypes.defaultProps;
+AttachmentPicker.propTypes = propTypes;
+AttachmentPicker.defaultProps = defaultProps;
 export default AttachmentPicker;

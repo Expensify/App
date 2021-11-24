@@ -7,20 +7,14 @@ import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import CONST from '../../CONST';
-import {
-    Link,
-    Eye,
-    MoneyBag,
-    Bug,
-    NewWindow,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
 import Logo from '../../../assets/images/new-expensify.svg';
 import {version} from '../../../package.json';
-import {navigateToConciergeChat} from '../../libs/actions/Report';
-import {openExternalLink} from '../../libs/actions/Link';
+import * as Report from '../../libs/actions/Report';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -30,31 +24,31 @@ const AboutPage = (props) => {
     const menuItems = [
         {
             translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
-            icon: Link,
+            icon: Expensicons.Link,
             action: () => {
                 Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
             },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewTheCode',
-            icon: Eye,
-            iconRight: NewWindow,
+            icon: Expensicons.Eye,
+            iconRight: Expensicons.NewWindow,
             action: () => {
-                openExternalLink(CONST.GITHUB_URL);
+                Link.openExternalLink(CONST.GITHUB_URL);
             },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.viewOpenJobs',
-            icon: MoneyBag,
-            iconRight: NewWindow,
+            icon: Expensicons.MoneyBag,
+            iconRight: Expensicons.NewWindow,
             action: () => {
-                openExternalLink(CONST.UPWORK_URL);
+                Link.openExternalLink(CONST.UPWORK_URL);
             },
         },
         {
             translationKey: 'initialSettingsPage.aboutPage.reportABug',
-            icon: Bug,
-            action: navigateToConciergeChat,
+            icon: Expensicons.Bug,
+            action: Report.navigateToConciergeChat,
         },
     ];
 
@@ -116,7 +110,7 @@ const AboutPage = (props) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openExternalLink(CONST.TERMS_URL)}
+                            onPress={() => Link.openExternalLink(CONST.TERMS_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
@@ -129,7 +123,7 @@ const AboutPage = (props) => {
                         {' '}
                         <Text
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
-                            onPress={() => openExternalLink(CONST.PRIVACY_URL)}
+                            onPress={() => Link.openExternalLink(CONST.PRIVACY_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
