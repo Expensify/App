@@ -12,28 +12,18 @@ import TextLink from '../../components/TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import Text from '../../components/Text';
-import {
-    showBankAccountErrorModal,
-    goToWithdrawalAccountSetupStep,
-    setBankAccountFormValidationErrors,
-    setupWithdrawalAccount,
-    updateReimbursementAccountDraft,
-} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
-import {isRequiredFulfilled, validateIdentity} from '../../libs/ValidationUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import Onfido from '../../components/Onfido';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {
-    getDefaultStateForField,
-    clearError,
-    getErrors,
-} from '../../libs/ReimbursementAccountUtils';
+import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import Log from '../../libs/Log';
 import Growl from '../../libs/Growl';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
-import {openExternalLink} from '../../libs/actions/Link';
+import * as Link from '../../libs/actions/Link';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -50,15 +40,15 @@ class RequestorStep extends React.Component {
         this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
 
         this.state = {
-            firstName: getDefaultStateForField(props, 'firstName'),
-            lastName: getDefaultStateForField(props, 'lastName'),
-            requestorAddressStreet: getDefaultStateForField(props, 'requestorAddressStreet'),
-            requestorAddressCity: getDefaultStateForField(props, 'requestorAddressCity'),
-            requestorAddressState: getDefaultStateForField(props, 'requestorAddressState'),
-            requestorAddressZipCode: getDefaultStateForField(props, 'requestorAddressZipCode'),
-            dob: getDefaultStateForField(props, 'dob'),
-            ssnLast4: getDefaultStateForField(props, 'ssnLast4'),
-            isControllingOfficer: getDefaultStateForField(props, 'isControllingOfficer', false),
+            firstName: ReimbursementAccountUtils.getDefaultStateForField(props, 'firstName'),
+            lastName: ReimbursementAccountUtils.getDefaultStateForField(props, 'lastName'),
+            requestorAddressStreet: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressStreet'),
+            requestorAddressCity: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressCity'),
+            requestorAddressState: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressState'),
+            requestorAddressZipCode: ReimbursementAccountUtils.getDefaultStateForField(props, 'requestorAddressZipCode'),
+            dob: ReimbursementAccountUtils.getDefaultStateForField(props, 'dob'),
+            ssnLast4: ReimbursementAccountUtils.getDefaultStateForField(props, 'ssnLast4'),
+            isControllingOfficer: ReimbursementAccountUtils.getDefaultStateForField(props, 'isControllingOfficer', false),
             onfidoData: lodashGet(props, ['achData', 'onfidoData'], ''),
             isOnfidoSetupComplete: lodashGet(props, ['achData', 'isOnfidoSetupComplete'], false),
         };
@@ -77,8 +67,8 @@ class RequestorStep extends React.Component {
             isControllingOfficer: 'requestorStep.isControllingOfficerError',
         };
 
-        this.clearError = inputKey => clearError(this.props, inputKey);
-        this.getErrors = () => getErrors(this.props);
+        this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
     }
 
     /**
@@ -102,7 +92,7 @@ class RequestorStep extends React.Component {
             const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             const newState = {[renamedInputKey]: value};
             this.setState(newState);
-            updateReimbursementAccountDraft(newState);
+            BankAccounts.updateReimbursementAccountDraft(newState);
 
             // dob field has multiple validations/errors, we are handling it temporarily like this.
             if (inputKey === 'dob') {
@@ -116,7 +106,7 @@ class RequestorStep extends React.Component {
      * @returns {Boolean}
      */
     validate() {
-        const errors = validateIdentity({
+        const errors = ValidationUtils.validateIdentity({
             firstName: this.state.firstName,
             lastName: this.state.lastName,
             street: this.state.requestorAddressStreet,
@@ -128,15 +118,15 @@ class RequestorStep extends React.Component {
         });
 
         _.each(this.requiredFields, (inputKey) => {
-            if (isRequiredFulfilled(this.state[inputKey])) {
+            if (ValidationUtils.isRequiredFulfilled(this.state[inputKey])) {
                 return;
             }
 
             errors[inputKey] = true;
         });
         if (_.size(errors)) {
-            setBankAccountFormValidationErrors(errors);
-            showBankAccountErrorModal();
+            BankAccounts.setBankAccountFormValidationErrors(errors);
+            BankAccounts.showBankAccountErrorModal();
             return false;
         }
         return true;
@@ -152,7 +142,7 @@ class RequestorStep extends React.Component {
             dob: moment(this.state.dob).format(CONST.DATE.MOMENT_FORMAT_STRING),
         };
 
-        setupWithdrawalAccount(payload);
+        BankAccounts.setupWithdrawalAccount(payload);
     }
 
     render() {
@@ -162,7 +152,7 @@ class RequestorStep extends React.Component {
                     title={this.props.translate('requestorStep.headerTitle')}
                     stepCounter={{step: 3, total: 5}}
                     shouldShowBackButton
-                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
+                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 {this.props.achData.useOnfido && this.props.achData.sdkToken && !this.state.isOnfidoSetupComplete ? (
@@ -170,13 +160,13 @@ class RequestorStep extends React.Component {
                         sdkToken={this.props.achData.sdkToken}
                         onUserExit={() => {
                             // We're taking the user back to the company step. They will need to come back to the requestor step to make the Onfido flow appear again.
-                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }}
                         onError={(error) => {
                             // In case of any unexpected error we log it to the server, show a growl, and return the user back to the company step so they can try again.
                             Log.hmmm('Onfido error in RequestorStep', {error});
                             Growl.error(this.props.translate('onfidoStep.genericError'), 10000);
-                            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
+                            BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COMPANY);
                         }}
                         onSuccess={(onfidoData) => {
                             this.setState({
@@ -227,7 +217,7 @@ class RequestorStep extends React.Component {
                             onPress={() => {
                                 this.setState((prevState) => {
                                     const newState = {isControllingOfficer: !prevState.isControllingOfficer};
-                                    updateReimbursementAccountDraft(newState);
+                                    BankAccounts.updateReimbursementAccountDraft(newState);
                                     return newState;
                                 });
                                 this.clearError('isControllingOfficer');
@@ -246,7 +236,7 @@ class RequestorStep extends React.Component {
                         <Text style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
                             <Text
-                                onPress={() => openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
+                                onPress={() => Link.openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
@@ -254,7 +244,7 @@ class RequestorStep extends React.Component {
                             </Text>
                             {', '}
                             <Text
-                                onPress={() => openExternalLink('https://onfido.com/privacy/')}
+                                onPress={() => Link.openExternalLink('https://onfido.com/privacy/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
@@ -262,7 +252,7 @@ class RequestorStep extends React.Component {
                             </Text>
                             {` ${this.props.translate('common.and')} `}
                             <Text
-                                onPress={() => openExternalLink('https://onfido.com/terms-of-service/')}
+                                onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >

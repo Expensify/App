@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import Onfido from '../../components/Onfido';
 import FullscreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import ONYXKEYS from '../../ONYXKEYS';
-import {activateWallet, fetchOnfidoToken} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
 import Button from '../../components/Button';
@@ -78,7 +78,7 @@ class OnfidoStep extends React.Component {
                                 Navigation.goBack();
                             }}
                             onSuccess={(data) => {
-                                activateWallet(CONST.WALLET.STEP.ONFIDO, {
+                                BankAccounts.activateWallet(CONST.WALLET.STEP.ONFIDO, {
                                     onfidoData: JSON.stringify({
                                         ...data,
                                         applicantID: this.props.walletOnfidoData.applicantID,
@@ -118,7 +118,7 @@ class OnfidoStep extends React.Component {
                                         text={this.props.translate('common.continue')}
                                         isLoading={this.props.walletOnfidoData.loading}
                                         onPress={() => {
-                                            fetchOnfidoToken();
+                                            BankAccounts.fetchOnfidoToken();
                                         }}
                                     />
                                 </>
@@ -135,7 +135,7 @@ class OnfidoStep extends React.Component {
                                         text={this.props.translate('onfidoStep.tryAgain')}
                                         onPress={() => {
                                             // Restart the flow so the user can try again.
-                                            fetchOnfidoToken();
+                                            BankAccounts.fetchOnfidoToken();
                                         }}
                                     />
                                 </>
