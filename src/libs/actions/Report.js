@@ -170,12 +170,15 @@ function getSimplifiedReportObject(report) {
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
-    // We are removing any html tags from the message html since we cannot access the text version of any comments as
-    // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-    // We convert the line-breaks in html to space ' ' before striping the tags
-    const lastMessageText = lastActionMessage
-        .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
+    let lastMessageText = null;
+    if (report.reportActionCount > 0) {
+        // We are removing any html tags from the message html since we cannot access the text version of any comments as
+        // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
+        // We convert the line-breaks in html to space ' ' before striping the tags
+        lastMessageText = lastActionMessage
+            .replace(/((<br[^>]*>)+)/gi, ' ')
+            .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
+    }
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
@@ -573,7 +576,8 @@ function updateReportWithNewAction(
         reportID,
 
         // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
+        // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     };
 
