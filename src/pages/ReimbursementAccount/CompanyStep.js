@@ -268,7 +268,6 @@ class CompanyStep extends React.Component {
                                         onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
                                         value={this.state.addressCity}
                                         errorText={this.getErrorText('addressCity')}
-                                        translateX={-14}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
@@ -335,7 +334,6 @@ class CompanyStep extends React.Component {
                             value={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
-                            translateX={-14}
                         />
                     </View>
                     <View style={styles.mt4}>

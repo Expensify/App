@@ -213,7 +213,6 @@ class DebitCardPage extends Component {
                                         value={this.state.expirationDate}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                        translateX={-10}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
@@ -222,7 +221,6 @@ class DebitCardPage extends Component {
                                         onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
                                         value={this.state.securityCode}
                                         errorText={this.getErrorText('securityCode')}
-                                        translateX={-10}
                                     />
                                 </View>
                             </View>
