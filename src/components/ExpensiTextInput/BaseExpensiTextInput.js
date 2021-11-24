@@ -9,14 +9,12 @@ import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
-
-const ACTIVE_LABEL_TRANSLATE_Y = 4;
-const ACTIVE_LABEL_TRANSLATE_X = -4;
-const ACTIVE_LABEL_SCALE = 0.8668;
-
-const INACTIVE_LABEL_TRANSLATE_Y = 16;
-const INACTIVE_LABEL_TRANSLATE_X = 0;
-const INACTIVE_LABEL_SCALE = 1;
+import {
+    ACTIVE_LABEL_TRANSLATE_Y,
+    ACTIVE_LABEL_SCALE,
+    INACTIVE_LABEL_TRANSLATE_Y,
+    INACTIVE_LABEL_SCALE,
+} from './styleConst';
 
 class BaseExpensiTextInput extends Component {
     constructor(props) {
@@ -28,7 +26,6 @@ class BaseExpensiTextInput extends Component {
         this.state = {
             isFocused: false,
             labelTranslateY: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelTranslateX: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_X : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
         };
 
@@ -109,7 +106,6 @@ class BaseExpensiTextInput extends Component {
 
         this.animateLabel(
             ACTIVE_LABEL_TRANSLATE_Y,
-            ACTIVE_LABEL_TRANSLATE_X,
             ACTIVE_LABEL_SCALE,
         );
         this.isLabelActive = true;
@@ -120,19 +116,14 @@ class BaseExpensiTextInput extends Component {
             return;
         }
 
-        this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
+        this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE);
         this.isLabelActive = false;
     }
 
-    animateLabel(translateY, translateX, scale) {
+    animateLabel(translateY, scale) {
         Animated.parallel([
             Animated.spring(this.state.labelTranslateY, {
                 toValue: translateY,
-                duration: 80,
-                useNativeDriver: true,
-            }),
-            Animated.spring(this.state.labelTranslateX, {
-                toValue: translateX,
                 duration: 80,
                 useNativeDriver: true,
             }),
@@ -170,11 +161,6 @@ class BaseExpensiTextInput extends Component {
                                     {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} />}
                                     <ExpensiTextInputLabel
                                         label={this.props.label}
-                                        labelTranslateX={
-                                            this.props.ignoreLabelTranslateX
-                                                ? new Animated.Value(0)
-                                                : this.state.labelTranslateX
-                                        }
                                         labelTranslateY={this.state.labelTranslateY}
                                         labelScale={this.state.labelScale}
                                     />

@@ -1,8 +1,8 @@
 import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
-import labelStyles from './overrideLabelStyles';
 import propTypes from './expensiTextInputLabelPropTypes';
+import {ACTIVE_LABEL_SCALE, INACTIVE_LABEL_SCALE} from '../styleConst';
 
 class ExpensiTextInputLabel extends PureComponent {
     constructor(props) {
@@ -23,8 +23,8 @@ class ExpensiTextInputLabel extends PureComponent {
                     styles.expensiTextInputLabelTransformation(
                         this.props.labelTranslateY,
                         this.props.labelScale.interpolate({
-                            inputRange: [0.8668, 1],
-                            outputRange: [-(this.state.width - (this.state.width * 0.8668)) / 2, 0],
+                            inputRange: [ACTIVE_LABEL_SCALE, INACTIVE_LABEL_SCALE],
+                            outputRange: [-(this.state.width - (this.state.width * ACTIVE_LABEL_SCALE)) / 2, 0],
                         }),
                         this.props.labelScale,
                     ),

@@ -25,9 +25,6 @@ const propTypes = {
     /** input style */
     inputStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** should ignore labels translate x? */
-    ignoreLabelTranslateX: PropTypes.bool,
-
     forceActiveLabel: PropTypes.bool,
 
     /** Should the input auto focus? */
@@ -41,7 +38,6 @@ const defaultProps = {
     hasError: false,
     containerStyles: [],
     inputStyle: [],
-    ignoreLabelTranslateX: false,
     autoFocus: false,
 
     /**

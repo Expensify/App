@@ -542,11 +542,9 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         zIndex: -1,
     },
+
     expensiTextInputDesktop: addOutlineWidth({}, 0),
-    expensiTextInputAndroid: left => ({
-        padding: 0,
-        left,
-    }),
+
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
