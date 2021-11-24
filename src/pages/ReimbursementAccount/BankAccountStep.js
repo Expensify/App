@@ -41,7 +41,10 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
     receivedRedirectURI: PropTypes.string,
+
+    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
     existingPlaidLinkToken: PropTypes.string,
 
     ...withLocalizePropTypes,
@@ -175,8 +178,8 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const shouldReinitializedPlaidLink = this.props.existingPlaidLinkToken && this.props.receivedRedirectURI;
-        const subStep = shouldReinitializedPlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
+        const shouldReinitializePlaidLink = this.props.existingPlaidLinkToken && this.props.receivedRedirectURI;
+        const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
 
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>

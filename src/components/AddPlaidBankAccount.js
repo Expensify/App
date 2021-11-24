@@ -4,11 +4,11 @@ import {
     ActivityIndicator,
     View,
 } from 'react-native';
+import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import PropTypes from 'prop-types';
 import Log from '../libs/Log';
-import PlaidLink from './PlaidLink/index';
+import PlaidLink from './PlaidLink';
 import CONST from '../CONST';
 import {
     clearPlaidBankAccountsAndToken,
@@ -31,7 +31,7 @@ import Icon from './Icon';
 import ROUTES from '../ROUTES';
 import {removeTrailingForwardSlash} from '../libs/Url';
 
-const plaidBankPropTypes = {
+const propTypes = {
     ...withLocalizePropTypes,
 
     /** Plaid SDK token to use to initialize the widget */
@@ -251,7 +251,7 @@ class AddPlaidBankAccount extends React.Component {
     }
 }
 
-AddPlaidBankAccount.propTypes = plaidBankPropTypes;
+AddPlaidBankAccount.propTypes = propTypes;
 AddPlaidBankAccount.defaultProps = defaultProps;
 
 export default compose(
