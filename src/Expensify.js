@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
@@ -64,6 +65,8 @@ class Expensify extends PureComponent {
     constructor(props) {
         super(props);
 
+        setTimeout(() => this.reportBootSplashStatus(), 30 * 1000);
+
         // Initialize this client as being an active client
         ActiveClientManager.init();
         this.hideSplash = this.hideSplash.bind(this);
@@ -107,7 +110,7 @@ class Expensify extends PureComponent {
         // that we can remove it again once the content is ready
         const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
-            BootSplash.show({fade: true});
+            this.showSplash();
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
@@ -131,8 +134,26 @@ class Expensify extends PureComponent {
         ActiveClientManager.init();
     }
 
+    showSplash() {
+        Log.info('[BootSplash] showing splash screen', false);
+        BootSplash.show({fade: true});
+    }
+
     hideSplash() {
+        Log.info('[BootSplash] hiding splash screen', false);
         BootSplash.hide({fade: true});
+    }
+
+    reportBootSplashStatus() {
+        BootSplash.getVisibilityStatus()
+            .then((status) => {
+                Log.info('[BootSplash] Splash screen status', false, {status});
+
+                if (status === 'visible') {
+                    const parameters = _.omit(this.props, 'children');
+                    Log.alert('[BootSplash] Still visible. Current <Expensify /> props', parameters, false);
+                }
+            });
     }
 
     render() {
