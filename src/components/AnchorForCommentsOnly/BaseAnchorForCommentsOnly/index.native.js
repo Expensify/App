@@ -14,51 +14,74 @@ import styles from '../../../styles/styles';
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = (props) => {
-    let linkRef;
-    const rest = _.omit(props, _.keys(propTypes));
-    return (
-        props.isAttachment
-            ? (
-                <Pressable
-                    style={styles.mw100}
-                    onPress={() => {
-                        fileDownload(props.href, props.fileName);
-                    }}
-                >
-                    <AttachmentView
-                        sourceURL={props.href}
-                        file={{name: props.fileName}}
-                        shouldShowDownloadIcon
-                    />
-                </Pressable>
-            )
-            : (
-                <PressableWithSecondaryInteraction
-                    onSecondaryInteraction={
+class BaseAnchorForCommentsOnly extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            isDownloading: false,
+        };
+        this.processDownload = this.processDownload.bind(this);
+    }
+
+    /**
+     * Initiate file downloading and update downloading flags
+     *
+     * @param {String} href
+     * @param {String} fileName
+     */
+    processDownload(href, fileName) {
+        this.setState({isDownloading: true});
+        fileDownload(href, fileName).then(() => this.setState({isDownloading: false}));
+    }
+
+    render() {
+        let linkRef;
+        const rest = _.omit(this.props, _.keys(propTypes));
+        return (
+            this.props.isAttachment
+                ? (
+                    <Pressable
+                        style={styles.mw100}
+                        onPress={() => {
+                            this.processDownload(this.props.href, this.props.fileName);
+                        }}
+                    >
+                        <AttachmentView
+                            sourceURL={this.props.href}
+                            file={{name: this.props.fileName}}
+                            shouldShowDownloadIcon
+                            shouldShowLoadingSpinnerIcon={this.state.isDownloading}
+                        />
+                    </Pressable>
+                )
+                : (
+                    <PressableWithSecondaryInteraction
+                        onSecondaryInteraction={
                 (event) => {
                     showContextMenu(
                         CONTEXT_MENU_TYPES.LINK,
                         event,
-                        props.href,
+                        this.props.href,
                         lodashGet(linkRef, 'current'),
                     );
                 }
             }
-                    onPress={() => Linking.openURL(props.href)}
-                >
-                    <Text
-                        ref={el => linkRef = el}
-                        style={StyleSheet.flatten(props.style)}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...rest}
+                        onPress={() => Linking.openURL(this.props.href)}
                     >
-                        {props.children}
-                    </Text>
-                </PressableWithSecondaryInteraction>
-            )
-    );
-};
+                        <Text
+                            ref={el => linkRef = el}
+                            style={StyleSheet.flatten(this.props.style)}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...rest}
+                        >
+                            {this.props.children}
+                        </Text>
+                    </PressableWithSecondaryInteraction>
+                )
+        );
+    }
+}
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;
