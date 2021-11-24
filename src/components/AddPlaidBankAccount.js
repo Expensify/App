@@ -6,37 +6,106 @@ import {
 } from 'react-native';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
-import Log from '../../libs/Log';
-import PlaidLink from '../PlaidLink/index';
-import CONST from '../../CONST';
+import Log from '../libs/Log';
+import PlaidLink from './PlaidLink/index';
+import CONST from '../CONST';
 import {
     clearPlaidBankAccountsAndToken,
     fetchPlaidLinkToken,
     getPlaidBankAccounts,
     setBankAccountFormValidationErrors,
     showBankAccountErrorModal,
-} from '../../libs/actions/BankAccounts';
-import ONYXKEYS from '../../ONYXKEYS';
-import styles from '../../styles/styles';
-import themeColors from '../../styles/themes/default';
-import compose from '../../libs/compose';
-import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import ExpensiPicker from '../ExpensiPicker';
-import Text from '../Text';
-import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
-import ReimbursementAccountForm from '../../pages/ReimbursementAccount/ReimbursementAccountForm';
-import getBankIcon from '../Icon/BankIcons';
-import Icon from '../Icon';
-import {propTypes, defaultProps} from './plaidBankPropTypes';
-import ROUTES from '../../ROUTES';
-import {removeTrailingForwardSlash} from '../../libs/Url';
+} from '../libs/actions/BankAccounts';
+import ONYXKEYS from '../ONYXKEYS';
+import styles from '../styles/styles';
+import themeColors from '../styles/themes/default';
+import compose from '../libs/compose';
+import withLocalize, {withLocalizePropTypes} from './withLocalize';
+import ExpensiPicker from './ExpensiPicker';
+import Text from './Text';
+import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
+import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
+import getBankIcon from './Icon/BankIcons';
+import Icon from './Icon';
+import ROUTES from '../ROUTES';
+import {removeTrailingForwardSlash} from '../libs/Url';
+import PropTypes from 'prop-types';
+
+// const plaidBankPropTypes = {
+//     ...withLocalizePropTypes,
+//     ...propTypes,
+// };
 
 const plaidBankPropTypes = {
     ...withLocalizePropTypes,
-    ...propTypes,
+
+    /** Plaid SDK token to use to initialize the widget */
+    plaidLinkToken: PropTypes.string,
+
+    /** Contains list of accounts and loading state while fetching them */
+    plaidBankAccounts: PropTypes.shape({
+        /** Whether we are fetching the bank accounts from the API */
+        loading: PropTypes.bool,
+
+        /** Error object */
+        error: PropTypes.shape({
+            /** Error message */
+            message: PropTypes.string,
+
+            /** Error title */
+            title: PropTypes.string,
+        }),
+
+        /** List of accounts */
+        accounts: PropTypes.arrayOf(PropTypes.shape({
+            /** Masked account number */
+            accountNumber: PropTypes.string,
+
+            /** Name of account */
+            addressName: PropTypes.string,
+
+            /** Has this account has already been added? */
+            alreadyExists: PropTypes.bool,
+
+            /** Is the account a savings account? */
+            isSavings: PropTypes.bool,
+
+            /** Unique identifier for this account in Plaid */
+            plaidAccountID: PropTypes.string,
+
+            /** Routing number for the account */
+            routingNumber: PropTypes.string,
+        })),
+    }),
+
+    /** Fired when the user exits the Plaid flow */
+    onExitPlaid: PropTypes.func,
+
+    /** Fired when the user selects an account and submits the form */
+    onSubmit: PropTypes.func,
+
+    /** Additional text to display */
+    text: PropTypes.string,
+
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
+    receivedRedirectURI: PropTypes.string,
+
+    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
+    existingPlaidLinkToken: PropTypes.string,
 };
 
-class BaseAddPlaidBankAccount extends React.Component {
+const defaultProps = {
+    plaidLinkToken: '',
+    plaidBankAccounts: {
+        loading: false,
+    },
+    onExitPlaid: () => {},
+    onSubmit: () => {},
+    text: '',
+    receivedRedirectURI: null,
+};
+
+class AddPlaidBankAccount extends React.Component {
     constructor(props) {
         super(props);
 
@@ -53,6 +122,7 @@ class BaseAddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
+        console.log("in no directory plaidLink");
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
         if (this.props.receivedRedirectURI && (this.props.existingPlaidLinkToken || this.props.plaidLinkToken)) {
@@ -141,7 +211,6 @@ class BaseAddPlaidBankAccount extends React.Component {
                         }}
                         onError={(error) => {
                             Log.hmmm('[PlaidLink] Error: ', error.message);
-                            // this.setState({plaidConnectionErrors: error});
                         }}
 
                         // User prematurely exited the Plaid flow
@@ -188,8 +257,8 @@ class BaseAddPlaidBankAccount extends React.Component {
     }
 }
 
-BaseAddPlaidBankAccount.propTypes = plaidBankPropTypes;
-BaseAddPlaidBankAccount.defaultProps = defaultProps;
+AddPlaidBankAccount.propTypes = plaidBankPropTypes;
+AddPlaidBankAccount.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -209,4 +278,4 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
         },
     }),
-)(BaseAddPlaidBankAccount);
+)(AddPlaidBankAccount);

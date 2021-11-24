@@ -13,6 +13,7 @@ import Icon from '../../components/Icon';
 import colors from '../../styles/colors';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
+// import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
