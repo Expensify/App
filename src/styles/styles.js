@@ -2115,6 +2115,47 @@ const styles = {
         flex: 1,
     },
 
+    keyboardShortcutModalContainer: {
+        maxWidth: 600,
+        maxHeight: '100%',
+        flex: '0 0 auto',
+    },
+
+    keyboardShortcutTableWrapper: {
+        alignItems: 'center',
+        flex: 1,
+        height: 'auto',
+        maxHeight: '100%',
+    },
+
+    keyboardShortcutTableContainer: {
+        display: 'flex',
+        width: '100%',
+        borderColor: themeColors.border,
+        height: 'auto',
+        borderRadius: variables.componentBorderRadius,
+        borderWidth: 1,
+    },
+
+    keyboardShortcutTableRow: {
+        flex: 1,
+        flexDirection: 'row',
+        borderColor: themeColors.border,
+        flexBasis: 'auto',
+        alignSelf: 'stretch',
+        borderTopWidth: 1,
+    },
+
+    keyboardShortcutTablePrefix: {
+        width: '30%',
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    keyboardShortcutTableFirstRow: {
+        borderTopWidth: 0,
+    },
+
     googleListView: {
         transform: [{scale: 0}],
     },

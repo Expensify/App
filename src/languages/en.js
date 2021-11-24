@@ -784,4 +784,14 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
     },
+    keyboardShortcutModal: {
+        title: 'Keyboard Shortcuts',
+        subtitle: 'Save time with these handy keyboard shortcuts:',
+        shortcuts: {
+            openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            escape: 'Escape Dialogs',
+            search: 'Open search dialog',
+            newGroup: 'New group screen',
+        },
+    },
 };
