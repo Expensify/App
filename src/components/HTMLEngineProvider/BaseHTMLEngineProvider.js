@@ -12,7 +12,8 @@ import {
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Config from '../../CONFIG';
-import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import fontFamily from '../../styles/fontFamily';
 import AnchorForCommentsOnly from '../AnchorForCommentsOnly';
 import InlineCodeBlock from '../InlineCodeBlock';
@@ -150,7 +151,7 @@ function CodeRenderer(props) {
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
 
     // Get the correct fontFamily variant based in the fontStyle and fontWeight
-    const font = getFontFamilyMonospace({
+    const font = StyleUtils.getFontFamilyMonospace({
         fontStyle: textStyle.fontStyle,
         fontWeight: textStyle.fontWeight,
     });
@@ -243,7 +244,7 @@ function ImgRenderer(props) {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={webViewStyles.tagStyles.img}
+                        style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
                 </TouchableOpacity>
@@ -297,8 +298,8 @@ const BaseHTMLEngineProvider = (props) => {
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
-            baseStyle={webViewStyles.baseFontStyle}
-            tagsStyles={webViewStyles.tagStyles}
+            baseStyle={styles.webViewStyles.baseFontStyle}
+            tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing={false}
             systemFonts={EXTRA_FONTS}

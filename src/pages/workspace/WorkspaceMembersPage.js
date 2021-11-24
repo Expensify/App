@@ -15,7 +15,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {removeMembers} from '../../libs/actions/Policy';
+import * as Policy from '../../libs/actions/Policy';
 import Button from '../../components/Button';
 import Checkbox from '../../components/Checkbox';
 import Text from '../../components/Text';
@@ -83,7 +83,7 @@ class WorkspaceMembersPage extends React.Component {
     removeUsers() {
         // Remove the admin from the list
         const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
-        removeMembers(membersToRemove, this.props.route.params.policyID);
+        Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
