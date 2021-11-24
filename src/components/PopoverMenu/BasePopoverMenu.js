@@ -35,9 +35,11 @@ class BasePopoverMenu extends PureComponent {
                 onModalHide={this.props.onMenuHide}
                 animationIn={this.props.animationIn}
                 animationOut={this.props.animationOut}
+                isSmallScreenWidth={this.props.isSmallScreenWidth}
+                disableAnimation={this.props.disableAnimation}
             >
                 <View style={this.props.isSmallScreenWidth ? {} : styles.createMenuContainer}>
-                    {this.props.headerText && (
+                    {!_.isEmpty(this.props.headerText) && (
                         <View style={styles.createMenuItem}>
                             <Text
                                 style={[styles.createMenuHeaderText, styles.ml3]}

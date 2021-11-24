@@ -2,7 +2,6 @@ import React from 'react';
 import {View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import lodashGet from 'lodash/get';
 import _ from 'underscore';
 import Log from '../../libs/Log';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -15,40 +14,30 @@ import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
-import {Workspace} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import ExpensiPicker from '../../components/ExpensiPicker';
-import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const propTypes = {
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string),
 
-    /** Policy for the current route */
-    policy: PropTypes.shape({
-        /** ID of the policy */
-        id: PropTypes.string,
-
-        /** Name of the policy */
-        name: PropTypes.string.isRequired,
-
-        /** Avatar of the policy */
-        avatarURL: PropTypes.string.isRequired,
-
-        /** Currency of the policy */
-        outputCurrency: PropTypes.string.isRequired,
-    }).isRequired,
+    ...fullPolicyPropTypes,
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
+
+    ...fullPolicyDefaultProps,
 };
 
 class WorkspaceSettingsPage extends React.Component {
@@ -69,7 +58,7 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     componentDidMount() {
-        getCurrencyList();
+        PersonalDetails.getCurrencyList();
     }
 
     /**
@@ -120,14 +109,12 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     render() {
-        const {policy} = this.props;
-
         if (!Permissions.canUseFreePlan(this.props.betas)) {
             Log.info('Not showing workspace editor page because user is not on free plan beta');
             return <Navigation.DismissModal />;
         }
 
-        if (_.isEmpty(policy)) {
+        if (_.isEmpty(this.props.policy)) {
             return <FullScreenLoadingIndicator />;
         }
 
@@ -139,7 +126,7 @@ class WorkspaceSettingsPage extends React.Component {
                     <FixedFooter style={[styles.w100]}>
                         <Button
                             success
-                            isLoading={policy.isPolicyUpdating}
+                            isLoading={this.props.policy.isPolicyUpdating}
                             text={this.props.translate('workspace.editor.save')}
                             onPress={this.submit}
                             pressOnEnter
@@ -150,12 +137,12 @@ class WorkspaceSettingsPage extends React.Component {
                 {hasVBA => (
                     <View style={[styles.pageWrapper, styles.flex1, styles.alignItemsStretch]}>
                         <AvatarWithImagePicker
-                            isUploading={policy.isAvatarUploading}
+                            isUploading={this.props.policy.isAvatarUploading}
                             avatarURL={this.state.previewAvatarURL}
                             size={CONST.AVATAR_SIZE.LARGE}
                             DefaultAvatar={() => (
                                 <Icon
-                                    src={Workspace}
+                                    src={Expensicons.Workspace}
                                     height={80}
                                     width={80}
                                     fill={defaultTheme.iconSuccessFill}
@@ -200,15 +187,10 @@ WorkspaceSettingsPage.propTypes = propTypes;
 WorkspaceSettingsPage.defaultProps = defaultProps;
 
 export default compose(
+    withFullPolicy,
     withOnyx({
         betas: {
             key: ONYXKEYS.BETAS,
-        },
-        policy: {
-            key: (props) => {
-                const policyID = lodashGet(props, 'route.params.policyID', '');
-                return `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-            },
         },
         currencyList: {key: ONYXKEYS.CURRENCY_LIST},
     }),

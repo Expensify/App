@@ -11,16 +11,17 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {hideWorkspaceAlertMessage, invite, setWorkspaceErrors} from '../../libs/actions/Policy';
+import * as Policy from '../../libs/actions/Policy';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
-import {getNewChatOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
-import CONST, {EXPENSIFY_EMAILS} from '../../CONST';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import {openExternalLink} from '../../libs/actions/Link';
+import * as Link from '../../libs/actions/Link';
 import Text from '../../components/Text';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -41,12 +42,6 @@ const propTypes = {
     /** All of the personal details for everyone */
     personalDetails: PropTypes.objectOf(personalDetailsPropTypes).isRequired,
 
-    /** The policy passed via the route */
-    policy: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
-
     /** URL Route params */
     route: PropTypes.shape({
         /** Params from the URL path */
@@ -56,15 +51,11 @@ const propTypes = {
         }),
     }).isRequired,
 
+    ...fullPolicyPropTypes,
     ...withLocalizePropTypes,
-
 };
 
-const defaultProps = {
-    policy: {
-        name: '',
-    },
-};
+const defaultProps = fullPolicyDefaultProps;
 
 class WorkspaceInvitePage extends React.Component {
     constructor(props) {
@@ -77,7 +68,7 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = getNewChatOptions(
+        } = OptionsListUtils.getNewChatOptions(
             [],
             props.personalDetails,
             props.betas,
@@ -100,7 +91,7 @@ class WorkspaceInvitePage extends React.Component {
 
     getExcludedUsers() {
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...EXPENSIFY_EMAILS, ...policyEmployeeList];
+        return [...CONST.EXPENSIFY_EMAILS, ...policyEmployeeList];
     }
 
     /**
@@ -167,8 +158,8 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     clearErrors() {
-        setWorkspaceErrors(this.props.route.params.policyID, {});
-        hideWorkspaceAlertMessage(this.props.route.params.policyID);
+        Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
+        Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
     }
 
     /**
@@ -196,7 +187,7 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = getNewChatOptions(
+            } = OptionsListUtils.getNewChatOptions(
                 [],
                 this.props.personalDetails,
                 this.props.betas,
@@ -223,7 +214,7 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
-        invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
+        Policy.invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
     }
 
     /**
@@ -235,13 +226,13 @@ class WorkspaceInvitePage extends React.Component {
             errors.noUserSelected = true;
         }
 
-        setWorkspaceErrors(this.props.route.params.policyID, errors);
+        Policy.setWorkspaceErrors(this.props.route.params.policyID, errors);
         return _.size(errors) <= 0;
     }
 
     render() {
         const sections = this.getSections();
-        const headerMessage = getHeaderMessage(
+        const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
@@ -272,7 +263,7 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = getNewChatOptions(
+                                        } = OptionsListUtils.getNewChatOptions(
                                             [],
                                             this.props.personalDetails,
                                             this.props.betas,
@@ -300,7 +291,7 @@ class WorkspaceInvitePage extends React.Component {
                                     label={this.props.translate('workspace.invite.personalMessagePrompt')}
                                     autoCompleteType="off"
                                     autoCorrect={false}
-                                    numberOfLines={3}
+                                    numberOfLines={4}
                                     textAlignVertical="top"
                                     multiline
                                     containerStyles={[styles.workspaceInviteWelcome]}
@@ -321,7 +312,7 @@ class WorkspaceInvitePage extends React.Component {
                             <Pressable
                                 onPress={(e) => {
                                     e.preventDefault();
-                                    openExternalLink(CONST.PRIVACY_URL);
+                                    Link.openExternalLink(CONST.PRIVACY_URL);
                                 }}
                                 accessibilityRole="link"
                                 href={CONST.PRIVACY_URL}
@@ -350,12 +341,10 @@ WorkspaceInvitePage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
+    withFullPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policy: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
         },
         betas: {
             key: ONYXKEYS.BETAS,

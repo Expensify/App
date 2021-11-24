@@ -1,8 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import _ from 'underscore';
+import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import variables from '../../../styles/variables';
@@ -26,12 +27,11 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const backgroundStyles = [styles.backgroundBlue, styles.backgroundGreen, styles.backgroundOrange, styles.backgroundPink];
-const backgroundStyle = backgroundStyles[_.random(0, 3)];
+const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
 
 const SignInPageLayoutWide = props => (
     <View style={[styles.flex1, styles.signInPageInner]}>
-        <View style={[styles.flex1, styles.flexRow, styles.dFlex, styles.flexGrow1]}>
+        <View style={[styles.flex1, styles.flexRow, styles.flexGrow1]}>
             <View style={[styles.signInPageWideLeftContainer, styles.dFlex, styles.flexColumn, styles.ph6]}>
                 <View style={[
                     styles.flex1,
@@ -50,9 +50,9 @@ const SignInPageLayoutWide = props => (
                             />
                         </View>
                         {props.shouldShowWelcomeText && (
-                        <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
-                            {props.welcomeText}
-                        </Text>
+                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                                {props.welcomeText}
+                            </Text>
                         )}
                         <View>
                             {props.children}
@@ -65,13 +65,16 @@ const SignInPageLayoutWide = props => (
             </View>
             <View style={[
                 styles.flexGrow1,
-                styles.dFlex,
-                styles.flexRow,
-                styles.background100,
-                backgroundStyle,
+                StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
                 props.isMediumScreenWidth && styles.alignItemsCenter,
             ]}
-            />
+            >
+                <SVGImage
+                    width="100%"
+                    height="100%"
+                    src={backgroundStyle.backgroundImageUri}
+                />
+            </View>
         </View>
     </View>
 );

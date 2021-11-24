@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
-import {getDisplayName} from '../../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 
@@ -33,13 +33,14 @@ class ReportTypingIndicator extends React.Component {
 
     componentDidUpdate(prevProps) {
         // Make sure we only update the state if there's been a change in who's typing.
-        if (!_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
-            const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), login => this.props.userTypingStatuses[login]);
-
-            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({usersTyping});
+        if (_.isEqual(prevProps.userTypingStatuses, this.props.userTypingStatuses)) {
+            return;
         }
+
+        const usersTyping = _.filter(_.keys(this.props.userTypingStatuses), login => this.props.userTypingStatuses[login]);
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({usersTyping});
     }
 
     render() {
@@ -51,34 +52,20 @@ class ReportTypingIndicator extends React.Component {
                 return <View style={[styles.chatItemComposeSecondaryRow]} />;
             case 1:
                 return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
-                        </Text>
-                    </View>
-                );
-            case 2:
-                return (
-                    <View style={[styles.chatItemComposeSecondaryRow]}>
-                        <Text
-                            style={[
-                                styles.chatItemComposeSecondaryRowSubText,
-                                styles.chatItemComposeSecondaryRowOffset,
-                            ]}
-                            numberOfLines={1}
-                        >
-                            {getDisplayName(this.state.usersTyping[0])}
-                            {` ${this.props.translate('common.and')} `}
-                            {getDisplayName(this.state.usersTyping[1])}
-                            {` ${this.props.translate('reportTypingIndicator.areTyping')}`}
-                        </Text>
+                    <View style={[styles.chatItemComposeSecondaryRow, styles.flexRow]}>
+                        <View style={[styles.chatItemComposeSecondaryRowOffset, styles.flexShrink1]}>
+                            <Text
+                                style={[styles.chatItemComposeSecondaryRowSubText]}
+                                numberOfLines={1}
+                            >
+                                {PersonalDetails.getDisplayName(this.state.usersTyping[0])}
+                            </Text>
+                        </View>
+                        <View style={[styles.flexShrink0]}>
+                            <Text style={[styles.chatItemComposeSecondaryRowSubText]}>
+                                {` ${this.props.translate('reportTypingIndicator.isTyping')}`}
+                            </Text>
+                        </View>
                     </View>
                 );
             default:

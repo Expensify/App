@@ -15,8 +15,9 @@ import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
+import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
-import {hasExpensifyEmails} from '../libs/reportUtils';
+import * as ReportUtils from '../libs/reportUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -58,31 +59,29 @@ const getPhoneNumber = (details) => {
     return Str.removeSMSDomain(details.login);
 };
 
-const DetailsPage = ({
-    personalDetails, route, translate, toLocalPhone,
-}) => {
-    const details = personalDetails[route.params.login];
+const DetailsPage = (props) => {
+    const details = props.personalDetails[props.route.params.login];
     const isSMSLogin = Str.isSMSLogin(details.login);
 
     // If we have a reportID param this means that we
     // arrived here via the ParticipantsPage and should be allowed to navigate back to it
-    const shouldShowBackButton = Boolean(route.params.reportID);
+    const shouldShowBackButton = Boolean(props.route.params.reportID);
     const timezone = moment().tz(details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
-    const shouldShowLocalTime = !hasExpensifyEmails([details.login]);
+    const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
 
     let pronouns = details.pronouns;
 
     if (pronouns && pronouns.startsWith(CONST.PRONOUNS.PREFIX)) {
         const localeKey = pronouns.replace(CONST.PRONOUNS.PREFIX, '');
-        pronouns = translate(`pronouns.${localeKey}`);
+        pronouns = props.translate(`pronouns.${localeKey}`);
     }
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('common.details')}
+                title={props.translate('common.details')}
                 shouldShowBackButton={shouldShowBackButton}
                 onBackButtonPress={() => Navigation.goBack()}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -103,13 +102,13 @@ const DetailsPage = ({
                             />
                             {details.displayName && (
                                 <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
-                                    {isSMSLogin ? toLocalPhone(details.displayName) : details.displayName}
+                                    {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
                                 </Text>
                             )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate(isSMSLogin
+                                        {props.translate(isSMSLogin
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
                                     </Text>
@@ -117,18 +116,20 @@ const DetailsPage = ({
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
-                                        <Text numberOfLines={1}>
-                                            {isSMSLogin
-                                                ? toLocalPhone(getPhoneNumber(details))
-                                                : details.login}
-                                        </Text>
+                                        <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
+                                            <Text numberOfLines={1}>
+                                                {isSMSLogin
+                                                    ? props.toLocalPhone(getPhoneNumber(details))
+                                                    : details.login}
+                                            </Text>
+                                        </Tooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
                             {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate('profilePage.preferredPronouns')}
+                                        {props.translate('profilePage.preferredPronouns')}
                                     </Text>
                                     <Text numberOfLines={1}>
                                         {pronouns}
@@ -138,7 +139,7 @@ const DetailsPage = ({
                             {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
                                     <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
-                                        {translate('detailsPage.localTime')}
+                                        {props.translate('detailsPage.localTime')}
                                     </Text>
                                     <Text numberOfLines={1}>
                                         {timezone.format('LT')}

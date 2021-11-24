@@ -1,6 +1,5 @@
-/**
+/*
  * This is a KeyboardAvoidingView only enabled for ios && disabled for all other platforms
- * @param {Node}
  */
 import React from 'react';
 import {KeyboardAvoidingView as KeyboardAvoidingViewComponent} from 'react-native';
@@ -14,16 +13,14 @@ const defaultProps = {
     children: null,
 };
 
-function KeyboardAvoidingView({children}) {
-    return (
-        <KeyboardAvoidingViewComponent
-            behavior="padding"
-            style={[styles.w100, styles.h100]}
-        >
-            {children}
-        </KeyboardAvoidingViewComponent>
-    );
-}
+const KeyboardAvoidingView = props => (
+    <KeyboardAvoidingViewComponent
+        behavior="padding"
+        style={[styles.w100, styles.h100]}
+    >
+        {props.children}
+    </KeyboardAvoidingViewComponent>
+);
 
 KeyboardAvoidingView.propTypes = propTypes;
 KeyboardAvoidingView.defaultProps = defaultProps;

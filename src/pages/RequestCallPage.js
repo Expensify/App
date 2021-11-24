@@ -16,14 +16,15 @@ import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestInboxCall} from '../libs/actions/Inbox';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import * as Inbox from '../libs/actions/Inbox';
+import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
-import {getFirstAndLastNameErrors} from '../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
+import LoginUtil from '../libs/LoginUtil';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -62,6 +63,17 @@ const propTypes = {
             taskID: PropTypes.string,
         }),
     }).isRequired,
+
+    /** Used to track state for the request call form */
+    requestCallForm: PropTypes.shape({
+        loading: PropTypes.bool,
+    }),
+};
+
+const defaultProps = {
+    requestCallForm: {
+        loading: false,
+    },
 };
 
 class RequestCallPage extends Component {
@@ -75,7 +87,6 @@ class RequestCallPage extends Component {
             phoneNumber: this.getPhoneNumber(props.user.loginList) || '',
             lastNameError: '',
             phoneNumberError: '',
-            isLoading: false,
         };
 
         this.onSubmit = this.onSubmit.bind(this);
@@ -96,19 +107,15 @@ class RequestCallPage extends Component {
             Growl.error(this.props.translate('requestCallPage.growlMessageNoPersonalPolicy'), 3000);
             return;
         }
-        this.setState({isLoading: true});
-        requestInboxCall(this.props.route.params.taskID, personalPolicy.id, this.state.firstName, this.state.lastName, this.state.phoneNumber)
-            .then((result) => {
-                this.setState({isLoading: false});
-                if (result.jsonCode === 200) {
-                    Growl.success(this.props.translate('requestCallPage.growlMessageOnSave'));
-                    fetchOrCreateChatReport([this.props.session.email, CONST.EMAIL.CONCIERGE], true);
-                    return;
-                }
 
-                // Phone number validation is handled by the API
-                Growl.error(result.message, 3000);
-            });
+        Inbox.requestInboxCall({
+            taskID: this.props.route.params.taskID,
+            policyID: personalPolicy.id,
+            firstName: this.state.firstName,
+            lastName: this.state.lastName,
+            phoneNumber: LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber),
+            email: this.props.session.email,
+        });
     }
 
     /**
@@ -128,10 +135,8 @@ class RequestCallPage extends Component {
      * @returns {String}
      */
     getPhoneNumberError() {
-        if (_.isEmpty(this.state.phoneNumber.trim())) {
-            return this.props.translate('messages.noPhoneNumber');
-        }
-        if (!Str.isValidPhone(this.state.phoneNumber)) {
+        const phoneNumber = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.phoneNumber);
+        if (_.isEmpty(this.state.phoneNumber.trim()) || !Str.isValidPhone(phoneNumber)) {
             return this.props.translate('messages.errorMessageInvalidPhone');
         }
         return '';
@@ -184,7 +189,7 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
@@ -201,7 +206,7 @@ class RequestCallPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
-                        onBackButtonPress={() => fetchOrCreateChatReport([
+                        onBackButtonPress={() => Report.fetchOrCreateChatReport([
                             this.props.session.email,
                             CONST.EMAIL.CONCIERGE,
                         ], true)}
@@ -230,7 +235,7 @@ class RequestCallPage extends Component {
                                 autoCompleteType="off"
                                 autoCorrect={false}
                                 value={this.state.phoneNumber}
-                                placeholder="+14158675309"
+                                placeholder="2109400803"
                                 errorText={this.state.phoneNumberError}
                                 onBlur={this.validatePhoneInput}
                                 onChangeText={phoneNumber => this.setState({phoneNumber})}
@@ -243,7 +248,7 @@ class RequestCallPage extends Component {
                             onPress={this.onSubmit}
                             style={[styles.w100]}
                             text={this.props.translate('requestCallPage.callMe')}
-                            isLoading={this.state.isLoading}
+                            isLoading={this.props.requestCallForm.loading}
                         />
                     </FixedFooter>
                 </KeyboardAvoidingView>
@@ -253,6 +258,7 @@ class RequestCallPage extends Component {
 }
 
 RequestCallPage.propTypes = propTypes;
+RequestCallPage.defaultProps = defaultProps;
 
 export default compose(
     withLocalize,
@@ -268,6 +274,10 @@ export default compose(
         },
         policies: {
             key: ONYXKEYS.COLLECTION.POLICY,
+        },
+        requestCallForm: {
+            key: ONYXKEYS.REQUEST_CALL_FORM,
+            initWithStoredValues: false,
         },
     }),
 )(RequestCallPage);

@@ -11,8 +11,8 @@ import Permissions from '../../Permissions';
 // Screens
 import ReportScreen from '../../../pages/home/ReportScreen';
 import SidebarScreen from '../../../pages/home/sidebar/SidebarScreen';
-import DrawerNavigator from './DrawerNavigator';
-import {findLastAccessedReport} from '../../reportUtils';
+import BaseDrawerNavigator from './BaseDrawerNavigator';
+import * as ReportUtils from '../../reportUtils';
 
 const propTypes = {
     /** Available reports that would be displayed in this navigator */
@@ -37,7 +37,7 @@ const defaultProps = {
  * @returns {Object}
  */
 const getInitialReportScreenParams = (reports, ignoreDefaultRooms) => {
-    const last = findLastAccessedReport(reports, ignoreDefaultRooms);
+    const last = ReportUtils.findLastAccessedReport(reports, ignoreDefaultRooms);
 
     // Fallback to empty if for some reason reportID cannot be derived - prevents the app from crashing
     const reportID = lodashGet(last, 'reportID', '');
@@ -56,7 +56,7 @@ const MainDrawerNavigator = (props) => {
     // This way routing information is updated (if needed) based on the initial report ID resolved.
     // This is usually needed after login/create account and re-launches
     return (
-        <DrawerNavigator
+        <BaseDrawerNavigator
             drawerContent={() => <SidebarScreen />}
             screens={[
                 {

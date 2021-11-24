@@ -7,7 +7,7 @@ import Avatar from './Avatar';
 import themeColors from '../styles/themes/default';
 import styles from '../styles/styles';
 import Icon from './Icon';
-import {Sync} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import SpinningIndicatorAnimation from '../styles/animation/SpinningIndicatorAnimation';
 import Tooltip from './Tooltip';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -46,9 +46,11 @@ class AvatarWithIndicator extends PureComponent {
     }
 
     componentDidMount() {
-        if (this.props.isSyncing) {
-            this.animation.start();
+        if (!this.props.isSyncing) {
+            return;
         }
+
+        this.animation.start();
     }
 
     componentDidUpdate(prevProps) {
@@ -105,7 +107,7 @@ class AvatarWithIndicator extends PureComponent {
                     <Animated.View style={StyleSheet.flatten(indicatorStyles)}>
                         {this.props.isSyncing && (
                             <Icon
-                                src={Sync}
+                                src={Expensicons.Sync}
                                 fill={themeColors.textReversed}
                                 width={6}
                                 height={6}

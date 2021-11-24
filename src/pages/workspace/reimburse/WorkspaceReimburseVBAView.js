@@ -4,15 +4,11 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    Bank,
-    Receipt,
-    NewWindow,
-} from '../../../components/Icon/Expensicons';
-import {BankUserGreen, ReceiptYellow} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openOldDotLink} from '../../../libs/actions/Link';
+import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -21,48 +17,48 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimburseVBAView = ({translate, policyID}) => (
+const WorkspaceReimburseVBAView = props => (
     <>
         <WorkspaceSection
-            title={translate('workspace.reimburse.captureReceipts')}
-            icon={ReceiptYellow}
+            title={props.translate('workspace.reimburse.captureReceipts')}
+            icon={Illustrations.ReceiptYellow}
             menuItems={[
                 {
-                    title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => openOldDotLink(`expenses?policyIDList=${policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
-                    icon: Receipt,
+                    title: props.translate('workspace.reimburse.viewAllReceipts'),
+                    onPress: () => Link.openOldDotLink(`expenses?policyIDList=${props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                    icon: Expensicons.Receipt,
                     shouldShowRightIcon: true,
-                    iconRight: NewWindow,
+                    iconRight: Expensicons.NewWindow,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
                 <Text>
-                    {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                    {props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
-                    <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                    <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
                 </Text>
             </View>
         </WorkspaceSection>
 
         <WorkspaceSection
-            title={translate('workspace.reimburse.fastReimbursementsHappyMembers')}
-            icon={BankUserGreen}
+            title={props.translate('workspace.reimburse.fastReimbursementsHappyMembers')}
+            icon={Illustrations.BankUserGreen}
             menuItems={[
                 {
-                    title: translate('workspace.reimburse.reimburseReceipts'),
-                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
-                    icon: Bank,
+                    title: props.translate('workspace.reimburse.reimburseReceipts'),
+                    onPress: () => Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=expense&showStates=Archived&isAdvancedFilterMode=true`),
+                    icon: Expensicons.Bank,
                     shouldShowRightIcon: true,
-                    iconRight: NewWindow,
+                    iconRight: Expensicons.NewWindow,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>

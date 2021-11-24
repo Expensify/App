@@ -10,7 +10,7 @@ import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTy
 import styles from '../../styles/styles';
 import Popover from '../Popover';
 import MenuItem from '../MenuItem';
-import {Camera, Gallery, Paperclip} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import compose from '../../libs/compose';
@@ -86,12 +86,12 @@ class AttachmentPicker extends Component {
 
         this.menuItemData = [
             {
-                icon: Camera,
+                icon: Expensicons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => this.showImagePicker(launchCamera),
             },
             {
-                icon: Gallery,
+                icon: Expensicons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => this.showImagePicker(launchImageLibrary),
             },
@@ -102,7 +102,7 @@ class AttachmentPicker extends Component {
         if (this.props.type !== CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
             this.menuItemData.push(
                 {
-                    icon: Paperclip,
+                    icon: Expensicons.Paperclip,
                     textTranslationKey: 'attachmentPicker.chooseDocument',
                     pickAttachment: () => this.showDocumentPicker(),
                 },
@@ -120,14 +120,17 @@ class AttachmentPicker extends Component {
       * @param {ImagePickerResponse|DocumentPickerResponse} attachment
       */
     pickAttachment(attachment) {
-        if (attachment) {
-            if (attachment.width === -1 || attachment.height === -1) {
-                this.showImageCorruptionAlert();
-                return;
-            }
-            const result = getDataForUpload(attachment);
-            this.completeAttachmentSelection(result);
+        if (!attachment) {
+            return;
         }
+
+        if (attachment.width === -1 || attachment.height === -1) {
+            this.showImageCorruptionAlert();
+            return;
+        }
+
+        const result = getDataForUpload(attachment);
+        this.completeAttachmentSelection(result);
     }
 
     /**
@@ -211,10 +214,12 @@ class AttachmentPicker extends Component {
       */
     showDocumentPicker() {
         return RNDocumentPicker.pick(documentPickerOptions).catch((error) => {
-            if (!RNDocumentPicker.isCancel(error)) {
-                this.showGeneralAlert(error.message);
-                throw error;
+            if (RNDocumentPicker.isCancel(error)) {
+                return;
             }
+
+            this.showGeneralAlert(error.message);
+            throw error;
         });
     }
 
@@ -222,9 +227,11 @@ class AttachmentPicker extends Component {
       * Triggers the `onPicked` callback with the selected attachment
       */
     completeAttachmentSelection() {
-        if (this.state.result) {
-            this.state.onPicked(this.state.result);
+        if (!this.state.result) {
+            return;
         }
+
+        this.state.onPicked(this.state.result);
     }
 
     /**

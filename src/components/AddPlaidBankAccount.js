@@ -9,13 +9,7 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
-import {
-    clearPlaidBankAccountsAndToken,
-    fetchPlaidLinkToken,
-    getPlaidBankAccounts,
-    setBankAccountFormValidationErrors,
-    showBankAccountErrorModal,
-} from '../libs/actions/BankAccounts';
+import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
@@ -106,8 +100,8 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
-        clearPlaidBankAccountsAndToken();
-        fetchPlaidLinkToken();
+        BankAccounts.clearPlaidBankAccountsAndToken();
+        BankAccounts.fetchPlaidLinkToken();
     }
 
     /**
@@ -127,13 +121,13 @@ class AddPlaidBankAccount extends React.Component {
         if (_.isUndefined(this.state.selectedIndex)) {
             errors.selectedBank = true;
         }
-        setBankAccountFormValidationErrors(errors);
+        BankAccounts.setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
 
     selectAccount() {
         if (!this.validate()) {
-            showBankAccountErrorModal();
+            BankAccounts.showBankAccountErrorModal();
             return;
         }
 
@@ -165,7 +159,7 @@ class AddPlaidBankAccount extends React.Component {
                         token={this.props.plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
-                            getPlaidBankAccounts(publicToken, metadata.institution.name);
+                            BankAccounts.getPlaidBankAccounts(publicToken, metadata.institution.name);
                             this.setState({institution: metadata.institution});
                         }}
                         onError={(error) => {

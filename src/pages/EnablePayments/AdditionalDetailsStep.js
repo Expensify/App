@@ -12,7 +12,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import {activateWallet} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -155,7 +155,7 @@ class AdditionalDetailsStep extends React.Component {
                                 text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.props.walletAdditionalDetails.loading}
                                 onPress={() => {
-                                    activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
+                                    BankAccounts.activateWallet(CONST.WALLET.STEP.ADDITIONAL_DETAILS, {
                                         personalDetails: this.state,
                                     });
                                 }}

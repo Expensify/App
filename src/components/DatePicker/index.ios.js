@@ -64,32 +64,20 @@ class Datepicker extends React.Component {
     }
 
     render() {
-        const {
-            value,
-            label,
-            placeholder,
-            hasError,
-            errorText,
-            translateX,
-            containerStyles,
-            disabled,
-        } = this.props;
-
-        const dateAsText = value ? moment(value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
-
+        const dateAsText = this.props.value ? moment(this.props.value).format(CONST.DATE.MOMENT_FORMAT_STRING) : '';
         return (
             <>
                 <ExpensiTextInput
-                    label={label}
+                    label={this.props.label}
                     value={dateAsText}
-                    placeholder={placeholder}
-                    hasError={hasError}
-                    errorText={errorText}
-                    containerStyles={containerStyles}
-                    translateX={translateX}
+                    placeholder={this.props.placeholder}
+                    hasError={this.props.hasError}
+                    errorText={this.props.errorText}
+                    containerStyles={this.props.containerStyles}
+                    translateX={this.props.translateX}
                     onPress={this.showPicker}
                     editable={false}
-                    disabled={disabled}
+                    disabled={this.props.disabled}
                 />
                 <Popover
                     isVisible={this.state.isPickerVisible}
@@ -120,6 +108,7 @@ class Datepicker extends React.Component {
                         display="spinner"
                         onChange={this.updateLocalDate}
                         locale={this.props.preferredLocale}
+                        maximumDate={this.props.maximumDate}
                     />
                 </Popover>
             </>
