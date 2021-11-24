@@ -501,11 +501,6 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         overflow: 'hidden',
     },
-    expensiTextInputIconWrapper: {
-        paddingTop: 12,
-        paddingBottom: 12,
-        paddingHorizontal: 11.5,
-    },
 
     expensiTextInputLabel: {
         position: 'absolute',
@@ -547,6 +542,7 @@ const styles = {
         width: '90%',
         paddingTop: 25,
         paddingBottom: 8,
+        paddingHorizontal: 11.5,
         borderRadius: variables.componentBorderRadiusNormal,
         zIndex: -1,
     },
@@ -559,7 +555,7 @@ const styles = {
     }),
 
     secureInputEyeButton: {
-        margin: 3,
+        paddingRight: 11.5,
         justifyContent: 'center',
     },
 

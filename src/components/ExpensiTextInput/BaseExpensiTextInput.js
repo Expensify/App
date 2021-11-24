@@ -193,7 +193,7 @@ class BaseExpensiTextInput extends Component {
                                     />
                                 </>
                             ) : null}
-                            <View style={[styles.flexRow, styles.expensiTextInputIconWrapper]}>
+                            <View style={[styles.flexRow]}>
                                 <TextInput
                                     ref={(ref) => {
                                         if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
@@ -214,7 +214,7 @@ class BaseExpensiTextInput extends Component {
                                     onPressOut={this.props.onPress}
                                     translateX={this.props.translateX}
                                 />
-                            {this.props.secureTextEntry && (
+                                {this.props.secureTextEntry && (
                                 <Pressable
                                     accessibilityRole="button"
                                     style={styles.secureInputEyeButton}
@@ -227,7 +227,7 @@ class BaseExpensiTextInput extends Component {
                                         />
                                     )}
                                 </Pressable>
-                            )}
+                                )}
                             </View>
                         </View>
                     </TouchableWithoutFeedback>
