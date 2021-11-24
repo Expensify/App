@@ -555,6 +555,7 @@ const styles = {
 
     secureInputEyeButton: {
         paddingRight: 11.5,
+        marginLeft: -3.5,
         justifyContent: 'center',
     },
 
