@@ -7,13 +7,9 @@ import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
-import styles, {getIconFillColor} from '../../styles/styles';
+import styles from '../../styles/styles';
 import Icon from '../Icon';
-import {
-    Eye,
-    EyeDisabled,
-} from '../Icon/Expensicons';
-import getButtonState from '../../libs/getButtonState';
+import * as icons from '../Icon/Expensicons';
 import InlineErrorText from '../InlineErrorText';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -12;
@@ -179,7 +175,7 @@ class BaseExpensiTextInput extends Component {
                             {hasLabel ? (
                                 <>
                                     {/* Adding this background to the label only for multiline text input,
-                                    to prevent text overlaping with label when scrolling */}
+                                    to prevent text overlapping with label when scrolling */}
                                     {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} />}
                                     <ExpensiTextInputLabel
                                         label={this.props.label}
@@ -220,12 +216,11 @@ class BaseExpensiTextInput extends Component {
                                     style={styles.secureInputEyeButton}
                                     onPress={this.togglePasswordVisibility}
                                 >
-                                    {({hovered, pressed}) => (
-                                        <Icon
-                                            src={this.state.passwordHidden ? Eye : EyeDisabled}
-                                            fill={getIconFillColor(getButtonState(hovered, pressed))}
-                                        />
-                                    )}
+
+                                    <Icon
+                                        src={this.state.passwordHidden ? icons.Eye : icons.EyeDisabled}
+                                        fill={themeColors.icon}
+                                    />
                                 </Pressable>
                                 )}
                             </View>
