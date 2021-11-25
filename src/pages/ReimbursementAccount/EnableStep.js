@@ -23,6 +23,7 @@ import * as Illustrations from '../../components/Icon/Illustrations';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import * as Link from '../../libs/actions/Link';
 import * as User from '../../libs/actions/User';
+import CONST from '../../CONST';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -76,7 +77,7 @@ class EnableStep extends React.Component {
                 title: this.props.translate('workspace.bankAccount.addWorkEmail'),
                 icon: Expensicons.Mail,
                 onPress: () => {
-                    Link.openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                     User.subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
