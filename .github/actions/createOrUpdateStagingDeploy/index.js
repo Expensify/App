@@ -205,7 +205,7 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
         [...localGitLogs.matchAll(/{\[([\s\S]*?)\]}/gm)],
         match => match[1],
     );
-    console.log(`A list of commits made between ${fromRef} and ${toRef}: \n${commitMessages}`);
+    console.log(`A list of commits made between ${fromRef} and ${toRef}:\n${commitMessages}`);
 
     // We need to find which commit messages correspond to merge commits and get PR numbers.
     // Additionally, we omit merge commits made while cherry picking using negative lookahead in the regexp.
@@ -218,7 +218,7 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
         }
         return mergedPRs;
     }, []);
-    console.log(`A list of pull requests merged between ${fromRef} and ${toRef}: \n${pullRequestIDs}`);
+    console.log(`A list of pull requests merged between ${fromRef} and ${toRef}:\n${pullRequestIDs}`);
     return pullRequestIDs;
 }
 
