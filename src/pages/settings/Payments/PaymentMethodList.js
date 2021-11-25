@@ -109,17 +109,6 @@ class PaymentMethodList extends Component {
             };
         });
 
-        if (this.props.payPalMeUsername) {
-            combinedPaymentMethods.push({
-                type: MENU_ITEM,
-                title: 'PayPal.me',
-                description: this.props.payPalMeUsername,
-                icon: Expensicons.PayPal,
-                onPress: e => this.props.onPress(e, 'payPalMe'),
-                key: 'payPalMePaymentMethod',
-            });
-        }
-
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(paymentMethods)) {
             combinedPaymentMethods.push({
