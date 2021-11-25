@@ -22,7 +22,7 @@
     "ios-build": "fastlane ios build",
     "android-build": "fastlane android build",
     "test": "jest",
-    "lint": "eslint . --max-warnings=0",
+    "lint": "eslint . --fix",
     "print-version": "echo $npm_package_version",
     "detox-build": "detox build --configuration ios.sim.debug",
     "detox-test": "detox test --configuration ios.sim.debug",
@@ -104,7 +104,6 @@
     "react-web-config": "^1.0.0",
     "rn-fetch-blob": "^0.12.0",
     "save": "^2.4.0",
-    "smoothscroll-polyfill": "^0.4.4",
     "underscore": "^1.13.1",
     "urbanairship-react-native": "^11.0.2"
   },
