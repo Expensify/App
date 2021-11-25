@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import {clearAccountMessages, fetchAccountDetails} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import compose from '../../libs/compose';
@@ -15,7 +15,8 @@ import canFocusInputOnScreenFocus from '../../libs/canFocusInputOnScreenFocus';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import {isNumericWithSpecialChars} from '../../libs/ValidationUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
@@ -66,7 +67,7 @@ class LoginForm extends React.Component {
         });
 
         if (this.props.account.error) {
-            clearAccountMessages();
+            Session.clearAccountMessages();
         }
     }
 
@@ -79,8 +80,11 @@ class LoginForm extends React.Component {
             return;
         }
 
-        if (!Str.isValidEmail(this.state.login) && !Str.isValidPhone(this.state.login)) {
-            if (isNumericWithSpecialChars(this.state.login)) {
+        const phoneLogin = LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login);
+        const isValidPhoneLogin = Str.isValidPhone(phoneLogin);
+
+        if (!Str.isValidEmail(this.state.login) && !isValidPhoneLogin) {
+            if (ValidationUtils.isNumericWithSpecialChars(this.state.login)) {
                 this.setState({formError: 'messages.errorMessageInvalidPhone'});
             } else {
                 this.setState({formError: 'loginForm.error.invalidFormatEmailLogin'});
@@ -93,7 +97,7 @@ class LoginForm extends React.Component {
         });
 
         // Check if this login has an account associated with it or not
-        fetchAccountDetails(this.state.login);
+        Session.fetchAccountDetails(isValidPhoneLogin ? phoneLogin : this.state.login);
     }
 
     render() {

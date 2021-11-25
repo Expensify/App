@@ -15,11 +15,11 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import MultipleAvatars from '../MultipleAvatars';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
-import {fetchIOUReportByID} from '../../libs/actions/Report';
+import * as Report from '../../libs/actions/Report';
 import themeColors from '../../styles/themes/default';
 import Icon from '../Icon';
 import CONST from '../../CONST';
-import {Checkmark} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import Text from '../Text';
 
 const propTypes = {
@@ -92,7 +92,7 @@ const IOUPreview = (props) => {
     const reportIsLoading = _.isEmpty(props.iouReport);
 
     if (reportIsLoading) {
-        fetchIOUReportByID(props.iouReportID, props.chatReportID);
+        Report.fetchIOUReportByID(props.iouReportID, props.chatReportID);
     }
 
     const managerName = lodashGet(props.personalDetails, [managerEmail, 'firstName'], '')
@@ -116,7 +116,7 @@ const IOUPreview = (props) => {
                                         </Text>
                                         {!props.iouReport.hasOutstandingIOU && (
                                             <View style={styles.iouPreviewBoxCheckmark}>
-                                                <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                                <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                             </View>
                                         )}
                                     </View>
