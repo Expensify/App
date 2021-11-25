@@ -1,20 +1,21 @@
 import Onyx from 'react-native-onyx';
+import {beforeEach, jest, test} from '@jest/globals';
 import * as API from '../../src/libs/API';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import {signInWithTestUser} from '../utils/TestHelper';
-
-// Set up manual mocks for methods used in the actions so our test does not fail.
-jest.mock('../../src/libs/Notification/PushNotification', () => ({
-    // There is no need for a jest.fn() since we don't need to make assertions against it.
-    register: () => {},
-    deregister: () => {},
-}));
+import * as TestHelper from '../utils/TestHelper';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
 HttpUtils.xhr = jest.fn();
+
+Onyx.init({
+    keys: ONYXKEYS,
+    registerStorageEventListener: () => {},
+});
+
+beforeEach(() => Onyx.clear().then(waitForPromisesToResolve));
 
 test('Authenticate is called with saved credentials when a session expires', () => {
     // Given a test user and set of authToken with subscriptions to session and credentials
@@ -36,7 +37,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
     });
 
     // When we sign in with the test user
-    return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
+    return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
         .then(() => {
             // Then our re-authentication credentials should be generated and our session data
             // have the correct information + initial authToken.

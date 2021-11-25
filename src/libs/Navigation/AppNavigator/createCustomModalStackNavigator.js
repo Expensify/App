@@ -10,6 +10,7 @@ const propTypes = {
     children: PropTypes.node.isRequired,
 };
 
+// eslint-disable-next-line react/destructuring-assignment
 const CustomRootStackNavigator = ({
     children,
     ...rest

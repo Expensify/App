@@ -3,11 +3,12 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ReactNativeModal from 'react-native-modal';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import styles, {getModalPaddingStyles, getSafeAreaPadding} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import themeColors from '../../styles/themes/default';
 import {propTypes as modalPropTypes, defaultProps as modalDefaultProps} from './modalPropTypes';
 import getModalStyles from '../../styles/getModalStyles';
-import {setModalVisibility, willAlertModalBecomeVisible} from '../../libs/actions/Modal';
+import * as Modal from '../../libs/actions/Modal';
 
 const propTypes = {
     ...modalPropTypes,
@@ -29,9 +30,11 @@ class BaseModal extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.isVisible !== this.props.isVisible) {
-            willAlertModalBecomeVisible(this.props.isVisible);
+        if (prevProps.isVisible === this.props.isVisible) {
+            return;
         }
+
+        Modal.willAlertModalBecomeVisible(this.props.isVisible);
     }
 
     componentWillUnmount() {
@@ -45,7 +48,7 @@ class BaseModal extends PureComponent {
      */
     hideModal(callHideCallback = true) {
         if (this.props.shouldSetModalVisibility) {
-            setModalVisibility(false);
+            Modal.setModalVisibility(false);
         }
         if (callHideCallback) {
             this.props.onModalHide();
@@ -70,6 +73,7 @@ class BaseModal extends PureComponent {
                 isSmallScreenWidth: this.props.isSmallScreenWidth,
             },
             this.props.popoverAnchorPosition,
+            this.props.containerStyle,
         );
         return (
             <ReactNativeModal
@@ -85,7 +89,7 @@ class BaseModal extends PureComponent {
                 onBackButtonPress={this.props.onClose}
                 onModalShow={() => {
                     if (this.props.shouldSetModalVisibility) {
-                        setModalVisibility(true);
+                        Modal.setModalVisibility(true);
                     }
                     this.props.onModalShow();
                 }}
@@ -114,11 +118,15 @@ class BaseModal extends PureComponent {
                         const {
                             paddingTop: safeAreaPaddingTop,
                             paddingBottom: safeAreaPaddingBottom,
-                        } = getSafeAreaPadding(insets);
+                            paddingLeft: safeAreaPaddingLeft,
+                            paddingRight: safeAreaPaddingRight,
+                        } = StyleUtils.getSafeAreaPadding(insets);
 
-                        const modalPaddingStyles = getModalPaddingStyles({
+                        const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
                             safeAreaPaddingTop,
                             safeAreaPaddingBottom,
+                            safeAreaPaddingLeft,
+                            safeAreaPaddingRight,
                             shouldAddBottomSafeAreaPadding,
                             shouldAddTopSafeAreaPadding,
                             modalContainerStylePaddingTop: modalContainerStyle.paddingTop,

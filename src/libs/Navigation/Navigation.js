@@ -30,9 +30,11 @@ const navigationRef = createNavigationContainerRef();
 let didTapNotificationBeforeReady = false;
 
 function setDidTapNotification() {
-    if (!navigationRef.isReady()) {
-        didTapNotificationBeforeReady = true;
+    if (navigationRef.isReady()) {
+        return;
     }
+
+    didTapNotificationBeforeReady = true;
 }
 
 /**
@@ -128,7 +130,7 @@ function navigate(route = ROUTES.HOME) {
 /**
  * Dismisses a screen presented modally and returns us back to the previous view.
  *
- * @param {Boolean} shouldOpenDrawer
+ * @param {Boolean} [shouldOpenDrawer]
  */
 function dismissModal(shouldOpenDrawer = false) {
     if (!navigationRef.isReady()) {

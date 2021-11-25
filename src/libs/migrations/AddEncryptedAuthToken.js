@@ -2,7 +2,7 @@ import _ from 'underscore';
 import Onyx from 'react-native-onyx';
 import Log from '../Log';
 import ONYXKEYS from '../../ONYXKEYS';
-import {reauthenticate} from '../API';
+import * as reauthenticate from '../API';
 
 /**
  * This migration adds an encryptedAuthToken to the SESSION key, if it is not present.

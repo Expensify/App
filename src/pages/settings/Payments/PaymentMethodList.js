@@ -3,18 +3,16 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
-import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {
-    PayPal,
-    Plus,
-} from '../../../components/Icon/Expensicons';
+import CONST from '../../../CONST';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import {getPaymentMethodsList} from '../../../libs/paymentUtils';
 import getBankIcon from '../../../components/Icon/BankIcons';
-import CONST from '../../../CONST';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
 const MENU_ITEM = 'menuItem';
@@ -98,7 +96,7 @@ class PaymentMethodList extends Component {
             switch (method.type) {
                 case 'bank': iconProperties = getBankIcon(method.bankName); break;
                 case 'card': iconProperties = getBankIcon(method.bankName, true); break;
-                case 'payPalMe': iconProperties = {icon: PayPal}; break;
+                case 'payPalMe': iconProperties = {icon: Expensicons.PayPal}; break;
                 default: break;
             }
 
@@ -110,6 +108,17 @@ class PaymentMethodList extends Component {
                 onPress: e => this.props.onPress(e, method.id),
             };
         });
+
+        if (this.props.payPalMeUsername) {
+            combinedPaymentMethods.push({
+                type: MENU_ITEM,
+                title: 'PayPal.me',
+                description: this.props.payPalMeUsername,
+                icon: Expensicons.PayPal,
+                onPress: e => this.props.onPress(e, 'payPalMe'),
+                key: 'payPalMePaymentMethod',
+            });
+        }
 
         // If we have not added any payment methods, show a default empty state
         if (_.isEmpty(paymentMethods)) {
@@ -128,12 +137,12 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods.push({
             type: MENU_ITEM,
             title: addPaymentMethodButtonTitle,
-            icon: Plus,
+            icon: Expensicons.Plus,
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
-            iconFill: this.props.isAddPaymentMenuActive ? getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: this.props.isAddPaymentMenuActive ? [getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
+            iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;

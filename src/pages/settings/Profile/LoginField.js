@@ -4,12 +4,12 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import colors from '../../../styles/colors';
-import {Plus, Checkmark} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
-import {resendValidateCode} from '../../../libs/actions/User';
+import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Button from '../../../components/Button';
 import MenuItem from '../../../components/MenuItem';
@@ -47,16 +47,18 @@ class LoginField extends Component {
      * Resend validation code and show the checkmark icon
      */
     onResendClicked() {
-        resendValidateCode(this.props.login.partnerUserID);
+        User.resendValidateCode(this.props.login.partnerUserID);
         this.setState({showCheckmarkIcon: true});
 
         // Revert checkmark back to "Resend" after 5 seconds
         if (!this.timeout) {
             this.timeout = setTimeout(() => {
-                if (this.timeout) {
-                    this.setState({showCheckmarkIcon: false});
-                    this.timeout = null;
+                if (!this.timeout) {
+                    return;
                 }
+
+                this.setState({showCheckmarkIcon: false});
+                this.timeout = null;
             }, 5000);
         }
     }
@@ -90,7 +92,7 @@ class LoginField extends Component {
                         <MenuItem
                             key={`common.add.${this.props.type}`}
                             title={`${this.props.translate('common.add')} ${this.props.label}`}
-                            icon={Plus}
+                            icon={Expensicons.Plus}
                             onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
                         />
                     </View>
@@ -106,7 +108,7 @@ class LoginField extends Component {
                                 style={[styles.mb2]}
                                 onPress={this.onResendClicked}
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
-                                    <Icon fill={colors.black} src={Checkmark} />
+                                    <Icon fill={colors.black} src={Expensicons.Checkmark} />
                                 ) : (
                                     <Text style={styles.createMenuText}>
                                         {this.props.translate('common.resend')}

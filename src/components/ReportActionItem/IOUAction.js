@@ -32,26 +32,22 @@ const defaultProps = {
     },
 };
 
-const IOUAction = ({
-    action,
-    chatReportID,
-    isMostRecentIOUReportAction,
-}) => {
+const IOUAction = (props) => {
     const launchDetailsModal = () => {
-        Navigation.navigate(ROUTES.getIouDetailsRoute(chatReportID, action.originalMessage.IOUReportID));
+        Navigation.navigate(ROUTES.getIouDetailsRoute(props.chatReportID, props.action.originalMessage.IOUReportID));
     };
     return (
         <>
             <IOUQuote
-                action={action}
-                shouldShowViewDetailsLink={Boolean(action.originalMessage.IOUReportID)}
+                action={props.action}
+                shouldShowViewDetailsLink={Boolean(props.action.originalMessage.IOUReportID)}
                 onViewDetailsPressed={launchDetailsModal}
             />
-            {((isMostRecentIOUReportAction && Boolean(action.originalMessage.IOUReportID))
-                || (action.originalMessage.type === 'pay')) && (
+            {((props.isMostRecentIOUReportAction && Boolean(props.action.originalMessage.IOUReportID))
+                || (props.action.originalMessage.type === 'pay')) && (
                     <IOUPreview
-                        iouReportID={action.originalMessage.IOUReportID}
-                        chatReportID={chatReportID}
+                        iouReportID={props.action.originalMessage.IOUReportID}
+                        chatReportID={props.chatReportID}
                         onPayButtonPressed={launchDetailsModal}
                         onPreviewPressed={launchDetailsModal}
                     />

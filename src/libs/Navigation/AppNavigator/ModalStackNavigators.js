@@ -10,7 +10,7 @@ import IOURequestPage from '../../../pages/iou/IOURequestPage';
 import IOUBillPage from '../../../pages/iou/IOUBillPage';
 import IOUSendPage from '../../../pages/iou/IOUSendPage';
 import IOUDetailsModal from '../../../pages/iou/IOUDetailsModal';
-import SettingsInitialPage from '../../../pages/settings/InitialPage';
+import SettingsInitialPage from '../../../pages/settings/InitialSettingsPage';
 import SettingsProfilePage from '../../../pages/settings/Profile/ProfilePage';
 import SettingsPreferencesPage from '../../../pages/settings/PreferencesPage';
 import SettingsAboutPage from '../../../pages/settings/AboutPage';
@@ -57,9 +57,7 @@ function createModalStackNavigator(screens) {
     const ModalStackNavigator = createStackNavigator();
     return () => (
         <ModalStackNavigator.Navigator
-            screenOptions={{
-                ...defaultSubRouteOptions,
-            }}
+            screenOptions={defaultSubRouteOptions}
         >
             {_.map(screens, screen => (
                 <ModalStackNavigator.Screen
@@ -231,6 +229,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Workspace_BankAccount',
     },
     {
+        Component: WorkspaceInvitePage,
+        name: 'Workspace_Invite',
+    },
+    {
         Component: ReimbursementAccountPage,
         name: 'ReimbursementAccount',
         initialParams: {stepToOpen: CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT},
@@ -250,11 +252,6 @@ const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator([{
 const ReimbursementAccountModalStackNavigator = createModalStackNavigator([{
     Component: ReimbursementAccountPage,
     name: 'ReimbursementAccount_Root',
-}]);
-
-const WorkspaceInviteModalStackNavigator = createModalStackNavigator([{
-    Component: WorkspaceInvitePage,
-    name: 'WorkspaceInvite_Root',
 }]);
 
 const RequestCallModalStackNavigator = createModalStackNavigator([{
@@ -277,6 +274,5 @@ export {
     EnablePaymentsStackNavigator,
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
-    WorkspaceInviteModalStackNavigator,
     RequestCallModalStackNavigator,
 };
