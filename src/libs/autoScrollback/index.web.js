@@ -1,87 +1,101 @@
+/* autoScrollBack address Mobile Safari-specific issues when the user overscrolls the window while the keyboard is visible */
+
+/* allows smooth scroll when programmatic scrolling */
 import smoothscroll from 'smoothscroll-polyfill';
+import Str from 'expensify-common/lib/str';
 
 import getBrowser from '../getBrowser';
 
 const init = () => {
-    if (getBrowser() === 'safari') {
-        const userAgent = navigator.userAgent.toLowerCase();
+    if (getBrowser() !== 'safari') {
+        return;
+    }
+    const userAgent = navigator.userAgent.toLowerCase();
 
-        if (userAgent.indexOf('iphone')) {
-            let top = 0;
-            let innerHeightTooSmall = 0;
+    if (Str.contains(userAgent, 'iphone os 1')) {
+        const baseInnerHeight = window.innerHeight;
 
-            if (userAgent.indexOf('iphone os 15_') > 0) { // iOS 15
-                if (window.outerHeight === 812) { // iPhone Pro
-                    top = 280;
-                    innerHeightTooSmall = 350;
-                } else if (window.outerHeight === 896) {
-                    if (window.devicePixelRatio === 3) { //  iPhone Pro Max
-                        top = 290;
-                        innerHeightTooSmall = 425;
-                    } else { //  iPhone
-                        top = 245;
-                        innerHeightTooSmall = 470;
-                    }
-                }
-            } else if (userAgent.indexOf('iphone os 1') > 0) { // iOS Before 15
-                if (window.outerHeight === 812) { // iPhone Pro
-                    top = 280;
-                    innerHeightTooSmall = 350;
-                } else if (window.outerHeight === 896) {
-                    if (window.devicePixelRatio === 3) { //  iPhone Pro Max
-                        top = 290;
-                        innerHeightTooSmall = 425;
-                    } else { //  iPhone
-                        top = 300;
-                        innerHeightTooSmall = 420;
-                    }
-                }
+        /* minimum acceptable innerHeight, less than that, scroll back */
+        let minimumInnerHeight = 0;
+
+        const isIos15 = Str.contains(userAgent, 'iphone os 15_');
+
+        switch (window.outerHeight) {
+            case 926: { // iPhone 12/13 Pro Max
+                minimumInnerHeight = 440;
+                break;
             }
+            case 896: {
+                if (window.devicePixelRatio === 3) { //  iPhone 11 Pro Max
+                    minimumInnerHeight = 425;
+                } else { // iPhone 11
+                    minimumInnerHeight = isIos15 ? 460 : 420;
+                }
+                break;
+            }
+            case 844: {
+                if (window.devicePixelRatio === 3) { // iPhone 13 / iPhone 12/13 Pro
+                    minimumInnerHeight = 370;
+                } else { //  iPhone 12
+                    minimumInnerHeight = 412;
+                }
+                break;
+            }
+            case 812: {
+                if (window.devicePixelRatio === 3) { // iPhone 11 Pro / iPhone 12/13 Mini
+                    minimumInnerHeight = 340;
+                } else { //  iPhone 11
+                    minimumInnerHeight = 420;
+                }
+                break;
+            }
+            default: {
+                //
+            }
+        }
 
-            if (!top || !innerHeightTooSmall) {
+        if (!minimumInnerHeight) {
+            return;
+        }
+
+        let isTouching = false;
+        let timeout;
+        smoothscroll.polyfill();
+
+        const scrollBack = () => {
+            window.requestAnimationFrame(() => {
+                window.scrollTo({
+                    top: baseInnerHeight - minimumInnerHeight,
+                    behavior: 'smooth',
+                });
+            });
+        };
+
+        const clearTimeoutIfNeeded = () => {
+            if (!timeout) {
                 return;
             }
+            clearTimeout(timeout);
+            timeout = undefined;
+        };
 
-            // const innerHeightTooSmall = 470;
-            let isTouching = false;
-            let timeout;
-            smoothscroll.polyfill();
+        const scheduleScrollback = () => {
+            clearTimeoutIfNeeded();
+            if (!isTouching && minimumInnerHeight > window.innerHeight) {
+                timeout = setTimeout(scrollBack, 34);
+            }
+        };
 
-            const scrollBack = () => {
-                window.requestAnimationFrame(() => {
-                    window.scrollTo({
-                        top,
-                        behavior: 'smooth',
-                    });
-                });
-            };
-
-            const clearTimeoutIfNeeded = () => {
-                if (timeout) {
-                    clearTimeout(timeout);
-                    timeout = undefined;
-                }
-            };
-
-            const scheduleScrollback = () => {
-                clearTimeoutIfNeeded();
-
-                if (!isTouching && innerHeightTooSmall > window.innerHeight) {
-                    timeout = setTimeout(scrollBack, 34);
-                }
-            };
-
-            document.addEventListener('touchstart', () => {
-                isTouching = true;
-            });
-            document.addEventListener('touchend', () => {
-                isTouching = false;
-                scheduleScrollback();
-            });
-            document.addEventListener('scroll', () => {
-                scheduleScrollback();
-            });
-        }
+        document.addEventListener('touchstart', () => {
+            isTouching = true;
+        });
+        document.addEventListener('touchend', () => {
+            isTouching = false;
+            scheduleScrollback();
+        });
+        document.addEventListener('scroll', () => {
+            scheduleScrollback();
+        });
     }
 };
 
