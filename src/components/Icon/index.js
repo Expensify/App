@@ -1,10 +1,10 @@
 import React, {PureComponent} from 'react';
-import {View, Platform} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
+import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
-
-// const inlineTop = Platform.OS === 'ios' ? 0.5 : 2;
+import inlineTop from './iconInlineTop';
 
 const propTypes = {
     /** The asset to render. */
@@ -22,7 +22,7 @@ const propTypes = {
     /** Is small icon */
     small: PropTypes.bool,
 
-    /** Is small icon */
+    /** Is inline icon */
     inline: PropTypes.bool,
 };
 
@@ -34,47 +34,41 @@ const defaultProps = {
     inline: false,
 };
 
-const inlineTop = Platform.OS === 'ios' ? 1 : 2;
-
 // We must use a class component to create an animatable component with the Animated API
 // eslint-disable-next-line react/prefer-stateless-function
 class Icon extends PureComponent {
     render() {
-        const inline = this.props.inline;
         const width = this.props.small ? variables.iconSizeSmall : this.props.width;
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const IconToRender = this.props.src;
 
-        if (inline) {
-            return (
-                <View style={{
-                    width, height, overflow: 'visible', backgroundColor: 'transparent',
-                }}
-                >
-                    <View style={{
-                        width,
-                        height,
-                        position: 'absolute',
-                        top: inlineTop,
-                    }}
-                    >
-                        <IconToRender
-                            width={width}
-                            height={height}
-                            fill={this.props.fill}
-                        />
-                    </View>
-                </View>
-            );
-        }
-
-        return (
+        const rendered = (
             <IconToRender
                 width={width}
                 height={height}
                 fill={this.props.fill}
             />
         );
+
+        if (this.props.inline) {
+            return (
+                <View style={[{
+                    width, height,
+                }, styles.iconInlineWrapper]}
+                >
+                    <View style={[{
+                        width,
+                        height,
+                        top: inlineTop,
+                    }, styles.absolute]}
+                    >
+                        {rendered}
+                    </View>
+                </View>
+            );
+        }
+
+        return rendered;
     }
 }
 

@@ -2089,6 +2089,15 @@ const styles = {
     googleListView: {
         transform: [{scale: 0}],
     },
+
+    absolute: {
+        position: 'absolute',
+    },
+
+    iconInlineWrapper: {
+        overflow: 'visible',
+        backgroundColor: 'transparent',
+    },
 };
 
 const baseCodeTagStyles = {
