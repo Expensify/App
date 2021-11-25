@@ -5,16 +5,11 @@ import {
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
-import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
+import * as baseExpensiTextInputPropTypes from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import InlineErrorText from '../InlineErrorText';
-import {
-    ACTIVE_LABEL_TRANSLATE_Y,
-    ACTIVE_LABEL_SCALE,
-    INACTIVE_LABEL_TRANSLATE_Y,
-    INACTIVE_LABEL_SCALE,
-} from './styleConst';
+import * as styleConst from './styleConst';
 
 class BaseExpensiTextInput extends Component {
     constructor(props) {
@@ -25,8 +20,8 @@ class BaseExpensiTextInput extends Component {
 
         this.state = {
             isFocused: false,
-            labelTranslateY: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            labelTranslateY: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y),
+            labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
         };
 
         this.input = null;
@@ -105,8 +100,8 @@ class BaseExpensiTextInput extends Component {
         }
 
         this.animateLabel(
-            ACTIVE_LABEL_TRANSLATE_Y,
-            ACTIVE_LABEL_SCALE,
+            styleConst.ACTIVE_LABEL_TRANSLATE_Y,
+            styleConst.ACTIVE_LABEL_SCALE,
         );
         this.isLabelActive = true;
     }
@@ -116,7 +111,7 @@ class BaseExpensiTextInput extends Component {
             return;
         }
 
-        this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE);
+        this.animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
         this.isLabelActive = false;
     }
 
@@ -136,7 +131,8 @@ class BaseExpensiTextInput extends Component {
     }
 
     render() {
-        const inputProps = _.omit(this.props, _.keys(propTypes));
+        // eslint-disable-next-line react/forbid-foreign-prop-types
+        const inputProps = _.omit(this.props, _.keys(baseExpensiTextInputPropTypes.propTypes));
         const hasLabel = Boolean(this.props.label.length);
         return (
             <View>
@@ -197,7 +193,7 @@ class BaseExpensiTextInput extends Component {
     }
 }
 
-BaseExpensiTextInput.propTypes = propTypes;
-BaseExpensiTextInput.defaultProps = defaultProps;
+BaseExpensiTextInput.propTypes = baseExpensiTextInputPropTypes.propTypes;
+BaseExpensiTextInput.defaultProps = baseExpensiTextInputPropTypes.defaultProps;
 
 export default BaseExpensiTextInput;
