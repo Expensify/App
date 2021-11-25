@@ -6,7 +6,7 @@ import ImageZoom from 'react-native-image-pan-zoom';
 import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import * as StyleUtils from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -25,8 +25,11 @@ class ImageView extends PureComponent {
         super(props);
 
         this.state = {
+            thumbnailWidth: 100,
+            thumbnailHeight: 100,
             imageWidth: undefined,
             imageHeight: undefined,
+            interactionPromise: undefined,
         };
 
         // Use the default double click interval from the ImageZoom library
@@ -44,7 +47,12 @@ class ImageView extends PureComponent {
 
     componentDidMount() {
         // Wait till animations are over to prevent stutter in navigation animation
-        InteractionManager.runAfterInteractions(() => this.calculateImageSize());
+        this.state.interactionPromise = InteractionManager.runAfterInteractions(() => this.calculateImageSize());
+    }
+
+    componentWillUnmount() {
+        if (!this.state.interactionPromise) { return; }
+        this.state.interactionPromise.cancel();
     }
 
     calculateImageSize() {
@@ -96,7 +104,11 @@ class ImageView extends PureComponent {
                         styles.errorOutline,
                     ]}
                 >
-                    <Image source={{uri: this.props.url}} style={StyleUtils.getWidthAndHeightStyle(100, 100)} resizeMode={Image.resizeMode.contain} />
+                    <Image
+                        source={{uri: this.props.url}}
+                        style={StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight)}
+                        resizeMode={Image.resizeMode.contain}
+                    />
                 </View>
             );
         }
