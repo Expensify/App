@@ -45,6 +45,7 @@ function getPaymentMethods() {
 function transferWalletBalance(paymentMethod) {
     const parameters = {};
     parameters[paymentMethod.type === 'bank' ? 'bankAccountID' : 'fundID'] = paymentMethod.id;
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: true});
 
     return API.TransferWalletBalance(parameters)
         .then((response) => {
@@ -52,10 +53,12 @@ function transferWalletBalance(paymentMethod) {
                 throw new Error();
             }
             Onyx.merge(ONYXKEYS.USER_WALLET, {balance: 0});
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true});
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {completed: true, loading: false});
+            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
         }).catch((error) => {
             console.debug(`[Payments] Failed to transfer wallet balance: ${error.message}`);
             Growl.error(Localize.translateLocal('transferAmountPage.failedTransfer'));
+            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {loading: false});
         });
 }
 
@@ -119,9 +122,28 @@ function clearDebitCardFormErrorAndSubmit() {
     });
 }
 
+function startWalletTransfer(transferAmount) {
+    Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
+        transferAmount,
+        filterPaymentMethods: null,
+        loading: false,
+    });
+}
+
+function updateWalletTransferData(data) {
+    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, data);
+}
+
+function cancelWalletTransfer() {
+    Onyx.set(ONYXKEYS.WALLET_TRANSFER, null);
+}
+
 export {
     getPaymentMethods,
-    transferWalletBalance,
     addBillingCard,
     clearDebitCardFormErrorAndSubmit,
+    transferWalletBalance,
+    startWalletTransfer,
+    updateWalletTransferData,
+    cancelWalletTransfer,
 };

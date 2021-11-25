@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import ScreenWrapper from '../../../components/ScreenWrapper';
@@ -11,10 +11,11 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index
 import PaymentMethodList from './PaymentMethodList';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
-import {walletTransferPropTypes} from './paymentPropTypes';
+import * as paymentPropTypes from './paymentPropTypes';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 
 const propTypes = {
-    walletTransfer: walletTransferPropTypes,
+    walletTransfer: paymentPropTypes.walletTransferPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -36,10 +37,11 @@ class ChooseTransferAccountPage extends React.Component {
      * @param {String} account
      */
     paymentMethodSelected(nativeEvent, account) {
-        if (account) {
-            Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {selectedAccountID: account});
-            Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
+        if (!account) {
+            return;
         }
+        PaymentMethods.updateWalletTransferData({selectedAccountID: account});
+        Navigation.navigate(ROUTES.SETTINGS_TRANSFER_BALANCE);
     }
 
     render() {

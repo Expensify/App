@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React from 'react';
 import {View} from 'react-native';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import {ScrollView} from 'react-native-gesture-handler';
 import lodashGet from 'lodash/get';
 import ONYXKEYS from '../../../ONYXKEYS';
@@ -13,9 +13,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import {
-    Bank, Bolt,
-} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
@@ -23,27 +21,22 @@ import Text from '../../../components/Text';
 import Button from '../../../components/Button';
 import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
-import {
-    userWalletPropTypes,
-    bankAccountListPropTypes,
-    cardListPropTypes,
-    walletTransferPropTypes,
-} from './paymentPropTypes';
-import {transferWalletBalance} from '../../../libs/actions/PaymentMethods';
-import {getPaymentMethodsList} from '../../../libs/paymentUtils';
+import * as paymentPropTypes from './paymentPropTypes';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
+import * as PaymentUtils from '../../../libs/PaymentUtils';
 
 const propTypes = {
     /** User's wallet information */
-    userWallet: userWalletPropTypes,
+    userWallet: paymentPropTypes.userWalletPropTypes,
 
     /** Array of bank account objects */
-    bankAccountList: bankAccountListPropTypes,
+    bankAccountList: paymentPropTypes.bankAccountListPropTypes,
 
     /** Array of card objects */
-    cardList: cardListPropTypes,
+    cardList: paymentPropTypes.cardListPropTypes,
 
     /** Wallet balance transfer props */
-    walletTransfer: walletTransferPropTypes,
+    walletTransfer: paymentPropTypes.walletTransferPropTypes,
 
     ...withLocalizePropTypes,
 };
@@ -61,10 +54,6 @@ const Fee = 0.30;
 class TransferBalancePage extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            // Show loader while transfer is in-transit
-            loading: false,
-        };
 
         this.paymentTypes = [
             {
@@ -76,20 +65,16 @@ class TransferBalancePage extends React.Component {
                         {style: 'currency', currency: 'USD'},
                     ),
                 }),
-                icon: Bolt,
+                icon: Expensicons.Bolt,
             },
             {
                 key: CONST.WALLET.PAYMENT_TYPE.ACH,
                 title: this.props.translate('transferAmountPage.ach'),
                 description: this.props.translate('transferAmountPage.achSummary'),
-                icon: Bank,
+                icon: Expensicons.Bank,
             },
         ];
-
-        Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
-            transferAmount: this.props.userWallet.currentBalance - Fee,
-            filterPaymentMethods: null,
-        });
+        PaymentMethods.startWalletTransfer(this.props.userWallet.currentBalance - Fee);
         this.transferBalance = this.transferBalance.bind(this);
     }
 
@@ -101,16 +86,11 @@ class TransferBalancePage extends React.Component {
         if (!selectedAccount) {
             return;
         }
-        this.setState({loading: true});
-        transferWalletBalance(selectedAccount).then(() => {
-            Navigation.navigate(ROUTES.SETTINGS_PAYMENTS);
-        }).finally(() => {
-            this.setState({loading: false});
-        });
+        PaymentMethods.transferWalletBalance(selectedAccount);
     }
 
     render() {
-        const paymentMethods = getPaymentMethodsList(
+        const paymentMethods = PaymentUtils.getPaymentMethodsList(
             this.props.bankAccountList,
             this.props.cardList,
         );
@@ -162,11 +142,8 @@ class TransferBalancePage extends React.Component {
                                 }}
                                 // eslint-disable-next-line react/no-unused-state
                                 onPress={() => {
-                                    Onyx.merge(ONYXKEYS.WALLET_TRANSFER, {
-                                        filterPaymentMethods: type.type,
-                                    }).then(() => {
-                                        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
-                                    });
+                                    PaymentMethods.updateWalletTransferData({filterPaymentMethods: type.type});
+                                    Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
                                 }}
                             />
                         ))}
@@ -177,19 +154,19 @@ class TransferBalancePage extends React.Component {
                         </Text>
                         {!!selectAccount
                             && (
-                            <MenuItem
-                                title={selectAccount.title}
-                                description={selectAccount.description}
-                                shouldShowRightIcon
-                                iconWidth={variables.iconSizeXLarge}
-                                iconHeight={variables.iconSizeXLarge}
-                                icon={Bolt}
-                                wrapperStyle={{
-                                    ...styles.mrn5,
-                                    ...styles.ph0,
-                                }}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
-                            />
+                                <MenuItem
+                                    title={selectAccount.title}
+                                    description={selectAccount.description}
+                                    shouldShowRightIcon
+                                    iconWidth={variables.iconSizeXLarge}
+                                    iconHeight={variables.iconSizeXLarge}
+                                    icon={Expensicons.Bolt}
+                                    wrapperStyle={{
+                                        ...styles.mrn5,
+                                        ...styles.ph0,
+                                    }}
+                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
+                                />
                             )}
                         <Text
                             style={[
@@ -215,7 +192,7 @@ class TransferBalancePage extends React.Component {
                         <Button
                             success
                             pressOnEnter
-                            isLoading={this.state.loading}
+                            isLoading={this.props.walletTransfer.loading}
                             isDisabled={isButtonDisabled}
                             onPress={this.transferBalance}
                             text={this.props.translate(

@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import CONST from '../CONST';
-import {translateLocal} from './translate';
+import * as Localize from './Localize';
 
 /**
  * PaymentMethod Type
@@ -26,27 +26,29 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
 
     _.each(bankAccountList, (bankAccount) => {
         // Add all bank accounts besides the wallet
-        if (bankAccount.type !== CONST.BANK_ACCOUNT_TYPES.WALLET) {
-            const formattedBankAccountNumber = bankAccount.accountNumber
-                ? `${translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
-                }`
-                : null;
-            combinedPaymentMethods.push({
-                title: bankAccount.addressName,
-                bankName: bankAccount.additionalData.bankName,
-                number: bankAccount.accountNumber,
-                id: bankAccount.bankAccountID,
-                description: formattedBankAccountNumber,
-                key: `bankAccount-${bankAccount.bankAccountID}`,
-                type: 'bank',
-            });
+        if (bankAccount.type === CONST.BANK_ACCOUNT_TYPES.WALLET) {
+            return;
         }
+
+        const formattedBankAccountNumber = bankAccount.accountNumber
+            ? `${Localize.translateLocal('paymentMethodList.accountLastFour')} ${bankAccount.accountNumber.slice(-4)
+            }`
+            : null;
+        combinedPaymentMethods.push({
+            title: bankAccount.addressName,
+            bankName: bankAccount.additionalData.bankName,
+            number: bankAccount.accountNumber,
+            id: bankAccount.bankAccountID,
+            description: formattedBankAccountNumber,
+            key: `bankAccount-${bankAccount.bankAccountID}`,
+            type: 'bank',
+        });
     });
 
     _.each(cardList, (card) => {
         // Add all cards besides the "cash" card
         const formattedCardNumber = card.cardNumber
-            ? `${translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
+            ? `${Localize.translateLocal('paymentMethodList.cardLastFour')} ${card.cardNumber.slice(-4)}`
             : null;
         combinedPaymentMethods.push({
             title: card.addressName,

@@ -1,5 +1,5 @@
 import React from 'react';
-import Onyx, {withOnyx} from 'react-native-onyx';
+import {withOnyx} from 'react-native-onyx';
 import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import PaymentMethodList from './PaymentMethodList';
@@ -20,14 +20,14 @@ import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
-import {walletTransferPropTypes} from './paymentPropTypes';
+import * as paymentPropTypes from './paymentPropTypes';
 import Permissions from '../../../libs/Permissions';
 
 const PAYPAL = 'payPalMe';
 const DEBIT_CARD = 'debitCard';
 
 const propTypes = {
-    walletTransfer: walletTransferPropTypes,
+    walletTransfer: paymentPropTypes.walletTransferPropTypes,
 
     /** List of betas available to current user */
     betas: PropTypes.arrayOf(PropTypes.string),
@@ -185,7 +185,7 @@ class PaymentsPage extends React.Component {
                     </Popover>
                     <ConfirmModal
                         title={this.props.translate('paymentsPage.allSet')}
-                        onConfirm={() => Onyx.set(ONYXKEYS.WALLET_TRANSFER, null)}
+                        onConfirm={PaymentMethods.cancelWalletTransfer}
                         isVisible={this.props.walletTransfer.completed}
                         prompt={this.props.translate('paymentsPage.transferConfirmText', {
                             amount: this.props.numberFormat(

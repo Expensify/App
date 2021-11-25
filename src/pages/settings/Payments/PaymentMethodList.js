@@ -11,7 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import * as Expensicons from '../../../components/Icon/Expensicons';
-import {getPaymentMethodsList} from '../../../libs/paymentUtils';
+import * as PaymentUtils from '../../../libs/PaymentUtils';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
@@ -85,7 +85,7 @@ class PaymentMethodList extends Component {
      * @return {Array}
      */
     createPaymentMethodList(filter) {
-        const paymentMethods = getPaymentMethodsList(
+        const paymentMethods = PaymentUtils.getPaymentMethodsList(
             !filter || filter === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK ? this.props.bankAccountList : [],
             !filter || filter === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD ? this.props.cardList : [],
             !filter && this.props.payPalMeUsername,
