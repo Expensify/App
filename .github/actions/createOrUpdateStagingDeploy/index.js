@@ -210,7 +210,9 @@ function getPullRequestsMergedBetween(fromRef, toRef) {
     // We need to find which commit messages correspond to merge commits and get PR numbers.
     // Additionally, we omit merge commits made while cherry picking using negative lookahead in the regexp.
     const pullRequestIDs = _.reduce(commitMessages, (mergedPRs, commitMessage) => {
-        const mergeCommits = [...commitMessage.matchAll(/Merge pull request #(\d{1,6}) from (?!(?:Expensify\/(?:master|main|version-))|(?:([\s\S]*?)\(cherry picked from commit .*\)\s*))/gm)];
+        const mergeCommits = [
+            ...commitMessage.matchAll(/Merge pull request #(\d{1,6}) from (?!(?:Expensify\/(?:master|main|version-))|(?:([\s\S]*?)\(cherry picked from commit .*\)\s*))/gm)
+        ];
 
         // Get the PR number of the first match (there should not be multiple matches in one commit message)
         if (_.size(mergeCommits)) {
