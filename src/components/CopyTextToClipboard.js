@@ -19,8 +19,6 @@ const defaultProps = {
     textStyles: [],
 };
 
-const iconSize = 16;
-
 class CopyTextToClipboard extends React.Component {
     constructor(props) {
         super(props);
@@ -57,8 +55,6 @@ class CopyTextToClipboard extends React.Component {
                 <Icon
                     src={this.state.showCheckmark ? Expensicons.Checkmark : Expensicons.Clipboard}
                     fill={this.state.showCheckmark ? themeColors.iconSuccessFill : themeColors.icon}
-                    height={iconSize}
-                    width={iconSize}
                     inline
                 />
             </Text>
