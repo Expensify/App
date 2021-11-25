@@ -4,16 +4,14 @@ import PropTypes from 'prop-types';
 import {FlatList, Text} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import lodashGet from 'lodash/get';
-import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import MenuItem from '../../../components/MenuItem';
 import compose from '../../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
-import {
-    PayPal,
-    Plus,
-} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import getBankIcon from '../../../components/Icon/BankIcons';
 import bankAccountPropTypes from '../../../components/bankAccountPropTypes';
 
@@ -120,7 +118,7 @@ class PaymentMethodList extends Component {
                 type: MENU_ITEM,
                 title: 'PayPal.me',
                 description: this.props.payPalMeUsername,
-                icon: PayPal,
+                icon: Expensicons.PayPal,
                 onPress: e => this.props.onPress(e, 'payPalMe'),
                 key: 'payPalMePaymentMethod',
             });
@@ -136,12 +134,12 @@ class PaymentMethodList extends Component {
         combinedPaymentMethods.push({
             type: MENU_ITEM,
             title: this.props.translate('paymentMethodList.addPaymentMethod'),
-            icon: Plus,
+            icon: Expensicons.Plus,
             onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
-            iconFill: this.props.isAddPaymentMenuActive ? getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
-            wrapperStyle: this.props.isAddPaymentMenuActive ? [getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
+            iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
+            wrapperStyle: this.props.isAddPaymentMenuActive ? [StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.PRESSED)] : [],
         });
 
         return combinedPaymentMethods;

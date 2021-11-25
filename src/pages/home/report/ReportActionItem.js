@@ -6,9 +6,7 @@ import PropTypes from 'prop-types';
 import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import reportActionPropTypes from './reportActionPropTypes';
-import {
-    getReportActionItemStyle,
-} from '../../../styles/getReportActionItemStyles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import PressableWithSecondaryInteraction from '../../../components/PressableWithSecondaryInteraction';
 import Hoverable from '../../../components/Hoverable';
 import ReportActionItemSingle from './ReportActionItemSingle';
@@ -22,8 +20,8 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../../componen
 import ControlSelection from '../../../libs/ControlSelection';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
-import {isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from './ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import * as ContextMenuActions from './ContextMenu/ContextMenuActions';
 import {withReportActionsDrafts} from '../../../components/OnyxProvider';
 
 const propTypes = {
@@ -64,7 +62,7 @@ class ReportActionItem extends Component {
         super(props);
         this.popoverAnchor = undefined;
         this.state = {
-            isContextMenuActive: isActiveReportAction(props.action.reportActionID),
+            isContextMenuActive: ReportActionContextMenu.isActiveReportAction(props.action.reportActionID),
         };
         this.checkIfContextMenuActive = this.checkIfContextMenuActive.bind(this);
         this.showPopover = this.showPopover.bind(this);
@@ -100,8 +98,8 @@ class ReportActionItem extends Component {
         if (this.props.draftMessage) {
             return;
         }
-        showContextMenu(
-            CONTEXT_MENU_TYPES.REPORT_ACTION,
+        ReportActionContextMenu.showContextMenu(
+            ContextMenuActions.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
             selection,
             this.popoverAnchor,
@@ -114,7 +112,7 @@ class ReportActionItem extends Component {
     }
 
     checkIfContextMenuActive() {
-        this.setState({isContextMenuActive: isActiveReportAction(this.props.action.reportActionID)});
+        this.setState({isContextMenuActive: ReportActionContextMenu.isActiveReportAction(this.props.action.reportActionID)});
     }
 
     render() {
@@ -156,7 +154,7 @@ class ReportActionItem extends Component {
                                 <UnreadActionIndicator />
                             )}
                             <View
-                                style={getReportActionItemStyle(
+                                style={StyleUtils.getReportActionItemStyle(
                                     hovered
                                     || this.state.isContextMenuActive
                                     || this.props.draftMessage,

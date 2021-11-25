@@ -5,7 +5,8 @@ import Image from 'react-native-fast-image';
 import ImageZoom from 'react-native-image-pan-zoom';
 import ImageSize from 'react-native-image-size';
 import _ from 'underscore';
-import styles, {getWidthAndHeightStyle} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/styles';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -95,7 +96,7 @@ class ImageView extends PureComponent {
                         styles.errorOutline,
                     ]}
                 >
-                    <Image source={{uri: this.props.url}} style={getWidthAndHeightStyle(100, 100)} resizeMode={Image.resizeMode.contain} />
+                    <Image source={{uri: this.props.url}} style={StyleUtils.getWidthAndHeightStyle(100, 100)} resizeMode={Image.resizeMode.contain} />
                 </View>
             );
         }

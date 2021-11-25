@@ -4,10 +4,10 @@ import CONST from '../../CONST';
 import ONYXKEYS from '../../ONYXKEYS';
 import ROUTES from '../../ROUTES';
 import * as API from '../API';
-import {getSimplifiedIOUReport, syncChatAndIOUReports} from './Report';
+import * as Report from './Report';
 import Navigation from '../Navigation/Navigation';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import asyncOpenURL from '../asyncOpenURL';
 
 /**
@@ -43,7 +43,7 @@ function getIOUReportsForNewTransaction(requestParams) {
 
                     // Second, the IOU report needs updated with the new IOU details too
                     const iouReportKey = `${ONYXKEYS.COLLECTION.REPORT_IOUS}${reportData.reportID}`;
-                    iouReportsToUpdate[iouReportKey] = getSimplifiedIOUReport(reportData, chatReportID);
+                    iouReportsToUpdate[iouReportKey] = Report.getSimplifiedIOUReport(reportData, chatReportID);
                 }
             });
 
@@ -63,12 +63,12 @@ function getIOUReportsForNewTransaction(requestParams) {
 function getIOUErrorMessage(error) {
     if (error && error.jsonCode) {
         if (error.jsonCode === 405) {
-            return translateLocal('common.error.invalidAmount');
+            return Localize.translateLocal('common.error.invalidAmount');
         } if (error.jsonCode === 404) {
-            return translateLocal('iou.error.invalidSplit');
+            return Localize.translateLocal('iou.error.invalidSplit');
         }
     }
-    return translateLocal('iou.error.other');
+    return Localize.translateLocal('iou.error.other');
 }
 
 /**
@@ -193,7 +193,7 @@ function rejectTransaction({
 
             const chatReport = response.reports[chatReportID];
             const iouReport = response.reports[reportID];
-            syncChatAndIOUReports(chatReport, iouReport);
+            Report.syncChatAndIOUReports(chatReport, iouReport);
         })
         .catch(error => console.error(`Error rejecting transaction: ${error}`))
         .finally(() => {
@@ -275,16 +275,16 @@ function payIOUReport({
 
             const chatReportStuff = response.reports[chatReportID];
             const iouReportStuff = response.reports[reportID];
-            syncChatAndIOUReports(chatReportStuff, iouReportStuff);
+            Report.syncChatAndIOUReports(chatReportStuff, iouReportStuff);
         })
         .catch((error) => {
             switch (error.message) {
                 // eslint-disable-next-line max-len
                 case 'You cannot pay via Expensify Wallet until you have either a verified deposit bank account or debit card.':
-                    Growl.error(translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
+                    Growl.error(Localize.translateLocal('bankAccount.error.noDefaultDepositAccountOrDebitCardAvailable'), 5000);
                     break;
                 case 'This report doesn\'t have reimbursable expenses.':
-                    Growl.error(translateLocal('iou.noReimbursableExpenses'), 5000);
+                    Growl.error(Localize.translateLocal('iou.noReimbursableExpenses'), 5000);
                     break;
                 default:
                     Growl.error(error.message, 5000);
