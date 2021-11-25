@@ -12,14 +12,14 @@ import Timing from '../Timing';
 import CONST from '../../../CONST';
 import Navigation from '../../Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
-import {translateLocal} from '../../translate';
+import * as Localize from '../../Localize';
 import * as Network from '../../Network';
 import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
 import Timers from '../../Timers';
 import * as Pusher from '../../Pusher/pusher';
 import NetworkConnection from '../../NetworkConnection';
-import {getUserDetails} from '../User';
-import {isNumericWithSpecialChars} from '../../ValidationUtils';
+import * as User from '../User';
+import * as ValidationUtils from '../../ValidationUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -145,16 +145,16 @@ function fetchAccountDetails(login) {
                 }
             } else if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    error: isNumericWithSpecialChars(login)
-                        ? translateLocal('messages.errorMessageInvalidPhone')
-                        : translateLocal('loginForm.error.invalidFormatEmailLogin'),
+                    error: ValidationUtils.isNumericWithSpecialChars(login)
+                        ? Localize.translateLocal('messages.errorMessageInvalidPhone')
+                        : Localize.translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
             } else {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
             }
         })
         .catch(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessageRetry')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('session.offlineMessageRetry')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -243,7 +243,7 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal(error.message), loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
         });
 }
 
@@ -263,7 +263,7 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
             email,
         });
         if (response.jsonCode === 200) {
-            getUserDetails();
+            User.getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
         } else {
             const error = lodashGet(response, 'message', 'Unable to login.');
@@ -316,7 +316,7 @@ function setPassword(password, validateCode, accountID) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('setPasswordPage.accountNotValidated')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
