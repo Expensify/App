@@ -179,7 +179,7 @@ const CONST = {
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
-    ADD_SECONDARY_LOGIN_URL: 'settings?param=%7B%22section%22:%22account%22,%22openModal%22:%22secondaryLogin%22%7D',
+    ADD_SECONDARY_LOGIN_URL: `settings?param=${encodeURIComponent('{"section":"account","openModal":"secondaryLogin"}')}`,
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
