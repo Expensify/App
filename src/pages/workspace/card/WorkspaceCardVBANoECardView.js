@@ -13,6 +13,7 @@ import {openOldDotLink} from '../../../libs/actions/Link';
 import {subscribeToExpensifyCardUpdates} from '../../../libs/actions/User';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -28,8 +29,13 @@ const WorkspaceCardVBANoECardView = props => (
                     title: props.translate('workspace.card.addWorkEmail'),
                     onPress: () => {
                         Navigation.dismissModal();
+<<<<<<< HEAD
                         openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
                         subscribeToExpensifyCardUpdates();
+=======
+                        Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
+                        User.subscribeToExpensifyCardUpdates();
+>>>>>>> dd291dcda (Merge pull request #6479 from Expensify/cmartins-encodeURL)
                     },
                     icon: Mail,
                     shouldShowRightIcon: true,
