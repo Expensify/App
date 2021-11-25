@@ -16,6 +16,7 @@ import styles from '../../../styles/styles';
  */
 const BaseAnchorForCommentsOnly = (props) => {
     let linkRef;
+    // eslint-disable-next-line react/forbid-foreign-prop-types
     const rest = _.omit(props, _.keys(anchorForCommentsOnlyPropTypes.propTypes));
     return (
         props.isAttachment

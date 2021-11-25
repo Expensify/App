@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {Pressable} from 'react-native';
-import {propTypes, defaultProps} from './pressableWithSecondaryInteractionPropTypes';
+import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 import styles from '../../styles/styles';
 
 /**
@@ -59,8 +59,8 @@ class PressableWithSecondaryInteraction extends Component {
     }
 }
 
-PressableWithSecondaryInteraction.propTypes = propTypes;
-PressableWithSecondaryInteraction.defaultProps = defaultProps;
+PressableWithSecondaryInteraction.propTypes = pressableWithSecondaryInteractionPropTypes.propTypes;
+PressableWithSecondaryInteraction.defaultProps = pressableWithSecondaryInteractionPropTypes.defaultProps;
 export default React.forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
     <PressableWithSecondaryInteraction {...props} forwardedRef={ref} />
