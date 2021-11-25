@@ -29,13 +29,8 @@ const WorkspaceCardVBANoECardView = props => (
                     title: props.translate('workspace.card.addWorkEmail'),
                     onPress: () => {
                         Navigation.dismissModal();
-<<<<<<< HEAD
-                        openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                        openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                         subscribeToExpensifyCardUpdates();
-=======
-                        Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                        User.subscribeToExpensifyCardUpdates();
->>>>>>> dd291dcda (Merge pull request #6479 from Expensify/cmartins-encodeURL)
                     },
                     icon: Mail,
                     shouldShowRightIcon: true,

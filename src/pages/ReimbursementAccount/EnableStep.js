@@ -19,18 +19,10 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
-<<<<<<< HEAD
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
 import {openOldDotLink} from '../../libs/actions/Link';
 import {subscribeToExpensifyCardUpdates} from '../../libs/actions/User';
-=======
-import * as Illustrations from '../../components/Icon/Illustrations';
-import * as BankAccounts from '../../libs/actions/BankAccounts';
-import * as Link from '../../libs/actions/Link';
-import * as User from '../../libs/actions/User';
-import CONST from '../../CONST';
->>>>>>> dd291dcda (Merge pull request #6479 from Expensify/cmartins-encodeURL)
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -84,13 +76,8 @@ class EnableStep extends React.Component {
                 title: this.props.translate('workspace.bankAccount.addWorkEmail'),
                 icon: Mail,
                 onPress: () => {
-<<<<<<< HEAD
-                    openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                     subscribeToExpensifyCardUpdates();
-=======
-                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
-                    User.subscribeToExpensifyCardUpdates();
->>>>>>> dd291dcda (Merge pull request #6479 from Expensify/cmartins-encodeURL)
                 },
                 shouldShowRightIcon: true,
             });
