@@ -141,7 +141,8 @@ class Expensify extends PureComponent {
 
     hideSplash() {
         Log.info('[BootSplash] hiding splash screen', false);
-        BootSplash.hide({fade: true});
+        BootSplash.hide({fade: true})
+            .catch(error => Log.alert('[BootSplash] hiding failed', {message: error.message, error}, false));
     }
 
     reportBootSplashStatus() {
