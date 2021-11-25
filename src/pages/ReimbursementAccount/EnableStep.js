@@ -76,7 +76,7 @@ class EnableStep extends React.Component {
                 title: this.props.translate('workspace.bankAccount.addWorkEmail'),
                 icon: Mail,
                 onPress: () => {
-                    openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                     subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
