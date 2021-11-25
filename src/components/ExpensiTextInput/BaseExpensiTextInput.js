@@ -9,7 +9,7 @@ import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
 import Icon from '../Icon';
-import * as icons from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import InlineErrorText from '../InlineErrorText';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -12;
@@ -216,9 +216,8 @@ class BaseExpensiTextInput extends Component {
                                     style={styles.secureInputEyeButton}
                                     onPress={this.togglePasswordVisibility}
                                 >
-
                                     <Icon
-                                        src={this.state.passwordHidden ? icons.Eye : icons.EyeDisabled}
+                                        src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
                                         fill={themeColors.icon}
                                     />
                                 </Pressable>
