@@ -12,6 +12,7 @@ import * as Link from '../../../libs/actions/Link';
 import * as User from '../../../libs/actions/User';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
+import CONST from '../../../CONST';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -27,7 +28,7 @@ const WorkspaceCardVBANoECardView = props => (
                     title: props.translate('workspace.card.addWorkEmail'),
                     onPress: () => {
                         Navigation.dismissModal();
-                        Link.openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                        Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                         User.subscribeToExpensifyCardUpdates();
                     },
                     icon: Expensicons.Mail,
