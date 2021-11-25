@@ -21,6 +21,16 @@ const propTypes = {
 
     /** Prevent the default ContextMenu on web/Desktop */
     preventDefaultContentMenu: PropTypes.bool,
+
+    /** Use Text instead of Pressable to create inline layout.
+     * It has few limitations in comparison to Pressable.
+     *
+     * - No support for delayLongPress.
+     * - No support for pressIn and pressOut events.
+     *
+     * Note: Web uses styling instead of Text due to no support of LongPress. Thus above pointers are not valid for web.
+     */
+    inline: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -28,6 +38,7 @@ const defaultProps = {
     onPressIn: () => {},
     onPressOut: () => {},
     preventDefaultContentMenu: true,
+    inline: false,
 };
 
 export {propTypes, defaultProps};
