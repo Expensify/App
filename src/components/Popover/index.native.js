@@ -3,7 +3,7 @@ import React from 'react';
 import {propTypes as popoverPropTypes, defaultProps} from './popoverPropTypes';
 import CONST from '../../CONST';
 import Modal from '../Modal';
-import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
 const propTypes = {
     ...(_.omit(popoverPropTypes, _.keys(windowDimensionsPropTypes))),
@@ -29,4 +29,4 @@ Popover.propTypes = propTypes;
 Popover.defaultProps = defaultProps;
 Popover.displayName = 'Popover';
 
-export default Popover;
+export default withWindowDimensions(Popover);
