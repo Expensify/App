@@ -98,7 +98,7 @@ class EmojiPickerMenu extends Component {
 
         return (
             <EmojiPickerMenuItem
-                onPress={this.props.onEmojiSelected}
+                onPress={emoji => this.props.onEmojiSelected(emoji, item)}
                 emoji={emojiCode}
             />
         );
