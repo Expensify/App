@@ -4,7 +4,8 @@ import {View, PanResponder} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import _ from 'underscore';
 import ImageWithSizeCalculation from '../ImageWithSizeCalculation';
-import styles, {getWidthAndHeightStyle} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/styles';
 import variables from '../../styles/variables';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -103,7 +104,7 @@ class ImageView extends PureComponent {
                     }}
                 >
                     <ImageWithSizeCalculation
-                        style={getWidthAndHeightStyle(this.state.imageWidth, this.state.imageHeight)}
+                        style={StyleUtils.getWidthAndHeightStyle(this.state.imageWidth, this.state.imageHeight)}
                         url={this.props.url}
                         onMeasure={({width, height}) => {
                             let imageWidth = width;

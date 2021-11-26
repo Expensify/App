@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from './Icon';
-import {Phone} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import Popover from './Popover';
 import MenuItem from './MenuItem';
 import ZoomIcon from '../../assets/images/zoom-icon.svg';
@@ -112,7 +112,7 @@ class VideoChatButtonAndMenu extends Component {
                             style={[styles.touchableButtonImage, styles.mr0]}
                         >
                             <Icon
-                                src={Phone}
+                                src={Expensicons.Phone}
                                 fill={(this.props.isConcierge || this.state.isVideoChatMenuActive)
                                     ? themeColors.heading
                                     : themeColors.icon}

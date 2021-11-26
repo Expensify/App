@@ -4,7 +4,8 @@ import {Pressable} from 'react-native';
 import MenuItem from './MenuItem';
 import Tooltip from './Tooltip';
 import Icon from './Icon';
-import styles, {getIconFillColor, getButtonBackgroundColorStyle} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import getButtonState from '../libs/getButtonState';
 
 const propTypes = {
@@ -89,14 +90,14 @@ class ContextMenuItem extends Component {
                             style={
                                 ({hovered, pressed}) => [
                                     styles.reportActionContextMenuMiniButton,
-                                    getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.state.success)),
+                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, this.state.success)),
                                 ]
                             }
                         >
                             {({hovered, pressed}) => (
                                 <Icon
                                     src={icon}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, this.state.success))}
                                 />
                             )}
                         </Pressable>

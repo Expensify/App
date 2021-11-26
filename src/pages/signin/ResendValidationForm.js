@@ -7,13 +7,13 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
-import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
-import {getDefaultAvatar} from '../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -74,11 +74,11 @@ class ResendValidationForm extends React.Component {
         });
 
         if (this.props.account.closed) {
-            reopenAccount();
+            Session.reopenAccount();
         } else if (!this.props.account.validated) {
-            resendValidationLink();
+            Session.resendValidationLink();
         } else {
-            resetPassword();
+            Session.resetPassword();
         }
 
         this.successMessageTimer = setTimeout(() => {
@@ -111,7 +111,7 @@ class ResendValidationForm extends React.Component {
             <>
                 <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Avatar
-                        source={getDefaultAvatar(this.props.credentials.login)}
+                        source={OptionsListUtils.getDefaultAvatar(this.props.credentials.login)}
                         imageStyles={[styles.mr2]}
                     />
                     <View style={[styles.flex1]}>

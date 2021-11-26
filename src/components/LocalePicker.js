@@ -3,12 +3,12 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import compose from '../libs/compose';
-import {setLocale} from '../libs/actions/App';
+import * as App from '../libs/actions/App';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
 import Permissions from '../libs/Permissions';
-import {translate} from '../libs/translate';
+import * as Localize from '../libs/Localize';
 import ExpensiPicker from './ExpensiPicker';
 
 const propTypes = {
@@ -33,11 +33,11 @@ const defaultProps = {
 const localesToLanguages = {
     default: {
         value: 'en',
-        label: translate('en', 'preferencesPage.languages.english'),
+        label: Localize.translate('en', 'preferencesPage.languages.english'),
     },
     es: {
         value: 'es',
-        label: translate('es', 'preferencesPage.languages.spanish'),
+        label: Localize.translate('es', 'preferencesPage.languages.spanish'),
     },
 };
 
@@ -54,7 +54,7 @@ const LocalePicker = (props) => {
                     return;
                 }
 
-                setLocale(locale);
+                App.setLocale(locale);
             }}
             items={_.values(localesToLanguages)}
             size={props.size}

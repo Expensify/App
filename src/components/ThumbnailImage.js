@@ -4,7 +4,8 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 import addEncryptedAuthTokenToURL from '../libs/addEncryptedAuthTokenToURL';
-import styles, {getWidthAndHeightStyle} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 
 const propTypes = {
     /** Source URL for the preview image */
@@ -53,7 +54,7 @@ class ThumbnailImage extends PureComponent {
             <View style={[this.props.style, styles.overflowHidden]}>
                 <View
                     style={[
-                        getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
+                        StyleUtils.getWidthAndHeightStyle(this.state.thumbnailWidth, this.state.thumbnailHeight),
                         styles.alignItemsCenter,
                         styles.justifyContentCenter,
                     ]}
