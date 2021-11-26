@@ -10,7 +10,12 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+<<<<<<< HEAD
 import {Mail, Close} from '../../components/Icon/Expensicons';
+=======
+import CONST from '../../CONST';
+import * as Expensicons from '../../components/Icon/Expensicons';
+>>>>>>> 4d0a82e37 (Merge pull request #6483 from Expensify/cmartins-fixCONSTimport)
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
 import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
@@ -19,10 +24,17 @@ import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
+<<<<<<< HEAD
 import {ConciergeBlue} from '../../components/Icon/Illustrations';
 import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
 import {openOldDotLink} from '../../libs/actions/Link';
 import {subscribeToExpensifyCardUpdates} from '../../libs/actions/User';
+=======
+import * as Illustrations from '../../components/Icon/Illustrations';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
+import * as Link from '../../libs/actions/Link';
+import * as User from '../../libs/actions/User';
+>>>>>>> 4d0a82e37 (Merge pull request #6483 from Expensify/cmartins-fixCONSTimport)
 
 const propTypes = {
     /** Are we loading payment methods? */
