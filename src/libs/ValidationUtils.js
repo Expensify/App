@@ -1,7 +1,8 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import * as CardUtils from './CardUtils';
+import LoginUtil from './LoginUtil';
 
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
@@ -57,6 +58,23 @@ function isValidDate(date) {
 }
 
 /**
+ * Validate that date entered isn't a future date.
+ *
+ * @param {String|Date} date
+ * @returns {Boolean} true if valid
+ */
+function isValidPastDate(date) {
+    if (!date) {
+        return false;
+    }
+
+    const pastDate = moment().subtract(1000, 'years');
+    const currentDate = moment();
+    const testDate = moment(date).startOf('day');
+    return testDate.isValid() && testDate.isBetween(pastDate, currentDate);
+}
+
+/**
  * Used to validate a value that is "required".
  *
  * @param {*} value
@@ -91,7 +109,7 @@ function isValidExpirationDate(string) {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
     return moment(expirationDate).endOf('month').isAfter(moment());
 }
 
@@ -231,12 +249,20 @@ function isValidUSPhone(phoneNumber) {
 }
 
 /**
+ * @param {String} password
+ * @returns {Boolean}
+ */
+function isValidPassword(password) {
+    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+}
+
+/**
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  * @param {String} input
  * @returns {Boolean}
  */
 function isNumericWithSpecialChars(input) {
-    return /^\+?\d*$/.test(input.replace(/[()-]/g, ''));
+    return /^\+?\d*$/.test(LoginUtil.getPhoneNumberWithoutSpecialChars(input));
 }
 
 /**
@@ -252,6 +278,7 @@ export {
     meetsAgeRequirements,
     isValidAddress,
     isValidDate,
+    isValidPastDate,
     isValidSecurityCode,
     isValidExpirationDate,
     isValidDebitCard,
@@ -262,6 +289,7 @@ export {
     isValidUSPhone,
     isValidURL,
     validateIdentity,
+    isValidPassword,
     isNumericWithSpecialChars,
     isValidLengthForFirstOrLastName,
     isValidPaypalUsername,

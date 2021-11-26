@@ -1,5 +1,4 @@
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line import/no-cycle
 import SignoutManager from '../SignoutManager';
 import ONYXKEYS from '../../ONYXKEYS';
 

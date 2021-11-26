@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Text from './Text';
-import {Checkmark, Clipboard as ClipboardIcon} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
 import Icon from './Icon';
 import styles from '../styles/styles';
@@ -52,8 +52,8 @@ class CopyTextToClipboard extends React.Component {
             >
                 <Text style={this.props.textStyles}>{this.props.text}</Text>
                 {this.state.showCheckmark
-                    ? <Icon src={Checkmark} height={14} width={14} />
-                    : <Icon src={ClipboardIcon} height={14} width={14} />}
+                    ? <Icon src={Expensicons.Checkmark} height={14} width={14} />
+                    : <Icon src={Expensicons.Clipboard} height={14} width={14} />}
             </Text>
         );
     }
