@@ -3,7 +3,7 @@ import React from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
 import Text from '../../Text';
-import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
+import * as anchorForCommentsOnlyPropTypes from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
@@ -15,7 +15,8 @@ import fileDownload from '../../../libs/fileDownload';
  */
 const BaseAnchorForCommentsOnly = (props) => {
     let linkRef;
-    const rest = _.omit(props, _.keys(propTypes));
+    // eslint-disable-next-line react/forbid-foreign-prop-types
+    const rest = _.omit(props, _.keys(anchorForCommentsOnlyPropTypes.propTypes));
     return (
         props.isAttachment
             ? (
@@ -32,16 +33,17 @@ const BaseAnchorForCommentsOnly = (props) => {
             )
             : (
                 <PressableWithSecondaryInteraction
+                    inline
                     onSecondaryInteraction={
-                            (event) => {
-                                ReportActionContextMenu.showContextMenu(
-                                    ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
-                                    event,
-                                    props.href,
-                                    lodashGet(linkRef, 'current'),
-                                );
-                            }
+                        (event) => {
+                            ReportActionContextMenu.showContextMenu(
+                                ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                event,
+                                props.href,
+                                lodashGet(linkRef, 'current'),
+                            );
                         }
+                    }
                 >
                     <Text
                         ref={el => linkRef = el}
@@ -63,8 +65,8 @@ const BaseAnchorForCommentsOnly = (props) => {
     );
 };
 
-BaseAnchorForCommentsOnly.propTypes = propTypes;
-BaseAnchorForCommentsOnly.defaultProps = defaultProps;
+BaseAnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes.propTypes;
+BaseAnchorForCommentsOnly.defaultProps = anchorForCommentsOnlyPropTypes.defaultProps;
 BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
 
 export default BaseAnchorForCommentsOnly;
