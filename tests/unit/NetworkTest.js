@@ -5,12 +5,12 @@ import {
     beforeEach, jest, test, expect, afterEach,
 } from '@jest/globals';
 import * as API from '../../src/libs/API';
-import {signInWithTestUser} from '../utils/TestHelper';
+import * as TestHelper from '../utils/TestHelper';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import * as Network from '../../src/libs/Network';
-import {fetchAccountDetails} from '../../src/libs/actions/Session';
+import * as Session from '../../src/libs/actions/Session';
 
 // Set up manual mocks for methods used in the actions so our test does not fail.
 jest.mock('../../src/libs/Notification/PushNotification', () => ({
@@ -49,7 +49,7 @@ test('failing to reauthenticate while offline should not log out user', () => {
     });
 
     // Given a test user login and account ID
-    return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+    return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
         .then(() => {
             expect(isOffline).toBe(null);
 
@@ -150,7 +150,7 @@ test('consecutive API calls eventually succeed when authToken is expired', () =>
     });
 
     // When we sign in
-    return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+    return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
         .then(() => {
             HttpUtils.xhr = jest.fn();
             HttpUtils.xhr
@@ -250,7 +250,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
 
     // When we make an arbitrary request that can be retried
     // And we wait for the Onyx.callbacks to be set
-    fetchAccountDetails(TEST_USER_LOGIN);
+    Session.fetchAccountDetails(TEST_USER_LOGIN);
     return waitForPromisesToResolve().then(() => {
         // Then we expect not having the Network ready and not making an http request
         expect(spyNetworkSetIsReady).not.toHaveBeenCalled();

@@ -2,9 +2,7 @@ import React from 'react';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
 import Navigation from '../libs/Navigation/Navigation';
-import {
-    addPersonalBankAccount,
-} from '../libs/actions/BankAccounts';
+import * as BankAccounts from '../libs/actions/BankAccounts';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
 
@@ -20,7 +18,7 @@ const AddPersonalBankAccountPage = props => (
         />
         <AddPlaidBankAccount
             onSubmit={({account, password, plaidLinkToken}) => {
-                addPersonalBankAccount(account, password, plaidLinkToken);
+                BankAccounts.addPersonalBankAccount(account, password, plaidLinkToken);
             }}
             onExitPlaid={Navigation.dismissModal}
         />

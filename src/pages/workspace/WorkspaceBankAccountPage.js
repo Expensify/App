@@ -2,12 +2,12 @@ import lodashGet from 'lodash/get';
 import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import {Bank, RotateLeft} from '../../components/Icon/Expensicons';
-import {BankArrowPink} from '../../components/Icon/Illustrations';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import * as Illustrations from '../../components/Icon/Illustrations';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import compose from '../../libs/compose';
 import BankAccount from '../../libs/models/BankAccount';
 import Navigation from '../../libs/Navigation/Navigation';
@@ -94,18 +94,18 @@ class WorkspaceBankAccountPage extends React.Component {
                 />
                 <WorkspaceSection
                     title={this.props.translate('workspace.bankAccount.almostDone')}
-                    icon={BankArrowPink}
+                    icon={Illustrations.BankArrowPink}
                     menuItems={[
                         {
                             title: this.props.translate('workspace.bankAccount.continueWithSetup'),
-                            icon: Bank,
+                            icon: Expensicons.Bank,
                             onPress: this.navigateToBankAccountRoute,
                             shouldShowRightIcon: true,
                         },
                         {
                             title: this.props.translate('workspace.bankAccount.startOver'),
-                            icon: RotateLeft,
-                            onPress: requestResetFreePlanBankAccount,
+                            icon: Expensicons.RotateLeft,
+                            onPress: BankAccounts.requestResetFreePlanBankAccount,
                             shouldShowRightIcon: true,
                         },
                     ]}

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import {isDevelopment} from './Environment/Environment';
+import * as Environment from './Environment/Environment';
 import CONST from '../CONST';
 
 /**
@@ -8,7 +8,7 @@ import CONST from '../CONST';
  * @returns {Boolean}
  */
 function canUseAllBetas(betas) {
-    return isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
+    return Environment.isDevelopment() || _.contains(betas, CONST.BETAS.ALL);
 }
 
 /**
