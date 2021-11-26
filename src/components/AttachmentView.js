@@ -6,7 +6,7 @@ import styles from '../styles/styles';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
 import Icon from './Icon';
-import {Paperclip, Download} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Text from './Text';
@@ -65,13 +65,13 @@ const AttachmentView = (props) => {
             style={styles.defaultAttachmentView}
         >
             <View style={styles.mr2}>
-                <Icon src={Paperclip} />
+                <Icon src={Expensicons.Paperclip} />
             </View>
             <Text style={[styles.textStrong, styles.flexShrink1]}>{props.file && props.file.name}</Text>
             {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
                 <View style={styles.ml2}>
                     <Tooltip text={props.translate('common.download')}>
-                        <Icon src={Download} />
+                        <Icon src={Expensicons.Download} />
                     </Tooltip>
                 </View>
             )}

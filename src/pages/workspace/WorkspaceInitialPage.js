@@ -9,17 +9,7 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import Icon from '../../components/Icon';
-import {
-    Bank,
-    Gear,
-    ExpensifyCard,
-    Receipt,
-    Users,
-    Workspace,
-    Bill,
-    Invoice,
-    Luggage,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
@@ -50,49 +40,49 @@ const WorkspaceInitialPage = (props) => {
     const menuItems = [
         {
             translationKey: 'workspace.common.settings',
-            icon: Gear,
+            icon: Expensicons.Gear,
             action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceSettingsRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.card',
-            icon: ExpensifyCard,
+            icon: Expensicons.ExpensifyCard,
             action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.reimburse',
-            icon: Receipt,
+            icon: Expensicons.Receipt,
             action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceReimburseRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.bills',
-            icon: Bill,
+            icon: Expensicons.Bill,
             action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBillsRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.invoices',
-            icon: Invoice,
+            icon: Expensicons.Invoice,
             action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceInvoicesRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.travel',
-            icon: Luggage,
+            icon: Expensicons.Luggage,
             action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.members',
-            icon: Users,
+            icon: Expensicons.Users,
             action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceMembersRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.bankAccount',
-            icon: Bank,
+            icon: Expensicons.Bank,
             action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policy.id)),
             isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(props.policy.id)),
         },
@@ -132,7 +122,7 @@ const WorkspaceInitialPage = (props) => {
                                     )
                                     : (
                                         <Icon
-                                            src={Workspace}
+                                            src={Expensicons.Workspace}
                                             height={80}
                                             width={80}
                                             fill={themedefault.iconSuccessFill}

@@ -9,12 +9,7 @@ import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import {
-    getFirstAndLastNameErrors,
-    setPersonalDetails,
-    setAvatar,
-    deleteAvatar,
-} from '../../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -152,7 +147,7 @@ class ProfilePage extends Component {
             return;
         }
 
-        setPersonalDetails({
+        PersonalDetails.setPersonalDetails({
             firstName: this.state.firstName.trim(),
             lastName: this.state.lastName.trim(),
             pronouns: this.state.pronouns.trim(),
@@ -164,7 +159,7 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
@@ -204,8 +199,8 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.props.myPersonalDetails.avatar}
-                            onImageSelected={setAvatar}
-                            onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
+                            onImageSelected={PersonalDetails.setAvatar}
+                            onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
                             // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}

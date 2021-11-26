@@ -3,10 +3,10 @@ import React from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
 import Text from '../../Text';
-import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
+import * as anchorForCommentsOnlyPropTypes from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
-import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
 
@@ -20,7 +20,6 @@ class BaseAnchorForCommentsOnly extends React.Component {
         this.state = {
             isDownloading: false,
         };
-
         this.processDownload = this.processDownload.bind(this);
     }
 
@@ -37,7 +36,8 @@ class BaseAnchorForCommentsOnly extends React.Component {
 
     render() {
         let linkRef;
-        const rest = _.omit(this.props, _.keys(propTypes));
+        // eslint-disable-next-line react/forbid-foreign-prop-types
+        const rest = _.omit(this.props, _.keys(anchorForCommentsOnlyPropTypes.propTypes));
         return (
             this.props.isAttachment
                 ? (
@@ -55,16 +55,17 @@ class BaseAnchorForCommentsOnly extends React.Component {
                 )
                 : (
                     <PressableWithSecondaryInteraction
+                        inline
                         onSecondaryInteraction={
-                            (event) => {
-                                showContextMenu(
-                                    CONTEXT_MENU_TYPES.LINK,
-                                    event,
-                                    this.props.href,
-                                    lodashGet(linkRef, 'current'),
-                                );
-                            }
+                        (event) => {
+                            ReportActionContextMenu.showContextMenu(
+                                ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                event,
+                                this.props.href,
+                                lodashGet(linkRef, 'current'),
+                            );
                         }
+                    }
                     >
                         <Text
                             ref={el => linkRef = el}
@@ -82,13 +83,12 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         </Text>
                     </PressableWithSecondaryInteraction>
                 )
-
         );
     }
 }
 
-BaseAnchorForCommentsOnly.propTypes = propTypes;
-BaseAnchorForCommentsOnly.defaultProps = defaultProps;
+BaseAnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes.propTypes;
+BaseAnchorForCommentsOnly.defaultProps = anchorForCommentsOnlyPropTypes.defaultProps;
 BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
 
 export default BaseAnchorForCommentsOnly;

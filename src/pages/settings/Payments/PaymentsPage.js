@@ -12,9 +12,9 @@ import withLocalize, {withLocalizePropTypes} from '../../../components/withLocal
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import Text from '../../../components/Text';
-import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal, CreditCard} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
@@ -59,7 +59,7 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        PaymentMethods.getPaymentMethods();
     }
 
     /**
@@ -146,14 +146,14 @@ class PaymentsPage extends React.Component {
                         {!this.props.payPalMeUsername && (
                             <MenuItem
                                 title={this.props.translate('common.payPalMe')}
-                                icon={PayPal}
+                                icon={Expensicons.PayPal}
                                 onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
                                 wrapperStyle={styles.pr15}
                             />
                         )}
                         <MenuItem
                             title={this.props.translate('common.debitCard')}
-                            icon={CreditCard}
+                            icon={Expensicons.CreditCard}
                             onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                             wrapperStyle={styles.pr15}
                         />

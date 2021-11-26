@@ -1,7 +1,6 @@
 import getPlatform from '../getPlatform';
-// eslint-disable-next-line import/no-cycle
-import {Graphite_Timer} from '../API';
-import {isDevelopment} from '../Environment/Environment';
+import * as API from '../API';
+import * as Environment from '../Environment/Environment';
 import Firebase from '../Firebase';
 
 let timestampData = {};
@@ -47,12 +46,12 @@ function end(eventName, secondaryName = '') {
     console.debug(`Timing:${grafanaEventName}`, eventTime);
     delete timestampData[eventName];
 
-    if (isDevelopment()) {
+    if (Environment.isDevelopment()) {
         // Don't create traces on dev as this will mess up the accuracy of data in release builds of the app
         return;
     }
 
-    Graphite_Timer({
+    API.Graphite_Timer({
         name: grafanaEventName,
         value: eventTime,
         platform: `${getPlatform()}`,
