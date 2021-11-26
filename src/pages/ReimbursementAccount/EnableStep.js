@@ -10,6 +10,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
+import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
@@ -76,7 +77,7 @@ class EnableStep extends React.Component {
                 title: this.props.translate('workspace.bankAccount.addWorkEmail'),
                 icon: Expensicons.Mail,
                 onPress: () => {
-                    Link.openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
+                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
                     User.subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
