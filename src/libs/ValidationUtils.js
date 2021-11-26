@@ -1,7 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import * as CardUtils from './CardUtils';
 import LoginUtil from './LoginUtil';
 
 /**
@@ -109,7 +109,7 @@ function isValidExpirationDate(string) {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
     return moment(expirationDate).endOf('month').isAfter(moment());
 }
 
@@ -249,6 +249,14 @@ function isValidUSPhone(phoneNumber) {
 }
 
 /**
+ * @param {String} password
+ * @returns {Boolean}
+ */
+function isValidPassword(password) {
+    return password.match(CONST.PASSWORD_COMPLEXITY_REGEX_STRING);
+}
+
+/**
  * Checks whether a value is a numeric string including `(`, `)`, `-` and optional leading `+`
  * @param {String} input
  * @returns {Boolean}
@@ -281,6 +289,7 @@ export {
     isValidUSPhone,
     isValidURL,
     validateIdentity,
+    isValidPassword,
     isNumericWithSpecialChars,
     isValidLengthForFirstOrLastName,
     isValidPaypalUsername,

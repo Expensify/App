@@ -12,7 +12,8 @@ import {
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Config from '../../CONFIG';
-import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import fontFamily from '../../styles/fontFamily';
 import AnchorForCommentsOnly from '../AnchorForCommentsOnly';
 import InlineCodeBlock from '../InlineCodeBlock';
@@ -90,8 +91,9 @@ function AnchorRenderer(props) {
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
     const fileName = lodashGet(props.tnode, 'domNode.children[0].data', '');
     const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
-    const internalExpensifyPath = (htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, ''))
-        || (htmlAttribs.href.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
+    const attrHref = htmlAttribs.href || '';
+    const internalExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
+        || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
@@ -114,7 +116,7 @@ function AnchorRenderer(props) {
             <Text
                 style={styles.link}
                 onPress={() => {
-                    Linking.openURL(htmlAttribs.href);
+                    Linking.openURL(attrHref);
                 }}
             >
                 <TNodeChildrenRenderer tnode={props.tnode} />
@@ -124,7 +126,7 @@ function AnchorRenderer(props) {
 
     return (
         <AnchorForCommentsOnly
-            href={htmlAttribs.href}
+            href={attrHref}
             isAuthTokenRequired={isAttachment}
 
             // Unless otherwise specified open all links in
@@ -149,7 +151,7 @@ function CodeRenderer(props) {
     const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
 
     // Get the correct fontFamily variant based in the fontStyle and fontWeight
-    const font = getFontFamilyMonospace({
+    const font = StyleUtils.getFontFamilyMonospace({
         fontStyle: textStyle.fontStyle,
         fontWeight: textStyle.fontWeight,
     });
@@ -242,7 +244,7 @@ function ImgRenderer(props) {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={webViewStyles.tagStyles.img}
+                        style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
                 </TouchableOpacity>
@@ -296,8 +298,8 @@ const BaseHTMLEngineProvider = (props) => {
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
-            baseStyle={webViewStyles.baseFontStyle}
-            tagsStyles={webViewStyles.tagStyles}
+            baseStyle={styles.webViewStyles.baseFontStyle}
+            tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing={false}
             systemFonts={EXTRA_FONTS}

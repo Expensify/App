@@ -2,7 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import SVGImage from '../../../components/SVGImage';
-import styles, {getBackgroundColorStyle, getLoginPagePromoStyle} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import Text from '../../../components/Text';
 import variables from '../../../styles/variables';
@@ -26,7 +27,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const backgroundStyle = getLoginPagePromoStyle();
+const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
 
 const SignInPageLayoutWide = props => (
     <View style={[styles.flex1, styles.signInPageInner]}>
@@ -64,7 +65,7 @@ const SignInPageLayoutWide = props => (
             </View>
             <View style={[
                 styles.flexGrow1,
-                getBackgroundColorStyle(backgroundStyle.backgroundColor),
+                StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
                 props.isMediumScreenWidth && styles.alignItemsCenter,
             ]}
             >

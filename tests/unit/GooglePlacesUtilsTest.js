@@ -1,4 +1,4 @@
-import {getAddressComponent, isAddressValidForVBA} from '../../src/libs/GooglePlacesUtils';
+import * as GooglePlacesUtils from '../../src/libs/GooglePlacesUtils';
 
 describe('GooglePlacesUtilsTest', () => {
     describe('isAddressValidForVBA', () => {
@@ -41,7 +41,7 @@ describe('GooglePlacesUtilsTest', () => {
                 place_id: 'EihRdWFpbCBSaWRnZSBSZCwgRXNjb25kaWRvLCBDQSA5MjAyNywgVVNBIi4qLAoUChIJIQBiT7Pz24ARmaXMgCMhqAUSFAoSCXtDwoFe89uAEd_FlncPyNEB',
                 types: ['route'],
             };
-            const isValid = isAddressValidForVBA(googlePlacesRouteResult.address_components);
+            const isValid = GooglePlacesUtils.isAddressValidForVBA(googlePlacesRouteResult.address_components);
             expect(isValid).toStrictEqual(false);
         });
 
@@ -100,7 +100,7 @@ describe('GooglePlacesUtilsTest', () => {
                 place_id: 'EiM2NCBOb2xsIFN0LCBCcm9va2x5biwgTlkgMTEyMDYsIFVTQSJQEk4KNAoyCReOha8HXMKJETjOQzBxX7M3Gh4LEO7B7qEBGhQKEgmJzguI-VvCiRFYR8sAAcN5KAwQQCoUChIJH0FG4AZcwokRvrvwkhWA_6A',
                 types: ['street_address'],
             };
-            const isValid = isAddressValidForVBA(brooklynAddressResult.address_components);
+            const isValid = GooglePlacesUtils.isAddressValidForVBA(brooklynAddressResult.address_components);
             expect(isValid).toStrictEqual(true);
         });
     });
@@ -133,10 +133,10 @@ describe('GooglePlacesUtilsTest', () => {
                     types: ['postal_code'],
                 },
             ];
-            expect(getAddressComponent(addressComponents, 'sublocality', 'long_name')).toStrictEqual('Brooklyn');
-            expect(getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name')).toStrictEqual('NY');
-            expect(getAddressComponent(addressComponents, 'postal_code', 'long_name')).toStrictEqual('11206');
-            expect(getAddressComponent(addressComponents, 'doesn-exist', 'long_name')).toStrictEqual(undefined);
+            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name')).toStrictEqual('Brooklyn');
+            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name')).toStrictEqual('NY');
+            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name')).toStrictEqual('11206');
+            expect(GooglePlacesUtils.getAddressComponent(addressComponents, 'doesn-exist', 'long_name')).toStrictEqual(undefined);
         });
     });
 });

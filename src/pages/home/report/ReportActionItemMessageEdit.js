@@ -6,8 +6,8 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
-import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
-import {scrollToIndex} from '../../../libs/ReportScrollManager';
+import * as Report from '../../../libs/actions/Report';
+import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -88,7 +88,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     deleteDraft() {
-        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
     }
@@ -98,7 +98,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
      */
     debouncedSaveDraft() {
-        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
     }
 
     /**
@@ -107,7 +107,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     publishDraft() {
         const trimmedNewDraft = this.state.draft.trim();
-        editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
+        Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
 
@@ -142,7 +142,7 @@ class ReportActionItemMessageEdit extends React.Component {
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
-                            scrollToIndex({animated: true, index: this.props.index}, true);
+                            ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false);
                         }}
                         selection={this.state.selection}

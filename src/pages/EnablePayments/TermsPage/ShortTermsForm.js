@@ -3,42 +3,42 @@ import React from 'react';
 import {View} from 'react-native';
 import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
-import {translateLocal} from '../../../libs/translate';
+import * as Localize from '../../../libs/Localize';
 import CONST from '../../../CONST';
-import {openExternalLink} from '../../../libs/actions/Link';
+import * as Link from '../../../libs/actions/Link';
 
 const termsData = [
     {
-        title: translateLocal('termsStep.monthlyFee'),
-        rightText: translateLocal('termsStep.feeAmountZero'),
+        title: Localize.translateLocal('termsStep.monthlyFee'),
+        rightText: Localize.translateLocal('termsStep.feeAmountZero'),
     },
     {
-        title: translateLocal('termsStep.shortTermsForm.perPurchase'),
-        rightText: translateLocal('termsStep.feeAmountZero'),
+        title: Localize.translateLocal('termsStep.shortTermsForm.perPurchase'),
+        rightText: Localize.translateLocal('termsStep.feeAmountZero'),
     },
     {
-        title: translateLocal('termsStep.shortTermsForm.atmWithdrawal'),
-        subTitle: translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork'),
-        rightText: translateLocal('common.na'),
+        title: Localize.translateLocal('termsStep.shortTermsForm.atmWithdrawal'),
+        subTitle: Localize.translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork'),
+        rightText: Localize.translateLocal('common.na'),
     },
     {
-        title: translateLocal('termsStep.shortTermsForm.cashReload'),
-        rightText: translateLocal('common.na'),
+        title: Localize.translateLocal('termsStep.shortTermsForm.cashReload'),
+        rightText: Localize.translateLocal('common.na'),
     },
     {
-        title: translateLocal('termsStep.shortTermsForm.atmBalanceInquiry'),
-        subTitle: translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork'),
-        rightText: translateLocal('common.na'),
+        title: Localize.translateLocal('termsStep.shortTermsForm.atmBalanceInquiry'),
+        subTitle: Localize.translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork'),
+        rightText: Localize.translateLocal('common.na'),
     },
     {
-        title: translateLocal('termsStep.shortTermsForm.customerService'),
-        subTitle: translateLocal('termsStep.shortTermsForm.automatedOrLive'),
-        rightText: translateLocal('termsStep.feeAmountZero'),
+        title: Localize.translateLocal('termsStep.shortTermsForm.customerService'),
+        subTitle: Localize.translateLocal('termsStep.shortTermsForm.automatedOrLive'),
+        rightText: Localize.translateLocal('termsStep.feeAmountZero'),
     },
     {
-        title: translateLocal('termsStep.inactivity'),
-        subTitle: translateLocal('termsStep.shortTermsForm.afterTwelveMonths'),
-        rightText: translateLocal('termsStep.feeAmountZero'),
+        title: Localize.translateLocal('termsStep.inactivity'),
+        subTitle: Localize.translateLocal('termsStep.shortTermsForm.afterTwelveMonths'),
+        rightText: Localize.translateLocal('termsStep.feeAmountZero'),
     },
 ];
 
@@ -66,61 +66,61 @@ const getShortTermsSections = () => _.map(termsData, section => (
 const ShortTermsForm = () => (
     <>
         <Text style={styles.mb5}>
-            {translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
+            {Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
         </Text>
         <View style={[styles.border, styles.p2, styles.mb6]}>
             {getShortTermsSections()}
 
             <View style={styles.shortTermsBoldHeadingSection}>
                 <Text style={styles.textStrong}>
-                    {translateLocal('termsStep.shortTermsForm.weChargeOneFee')}
+                    {Localize.translateLocal('termsStep.shortTermsForm.weChargeOneFee')}
                 </Text>
             </View>
             <View style={styles.shortTermsRow}>
                 <View style={[styles.flex4]}>
-                    <Text>{translateLocal('termsStep.electronicFundsWithdrawal')}</Text>
+                    <Text>{Localize.translateLocal('termsStep.electronicFundsWithdrawal')}</Text>
                     <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {translateLocal('termsStep.instant')}
+                        {Localize.translateLocal('termsStep.instant')}
                     </Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
                     <Text style={[styles.textStrong, styles.textAlignRight]}>
-                        {translateLocal('termsStep.electronicFundsInstantFee')}
+                        {Localize.translateLocal('termsStep.electronicFundsInstantFee')}
                     </Text>
                     <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
-                        {translateLocal('termsStep.electronicFundsInstantFeeMin')}
+                        {Localize.translateLocal('termsStep.electronicFundsInstantFeeMin')}
                     </Text>
                 </View>
             </View>
             <View style={[styles.shortTermsBoldHeadingSection, styles.mb4]}>
                 <Text style={[styles.textStrong, styles.mb3]}>
-                    {translateLocal('termsStep.noOverdraftOrCredit')}
+                    {Localize.translateLocal('termsStep.noOverdraftOrCredit')}
                 </Text>
                 <Text style={styles.mb3}>
-                    {translateLocal('termsStep.shortTermsForm.fdicInsurance')}
+                    {Localize.translateLocal('termsStep.shortTermsForm.fdicInsurance')}
                 </Text>
                 <Text style={styles.mb3}>
-                    {translateLocal('termsStep.shortTermsForm.generalInfo')}
+                    {Localize.translateLocal('termsStep.shortTermsForm.generalInfo')}
                     {' '}
                     <Text
                         style={styles.link}
-                        onPress={() => openExternalLink(CONST.CFPB_PREPAID_URL)}
+                        onPress={() => Link.openExternalLink(CONST.CFPB_PREPAID_URL)}
                     >
                         {CONST.TERMS.CFPB_PREPAID}
                     </Text>
                     .
                 </Text>
                 <Text>
-                    {translateLocal('termsStep.shortTermsForm.conditionsDetails')}
+                    {Localize.translateLocal('termsStep.shortTermsForm.conditionsDetails')}
                     {' '}
                     <Text
                         style={styles.link}
-                        onPress={() => openExternalLink(CONST.FEES_URL)}
+                        onPress={() => Link.openExternalLink(CONST.FEES_URL)}
                     >
                         {CONST.TERMS.USE_EXPENSIFY_FEES}
                     </Text>
                     {' '}
-                    {translateLocal('termsStep.shortTermsForm.conditionsPhone')}
+                    {Localize.translateLocal('termsStep.shortTermsForm.conditionsPhone')}
                 </Text>
             </View>
         </View>
