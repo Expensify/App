@@ -1,5 +1,6 @@
 import _ from 'underscore';
-import lodash from 'lodash';
+import lodashOrderBy from 'lodash/orderBy';
+import moment from 'moment';
 import CONST from '../CONST';
 import * as UserActions from './actions/User';
 
@@ -130,18 +131,27 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
  * @param {Object} newEmoji
  */
 function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
-    let updatedFrequentlyUsedEmojis = frequentlyUsedEmojis;
-    const emojiIndex = _.findIndex(updatedFrequentlyUsedEmojis, e => e.code === newEmoji.code);
-    if (emojiIndex === -1) {
-        updatedFrequentlyUsedEmojis.push({...newEmoji, ...{count: 1}});
-    } else {
-        const currentEmoji = frequentlyUsedEmojis[emojiIndex];
-        updatedFrequentlyUsedEmojis[emojiIndex] = {...currentEmoji, ...{count: currentEmoji.count + 1}};
+    let frequentEmojiList = frequentlyUsedEmojis;
+    let currentEmojiCount = 1;
+    const currentTimestamp = moment().unix();
+    const emojiIndex = _.findIndex(frequentEmojiList, e => e.code === newEmoji.code);
+    if (emojiIndex >= 0) {
+        currentEmojiCount = frequentEmojiList[emojiIndex].count + 1;
+        frequentEmojiList.splice(emojiIndex, 1);
     }
+    const updatedEmoji = {...newEmoji, ...{count: currentEmojiCount, lastUpdatedAt: currentTimestamp}};
+    const maxFrequentEmojiCount = (CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW) - 1;
 
-    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW;
-    updatedFrequentlyUsedEmojis = lodash(updatedFrequentlyUsedEmojis).orderBy(['count'], ['desc']).take(maxFrequentEmojiCount).value();
-    UserActions.setFrequentlyUsedEmojis(updatedFrequentlyUsedEmojis);
+    // We want to make sure the current emoji is added to the list
+    // Hence, we take one less than the current high frequent used emojis and if same then sorted by lastUpdatedAt
+    frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
+    frequentEmojiList = frequentEmojiList.slice(0, maxFrequentEmojiCount);
+    frequentEmojiList.push(updatedEmoji);
+
+    // Second sorting is required so that new emoji is properly placed at sort-ordered location
+    frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
+
+    UserActions.setFrequentlyUsedEmojis(frequentEmojiList);
 }
 
 
