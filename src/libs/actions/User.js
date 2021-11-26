@@ -100,7 +100,7 @@ function getUserDetails() {
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
 
             const frequentlyUsedEmojis = lodashGet(response, `nameValuePairs.${CONST.NVP.FREQUENTLY_USED_EMOJIS}`, []);
-            Onyx.merge(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
+            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
         });
 }
 

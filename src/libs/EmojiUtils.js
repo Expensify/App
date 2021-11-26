@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import lodash from 'lodash';
 import CONST from '../CONST';
-import {setFrequentlyUsedEmojis} from './actions/User';
+import * as UserActions from './actions/User';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -131,12 +131,17 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
  */
 function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     let updatedFrequentlyUsedEmojis = frequentlyUsedEmojis;
-    const emojiCount = frequentlyUsedEmojis[newEmoji.code] + 1;
-    updatedFrequentlyUsedEmojis = lodash(updatedFrequentlyUsedEmojis).toPairs().orderBy([1], ['desc']).take((CONST.EMOJI_NUM_PER_ROW * CONST.EMOJI_FREQUENT_ROW_COUNT) - 1)
-        .fromPairs()
-        .value();
-    updatedFrequentlyUsedEmojis[newEmoji.code] = emojiCount;
-    setFrequentlyUsedEmojis(updatedFrequentlyUsedEmojis);
+    const emojiIndex = _.findIndex(updatedFrequentlyUsedEmojis, e => e.code === newEmoji.code);
+    if (emojiIndex === -1) {
+        updatedFrequentlyUsedEmojis.push({...newEmoji, ...{count: 1}});
+    } else {
+        const currentEmoji = frequentlyUsedEmojis[emojiIndex];
+        updatedFrequentlyUsedEmojis[emojiIndex] = {...currentEmoji, ...{count: currentEmoji.count + 1}};
+    }
+
+    const maxFrequentEmojiCount = CONST.EMOJI_FREQUENT_ROW_COUNT * CONST.EMOJI_NUM_PER_ROW;
+    updatedFrequentlyUsedEmojis = lodash(updatedFrequentlyUsedEmojis).orderBy(['count'], ['desc']).take(maxFrequentEmojiCount).value();
+    UserActions.setFrequentlyUsedEmojis(updatedFrequentlyUsedEmojis);
 }
 
 

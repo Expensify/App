@@ -48,7 +48,7 @@ import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
-import {addToFrequentlyUsedEmojis} from '../../../libs/EmojiUtils';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -416,7 +416,7 @@ class ReportActionCompose extends React.Component {
      * @param {Object} emojiObject
      */
     addEmojiToTextBox(emoji, emojiObject) {
-        addToFrequentlyUsedEmojis(emoji, emojiObject);
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
         this.hideEmojiPicker();
         const newComment = this.comment.slice(0, this.state.selection.start)
             + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
