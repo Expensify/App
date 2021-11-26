@@ -9,7 +9,6 @@ import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import Log from '../libs/Log';
 import PlaidLink from './PlaidLink';
-import CONST from '../CONST';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
@@ -22,8 +21,6 @@ import * as ReimbursementAccountUtils from '../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from '../pages/ReimbursementAccount/ReimbursementAccountForm';
 import getBankIcon from './Icon/BankIcons';
 import Icon from './Icon';
-import ROUTES from '../ROUTES';
-import {removeTrailingForwardSlash} from '../libs/Url';
 
 const propTypes = {
     ...withLocalizePropTypes,
@@ -128,20 +125,6 @@ class AddPlaidBankAccount extends React.Component {
      */
     getAccounts() {
         return lodashGet(this.props.plaidBankAccounts, 'accounts', []);
-    }
-
-    /**
-     * @returns {String}
-     */
-    getRedirectURI() {
-        let redirectURI;
-        const bankAccountRoute = window.location.href.includes('personal') ? ROUTES.BANK_ACCOUNT_PERSONAL : removeTrailingForwardSlash(ROUTES.getBankAccountRoute());
-        if (/staging/.test(process.env.EXPENSIFY_URL_CASH)) {
-            redirectURI = `${CONST.STAGING_NEW_EXPENSIFY_URL}/${bankAccountRoute}`;
-            return redirectURI;
-        }
-        redirectURI = `${CONST.NEW_EXPENSIFY_URL}/${bankAccountRoute}`;
-        return `http://localhost:8080/${bankAccountRoute}`;
     }
 
     /**
