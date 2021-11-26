@@ -51,7 +51,9 @@ class ImageView extends PureComponent {
     }
 
     componentWillUnmount() {
-        if (!this.state.interactionPromise) { return; }
+        if (!this.state.interactionPromise) {
+            return;
+        }
         this.state.interactionPromise.cancel();
     }
 
