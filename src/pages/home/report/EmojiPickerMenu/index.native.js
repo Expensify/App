@@ -10,6 +10,7 @@ import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
 import Text from '../../../../components/Text';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
+import * as EmojiUtils from '../../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Function to add the selected emoji to the main compose text input */
@@ -20,6 +21,13 @@ const propTypes = {
 
     /** Function to sync the selected skin tone with parent, onyx and nvp */
     updatePreferredSkinTone: PropTypes.func,
+
+    /** User's frequently used emojis */
+    frequentlyUsedEmojis: PropTypes.arrayOf(PropTypes.shape({
+        code: PropTypes.string.isRequired,
+        keywords: PropTypes.arrayOf(PropTypes.string),
+    })).isRequired,
+
 
     /** Props related to the dimensions of the window */
     ...windowDimensionsPropTypes,
@@ -39,11 +47,12 @@ class EmojiPickerMenu extends Component {
         // around each header.
         this.numColumns = CONST.EMOJI_NUM_PER_ROW;
 
+        this.emojis = EmojiUtils.mergeEmojisWithFrequentlyUsedEmojis(emojis, this.props.frequentlyUsedEmojis);
+
         // This is the indices of each category of emojis
         // The positions are static, and are calculated as index/numColumns (8 in our case)
         // This is because each row of 8 emojis counts as one index
-        // If this emojis are ever added to emojis.js this will need to be updated or things will break
-        this.unfilteredHeaderIndices = [0, 33, 59, 87, 98, 120, 147];
+        this.unfilteredHeaderIndices = EmojiUtils.getDynamicHeaderIndices(this.emojis);
 
         this.renderItem = this.renderItem.bind(this);
         this.isMobileLandscape = this.isMobileLandscape.bind(this);
@@ -100,7 +109,7 @@ class EmojiPickerMenu extends Component {
         return (
             <View style={styles.emojiPickerContainer}>
                 <FlatList
-                    data={emojis}
+                    data={this.emojis}
                     renderItem={this.renderItem}
                     keyExtractor={item => (`emoji_picker_${item.code}`)}
                     numColumns={this.numColumns}
