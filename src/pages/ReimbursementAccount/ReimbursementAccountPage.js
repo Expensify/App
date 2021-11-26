@@ -7,11 +7,7 @@ import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Log from '../../libs/Log';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {
-    fetchFreePlanVerifiedBankAccount,
-    getOAuthReceivedRedirectURI,
-    hideBankAccountErrors,
-} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import ReimbursementAccountLoadingIndicator from '../../components/ReimbursementAccountLoadingIndicator';
 import Permissions from '../../libs/Permissions';
@@ -77,10 +73,10 @@ class ReimbursementAccountPage extends React.Component {
         const stepToOpen = this.getStepToOpenFromRouteParams();
 
         // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
-        fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
+        BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
 
         // If we are coming back from the Plaid OAuth flow
-        this.receivedRedirectURI = getOAuthReceivedRedirectURI();
+        this.receivedRedirectURI = BankAccounts.getOAuthReceivedRedirectURI();
     }
 
     componentDidUpdate(prevProps) {
@@ -102,7 +98,7 @@ class ReimbursementAccountPage extends React.Component {
         // When the step changes we will navigate to update the route params. This is mostly cosmetic as we only use
         // the route params when the component first mounts to jump to a specific route instead of picking up where the
         // user left off in the flow.
-        hideBankAccountErrors();
+        BankAccounts.hideBankAccountErrors();
         Navigation.navigate(ROUTES.getBankAccountRoute(this.getRouteForCurrentStep(currentStep)));
     }
 

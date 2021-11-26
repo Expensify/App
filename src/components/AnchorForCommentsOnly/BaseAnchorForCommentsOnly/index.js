@@ -5,8 +5,8 @@ import lodashGet from 'lodash/get';
 import Text from '../../Text';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
-import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
 
@@ -34,8 +34,8 @@ const BaseAnchorForCommentsOnly = (props) => {
                 <PressableWithSecondaryInteraction
                     onSecondaryInteraction={
                             (event) => {
-                                showContextMenu(
-                                    CONTEXT_MENU_TYPES.LINK,
+                                ReportActionContextMenu.showContextMenu(
+                                    ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
                                     event,
                                     props.href,
                                     lodashGet(linkRef, 'current'),

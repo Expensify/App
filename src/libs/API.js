@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
+import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import redirectToSignIn from './actions/SignInRedirect';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
@@ -861,14 +862,10 @@ function Wallet_GetOnfidoSDKToken() {
 }
 
 /**
- * @param {Object} parameters
- * @param {String} parameters.redirect_uri
  * @returns {Promise}
  */
-function Plaid_GetLinkToken(parameters) {
-    const commandName = 'Plaid_GetLinkToken';
-    requireParameters(['redirect_uri'], parameters, commandName);
-    return Network.post(commandName, parameters, CONST.NETWORK.METHOD.POST, true);
+function Plaid_GetLinkToken() {
+    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), CONST.NETWORK.METHOD.POST, true);
 }
 
 /**

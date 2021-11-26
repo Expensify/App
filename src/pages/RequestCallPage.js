@@ -16,14 +16,14 @@ import Button from '../components/Button';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestInboxCall} from '../libs/actions/Inbox';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import * as Inbox from '../libs/actions/Inbox';
+import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
 import Text from '../components/Text';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
-import {getFirstAndLastNameErrors} from '../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import LoginUtil from '../libs/LoginUtil';
 
 const propTypes = {
@@ -108,7 +108,7 @@ class RequestCallPage extends Component {
             return;
         }
 
-        requestInboxCall({
+        Inbox.requestInboxCall({
             taskID: this.props.route.params.taskID,
             policyID: personalPolicy.id,
             firstName: this.state.firstName,
@@ -189,7 +189,7 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
@@ -206,7 +206,7 @@ class RequestCallPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
-                        onBackButtonPress={() => fetchOrCreateChatReport([
+                        onBackButtonPress={() => Report.fetchOrCreateChatReport([
                             this.props.session.email,
                             CONST.EMAIL.CONCIERGE,
                         ], true)}
