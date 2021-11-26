@@ -2,18 +2,18 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-    /* A message posted to `logError` (along with error data) when this component intercepts an error */
+    /* A message posted to `onError` (along with error data) when this component intercepts an error */
     errorMessage: PropTypes.string.isRequired,
 
     /* A function to perform the actual logging since different platforms support different tools */
-    logError: PropTypes.func,
+    onError: PropTypes.func,
 
     /* Actual content wrapped by this error boundary */
     children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
-    logError: () => {},
+    onError: () => {},
 };
 
 /**
@@ -33,7 +33,7 @@ class BaseErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        this.props.logError(this.props.errorMessage, error, errorInfo);
+        this.props.onError(this.props.errorMessage, error, errorInfo);
     }
 
     render() {

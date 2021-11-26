@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
-import {View, AppState} from 'react-native';
+import {AppState} from 'react-native';
 import Onyx, {withOnyx} from 'react-native-onyx';
 
 import BootSplash from './libs/BootSplash';
@@ -10,7 +10,6 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import ONYXKEYS from './ONYXKEYS';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import migrateOnyx from './libs/migrateOnyx';
-import styles from './styles/styles';
 import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
 import Visibility from './libs/Visibility';
@@ -68,9 +67,12 @@ class Expensify extends PureComponent {
         // Initialize this client as being an active client
         ActiveClientManager.init();
         this.hideSplash = this.hideSplash.bind(this);
+        this.setNavigationReady = this.setNavigationReady.bind(this);
         this.initializeClient = this.initializeClient.bind(true);
         this.state = {
+            isNavigationReady: false,
             isOnyxMigrated: false,
+            isSplashShown: true,
         };
     }
 
@@ -84,12 +86,8 @@ class Expensify extends PureComponent {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx()
             .then(() => {
-                // When we don't have an authToken we'll want to show the sign in screen immediately so we'll hide our
-                // boot screen right away
-                if (!this.getAuthToken()) {
-                    this.hideSplash();
-
-                    // In case of a crash that led to disconnection, we want to remove all the push notifications.
+                // In case of a crash that led to disconnection, we want to remove all the push notifications.
+                if (!this.isAuthenticated()) {
                     PushNotification.clearNotifications();
                 }
 
@@ -102,19 +100,18 @@ class Expensify extends PureComponent {
     componentDidUpdate(prevProps) {
         const previousAccountID = lodashGet(prevProps, 'session.accountID', null);
         const currentAccountID = lodashGet(this.props, 'session.accountID', null);
+
         if (currentAccountID && (currentAccountID !== previousAccountID)) {
             PushNotification.register(currentAccountID);
         }
 
-        // If we previously had no authToken and now have an authToken we'll want to reshow the boot splash screen so
-        // that we can remove it again once the content is ready
-        const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
-        if (this.getAuthToken() && !previousAuthToken) {
-            this.showSplash();
-        }
+        if (this.state.isNavigationReady && this.state.isSplashShown) {
+            const authStackReady = this.props.initialReportDataLoaded && this.props.isSidebarLoaded;
+            const shouldHideSplash = !this.isAuthenticated() || authStackReady;
 
-        if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
-            this.hideSplash();
+            if (shouldHideSplash) {
+                this.hideSplash();
+            }
         }
     }
 
@@ -122,8 +119,22 @@ class Expensify extends PureComponent {
         AppState.removeEventListener('change', this.initializeClient);
     }
 
-    getAuthToken() {
-        return lodashGet(this.props, 'session.authToken', null);
+    setNavigationReady() {
+        this.setState((state) => {
+            if (state.isNavigationReady) {
+                return state;
+            }
+
+            return {
+                ...state,
+                isNavigationReady: true,
+            };
+        });
+    }
+
+    isAuthenticated() {
+        const authToken = lodashGet(this.props, 'session.authToken', null);
+        return Boolean(authToken);
     }
 
     initializeClient() {
@@ -134,15 +145,10 @@ class Expensify extends PureComponent {
         ActiveClientManager.init();
     }
 
-    showSplash() {
-        Log.info('[BootSplash] showing splash screen', false);
-        BootSplash.show({fade: true});
-    }
-
     hideSplash() {
         Log.info('[BootSplash] hiding splash screen', false);
         BootSplash.hide({fade: true})
-            .catch(error => Log.alert('[BootSplash] hiding failed', {message: error.message, error}, false));
+            .then(() => this.setState({isSplashShown: false}));
     }
 
     reportBootSplashStatus() {
@@ -152,7 +158,7 @@ class Expensify extends PureComponent {
 
                 if (status === 'visible') {
                     const props = _.omit(this.props, ['children', 'session']);
-                    props.hasAuthToken = !_.isEmpty(this.getAuthToken());
+                    props.isAuthenticated = this.isAuthenticated();
                     Log.alert('[BootSplash] splash screen is still visible', {props}, false);
                 }
             });
@@ -161,16 +167,23 @@ class Expensify extends PureComponent {
     render() {
         // Display a blank page until the onyx migration completes
         if (!this.state.isOnyxMigrated) {
-            return (
-                <View style={styles.genericView} />
-            );
+            return null;
         }
+
         return (
             <>
-                <GrowlNotification ref={Growl.growlRef} />
-                {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                {this.props.updateAvailable ? <UpdateAppModal /> : null}
-                <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
+                {!this.state.isSplashShown && (
+                    <>
+                        <GrowlNotification ref={Growl.growlRef} />
+                        {/* We include the modal for showing a new update at the top level so the option is always present. */}
+                        {this.props.updateAvailable ? <UpdateAppModal /> : null}
+                    </>
+                )}
+
+                <NavigationRoot
+                    onReady={this.setNavigationReady}
+                    authenticated={this.isAuthenticated()}
+                />
             </>
         );
     }
