@@ -46,7 +46,6 @@ Onyx.connect({
 
 /**
  * Gets the Plaid Link token used to initialize the Plaid SDK
- *
  */
 function fetchPlaidLinkToken() {
     API.Plaid_GetLinkToken()
@@ -54,6 +53,7 @@ function fetchPlaidLinkToken() {
             if (response.jsonCode !== 200) {
                 return;
             }
+
             Onyx.merge(ONYXKEYS.PLAID_LINK_TOKEN, response.linkToken);
         });
 }
