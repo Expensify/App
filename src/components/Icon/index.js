@@ -4,8 +4,6 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
-import overflow from '../../styles/utilities/overflow';
-import positioning from '../../styles/utilities/positioning';
 import * as StyleUtils from '../../styles/StyleUtils';
 import iconWrapperStyles from './iconWrapperStyles';
 
@@ -55,8 +53,8 @@ class Icon extends PureComponent {
 
         if (this.props.inline) {
             return (
-                <View style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, overflow.overflowVisible]}>
-                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), iconWrapperStyles, positioning.pAbsolute]}>
+                <View style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}>
+                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), iconWrapperStyles, styles.pAbsolute]}>
                         {icon}
                     </View>
                 </View>
