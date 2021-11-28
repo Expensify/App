@@ -2214,15 +2214,6 @@ const styles = {
         flex: '0 0 auto',
     },
 
-    absolute: {
-        position: 'absolute',
-    },
-
-    iconInlineWrapper: {
-        overflow: 'visible',
-        backgroundColor: 'transparent',
-    },
-
     keyboardShortcutTableWrapper: {
         alignItems: 'center',
         flex: 1,

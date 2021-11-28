@@ -4,7 +4,10 @@ import PropTypes from 'prop-types';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
-import inlineTop from './iconInlineTop';
+import overflow from '../../styles/utilities/overflow';
+import positioning from '../../styles/utilities/positioning';
+import * as StyleUtils from '../../styles/StyleUtils';
+import iconWrapperStyles from './iconWrapperStyles';
 
 const propTypes = {
     /** The asset to render. */
@@ -42,7 +45,7 @@ class Icon extends PureComponent {
         const height = this.props.small ? variables.iconSizeSmall : this.props.height;
         const IconToRender = this.props.src;
 
-        const rendered = (
+        const icon = (
             <IconToRender
                 width={width}
                 height={height}
@@ -52,23 +55,15 @@ class Icon extends PureComponent {
 
         if (this.props.inline) {
             return (
-                <View style={[{
-                    width, height,
-                }, styles.iconInlineWrapper]}
-                >
-                    <View style={[{
-                        width,
-                        height,
-                        top: inlineTop,
-                    }, styles.absolute]}
-                    >
-                        {rendered}
+                <View style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, overflow.overflowVisible]}>
+                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), iconWrapperStyles, positioning.pAbsolute]}>
+                        {icon}
                     </View>
                 </View>
             );
         }
 
-        return rendered;
+        return icon;
     }
 }
 
