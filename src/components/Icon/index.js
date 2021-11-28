@@ -5,7 +5,7 @@ import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import variables from '../../styles/variables';
 import * as StyleUtils from '../../styles/StyleUtils';
-import iconWrapperStyles from './iconWrapperStyles';
+import IconWrapperStyles from './IconWrapperStyles';
 
 const propTypes = {
     /** The asset to render. */
@@ -54,7 +54,7 @@ class Icon extends PureComponent {
         if (this.props.inline) {
             return (
                 <View style={[StyleUtils.getWidthAndHeightStyle(width, height), styles.bgTransparent, styles.overflowVisible]}>
-                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), iconWrapperStyles, styles.pAbsolute]}>
+                    <View style={[StyleUtils.getWidthAndHeightStyle(width, height), IconWrapperStyles, styles.pAbsolute]}>
                         {icon}
                     </View>
                 </View>
