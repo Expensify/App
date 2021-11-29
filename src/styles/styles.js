@@ -639,6 +639,10 @@ const styles = {
         zIndex: -1,
     },
 
+    expensiTextInputWithIcon: {
+        paddingRight: 8,
+    },
+
     expensiTextInputDesktop: addOutlineWidth({}, 0),
 
     expensiTextInputAndroid: left => ({
@@ -648,7 +652,6 @@ const styles = {
 
     secureInputEyeButton: {
         paddingRight: 11.5,
-        marginLeft: -3.5,
         justifyContent: 'center',
     },
 
