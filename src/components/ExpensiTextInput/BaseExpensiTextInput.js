@@ -189,7 +189,7 @@ class BaseExpensiTextInput extends Component {
                                     />
                                 </>
                             ) : null}
-                            <View style={[styles.flexRow]}>
+                            <View style={[styles.expensiTextInputAndIconContainer]}>
                                 <TextInput
                                     ref={(ref) => {
                                         if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }

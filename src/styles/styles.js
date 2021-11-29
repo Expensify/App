@@ -613,6 +613,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderTopRightRadius: variables.componentBorderRadiusNormal,
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
+        pointerEvents: 'none',
     },
 
     expensiTextInputLabelDesktop: {
@@ -636,7 +637,11 @@ const styles = {
         paddingBottom: 8,
         paddingHorizontal: 11.5,
         borderRadius: variables.componentBorderRadiusNormal,
+    },
+
+    expensiTextInputAndIconContainer: {
         zIndex: -1,
+        flexDirection: 'row',
     },
 
     expensiTextInputDesktop: addOutlineWidth({}, 0),
