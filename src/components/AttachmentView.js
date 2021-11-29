@@ -2,12 +2,11 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import lodashGet from 'lodash/get';
 import styles from '../styles/styles';
 import PDFView from './PDFView';
 import ImageView from './ImageView';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import {Paperclip, Download} from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import Text from './Text';
@@ -56,43 +55,18 @@ const AttachmentView = (props) => {
         );
     }
 
-    const splitFileNameAndExtension = (name) => {
-        if (!name) {
-            return '';
-        }
-        const splitNames = name.split('.');
-        const extension = `.${splitNames.pop()}`;
-        const baseName = splitNames.join('.');
-        return {extension, baseName};
-    };
-
-    const renderFileName = () => {
-        const fileName = lodashGet(props, 'file.name', '');
-        const {baseName, extension} = splitFileNameAndExtension(fileName);
-        return (
-            <View style={[styles.flexRow, styles.flex1]}>
-                <View style={[styles.flexShrink1]}>
-                    <Text style={[styles.textStrong]} numberOfLines={1}>{baseName}</Text>
-                </View>
-                <View style={[styles.flexShrink0]}>
-                    <Text style={[styles.textStrong]}>{extension}</Text>
-                </View>
-            </View>
-        );
-    };
-
     return (
         <View
             style={styles.defaultAttachmentView}
         >
             <View style={styles.mr2}>
-                <Icon src={Expensicons.Paperclip} />
+                <Icon src={Paperclip} />
             </View>
-            {renderFileName()}
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.mw100]}>{props.file && props.file.name}</Text>
             {props.shouldShowDownloadIcon && (
                 <View style={styles.ml2}>
                     <Tooltip text={props.translate('common.download')}>
-                        <Icon src={Expensicons.Download} />
+                        <Icon src={Download} />
                     </Tooltip>
                 </View>
             )}
