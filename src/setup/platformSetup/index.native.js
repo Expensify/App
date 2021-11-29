@@ -1,5 +1,5 @@
 import PushNotification from '../../libs/Notification/PushNotification';
-import {subscribeToReportCommentPushNotifications} from '../../libs/actions/Report';
+import * as Report from '../../libs/actions/Report';
 import Performance from '../../libs/Performance';
 
 export default function () {
@@ -10,7 +10,7 @@ export default function () {
      * Otherwise, they will not be executed when the app is completely closed, and the push notification won't update the app data.
      */
     PushNotification.init();
-    subscribeToReportCommentPushNotifications();
+    Report.subscribeToReportCommentPushNotifications();
 
     // Setup Flipper plugins when on dev
     if (__DEV__) {

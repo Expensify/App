@@ -1,10 +1,10 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {getPathFromState, NavigationContainer} from '@react-navigation/native';
-import {navigationRef} from './Navigation';
+import * as Navigation from './Navigation';
 import linkingConfig from './linkingConfig';
 import AppNavigator from './AppNavigator';
-import {setCurrentURL} from '../actions/App';
+import * as App from '../actions/App';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import Log from '../Log';
 
@@ -37,7 +37,7 @@ class NavigationRoot extends Component {
         } else {
             Log.info('Navigating to route', false, {path});
         }
-        setCurrentURL(path);
+        App.setCurrentURL(path);
     }
 
     render() {
@@ -45,7 +45,7 @@ class NavigationRoot extends Component {
             <NavigationContainer
                 fallback={<FullScreenLoadingIndicator />}
                 onStateChange={this.parseAndStoreRoute}
-                ref={navigationRef}
+                ref={Navigation.navigationRef}
                 linking={linkingConfig}
                 documentTitle={{
                     enabled: false,

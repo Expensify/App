@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../CONST';
 import {windowDimensionsPropTypes} from '../withWindowDimensions';
+import stylePropTypes from '../../styles/stylePropTypes';
 
 const propTypes = {
     /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
@@ -54,6 +55,9 @@ const propTypes = {
         left: PropTypes.number,
     }),
 
+    /** Modal container styles  */
+    containerStyle: stylePropTypes,
+
     ...windowDimensionsPropTypes,
 };
 
@@ -68,6 +72,7 @@ const defaultProps = {
     animationIn: null,
     animationOut: null,
     popoverAnchorPosition: {},
+    containerStyle: {},
 };
 
 export {propTypes, defaultProps};
