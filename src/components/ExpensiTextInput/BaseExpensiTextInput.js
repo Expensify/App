@@ -176,7 +176,7 @@ class BaseExpensiTextInput extends Component {
                                 <>
                                     {/* Adding this background to the label only for multiline text input,
                                     to prevent text overlapping with label when scrolling */}
-                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} />}
+                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} pointerEvents="none" />}
                                     <ExpensiTextInputLabel
                                         label={this.props.label}
                                         labelTranslateX={

@@ -613,7 +613,6 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         borderTopRightRadius: variables.componentBorderRadiusNormal,
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
-        pointerEvents: 'none',
     },
 
     expensiTextInputLabelDesktop: {
