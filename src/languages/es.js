@@ -664,6 +664,7 @@ export default {
             travel: 'Reservar viaje',
             members: 'Gestionar miembros',
             bankAccount: 'Conectar cuenta bancaria',
+            testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
