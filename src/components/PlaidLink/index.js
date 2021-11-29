@@ -21,7 +21,7 @@ const PlaidLink = (props) => {
 
         // The redirect URI with an OAuth state ID. Needed to re-initialize the PlaidLink after directing the
         // user to their respective bank platform
-        receivedRedirectUri: props.receivedRedirectUri,
+        receivedRedirectUri: props.receivedRedirectURI,
     });
 
     useEffect(() => {

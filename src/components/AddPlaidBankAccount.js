@@ -77,7 +77,7 @@ const propTypes = {
     receivedRedirectURI: PropTypes.string,
 
     /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
-    existingPlaidLinkToken: PropTypes.string,
+    plaidLinkOAuthToken: PropTypes.string,
 };
 
 const defaultProps = {
@@ -89,7 +89,7 @@ const defaultProps = {
     onSubmit: () => {},
     text: '',
     receivedRedirectURI: null,
-    existingPlaidLinkToken: '',
+    plaidLinkOAuthToken: '',
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -110,7 +110,7 @@ class AddPlaidBankAccount extends React.Component {
     componentDidMount() {
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         // Otherwise, clear the existing token and fetch a new one
-        if (this.props.receivedRedirectURI && this.props.existingPlaidLinkToken) {
+        if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
             return;
         }
 
@@ -147,7 +147,7 @@ class AddPlaidBankAccount extends React.Component {
 
         const account = this.getAccounts()[this.state.selectedIndex];
         const bankName = lodashGet(this.props.plaidBankAccounts, 'bankName');
-        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.existingPlaidLinkToken;
+        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.plaidLinkOAuthToken;
         this.props.onSubmit({
             bankName,
             account,
@@ -161,20 +161,20 @@ class AddPlaidBankAccount extends React.Component {
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
-        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) || !_.isEmpty(this.props.existingPlaidLinkToken);
-        const plaidLinkTokenToUse = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.existingPlaidLinkToken;
+        const hasPlaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) || !_.isEmpty(this.props.plaidLinkOAuthToken);
+        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.plaidLinkOAuthToken;
 
         return (
             <>
-                {(!plaidLinkToken || this.props.plaidBankAccounts.loading)
+                {(!hasPlaidLinkToken || this.props.plaidBankAccounts.loading)
                 && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <ActivityIndicator color={themeColors.spinner} size="large" />
                     </View>
                 )}
-                {plaidLinkToken && (
+                {hasPlaidLinkToken && (
                     <PlaidLink
-                        token={plaidLinkTokenToUse}
+                        token={plaidLinkToken}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
                             BankAccounts.getPlaidBankAccounts(publicToken, metadata.institution.name);
@@ -187,7 +187,7 @@ class AddPlaidBankAccount extends React.Component {
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
                         onExit={this.props.onExitPlaid}
-                        receivedRedirectUri={this.props.receivedRedirectURI}
+                        receivedRedirectURI={this.props.receivedRedirectURI}
                     />
                 )}
                 {accounts.length > 0 && (

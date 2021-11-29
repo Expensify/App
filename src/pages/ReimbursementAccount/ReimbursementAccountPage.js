@@ -18,6 +18,7 @@ import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import Text from '../../components/Text';
+import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -76,7 +77,7 @@ class ReimbursementAccountPage extends React.Component {
         BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
 
         // If we are coming back from the Plaid OAuth flow
-        this.receivedRedirectURI = BankAccounts.getOAuthReceivedRedirectURI();
+        this.receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
     }
 
     componentDidUpdate(prevProps) {
@@ -213,8 +214,8 @@ class ReimbursementAccountPage extends React.Component {
                         <BankAccountStep
                             achData={achData}
                             isPlaidDisabled={this.props.reimbursementAccount.isPlaidDisabled}
-                            receivedRedirectURI={this.receivedRedirectURI}
-                            existingPlaidLinkToken={this.props.plaidLinkToken}
+                            receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+                            plaidLinkOAuthToken={this.props.plaidLinkToken}
                         />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.COMPANY && (

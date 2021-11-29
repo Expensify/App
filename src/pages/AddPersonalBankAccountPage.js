@@ -5,32 +5,28 @@ import Navigation from '../libs/Navigation/Navigation';
 import * as BankAccounts from '../libs/actions/BankAccounts';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import AddPlaidBankAccount from '../components/AddPlaidBankAccount';
+import getPlaidOAuthReceivedRedirectURI from '../libs/getPlaidOAuthReceivedRedirectURI';
 
 const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const AddPersonalBankAccountPage = (props) => {
-    // If we are coming back from the Plaid OAuth flow
-    const receivedRedirectURI = BankAccounts.getOAuthReceivedRedirectURI();
-
-    return (
-        <ScreenWrapper>
-            <HeaderWithCloseButton
-                title={props.translate('bankAccount.addBankAccount')}
-                onCloseButtonPress={Navigation.dismissModal}
-            />
-            <AddPlaidBankAccount
-                onSubmit={({account, password, plaidLinkToken}) => {
-                    BankAccounts.addPersonalBankAccount(account, password, plaidLinkToken);
-                }}
-                onExitPlaid={Navigation.dismissModal}
-                receivedRedirectURI={receivedRedirectURI}
-                existingPlaidLinkToken={props.plaidLinkToken}
-            />
-        </ScreenWrapper>
-    );
-};
+const AddPersonalBankAccountPage = props => (
+    <ScreenWrapper>
+        <HeaderWithCloseButton
+            title={props.translate('bankAccount.addBankAccount')}
+            onCloseButtonPress={Navigation.dismissModal}
+        />
+        <AddPlaidBankAccount
+            onSubmit={({account, password, plaidLinkToken}) => {
+                BankAccounts.addPersonalBankAccount(account, password, plaidLinkToken);
+            }}
+            onExitPlaid={Navigation.dismissModal}
+            receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
+            plaidLinkOAuthToken={props.plaidLinkToken}
+        />
+    </ScreenWrapper>
+);
 
 AddPersonalBankAccountPage.propTypes = propTypes;
 AddPersonalBankAccountPage.displayName = 'AddPersonalBankAccountPage';
