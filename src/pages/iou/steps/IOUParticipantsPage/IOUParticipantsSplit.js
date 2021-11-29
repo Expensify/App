@@ -229,6 +229,7 @@ class IOUParticipantsSplit extends Component {
                         disableArrowKeysActions
                         hideAdditionalOptionStates
                         forceTextUnreadStyle
+                        shouldDelayFocus
                     />
                 </View>
                 {lodashGet(this.props, 'participants', []).length > 0 && (
