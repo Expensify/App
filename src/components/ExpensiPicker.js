@@ -53,6 +53,7 @@ class ExpensiPicker extends PureComponent {
                         onClose={() => this.setState({isOpen: false})}
                         disabled={this.props.isDisabled}
                         focused={this.state.isOpen}
+                        hasError={this.props.hasError}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...pickerProps}
                     />
