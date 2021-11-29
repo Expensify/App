@@ -1,7 +1,8 @@
 import React from 'react';
 import {Animated} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
-import styles, {getSafeAreaPadding} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import growlNotificationContainerPropTypes from './growlNotificationContainerPropTypes';
 
 const propTypes = {
@@ -14,7 +15,7 @@ const GrowlNotificationContainer = props => (
             <Animated.View
                 style={[
                     styles.growlNotificationContainer,
-                    getSafeAreaPadding(insets),
+                    StyleUtils.getSafeAreaPadding(insets),
                     styles.growlNotificationTranslateY(props.translateY),
                 ]}
             >

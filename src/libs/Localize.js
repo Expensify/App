@@ -2,7 +2,6 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import Str from 'expensify-common/lib/str';
 import Onyx from 'react-native-onyx';
-// eslint-disable-next-line import/no-cycle
 import Log from './Log';
 import Config from '../CONFIG';
 import translations from '../languages/translations';

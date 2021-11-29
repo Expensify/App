@@ -3,7 +3,7 @@ import {View, Pressable, Linking} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
-import {Checkmark, Clipboard as ClipboardIcon} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import Clipboard from '../libs/Clipboard';
 import ContextMenuItem from './ContextMenuItem';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -55,9 +55,9 @@ const CommunicationsLink = props => (
                     ) : props.children}
             </View>
             <ContextMenuItem
-                icon={ClipboardIcon}
+                icon={Expensicons.Clipboard}
                 text={props.translate('reportActionContextMenu.copyToClipboard')}
-                successIcon={Checkmark}
+                successIcon={Expensicons.Checkmark}
                 successText={props.translate('reportActionContextMenu.copied')}
                 isMini
                 autoReset

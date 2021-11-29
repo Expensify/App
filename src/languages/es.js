@@ -786,4 +786,14 @@ export default {
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
     },
+    keyboardShortcutModal: {
+        title: 'Atajos de teclado',
+        subtitle: 'Ahorra tiempo con estos atajos de teclado:',
+        shortcuts: {
+            openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            escape: 'Diálogos de escape',
+            search: 'Abrir diálogo de búsqueda',
+            newGroup: 'Nueva pantalla de grupo',
+        },
+    },
 };
