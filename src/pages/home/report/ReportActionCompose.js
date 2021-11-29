@@ -12,28 +12,15 @@ import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import {withOnyx} from 'react-native-onyx';
 import lodashIntersection from 'lodash/intersection';
-import moment from 'moment';
-import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import themeColors from '../../../styles/themes/default';
 import TextInputFocusable from '../../../components/TextInputFocusable';
 import ONYXKEYS from '../../../ONYXKEYS';
 import Icon from '../../../components/Icon';
-import {
-    Plus,
-    Send,
-    Emoji,
-    Paperclip,
-    Offline,
-    MoneyCircle,
-    Receipt,
-} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import AttachmentPicker from '../../../components/AttachmentPicker';
-import {
-    addAction,
-    saveReportComment,
-    saveReportActionDraft,
-    broadcastUserIsTyping,
-} from '../../../libs/actions/Report';
+import * as Report from '../../../libs/actions/Report';
 import ReportTypingIndicator from './ReportTypingIndicator';
 import AttachmentModal from '../../../components/AttachmentModal';
 import compose from '../../../libs/compose';
@@ -43,7 +30,7 @@ import EmojiPickerMenu from './EmojiPickerMenu';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withDrawerState from '../../../components/withDrawerState';
 import getButtonState from '../../../libs/getButtonState';
-import CONST, {EXPENSIFY_EMAILS} from '../../../CONST';
+import CONST from '../../../CONST';
 import canFocusInputOnScreenFocus from '../../../libs/canFocusInputOnScreenFocus';
 import variables from '../../../styles/variables';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -52,7 +39,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
-import {canEditReportAction, hasExpensifyEmails, isArchivedRoom} from '../../../libs/reportUtils';
+import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import Text from '../../../components/Text';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
@@ -178,9 +165,11 @@ class ReportActionCompose extends React.Component {
 
     componentDidMount() {
         ReportActionComposeFocusManager.onComposerFocus(() => {
-            if (this.shouldFocusInputOnScreenFocus && this.props.isFocused) {
-                this.focus(false);
+            if (!this.shouldFocusInputOnScreenFocus || !this.props.isFocused) {
+                return;
             }
+
+            this.focus(false);
         });
         Dimensions.addEventListener('change', this.measureEmojiPopoverAnchorPosition);
     }
@@ -217,9 +206,11 @@ class ReportActionCompose extends React.Component {
      * @param {Number|String} skinTone
      */
     setPreferredSkinTone(skinTone) {
-        if (skinTone !== this.props.preferredSkinTone) {
-            User.setPreferredSkinTone(skinTone);
+        if (skinTone === this.props.preferredSkinTone) {
+            return;
         }
+
+        User.setPreferredSkinTone(skinTone);
     }
 
     /**
@@ -266,7 +257,7 @@ class ReportActionCompose extends React.Component {
      * @return {String}
      */
     getInputPlaceholder() {
-        if (isArchivedRoom(this.props.report)) {
+        if (ReportUtils.isArchivedRoom(this.props.report)) {
             return this.props.translate('reportActionCompose.roomIsArchived');
         }
 
@@ -275,6 +266,10 @@ class ReportActionCompose extends React.Component {
             && !_.isEmpty(this.props.blockedFromConcierge)
             && User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt)) {
             return this.props.translate('reportActionCompose.blockedFromConcierge');
+        }
+
+        if (_.size(this.props.reportActions) === 1) {
+            return this.props.translate('reportActionCompose.sayHello');
         }
 
         return this.props.translate('reportActionCompose.writeSomething');
@@ -289,16 +284,18 @@ class ReportActionCompose extends React.Component {
         // There could be other animations running while we trigger manual focus.
         // This prevents focus from making those animations janky.
         InteractionManager.runAfterInteractions(() => {
-            if (this.textInput) {
-                if (!shouldelay) {
-                    this.textInput.focus();
-                } else {
-                    // Keyboard is not opened after Emoji Picker is closed
-                    // SetTimeout is used as a workaround
-                    // https://github.com/react-native-modal/react-native-modal/issues/114
-                    // We carefully choose a delay. 50ms is found enough for keyboard to open.
-                    setTimeout(() => this.textInput.focus(), 50);
-                }
+            if (!this.textInput) {
+                return;
+            }
+
+            if (!shouldelay) {
+                this.textInput.focus();
+            } else {
+                // Keyboard is not opened after Emoji Picker is closed
+                // SetTimeout is used as a workaround
+                // https://github.com/react-native-modal/react-native-modal/issues/114
+                // We carefully choose a delay. 50ms is found enough for keyboard to open.
+                setTimeout(() => this.textInput.focus(), 50);
             }
         });
     }
@@ -310,7 +307,7 @@ class ReportActionCompose extends React.Component {
      * @param {String} comment
      */
     debouncedSaveReportComment(comment) {
-        saveReportComment(this.props.reportID, comment || '');
+        Report.saveReportComment(this.props.reportID, comment || '');
     }
 
     /**
@@ -318,7 +315,7 @@ class ReportActionCompose extends React.Component {
      * client events.
      */
     debouncedBroadcastUserIsTyping() {
-        broadcastUserIsTyping(this.props.reportID);
+        Report.broadcastUserIsTyping(this.props.reportID);
     }
 
     /**
@@ -331,6 +328,17 @@ class ReportActionCompose extends React.Component {
         this.setState({
             isCommentEmpty: newComment.length === 0,
         });
+
+        // Indicate that draft has been created.
+        if (this.comment.length === 0 && newComment.length !== 0) {
+            Report.setReportWithDraft(this.props.reportID.toString(), true);
+        }
+
+        // The draft has been deleted.
+        if (newComment.length === 0) {
+            Report.setReportWithDraft(this.props.reportID.toString(), false);
+        }
+
         this.comment = newComment;
         this.debouncedSaveReportComment(newComment);
         if (newComment) {
@@ -344,26 +352,28 @@ class ReportActionCompose extends React.Component {
      * @param {Object} e
      */
     triggerHotkeyActions(e) {
-        if (e) {
-            // Submit the form when Enter is pressed
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.submitForm();
-            }
+        if (!e) {
+            return;
+        }
 
-            // Trigger the edit box for last sent message if ArrowUp is pressed
-            if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
-                e.preventDefault();
+        // Submit the form when Enter is pressed
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            this.submitForm();
+        }
 
-                const reportActionKey = _.find(
-                    _.keys(this.props.reportActions).reverse(),
-                    key => canEditReportAction(this.props.reportActions[key]),
-                );
+        // Trigger the edit box for last sent message if ArrowUp is pressed
+        if (e.key === 'ArrowUp' && this.state.isCommentEmpty) {
+            e.preventDefault();
 
-                if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
-                    const {reportActionID, message} = this.props.reportActions[reportActionKey];
-                    saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
-                }
+            const reportActionKey = _.find(
+                _.keys(this.props.reportActions).reverse(),
+                key => ReportUtils.canEditReportAction(this.props.reportActions[key]),
+            );
+
+            if (reportActionKey !== -1 && this.props.reportActions[reportActionKey]) {
+                const {reportActionID, message} = this.props.reportActions[reportActionKey];
+                Report.saveReportActionDraft(this.props.reportID, reportActionID, _.last(message).html);
             }
         }
     }
@@ -381,11 +391,13 @@ class ReportActionCompose extends React.Component {
      * This gets called onLayout to find the cooridnates of the Anchor for the Emoji Picker.
      */
     measureEmojiPopoverAnchorPosition() {
-        if (this.emojiPopoverAnchor) {
-            this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
-                emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
-            }));
+        if (!this.emojiPopoverAnchor) {
+            return;
         }
+
+        this.emojiPopoverAnchor.measureInWindow((x, y, width) => this.setState({
+            emojiPopoverAnchorPosition: {horizontal: x + width, vertical: y},
+        }));
     }
 
 
@@ -403,17 +415,17 @@ class ReportActionCompose extends React.Component {
      */
     addEmojiToTextBox(emoji) {
         this.hideEmojiPicker();
-        const {selection} = this.state;
-        const newComment = this.comment.slice(0, selection.start)
-            + emoji + this.comment.slice(selection.end, this.comment.length);
+        const newComment = this.comment.slice(0, this.state.selection.start)
+            + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
         this.textInput.setNativeProps({
             text: newComment,
         });
-        const updatedSelection = {
-            start: selection.start + emoji.length,
-            end: selection.start + emoji.length,
-        };
-        this.setState({selection: updatedSelection});
+        this.setState(prevState => ({
+            selection: {
+                start: prevState.selection.start + emoji.length,
+                end: prevState.selection.start + emoji.length,
+            },
+        }));
         this.updateComment(newComment);
     }
 
@@ -421,9 +433,11 @@ class ReportActionCompose extends React.Component {
      * Focus the search input in the emoji picker.
      */
     focusEmojiSearchInput() {
-        if (this.emojiSearchInput) {
-            this.emojiSearchInput.focus();
+        if (!this.emojiSearchInput) {
+            return;
         }
+
+        this.emojiSearchInput.focus();
     }
 
     /**
@@ -456,20 +470,12 @@ class ReportActionCompose extends React.Component {
             return null;
         }
 
-        // eslint-disable-next-line no-unused-vars
         const reportParticipants = lodashGet(this.props.report, 'participants', []);
         const hasMultipleParticipants = reportParticipants.length > 1;
-        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, EXPENSIFY_EMAILS).length > 0;
+        const hasExcludedIOUEmails = lodashIntersection(reportParticipants, CONST.EXPENSIFY_EMAILS).length > 0;
         const reportRecipient = this.props.personalDetails[reportParticipants[0]];
         const currentUserTimezone = lodashGet(this.props.myPersonalDetails, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const reportRecipientTimezone = lodashGet(reportRecipient, 'timezone', CONST.DEFAULT_TIME_ZONE);
-        const shouldShowReportRecipientLocalTime = !hasExpensifyEmails(reportParticipants)
-            && !hasMultipleParticipants
-            && reportRecipient
-            && reportRecipientTimezone
-            && currentUserTimezone.selected
-            && reportRecipientTimezone.selected
-            && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
+        const shouldShowReportRecipientLocalTime = ReportUtils.canShowReportRecipientLocalTime(this.props.personalDetails, this.props.myPersonalDetails, this.props.report);
 
         // Prevents focusing and showing the keyboard while the drawer is covering the chat.
         const isComposeDisabled = this.props.isDrawerOpen && this.props.isSmallScreenWidth;
@@ -480,7 +486,7 @@ class ReportActionCompose extends React.Component {
             isBlockedFromConcierge = User.isBlockedFromConcierge(this.props.blockedFromConcierge.expiresAt);
         }
         const inputPlaceholder = this.getInputPlaceholder();
-        const isArchivedChatRoom = isArchivedRoom(this.props.report);
+        const isArchivedChatRoom = ReportUtils.isArchivedRoom(this.props.report);
 
         return (
             <View style={[
@@ -502,7 +508,7 @@ class ReportActionCompose extends React.Component {
                         isUploadingAttachment
                         onConfirm={(file) => {
                             this.submitForm();
-                            addAction(this.props.reportID, '', file);
+                            Report.addAction(this.props.reportID, '', file);
                             this.setTextInputShouldClear(false);
                         }}
                     >
@@ -522,7 +528,7 @@ class ReportActionCompose extends React.Component {
                                                         underlayColor={themeColors.componentBG}
                                                         disabled={isBlockedFromConcierge || isArchivedChatRoom}
                                                     >
-                                                        <Icon src={Plus} />
+                                                        <Icon src={Expensicons.Plus} />
                                                     </TouchableOpacity>
                                                 </Tooltip>
                                             </View>
@@ -538,7 +544,7 @@ class ReportActionCompose extends React.Component {
                                                         && Permissions.canUseIOU(this.props.betas) ? [
                                                             hasMultipleParticipants
                                                                 ? {
-                                                                    icon: Receipt,
+                                                                    icon: Expensicons.Receipt,
                                                                     text: this.props.translate('iou.splitBill'),
                                                                     onSelected: () => {
                                                                         Navigation.navigate(
@@ -549,7 +555,7 @@ class ReportActionCompose extends React.Component {
                                                                     },
                                                                 }
                                                                 : {
-                                                                    icon: MoneyCircle,
+                                                                    icon: Expensicons.MoneyCircle,
                                                                     text: this.props.translate('iou.requestMoney'),
                                                                     onSelected: () => {
                                                                         Navigation.navigate(
@@ -562,7 +568,7 @@ class ReportActionCompose extends React.Component {
                                                         ] : []),
                                                     ...(!hasExcludedIOUEmails && Permissions.canUseIOUSend(this.props.betas) && !hasMultipleParticipants ? [
                                                         {
-                                                            icon: Send,
+                                                            icon: Expensicons.Send,
                                                             text: this.props.translate('iou.sendMoney'),
                                                             onSelected: () => {
                                                                 Navigation.navigate(
@@ -574,7 +580,7 @@ class ReportActionCompose extends React.Component {
                                                         },
                                                     ] : []),
                                                     {
-                                                        icon: Paperclip,
+                                                        icon: Expensicons.Paperclip,
                                                         text: this.props.translate('reportActionCompose.addAttachment'),
                                                         onSelected: () => {
                                                             openPicker({
@@ -590,7 +596,7 @@ class ReportActionCompose extends React.Component {
                                     )}
                                 </AttachmentPicker>
                                 <TextInputFocusable
-                                    autoFocus={this.shouldFocusInputOnScreenFocus}
+                                    autoFocus={this.shouldFocusInputOnScreenFocus || _.size(this.props.reportActions) === 1}
                                     multiline
                                     ref={this.setTextInputRef}
                                     textAlignVertical="top"
@@ -599,14 +605,18 @@ class ReportActionCompose extends React.Component {
                                     onChangeText={this.updateComment}
                                     onKeyPress={this.triggerHotkeyActions}
                                     onDragEnter={(e, isOriginComposer) => {
-                                        if (isOriginComposer) {
-                                            this.setState({isDraggingOver: true});
+                                        if (!isOriginComposer) {
+                                            return;
                                         }
+
+                                        this.setState({isDraggingOver: true});
                                     }}
                                     onDragOver={(e, isOriginComposer) => {
-                                        if (isOriginComposer) {
-                                            this.setState({isDraggingOver: true});
+                                        if (!isOriginComposer) {
+                                            return;
                                         }
+
+                                        this.setState({isDraggingOver: true});
                                     }}
                                     onDragLeave={() => this.setState({isDraggingOver: false})}
                                     onDrop={(e) => {
@@ -664,7 +674,7 @@ class ReportActionCompose extends React.Component {
                     <Pressable
                         style={({hovered, pressed}) => ([
                             styles.chatItemEmojiButton,
-                            getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
+                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)),
                         ])}
                         ref={el => this.emojiPopoverAnchor = el}
                         onLayout={this.measureEmojiPopoverAnchorPosition}
@@ -674,8 +684,8 @@ class ReportActionCompose extends React.Component {
                         {({hovered, pressed}) => (
                             <Tooltip text={this.props.translate('reportActionCompose.emoji')}>
                                 <Icon
-                                    src={Emoji}
-                                    fill={getIconFillColor(getButtonState(hovered, pressed))}
+                                    src={Expensicons.Emoji}
+                                    fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                                 />
                             </Tooltip>
                         )}
@@ -690,7 +700,7 @@ class ReportActionCompose extends React.Component {
                                 underlayColor={themeColors.componentBG}
                                 disabled={this.state.isCommentEmpty || isBlockedFromConcierge || isArchivedChatRoom}
                             >
-                                <Icon src={Send} fill={themeColors.componentBG} />
+                                <Icon src={Expensicons.Send} fill={themeColors.componentBG} />
                             </TouchableOpacity>
                         </Tooltip>
                     </View>
@@ -703,7 +713,7 @@ class ReportActionCompose extends React.Component {
                             styles.alignItemsCenter]}
                         >
                             <Icon
-                                src={Offline}
+                                src={Expensicons.Offline}
                                 width={variables.iconSizeExtraSmall}
                                 height={variables.iconSizeExtraSmall}
                             />

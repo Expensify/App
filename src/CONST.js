@@ -1,7 +1,10 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
+const PLATFORM_OS_MACOS = 'Mac OS';
 
 const CONST = {
+    ANIMATED_TRANSITION: 300,
+
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
@@ -119,6 +122,47 @@ const CONST = {
         IOS: 'ios',
         ANDROID: 'android',
     },
+    KEYBOARD_SHORTCUT_MODIFIERS: {
+        CTRL: {
+            DEFAULT: 'control',
+            [PLATFORM_OS_MACOS]: 'meta',
+        },
+        SHIFT: {
+            DEFAULT: 'shift',
+        },
+    },
+    KEYBOARD_SHORTCUTS: {
+        SEARCH: {
+            descriptionKey: 'search',
+            shortcutKey: 'K',
+            modifiers: ['CTRL'],
+        },
+        NEW_GROUP: {
+            descriptionKey: 'newGroup',
+            shortcutKey: 'K',
+            modifiers: ['CTRL', 'SHIFT'],
+        },
+        SHORTCUT_MODAL: {
+            descriptionKey: 'openShortcutDialog',
+            shortcutKey: '?',
+            modifiers: ['CTRL'],
+        },
+        ESCAPE: {
+            descriptionKey: 'escape',
+            shortcutKey: 'Escape',
+            modifiers: [],
+        },
+        ENTER: {
+            descriptionKey: null,
+            shortcutKey: 'Enter',
+            modifiers: [],
+        },
+    },
+    KEYBOARD_SHORTCUT_KEY_DISPLAY_NAME: {
+        CONTROL: 'Ctrl',
+        META: 'Cmd',
+        SHIFT: 'Shift',
+    },
     CURRENCY: {
         USD: 'USD',
     },
@@ -135,7 +179,7 @@ const CONST = {
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
     PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
-    ADD_SECONDARY_LOGIN_URL: 'settings?param={%22section%22:%22account%22}',
+    ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
     CFPB_PREPAID_URL: 'https://cfpb.gov/prepaid',
@@ -184,6 +228,7 @@ const CONST = {
             DAILY: 'daily',
             ALWAYS: 'always',
         },
+        MAX_PREVIEW_AVATARS: 4,
     },
     MODAL: {
         MODAL_TYPE: {
@@ -287,18 +332,21 @@ const CONST = {
     COMPOSER_MAX_HEIGHT: 116,
 
     EMAIL: {
-        CHRONOS: 'chronos@expensify.com',
         CONCIERGE: 'concierge@expensify.com',
-        RECEIPTS: 'receipts@expensify.com',
         HELP: 'help@expensify.com',
+        RECEIPTS: 'receipts@expensify.com',
+        CHRONOS: 'chronos@expensify.com',
         QA: 'qa@expensify.com',
         CONTRIBUTORS: 'contributors@expensify.com',
         FIRST_RESPONDER: 'firstresponders@expensify.com',
         QA_TRAVIS: 'qa+travisreceipts@expensify.com',
         BILLS: 'bills@expensify.com',
         STUDENT_AMBASSADOR: 'studentambassadors@expensify.com',
+        ACCOUNTING: 'accounting@expensify.com',
+        PAYROLL: 'payroll@expensify.com',
         SVFG: 'svfg@expensify.com',
         INTEGRATION_TESTING_CREDS: 'integrationtestingcreds@expensify.com',
+        ADMIN: 'admin@expensify.com',
     },
 
     ENVIRONMENT: {
@@ -360,7 +408,7 @@ const CONST = {
 
     OS: {
         WINDOWS: 'Windows',
-        MAC_OS: 'Mac OS',
+        MAC_OS: PLATFORM_OS_MACOS,
         ANDROID: 'Android',
         IOS: 'iOS',
         LINUX: 'Linux',
@@ -428,9 +476,11 @@ const CONST = {
         LARGE: 'large',
         DEFAULT: 'default',
     },
+
     PHONE_MAX_LENGTH: 15,
     PHONE_MIN_LENGTH: 5,
     REGEX: {
+        SPECIAL_CHARS_WITHOUT_NEWLINE: /((?!\n)[()-\s\t])/g,
         US_PHONE: /^\+1\d{10}$/,
         DIGITS_AND_PLUS: /^\+?[0-9]*$/,
         PHONE_E164_PLUS: /^\+?[1-9]\d{1,14}$/,
@@ -459,24 +509,25 @@ const CONST = {
         PREFIX: '__predefined_',
         SELF_SELECT: '__predefined_selfSelect',
     },
+    get EXPENSIFY_EMAILS() {
+        return [
+            this.EMAIL.CONCIERGE,
+            this.EMAIL.HELP,
+            this.EMAIL.RECEIPTS,
+            this.EMAIL.CHRONOS,
+            this.EMAIL.QA,
+            this.EMAIL.CONTRIBUTORS,
+            this.EMAIL.FIRST_RESPONDER,
+            this.EMAIL.QA_TRAVIS,
+            this.EMAIL.BILLS,
+            this.EMAIL.STUDENT_AMBASSADOR,
+            this.EMAIL.ACCOUNTING,
+            this.EMAIL.PAYROLL,
+            this.EMAIL.SVFG,
+            this.EMAIL.INTEGRATION_TESTING_CREDS,
+            this.EMAIL.ADMIN,
+        ];
+    },
 };
 
-const EXPENSIFY_EMAILS = [
-    CONST.EMAIL.CONCIERGE,
-    CONST.EMAIL.CONTRIBUTORS,
-    CONST.EMAIL.FIRST_RESPONDER,
-    CONST.EMAIL.HELP,
-    CONST.EMAIL.QA,
-    CONST.EMAIL.CHRONOS,
-    CONST.EMAIL.RECEIPTS,
-    CONST.EMAIL.BILLS,
-    CONST.EMAIL.STUDENT_AMBASSADOR,
-    CONST.EMAIL.QA_TRAVIS,
-    CONST.EMAIL.SVFG,
-    CONST.EMAIL.INTEGRATION_TESTING_CREDS,
-];
-
-export {
-    EXPENSIFY_EMAILS,
-};
 export default CONST;

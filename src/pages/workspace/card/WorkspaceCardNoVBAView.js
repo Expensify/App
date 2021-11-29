@@ -6,8 +6,8 @@ import styles from '../../../styles/styles';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {Bank} from '../../../components/Icon/Expensicons';
-import {JewelBoxBlue} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import UnorderedList from '../../../components/UnorderedList';
 import WorkspaceSection from '../WorkspaceSection';
 
@@ -18,29 +18,29 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceCardNoVBAView = ({translate, policyID}) => (
+const WorkspaceCardNoVBAView = props => (
     <WorkspaceSection
-        title={translate('workspace.card.header')}
-        icon={JewelBoxBlue}
+        title={props.translate('workspace.card.header')}
+        icon={Illustrations.JewelBoxBlue}
         menuItems={[
             {
-                title: translate('workspace.common.bankAccount'),
-                onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
-                icon: Bank,
+                title: props.translate('workspace.common.bankAccount'),
+                onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
+                icon: Expensicons.Bank,
                 shouldShowRightIcon: true,
             },
         ]}
     >
         <View style={[styles.mv4]}>
-            <Text>{translate('workspace.card.noVBACopy')}</Text>
+            <Text>{props.translate('workspace.card.noVBACopy')}</Text>
         </View>
 
         <UnorderedList
             items={[
-                translate('workspace.card.benefit1'),
-                translate('workspace.card.benefit2'),
-                translate('workspace.card.benefit3'),
-                translate('workspace.card.benefit4'),
+                props.translate('workspace.card.benefit1'),
+                props.translate('workspace.card.benefit2'),
+                props.translate('workspace.card.benefit3'),
+                props.translate('workspace.card.benefit4'),
             ]}
         />
     </WorkspaceSection>

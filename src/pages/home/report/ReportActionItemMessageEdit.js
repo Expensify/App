@@ -6,8 +6,8 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
-import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
-import {scrollToIndex} from '../../../libs/ReportScrollManager';
+import * as Report from '../../../libs/actions/Report';
+import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -28,11 +28,18 @@ const propTypes = {
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
+    /** A ref to forward to the text input */
+    forwardedRef: PropTypes.func,
+
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
     /** Localization props */
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    forwardedRef: () => {},
 };
 
 class ReportActionItemMessageEdit extends React.Component {
@@ -81,7 +88,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     deleteDraft() {
-        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
     }
@@ -91,7 +98,7 @@ class ReportActionItemMessageEdit extends React.Component {
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
      */
     debouncedSaveDraft() {
-        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
     }
 
     /**
@@ -100,7 +107,7 @@ class ReportActionItemMessageEdit extends React.Component {
      */
     publishDraft() {
         const trimmedNewDraft = this.state.draft.trim();
-        editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
+        Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
 
@@ -125,17 +132,19 @@ class ReportActionItemMessageEdit extends React.Component {
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
                     <TextInputFocusable
                         multiline
-                        ref={el => this.textInput = el}
+                        ref={(el) => {
+                            this.textInput = el;
+                            this.props.forwardedRef(el);
+                        }}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
                         defaultValue={this.state.draft}
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
-                            scrollToIndex({animated: true, index: this.props.index}, true);
+                            ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false);
                         }}
-                        autoFocus
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
@@ -161,7 +170,11 @@ class ReportActionItemMessageEdit extends React.Component {
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
+ReportActionItemMessageEdit.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(ReportActionItemMessageEdit);
+)(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <ReportActionItemMessageEdit {...props} forwardedRef={ref} />
+)));

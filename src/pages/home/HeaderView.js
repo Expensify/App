@@ -9,23 +9,21 @@ import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import themeColors from '../../styles/themes/default';
 import Icon from '../../components/Icon';
-import {BackArrow, Pin} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import compose from '../../libs/compose';
-import {togglePinnedState} from '../../libs/actions/Report';
+import * as Report from '../../libs/actions/Report';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
 import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import DisplayNames from '../../components/DisplayNames';
-import {getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
-import {
-    getDefaultRoomSubtitle, isDefaultRoom, isArchivedRoom, hasExpensifyEmails,
-} from '../../libs/reportUtils';
+import * as ReportUtils from '../../libs/reportUtils';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 
@@ -77,7 +75,7 @@ const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
-        getPersonalDetailsForLogins(participants, props.personalDetails),
+        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
         ({displayName, firstName, login}) => {
             const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
 
@@ -87,14 +85,14 @@ const HeaderView = (props) => {
             };
         },
     );
-    const isDefaultChatRoom = isDefaultRoom(props.report);
+    const isDefaultChatRoom = ReportUtils.isDefaultRoom(props.report);
     const title = isDefaultChatRoom
         ? props.report.reportName
         : _.map(displayNamesWithTooltips, ({displayName}) => displayName).join(', ');
 
-    const subtitle = getDefaultRoomSubtitle(props.report, props.policies);
+    const subtitle = ReportUtils.getDefaultRoomSubtitle(props.report, props.policies);
     const isConcierge = participants.length === 1 && _.contains(participants, CONST.EMAIL.CONCIERGE);
-    const isAutomatedExpensifyAccount = (participants.length === 1 && hasExpensifyEmails(participants));
+    const isAutomatedExpensifyAccount = (participants.length === 1 && ReportUtils.hasExpensifyEmails(participants));
 
     // We hide the button when we are chatting with an automated Expensify account since it's not possible to contact
     // these users via alternative means. It is possible to request a call with Concierge so we leave the option for them.
@@ -109,7 +107,7 @@ const HeaderView = (props) => {
                             onPress={props.onNavigationMenuButtonClicked}
                             style={[styles.LHNToggle]}
                         >
-                            <Icon src={BackArrow} />
+                            <Icon src={Expensicons.BackArrow} />
                         </Pressable>
                     </Tooltip>
                 )}
@@ -124,7 +122,7 @@ const HeaderView = (props) => {
                     >
                         <Pressable
                             onPress={() => {
-                                if (isDefaultRoom(props.report)) {
+                                if (ReportUtils.isDefaultRoom(props.report)) {
                                     return Navigation.navigate(ROUTES.getReportDetailsRoute(props.report.reportID));
                                 }
                                 if (participants.length === 1) {
@@ -138,7 +136,7 @@ const HeaderView = (props) => {
                                 avatarImageURLs={props.report.icons}
                                 secondAvatarStyle={[styles.secondAvatarHovered]}
                                 isDefaultChatRoom={isDefaultChatRoom}
-                                isArchivedRoom={isArchivedRoom(props.report)}
+                                isArchivedRoom={ReportUtils.isArchivedRoom(props.report)}
                             />
                             <View style={[styles.flex1, styles.flexColumn]}>
                                 <DisplayNames
@@ -172,10 +170,10 @@ const HeaderView = (props) => {
                             {shouldShowCallButton && <VideoChatButtonAndMenu isConcierge={isConcierge} />}
                             <Tooltip text={props.report.isPinned ? props.translate('common.unPin') : props.translate('common.pin')}>
                                 <Pressable
-                                    onPress={() => togglePinnedState(props.report)}
+                                    onPress={() => Report.togglePinnedState(props.report)}
                                     style={[styles.touchableButtonImage, styles.mr0]}
                                 >
-                                    <Icon src={Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
+                                    <Icon src={Expensicons.Pin} fill={props.report.isPinned ? themeColors.heading : themeColors.icon} />
                                 </Pressable>
                             </Tooltip>
                         </View>

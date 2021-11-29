@@ -3,21 +3,23 @@ import Onyx from 'react-native-onyx';
 import lodashGet from 'lodash/get';
 import * as API from '../API';
 import ONYXKEYS from '../../ONYXKEYS';
-import {formatPersonalDetails} from './PersonalDetails';
+import * as PersonalDetails from './PersonalDetails';
 import Growl from '../Growl';
 import CONST from '../../CONST';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import {addSMSDomainIfPhoneNumber} from '../OptionsListUtils';
+import * as OptionsListUtils from '../OptionsListUtils';
 
 const allPolicies = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (val, key) => {
-        if (val && key) {
-            allPolicies[key] = {...allPolicies[key], ...val};
+        if (!val || !key) {
+            return;
         }
+
+        allPolicies[key] = {...allPolicies[key], ...val};
     },
 });
 
@@ -41,38 +43,27 @@ function getSimplifiedEmployeeList(employeeList) {
  * Takes a full policy that is returned from the policyList and simplifies it so we are only storing
  * the pieces of data that we need to in Onyx
  *
- * @param {Object} fullPolicy
- * @param {String} fullPolicy.id
- * @param {String} fullPolicy.name
- * @param {String} fullPolicy.role
- * @param {String} fullPolicy.type
- * @param {String} fullPolicy.outputCurrency
- * @param {Object} fullPolicy.value.employeeList
- * @param {String} [fullPolicy.value.avatarURL]
+ * @param {Object} fullPolicyOrPolicySummary
+ * @param {String} fullPolicyOrPolicySummary.id
+ * @param {String} fullPolicyOrPolicySummary.name
+ * @param {String} fullPolicyOrPolicySummary.role
+ * @param {String} fullPolicyOrPolicySummary.type
+ * @param {String} fullPolicyOrPolicySummary.outputCurrency
+ * @param {String} [fullPolicyOrPolicySummary.value.avatarURL]
+ * @param {Object} [fullPolicyOrPolicySummary.value.employeeList]
  * @returns {Object}
  */
-function getSimplifiedPolicyObject(fullPolicy) {
+function getSimplifiedPolicyObject(fullPolicyOrPolicySummary) {
     return {
-        id: fullPolicy.id,
-        name: fullPolicy.name,
-        role: fullPolicy.role,
-        type: fullPolicy.type,
-        owner: fullPolicy.owner,
-        outputCurrency: fullPolicy.outputCurrency,
-        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicy, 'value.employeeList')),
-        avatarURL: lodashGet(fullPolicy, 'value.avatarURL', ''),
+        id: fullPolicyOrPolicySummary.id,
+        name: fullPolicyOrPolicySummary.name,
+        role: fullPolicyOrPolicySummary.role,
+        type: fullPolicyOrPolicySummary.type,
+        owner: fullPolicyOrPolicySummary.owner,
+        outputCurrency: fullPolicyOrPolicySummary.outputCurrency,
+        avatarURL: fullPolicyOrPolicySummary.avatarURL || '',
+        employeeList: getSimplifiedEmployeeList(lodashGet(fullPolicyOrPolicySummary, 'value.employeeList')),
     };
-}
-
-/**
- * @param {Array<Object>} policyList
- * @returns {Object}
- */
-function transformPolicyListToOnyxCollection(policyList) {
-    return _.reduce(policyList, (memo, policy) => ({
-        ...memo,
-        [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
-    }), {});
 }
 
 /**
@@ -102,13 +93,15 @@ function updateAllPolicies(policyCollection) {
  * @param {Boolean} [shouldAutomaticallyReroute]
  * @returns {Promise}
  */
-function create(name = '', shouldAutomaticallyReroute = true) {
+function create(name = '') {
+    Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, true);
     let res = null;
     return API.Policy_Create({type: CONST.POLICY.TYPE.FREE, policyName: name})
         .then((response) => {
+            Onyx.set(ONYXKEYS.IS_CREATING_WORKSPACE, false);
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
                 return;
             }
@@ -123,14 +116,23 @@ function create(name = '', shouldAutomaticallyReroute = true) {
                 role: CONST.POLICY.ROLE.ADMIN,
                 outputCurrency: response.policy.outputCurrency,
             });
-        }).then(() => {
-            const policyID = lodashGet(res, 'policyID');
-            if (shouldAutomaticallyReroute) {
-                Navigation.dismissModal();
-                Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
-            }
-            return Promise.resolve(policyID);
-        });
+        })
+        .then(() => Promise.resolve(lodashGet(res, 'policyID')));
+}
+
+/**
+ * @param {String} policyID
+ */
+function navigateToPolicy(policyID) {
+    Navigation.dismissModal();
+    Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
+}
+
+/**
+ * @param {String} [name]
+ */
+function createAndNavigate(name = '') {
+    create(name).then(navigateToPolicy);
 }
 
 /**
@@ -144,37 +146,51 @@ function create(name = '', shouldAutomaticallyReroute = true) {
  *
  * This way, we ensure that there's no race condition between creating the new policy and fetching existing ones,
  * and we also don't have to wait for full policies to load before navigating to the new policy.
- *
- * @param {Boolean} [shouldCreateNewPolicy]
  */
-function getPolicyList(shouldCreateNewPolicy = false) {
+function getPolicyList() {
+    API.GetPolicySummaryList()
+        .then((data) => {
+            if (data.jsonCode !== 200) {
+                return;
+            }
+
+            const policyCollection = _.reduce(data.policySummaryList, (memo, policy) => ({
+                ...memo,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: getSimplifiedPolicyObject(policy),
+            }), {});
+
+            if (!_.isEmpty(policyCollection)) {
+                updateAllPolicies(policyCollection);
+            }
+        });
+}
+
+function createAndGetPolicyList() {
     let newPolicyID;
-    const createPolicyPromise = shouldCreateNewPolicy
-        ? create('', false)
-        : Promise.resolve();
-    createPolicyPromise
+    create()
         .then((policyID) => {
             newPolicyID = policyID;
-            return API.GetPolicySummaryList();
+            return getPolicyList();
         })
+        .then(() => navigateToPolicy(newPolicyID));
+}
+
+/**
+ * @param {String} policyID
+ */
+function loadFullPolicy(policyID) {
+    API.GetFullPolicy(policyID)
         .then((data) => {
-            if (data.jsonCode === 200) {
-                const policyDataToStore = transformPolicyListToOnyxCollection(data.policySummaryList || []);
-                updateAllPolicies(policyDataToStore);
+            if (data.jsonCode !== 200) {
+                return;
             }
 
-            if (shouldCreateNewPolicy) {
-                Navigation.dismissModal();
-                Navigation.navigate(newPolicyID ? ROUTES.getWorkspaceInitialRoute(newPolicyID) : ROUTES.HOME);
+            const policy = lodashGet(data, 'policyList[0]', {});
+            if (!policy.id) {
+                return;
             }
 
-            return API.GetPolicyList();
-        })
-        .then((data) => {
-            if (data.jsonCode === 200) {
-                const policyDataToStore = transformPolicyListToOnyxCollection(data.policyList || []);
-                updateAllPolicies(policyDataToStore);
-            }
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, getSimplifiedPolicyObject(policy));
         });
 }
 
@@ -227,7 +243,7 @@ function removeMembers(members, policyID) {
 
             // Show the user feedback that the removal failed
             console.error(data.message);
-            Growl.show(translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
+            Growl.show(Localize.translateLocal('workspace.people.genericFailureMessage'), CONST.GROWL.ERROR, 5000);
         });
 }
 
@@ -240,7 +256,7 @@ function removeMembers(members, policyID) {
  */
 function invite(logins, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const newEmployeeList = _.map(logins, login => addSMSDomainIfPhoneNumber(login));
+    const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);
@@ -259,7 +275,7 @@ function invite(logins, welcomeNote, policyID) {
         .then((data) => {
             // Save the personalDetails for the invited user in Onyx
             if (data.jsonCode === 200) {
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, formatPersonalDetails(data.personalDetails));
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS, PersonalDetails.formatPersonalDetails(data.personalDetails));
                 Navigation.goBack();
                 return;
             }
@@ -269,9 +285,9 @@ function invite(logins, welcomeNote, policyID) {
             policyDataWithoutLogin.employeeList = _.without(allPolicies[key].employeeList, ...newEmployeeList);
 
             // Show the user feedback that the addition failed
-            policyDataWithoutLogin.alertMessage = translateLocal('workspace.invite.genericFailureMessage');
+            policyDataWithoutLogin.alertMessage = Localize.translateLocal('workspace.invite.genericFailureMessage');
             if (data.jsonCode === 402) {
-                policyDataWithoutLogin.alertMessage += ` ${translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
+                policyDataWithoutLogin.alertMessage += ` ${Localize.translateLocal('workspace.invite.pleaseEnterValidLogin')}`;
             }
 
             Onyx.set(key, policyDataWithoutLogin);
@@ -304,13 +320,13 @@ function update(policyID, values, shouldGrowl = false) {
 
             updateLocalPolicyValues(policyID, {...values, isPolicyUpdating: false});
             if (shouldGrowl) {
-                Growl.show(translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
+                Growl.show(Localize.translateLocal('workspace.common.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
             }
         }).catch(() => {
             updateLocalPolicyValues(policyID, {isPolicyUpdating: false});
 
             // Show the user feedback
-            const errorMessage = translateLocal('workspace.editor.genericFailureMessage');
+            const errorMessage = Localize.translateLocal('workspace.editor.genericFailureMessage');
             Growl.error(errorMessage, 5000);
         });
 }
@@ -333,7 +349,7 @@ function uploadAvatar(policyID, file) {
             }
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {isAvatarUploading: false});
-            const errorMessage = translateLocal('workspace.editor.avatarUploadFailureMessage');
+            const errorMessage = Localize.translateLocal('workspace.editor.avatarUploadFailureMessage');
             Growl.error(errorMessage, 5000);
         });
 }
@@ -356,6 +372,7 @@ function hideWorkspaceAlertMessage(policyID) {
 
 export {
     getPolicyList,
+    loadFullPolicy,
     removeMembers,
     invite,
     isAdminOfFreePolicy,
@@ -364,4 +381,6 @@ export {
     update,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
+    createAndNavigate,
+    createAndGetPolicyList,
 };

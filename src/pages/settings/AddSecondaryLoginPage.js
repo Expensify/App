@@ -9,7 +9,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Text from '../../components/Text';
 import styles from '../../styles/styles';
-import {clearUserErrorMessage, setSecondaryLogin} from '../../libs/actions/User';
+import * as User from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
 import ROUTES from '../../ROUTES';
@@ -20,6 +20,7 @@ import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import userPropTypes from './userPropTypes';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
@@ -59,28 +60,21 @@ class AddSecondaryLoginPage extends Component {
     }
 
     componentWillUnmount() {
-        clearUserErrorMessage();
+        User.clearUserErrorMessage();
     }
 
     onSecondaryLoginChange(login) {
-        if (this.formType === CONST.LOGIN_TYPE.EMAIL) {
-            this.setState({login});
-        } else if (this.formType === CONST.LOGIN_TYPE.PHONE
-            && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
-            this.setState({login});
-        }
+        this.setState({login});
     }
 
     /**
      * Add a secondary login to a user's account
      */
     submitForm() {
-        setSecondaryLogin(this.state.login, this.state.password)
-            .then((response) => {
-                if (response.jsonCode === 200) {
-                    Navigation.navigate(ROUTES.SETTINGS_PROFILE);
-                }
-            });
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+        User.setSecondaryLoginAndNavigate(login, this.state.password);
     }
 
     /**
@@ -89,16 +83,22 @@ class AddSecondaryLoginPage extends Component {
      * @returns {Boolean}
      */
     validateForm() {
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
-        return !this.state.password || !validationMethod(this.state.login);
+        return !this.state.password || !validationMethod(login);
     }
 
     render() {
         return (
             <ScreenWrapper onTransitionEnd={() => {
-                if (this.phoneNumberInputRef) {
-                    this.phoneNumberInputRef.focus();
+                if (!this.phoneNumberInputRef) {
+                    return;
                 }
+
+                this.phoneNumberInputRef.focus();
             }}
             >
                 <KeyboardAvoidingView>

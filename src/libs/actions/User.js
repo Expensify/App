@@ -40,7 +40,7 @@ Onyx.connect({
  * @param {String} password
  * @returns {Promise}
  */
-function changePassword(oldPassword, password) {
+function changePasswordAndNavigate(oldPassword, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.ChangePassword({oldPassword, password})
@@ -48,20 +48,23 @@ function changePassword(oldPassword, password) {
             if (response.jsonCode !== 200) {
                 const error = lodashGet(response, 'message', 'Unable to change password. Please try again.');
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error});
+                return;
             }
-            return response;
+
+            Navigation.goBack();
         })
-        .finally((response) => {
+        .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-            return response;
         });
 }
 
 function getBetas() {
     API.User_GetBetas().then((response) => {
-        if (response.jsonCode === 200) {
-            Onyx.set(ONYXKEYS.BETAS, response.betas);
+        if (response.jsonCode !== 200) {
+            return;
         }
+
+        Onyx.set(ONYXKEYS.BETAS, response.betas);
     });
 }
 
@@ -116,9 +119,11 @@ function setExpensifyNewsStatus(subscribed) {
 
     API.UpdateAccount({subscribed})
         .then((response) => {
-            if (response.jsonCode !== 200) {
-                Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
+            if (response.jsonCode === 200) {
+                return;
             }
+
+            Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
         })
         .catch(() => {
             Onyx.merge(ONYXKEYS.USER, {expensifyNewsStatus: !subscribed});
@@ -132,7 +137,7 @@ function setExpensifyNewsStatus(subscribed) {
  * @param {String} password
  * @returns {Promise}
  */
-function setSecondaryLogin(login, password) {
+function setSecondaryLoginAndNavigate(login, password) {
     Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, loading: true});
 
     return API.User_SecondaryLogin_Send({
@@ -142,20 +147,20 @@ function setSecondaryLogin(login, password) {
         if (response.jsonCode === 200) {
             const loginList = _.where(response.loginList, {partnerName: 'expensify.com'});
             Onyx.merge(ONYXKEYS.USER, {loginList});
-        } else {
-            let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
-
-            // Replace error with a friendlier message
-            if (error.includes('already belongs to an existing Expensify account.')) {
-                error = 'This login already belongs to an existing Expensify account.';
-            }
-
-            Onyx.merge(ONYXKEYS.USER, {error});
+            Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+            return;
         }
-        return response;
-    }).finally((response) => {
+
+        let error = lodashGet(response, 'message', 'Unable to add secondary login. Please try again.');
+
+        // Replace error with a friendlier message
+        if (error.includes('already belongs to an existing Expensify account.')) {
+            error = 'This login already belongs to an existing Expensify account.';
+        }
+
+        Onyx.merge(ONYXKEYS.USER, {error});
+    }).finally(() => {
         Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
-        return response;
     });
 }
 
@@ -233,12 +238,6 @@ function getDomainInfo() {
                 const {isFromPublicDomain} = response;
                 Onyx.merge(ONYXKEYS.USER, {isFromPublicDomain});
 
-                // If the user is not on a public domain we'll want to know whether they are on a domain that has
-                // already provisioned the Expensify card
-                if (isFromPublicDomain) {
-                    return;
-                }
-
                 API.User_IsUsingExpensifyCard()
                     .then(({isUsingExpensifyCard}) => {
                         Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard});
@@ -279,6 +278,37 @@ function subscribeToUserEvents() {
 }
 
 /**
+ * Subscribes to Expensify Card updates when checking loginList for private domains
+ */
+function subscribeToExpensifyCardUpdates() {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const pusherChannelName = `private-user-accountID-${currentUserAccountID}`;
+
+    // Handle Expensify Card approval flow updates
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE, (pushJSON) => {
+        if (pushJSON.isUsingExpensifyCard) {
+            Onyx.merge(ONYXKEYS.USER, {isUsingExpensifyCard: pushJSON.isUsingExpensifyCard, isCheckingDomain: null});
+            Pusher.unsubscribe(pusherChannelName, Pusher.TYPE.EXPENSIFY_CARD_UPDATE);
+        } else {
+            Onyx.merge(ONYXKEYS.USER, {isCheckingDomain: pushJSON.isCheckingDomain});
+        }
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    })
+        .catch((error) => {
+            Log.info(
+                '[User] Failed to subscribe to Pusher channel',
+                false,
+                {error, pusherChannelName, eventName: Pusher.TYPE.EXPENSIFY_CARD_UPDATE},
+            );
+        });
+}
+
+/**
  * Sync preferredSkinTone with Onyx and Server
  * @param {String} skinTone
  */
@@ -299,12 +329,12 @@ function clearUserErrorMessage() {
 }
 
 export {
-    changePassword,
+    changePasswordAndNavigate,
     getBetas,
     getUserDetails,
     resendValidateCode,
     setExpensifyNewsStatus,
-    setSecondaryLogin,
+    setSecondaryLoginAndNavigate,
     validateLogin,
     isBlockedFromConcierge,
     getDomainInfo,
@@ -312,4 +342,5 @@ export {
     setPreferredSkinTone,
     setShouldUseSecureStaging,
     clearUserErrorMessage,
+    subscribeToExpensifyCardUpdates,
 };

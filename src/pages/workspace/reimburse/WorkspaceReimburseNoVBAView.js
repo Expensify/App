@@ -4,17 +4,13 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    NewWindow,
-    Bank,
-    Receipt,
-} from '../../../components/Icon/Expensicons';
-import {ReceiptYellow, JewelBoxGreen} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openOldDotLink} from '../../../libs/actions/Link';
+import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -23,47 +19,47 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceReimburseNoVBAView = ({translate, policyID}) => (
+const WorkspaceReimburseNoVBAView = props => (
     <>
         <WorkspaceSection
-            title={translate('workspace.reimburse.captureReceipts')}
-            icon={ReceiptYellow}
+            title={props.translate('workspace.reimburse.captureReceipts')}
+            icon={Illustrations.ReceiptYellow}
             menuItems={[
                 {
-                    title: translate('workspace.reimburse.viewAllReceipts'),
-                    onPress: () => openOldDotLink(`expenses?policyIDList=${policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
-                    icon: Receipt,
+                    title: props.translate('workspace.reimburse.viewAllReceipts'),
+                    onPress: () => Link.openOldDotLink(`expenses?policyIDList=${props.policyID}&billableReimbursable=reimbursable&submitterEmail=%2B%2B`),
+                    icon: Expensicons.Receipt,
                     shouldShowRightIcon: true,
-                    iconRight: NewWindow,
+                    iconRight: Expensicons.NewWindow,
                 },
             ]}
         >
             <View style={[styles.mv4, styles.flexRow, styles.flexWrap]}>
                 <Text>
-                    {translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
+                    {props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
-                    <Text>{translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
+                    <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
                 </Text>
             </View>
         </WorkspaceSection>
 
         <WorkspaceSection
-            title={translate('workspace.reimburse.unlockNextDayReimbursements')}
-            icon={JewelBoxGreen}
+            title={props.translate('workspace.reimburse.unlockNextDayReimbursements')}
+            icon={Illustrations.JewelBoxGreen}
             menuItems={[
                 {
-                    title: translate('workspace.common.bankAccount'),
-                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
-                    icon: Bank,
+                    title: props.translate('workspace.common.bankAccount'),
+                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
+                    icon: Expensicons.Bank,
                     shouldShowRightIcon: true,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.reimburse.unlockNoVBACopy')}</Text>
+                <Text>{props.translate('workspace.reimburse.unlockNoVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>
