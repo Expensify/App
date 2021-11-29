@@ -639,10 +639,6 @@ const styles = {
         zIndex: -1,
     },
 
-    expensiTextInputWithIcon: {
-        paddingRight: 8,
-    },
-
     expensiTextInputDesktop: addOutlineWidth({}, 0),
 
     expensiTextInputAndroid: left => ({
