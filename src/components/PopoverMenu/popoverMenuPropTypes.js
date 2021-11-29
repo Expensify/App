@@ -46,12 +46,16 @@ const propTypes = {
 
     /** Optional non-interactive text to display as a header for any create menu */
     headerText: PropTypes.string,
+
+    /** Whether disable the animations */
+    disableAnimation: PropTypes.bool,
 };
 
 const defaultProps = {
     animationIn: 'fadeIn',
     animationOut: 'fadeOut',
     headerText: undefined,
+    disableAnimation: true,
 };
 
 export {propTypes, defaultProps};
