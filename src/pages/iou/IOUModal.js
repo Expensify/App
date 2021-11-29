@@ -122,7 +122,7 @@ class IOUModal extends Component {
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
         }));
         this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
+        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD;
 
         this.state = {
             previousStepIndex: 0,
