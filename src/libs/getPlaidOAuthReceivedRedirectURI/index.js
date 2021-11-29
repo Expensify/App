@@ -4,7 +4,7 @@
  * the user's account.
  * @returns {String | null}
  */
-export default function getPlaidOAuthReceivedRedirectURI() {
+export default () => {
     let receivedRedirectURI = window.location.href;
     const receivedRedirectSearchParams = (new URL(receivedRedirectURI)).searchParams;
     const oauthStateID = receivedRedirectSearchParams.get('oauth_state_id');
