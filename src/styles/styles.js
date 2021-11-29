@@ -583,6 +583,7 @@ const styles = {
     componentHeightLarge: {
         height: variables.componentSizeLarge,
     },
+
     expensiTextInputContainer: {
         flex: 1,
         borderWidth: 1,
@@ -593,6 +594,7 @@ const styles = {
         backgroundColor: themeColors.componentBG,
         overflow: 'hidden',
     },
+
     expensiTextInputLabel: {
         position: 'absolute',
         left: 11.5,
@@ -602,6 +604,7 @@ const styles = {
         fontFamily: fontFamily.GTA,
         width: '100%',
     },
+
     expensiTextInputLabelBackground: {
         position: 'absolute',
         top: 0,
@@ -611,9 +614,11 @@ const styles = {
         borderTopRightRadius: variables.componentBorderRadiusNormal,
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
+
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
     },
+
     expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
             {translateY},
@@ -621,6 +626,7 @@ const styles = {
             {scale},
         ],
     }),
+
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
@@ -632,11 +638,23 @@ const styles = {
         borderRadius: variables.componentBorderRadiusNormal,
         zIndex: -1,
     },
+
+    expensiTextInputWithIcon: {
+        paddingRight: 8,
+    },
+
     expensiTextInputDesktop: addOutlineWidth({}, 0),
+
     expensiTextInputAndroid: left => ({
         padding: 0,
         left,
     }),
+
+    secureInputEyeButton: {
+        paddingRight: 11.5,
+        justifyContent: 'center',
+    },
+
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
