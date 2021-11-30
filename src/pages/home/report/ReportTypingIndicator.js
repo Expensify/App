@@ -6,7 +6,7 @@ import {withOnyx} from 'react-native-onyx';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import styles from '../../../styles/styles';
-import {getDisplayName} from '../../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import Text from '../../../components/Text';
 
@@ -58,7 +58,7 @@ class ReportTypingIndicator extends React.Component {
                                 style={[styles.chatItemComposeSecondaryRowSubText]}
                                 numberOfLines={1}
                             >
-                                {getDisplayName(this.state.usersTyping[0])}
+                                {PersonalDetails.getDisplayName(this.state.usersTyping[0])}
                             </Text>
                         </View>
                         <View style={[styles.flexShrink0]}>

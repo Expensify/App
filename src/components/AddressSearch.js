@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
-import {getAddressComponent, isAddressValidForVBA} from '../libs/GooglePlacesUtils';
+import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -51,17 +51,17 @@ const AddressSearch = (props) => {
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
-        if (isAddressValidForVBA(addressComponents)) {
+        if (GooglePlacesUtils.isAddressValidForVBA(addressComponents)) {
             // Gather the values from the Google details
-            const streetNumber = getAddressComponent(addressComponents, 'street_number', 'long_name');
-            const streetName = getAddressComponent(addressComponents, 'route', 'long_name');
-            let city = getAddressComponent(addressComponents, 'locality', 'long_name');
+            const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name');
+            const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name');
+            let city = GooglePlacesUtils.getAddressComponent(addressComponents, 'locality', 'long_name');
             if (!city) {
-                city = getAddressComponent(addressComponents, 'sublocality', 'long_name');
+                city = GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name');
                 Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
             }
-            const state = getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
-            const zipCode = getAddressComponent(addressComponents, 'postal_code', 'long_name');
+            const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+            const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
             props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);

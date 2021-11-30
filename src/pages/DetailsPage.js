@@ -17,7 +17,7 @@ import compose from '../libs/compose';
 import CommunicationsLink from '../components/CommunicationsLink';
 import Tooltip from '../components/Tooltip';
 import CONST from '../CONST';
-import {hasExpensifyEmails} from '../libs/reportUtils';
+import * as ReportUtils from '../libs/reportUtils';
 
 const matchType = PropTypes.shape({
     params: PropTypes.shape({
@@ -69,7 +69,7 @@ const DetailsPage = (props) => {
     const timezone = moment().tz(details.timezone.selected);
     const GMTTime = `${timezone.toString().split(/[+-]/)[0].slice(-3)} ${timezone.zoneAbbr()}`;
     const currentTime = Number.isNaN(Number(timezone.zoneAbbr())) ? timezone.zoneAbbr() : GMTTime;
-    const shouldShowLocalTime = !hasExpensifyEmails([details.login]);
+    const shouldShowLocalTime = !ReportUtils.hasExpensifyEmails([details.login]);
 
     let pronouns = details.pronouns;
 

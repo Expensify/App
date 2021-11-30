@@ -118,8 +118,8 @@ class IOUAmountPage extends React.Component {
      * @returns {Boolean}
      */
     validateAmount(amount) {
-        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,3})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && (parseFloat((amount * 100).toFixed(3)).toString().length <= CONST.IOU.AMOUNT_MAX_LENGTH));
+        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
+        return amount === '' || (decimalNumberRegex.test(amount) && (parseFloat((amount * 100).toFixed(2)).toString().length <= CONST.IOU.AMOUNT_MAX_LENGTH));
     }
 
     /**
@@ -171,7 +171,7 @@ class IOUAmountPage extends React.Component {
 
     render() {
         return (
-            <View style={[styles.flex1, styles.pageWrapper]}>
+            <>
                 <View style={[
                     styles.flex1,
                     styles.flexRow,
@@ -223,7 +223,7 @@ class IOUAmountPage extends React.Component {
                         text={this.props.translate('common.next')}
                     />
                 </View>
-            </View>
+            </>
         );
     }
 }

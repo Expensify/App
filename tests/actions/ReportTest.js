@@ -9,14 +9,10 @@ import * as Pusher from '../../src/libs/Pusher/pusher';
 import PusherConnectionManager from '../../src/libs/PusherConnectionManager';
 import CONFIG from '../../src/CONFIG';
 import CONST from '../../src/CONST';
-import {addAction, togglePinnedState, subscribeToUserEvents} from '../../src/libs/actions/Report';
+import * as Report from '../../src/libs/actions/Report';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
-import PushNotification from '../../src/libs/Notification/PushNotification';
-import {signInWithTestUser, fetchPersonalDetailsForTestUser} from '../utils/TestHelper';
+import * as TestHelper from '../utils/TestHelper';
 import Log from '../../src/libs/Log';
-
-PushNotification.register = () => {};
-PushNotification.deregister = () => {};
 
 describe('actions/Report', () => {
     beforeAll(() => {
@@ -75,12 +71,12 @@ describe('actions/Report', () => {
         let clientID;
 
         // Set up Onyx with some test user data
-        return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToUserEvents();
+                Report.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
-            .then(() => fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
+            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
                 [TEST_USER_LOGIN]: {
                     accountID: TEST_USER_ACCOUNT_ID,
                     email: TEST_USER_LOGIN,
@@ -91,7 +87,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                addAction(REPORT_ID, 'Testing a comment');
+                Report.addAction(REPORT_ID, 'Testing a comment');
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -145,13 +141,13 @@ describe('actions/Report', () => {
         });
 
         // Set up Onyx with some test user data
-        return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
             .then(() => {
-                subscribeToUserEvents();
+                Report.subscribeToUserEvents();
                 return waitForPromisesToResolve();
             })
             .then(() => {
-                togglePinnedState(REPORT);
+                Report.togglePinnedState(REPORT);
                 return waitForPromisesToResolve();
             })
             .then(() => {
@@ -185,8 +181,8 @@ describe('actions/Report', () => {
         const LOGGER_MAX_LOG_LINES = 50;
 
         // GIVEN a test user with initial data
-        return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
-            .then(() => fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
+        return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN)
+            .then(() => TestHelper.fetchPersonalDetailsForTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, {
                 [TEST_USER_LOGIN]: {
                     accountID: TEST_USER_ACCOUNT_ID,
                     email: TEST_USER_LOGIN,
@@ -208,7 +204,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report which will trigger the log packet to be sent in the same call
-                addAction(REPORT_ID, 'Testing a comment');
+                Report.addAction(REPORT_ID, 'Testing a comment');
                 return waitForPromisesToResolve();
             })
             .then(() => {

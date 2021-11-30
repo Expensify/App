@@ -133,12 +133,12 @@ const IdentityForm = (props) => {
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
-            {props.manualAddress ? (
+            {props.values.manualAddress ? (
                 <>
                     <ExpensiTextInput
                         label={props.translate('common.personalAddress')}
                         containerStyles={[styles.mt4]}
-                        value={props.street}
+                        value={props.values.street}
                         onChangeText={value => props.onFieldChange('addressStreet', value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.address') : ''}
                     />
@@ -147,7 +147,7 @@ const IdentityForm = (props) => {
                         <View style={[styles.flex2, styles.mr2]}>
                             <ExpensiTextInput
                                 label={props.translate('common.city')}
-                                value={props.city}
+                                value={props.values.city}
                                 onChangeText={value => props.onFieldChange('addressCity', value)}
                                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
                                 translateX={-14}
@@ -155,7 +155,7 @@ const IdentityForm = (props) => {
                         </View>
                         <View style={[styles.flex1]}>
                             <StatePicker
-                                value={props.state}
+                                value={props.values.state}
                                 onChange={value => props.onFieldChange('addressState', value)}
                                 errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
                                 hasError={Boolean(props.errors.state)}
@@ -166,7 +166,7 @@ const IdentityForm = (props) => {
                         label={props.translate('common.zip')}
                         containerStyles={[styles.mt4]}
                         keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                        value={props.zipCode}
+                        value={props.values.zipCode}
                         onChangeText={value => props.onFieldChange('addressZipCode', value)}
                         errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
                         maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
