@@ -13,7 +13,7 @@
 * [Local Development](#local-development)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
-* [Structure of the app](#structure-of-the-app)
+* [Structure of the app](#app-structure-and-conventions)
 * [Philosophy](#Philosophy)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
