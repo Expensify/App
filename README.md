@@ -13,7 +13,7 @@
 * [Local Development](#local-development)
 * [Running The Tests](#running-the-tests)
 * [Debugging](#debugging)
-* [Structure of the app](#app-structure-and-conventions)
+* [App Structure and Conventions](#app-structure-and-conventions)
 * [Philosophy](#Philosophy)
 * [Internationalization](#Internationalization)
 * [Deploying](#deploying)
@@ -124,7 +124,7 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 
 ---
 
-# App structure and conventions
+# App Structure and Conventions
 
 ## Onyx
 This is a persistent storage solution wrapped in a Pub/Sub library. In general that means:
