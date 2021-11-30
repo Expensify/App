@@ -6,7 +6,6 @@ import {withNavigationFocus} from '@react-navigation/compat';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import ExpensifyText from '../../components/ExpensifyText';
 import Tooltip from '../../components/Tooltip';
 import ConfirmModal from '../../components/ConfirmModal';
 import Icon from '../../components/Icon';
