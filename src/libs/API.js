@@ -16,6 +16,7 @@ import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndErr
 let isAuthenticating;
 let credentials;
 let authToken;
+let currentUserEmail;
 
 function checkRequiredDataAndSetNetworkReady() {
     if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
@@ -37,6 +38,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = lodashGet(val, 'authToken', null);
+        currentUserEmail = lodashGet(val, 'email', null);
         checkRequiredDataAndSetNetworkReady();
     },
 });
@@ -82,6 +84,10 @@ function addDefaultValuesToParameters(command, parameters) {
     // Setting api_setCookie to false will ensure that the Expensify API doesn't set any cookies
     // and prevents interfering with the cookie authToken that Expensify classic uses.
     finalParameters.api_setCookie = false;
+
+    // Unless email is already set include current user's email in every request and the server logs
+    finalParameters.email = lodashGet(parameters, 'email', currentUserEmail);
+
     return finalParameters;
 }
 

@@ -31,22 +31,10 @@ let isOffline;
 
 const PROCESS_REQUEST_DELAY_MS = 1000;
 
-// Subscribe to the user's session so we can include their email in every request and include it in the server logs
-let currentUserEmail;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => currentUserEmail = val ? val.email : null,
-});
-
 function processRequest(request) {
-    const requestData = {
-        ...request.data,
-        email: lodashGet(request.data, 'email', currentUserEmail),
-    };
-
     const finalParameters = _.isFunction(enhanceParameters)
-        ? enhanceParameters(request.command, requestData)
-        : requestData;
+        ? enhanceParameters(request.command, request.data)
+        : request.data;
 
     onRequest(request, finalParameters);
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
