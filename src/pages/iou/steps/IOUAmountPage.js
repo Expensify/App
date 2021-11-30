@@ -16,7 +16,7 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import Button from '../../../components/Button';
+import ExpensifyButton from '../../../components/ExpensifyButton';
 import Text from '../../../components/Text';
 import CONST from '../../../CONST';
 
@@ -214,7 +214,7 @@ class IOUAmountPage extends React.Component {
                             />
                         ) : <View />}
 
-                    <Button
+                    <ExpensifyButton
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}

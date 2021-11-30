@@ -14,7 +14,7 @@ import {
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import Button from '../components/Button';
+import ExpensifyButton from '../components/ExpensifyButton';
 import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
@@ -106,7 +106,7 @@ class SetPasswordPage extends Component {
                         />
                     </View>
                     <View>
-                        <Button
+                        <ExpensifyButton
                             success
                             style={[styles.mb2]}
                             text={this.props.translate('setPasswordPage.setPassword')}

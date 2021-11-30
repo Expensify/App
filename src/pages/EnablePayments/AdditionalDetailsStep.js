@@ -10,7 +10,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import Text from '../../components/Text';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
@@ -150,7 +150,7 @@ class AdditionalDetailsStep extends React.Component {
                                     {this.props.walletAdditionalDetails.additionalErrorMessage}
                                 </Text>
                             )}
-                            <Button
+                            <ExpensifyButton
                                 success
                                 text={this.props.translate('common.saveAndContinue')}
                                 isLoading={this.props.walletAdditionalDetails.loading}

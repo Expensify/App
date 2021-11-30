@@ -18,7 +18,7 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import FixedFooter from '../../components/FixedFooter';
 import * as IOU from '../../libs/actions/IOU';
 
@@ -218,7 +218,7 @@ class IOUCurrencySelection extends Component {
                         </View>
                     </View>
                     <FixedFooter>
-                        <Button
+                        <ExpensifyButton
                             success
                             isDisabled={!this.props.iou.selectedCurrencyCode}
                             style={[styles.w100]}

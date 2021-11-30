@@ -8,7 +8,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
@@ -113,7 +113,7 @@ class OnfidoStep extends React.Component {
                                             .
                                         </Text>
                                     </View>
-                                    <Button
+                                    <ExpensifyButton
                                         success
                                         text={this.props.translate('common.continue')}
                                         isLoading={this.props.walletOnfidoData.loading}
@@ -130,7 +130,7 @@ class OnfidoStep extends React.Component {
                                     <Text style={[styles.h3, styles.textStrong, styles.mb2]}>
                                         {this.props.walletOnfidoData.error}
                                     </Text>
-                                    <Button
+                                    <ExpensifyButton
                                         success
                                         text={this.props.translate('onfidoStep.tryAgain')}
                                         onPress={() => {

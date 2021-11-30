@@ -6,7 +6,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
@@ -109,7 +109,7 @@ class TermsStep extends React.Component {
                     </Text>
                 )}
                 <FixedFooter>
-                    <Button
+                    <ExpensifyButton
                         success
                         text={this.props.translate('termsStep.enablePayments')}
                         isLoading={this.props.walletTerms.loading}
