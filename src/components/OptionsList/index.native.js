@@ -1,8 +1,9 @@
 import React, {forwardRef} from 'react';
 import {Keyboard} from 'react-native';
 import BaseOptionsList from './BaseOptionsList';
+import {propTypes, defaultProps} from './baseOptionsListPropTypes';
 
-export default forwardRef((props, ref) => (
+const OptionsList = forwardRef((props, ref) => (
     <BaseOptionsList
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
@@ -10,3 +11,9 @@ export default forwardRef((props, ref) => (
         onScrollBeginDrag={() => Keyboard.dismiss()}
     />
 ));
+
+OptionsList.propTypes = propTypes;
+OptionsList.defaultProps = defaultProps;
+OptionsList.displayName = 'OptionsList';
+
+export default OptionsList;
