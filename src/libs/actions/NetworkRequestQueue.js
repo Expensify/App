@@ -17,14 +17,14 @@ function clearPersistedRequests() {
 }
 
 function saveRetryableRequests(retryableRequests) {
-    const requests = lodashUnionWith(persistedRequests, retryableRequests, _.isEqual);
-    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, requests);
+    persistedRequests = lodashUnionWith(persistedRequests, retryableRequests, _.isEqual);
+    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, persistedRequests);
 }
 
 function removeRetryableRequest(request) {
     retryMap.delete(request);
-    const remaining = _.reject(persistedRequests, r => _.isEqual(r, request));
-    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, remaining);
+    persistedRequests = _.reject(persistedRequests, r => _.isEqual(r, request));
+    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, persistedRequests);
 }
 
 function incrementRetries(request) {

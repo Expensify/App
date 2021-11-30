@@ -275,6 +275,7 @@ const CONST = {
         METHOD: {
             POST: 'post',
         },
+        MAX_PERSISTED_REQUEST_RETRIES: 10,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',

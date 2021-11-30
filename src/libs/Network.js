@@ -57,15 +57,15 @@ function processPersistedRequestsQueue() {
         })
         .catch(() => {
             const retryCount = NetworkRequestQueue.incrementRetries(request);
-            if (retryCount > 10) {
+            if (retryCount >= CONST.NETWORK.MAX_PERSISTED_REQUEST_RETRIES) {
                 // Request failed too many times removing from persisted storage
                 NetworkRequestQueue.removeRetryableRequest(request);
             }
         }));
 
     // Do a recursive call in case the queue is not empty after processing the current batch
-    return Promise.allSettled(tasks)
-        .finally(processPersistedRequestsQueue);
+    return Promise.all(tasks)
+        .then(processPersistedRequestsQueue);
 }
 
 function startPersistedRequestsQueue() {
