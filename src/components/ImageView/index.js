@@ -20,6 +20,7 @@ class ImageView extends PureComponent {
         this.canUseTouchScreen = canUseTouchScreen();
         this.state = {
             containerHeight: 0,
+            containerWidth: 0,
             isZoomed: false,
             isDragging: false,
             isMouseDown: false,
@@ -68,6 +69,7 @@ class ImageView extends PureComponent {
         const isScreenWiderThanImage = (this.props.windowWidth / width) > 1;
         const isScreenTallerThanImage = (this.props.windowHeight / height) > 1;
         const aspect = width / height;
+        let scale = this.state.zoomScale;
         if (aspect > 1 && !isScreenWiderThanImage) {
             // In case Width fit Screen width and Height not fit the Screen height
             const fitRate = this.props.windowWidth / width;
@@ -84,8 +86,13 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
+        //In case image loading is delayed than onLayout callback of the root View caused internet speed
+        if (scale == 0) {
+            scale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
+        }
+
         this.setState({
-            imgWidth: width, imgHeight: height, imageLeft: imgLeft, imageTop: imgTop, imageRight: imgRight, imageBottom: imgBottom,
+            imgWidth: width, zoomScale: scale, imgHeight: height, imageLeft: imgLeft, imageTop: imgTop, imageRight: imgRight, imageBottom: imgBottom,
         });
     }
 
@@ -168,6 +175,7 @@ class ImageView extends PureComponent {
                     const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
                     this.setState({
                         containerHeight: height,
+                        containerWidth: width,
                         zoomScale: scale,
                     });
                 }}
@@ -180,9 +188,9 @@ class ImageView extends PureComponent {
             >
                 <Pressable
                     style={{
-                        ...getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale, this.state.containerHeight),
+                        ...getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale, this.state.containerHeight, this.state.containerWidth),
                         ...getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
-                        ...this.state.isZoomed ? styles.pRelative : styles.pAbsolute,
+                        ...this.state.isZoomed && this.state.zoomScale > 1 ? styles.pRelative : styles.pAbsolute,
                         ...styles.flex1,
                     }}
                     onPressIn={(e) => {

@@ -2297,29 +2297,45 @@ function getZoomCursorStyle(isZoomed, isDragging) {
  * @param {Number} imgHeight
  * @param {Number} zoomScale
  * @param {Number} containerHeight
+ * @param {Number} containerWidth
  * @return {Object}
  */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight) {
+function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerHeight, containerWidth) {
     if (imgWidth === 0 || imgHeight === 0) {
         return {
             height: isZoomed ? '250%' : '100%',
             width: isZoomed ? '250%' : '100%',
         };
     }
+    const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
+    const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
+
+    // Return different size and offset style based on zoomScale and isZoom
     if (isZoomed) {
+        if (zoomScale > 1) {
+            return {
+                height: `${imgHeight * zoomScale}px`,
+                width: `${imgWidth * zoomScale}px`,
+            };
+        }
         return {
-            height: `${(imgHeight * zoomScale)}px`,
-            width: `${(imgWidth * zoomScale)}px`,
+            height: `${imgHeight}px`,
+            width: `${imgWidth}px`,
+            top,
+            left,
         };
     }
-
-    const top = `${(containerHeight - imgHeight) / 2}px`;
-    const left = `calc(50% - ${imgWidth / 2}px)`;
+    if (zoomScale > 1) {
+        return {
+            height: `${imgHeight}px`,
+            width: `${imgWidth}px`,
+            top,
+            left,
+        };
+    }
     return {
-        height: `${imgHeight}px`,
-        width: `${imgWidth}px`,
-        top,
-        left,
+        height: `${imgHeight * zoomScale}px`,
+        width: `${imgWidth * zoomScale}px`,
     };
 }
 
