@@ -8,7 +8,7 @@ import PopoverMenu from '../PopoverMenu';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import Tooltip from '../Tooltip';
-import {ThreeDots} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 import ThreeDotsMenuItemPropTypes from './ThreeDotsMenuItemPropTypes';
 
 const propTypes = {
@@ -45,7 +45,7 @@ const defaultProps = {
     iconTooltip: 'common.more',
     iconFill: undefined,
     iconStyles: [],
-    icon: ThreeDots,
+    icon: Expensicons.ThreeDots,
     onIconPress: () => {},
 };
 

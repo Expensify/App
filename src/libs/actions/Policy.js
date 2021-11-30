@@ -147,12 +147,12 @@ function deletePolicy(policyID) {
         .then((response) => {
             if (response.jsonCode !== 200) {
                 // Show the user feedback
-                const errorMessage = translateLocal('workspace.new.genericFailureMessage');
+                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
                 Growl.error(errorMessage, 5000);
                 return;
             }
 
-            Growl.show(translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
+            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
 
             // Removing the workspace data from Onyx as well
             return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);

@@ -2259,10 +2259,6 @@ const styles = {
         borderTopWidth: 0,
     },
 
-    googleListView: {
-        transform: [{scale: 0}],
-    },
-
     iPhoneXSafeArea: {
         backgroundColor: colors.black,
         flex: 1,
