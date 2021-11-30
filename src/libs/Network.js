@@ -10,6 +10,7 @@ import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
 let isReady = false;
 let isQueuePaused = false;
+let persistedRequestsQueueRunning = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
 let networkRequestQueue = [];
@@ -31,6 +32,12 @@ let isOffline;
 
 const PROCESS_REQUEST_DELAY_MS = 1000;
 
+let persistedRequests = [];
+Onyx.connect({
+    key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
+    callback: val => persistedRequests = val || [],
+});
+
 function processRequest(request) {
     const finalParameters = _.isFunction(enhanceParameters)
         ? enhanceParameters(request.command, request.data)
@@ -40,69 +47,81 @@ function processRequest(request) {
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
 }
 
-/**
- * Process the offline NETWORK_REQUEST_QUEUE
- * @param {Array<Object> | null} persistedRequests - Requests
- */
-function processOfflineQueue(persistedRequests) {
-    // NETWORK_REQUEST_QUEUE is shared across clients, thus every client will have similiar copy of
-    // NETWORK_REQUEST_QUEUE. It is very important to only process the queue from leader client
-    // otherwise requests will be duplicated.
-    // We only process the persisted requests when
-    // a) Client is leader.
-    // b) User is online.
-    // c) requests are not already loaded,
-    // d) When there is at least one request
-    if (!ActiveClientManager.isClientTheLeader()
-        || isOffline
-        || didLoadPersistedRequests
-        || !persistedRequests
-        || !persistedRequests.length) {
+function removeFromPersistedStorage(request) {
+    console.debug('Remove from storage: ', {request});
+}
+
+function processPersistedRequestsQueue() {
+    // This sanity check is also a recursion exit point
+    if (_.size(persistedRequests) === 0 || isOffline) {
+        return Promise.resolve();
+    }
+
+    const tasks = _.map(persistedRequests, request => processRequest(request)
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                throw new Error('Persisted request failed');
+            }
+
+            removeFromPersistedStorage(request);
+        })
+        .catch(() => {
+            request.retryCount = lodashGet(request, 'retryCount', 0) + 1;
+            if (request.retryCount > 10) {
+                // Request failed too many times removing from persisted storage
+                removeFromPersistedStorage(request);
+            }
+        }));
+
+    // Do a recursive call in case the queue is not empty after processing the current batch
+    return Promise.allSettled(tasks)
+        .finally(processPersistedRequestsQueue);
+}
+
+function startPersistedRequestsQueue() {
+    if (persistedRequestsQueueRunning) {
         return;
     }
 
-    // Queue processing expects handlers but due to we are loading the requests from Storage
-    // we just noop them to ignore the errors.
-    _.each(persistedRequests, (request) => {
-        request.resolve = () => {};
-        request.reject = () => {};
-    });
+    // NETWORK_REQUEST_QUEUE is shared across clients, thus every client/tab will have a copy
+    // It is very important to only process the queue from leader client otherwise requests will be duplicated.
+    if (!ActiveClientManager.isClientTheLeader()) {
+        return;
+    }
 
-    // Merge the persisted requests with the requests in memory then clear out the queue as we only need to load
-    // this once when the app initializes
-    networkRequestQueue = [...networkRequestQueue, ...persistedRequests];
-    NetworkRequestQueue.clearPersistedRequests();
-    didLoadPersistedRequests = true;
+    persistedRequestsQueueRunning = true;
+
+    // Ensure persistedRequests are read from storage before proceeding with the queue
+    const connectionId = Onyx.connect({
+        key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
+        callback: () => {
+            Onyx.disconnect(connectionId);
+            processPersistedRequestsQueue()
+                .finally(() => persistedRequestsQueueRunning = false);
+        },
+    });
 }
 
-// We subscribe to changes to the online/offline status of the network to determine when we should fire off API calls
+// We subscribe to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
-    callback: (val) => {
-        if (!val) {
+    callback: (network) => {
+        if (!network) {
             return;
         }
 
         // Client becomes online, process the queue.
-        if (isOffline && !val.isOffline) {
-            const connection = Onyx.connect({
-                key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
-                callback: processOfflineQueue,
-            });
-            Onyx.disconnect(connection);
+        if (isOffline && !network.isOffline) {
+            startPersistedRequestsQueue();
         }
-        isOffline = val.isOffline;
+
+        isOffline = network.isOffline;
     },
 });
 
-// Subscribe to NETWORK_REQUEST_QUEUE queue as soon as Client is ready
-ActiveClientManager.isReady().then(() => {
-    Onyx.connect({
-        key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
-        callback: processOfflineQueue,
-    });
-});
+// Try to post any persisted request after we launch the app
+ActiveClientManager.isReady().then(startPersistedRequestsQueue);
 
 /**
  * @param {Boolean} val
