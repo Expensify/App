@@ -584,6 +584,7 @@ const styles = {
     componentHeightLarge: {
         height: variables.componentSizeLarge,
     },
+
     expensiTextInputContainer: {
         flex: 1,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -594,6 +595,7 @@ const styles = {
         borderColor: themeColors.border,
         overflow: 'hidden',
     },
+
     expensiTextInputLabel: {
         position: 'absolute',
         left: 11,
@@ -603,6 +605,7 @@ const styles = {
         fontFamily: fontFamily.GTA,
         width: '100%',
     },
+
     expensiTextInputLabelBackground: {
         position: 'absolute',
         top: 0,
@@ -612,9 +615,11 @@ const styles = {
         borderTopRightRadius: variables.componentBorderRadiusNormal,
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
+
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
     },
+
     expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
             {translateY},
@@ -622,6 +627,7 @@ const styles = {
             {scale},
         ],
     }),
+
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
@@ -633,10 +639,19 @@ const styles = {
         paddingHorizontal: 11,
         borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
+    },
+
+    expensiTextInputAndIconContainer: {
         zIndex: -1,
+        flexDirection: 'row',
     },
 
     expensiTextInputDesktop: addOutlineWidth({}, 0),
+
+    secureInputEyeButton: {
+        paddingRight: 11,
+        justifyContent: 'center',
+    },
 
     textInput: {
         backgroundColor: themeColors.componentBG,
@@ -2213,6 +2228,15 @@ const styles = {
         flex: 1,
     },
 
+    threeDotsPopoverOffset: {
+        top: 50,
+        right: 60,
+    },
+
+    googleListView: {
+        transform: [{scale: 0}],
+    },
+
     keyboardShortcutModalContainer: {
         maxWidth: 600,
         maxHeight: '100%',
@@ -2252,10 +2276,6 @@ const styles = {
 
     keyboardShortcutTableFirstRow: {
         borderTopWidth: 0,
-    },
-
-    googleListView: {
-        transform: [{scale: 0}],
     },
 
     iPhoneXSafeArea: {

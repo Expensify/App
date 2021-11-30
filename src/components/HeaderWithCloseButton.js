@@ -10,6 +10,7 @@ import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
+import ThreeDotsMenu, {ThreeDotsMenuItemPropTypes} from './ThreeDotsMenu';
 
 const propTypes = {
     /** Title of the Header */
@@ -24,6 +25,9 @@ const propTypes = {
     /** Method to trigger when pressing back button of the header */
     onBackButtonPress: PropTypes.func,
 
+    /** Method to trigger when pressing more options button of the header */
+    onThreeDotsButtonPress: PropTypes.func,
+
     /** Whether we should show a back icon */
     shouldShowBackButton: PropTypes.bool,
 
@@ -35,6 +39,23 @@ const propTypes = {
 
     /** Whether we should show a inbox call button */
     shouldShowInboxCallButton: PropTypes.bool,
+
+    /** Whether we should show a more options (threedots) button */
+    shouldShowThreeDotsButton: PropTypes.bool,
+
+    /** List of menu items for more(three dots) menu */
+    threeDotsMenuItems: ThreeDotsMenuItemPropTypes,
+
+    /** The anchor position of the menu */
+    threeDotsAnchorPosition: PropTypes.shape({
+        top: PropTypes.number,
+        right: PropTypes.number,
+        bottom: PropTypes.number,
+        left: PropTypes.number,
+    }),
+
+    /** Whether we should show a close button */
+    shouldShowCloseButton: PropTypes.bool,
 
     /** Whether we should show the step counter */
     shouldShowStepCounter: PropTypes.bool,
@@ -56,13 +77,21 @@ const defaultProps = {
     onDownloadButtonPress: () => {},
     onCloseButtonPress: () => {},
     onBackButtonPress: () => {},
+    onThreeDotsButtonPress: () => {},
     shouldShowBackButton: false,
     shouldShowBorderBottom: false,
     shouldShowDownloadButton: false,
     shouldShowInboxCallButton: false,
+    shouldShowThreeDotsButton: false,
+    shouldShowCloseButton: true,
     shouldShowStepCounter: true,
     inboxCallTaskID: '',
     stepCounter: null,
+    threeDotsMenuItems: [],
+    threeDotsAnchorPosition: {
+        top: 0,
+        left: 0,
+    },
 };
 
 const HeaderWithCloseButton = props => (
@@ -107,6 +136,17 @@ const HeaderWithCloseButton = props => (
 
                 {props.shouldShowInboxCallButton && <InboxCallButton taskID={props.inboxCallTaskID} />}
 
+                {props.shouldShowThreeDotsButton && (
+                    <ThreeDotsMenu
+                        menuItems={props.threeDotsMenuItems}
+                        onIconPress={props.onThreeDotsButtonPress}
+                        iconStyles={[styles.mr0]}
+                        anchorPosition={props.threeDotsAnchorPosition}
+                    />
+                )}
+
+                {props.shouldShowCloseButton
+                && (
                 <Tooltip text={props.translate('common.close')}>
                     <TouchableOpacity
                         onPress={props.onCloseButtonPress}
@@ -117,6 +157,7 @@ const HeaderWithCloseButton = props => (
                         <Icon src={Expensicons.Close} />
                     </TouchableOpacity>
                 </Tooltip>
+                )}
             </View>
         </View>
     </View>
