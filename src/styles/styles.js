@@ -2208,6 +2208,15 @@ const styles = {
         flex: 1,
     },
 
+    threeDotsPopoverOffset: {
+        top: 50,
+        right: 60,
+    },
+
+    googleListView: {
+        transform: [{scale: 0}],
+    },
+
     keyboardShortcutModalContainer: {
         maxWidth: 600,
         maxHeight: '100%',
@@ -2247,10 +2256,6 @@ const styles = {
 
     keyboardShortcutTableFirstRow: {
         borderTopWidth: 0,
-    },
-
-    googleListView: {
-        transform: [{scale: 0}],
     },
 
     iPhoneXSafeArea: {

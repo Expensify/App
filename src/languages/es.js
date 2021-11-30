@@ -85,6 +85,7 @@ export default {
         confirm: 'Confirmar',
         reset: 'Restablecer',
         done: 'Listo',
+        more: 'Más',
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
     },
@@ -657,6 +658,8 @@ export default {
         common: {
             card: 'Emitir tarjetas corporativas',
             workspace: 'Espacio de trabajo',
+            edit: 'Editar espacio de trabajo',
+            delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración general',
             reimburse: 'Reembolsar recibos',
             bills: 'Pagar facturas',
@@ -668,6 +671,8 @@ export default {
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
+            growlMessageOnDelete: 'Espacio de trabajo eliminado',
+            deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',

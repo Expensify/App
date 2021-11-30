@@ -85,6 +85,7 @@ export default {
         confirm: 'Confirm',
         reset: 'Reset',
         done: 'Done',
+        more: 'More',
         debitCard: 'Debit card',
         payPalMe: 'PayPal.me',
     },
@@ -655,6 +656,8 @@ export default {
         common: {
             card: 'Issue corporate cards',
             workspace: 'Workspace',
+            edit: 'Edit workspace',
+            delete: 'Delete Workspace',
             settings: 'General settings',
             reimburse: 'Reimburse receipts',
             bills: 'Pay bills',
@@ -666,6 +669,8 @@ export default {
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
+            deleteConfirmation: 'Are you sure you want to delete this workspace?',
+            growlMessageOnDelete: 'Workspace deleted',
         },
         new: {
             newWorkspace: 'New workspace',
