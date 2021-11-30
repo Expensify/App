@@ -31,6 +31,27 @@ let isOffline;
 
 const PROCESS_REQUEST_DELAY_MS = 1000;
 
+// Subscribe to the user's session so we can include their email in every request and include it in the server logs
+let currentUserEmail;
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: val => currentUserEmail = val ? val.email : null,
+});
+
+function processRequest(request) {
+    const requestData = {
+        ...request.data,
+        email: lodashGet(request.data, 'email', currentUserEmail),
+    };
+
+    const finalParameters = _.isFunction(enhanceParameters)
+        ? enhanceParameters(request.command, requestData)
+        : requestData;
+
+    onRequest(request, finalParameters);
+    return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
+}
+
 /**
  * Process the offline NETWORK_REQUEST_QUEUE
  * @param {Array<Object> | null} persistedRequests - Requests
@@ -93,13 +114,6 @@ ActiveClientManager.isReady().then(() => {
         key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
         callback: processOfflineQueue,
     });
-});
-
-// Subscribe to the user's session so we can include their email in every request and include it in the server logs
-let email;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: val => email = val ? val.email : null,
 });
 
 /**
@@ -210,20 +224,7 @@ function processNetworkRequestQueue() {
             return;
         }
 
-        const requestData = queuedRequest.data;
-        const requestEmail = lodashGet(requestData, 'email', '');
-
-        // If we haven't passed an email in the request data, set it to the current user's email
-        if (email && _.isEmpty(requestEmail)) {
-            requestData.email = email;
-        }
-
-        const finalParameters = _.isFunction(enhanceParameters)
-            ? enhanceParameters(queuedRequest.command, requestData)
-            : requestData;
-
-        onRequest(queuedRequest, finalParameters);
-        HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
+        processRequest(queuedRequest)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
     });
