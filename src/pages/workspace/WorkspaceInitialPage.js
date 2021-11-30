@@ -6,7 +6,7 @@ import {withNavigationFocus} from '@react-navigation/compat';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import Tooltip from '../../components/Tooltip';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -141,7 +141,7 @@ const WorkspaceInitialPage = (props) => {
                                     onPress={openEditor}
                                 >
                                     <Tooltip text={props.policy.name}>
-                                        <Text
+                                        <ExpensifyText
                                             numberOfLines={1}
                                             style={[
                                                 styles.displayName,
@@ -149,7 +149,7 @@ const WorkspaceInitialPage = (props) => {
                                             ]}
                                         >
                                             {props.policy.name}
-                                        </Text>
+                                        </ExpensifyText>
                                     </Tooltip>
                                 </Pressable>
                             )}

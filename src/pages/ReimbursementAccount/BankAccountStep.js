@@ -15,7 +15,7 @@ import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from './exampleCheckImage';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -182,9 +182,9 @@ class BankAccountStep extends React.Component {
                                 icon={Illustrations.BankMouseGreen}
                                 title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                             />
-                            <Text style={[styles.mh5, styles.mb5]}>
+                            <ExpensifyText style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
-                            </Text>
+                            </ExpensifyText>
                             <MenuItem
                                 icon={Expensicons.Bank}
                                 title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
@@ -193,9 +193,9 @@ class BankAccountStep extends React.Component {
                                 shouldShowRightIcon
                             />
                             {this.props.isPlaidDisabled && (
-                                <Text style={[styles.formError, styles.mh5]}>
+                                <ExpensifyText style={[styles.formError, styles.mh5]}>
                                     {this.props.translate('bankAccount.error.tooManyAttempts')}
-                                </Text>
+                                </ExpensifyText>
                             )}
                             <MenuItem
                                 icon={Expensicons.Paycheck}
@@ -206,12 +206,12 @@ class BankAccountStep extends React.Component {
                             />
                             {!this.props.user.validated && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                                    <Text style={[styles.mutedTextLabel, styles.mr4]}>
+                                    <ExpensifyText style={[styles.mutedTextLabel, styles.mr4]}>
                                         <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                                    </Text>
-                                    <Text style={styles.mutedTextLabel}>
+                                    </ExpensifyText>
+                                    <ExpensifyText style={styles.mutedTextLabel}>
                                         {this.props.translate('bankAccount.validateAccountError')}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                             )}
                             <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
@@ -244,9 +244,9 @@ class BankAccountStep extends React.Component {
                     <ReimbursementAccountForm
                         onSubmit={this.addManualAccount}
                     >
-                        <Text style={[styles.mb5]}>
+                        <ExpensifyText style={[styles.mb5]}>
                             {this.props.translate('bankAccount.checkHelpLine')}
-                        </Text>
+                        </ExpensifyText>
                         <Image
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
@@ -275,9 +275,9 @@ class BankAccountStep extends React.Component {
                             onPress={this.toggleTerms}
                             LabelComponent={() => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text>
+                                    <ExpensifyText>
                                         {this.props.translate('common.iAcceptThe')}
-                                    </Text>
+                                    </ExpensifyText>
                                     <TextLink href="https://use.expensify.com/terms">
                                         {`Expensify ${this.props.translate('common.termsOfService')}`}
                                     </TextLink>

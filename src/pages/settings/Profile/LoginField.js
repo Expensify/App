@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import styles from '../../../styles/styles';
 import colors from '../../../styles/colors';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -86,7 +86,7 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={styles.formLabel}>{this.props.label}</Text>
+                <ExpensifyText style={styles.formLabel}>{this.props.label}</ExpensifyText>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
@@ -98,11 +98,11 @@ class LoginField extends Component {
                     </View>
                 ) : (
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text numberOfLines={1}>
+                        <ExpensifyText numberOfLines={1}>
                             {this.props.type === CONST.LOGIN_TYPE.PHONE
                                 ? this.props.toLocalPhone(this.props.login.partnerUserID)
                                 : this.props.login.partnerUserID}
-                        </Text>
+                        </ExpensifyText>
                         {!this.props.login.validatedDate && (
                             <ExpensifyButton
                                 style={[styles.mb2]}
@@ -110,18 +110,18 @@ class LoginField extends Component {
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
                                     <Icon fill={colors.black} src={Expensicons.Checkmark} />
                                 ) : (
-                                    <Text style={styles.createMenuText}>
+                                    <ExpensifyText style={styles.createMenuText}>
                                         {this.props.translate('common.resend')}
-                                    </Text>
+                                    </ExpensifyText>
                                 ))}
                             />
                         )}
                     </View>
                 )}
                 {note && (
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                    <ExpensifyText style={[styles.textLabel, styles.colorMuted]}>
                         {note}
-                    </Text>
+                    </ExpensifyText>
                 )}
             </View>
         );

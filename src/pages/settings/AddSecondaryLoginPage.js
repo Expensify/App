@@ -7,7 +7,7 @@ import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import * as User from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -111,11 +111,11 @@ class AddSecondaryLoginPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6]}>
+                        <ExpensifyText style={[styles.mb6]}>
                             {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
-                        </Text>
+                        </ExpensifyText>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
                                 label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -141,9 +141,9 @@ class AddSecondaryLoginPage extends Component {
                             />
                         </View>
                         {!_.isEmpty(this.props.user.error) && (
-                            <Text style={styles.formError}>
+                            <ExpensifyText style={styles.formError}>
                                 {this.props.user.error}
-                            </Text>
+                            </ExpensifyText>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>

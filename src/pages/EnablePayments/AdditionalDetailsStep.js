@@ -11,7 +11,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import ExpensifyButton from '../../components/ExpensifyButton';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import compose from '../../libs/compose';
@@ -118,7 +118,7 @@ class AdditionalDetailsStep extends React.Component {
                     />
                     <View style={[styles.flex1]}>
                         <View style={[styles.ph5]}>
-                            <Text style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</Text>
+                            <ExpensifyText style={styles.mb3}>{this.props.translate('additionalDetailsStep.helpText')}</ExpensifyText>
                             <TextLink
                                 style={styles.mb3}
                                 href="https://use.expensify.com/usa-patriot-act"
@@ -140,15 +140,15 @@ class AdditionalDetailsStep extends React.Component {
                                         // eslint-disable-next-line react/jsx-props-no-spreading
                                         {..._.omit(field, ['label', 'fieldName'])}
                                     />
-                                    {field.fieldName === 'addressStreet' && <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>}
+                                    {field.fieldName === 'addressStreet' && <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</ExpensifyText>}
                                 </>
                             ))}
                         </ScrollView>
                         <View style={[styles.m5]}>
                             {this.props.walletAdditionalDetails.additionalErrorMessage.length > 0 && (
-                                <Text style={[styles.formError, styles.mb2]}>
+                                <ExpensifyText style={[styles.formError, styles.mb2]}>
                                     {this.props.walletAdditionalDetails.additionalErrorMessage}
-                                </Text>
+                                </ExpensifyText>
                             )}
                             <ExpensifyButton
                                 success

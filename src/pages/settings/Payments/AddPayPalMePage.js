@@ -6,7 +6,7 @@ import CONST from '../../../CONST';
 import ONYXKEYS from '../../../ONYXKEYS';
 import ROUTES from '../../../ROUTES';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import NameValuePair from '../../../libs/actions/NameValuePair';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -83,9 +83,9 @@ class AddPayPalMePage extends React.Component {
                     />
                     <View style={[styles.flex1, styles.p5]}>
                         <View style={[styles.flex1]}>
-                            <Text style={[styles.mb4]}>
+                            <ExpensifyText style={[styles.mb4]}>
                                 {this.props.translate('addPayPalMePage.enterYourUsernameToGetPaidViaPayPal')}
-                            </Text>
+                            </ExpensifyText>
                             <ExpensiTextInput
                                 label={this.props.translate('addPayPalMePage.payPalMe')}
                                 autoCompleteType="off"

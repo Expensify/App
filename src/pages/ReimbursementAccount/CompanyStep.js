@@ -9,7 +9,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import DatePicker from '../../components/DatePicker';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import styles from '../../styles/styles';
@@ -217,7 +217,7 @@ class CompanyStep extends React.Component {
                 <ReimbursementAccountForm
                     onSubmit={this.submit}
                 >
-                    <Text>{this.props.translate('companyStep.subtitle')}</Text>
+                    <ExpensifyText>{this.props.translate('companyStep.subtitle')}</ExpensifyText>
                     <ExpensiTextInput
                         label={this.props.translate('companyStep.legalBusinessName')}
                         containerStyles={[styles.mt4]}
@@ -252,7 +252,7 @@ class CompanyStep extends React.Component {
                                 value={this.state.addressStreet}
                                 errorText={this.getErrorText('addressStreet')}
                             />
-                            <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
+                            <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</ExpensifyText>
                             <View style={[styles.flexRow, styles.mt4]}>
                                 <View style={[styles.flex2, styles.mr2]}>
                                     <ExpensiTextInput
@@ -351,7 +351,7 @@ class CompanyStep extends React.Component {
                         }}
                         LabelComponent={() => (
                             <>
-                                <Text>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</Text>
+                                <ExpensifyText>{`${this.props.translate('companyStep.confirmCompanyIsNot')} `}</ExpensifyText>
                                 <TextLink
                                     // eslint-disable-next-line max-len
                                     href="https://community.expensify.com/discussion/6191/list-of-restricted-businesses"

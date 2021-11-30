@@ -12,7 +12,7 @@ import CONST from '../../../../CONST';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import compose from '../../../../libs/compose';
 import ExpensifyButton from '../../../../components/ExpensifyButton';
-import Text from '../../../../components/Text';
+import ExpensifyText from '../../../../components/ExpensifyText';
 import FixedFooter from '../../../../components/FixedFooter';
 import personalDetailsPropType from '../../../personalDetailsPropType';
 
@@ -196,9 +196,9 @@ class IOUParticipantsSplit extends Component {
         return (
             <>
                 <View style={[styles.flex1, styles.w100]}>
-                    <Text style={[styles.formLabel, styles.pt3, styles.ph5]}>
+                    <ExpensifyText style={[styles.formLabel, styles.pt3, styles.ph5]}>
                         {this.props.translate('common.to')}
-                    </Text>
+                    </ExpensifyText>
                     <OptionsSelector
                         canSelectMultipleOptions
                         sections={sections}
@@ -235,9 +235,9 @@ class IOUParticipantsSplit extends Component {
                 {lodashGet(this.props, 'participants', []).length > 0 && (
                     <FixedFooter>
                         {maxParticipantsReached && (
-                            <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
+                            <ExpensifyText style={[styles.textLabelSupporting, styles.textAlignCenter, styles.mt1, styles.mb3]}>
                                 {this.props.translate('iou.maxParticipantsReached', {count: CONST.REPORT.MAXIMUM_PARTICIPANTS})}
-                            </Text>
+                            </ExpensifyText>
                         )}
                         <ExpensifyButton
                             success

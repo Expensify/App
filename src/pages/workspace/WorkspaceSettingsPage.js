@@ -10,7 +10,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
 import ExpensifyButton from '../../components/ExpensifyButton';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
@@ -173,9 +173,9 @@ class WorkspaceSettingsPage extends React.Component {
                                 isDisabled={hasVBA}
                             />
                         </View>
-                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                        <ExpensifyText style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                             {this.props.translate('workspace.editor.currencyInputHelpText')}
-                        </Text>
+                        </ExpensifyText>
                     </View>
                 )}
             </WorkspacePageWithSections>
