@@ -352,6 +352,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     includeRecentReports = false,
     prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
+    prioritizeOneToOneReportsInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
@@ -508,6 +509,12 @@ function getOptions(reports, personalDetails, activeReportID, {
         recentReportOptions = reportsSplitByDefaultChatRoom[0].concat(reportsSplitByDefaultChatRoom[1]);
     }
 
+    // If we are prioritizing 1:1 chats in search, do it only once we started searching
+    if (prioritizeOneToOneReportsInSearch && searchValue !== '') {
+        const [oneToOneReports, otherReports] = _.partition(recentReportOptions, option => !!option.login);
+        recentReportOptions = oneToOneReports.concat(otherReports);
+    }
+
     if (includePersonalDetails) {
         // Next loop over all personal details removing any that are selectedUsers or recentChats
         _.each(allPersonalDetailsOptions, (personalDetailOption) => {
@@ -576,7 +583,8 @@ function getSearchOptions(
         includeMultipleParticipantReports: true,
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: false,
-        prioritizeDefaultRoomsInSearch: true,
+        prioritizeDefaultRoomsInSearch: false,
+        prioritizeOneToOneReportsInSearch: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
