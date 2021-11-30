@@ -663,6 +663,7 @@ export default {
             travel: 'Book travel',
             members: 'Manage members',
             bankAccount: 'Connect bank account',
+            testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',

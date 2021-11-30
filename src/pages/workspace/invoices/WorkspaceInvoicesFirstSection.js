@@ -23,7 +23,7 @@ const WorkspaceInvoicesFirstSection = props => (
         menuItems={[
             {
                 title: props.translate('workspace.invoices.sendInvoice'),
-                onPress: () => Link.openOldDotLink('reports?param={"createInvoice":true}'),
+                onPress: () => Link.openOldDotLink(encodeURI('reports?param={"createInvoice":true}')),
                 icon: Expensicons.Send,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,

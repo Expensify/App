@@ -128,11 +128,15 @@ const OptionRow = (props) => {
             };
         },
     );
+
     return (
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
-                    onPress={() => props.onSelectRow(props.option)}
+                    onPress={(e) => {
+                        e.preventDefault();
+                        props.onSelectRow(props.option);
+                    }}
                     disabled={props.disableRowInteractivity}
                     activeOpacity={0.8}
                     style={[

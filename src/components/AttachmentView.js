@@ -67,7 +67,8 @@ const AttachmentView = (props) => {
             <View style={styles.mr2}>
                 <Icon src={Expensicons.Paperclip} />
             </View>
-            <Text style={[styles.textStrong, styles.flexShrink1]}>{props.file && props.file.name}</Text>
+
+            <Text style={[styles.textStrong, styles.flexShrink1, styles.breakAll, styles.flexWrap, styles.mw100]}>{props.file && props.file.name}</Text>
             {!props.shouldShowLoadingSpinnerIcon && props.shouldShowDownloadIcon && (
                 <View style={styles.ml2}>
                     <Tooltip text={props.translate('common.download')}>
