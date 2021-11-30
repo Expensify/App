@@ -9,7 +9,7 @@ import themeColors from '../../../styles/themes/default';
 import RenderHTML from '../../../components/RenderHTML';
 import Text from '../../../components/Text';
 import Tooltip from '../../../components/Tooltip';
-import {isSingleEmoji} from '../../../libs/EmojiUtils';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import canUseTouchScreen from '../../../libs/canUseTouchscreen';
@@ -70,7 +70,7 @@ class ReportActionItemFragment extends React.PureComponent {
                     ) : (
                         <Text
                             selectable={!canUseTouchScreen() || !this.props.isSmallScreenWidth}
-                            style={isSingleEmoji(this.props.fragment.text) ? styles.singleEmojiText : undefined}
+                            style={EmojiUtils.isSingleEmoji(this.props.fragment.text) ? styles.singleEmojiText : undefined}
                         >
                             {Str.htmlDecode(this.props.fragment.text)}
                             {this.props.fragment.isEdited && (

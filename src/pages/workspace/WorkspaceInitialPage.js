@@ -10,19 +10,7 @@ import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import ConfirmModal from '../../components/ConfirmModal';
 import Icon from '../../components/Icon';
-import {
-    Bank,
-    Gear,
-    ExpensifyCard,
-    Receipt,
-    Users,
-    Workspace,
-    Bill,
-    Invoice,
-    Luggage,
-    Plus,
-    Trashcan,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
@@ -33,7 +21,7 @@ import compose from '../../libs/compose';
 import Avatar from '../../components/Avatar';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
-import {createAndNavigate, deletePolicy} from '../../libs/actions/Policy';
+import * as PolicyActions from '../../libs/actions/Policy';
 
 const propTypes = {
     /** Whether the current screen is focused. */
@@ -58,49 +46,49 @@ class WorkspaceInitialPage extends React.Component {
         this.menuItems = [
             {
                 translationKey: 'workspace.common.settings',
-                icon: Gear,
+                icon: Expensicons.Gear,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceSettingsRoute(policy.id)),
             },
             {
                 translationKey: 'workspace.common.card',
-                icon: ExpensifyCard,
+                icon: Expensicons.ExpensifyCard,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
             },
             {
                 translationKey: 'workspace.common.reimburse',
-                icon: Receipt,
+                icon: Expensicons.Receipt,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceReimburseRoute(policy.id)),
             },
             {
                 translationKey: 'workspace.common.bills',
-                icon: Bill,
+                icon: Expensicons.Bill,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBillsRoute(policy.id)),
             },
             {
                 translationKey: 'workspace.common.invoices',
-                icon: Invoice,
+                icon: Expensicons.Invoice,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
             },
             {
                 translationKey: 'workspace.common.travel',
-                icon: Luggage,
+                icon: Expensicons.Luggage,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(policy.id)),
             },
             {
                 translationKey: 'workspace.common.members',
-                icon: Users,
+                icon: Expensicons.Users,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceMembersRoute(policy.id)),
             },
             {
                 translationKey: 'workspace.common.bankAccount',
-                icon: Bank,
+                icon: Expensicons.Bank,
                 action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
                 isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
             },
@@ -128,7 +116,7 @@ class WorkspaceInitialPage extends React.Component {
      * Call the delete policy and hide the modal
      */
     confirmDeleteAndHideModal() {
-        deletePolicy(this.props.policy.id);
+        PolicyActions.deletePolicy(this.props.policy.id);
         this.toggleDeleteModal(false);
     }
 
@@ -148,11 +136,11 @@ class WorkspaceInitialPage extends React.Component {
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={[
                         {
-                            icon: Plus,
+                            icon: Expensicons.Plus,
                             text: this.props.translate('workspace.new.newWorkspace'),
-                            onSelected: () => createAndNavigate(),
+                            onSelected: () => PolicyActions.createAndNavigate(),
                         }, {
-                            icon: Trashcan,
+                            icon: Expensicons.Trashcan,
                             text: this.props.translate('workspace.common.delete'),
                             onSelected: () => this.setState({isDeleteModalOpen: true}),
                         },
@@ -183,7 +171,7 @@ class WorkspaceInitialPage extends React.Component {
                                         )
                                         : (
                                             <Icon
-                                                src={Workspace}
+                                                src={Expensicons.Workspace}
                                                 height={80}
                                                 width={80}
                                                 fill={themedefault.iconSuccessFill}

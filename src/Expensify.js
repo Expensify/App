@@ -14,7 +14,7 @@ import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
 import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
-import {growlRef} from './libs/Growl';
+import * as Growl from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
 import Log from './libs/Log';
 
@@ -144,7 +144,7 @@ class Expensify extends PureComponent {
         }
         return (
             <>
-                <GrowlNotification ref={growlRef} />
+                <GrowlNotification ref={Growl.growlRef} />
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
                 <NavigationRoot authenticated={Boolean(this.getAuthToken())} />

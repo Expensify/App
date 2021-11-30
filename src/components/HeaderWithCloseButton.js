@@ -6,7 +6,7 @@ import {
 import styles from '../styles/styles';
 import Header from './Header';
 import Icon from './Icon';
-import {Close, Download, BackArrow} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import Tooltip from './Tooltip';
 import InboxCallButton from './InboxCallButton';
@@ -111,7 +111,7 @@ const HeaderWithCloseButton = props => (
                         onPress={props.onBackButtonPress}
                         style={[styles.touchableButtonImage]}
                     >
-                        <Icon src={BackArrow} />
+                        <Icon src={Expensicons.BackArrow} />
                     </TouchableOpacity>
                 </Tooltip>
             )}
@@ -128,7 +128,7 @@ const HeaderWithCloseButton = props => (
                             onPress={props.onDownloadButtonPress}
                             style={[styles.touchableButtonImage]}
                         >
-                            <Icon src={Download} />
+                            <Icon src={Expensicons.Download} />
                         </TouchableOpacity>
                     </Tooltip>
                     )
@@ -154,7 +154,7 @@ const HeaderWithCloseButton = props => (
                         accessibilityRole="button"
                         accessibilityLabel={props.translate('common.close')}
                     >
-                        <Icon src={Close} />
+                        <Icon src={Expensicons.Close} />
                     </TouchableOpacity>
                 </Tooltip>
                 )}

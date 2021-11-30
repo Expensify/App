@@ -4,9 +4,7 @@ import {View, Image} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
-import {
-    Paycheck, Bank, Lock, Exclamation,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import styles from '../../styles/styles';
 import TextLink from '../../components/TextLink';
 import Icon from '../../components/Icon';
@@ -19,21 +17,14 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import exampleCheckImage from './exampleCheckImage';
 import Text from '../../components/Text';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import {
-    setBankAccountFormValidationErrors,
-    setBankAccountSubStep,
-    setupWithdrawalAccount,
-    showBankAccountErrorModal,
-    updateReimbursementAccountDraft,
-    validateRoutingNumber,
-} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
 import compose from '../../libs/compose';
 import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils';
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceSection from '../workspace/WorkspaceSection';
-import {BankMouseGreen} from '../../components/Icon/Illustrations';
+import * as Illustrations from '../../components/Icon/Illustrations';
 
 const propTypes = {
     /** Bank account currently in setup */
@@ -71,7 +62,7 @@ class BankAccountStep extends React.Component {
     toggleTerms() {
         this.setState((prevState) => {
             const hasAcceptedTerms = !prevState.hasAcceptedTerms;
-            updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
+            BankAccounts.updateReimbursementAccountDraft({acceptTerms: hasAcceptedTerms});
             return {hasAcceptedTerms};
         });
         this.clearError('hasAcceptedTerms');
@@ -87,14 +78,14 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !validateRoutingNumber(this.state.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !BankAccounts.validateRoutingNumber(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
         if (!this.state.hasAcceptedTerms) {
             errors.hasAcceptedTerms = true;
         }
 
-        setBankAccountFormValidationErrors(errors);
+        BankAccounts.setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
 
@@ -107,16 +98,17 @@ class BankAccountStep extends React.Component {
     clearErrorAndSetValue(inputKey, value) {
         const newState = {[inputKey]: value};
         this.setState(newState);
-        updateReimbursementAccountDraft(newState);
+        BankAccounts.updateReimbursementAccountDraft(newState);
         this.clearError(inputKey);
     }
 
     addManualAccount() {
         if (!this.validate()) {
-            showBankAccountErrorModal();
+            BankAccounts.showBankAccountErrorModal();
             return;
         }
-        setupWithdrawalAccount({
+
+        BankAccounts.setupWithdrawalAccount({
             acceptTerms: this.state.hasAcceptedTerms,
             accountNumber: this.state.accountNumber,
             routingNumber: this.state.routingNumber,
@@ -141,7 +133,7 @@ class BankAccountStep extends React.Component {
      * @param {String} params.account.plaidAccountID
      */
     addPlaidAccount(params) {
-        setupWithdrawalAccount({
+        BankAccounts.setupWithdrawalAccount({
             acceptTerms: true,
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
 
@@ -176,7 +168,7 @@ class BankAccountStep extends React.Component {
                     onBackButtonPress={() => {
                         // If we have a subStep then we will remove otherwise we will go back
                         if (subStep) {
-                            setBankAccountSubStep(null);
+                            BankAccounts.setBankAccountSubStep(null);
                             return;
                         }
                         Navigation.goBack();
@@ -187,16 +179,16 @@ class BankAccountStep extends React.Component {
                     <>
                         <View style={[styles.flex1]}>
                             <WorkspaceSection
-                                icon={BankMouseGreen}
+                                icon={Illustrations.BankMouseGreen}
                                 title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                             />
                             <Text style={[styles.mh5, styles.mb5]}>
                                 {this.props.translate('bankAccount.toGetStarted')}
                             </Text>
                             <MenuItem
-                                icon={Bank}
+                                icon={Expensicons.Bank}
                                 title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
-                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
+                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
                                 disabled={this.props.isPlaidDisabled || !this.props.user.validated}
                                 shouldShowRightIcon
                             />
@@ -206,16 +198,16 @@ class BankAccountStep extends React.Component {
                                 </Text>
                             )}
                             <MenuItem
-                                icon={Paycheck}
+                                icon={Expensicons.Paycheck}
                                 title={this.props.translate('bankAccount.connectManually')}
                                 disabled={!this.props.user.validated}
-                                onPress={() => setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
                                 shouldShowRightIcon
                             />
                             {!this.props.user.validated && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
                                     <Text style={[styles.mutedTextLabel, styles.mr4]}>
-                                        <Icon src={Exclamation} fill={colors.red} />
+                                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
                                     </Text>
                                     <Text style={styles.mutedTextLabel}>
                                         {this.props.translate('bankAccount.validateAccountError')}
@@ -234,7 +226,7 @@ class BankAccountStep extends React.Component {
                                         {this.props.translate('bankAccount.yourDataIsSecure')}
                                     </TextLink>
                                     <View style={[styles.ml1]}>
-                                        <Icon src={Lock} fill={colors.blue} />
+                                        <Icon src={Expensicons.Lock} fill={colors.blue} />
                                     </View>
                                 </View>
                             </View>
@@ -245,8 +237,7 @@ class BankAccountStep extends React.Component {
                     <AddPlaidBankAccount
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSubmit={this.addPlaidAccount}
-                        onExitPlaid={() => setBankAccountSubStep(null)}
-
+                        onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
                     />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (

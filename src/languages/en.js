@@ -287,6 +287,12 @@ export default {
         newPassword: 'New password',
         newPasswordPrompt: 'New password must be different than your old password, have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
         confirmNewPassword: 'Confirm new password',
+        errors: {
+            currentPassword: 'Current password is required',
+            confirmNewPassword: 'Confirm password is required',
+            newPasswordSameAsOld: 'New password must be different than your old password',
+            newPassword: 'Your password must have at least 8 characters,\n1 capital letter, 1 lowercase letter, and 1 number.',
+        },
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Enter your username to get paid back via PayPal.',
@@ -659,6 +665,7 @@ export default {
             travel: 'Book travel',
             members: 'Manage members',
             bankAccount: 'Connect bank account',
+            testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
@@ -782,5 +789,15 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+    },
+    keyboardShortcutModal: {
+        title: 'Keyboard Shortcuts',
+        subtitle: 'Save time with these handy keyboard shortcuts:',
+        shortcuts: {
+            openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            escape: 'Escape Dialogs',
+            search: 'Open search dialog',
+            newGroup: 'New group screen',
+        },
     },
 };
