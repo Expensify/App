@@ -75,9 +75,6 @@ class ReimbursementAccountPage extends React.Component {
 
         // If we are trying to navigate to `/bank-account/new` and we already have a bank account then don't allow returning to `/new`
         BankAccounts.fetchFreePlanVerifiedBankAccount(stepToOpen !== CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT ? stepToOpen : '');
-
-        // If we are coming back from the Plaid OAuth flow
-        this.receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
     }
 
     componentDidUpdate(prevProps) {
