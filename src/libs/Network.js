@@ -9,6 +9,7 @@ import createCallback from './createCallback';
 import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
 let isReady = false;
+let isOffline = false;
 let isQueuePaused = false;
 let persistedRequestsQueueRunning = false;
 
@@ -26,9 +27,6 @@ const [onRequest, registerRequestHandler] = createCallback();
 const [onResponse, registerResponseHandler] = createCallback();
 const [onError, registerErrorHandler] = createCallback();
 const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
-
-let didLoadPersistedRequests;
-let isOffline;
 
 const PROCESS_REQUEST_DELAY_MS = 1000;
 
@@ -235,18 +233,6 @@ function processNetworkRequestQueue() {
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
     });
-
-    // We should clear the NETWORK_REQUEST_QUEUE when we have loaded the persisted requests & they are processed.
-    // As multiple client will be sharing the same Queue and NETWORK_REQUEST_QUEUE is synchronized among clients,
-    // we only ask Leader client to clear the queue
-    if (ActiveClientManager.isClientTheLeader() && didLoadPersistedRequests) {
-        NetworkRequestQueue.clearPersistedRequests();
-    }
-
-    // User could have bad connectivity and he can go offline multiple times
-    // thus we allow NETWORK_REQUEST_QUEUE to be processed multiple times but only after we have processed
-    // old requests in the NETWORK_REQUEST_QUEUE
-    didLoadPersistedRequests = false;
 
     // We clear the request queue at the end by setting the queue to retryableRequests which will either have some
     // requests we want to retry or an empty array
