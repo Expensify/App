@@ -27,7 +27,7 @@ const WorkspaceCardVBAWithECardView = props => (
             },
             {
                 title: props.translate('workspace.common.reconcileCards'),
-                onPress: () => Link.openOldDotLink('domain_companycards?param={"section":"cardReconciliation"}'),
+                onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"cardReconciliation"}')),
                 icon: Expensicons.ReceiptSearch,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,

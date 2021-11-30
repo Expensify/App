@@ -1,112 +1,31 @@
 import _ from 'underscore';
 import React, {forwardRef, Component} from 'react';
-import {Keyboard, View} from 'react-native';
+import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Log from '../libs/Log';
-import styles from '../styles/styles';
-import OptionRow from '../pages/home/sidebar/OptionRow';
-import optionPropTypes from './optionPropTypes';
-import SectionList from './SectionList';
-import Text from './Text';
+import Log from '../../libs/Log';
+import styles from '../../styles/styles';
+import OptionRow from '../../pages/home/sidebar/OptionRow';
+import SectionList from '../SectionList';
+import Text from '../Text';
+import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
 
 const propTypes = {
-    /** option Background Color */
-    optionBackgroundColor: PropTypes.string,
+    /** Determines whether the keyboard gets dismissed in response to a drag */
+    keyboardDismissMode: PropTypes.string,
 
-    /** option flexStyle for the options list container */
-    listContainerStyles: PropTypes.arrayOf(PropTypes.object),
+    /** Called when the user begins to drag the scroll view */
+    onScrollBeginDrag: PropTypes.func,
 
-    /** Style for hovered state */
-    // eslint-disable-next-line react/forbid-prop-types
-    optionHoveredStyle: PropTypes.object,
-
-    /** Extra styles for the section list container */
-    contentContainerStyles: PropTypes.arrayOf(PropTypes.object),
-
-    /** Sections for the section list */
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        /** Title of the section */
-        title: PropTypes.string,
-
-        /** The initial index of this section given the total number of options in each section's data array */
-        indexOffset: PropTypes.number,
-
-        /** Array of options */
-        data: PropTypes.arrayOf(optionPropTypes),
-
-        /** Whether this section should show or not */
-        shouldShow: PropTypes.bool,
-    })),
-
-    /** Index for option to focus on */
-    focusedIndex: PropTypes.number,
-
-    /** Array of already selected options */
-    selectedOptions: PropTypes.arrayOf(optionPropTypes),
-
-    /** Whether we can select multiple options or not */
-    canSelectMultipleOptions: PropTypes.bool,
-
-    /** Whether to show headers above each section or not */
-    hideSectionHeaders: PropTypes.bool,
-
-    /** Whether to allow option focus or not */
-    disableFocusOptions: PropTypes.bool,
-
-    /** A flag to indicate whether to show additional optional states, such as pin and draft icons */
-    hideAdditionalOptionStates: PropTypes.bool,
-
-    /** Force the text style to be the unread style on all rows */
-    forceTextUnreadStyle: PropTypes.bool,
-
-    /** Callback to fire when a row is selected */
-    onSelectRow: PropTypes.func,
-
-    /** Optional header message */
-    headerMessage: PropTypes.string,
-
-    /** Passed via forwardRef so we can access the SectionList ref */
-    innerRef: PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.shape({current: PropTypes.instanceOf(SectionList)}),
-    ]),
-
-    /** Whether to show the title tooltip */
-    showTitleTooltip: PropTypes.bool,
-
-    /** Toggle between compact and default view of the option */
-    optionMode: PropTypes.oneOf(['compact', 'default']),
-
-    /** Whether to disable the interactivity of the list's option row(s) */
-    disableRowInteractivity: PropTypes.bool,
-
-    /** Callback to execute when the SectionList lays out */
-    onLayout: PropTypes.func,
+    ...optionsListPropTypes,
 };
 
 const defaultProps = {
-    optionBackgroundColor: undefined,
-    optionHoveredStyle: undefined,
-    contentContainerStyles: [],
-    listContainerStyles: [styles.flex1],
-    sections: [],
-    focusedIndex: 0,
-    selectedOptions: [],
-    canSelectMultipleOptions: false,
-    hideSectionHeaders: false,
-    disableFocusOptions: false,
-    hideAdditionalOptionStates: false,
-    forceTextUnreadStyle: false,
-    onSelectRow: () => {},
-    headerMessage: '',
-    innerRef: null,
-    showTitleTooltip: false,
-    optionMode: undefined,
-    disableRowInteractivity: false,
-    onLayout: undefined,
+    keyboardDismissMode: 'none',
+    onScrollBeginDrag: () => {},
+    ...optionsListDefaultProps,
 };
 
-class OptionsList extends Component {
+class BaseOptionsList extends Component {
     constructor(props) {
         super(props);
 
@@ -235,13 +154,9 @@ class OptionsList extends Component {
                     ref={this.props.innerRef}
                     indicatorStyle="white"
                     keyboardShouldPersistTaps="always"
-
-                    // Both `keyboardDismissMode` & `onScrollBeginDrag` props are needed to ensure that virtual keyboard is
-                    // dismissed on all platforms.
-                    // eslint-disable-next-line react/jsx-props-no-multi-spaces
-                    keyboardDismissMode="on-drag"
-                    onScrollBeginDrag={() => Keyboard.dismiss()}
-                    contentContainerStyle={[...this.props.contentContainerStyles]}
+                    keyboardDismissMode={this.props.keyboardDismissMode}
+                    onScrollBeginDrag={this.props.onScrollBeginDrag}
+                    contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
                     keyExtractor={this.extractKey}
@@ -261,10 +176,10 @@ class OptionsList extends Component {
     }
 }
 
-OptionsList.propTypes = propTypes;
-OptionsList.defaultProps = defaultProps;
+BaseOptionsList.propTypes = propTypes;
+BaseOptionsList.defaultProps = defaultProps;
 
 export default forwardRef((props, ref) => (
     // eslint-disable-next-line react/jsx-props-no-spreading
-    <OptionsList {...props} innerRef={ref} />
+    <BaseOptionsList {...props} innerRef={ref} />
 ));

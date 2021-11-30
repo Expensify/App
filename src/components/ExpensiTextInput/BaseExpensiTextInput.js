@@ -1,13 +1,15 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, TextInput, View, TouchableWithoutFeedback,
+    Animated, TextInput, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
 import InlineErrorText from '../InlineErrorText';
 
 const ACTIVE_LABEL_TRANSLATE_Y = -12;
@@ -31,6 +33,7 @@ class BaseExpensiTextInput extends Component {
             labelTranslateX: new Animated.Value(activeLabel
                 ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
             labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            passwordHidden: props.secureTextEntry,
         };
 
         this.input = null;
@@ -39,6 +42,7 @@ class BaseExpensiTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
+        this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
     }
 
     componentDidMount() {
@@ -145,6 +149,10 @@ class BaseExpensiTextInput extends Component {
         ]).start();
     }
 
+    togglePasswordVisibility() {
+        this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
+    }
+
     render() {
         const inputProps = _.omit(this.props, _.keys(propTypes));
         const hasLabel = Boolean(this.props.label.length);
@@ -167,8 +175,8 @@ class BaseExpensiTextInput extends Component {
                             {hasLabel ? (
                                 <>
                                     {/* Adding this background to the label only for multiline text input,
-                                    to prevent text overlaping with label when scrolling */}
-                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} />}
+                                    to prevent text overlapping with label when scrolling */}
+                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} pointerEvents="none" />}
                                     <ExpensiTextInputLabel
                                         label={this.props.label}
                                         labelTranslateX={
@@ -181,25 +189,40 @@ class BaseExpensiTextInput extends Component {
                                     />
                                 </>
                             ) : null}
-                            <TextInput
-                                ref={(ref) => {
-                                    if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
-                                    this.input = ref;
-                                }}
-                                // eslint-disable-next-line
-                                {...inputProps}
-                                value={this.props.value}
-                                placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
-                                placeholderTextColor={themeColors.placeholderText}
-                                underlineColorAndroid="transparent"
-                                style={[this.props.inputStyle, !hasLabel && styles.pv0]}
-                                multiline={this.props.multiline}
-                                onFocus={this.onFocus}
-                                onBlur={this.onBlur}
-                                onChangeText={this.setValue}
-                                onPressOut={this.props.onPress}
-                                translateX={this.props.translateX}
-                            />
+                            <View style={[styles.expensiTextInputAndIconContainer]}>
+                                <TextInput
+                                    ref={(ref) => {
+                                        if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                        this.input = ref;
+                                    }}
+                                    // eslint-disable-next-line
+                                    {...inputProps}
+                                    value={this.value}
+                                    placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
+                                    placeholderTextColor={themeColors.placeholderText}
+                                    underlineColorAndroid="transparent"
+                                    style={[this.props.inputStyle, styles.flex1, styles.w100, !hasLabel && styles.pv0, this.props.secureTextEntry && styles.pr2]}
+                                    multiline={this.props.multiline}
+                                    onFocus={this.onFocus}
+                                    onBlur={this.onBlur}
+                                    onChangeText={this.setValue}
+                                    secureTextEntry={this.state.passwordHidden}
+                                    onPressOut={this.props.onPress}
+                                    translateX={this.props.translateX}
+                                />
+                                {this.props.secureTextEntry && (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    style={styles.secureInputEyeButton}
+                                    onPress={this.togglePasswordVisibility}
+                                >
+                                    <Icon
+                                        src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                        fill={themeColors.icon}
+                                    />
+                                </Pressable>
+                                )}
+                            </View>
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
