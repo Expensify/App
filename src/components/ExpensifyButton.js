@@ -78,7 +78,7 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
 };
 
-class Button extends Component {
+class ExpensifyButton extends Component {
     constructor(props) {
         super(props);
         this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
@@ -190,7 +190,7 @@ class Button extends Component {
     }
 }
 
-Button.propTypes = propTypes;
-Button.defaultProps = defaultProps;
+ExpensifyButton.propTypes = propTypes;
+ExpensifyButton.defaultProps = defaultProps;
 
-export default Button;
+export default ExpensifyButton;
