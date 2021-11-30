@@ -30,12 +30,6 @@ const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
 
 const PROCESS_REQUEST_DELAY_MS = 1000;
 
-let persistedRequests = [];
-Onyx.connect({
-    key: ONYXKEYS.NETWORK_REQUEST_QUEUE,
-    callback: val => persistedRequests = val || [],
-});
-
 function processRequest(request) {
     const finalParameters = _.isFunction(enhanceParameters)
         ? enhanceParameters(request.command, request.data)
@@ -50,8 +44,10 @@ function removeFromPersistedStorage(request) {
 }
 
 function processPersistedRequestsQueue() {
+    const persistedRequests = NetworkRequestQueue.getPersistedRequests();
+
     // This sanity check is also a recursion exit point
-    if (_.size(persistedRequests) === 0 || isOffline) {
+    if (isOffline || _.size(persistedRequests) === 0) {
         return Promise.resolve();
     }
 
