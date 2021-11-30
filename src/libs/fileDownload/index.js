@@ -12,7 +12,7 @@ export default function fileDownload(url, fileName) {
         fetch(url)
             .then(response => response.blob())
             .then((blob) => {
-            // Create blob link to download
+                // Create blob link to download
                 const href = URL.createObjectURL(
                     new Blob([blob]),
                 );
