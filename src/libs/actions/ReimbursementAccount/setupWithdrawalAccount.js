@@ -206,7 +206,7 @@ function checkDataAndMaybeStayOnRequestorStep(achData, nextStep) {
         if (needsToDoOnfido(achData)) {
             navigation.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.REQUESTOR, {
                 ...achData,
-                sdkToken: getOnfidoTokenAndStatusFromACHData(achData).token,
+                sdkToken: getOnfidoTokenAndStatusFromACHData(achData).sdkToken,
             });
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
             return;
