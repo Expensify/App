@@ -44,6 +44,9 @@ class BaseAnchorForCommentsOnly extends React.Component {
                     <Pressable
                         style={styles.mw100}
                         onPress={() => {
+                            if (this.state.isDownloading) {
+                                return;
+                            }
                             this.processDownload(this.props.href, this.props.fileName);
                         }}
                     >
