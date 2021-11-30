@@ -139,7 +139,7 @@ class BaseOptionsList extends Component {
                     keyboardShouldPersistTaps="always"
                     keyboardDismissMode={this.props.keyboardDismissMode}
                     onScrollBeginDrag={this.props.onScrollBeginDrag}
-                    contentContainerStyle={[...this.props.contentContainerStyles]}
+                    contentContainerStyle={this.props.contentContainerStyles}
                     showsVerticalScrollIndicator={false}
                     sections={this.props.sections}
                     keyExtractor={this.extractKey}
