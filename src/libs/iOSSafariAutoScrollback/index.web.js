@@ -16,7 +16,7 @@ let maxScrollY = 0;
 
 let isTouching = false;
 
-const isIos15 = Str.contains(userAgent, 'iphone os 15_');
+const isIOS15 = Str.contains(userAgent, 'iphone os 15_');
 
 function scrollback() {
     if (!maxScrollY) {
@@ -42,23 +42,27 @@ function scrollbackAfterScroll() {
         const keyboardHeight = baseInnerHeight - window.visualViewport.height;
 
         // The iOS 15 Safari has a 52 pixel tall address label that must be manually added
-        maxScrollY = keyboardHeight + (isIos15 ? 52 : 0);
+        maxScrollY = keyboardHeight + (isIOS15 ? 52 : 0);
     }
     scrollback();
 }
 
-function startsWaitingForScroll() {
+function startWaitingForScroll() {
     isWaitingForScroll = true;
 }
 
-function stopsWaitingForScroll() {
+function stopWaitingForScroll() {
     isWaitingForScroll = false;
 }
 
-if (getBrowser() === CONST.BROWSER.SAFARI && Str.contains(userAgent, 'iphone os 1')) {
+
+export default function () {
+    if (!getBrowser() === CONST.BROWSER.SAFARI || !Str.contains(userAgent, 'iphone os 1')) {
+        return;
+    }
     document.addEventListener('touchstart', touchStarted);
     document.addEventListener('touchend', scrollbackAfterTouch);
     document.addEventListener('scroll', scrollbackAfterScroll);
-    document.addEventListener('focusin', startsWaitingForScroll);
-    document.addEventListener('focusout', stopsWaitingForScroll);
+    document.addEventListener('focusin', startWaitingForScroll);
+    document.addEventListener('focusout', stopWaitingForScroll);
 }
