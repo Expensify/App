@@ -54,9 +54,9 @@ export default [
                 ? reportAction.isAttachment
                 : ReportUtils.isReportMessageAttachment(text);
             if (!isAttachment) {
-                Clipboard.setString(text);
+                Clipboard.setHTML(html, text);
             } else {
-                Clipboard.setString(html);
+                Clipboard.setString(text);
             }
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
