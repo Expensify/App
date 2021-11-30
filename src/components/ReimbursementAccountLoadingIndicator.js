@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from './ScreenWrapper';
@@ -32,9 +32,9 @@ const ReimbursementAccountLoadingIndicator = props => (
                     ]}
                 />
                 <View style={[styles.ph6]}>
-                    <Text style={[styles.textAlignCenter]}>
+                    <ExpensifyText style={[styles.textAlignCenter]}>
                         {props.translate('reimbursementAccountLoadingAnimation.explanationLine')}
-                    </Text>
+                    </ExpensifyText>
                 </View>
             </View>
         ) : (

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
@@ -121,7 +121,7 @@ class ExpensifyButton extends Component {
         }
 
         const textComponent = (
-            <Text
+            <ExpensifyText
                 selectable={false}
                 style={[
                     styles.buttonText,
@@ -133,7 +133,7 @@ class ExpensifyButton extends Component {
                 ]}
             >
                 {this.props.text}
-            </Text>
+            </ExpensifyText>
         );
 
         if (this.props.icon) {

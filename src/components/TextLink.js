@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Linking} from 'react-native';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import styles from '../styles/styles';
 import stylePropTypes from '../styles/stylePropTypes';
 
@@ -33,7 +33,7 @@ const defaultProps = {
 const TextLink = (props) => {
     const additionalStyles = _.isArray(props.style) ? props.style : [props.style];
     return (
-        <Text
+        <ExpensifyText
             style={[styles.link, ...additionalStyles]}
             accessibilityRole="link"
             href={props.href}
@@ -48,7 +48,7 @@ const TextLink = (props) => {
             }}
         >
             {props.children}
-        </Text>
+        </ExpensifyText>
     );
 };
 

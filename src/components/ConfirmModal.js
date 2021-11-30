@@ -10,7 +10,7 @@ import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimen
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
 import ExpensifyButton from './ExpensifyButton';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 
 const propTypes = {
     /** Title of the modal */
@@ -70,9 +70,9 @@ const ConfirmModal = props => (
 
             {_.isString(props.prompt)
                 ? (
-                    <Text>
+                    <ExpensifyText>
                         {props.prompt}
-                    </Text>
+                    </ExpensifyText>
                 ) : (props.prompt)}
 
             <ExpensifyButton
