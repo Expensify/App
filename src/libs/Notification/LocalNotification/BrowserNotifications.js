@@ -1,10 +1,9 @@
 // Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
-import Onyx from 'react-native-onyx';
 import focusApp from './focusApp';
 import EXPENSIFY_ICON_URL from '../../../../assets/images/expensify-logo-round-clearspace.png';
-import ONYXKEYS from '../../../ONYXKEYS';
+import * as App from '../../actions/App';
 
 const DEFAULT_DELAY = 4000;
 
@@ -130,7 +129,7 @@ export default {
             body: 'A new version of this app is available!',
             delay: 0,
             onClick: () => {
-                Onyx.merge(ONYXKEYS.UPDATE_AVAILABLE, true);
+                App.triggerUpdateAvailable();
             },
         });
     },

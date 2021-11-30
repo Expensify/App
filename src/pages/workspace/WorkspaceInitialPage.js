@@ -9,17 +9,7 @@ import styles from '../../styles/styles';
 import Text from '../../components/Text';
 import Tooltip from '../../components/Tooltip';
 import Icon from '../../components/Icon';
-import {
-    Bank,
-    Gear,
-    ExpensifyCard,
-    Receipt,
-    Users,
-    Workspace,
-    Bill,
-    Invoice,
-    Luggage,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import MenuItem from '../../components/MenuItem';
@@ -42,70 +32,68 @@ const propTypes = {
 
 const defaultProps = fullPolicyDefaultProps;
 
-const WorkspaceInitialPage = ({
-    translate, isSmallScreenWidth, policy, isFocused,
-}) => {
-    if (_.isEmpty(policy)) {
+const WorkspaceInitialPage = (props) => {
+    if (_.isEmpty(props.policy)) {
         return <FullScreenLoadingIndicator />;
     }
 
     const menuItems = [
         {
             translationKey: 'workspace.common.settings',
-            icon: Gear,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceSettingsRoute(policy.id)),
+            icon: Expensicons.Gear,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceSettingsRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.card',
-            icon: ExpensifyCard,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(policy.id)),
+            icon: Expensicons.ExpensifyCard,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceCardRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceCardRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.reimburse',
-            icon: Receipt,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceReimburseRoute(policy.id)),
+            icon: Expensicons.Receipt,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceReimburseRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceReimburseRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.bills',
-            icon: Bill,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBillsRoute(policy.id)),
+            icon: Expensicons.Bill,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBillsRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBillsRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.invoices',
-            icon: Invoice,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceInvoicesRoute(policy.id)),
+            icon: Expensicons.Invoice,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceInvoicesRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceInvoicesRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.travel',
-            icon: Luggage,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(policy.id)),
+            icon: Expensicons.Luggage,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceTravelRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceTravelRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.members',
-            icon: Users,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceMembersRoute(policy.id)),
+            icon: Expensicons.Users,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceMembersRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceMembersRoute(props.policy.id)),
         },
         {
             translationKey: 'workspace.common.bankAccount',
-            icon: Bank,
-            action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
-            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(policy.id)),
+            icon: Expensicons.Bank,
+            action: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policy.id)),
+            isActive: Navigation.isActiveRoute(ROUTES.getWorkspaceBankAccountRoute(props.policy.id)),
         },
     ];
 
-    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(policy.id));
+    const openEditor = () => Navigation.navigate(ROUTES.getWorkspaceSettingsRoute(props.policy.id));
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('workspace.common.workspace')}
+                title={props.translate('workspace.common.workspace')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal()}
@@ -124,17 +112,17 @@ const WorkspaceInitialPage = ({
                                 style={[styles.pRelative, styles.avatarLarge]}
                                 onPress={openEditor}
                             >
-                                {policy.avatarURL
+                                {props.policy.avatarURL
                                     ? (
                                         <Avatar
                                             containerStyles={styles.avatarLarge}
                                             imageStyles={[styles.avatarLarge, styles.alignSelfCenter]}
-                                            source={policy.avatarURL}
+                                            source={props.policy.avatarURL}
                                         />
                                     )
                                     : (
                                         <Icon
-                                            src={Workspace}
+                                            src={Expensicons.Workspace}
                                             height={80}
                                             width={80}
                                             fill={themedefault.iconSuccessFill}
@@ -142,7 +130,7 @@ const WorkspaceInitialPage = ({
                                     )}
                             </Pressable>
 
-                            {policy.name && (
+                            {!_.isEmpty(props.policy.name) && (
                                 <Pressable
                                     style={[
                                         styles.alignSelfCenter,
@@ -152,7 +140,7 @@ const WorkspaceInitialPage = ({
                                     ]}
                                     onPress={openEditor}
                                 >
-                                    <Tooltip text={policy.name}>
+                                    <Tooltip text={props.policy.name}>
                                         <Text
                                             numberOfLines={1}
                                             style={[
@@ -160,7 +148,7 @@ const WorkspaceInitialPage = ({
                                                 styles.alignSelfCenter,
                                             ]}
                                         >
-                                            {policy.name}
+                                            {props.policy.name}
                                         </Text>
                                     </Tooltip>
                                 </Pressable>
@@ -168,11 +156,11 @@ const WorkspaceInitialPage = ({
                         </View>
                     </View>
                     {_.map(menuItems, (item) => {
-                        const shouldFocus = isSmallScreenWidth ? !isFocused && item.isActive : item.isActive;
+                        const shouldFocus = props.isSmallScreenWidth ? !props.isFocused && item.isActive : item.isActive;
                         return (
                             <MenuItem
                                 key={item.translationKey}
-                                title={translate(item.translationKey)}
+                                title={props.translate(item.translationKey)}
                                 icon={item.icon}
                                 iconRight={item.iconRight}
                                 onPress={() => item.action()}

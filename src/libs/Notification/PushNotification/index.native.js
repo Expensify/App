@@ -86,9 +86,11 @@ function register(accountID) {
     // Get permissions to display push notifications (prompts user on iOS, but not Android)
     UrbanAirship.enableUserPushNotifications()
         .then((isEnabled) => {
-            if (!isEnabled) {
-                Log.info('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
+            if (isEnabled) {
+                return;
             }
+
+            Log.info('[PUSH_NOTIFICATIONS] User has disabled visible push notifications for this app.');
         });
 
     // Register this device as a named user in AirshipAPI.

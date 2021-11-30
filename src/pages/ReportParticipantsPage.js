@@ -16,7 +16,7 @@ import ROUTES from '../ROUTES';
 import personalDetailsPropType from './personalDetailsPropType';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import {isDefaultRoom} from '../libs/reportUtils';
+import * as ReportUtils from '../libs/reportUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -74,21 +74,16 @@ const getAllParticipants = (report, personalDetails) => {
     });
 };
 
-const ReportParticipantsPage = ({
-    personalDetails,
-    report,
-    route,
-    translate,
-}) => {
-    const participants = getAllParticipants(report, personalDetails);
+const ReportParticipantsPage = (props) => {
+    const participants = getAllParticipants(props.report, props.personalDetails);
 
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate(isDefaultRoom(report) ? 'common.members' : 'common.details')}
+                title={props.translate(ReportUtils.isDefaultRoom(props.report) ? 'common.members' : 'common.details')}
                 onCloseButtonPress={Navigation.dismissModal}
                 onBackButtonPress={Navigation.dismissModal}
-                shouldShowBackButton={isDefaultRoom(report)}
+                shouldShowBackButton={ReportUtils.isDefaultRoom(props.report)}
             />
             <View
                 pointerEvents="box-none"
@@ -104,7 +99,7 @@ const ReportParticipantsPage = ({
                         }]}
                         onSelectRow={(option) => {
                             Navigation.navigate(ROUTES.getReportParticipantRoute(
-                                route.params.reportID, option.login,
+                                props.route.params.reportID, option.login,
                             ));
                         }}
                         hideSectionHeaders

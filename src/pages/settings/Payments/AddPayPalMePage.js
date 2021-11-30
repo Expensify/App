@@ -9,7 +9,7 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Text from '../../../components/Text';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import NameValuePair from '../../../libs/actions/NameValuePair';
-import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Navigation from '../../../libs/Navigation/Navigation';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -19,7 +19,7 @@ import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import Growl from '../../../libs/Growl';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
-import {isValidPaypalUsername} from '../../../libs/ValidationUtils';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 
 const propTypes = {
     /** Username for PayPal.Me */
@@ -44,22 +44,23 @@ class AddPayPalMePage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        PaymentMethods.getPaymentMethods();
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.payPalMeUsername !== this.props.payPalMeUsername) {
-            // Suppressing because this is within a conditional, and hence we won't run into an infinite loop
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({payPalMeUsername: this.props.payPalMeUsername});
+        if (prevProps.payPalMeUsername === this.props.payPalMeUsername) {
+            return;
         }
+
+        // eslint-disable-next-line react/no-did-update-set-state
+        this.setState({payPalMeUsername: this.props.payPalMeUsername});
     }
 
     /**
      * Sets the payPalMeUsername for the current user
      */
     setPayPalMeUsername() {
-        const isValid = isValidPaypalUsername(this.state.payPalMeUsername);
+        const isValid = ValidationUtils.isValidPaypalUsername(this.state.payPalMeUsername);
         if (!isValid) {
             this.setState({payPalMeUsernameError: true});
             return;

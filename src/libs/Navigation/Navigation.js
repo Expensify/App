@@ -30,9 +30,11 @@ const navigationRef = createNavigationContainerRef();
 let didTapNotificationBeforeReady = false;
 
 function setDidTapNotification() {
-    if (!navigationRef.isReady()) {
-        didTapNotificationBeforeReady = true;
+    if (navigationRef.isReady()) {
+        return;
     }
+
+    didTapNotificationBeforeReady = true;
 }
 
 /**

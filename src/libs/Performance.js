@@ -3,7 +3,7 @@ import lodashTransform from 'lodash/transform';
 import React, {Profiler, forwardRef} from 'react';
 import {Alert} from 'react-native';
 
-import {canCapturePerformanceMetrics} from './canCaptureMetrics';
+import * as Metrics from './Metrics';
 import getComponentDisplayName from './getComponentDisplayName';
 import CONST from '../CONST';
 
@@ -21,13 +21,14 @@ let rnPerformance;
 function diffObject(object, base) {
     function changes(obj, comparisonObject) {
         return lodashTransform(obj, (result, value, key) => {
-            if (!_.isEqual(value, comparisonObject[key])) {
-                // eslint-disable-next-line no-param-reassign
-                result[key] = (
-                    _.isObject(value) && _.isObject(comparisonObject[key]))
-                    ? changes(value, comparisonObject[key])
-                    : value;
+            if (_.isEqual(value, comparisonObject[key])) {
+                return;
             }
+
+            // eslint-disable-next-line no-param-reassign
+            result[key] = (_.isObject(value) && _.isObject(comparisonObject[key]))
+                ? changes(value, comparisonObject[key])
+                : value;
         });
     }
     return changes(object, base);
@@ -44,7 +45,7 @@ const Performance = {
     withRenderTrace: () => Component => Component,
 };
 
-if (canCapturePerformanceMetrics()) {
+if (Metrics.canCapturePerformanceMetrics()) {
     /**
      * Sets up an observer to capture events recorded in the native layer before the app fully initializes.
      */

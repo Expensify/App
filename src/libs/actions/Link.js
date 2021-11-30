@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import {Linking} from 'react-native';
 import ONYXKEYS from '../../ONYXKEYS';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 import CONST from '../../CONST';
 import * as API from '../API';
 import CONFIG from '../../CONFIG';
@@ -26,7 +26,7 @@ Onyx.connect({
  */
 function showGrowlIfOffline() {
     if (isNetworkOffline) {
-        Growl.show(translateLocal('session.offlineMessageRetry'), CONST.GROWL.WARNING);
+        Growl.show(Localize.translateLocal('session.offlineMessageRetry'), CONST.GROWL.WARNING);
     }
     return isNetworkOffline;
 }
@@ -35,20 +35,26 @@ function showGrowlIfOffline() {
  * @param {String} url
  */
 function openOldDotLink(url) {
-    if (!showGrowlIfOffline()) {
-        // eslint-disable-next-line max-len
-        const buildOldDotURL = ({shortLivedAuthToken}) => `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
-        asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
+    if (showGrowlIfOffline()) {
+        return;
     }
+
+    function buildOldDotURL({shortLivedAuthToken}) {
+        return `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}${url}${url.indexOf('?') === -1 ? '?' : '&'}authToken=${shortLivedAuthToken}&email=${encodeURIComponent(currentUserEmail)}`;
+    }
+
+    asyncOpenURL(API.GetShortLivedAuthToken(), buildOldDotURL);
 }
 
 /**
  * @param {String} url
  */
 function openExternalLink(url) {
-    if (!showGrowlIfOffline()) {
-        Linking.openURL(url);
+    if (showGrowlIfOffline()) {
+        return;
     }
+
+    Linking.openURL(url);
 }
 
 export {

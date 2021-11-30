@@ -1,6 +1,7 @@
 import './index.css';
 import lodashGet from 'lodash/get';
 import React from 'react';
+import {View} from 'react-native';
 import * as OnfidoSDK from 'onfido-sdk-ui';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
 import onfidoPropTypes from './onfidoPropTypes';
@@ -94,14 +95,16 @@ class Onfido extends React.Component {
     }
 
     componentWillUnmount() {
-        if (this.onfidoOut) {
-            this.onfidoOut.tearDown();
+        if (!this.onfidoOut) {
+            return;
         }
+
+        this.onfidoOut.tearDown();
     }
 
     render() {
         return (
-            <div id={CONST.ONFIDO.CONTAINER_ID} />
+            <View nativeID={CONST.ONFIDO.CONTAINER_ID} />
         );
     }
 }

@@ -8,16 +8,24 @@ export default {
         height: '100%',
     },
 
-    w100: {
-        width: '100%',
+    w20: {
+        width: '20%',
+    },
+
+    mnh100: {
+        minHeight: '100%',
     },
 
     w50: {
         width: '50%',
     },
 
-    w20: {
-        width: '20%',
+    w70: {
+        width: '70%',
+    },
+
+    w100: {
+        width: '100%',
     },
 
     mwn: {

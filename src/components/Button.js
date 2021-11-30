@@ -8,6 +8,7 @@ import OpacityView from './OpacityView';
 import Text from './Text';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The text for the button label */
@@ -90,12 +91,15 @@ class Button extends Component {
             return;
         }
 
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+
         // Setup and attach keypress handler for pressing the button with Enter key
-        this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
-            if (!this.props.isDisabled && !this.props.isLoading) {
-                this.props.onPress();
+        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
+            if (this.props.isDisabled || this.props.isLoading) {
+                return;
             }
-        }, [], true);
+            this.props.onPress();
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
     componentWillUnmount() {
@@ -107,7 +111,7 @@ class Button extends Component {
     }
 
     renderContent() {
-        const {ContentComponent} = this.props;
+        const ContentComponent = this.props.ContentComponent;
         if (ContentComponent) {
             return <ContentComponent />;
         }

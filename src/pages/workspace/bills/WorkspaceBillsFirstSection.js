@@ -6,14 +6,11 @@ import Str from 'expensify-common/lib/str';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    Bill,
-    NewWindow,
-} from '../../../components/Icon/Expensicons';
-import {InvoiceOrange} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import CopyTextToClipboard from '../../../components/CopyTextToClipboard';
-import {openExternalLink, openOldDotLink} from '../../../libs/actions/Link';
+import * as Link from '../../../libs/actions/Link';
 import compose from '../../../libs/compose';
 import ONYXKEYS from '../../../ONYXKEYS';
 import userPropTypes from '../../settings/userPropTypes';
@@ -35,33 +32,30 @@ const propTypes = {
     user: userPropTypes.isRequired,
 };
 
-const WorkspaceBillsFirstSection = ({
-    translate,
-    policyID,
-    session,
-    user,
-}) => {
-    const emailDomain = Str.extractEmailDomain(session.email);
+const WorkspaceBillsFirstSection = (props) => {
+    const emailDomain = Str.extractEmailDomain(props.session.email);
     return (
         <WorkspaceSection
-            title={translate('workspace.bills.manageYourBills')}
-            icon={InvoiceOrange}
+            title={props.translate('workspace.bills.manageYourBills')}
+            icon={Illustrations.InvoiceOrange}
             menuItems={[
                 {
-                    title: translate('workspace.bills.viewAllBills'),
-                    onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
-                    icon: Bill,
+                    title: props.translate('workspace.bills.viewAllBills'),
+                    onPress: () => (
+                        Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=bill&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`)
+                    ),
+                    icon: Expensicons.Bill,
                     shouldShowRightIcon: true,
-                    iconRight: NewWindow,
+                    iconRight: Expensicons.NewWindow,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
                 <Text>
-                    {translate('workspace.bills.askYourVendorsBeforeEmail')}
-                    {user.isFromPublicDomain ? (
+                    {props.translate('workspace.bills.askYourVendorsBeforeEmail')}
+                    {props.user.isFromPublicDomain ? (
                         <TouchableOpacity
-                            onPress={() => openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
+                            onPress={() => Link.openExternalLink('https://community.expensify.com/discussion/7500/how-to-pay-your-company-bills-in-expensify/')}
                         >
                             <Text style={[styles.textBlue]}>example.com@expensify.cash</Text>
                         </TouchableOpacity>
@@ -71,7 +65,7 @@ const WorkspaceBillsFirstSection = ({
                             textStyles={[styles.textBlue]}
                         />
                     )}
-                    <Text>{translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
+                    <Text>{props.translate('workspace.bills.askYourVendorsAfterEmail')}</Text>
                 </Text>
             </View>
         </WorkspaceSection>

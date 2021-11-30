@@ -7,20 +7,12 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import Text from '../../components/Text';
-import {signOut} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import AvatarWithIndicator from '../../components/AvatarWithIndicator';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import {
-    Building,
-    Gear,
-    Info,
-    Lock,
-    Profile,
-    SignOut,
-    Wallet,
-} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import MenuItem from '../../components/MenuItem';
 import ROUTES from '../../ROUTES';
@@ -95,7 +87,7 @@ const defaultProps = {
 const defaultMenuItems = [
     {
         translationKey: 'common.profile',
-        icon: Profile,
+        icon: Expensicons.Profile,
         action: () => {
             DateUtils.updateTimezone();
             Navigation.navigate(ROUTES.SETTINGS_PROFILE);
@@ -103,59 +95,50 @@ const defaultMenuItems = [
     },
     {
         translationKey: 'common.preferences',
-        icon: Gear,
+        icon: Expensicons.Gear,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
         translationKey: 'initialSettingsPage.changePassword',
-        icon: Lock,
+        icon: Expensicons.Lock,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
     },
     {
         translationKey: 'common.payments',
-        icon: Wallet,
+        icon: Expensicons.Wallet,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PAYMENTS); },
     },
     {
         translationKey: 'initialSettingsPage.about',
-        icon: Info,
+        icon: Expensicons.Info,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_ABOUT); },
     },
     {
         translationKey: 'initialSettingsPage.signOut',
-        icon: SignOut,
-        action: signOut,
+        icon: Expensicons.SignOut,
+        action: Session.signOut,
     },
 ];
 
-const InitialSettingsPage = ({
-    myPersonalDetails,
-    network,
-    numberFormat,
-    session,
-    policies,
-    translate,
-    userWallet,
-    betas,
-}) => {
-    const walletBalance = numberFormat(
-        userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
+const InitialSettingsPage = (props) => {
+    const walletBalance = props.numberFormat(
+        props.userWallet.currentBalance / 100, // Divide by 100 because balance is in cents
         {style: 'currency', currency: 'USD'},
     );
 
     // On the very first sign in or after clearing storage these
     // details will not be present on the first render so we'll just
     // return nothing for now.
-    if (_.isEmpty(myPersonalDetails)) {
+    if (_.isEmpty(props.myPersonalDetails)) {
         return null;
     }
 
     // Add free policies (workspaces) to the list of menu items
-    const menuItems = _.chain(policies)
+    const menuItems = _.chain(props.policies)
         .filter(policy => policy && policy.type === CONST.POLICY.TYPE.FREE && policy.role === CONST.POLICY.ROLE.ADMIN)
         .map(policy => ({
             title: policy.name,
-            icon: policy.avatarURL ? policy.avatarURL : Building,
+            icon: policy.avatarURL ? policy.avatarURL : Expensicons.Building,
             iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_ICON,
             action: () => Navigation.navigate(ROUTES.getWorkspaceInitialRoute(policy.id)),
             iconStyles: [styles.popoverMenuIconEmphasized],
@@ -170,7 +153,7 @@ const InitialSettingsPage = ({
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={translate('common.settings')}
+                title={props.translate('common.settings')}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}
             />
             <ScrollView style={[styles.settingsPageBackground]}>
@@ -179,30 +162,30 @@ const InitialSettingsPage = ({
                         <Pressable style={[styles.mb3]} onPress={openProfileSettings}>
                             <AvatarWithIndicator
                                 size="large"
-                                source={myPersonalDetails.avatar}
-                                isActive={network.isOffline === false}
-                                tooltipText={myPersonalDetails.displayName}
+                                source={props.myPersonalDetails.avatar}
+                                isActive={props.network.isOffline === false}
+                                tooltipText={props.myPersonalDetails.displayName}
                             />
                         </Pressable>
 
                         <Pressable style={[styles.mt1, styles.mw100]} onPress={openProfileSettings}>
                             <Text style={[styles.displayName]} numberOfLines={1}>
-                                {myPersonalDetails.displayName
-                                    ? myPersonalDetails.displayName
-                                    : Str.removeSMSDomain(session.email)}
+                                {props.myPersonalDetails.displayName
+                                    ? props.myPersonalDetails.displayName
+                                    : Str.removeSMSDomain(props.session.email)}
                             </Text>
                         </Pressable>
-                        {myPersonalDetails.displayName && (
+                        {props.myPersonalDetails.displayName && (
                             <Text
                                 style={[styles.textLabelSupporting, styles.mt1]}
                                 numberOfLines={1}
                             >
-                                {Str.removeSMSDomain(session.email)}
+                                {Str.removeSMSDomain(props.session.email)}
                             </Text>
                         )}
                     </View>
                     {_.map(menuItems, (item, index) => {
-                        const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
+                        const keyTitle = item.translationKey ? props.translate(item.translationKey) : item.title;
                         const isPaymentItem = item.translationKey === 'common.payments';
                         return (
                             <MenuItem
@@ -214,7 +197,7 @@ const InitialSettingsPage = ({
                                 iconStyles={item.iconStyles}
                                 iconFill={item.iconFill}
                                 shouldShowRightIcon
-                                badgeText={(isPaymentItem && Permissions.canUseWallet(betas)) ? walletBalance : undefined}
+                                badgeText={(isPaymentItem && Permissions.canUseWallet(props.betas)) ? walletBalance : undefined}
                             />
                         );
                     })}

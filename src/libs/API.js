@@ -1,26 +1,44 @@
 import _ from 'underscore';
+import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
+import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import redirectToSignIn from './actions/SignInRedirect';
-import * as Network from './Network';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
-
-// eslint-disable-next-line import/no-cycle
-import LogUtil from './Log';
+import requireParameters from './requireParameters';
+import Log from './Log';
+import * as Network from './Network';
+import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
+import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
 
 let isAuthenticating;
 let credentials;
+let authToken;
+
+function checkRequiredDataAndSetNetworkReady() {
+    if (_.isUndefined(authToken) || _.isUndefined(credentials)) {
+        return;
+    }
+
+    Network.setIsReady(true);
+}
+
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
-    callback: val => credentials = val,
+    callback: (val) => {
+        credentials = val || null;
+        checkRequiredDataAndSetNetworkReady();
+    },
 });
 
-let authToken;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
-    callback: val => authToken = val ? val.authToken : null,
+    callback: (val) => {
+        authToken = lodashGet(val, 'authToken', null);
+        checkRequiredDataAndSetNetworkReady();
+    },
 });
 
 /**
@@ -55,18 +73,6 @@ function addDefaultValuesToParameters(command, parameters) {
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        // If we end up here with no authToken it means we are trying to make an API request before we are signed in.
-        // In this case, we should cancel the current request by pausing the queue and clearing the remaining requests.
-        if (!authToken) {
-            redirectToSignIn();
-
-            LogUtil.info('A request was made without an authToken', false, {command, parameters});
-            Network.pauseRequestQueue();
-            Network.clearRequestQueue();
-            Network.unpauseRequestQueue();
-            return;
-        }
-
         finalParameters.authToken = authToken;
     }
 
@@ -81,33 +87,6 @@ function addDefaultValuesToParameters(command, parameters) {
 
 // Tie into the network layer to add auth token to the parameters of all requests
 Network.registerParameterEnhancer(addDefaultValuesToParameters);
-
-/**
- * @throws {Error} If the "parameters" object has a null or undefined value for any of the given parameterNames
- *
- * @param {String[]} parameterNames Array of the required parameter names
- * @param {Object} parameters A map from available parameter names to their values
- * @param {String} commandName The name of the API command
- */
-function requireParameters(parameterNames, parameters, commandName) {
-    parameterNames.forEach((parameterName) => {
-        if (!_(parameters).has(parameterName)
-            || parameters[parameterName] === null
-            || parameters[parameterName] === undefined
-        ) {
-            const propertiesToRedact = ['authToken', 'password', 'partnerUserSecret', 'twoFactorAuthCode'];
-            const parametersCopy = _.chain(parameters)
-                .clone()
-                .mapObject((val, key) => (_.contains(propertiesToRedact, key) ? '<redacted>' : val))
-                .value();
-            const keys = _(parametersCopy).keys().join(', ') || 'none';
-
-            let error = `Parameter ${parameterName} is required for "${commandName}". `;
-            error += `Supplied parameters: ${keys}`;
-            throw new Error(error);
-        }
-    });
-}
 
 /**
  * Function used to handle expired auth tokens. It re-authenticates with the API and
@@ -144,7 +123,34 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
         ));
 }
 
+Network.registerRequestHandler((queuedRequest, finalParameters) => {
+    if (queuedRequest.command === 'Log') {
+        return;
+    }
+
+    Log.info('Making API request', false, {
+        command: queuedRequest.command,
+        type: queuedRequest.type,
+        shouldUseSecure: queuedRequest.type,
+        rvl: finalParameters.returnValueList,
+    });
+});
+
+Network.registerRequestSkippedHandler((parameters) => {
+    Log.hmmm('Trying to make a request when Network is not ready', parameters);
+});
+
 Network.registerResponseHandler((queuedRequest, response) => {
+    if (queuedRequest.command !== 'Log') {
+        Log.info('Finished API request', false, {
+            command: queuedRequest.command,
+            type: queuedRequest.type,
+            shouldUseSecure: queuedRequest.shouldUseSecure,
+            jsonCode: response.jsonCode,
+            requestID: response.requestID,
+        });
+    }
+
     if (response.jsonCode === 407) {
         // Credentials haven't been initialized. We will not be able to re-authenticates with the API
         const unableToReauthenticate = (!credentials || !credentials.autoGeneratedLogin
@@ -153,7 +159,8 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        if (queuedRequest.data.doNotRetry || unableToReauthenticate) {
+        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
+        if (!shouldRetry || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;
         }
@@ -176,13 +183,13 @@ Network.registerResponseHandler((queuedRequest, response) => {
 
 Network.registerErrorHandler((queuedRequest, error) => {
     if (queuedRequest.command !== 'Log') {
-        LogUtil.hmmm('[API] Handled error when making request', error);
+        Log.hmmm('[API] Handled error when making request', error);
     } else {
         console.debug('[API] There was an error in the Log API command, unable to log to server!', error);
     }
 
     // Set an error state and signify we are done loading
-    Onyx.merge(ONYXKEYS.SESSION, {loading: false, error: 'Cannot connect to server'});
+    setSessionLoadingAndError(false, 'Cannot connect to server');
 
     // Reject the queued request with an API offline error so that the original caller can handle it.
     queuedRequest.reject(new Error(CONST.ERROR.API_OFFLINE));
@@ -190,7 +197,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
 
 /**
  * @param {Object} parameters
- * @param {String} [parameters.useExpensifyLogin]
+ * @param {Boolean} [parameters.useExpensifyLogin]
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
@@ -221,7 +228,7 @@ function Authenticate(parameters) {
         partnerUserSecret: parameters.partnerUserSecret,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
         authToken: parameters.authToken,
-        doNotRetry: true,
+        shouldRetry: false,
 
         // Force this request to be made because the network queue is paused when re-authentication is happening
         forceNetworkRequest: true,
@@ -283,10 +290,7 @@ function reauthenticate(command = '') {
 
             // Update authToken in Onyx and in our local variables so that API requests will use the
             // new authToken
-            Onyx.merge(ONYXKEYS.SESSION, {
-                authToken: response.authToken,
-                encryptedAuthToken: response.encryptedAuthToken,
-            });
+            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
             authToken = response.authToken;
 
             // The authentication process is finished so the network can be unpaused to continue
@@ -310,7 +314,7 @@ function reauthenticate(command = '') {
             // If we experience something other than a network error then redirect the user to sign in
             redirectToSignIn(error.message);
 
-            LogUtil.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
+            Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                 command,
                 error: error.message,
             });
@@ -340,7 +344,7 @@ function AuthenticateWithAccountID(parameters) {
         accountID: parameters.accountID,
         validateCode: parameters.validateCode,
         twoFactorAuthCode: parameters.twoFactorAuthCode,
-        doNotRetry: true,
+        shouldRetry: false,
     });
 }
 
@@ -398,7 +402,7 @@ function User_SignUp(parameters) {
  * @param {String} parameters.partnerPassword
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerUserSecret
- * @param {Boolean} [parameters.doNotRetry]
+ * @param {Boolean} [parameters.shouldRetry]
  * @param {String} [parameters.email]
  * @returns {Promise}
  */
@@ -419,12 +423,12 @@ function CreateLogin(parameters) {
  * @param {String} parameters.partnerUserID
  * @param {String} parameters.partnerName
  * @param {String} parameters.partnerPassword
- * @param {Boolean} parameters.doNotRetry
+ * @param {Boolean} parameters.shouldRetry
  * @returns {Promise}
  */
 function DeleteLogin(parameters) {
     const commandName = 'DeleteLogin';
-    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'doNotRetry'],
+    requireParameters(['partnerUserID', 'partnerName', 'partnerPassword', 'shouldRetry'],
         parameters, commandName);
     return Network.post(commandName, parameters);
 }
@@ -444,6 +448,7 @@ function Get(parameters, shouldUseSecure = false) {
 /**
  * @param {Object} parameters
  * @param {String} parameters.email
+ * @param {Boolean} parameters.forceNetworkRequest
  * @returns {Promise}
  */
 function GetAccountStatus(parameters) {
@@ -506,21 +511,6 @@ function GetPolicySummaryList() {
 function GetRequestCountryCode() {
     const commandName = 'GetRequestCountryCode';
     return Network.post(commandName);
-}
-
-/**
- * @param {Object} parameters
- * @param {String} parameters.expensifyCashAppVersion
- * @param {Object[]} parameters.logPacket
- * @returns {Promise}
- */
-function Log(parameters) {
-    const commandName = 'Log';
-    requireParameters(['logPacket', 'expensifyCashAppVersion'],
-        parameters, commandName);
-
-    // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
-    return Network.post(commandName, {...parameters, forceNetworkRequest: true});
 }
 
 /**
@@ -875,7 +865,7 @@ function Wallet_GetOnfidoSDKToken() {
  * @returns {Promise}
  */
 function Plaid_GetLinkToken() {
-    return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -1011,14 +1001,13 @@ function DeleteBankAccount(parameters) {
 
 /**
  * @param {Object} parameters
- * @param {String[]} data
  * @returns {Promise}
  */
 function Mobile_GetConstants(parameters) {
     const commandName = 'Mobile_GetConstants';
     requireParameters(['data'], parameters, commandName);
 
-    // Stringinfy the parameters object as we cannot send an object via FormData
+    // Stringify the parameters object as we cannot send an object via FormData
     const finalParameters = parameters;
     finalParameters.data = JSON.stringify(parameters.data);
 
@@ -1111,6 +1100,19 @@ function UpdatePolicy(parameters) {
     return Network.post(commandName, parameters);
 }
 
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.policyID
+ * @param {String} parameters.reportName
+ * @param {String} parameters.visibility
+ * @return {Promise}
+ */
+function CreatePolicyRoom(parameters) {
+    const commandName = 'CreatePolicyRoom';
+    requireParameters(['policyID', 'reportName', 'visibility'], parameters, commandName);
+    return Network.post(commandName, parameters);
+}
+
 export {
     Authenticate,
     AuthenticateWithAccountID,
@@ -1122,6 +1124,7 @@ export {
     ChangePassword,
     CreateChatReport,
     CreateLogin,
+    CreatePolicyRoom,
     DeleteLogin,
     DeleteBankAccount,
     Get,
@@ -1134,7 +1137,6 @@ export {
     GetRequestCountryCode,
     Graphite_Timer,
     Inbox_CallUser,
-    Log,
     PayIOU,
     PayWithWallet,
     PersonalDetails_GetForEmails,
