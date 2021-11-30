@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import lodashGet from 'lodash/get';
 import {Linking, StyleSheet, Pressable} from 'react-native';
-import * as anchorForCommentsOnlyPropTypes from '../anchorForCommentsOnlyPropTypes';
+import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
 import Text from '../../Text';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
@@ -37,8 +37,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
 
     render() {
         let linkRef;
-        // eslint-disable-next-line react/forbid-foreign-prop-types
-        const rest = _.omit(this.props, _.keys(anchorForCommentsOnlyPropTypes.propTypes));
+        const rest = _.omit(this.props, _.keys(propTypes));
         return (
             this.props.isAttachment
                 ? (
@@ -85,8 +84,8 @@ class BaseAnchorForCommentsOnly extends React.Component {
     }
 }
 
-BaseAnchorForCommentsOnly.propTypes = anchorForCommentsOnlyPropTypes.propTypes;
-BaseAnchorForCommentsOnly.defaultProps = anchorForCommentsOnlyPropTypes.defaultProps;
+BaseAnchorForCommentsOnly.propTypes = propTypes;
+BaseAnchorForCommentsOnly.defaultProps = defaultProps;
 BaseAnchorForCommentsOnly.displayName = 'BaseAnchorForCommentsOnly';
 
 export default BaseAnchorForCommentsOnly;

@@ -76,14 +76,14 @@ const AttachmentView = (props) => {
                 </View>
             )}
             {props.shouldShowLoadingSpinnerIcon && (
-            <View style={styles.ml2}>
-                <Tooltip text={props.translate('common.downloading')}>
-                    <ActivityIndicator
-                        size="small"
-                        color={themeColors.textSupporting}
-                    />
-                </Tooltip>
-            </View>
+                <View style={styles.ml2}>
+                    <Tooltip text={props.translate('common.downloading')}>
+                        <ActivityIndicator
+                            size="small"
+                            color={themeColors.textSupporting}
+                        />
+                    </Tooltip>
+                </View>
             )}
         </View>
     );
