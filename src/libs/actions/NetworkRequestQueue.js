@@ -1,4 +1,6 @@
 import Onyx from 'react-native-onyx';
+import _ from 'underscore';
+import lodashUnionWith from 'lodash/unionWith';
 import ONYXKEYS from '../../ONYXKEYS';
 
 const retryMap = new Map();
@@ -15,12 +17,14 @@ function clearPersistedRequests() {
 }
 
 function saveRetryableRequests(retryableRequests) {
-    Onyx.merge(ONYXKEYS.NETWORK_REQUEST_QUEUE, retryableRequests);
+    const requests = lodashUnionWith(persistedRequests, retryableRequests, _.isEqual);
+    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, requests);
 }
 
 function removeRetryableRequest(request) {
     retryMap.delete(request);
-    console.debug('Remove from storage: ', {request});
+    const remaining = _.reject(persistedRequests, r => _.isEqual(r, request));
+    Onyx.set(ONYXKEYS.NETWORK_REQUEST_QUEUE, remaining);
 }
 
 function incrementRetries(request) {
