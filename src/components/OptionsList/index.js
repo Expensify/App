@@ -8,8 +8,6 @@ const OptionsList = forwardRef((props, ref) => (
         // eslint-disable-next-line react/jsx-props-no-spreading
         {...props}
         ref={ref}
-
-        // eslint-disable-next-line react/jsx-props-no-multi-spaces
         keyboardDismissMode={props.isSmallScreenWidth ? 'on-drag' : 'none'}
     />
 ));
