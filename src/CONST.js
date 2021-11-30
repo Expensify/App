@@ -277,6 +277,7 @@ const CONST = {
         },
         MAX_PERSISTED_REQUEST_RETRIES: 10,
         PROCESS_REQUEST_DELAY_MS: 1000,
+        SUCCESS_CODE: 200,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',

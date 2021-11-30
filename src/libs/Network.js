@@ -47,7 +47,7 @@ function processPersistedRequestsQueue() {
 
     const tasks = _.map(persistedRequests, request => processRequest(request)
         .then((response) => {
-            if (response.jsonCode !== 200) {
+            if (response.jsonCode !== CONST.NETWORK.SUCCESS_CODE) {
                 throw new Error('Persisted request failed');
             }
 
