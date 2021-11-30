@@ -76,12 +76,6 @@ const propTypes = {
 
     /** Callback to execute when the SectionList lays out */
     onLayout: PropTypes.func,
-
-    /** Determines whether the keyboard gets dismissed in response to a drag */
-    keyboardDismissMode: PropTypes.string,
-
-    /** Called when the user begins to drag the scroll view */
-    onScrollBeginDrag: PropTypes.func,
 };
 
 const defaultProps = {
@@ -104,8 +98,6 @@ const defaultProps = {
     optionMode: undefined,
     disableRowInteractivity: false,
     onLayout: undefined,
-    keyboardDismissMode: 'none',
-    onScrollBeginDrag: () => {},
 };
 
 export {propTypes, defaultProps};

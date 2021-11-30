@@ -6,7 +6,23 @@ import styles from '../../styles/styles';
 import OptionRow from '../../pages/home/sidebar/OptionRow';
 import SectionList from '../SectionList';
 import Text from '../Text';
-import {propTypes, defaultProps} from './baseOptionsListPropTypes';
+import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
+
+const propTypes = {
+    /** Determines whether the keyboard gets dismissed in response to a drag */
+    keyboardDismissMode: PropTypes.string,
+
+    /** Called when the user begins to drag the scroll view */
+    onScrollBeginDrag: PropTypes.func,
+
+    ...optionsListPropTypes,
+};
+
+const defaultProps = {
+    keyboardDismissMode: 'none',
+    onScrollBeginDrag: () => {},
+    ...optionsListDefaultProps,
+};
 
 class BaseOptionsList extends Component {
     constructor(props) {
