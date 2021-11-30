@@ -1,10 +1,10 @@
 import React from 'react';
 import {View, Pressable, Linking} from 'react-native';
 import PropTypes from 'prop-types';
+import Clipboard from '@react-native-community/clipboard';
 import styles from '../styles/styles';
 import compose from '../libs/compose';
 import * as Expensicons from './Icon/Expensicons';
-import Clipboard from '../libs/Clipboard';
 import ContextMenuItem from './ContextMenuItem';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import withWindowDimensions, {windowDimensionsPropTypes} from './withWindowDimensions';

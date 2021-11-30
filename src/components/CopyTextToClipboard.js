@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Clipboard from '@react-native-community/clipboard';
 import Text from './Text';
 import * as Expensicons from './Icon/Expensicons';
-import Clipboard from '../libs/Clipboard';
 import Icon from './Icon';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
