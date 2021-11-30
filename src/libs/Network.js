@@ -39,10 +39,6 @@ function processRequest(request) {
     return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure);
 }
 
-function removeFromPersistedStorage(request) {
-    console.debug('Remove from storage: ', {request});
-}
-
 function processPersistedRequestsQueue() {
     const persistedRequests = NetworkRequestQueue.getPersistedRequests();
 
@@ -57,13 +53,13 @@ function processPersistedRequestsQueue() {
                 throw new Error('Persisted request failed');
             }
 
-            removeFromPersistedStorage(request);
+            NetworkRequestQueue.removeRetryableRequest(request);
         })
         .catch(() => {
-            request.retryCount = lodashGet(request, 'retryCount', 0) + 1;
-            if (request.retryCount > 10) {
+            const retryCount = NetworkRequestQueue.incrementRetries(request);
+            if (retryCount > 10) {
                 // Request failed too many times removing from persisted storage
-                removeFromPersistedStorage(request);
+                NetworkRequestQueue.removeRetryableRequest(request);
             }
         }));
 
