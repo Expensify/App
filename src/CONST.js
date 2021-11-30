@@ -276,6 +276,7 @@ const CONST = {
             POST: 'post',
         },
         MAX_PERSISTED_REQUEST_RETRIES: 10,
+        PROCESS_REQUEST_DELAY_MS: 1000,
     },
     NVP: {
         IS_FIRST_TIME_NEW_EXPENSIFY_USER: 'isFirstTimeNewExpensifyUser',

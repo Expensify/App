@@ -267,7 +267,7 @@ test('retry network request if auth and credentials are not read from Onyx yet',
         expect(spyHttpUtilsXhr).not.toHaveBeenCalled();
 
         // When we run processNetworkRequestQueue in the setInterval of Network.js
-        jest.advanceTimersByTime(Network.PROCESS_REQUEST_DELAY_MS);
+        jest.advanceTimersByTime(CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
 
         // Then we should expect a retry of the network request
         expect(spyHttpUtilsXhr).toHaveBeenCalled();

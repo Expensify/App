@@ -28,8 +28,6 @@ const [onResponse, registerResponseHandler] = createCallback();
 const [onError, registerErrorHandler] = createCallback();
 const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
 
-const PROCESS_REQUEST_DELAY_MS = 1000;
-
 function processRequest(request) {
     const finalParameters = _.isFunction(enhanceParameters)
         ? enhanceParameters(request.command, request.data)
@@ -68,7 +66,7 @@ function processPersistedRequestsQueue() {
         .then(processPersistedRequestsQueue);
 }
 
-function startPersistedRequestsQueue() {
+function flushPersistedRequestsQueue() {
     if (persistedRequestsQueueRunning) {
         return;
     }
@@ -103,15 +101,12 @@ Onyx.connect({
 
         // Client becomes online, process the queue.
         if (isOffline && !network.isOffline) {
-            startPersistedRequestsQueue();
+            flushPersistedRequestsQueue();
         }
 
         isOffline = network.isOffline;
     },
 });
-
-// Try to post any persisted request after we launch the app
-ActiveClientManager.isReady().then(startPersistedRequestsQueue);
 
 /**
  * @param {Boolean} val
@@ -231,8 +226,15 @@ function processNetworkRequestQueue() {
     networkRequestQueue = requestsToProcessOnNextRun;
 }
 
-// Process our write queue very often
-setInterval(processNetworkRequestQueue, PROCESS_REQUEST_DELAY_MS);
+function startDefaultQueue() {
+    setInterval(processNetworkRequestQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
+}
+
+// Post any pending request after we launch the app
+ActiveClientManager.isReady().then(() => {
+    flushPersistedRequestsQueue();
+    startDefaultQueue();
+});
 
 /**
  * @param {Object} request
@@ -314,7 +316,6 @@ function clearRequestQueue() {
 export {
     post,
     pauseRequestQueue,
-    PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,
     registerParameterEnhancer,
     clearRequestQueue,
