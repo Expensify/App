@@ -124,7 +124,6 @@ function create(name = '') {
  * @param {String} policyID
  */
 function navigateToPolicy(policyID) {
-    Navigation.dismissModal();
     Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
 }
 
@@ -134,7 +133,6 @@ function navigateToPolicy(policyID) {
 function createAndNavigate(name = '') {
     create(name).then(navigateToPolicy);
 }
-
 
 /**
  * Delete the policy
@@ -162,7 +160,6 @@ function deletePolicy(policyID) {
             return Promise.resolve();
         });
 }
-
 
 /**
  * Fetches policy list from the API and saves a simplified version in Onyx, optionally creating a new policy first.
