@@ -65,8 +65,6 @@ class Expensify extends PureComponent {
     constructor(props) {
         super(props);
 
-        setTimeout(() => this.reportBootSplashStatus(), 30 * 1000);
-
         // Initialize this client as being an active client
         ActiveClientManager.init();
         this.hideSplash = this.hideSplash.bind(this);
@@ -77,6 +75,8 @@ class Expensify extends PureComponent {
     }
 
     componentDidMount() {
+        setTimeout(() => this.reportBootSplashStatus(), 30 * 1000);
+
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
         // it took for the main app itself to load.
         StartupTimer.stop();
@@ -151,8 +151,7 @@ class Expensify extends PureComponent {
                 Log.info('[BootSplash] Splash screen status', false, {status});
 
                 if (status === 'visible') {
-                    const parameters = _.omit(this.props, 'children');
-                    Log.alert('[BootSplash] Still visible. Current <Expensify /> props', parameters, false);
+                    Log.alert('[BootSplash] Still visible. Current <Expensify /> props', {props: _.omit(this.props, 'children')}, false);
                 }
             });
     }
