@@ -21,9 +21,10 @@ const expensiPicker = {
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
-    paddingHorizontal: 11.5,
+    lineHeight: variables.fontSizeNormalHeight,
+    paddingHorizontal: 11,
     paddingBottom: 8,
-    paddingTop: 24,
+    paddingTop: 23,
     height: 52,
     borderWidth: 1,
     borderStyle: 'solid',
@@ -482,7 +483,7 @@ const styles = {
             opacity: 1,
         },
         iconContainer: {
-            top: 7,
+            top: 8,
             right: 9,
             pointerEvents: 'none',
         },
@@ -586,19 +587,19 @@ const styles = {
 
     expensiTextInputContainer: {
         flex: 1,
-        borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
+        borderWidth: 1,
+        borderColor: themeColors.border,
         overflow: 'hidden',
     },
 
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 11.5,
-        top: 16,
+        left: 11,
+        top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
@@ -630,11 +631,13 @@ const styles = {
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
         height: '100%',
-        paddingTop: 25,
+        paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 11.5,
+        paddingHorizontal: 11,
+        borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
     },
 
@@ -645,13 +648,8 @@ const styles = {
 
     expensiTextInputDesktop: addOutlineWidth({}, 0),
 
-    expensiTextInputAndroid: left => ({
-        padding: 0,
-        left,
-    }),
-
     secureInputEyeButton: {
-        paddingRight: 11.5,
+        paddingRight: 11,
         justifyContent: 'center',
     },
 
@@ -679,22 +677,26 @@ const styles = {
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 11.5,
-        top: 8,
+        left: 12,
+        top: 7,
     },
-    expensiPicker: (disabled = false) => ({
+    expensiPicker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
             top: 16,
-            right: 12,
+            right: 11,
             zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...expensiPicker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...expensiPicker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
     }),
 
