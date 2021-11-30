@@ -6,7 +6,7 @@ import styles from '../styles/styles';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import colors from '../styles/colors';
-import Button from './Button';
+import ExpensifyButton from './ExpensifyButton';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import TextLink from './TextLink';
 import Text from './Text';
@@ -102,7 +102,7 @@ const FormAlertWithSubmitButton = (props) => {
                     {getAlertPrompt()}
                 </View>
             )}
-            <Button
+            <ExpensifyButton
                 success
                 pressOnEnter
                 text={props.buttonText}
