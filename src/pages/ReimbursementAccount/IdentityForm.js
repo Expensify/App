@@ -103,7 +103,6 @@ const IdentityForm = (props) => {
                         value={props.values.firstName}
                         onChangeText={value => props.onFieldChange('firstName', value)}
                         errorText={props.errors.firstName ? props.translate('bankAccount.error.firstName') : ''}
-                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -112,7 +111,6 @@ const IdentityForm = (props) => {
                         value={props.values.lastName}
                         onChangeText={value => props.onFieldChange('lastName', value)}
                         errorText={props.errors.lastName ? props.translate('bankAccount.error.lastName') : ''}
-                        translateX={-10}
                     />
                 </View>
             </View>
@@ -150,7 +148,6 @@ const IdentityForm = (props) => {
                                 value={props.values.city}
                                 onChangeText={value => props.onFieldChange('addressCity', value)}
                                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                                translateX={-14}
                             />
                         </View>
                         <View style={[styles.flex1]}>

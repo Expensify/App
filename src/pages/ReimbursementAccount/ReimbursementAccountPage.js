@@ -24,7 +24,7 @@ import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
-import BeneficialOwnersStep from './BeneficialOwnersStep';
+import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -220,7 +220,7 @@ class ReimbursementAccountPage extends React.Component {
                         <RequestorStep achData={achData} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <BeneficialOwnersStep companyName={achData.companyName} />
+                        <ACHContractStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                         <ValidationStep />
