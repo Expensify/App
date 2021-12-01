@@ -514,7 +514,8 @@ function getOptions(reports, personalDetails, activeReportID, {
         recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
             if (option.isDefaultChatRoom || option.isArchivedRoom) {
                 return 3;
-            } if (!option.login) {
+            }
+            if (!option.login) {
                 return 2;
             }
             return 1;
