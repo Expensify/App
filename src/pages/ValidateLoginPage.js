@@ -4,7 +4,7 @@ import {
     propTypes as validateLinkPropTypes,
     defaultProps as validateLinkDefaultProps,
 } from './validateLinkPropTypes';
-import {validateLogin} from '../libs/actions/User';
+import * as User from '../libs/actions/User';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 
 const propTypes = {
@@ -20,7 +20,7 @@ class ValidateLoginPage extends Component {
         const accountID = lodashGet(this.props.route.params, 'accountID', '');
         const validateCode = lodashGet(this.props.route.params, 'validateCode', '');
 
-        validateLogin(accountID, validateCode);
+        User.validateLogin(accountID, validateCode);
     }
 
     render() {

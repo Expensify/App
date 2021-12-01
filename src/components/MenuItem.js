@@ -4,9 +4,10 @@ import {
     View, Pressable,
 } from 'react-native';
 import Text from './Text';
-import styles, {getButtonBackgroundColorStyle, getIconFillColor} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import Icon from './Icon';
-import {ArrowRight} from './Icon/Expensicons';
+import * as Expensicons from './Icon/Expensicons';
 import getButtonState from '../libs/getButtonState';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -26,7 +27,7 @@ const defaultProps = {
     iconWidth: undefined,
     iconHeight: undefined,
     description: undefined,
-    iconRight: ArrowRight,
+    iconRight: Expensicons.ArrowRight,
     iconStyles: [],
     iconFill: undefined,
     focused: false,
@@ -37,71 +38,52 @@ const defaultProps = {
     interactive: true,
 };
 
-const MenuItem = ({
-    badgeText,
-    onPress,
-    icon,
-    iconRight,
-    title,
-    shouldShowRightIcon,
-    wrapperStyle,
-    success,
-    iconWidth,
-    iconHeight,
-    description,
-    iconStyles,
-    iconFill,
-    focused,
-    disabled,
-    subtitle,
-    iconType,
-    interactive,
-}) => (
+const MenuItem = props => (
     <Pressable
         onPress={(e) => {
-            if (disabled) {
+            if (props.disabled) {
                 return;
             }
 
-            onPress(e);
+            props.onPress(e);
         }}
         style={({hovered, pressed}) => ([
             styles.popoverMenuItem,
-            getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, success, disabled, interactive)),
-            ..._.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle],
+            StyleUtils.getButtonBackgroundColorStyle(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive)),
+            ..._.isArray(props.wrapperStyle) ? props.wrapperStyle : [props.wrapperStyle],
         ])}
-        disabled={disabled}
+        disabled={props.disabled}
     >
         {({hovered, pressed}) => (
             <>
                 <View style={styles.flexRow}>
-                    {(icon && iconType === CONST.ICON_TYPE_ICON) && (
+                    {(props.icon && props.iconType === CONST.ICON_TYPE_ICON) && (
                         <View
                             style={[
                                 styles.popoverMenuIcon,
-                                ...iconStyles,
+                                ...props.iconStyles,
                             ]}
                         >
                             <Icon
-                                src={icon}
-                                width={iconWidth}
-                                height={iconHeight}
-                                fill={iconFill || getIconFillColor(
-                                    getButtonState(focused || hovered, pressed, success, disabled, interactive),
+                                src={props.icon}
+                                width={props.iconWidth}
+                                height={props.iconHeight}
+                                fill={props.iconFill || StyleUtils.getIconFillColor(
+                                    getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive),
                                 )}
                             />
                         </View>
                     )}
-                    {(icon && iconType === CONST.ICON_TYPE_AVATAR) && (
+                    {(props.icon && props.iconType === CONST.ICON_TYPE_AVATAR) && (
                         <View
                             style={[
                                 styles.popoverMenuIcon,
-                                ...iconStyles,
+                                ...props.iconStyles,
                             ]}
                         >
                             <Avatar
                                 imageStyles={[styles.avatarNormal, styles.alignSelfCenter]}
-                                source={icon}
+                                source={props.icon}
                             />
                         </View>
                     )}
@@ -110,35 +92,35 @@ const MenuItem = ({
                             style={[
                                 styles.popoverMenuText,
                                 styles.ml3,
-                                (interactive && disabled ? styles.disabledText : undefined),
+                                (props.interactive && props.disabled ? styles.disabledText : undefined),
                             ]}
                             numberOfLines={1}
                         >
-                            {title}
+                            {props.title}
                         </Text>
-                        {description && (
+                        {props.description && (
                             <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
-                                {description}
+                                {props.description}
                             </Text>
                         )}
                     </View>
                 </View>
                 <View style={[styles.flexRow, styles.menuItemTextContainer]}>
-                    {badgeText && <Badge text={badgeText} badgeStyles={[styles.alignSelfCenter]} />}
-                    {subtitle && (
+                    {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
+                    {props.subtitle && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
                             <Text
                                 style={styles.textLabelSupporting}
                             >
-                                {subtitle}
+                                {props.subtitle}
                             </Text>
                         </View>
                     )}
-                    {shouldShowRightIcon && (
+                    {props.shouldShowRightIcon && (
                         <View style={styles.popoverMenuIcon}>
                             <Icon
-                                src={iconRight}
-                                fill={getIconFillColor(getButtonState(focused || hovered, pressed, success, disabled, interactive))}
+                                src={props.iconRight}
+                                fill={StyleUtils.getIconFillColor(getButtonState(props.focused || hovered, pressed, props.success, props.disabled, props.interactive))}
                             />
                         </View>
                     )}

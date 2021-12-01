@@ -5,13 +5,25 @@ import Logger from 'expensify-common/lib/Logger';
 import CONFIG from '../CONFIG';
 import getPlatform from './getPlatform';
 import {version} from '../../package.json';
-import NetworkConnection from './NetworkConnection';
-import HttpUtils from './HttpUtils';
-
-// eslint-disable-next-line import/no-cycle
-import * as API from './API';
+import requireParameters from './requireParameters';
+import * as Network from './Network';
 
 let timeout = null;
+
+/**
+ * @param {Object} parameters
+ * @param {String} parameters.expensifyCashAppVersion
+ * @param {Object[]} parameters.logPacket
+ * @returns {Promise}
+ */
+function LogCommand(parameters) {
+    const commandName = 'Log';
+    requireParameters(['logPacket', 'expensifyCashAppVersion'],
+        parameters, commandName);
+
+    // Note: We are forcing Log to run since it requires no authToken and should only be queued when we are offline.
+    return Network.post(commandName, {...parameters, forceNetworkRequest: true});
+}
 
 /**
  * Network interface for logger.
@@ -31,13 +43,11 @@ function serverLoggingCallback(logger, params) {
     }
     clearTimeout(timeout);
     timeout = setTimeout(() => logger.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-    return API.Log(requestParams);
+    return LogCommand(requestParams);
 }
 
-// Note: We are importing Logger from expensify-common because it is
-// used by other platforms. The server and client logging
-// callback methods are passed in here so we can decouple
-// the logging library from the logging methods.
+// Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
+// callback methods are passed in here so we can decouple the logging library from the logging methods.
 const Log = new Logger({
     serverLoggingCallback,
     clientLoggingCallback: (message) => {
@@ -46,8 +56,5 @@ const Log = new Logger({
     isDebug: !CONFIG.IS_IN_PRODUCTION,
 });
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
-
-NetworkConnection.registerLogInfoCallback(Log.info);
-HttpUtils.setLogger(Log);
 
 export default Log;

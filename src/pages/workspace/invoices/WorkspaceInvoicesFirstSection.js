@@ -4,14 +4,10 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    Invoice,
-    NewWindow,
-    Send,
-} from '../../../components/Icon/Expensicons';
-import {MoneyEnvelopeBlue} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
-import {openOldDotLink} from '../../../libs/actions/Link';
+import * as Link from '../../../libs/actions/Link';
 
 const propTypes = {
     /** The policy ID currently being configured */
@@ -20,30 +16,32 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesFirstSection = ({translate, policyID}) => (
+const WorkspaceInvoicesFirstSection = props => (
     <WorkspaceSection
-        title={translate('workspace.invoices.invoiceClientsAndCustomers')}
-        icon={MoneyEnvelopeBlue}
+        title={props.translate('workspace.invoices.invoiceClientsAndCustomers')}
+        icon={Illustrations.MoneyEnvelopeBlue}
         menuItems={[
             {
-                title: translate('workspace.invoices.sendInvoice'),
-                onPress: () => openOldDotLink('reports?param={"createInvoice":true}'),
-                icon: Send,
+                title: props.translate('workspace.invoices.sendInvoice'),
+                onPress: () => Link.openOldDotLink(encodeURI('reports?param={"createInvoice":true}')),
+                icon: Expensicons.Send,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
             {
-                title: translate('workspace.invoices.viewAllInvoices'),
-                onPress: () => openOldDotLink(`reports?policyID=${policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`),
-                icon: Invoice,
+                title: props.translate('workspace.invoices.viewAllInvoices'),
+                onPress: () => (
+                    Link.openOldDotLink(`reports?policyID=${props.policyID}&from=all&type=invoice&showStates=Open,Processing,Approved,Reimbursed,Archived&isAdvancedFilterMode=true`)
+                ),
+                icon: Expensicons.Invoice,
                 shouldShowRightIcon: true,
-                iconRight: NewWindow,
+                iconRight: Expensicons.NewWindow,
             },
         ]}
     >
         <View style={[styles.mv4]}>
             <Text>
-                {translate('workspace.invoices.invoiceFirstSectionCopy')}
+                {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
             </Text>
         </View>
     </WorkspaceSection>

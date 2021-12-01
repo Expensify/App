@@ -9,12 +9,7 @@ import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import {
-    getFirstAndLastNameErrors,
-    setPersonalDetails,
-    setAvatar,
-    deleteAvatar,
-} from '../../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
@@ -73,22 +68,15 @@ const timezones = _.map(moment.tz.names(), timezone => ({
 class ProfilePage extends Component {
     constructor(props) {
         super(props);
-        const {
-            firstName,
-            lastName,
-            pronouns,
-            timezone = {},
-        } = props.myPersonalDetails;
-
         this.state = {
-            firstName,
+            firstName: props.myPersonalDetails.firstName,
             firstNameError: '',
-            lastName,
+            lastName: props.myPersonalDetails.lastName,
             lastNameError: '',
-            pronouns,
-            hasSelfSelectedPronouns: !_.isEmpty(pronouns) && !pronouns.startsWith(CONST.PRONOUNS.PREFIX),
-            selectedTimezone: lodashGet(timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
-            isAutomaticTimezone: lodashGet(timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
+            pronouns: props.myPersonalDetails.pronouns,
+            hasSelfSelectedPronouns: !_.isEmpty(props.myPersonalDetails.pronouns) && !props.myPersonalDetails.pronouns.startsWith(CONST.PRONOUNS.PREFIX),
+            selectedTimezone: lodashGet(props.myPersonalDetails.timezone, 'selected', CONST.DEFAULT_TIME_ZONE.selected),
+            isAutomaticTimezone: lodashGet(props.myPersonalDetails.timezone, 'automatic', CONST.DEFAULT_TIME_ZONE.automatic),
             logins: this.getLogins(props.user.loginList),
         };
         this.getLogins = this.getLogins.bind(this);
@@ -155,31 +143,23 @@ class ProfilePage extends Component {
      * Submit form to update personal details
      */
     updatePersonalDetails() {
-        const {
-            firstName,
-            lastName,
-            pronouns,
-            selectedTimezone,
-            isAutomaticTimezone,
-        } = this.state;
-
         if (!this.validateInputs()) {
             return;
         }
 
-        setPersonalDetails({
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            pronouns: pronouns.trim(),
+        PersonalDetails.setPersonalDetails({
+            firstName: this.state.firstName.trim(),
+            lastName: this.state.lastName.trim(),
+            pronouns: this.state.pronouns.trim(),
             timezone: {
-                automatic: isAutomaticTimezone,
-                selected: selectedTimezone,
+                automatic: this.state.isAutomaticTimezone,
+                selected: this.state.selectedTimezone,
             },
         }, true);
     }
 
     validateInputs() {
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
@@ -219,8 +199,8 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.props.myPersonalDetails.avatar}
-                            onImageSelected={setAvatar}
-                            onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
+                            onImageSelected={PersonalDetails.setAvatar}
+                            onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
                             // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}

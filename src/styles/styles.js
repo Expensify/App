@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import fontFamily from './fontFamily';
 import addOutlineWidth from './addOutlineWidth';
 import themeColors from './themes/default';
@@ -13,7 +12,6 @@ import overflow from './utilities/overflow';
 import whiteSpace from './utilities/whiteSpace';
 import wordBreak from './utilities/wordBreak';
 import textInputAlignSelf from './utilities/textInputAlignSelf';
-import CONST from '../CONST';
 import positioning from './utilities/positioning';
 import codeStyles from './codeStyles';
 import visibility from './utilities/visibility';
@@ -33,6 +31,103 @@ const expensiPicker = {
     borderRadius: variables.componentBorderRadiusNormal,
 };
 
+const link = {
+    color: themeColors.link,
+    textDecorationColor: themeColors.link,
+    fontFamily: fontFamily.GTA,
+};
+
+const baseCodeTagStyles = {
+    borderWidth: 1,
+    borderRadius: 5,
+    borderColor: themeColors.border,
+    backgroundColor: themeColors.textBackground,
+};
+
+const webViewStyles = {
+    // As of react-native-render-html v6, don't declare distinct styles for
+    // custom renderers, the API for custom renderers has changed. Declare the
+    // styles in the below "tagStyles" instead. If you need to reuse those
+    // styles from the renderer, just pass the "style" prop to the underlying
+    // component.
+    tagStyles: {
+        em: {
+            fontFamily: fontFamily.GTA_ITALIC,
+            fontStyle: 'italic',
+        },
+
+        del: {
+            textDecorationLine: 'line-through',
+            textDecorationStyle: 'solid',
+        },
+
+        strong: {
+            fontFamily: fontFamily.GTA_BOLD,
+            fontWeight: 'bold',
+        },
+
+        a: link,
+
+        ul: {
+            maxWidth: '100%',
+            flex: 1,
+        },
+
+        ol: {
+            maxWidth: '100%',
+            flex: 1,
+        },
+
+        li: {
+            flexShrink: 1,
+        },
+
+        blockquote: {
+            borderLeftColor: themeColors.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
+        },
+
+        pre: {
+            ...baseCodeTagStyles,
+            paddingTop: 4,
+            paddingBottom: 5,
+            paddingRight: 8,
+            paddingLeft: 8,
+            fontFamily: fontFamily.MONOSPACE,
+            marginTop: 0,
+            marginBottom: 0,
+        },
+
+        code: {
+            ...baseCodeTagStyles,
+            ...codeStyles.codeTextStyle,
+            paddingLeft: 5,
+            paddingRight: 5,
+            fontFamily: fontFamily.MONOSPACE,
+            fontSize: 13,
+        },
+
+        img: {
+            borderColor: themeColors.border,
+            borderRadius: variables.componentBorderRadiusNormal,
+            borderWidth: 1,
+        },
+    },
+
+    baseFontStyle: {
+        color: themeColors.text,
+        fontSize: variables.fontSizeNormal,
+        fontFamily: fontFamily.GTA,
+        flex: 1,
+    },
+};
+
 const styles = {
     // Add all of our utility and helper styles
     ...spacing,
@@ -44,11 +139,9 @@ const styles = {
     ...wordBreak,
     ...whiteSpace,
 
-    link: {
-        color: themeColors.link,
-        textDecorationColor: themeColors.link,
-        fontFamily: fontFamily.GTA,
-    },
+    webViewStyles,
+
+    link,
 
     linkHovered: {
         color: themeColors.linkHover,
@@ -575,6 +668,7 @@ const styles = {
         iconContainer: {
             top: 16,
             right: 12,
+            zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
@@ -1101,7 +1195,6 @@ const styles = {
 
     chatItemComposeWithFirstRow: {
         minHeight: 90,
-        marginTop: -16,
     },
 
     chatItemComposeBoxColor: {
@@ -1290,6 +1383,7 @@ const styles = {
         width: 64,
         backgroundColor: themeColors.icon,
         borderRadius: 64,
+        overflow: 'hidden',
     },
 
     secondAvatar: {
@@ -1575,6 +1669,34 @@ const styles = {
     avatarLarge: {
         width: 80,
         height: 80,
+    },
+
+    emptyStateAvatar: {
+        height: variables.componentSizeLarge,
+        width: variables.componentSizeLarge,
+        borderRadius: 100,
+        borderColor: themeColors.componentBG,
+        borderWidth: 4,
+        marginLeft: -16,
+    },
+
+    screenBlur: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        backgroundColor: colors.dark,
+        opacity: 0.5,
+    },
+
+    avatarInnerTextChat: {
+        color: themeColors.textReversed,
+        fontSize: variables.fontSizeNormal,
+        left: 1,
+        textAlign: 'center',
+        fontWeight: 'normal',
+        position: 'absolute',
     },
 
     displayName: {
@@ -2085,407 +2207,56 @@ const styles = {
         fontFamily: fontFamily.GTA,
         flex: 1,
     },
-};
 
-const baseCodeTagStyles = {
-    borderWidth: 1,
-    borderRadius: 5,
-    borderColor: themeColors.border,
-    backgroundColor: themeColors.textBackground,
-};
-
-const webViewStyles = {
-    // As of react-native-render-html v6, don't declare distinct styles for
-    // custom renderers, the API for custom renderers has changed. Declare the
-    // styles in the below "tagStyles" instead. If you need to reuse those
-    // styles from the renderer, just pass the "style" prop to the underlying
-    // component.
-    tagStyles: {
-        em: {
-            fontFamily: fontFamily.GTA_ITALIC,
-            fontStyle: 'italic',
-        },
-
-        del: {
-            textDecorationLine: 'line-through',
-            textDecorationStyle: 'solid',
-        },
-
-        strong: {
-            fontFamily: fontFamily.GTA_BOLD,
-            fontWeight: 'bold',
-        },
-
-        a: styles.link,
-
-        ul: {
-            maxWidth: '100%',
-            flex: 1,
-        },
-
-        ol: {
-            maxWidth: '100%',
-            flex: 1,
-        },
-
-        li: {
-            flexShrink: 1,
-        },
-
-        blockquote: {
-            borderLeftColor: themeColors.border,
-            borderLeftWidth: 4,
-            paddingLeft: 12,
-            marginTop: 4,
-            marginBottom: 4,
-
-            // Overwrite default HTML margin for blockquotes
-            marginLeft: 0,
-        },
-
-        pre: {
-            ...baseCodeTagStyles,
-            paddingTop: 4,
-            paddingBottom: 5,
-            paddingRight: 8,
-            paddingLeft: 8,
-            fontFamily: fontFamily.MONOSPACE,
-            marginTop: 0,
-            marginBottom: 0,
-        },
-
-        code: {
-            ...baseCodeTagStyles,
-            ...codeStyles.codeTextStyle,
-            paddingLeft: 5,
-            paddingRight: 5,
-            fontFamily: fontFamily.MONOSPACE,
-            fontSize: 13,
-        },
-
-        img: {
-            borderColor: themeColors.border,
-            borderRadius: variables.componentBorderRadiusNormal,
-            borderWidth: 1,
-        },
+    keyboardShortcutModalContainer: {
+        maxWidth: 600,
+        maxHeight: '100%',
+        flex: '0 0 auto',
     },
 
-    baseFontStyle: {
-        color: themeColors.text,
-        fontSize: variables.fontSizeNormal,
-        fontFamily: fontFamily.GTA,
+    keyboardShortcutTableWrapper: {
+        alignItems: 'center',
+        flex: 1,
+        height: 'auto',
+        maxHeight: '100%',
+    },
+
+    keyboardShortcutTableContainer: {
+        display: 'flex',
+        width: '100%',
+        borderColor: themeColors.border,
+        height: 'auto',
+        borderRadius: variables.componentBorderRadius,
+        borderWidth: 1,
+    },
+
+    keyboardShortcutTableRow: {
+        flex: 1,
+        flexDirection: 'row',
+        borderColor: themeColors.border,
+        flexBasis: 'auto',
+        alignSelf: 'stretch',
+        borderTopWidth: 1,
+    },
+
+    keyboardShortcutTablePrefix: {
+        width: '30%',
+        borderRightWidth: 1,
+        borderColor: themeColors.border,
+    },
+
+    keyboardShortcutTableFirstRow: {
+        borderTopWidth: 0,
+    },
+
+    googleListView: {
+        transform: [{scale: 0}],
+    },
+
+    iPhoneXSafeArea: {
+        backgroundColor: colors.black,
         flex: 1,
     },
 };
 
-/**
- * Takes safe area insets and returns padding to use for a View
- *
- * @param {Object} insets
- * @returns {Object}
- */
-function getSafeAreaPadding(insets) {
-    return {
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom * variables.safeInsertPercentage,
-    };
-}
-
-/**
- * Takes safe area insets and returns margin to use for a View
- *
- * @param {Object} insets
- * @returns {Object}
- */
-function getSafeAreaMargins(insets) {
-    return {marginBottom: insets.bottom * variables.safeInsertPercentage};
-}
-
-/**
- * Return navigation menu styles.
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {Object}
- */
-function getNavigationDrawerStyle(isSmallScreenWidth) {
-    return isSmallScreenWidth
-        ? {
-            width: '100%',
-            height: '100%',
-            borderColor: themeColors.border,
-        }
-        : {
-            height: '100%',
-            width: variables.sideBarWidth,
-            borderRightColor: themeColors.border,
-        };
-}
-
-function getNavigationDrawerType(isSmallScreenWidth) {
-    return isSmallScreenWidth ? 'slide' : 'permanent';
-}
-
-function getNavigationModalCardStyle(isSmallScreenWidth) {
-    return {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
-        backgroundColor: 'transparent',
-        height: '100%',
-    };
-}
-
-/**
- * @param {Boolean} isZoomed
- * @param {Boolean} isDragging
- * @return {Object}
- */
-function getZoomCursorStyle(isZoomed, isDragging) {
-    if (!isZoomed) {
-        return {cursor: 'zoom-in'};
-    }
-
-    return {
-        cursor: isDragging ? 'grabbing' : 'zoom-out',
-    };
-}
-
-/**
- * @param {Boolean} isZoomed
- * @param {Number} imgWidth
- * @param {Number} imgHeight
- * @param {Number} zoomScale
- * @return {Object}
- */
-function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale) {
-    if (imgWidth === 0 || imgHeight === 0) {
-        return {
-            height: isZoomed ? '250%' : '100%',
-            width: isZoomed ? '250%' : '100%',
-        };
-    }
-    return {
-        height: isZoomed ? `${(imgHeight * zoomScale)}px` : '100%',
-        width: isZoomed ? `${(imgWidth * zoomScale)}px` : '100%',
-    };
-}
-
-/**
- * Returns auto grow text input style
- *
- * @param {Number} width
- * @return {Object}
- */
-function getAutoGrowTextInputStyle(width) {
-    return {
-        minWidth: 5,
-        width,
-    };
-}
-
-/**
- * Returns a style with backgroundColor and borderColor set to the same color
- *
- * @param {String} backgroundColor
- * @returns {Object}
- */
-function getBackgroundAndBorderStyle(backgroundColor) {
-    return {
-        backgroundColor,
-        borderColor: backgroundColor,
-    };
-}
-
-/**
- * Returns a style with the specified backgroundColor
- *
- * @param {String} backgroundColor
- * @returns {Object}
- */
-function getBackgroundColorStyle(backgroundColor) {
-    return {
-        backgroundColor,
-    };
-}
-
-/**
- * Generate a style for the background color of the Badge
- *
- * @param {Boolean} success
- * @param {Boolean} error
- * @param {boolean} [isPressed=false]
- * @return {Object}
- */
-function getBadgeColorStyle(success, error, isPressed = false) {
-    if (success) {
-        return isPressed ? styles.badgeSuccessPressed : styles.badgeSuccess;
-    }
-    if (error) {
-        return isPressed ? styles.badgeDangerPressed : styles.badgeDanger;
-    }
-    return {};
-}
-
-/**
- * Generate a style for the background color of the button, based on its current state.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @returns {Object}
- */
-function getButtonBackgroundColorStyle(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    switch (buttonState) {
-        case CONST.BUTTON_STATES.ACTIVE:
-            return {backgroundColor: themeColors.buttonHoveredBG};
-        case CONST.BUTTON_STATES.PRESSED:
-            return {backgroundColor: themeColors.buttonPressedBG};
-        case CONST.BUTTON_STATES.DISABLED:
-        case CONST.BUTTON_STATES.DEFAULT:
-        default:
-            return {};
-    }
-}
-
-/**
- * Generate fill color of an icon based on its state.
- *
- * @param {String} [buttonState] - One of {'default', 'hovered', 'pressed'}
- * @returns {Object}
- */
-function getIconFillColor(buttonState = CONST.BUTTON_STATES.DEFAULT) {
-    switch (buttonState) {
-        case CONST.BUTTON_STATES.ACTIVE:
-            return themeColors.text;
-        case CONST.BUTTON_STATES.PRESSED:
-            return themeColors.heading;
-        case CONST.BUTTON_STATES.COMPLETE:
-            return themeColors.iconSuccessFill;
-        case CONST.BUTTON_STATES.DEFAULT:
-        case CONST.BUTTON_STATES.DISABLED:
-        default:
-            return themeColors.icon;
-    }
-}
-
-/**
- * @param {Animated.Value} rotate
- * @param {Animated.Value} backgroundColor
- * @returns {Object}
- */
-function getAnimatedFABStyle(rotate, backgroundColor) {
-    return {
-        transform: [{rotate}],
-        backgroundColor,
-    };
-}
-
-/**
- * @param {Number} width
- * @param {Number} height
- * @returns {Object}
- */
-function getWidthAndHeightStyle(width, height) {
-    return {
-        width,
-        height,
-    };
-}
-
-/**
- * @param {Object} params
- * @returns {Object}
- */
-function getModalPaddingStyles({
-    shouldAddBottomSafeAreaPadding,
-    shouldAddTopSafeAreaPadding,
-    safeAreaPaddingTop,
-    safeAreaPaddingBottom,
-    modalContainerStylePaddingTop,
-    modalContainerStylePaddingBottom,
-}) {
-    return {
-        paddingTop: shouldAddTopSafeAreaPadding
-            ? (modalContainerStylePaddingTop || 0) + safeAreaPaddingTop
-            : modalContainerStylePaddingTop || 0,
-        paddingBottom: shouldAddBottomSafeAreaPadding
-            ? (modalContainerStylePaddingBottom || 0) + safeAreaPaddingBottom
-            : modalContainerStylePaddingBottom || 0,
-    };
-}
-
-/**
- * Takes fontStyle and fontWeight and returns the correct fontFamily
- *
- * @param {Object} params
- * @returns {String}
- */
-function getFontFamilyMonospace({fontStyle, fontWeight}) {
-    const italic = fontStyle === 'italic' && fontFamily.MONOSPACE_ITALIC;
-    const bold = fontWeight === 'bold' && fontFamily.MONOSPACE_BOLD;
-    const italicBold = italic && bold && fontFamily.MONOSPACE_BOLD_ITALIC;
-
-    return italicBold || bold || italic || fontFamily.MONOSPACE;
-}
-
-/**
- * Gives the width for Emoji picker Widget
- *
- * @param {Boolean} isSmallScreenWidth
- * @returns {String}
- */
-function getEmojiPickerStyle(isSmallScreenWidth) {
-    return {
-        width: isSmallScreenWidth ? '100%' : CONST.EMOJI_PICKER_SIZE,
-    };
-}
-
-/**
- * Get the random promo color and image for Login page
- *
- * @return {Object}
- */
-function getLoginPagePromoStyle() {
-    const promos = [
-        {
-            backgroundColor: colors.green,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_green.svg`,
-        },
-        {
-            backgroundColor: colors.orange,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_orange.svg`,
-        },
-        {
-            backgroundColor: colors.pink,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_pink.svg`,
-        },
-        {
-            backgroundColor: colors.blue,
-            backgroundImageUri: `${CONST.CLOUDFRONT_URL}/images/homepage/brand-stories/freeplan_blue.svg`,
-        },
-    ];
-    return promos[_.random(0, 3)];
-}
-
 export default styles;
-export {
-    getSafeAreaPadding,
-    getSafeAreaMargins,
-    webViewStyles,
-    getNavigationDrawerStyle,
-    getNavigationDrawerType,
-    getNavigationModalCardStyle,
-    getZoomCursorStyle,
-    getZoomSizingStyle,
-    getAutoGrowTextInputStyle,
-    getBackgroundAndBorderStyle,
-    getBackgroundColorStyle,
-    getBadgeColorStyle,
-    getButtonBackgroundColorStyle,
-    getIconFillColor,
-    getAnimatedFABStyle,
-    getWidthAndHeightStyle,
-    getModalPaddingStyles,
-    getFontFamilyMonospace,
-    getEmojiPickerStyle,
-    getLoginPagePromoStyle,
-};

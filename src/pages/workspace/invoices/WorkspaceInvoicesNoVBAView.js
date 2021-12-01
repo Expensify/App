@@ -4,11 +4,8 @@ import PropTypes from 'prop-types';
 import Text from '../../../components/Text';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {
-    ArrowRight,
-    Bank,
-} from '../../../components/Icon/Expensicons';
-import {JewelBoxGreen} from '../../../components/Icon/Illustrations';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import * as Illustrations from '../../../components/Icon/Illustrations';
 import WorkspaceSection from '../WorkspaceSection';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
@@ -21,25 +18,25 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const WorkspaceInvoicesNoVBAView = ({translate, policyID}) => (
+const WorkspaceInvoicesNoVBAView = props => (
     <>
-        <WorkspaceInvoicesFirstSection policyID={policyID} />
+        <WorkspaceInvoicesFirstSection policyID={props.policyID} />
 
         <WorkspaceSection
-            title={translate('workspace.invoices.unlockOnlineInvoiceCollection')}
-            icon={JewelBoxGreen}
+            title={props.translate('workspace.invoices.unlockOnlineInvoiceCollection')}
+            icon={Illustrations.JewelBoxGreen}
             menuItems={[
                 {
-                    title: translate('workspace.common.bankAccount'),
-                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(policyID)),
-                    icon: Bank,
+                    title: props.translate('workspace.common.bankAccount'),
+                    onPress: () => Navigation.navigate(ROUTES.getWorkspaceBankAccountRoute(props.policyID)),
+                    icon: Expensicons.Bank,
                     shouldShowRightIcon: true,
-                    iconRight: ArrowRight,
+                    iconRight: Expensicons.ArrowRight,
                 },
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{translate('workspace.invoices.unlockNoVBACopy')}</Text>
+                <Text>{props.translate('workspace.invoices.unlockNoVBACopy')}</Text>
             </View>
         </WorkspaceSection>
     </>

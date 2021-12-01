@@ -7,7 +7,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import Button from '../../components/Button';
-import {activateWallet} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import compose from '../../libs/compose';
@@ -121,7 +121,7 @@ class TermsStep extends React.Component {
                             }
 
                             this.setState({error: false});
-                            activateWallet(CONST.WALLET.STEP.TERMS, {
+                            BankAccounts.activateWallet(CONST.WALLET.STEP.TERMS, {
                                 hasAcceptedTerms: this.state.hasAcceptedDisclosure
                                     && this.state.hasAcceptedPrivacyPolicyAndWalletAgreement,
                             });

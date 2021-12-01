@@ -5,8 +5,10 @@ import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
+import createCallback from './createCallback';
 import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
+let isReady = false;
 let isQueuePaused = false;
 
 // Queue for network requests so we don't lose actions done by the user while offline
@@ -17,13 +19,17 @@ let networkRequestQueue = [];
 // parameters such as authTokens or CSRF tokens, etc.
 let enhanceParameters;
 
-// These handlers must be registered in order to process the response or network errors returned from the queue.
-// The first argument passed will be the queuedRequest object and the second will be either the response or error.
-let onResponse = () => {};
-let onError = () => {};
+// These handlers must be registered so we can process the request, response, and errors returned from the queue.
+// The first argument passed will be the queuedRequest object and the second will be either the parameters, response, or error.
+const [onRequest, registerRequestHandler] = createCallback();
+const [onResponse, registerResponseHandler] = createCallback();
+const [onError, registerErrorHandler] = createCallback();
+const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
 
 let didLoadPersistedRequests;
 let isOffline;
+
+const PROCESS_REQUEST_DELAY_MS = 1000;
 
 /**
  * Process the offline NETWORK_REQUEST_QUEUE
@@ -97,14 +103,28 @@ Onyx.connect({
 });
 
 /**
+ * @param {Boolean} val
+ */
+function setIsReady(val) {
+    isReady = val;
+}
+
+/**
  * Checks to see if a request can be made.
  *
  * @param {Object} request
+ * @param {String} request.type
+ * @param {String} request.command
  * @param {Object} request.data
  * @param {Boolean} request.data.forceNetworkRequest
  * @return {Boolean}
  */
 function canMakeRequest(request) {
+    if (!isReady) {
+        onRequestSkipped({command: request.command, type: request.type});
+        return false;
+    }
+
     // These requests are always made even when the queue is paused
     if (request.data.forceNetworkRequest === true) {
         return true;
@@ -202,13 +222,7 @@ function processNetworkRequestQueue() {
             ? enhanceParameters(queuedRequest.command, requestData)
             : requestData;
 
-        // Check to see if the queue has paused again. It's possible that a call to enhanceParameters()
-        // has paused the queue and if this is the case we must return. We don't retry these requests
-        // since if a request is made without an authToken we sign out the user.
-        if (!canMakeRequest(queuedRequest)) {
-            return;
-        }
-
+        onRequest(queuedRequest, finalParameters);
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
@@ -232,7 +246,7 @@ function processNetworkRequestQueue() {
 }
 
 // Process our write queue very often
-setInterval(processNetworkRequestQueue, 1000);
+setInterval(processNetworkRequestQueue, PROCESS_REQUEST_DELAY_MS);
 
 /**
  * @param {Object} request
@@ -311,29 +325,16 @@ function clearRequestQueue() {
     networkRequestQueue = [];
 }
 
-/**
- * Register a method to call when the authToken expires
- * @param {Function} callback
- */
-function registerResponseHandler(callback) {
-    onResponse = callback;
-}
-
-/**
- * The error handler will handle fetch() errors. Not used for successful responses that might send expected error codes
- * e.g. jsonCode: 407.
- * @param {Function} callback
- */
-function registerErrorHandler(callback) {
-    onError = callback;
-}
-
 export {
     post,
     pauseRequestQueue,
+    PROCESS_REQUEST_DELAY_MS,
     unpauseRequestQueue,
     registerParameterEnhancer,
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
+    registerRequestHandler,
+    setIsReady,
+    registerRequestSkippedHandler,
 };
