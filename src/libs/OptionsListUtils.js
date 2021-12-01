@@ -352,7 +352,7 @@ function getOptions(reports, personalDetails, activeReportID, {
     includeRecentReports = false,
     prioritizePinnedReports = false,
     prioritizeDefaultRoomsInSearch = false,
-    prioritizeOneToOneReportsInSearch = false,
+    sortByReportTypeInSearch = false,
     sortByLastMessageTimestamp = false,
     searchValue = '',
     showChatPreviewLine = false,
@@ -510,9 +510,15 @@ function getOptions(reports, personalDetails, activeReportID, {
     }
 
     // If we are prioritizing 1:1 chats in search, do it only once we started searching
-    if (prioritizeOneToOneReportsInSearch && searchValue !== '') {
-        const [oneToOneReports, otherReports] = _.partition(recentReportOptions, option => !!option.login);
-        recentReportOptions = oneToOneReports.concat(otherReports);
+    if (sortByReportTypeInSearch && searchValue !== '') {
+        recentReportOptions = lodashOrderBy(recentReportOptions, [(option) => {
+            if (option.isDefaultChatRoom || option.isArchivedRoom) {
+                return 3;
+            } if (!option.login) {
+                return 2;
+            }
+            return 1;
+        }], ['asc']);
     }
 
     if (includePersonalDetails) {
@@ -584,7 +590,7 @@ function getSearchOptions(
         maxRecentReportsToShow: 0, // Unlimited
         prioritizePinnedReports: false,
         prioritizeDefaultRoomsInSearch: false,
-        prioritizeOneToOneReportsInSearch: true,
+        sortByReportTypeInSearch: true,
         showChatPreviewLine: true,
         showReportsWithNoComments: true,
         includePersonalDetails: true,
