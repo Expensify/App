@@ -1,6 +1,6 @@
 import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
-import {setBrowserAttributes} from '../../../libs/TextInputUtils';
+import * as TextInputUtils from '../../../libs/TextInputUtils';
 import styles from '../../../styles/styles';
 import {propTypes, defaultProps} from './expensiTextInputLabelPropTypes';
 
@@ -14,7 +14,7 @@ class ExpensiTextInputLabel extends PureComponent {
         if (!this.props.for) {
             return;
         }
-        setBrowserAttributes(this.label, 'for', this.props.for);
+        TextInputUtils.setBrowserAttributes(this.label, 'for', this.props.for);
     }
 
     render() {
@@ -28,7 +28,7 @@ class ExpensiTextInputLabel extends PureComponent {
                     styles.expensiTextInputLabelDesktop,
                     styles.expensiTextInputLabelTransformation(
                         this.props.labelTranslateY,
-                        this.props.labelTranslateX,
+                        0,
                         this.props.labelScale,
                     ),
                 ]}

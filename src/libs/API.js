@@ -4,6 +4,7 @@ import Onyx from 'react-native-onyx';
 import CONST from '../CONST';
 import CONFIG from '../CONFIG';
 import ONYXKEYS from '../ONYXKEYS';
+import getPlaidLinkTokenParameters from './getPlaidLinkTokenParameters';
 import redirectToSignIn from './actions/SignInRedirect';
 import isViaExpensifyCashNative from './isViaExpensifyCashNative';
 import requireParameters from './requireParameters';
@@ -864,7 +865,7 @@ function Wallet_GetOnfidoSDKToken() {
  * @returns {Promise}
  */
 function Plaid_GetLinkToken() {
-    return Network.post('Plaid_GetLinkToken', {}, CONST.NETWORK.METHOD.POST, true);
+    return Network.post('Plaid_GetLinkToken', getPlaidLinkTokenParameters(), CONST.NETWORK.METHOD.POST, true);
 }
 
 /**
@@ -1051,6 +1052,16 @@ function Policy_Create(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} [parameters.policyID]
+ * @returns {Promise}
+ */
+function Policy_Delete(parameters) {
+    const commandName = 'Policy_Delete';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.policyID
  * @param {Array} parameters.emailList
  * @returns {Promise}
@@ -1174,4 +1185,5 @@ export {
     Policy_Create,
     Policy_Employees_Remove,
     PreferredLocale_Update,
+    Policy_Delete,
 };

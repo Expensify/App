@@ -9,14 +9,14 @@ import styles from '../../styles/styles';
 import Button from '../../components/Button';
 import Text from '../../components/Text';
 import themeColors from '../../styles/themes/default';
-import {signIn, resetPassword} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import {passwordAutocompleteType} from '../../libs/TextInputUtils';
+import * as TextInputUtils from '../../libs/TextInputUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -94,7 +94,7 @@ class PasswordForm extends React.Component {
             formError: null,
         });
 
-        signIn(this.state.password, this.state.twoFactorAuthCode);
+        Session.signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {
@@ -105,20 +105,19 @@ class PasswordForm extends React.Component {
                         ref={el => this.input = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType={passwordAutocompleteType}
+                        autoCompleteType={TextInputUtils.passwordAutocompleteType}
                         textContentType="password"
                         nativeID="password"
                         name="password"
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
-                        translateX={-18}
                         blurOnSubmit={false}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
-                            onPress={resetPassword}
+                            onPress={Session.resetPassword}
                             underlayColor={themeColors.componentBG}
                         >
                             <Text style={[styles.link]}>
@@ -138,7 +137,6 @@ class PasswordForm extends React.Component {
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                            translateX={-18}
                             blurOnSubmit={false}
                         />
                     </View>
