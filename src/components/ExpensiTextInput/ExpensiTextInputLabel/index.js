@@ -10,7 +10,7 @@ const ExpensiTextInputLabel = props => (
             styles.expensiTextInputLabelDesktop,
             styles.expensiTextInputLabelTransformation(
                 props.labelTranslateY,
-                props.labelTranslateX,
+                0,
                 props.labelScale,
             ),
         ]}

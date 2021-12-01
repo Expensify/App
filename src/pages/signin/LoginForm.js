@@ -115,7 +115,6 @@ class LoginForm extends React.Component {
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
                         autoFocus={canFocusInputOnScreenFocus()}
-                        translateX={-18}
                     />
                 </View>
                 {this.state.formError && (

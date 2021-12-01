@@ -1,24 +1,41 @@
-import React, {memo} from 'react';
+import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
 import styles from '../../../styles/styles';
 import propTypes from './expensiTextInputLabelPropTypes';
+import * as styleConst from '../styleConst';
 
-const ExpensiTextInputLabel = props => (
-    <Animated.Text
-        style={[
-            styles.expensiTextInputLabel,
-            styles.expensiTextInputLabelTransformation(
-                props.labelTranslateY,
-                props.labelTranslateX,
-                props.labelScale,
-            ),
-        ]}
-    >
-        {props.label}
-    </Animated.Text>
-);
+class ExpensiTextInputLabel extends PureComponent {
+    constructor(props) {
+        super(props);
+        this.state = {
+            width: 0,
+        };
+    }
+
+    render() {
+        return (
+            <Animated.Text
+                onLayout={({nativeEvent}) => {
+                    this.setState({width: nativeEvent.layout.width});
+                }}
+                style={[
+                    styles.expensiTextInputLabel,
+                    styles.expensiTextInputLabelTransformation(
+                        this.props.labelTranslateY,
+                        this.props.labelScale.interpolate({
+                            inputRange: [styleConst.ACTIVE_LABEL_SCALE, styleConst.INACTIVE_LABEL_SCALE],
+                            outputRange: [-(this.state.width - (this.state.width * styleConst.ACTIVE_LABEL_SCALE)) / 2, 0],
+                        }),
+                        this.props.labelScale,
+                    ),
+                ]}
+            >
+                {this.props.label}
+            </Animated.Text>
+        );
+    }
+}
 
 ExpensiTextInputLabel.propTypes = propTypes;
-ExpensiTextInputLabel.displayName = 'ExpensiTextInputLabel';
 
-export default memo(ExpensiTextInputLabel);
+export default ExpensiTextInputLabel;
