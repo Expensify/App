@@ -148,10 +148,12 @@ class Expensify extends PureComponent {
     reportBootSplashStatus() {
         BootSplash.getVisibilityStatus()
             .then((status) => {
-                Log.info('[BootSplash] Splash screen status', false, {status});
+                Log.info('[BootSplash] splash screen status', false, {status});
 
                 if (status === 'visible') {
-                    Log.alert('[BootSplash] Still visible. Current <Expensify /> props', {props: _.omit(this.props, 'children')}, false);
+                    const props = _.omit(this.props, ['children', 'session']);
+                    props.hasAuthToken = !_.isEmpty(this.getAuthToken());
+                    Log.alert('[BootSplash] splash screen is still visible', {props}, false);
                 }
             });
     }
