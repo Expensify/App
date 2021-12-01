@@ -2310,14 +2310,17 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
     const top = `${Math.max((containerHeight - imgHeight) / 2, 0)}px`;
     const left = `${Math.max((containerWidth - imgWidth) / 2, 0)}px`;
 
-    // Return different size and offset style based on zoomScale and isZoom
+    // Return different size and offset style based on zoomScale and isZoom.
     if (isZoomed) {
+        // When both width and height are smaller than container(modal) size, set the height by multiplying zoomScale if it is zoomed in.
         if (zoomScale > 1) {
             return {
                 height: `${imgHeight * zoomScale}px`,
                 width: `${imgWidth * zoomScale}px`,
             };
         }
+
+        // If image height and width are bigger than container size, display image with original size because original size is bigger and position absolute.
         return {
             height: `${imgHeight}px`,
             width: `${imgWidth}px`,
@@ -2325,6 +2328,8 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
             left,
         };
     }
+
+    // If image is not zoomed in and image size is smaller than container size, display with original size based on offset and position absolute.
     if (zoomScale > 1) {
         return {
             height: `${imgHeight}px`,
@@ -2333,9 +2338,16 @@ function getZoomSizingStyle(isZoomed, imgWidth, imgHeight, zoomScale, containerH
             left,
         };
     }
+
+    // If image is bigger than container size, display full image in the screen with scaled size (fit by container size) and position absolute.
+    // top, left offset should be different when displaying long or wide image.
+    const scaledTop = imgHeight > imgWidth ? 0 : `${Math.max((containerHeight - (imgHeight * zoomScale)) / 2, 0)}px`;
+    const scaledLeft = imgWidth > imgHeight ? 0 : `${Math.max((containerWidth - (imgWidth * zoomScale)) / 2, 0)}px`;
     return {
         height: `${imgHeight * zoomScale}px`,
         width: `${imgWidth * zoomScale}px`,
+        top: scaledTop,
+        left: scaledLeft,
     };
 }
 
