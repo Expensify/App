@@ -59,15 +59,10 @@ class ACHContractStep extends React.Component {
             certifyTrueInformation: 'beneficialOwnersStep.error.certify',
         };
 
+        this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = values => ReimbursementAccountUtils.clearErrors(this.props, values);
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
-    }
-
-    /**
-     * @returns {Object}
-     */
-    getErrors() {
-        return lodashGet(this.props, ['reimbursementAccount', 'errors'], {});
     }
 
     /**
@@ -76,7 +71,16 @@ class ACHContractStep extends React.Component {
     validate() {
         let beneficialOwnersErrors = [];
         if (this.state.hasOtherBeneficialOwners) {
-            beneficialOwnersErrors = _.map(this.state.beneficialOwners, ValidationUtils.validateIdentity);
+            beneficialOwnersErrors = _.map(this.state.beneficialOwners, beneficialOwner => ValidationUtils.validateIdentity({
+                firstName: beneficialOwner.firstName,
+                lastName: beneficialOwner.lastName,
+                addressStreet: beneficialOwner.street,
+                addressState: beneficialOwner.state,
+                addressCity: beneficialOwner.city,
+                addressZipCode: beneficialOwner.zipCode,
+                dob: beneficialOwner.dob,
+                ssnLast4: beneficialOwner.ssnLast4,
+            }));
         }
 
         const errors = {};
@@ -122,10 +126,9 @@ class ACHContractStep extends React.Component {
      * Clear the error associated to inputKey if found and store the inputKey new value in the state.
      *
      * @param {Integer} ownerIndex
-     * @param {String} inputKey
-     * @param {String} value
+     * @param {Object} values
      */
-    clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
+    clearErrorAndSetBeneficialOwnerValues(ownerIndex, values) {
         this.setState((prevState) => {
             const renamedFields = {
                 addressStreet: 'street',
@@ -133,18 +136,34 @@ class ACHContractStep extends React.Component {
                 addressState: 'state',
                 addressZipCode: 'zipCode',
             };
-            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             const beneficialOwners = [...prevState.beneficialOwners];
-            beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
+            _.each(values, (value, inputKey) => {
+                const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+                beneficialOwners[ownerIndex] = {...beneficialOwners[ownerIndex], [renamedInputKey]: value};
+            });
             BankAccounts.updateReimbursementAccountDraft({beneficialOwners});
             return {beneficialOwners};
         });
 
+        // Prepare inputKeys for clearing errors
+        const inputKeys = _.keys(values);
+
         // dob field has multiple validations/errors, we are handling it temporarily like this.
-        if (inputKey === 'dob') {
-            this.clearError(`beneficialOwnersErrors.${ownerIndex}.dobAge`);
+        if (_.contains(inputKeys, 'dob')) {
+            inputKeys.push('dobAge');
         }
-        this.clearError(`beneficialOwnersErrors.${ownerIndex}.${inputKey}`);
+        this.clearErrors(_.map(inputKeys, inputKey => `beneficialOwnersErrors.${ownerIndex}.${inputKey}`));
+    }
+
+    /**
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
+     *
+     * @param {Integer} ownerIndex
+     * @param {String} inputKey
+     * @param {String} value
+     */
+    clearErrorAndSetBeneficialOwnerValue(ownerIndex, inputKey, value) {
+        this.clearErrorAndSetBeneficialOwnerValues(ownerIndex, {[inputKey]: value});
     }
 
     submit() {
@@ -233,14 +252,20 @@ class ACHContractStep extends React.Component {
                                     </Text>
                                     <IdentityForm
                                         style={[styles.mb2]}
-                                        onFieldChange={(inputKey, value) => this.clearErrorAndSetBeneficialOwnerValue(index, inputKey, value)}
+                                        onFieldChange={(inputKeyOrValues, value) => {
+                                            if (_.isString(inputKeyOrValues)) {
+                                                this.clearErrorAndSetBeneficialOwnerValue(index, inputKeyOrValues, value);
+                                            } else {
+                                                this.clearErrorAndSetBeneficialOwnerValues(index, inputKeyOrValues);
+                                            }
+                                        }}
                                         values={{
                                             firstName: owner.firstName || '',
                                             lastName: owner.lastName || '',
-                                            street: owner.street || '',
-                                            city: owner.city || '',
-                                            state: owner.state || '',
-                                            zipCode: owner.zipCode || '',
+                                            addressStreet: owner.street || '',
+                                            addressState: owner.state || '',
+                                            addressCity: owner.city || '',
+                                            addressZipCode: owner.zipCode || '',
                                             dob: owner.dob || '',
                                             ssnLast4: owner.ssnLast4 || '',
                                         }}
