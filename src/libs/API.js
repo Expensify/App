@@ -63,6 +63,26 @@ function isAuthTokenRequired(command) {
 }
 
 /**
+ * Determines are we supposed to retry the given request
+ * @param {Object} request
+ * @returns {Boolean}
+ */
+function shouldRetry(request) {
+    return lodashGet(request, 'data.shouldRetry', false);
+}
+
+/**
+ * When the request should be retried add it back to the queue
+ * It will either get retried now, or later when we're back online
+ * @param {Object} request
+ */
+function retry(request) {
+    Network.post(request.command, request.data, request.type, request.shouldUseSecure)
+        .then(request.resolve)
+        .catch(request.reject);
+}
+
+/**
  * Adds default values to our request data
  *
  * @param {String} command
@@ -92,16 +112,14 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
  * Function used to handle expired auth tokens. It re-authenticates with the API and
  * then replays the original request
  *
- * @param {String} originalCommand
- * @param {Object} [originalParameters]
- * @param {String} [originalType]
- * @returns {Promise}
+ * @param {Object} originalRequest
  */
-function handleExpiredAuthToken(originalCommand, originalParameters, originalType) {
+function handleExpiredAuthToken(originalRequest) {
     // When the authentication process is running, and more API requests will be requeued and they will
     // be performed after authentication is done.
     if (isAuthenticating) {
-        return Network.post(originalCommand, originalParameters, originalType);
+        retry(originalRequest);
+        return;
     }
 
     // Prevent any more requests from being processed while authentication happens
@@ -109,18 +127,8 @@ function handleExpiredAuthToken(originalCommand, originalParameters, originalTyp
     isAuthenticating = true;
 
     // eslint-disable-next-line no-use-before-define
-    return reauthenticate(originalCommand)
-        .then(() => {
-            // Now that the API is authenticated, make the original request again with the new authToken
-            const params = addDefaultValuesToParameters(originalCommand, originalParameters);
-            return Network.post(originalCommand, params, originalType);
-        })
-        .catch(() => (
-
-            // If the request did not succeed because of a networking issue or the server did not respond requeue the
-            // original request.
-            Network.post(originalCommand, originalParameters, originalType)
-        ));
+    reauthenticate(originalRequest.command)
+        .finally(() => retry(originalRequest));
 }
 
 Network.registerRequestHandler((queuedRequest, finalParameters) => {
@@ -159,15 +167,12 @@ Network.registerResponseHandler((queuedRequest, response) => {
         // There are some API requests that should not be retried when there is an auth failure like
         // creating and deleting logins. In those cases, they should handle the original response instead
         // of the new response created by handleExpiredAuthToken.
-        const shouldRetry = lodashGet(queuedRequest, 'data.shouldRetry');
-        if (!shouldRetry || unableToReauthenticate) {
+        if (!shouldRetry(queuedRequest) || unableToReauthenticate) {
             queuedRequest.resolve(response);
             return;
         }
 
-        handleExpiredAuthToken(queuedRequest.command, queuedRequest.data, queuedRequest.type)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
+        handleExpiredAuthToken(queuedRequest);
         return;
     }
 
@@ -193,11 +198,8 @@ Network.registerErrorHandler((queuedRequest, error) => {
 
     // When the request should be retried add it back to the queue
     // It will either get retried now, or later when we're back online
-    if (lodashGet(queuedRequest, 'data.shouldRetry')) {
-        Network.post(queuedRequest.command, queuedRequest.data, queuedRequest.type, queuedRequest.shouldUseSecure)
-            .then(queuedRequest.resolve)
-            .catch(queuedRequest.reject);
-
+    if (shouldRetry(queuedRequest)) {
+        retry(queuedRequest);
         return;
     }
 
