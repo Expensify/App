@@ -527,7 +527,7 @@ export default {
         instant: 'Instantáneo',
         standard: 'Estándar',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'La cuenta Expensify Payments es emitida por The Bancorp Bank.',
+            expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
@@ -545,13 +545,13 @@ export default {
             conditionsPhone: 'o llamando al +1 833-400-0904.',
         },
         longTermsForm: {
-            listOfAllFees: 'Todas las tarifas de la cuenta Expensify Payments:',
+            listOfAllFees: 'Una lista de todas las tarifas de la billetera Expensify',
             typeOfFeeHeader: 'Tipo de tarifa',
             feeAmountHeader: 'Importe de la tarifa',
             moreDetailsHeader: 'Más detalles',
             openingAccountTitle: 'Abrir una cuenta',
-            openingAccountDetails: 'No hay tarifa para crear una cuenta.',
-            monthlyFeeDetails: 'No hay tarifa mensual',
+            openingAccountDetails: 'No hay tarifa para abrir una cuenta.',
+            monthlyFeeDetails: 'No hay tarifa mensual.',
             customerServiceTitle: 'Servicio al cliente',
             customerServiceDetails: 'No hay tarifas de servicio al cliente.',
             inactivityDetails: 'No hay tarifa de inactividad.',
@@ -562,8 +562,8 @@ export default {
                 + 'a su cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en'
                 + '1-3 negocios días.',
             electronicFundsInstantDetails: 'Hay una tarifa para transferir fondos desde su cuenta Expensify Payments a '
-                + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia'
-                + ' generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
+                + 'su tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia '
+                + 'generalmente se completa dentro de varios minutos. La tarifa es el 1.5% del monto de la '
                 + 'transferencia (con una tarifa mínima de $ 0.25). ',
             fdicInsuranceBancorp: 'Sus fondos son elegibles para el seguro de la FDIC. Sus fondos se mantendrán en o '
                 + 'transferido a The Bancorp Bank, una institución asegurada por la FDIC. Una vez allí, sus fondos '

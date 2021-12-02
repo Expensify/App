@@ -54,7 +54,7 @@ const termsData = [
         subTitle: Localize.translateLocal('termsStep.instant'),
         rightText: Localize.translateLocal('termsStep.electronicFundsInstantFee'),
         subRightText: Localize.translateLocal('termsStep.electronicFundsInstantFeeMin'),
-        details: Localize.translateLocal('termsStep.longTermsForm.electronicFundsStandardDetails'),
+        details: Localize.translateLocal('termsStep.longTermsForm.electronicFundsInstantDetails'),
     },
 ];
 

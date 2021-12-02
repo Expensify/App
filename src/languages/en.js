@@ -527,7 +527,7 @@ export default {
         instant: 'Instant',
         standard: 'Standard',
         shortTermsForm: {
-            expensifyPaymentsAccount: 'The Expensify Payments Account is issues by The Bancorp Bank.',
+            expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
@@ -545,13 +545,13 @@ export default {
             conditionsPhone: 'or calling +1 833-400-0904.',
         },
         longTermsForm: {
-            listOfAllFees: 'All Expensify Payments account fees:',
+            listOfAllFees: 'A list of all Expensify Wallet fees',
             typeOfFeeHeader: 'Type of fee',
             feeAmountHeader: 'Fee amount',
             moreDetailsHeader: 'More details',
             openingAccountTitle: 'Opening an account',
-            openingAccountDetails: 'There is no fee to create an account.',
-            monthlyFeeDetails: 'There is no monthly fee',
+            openingAccountDetails: 'There is no fee to open an account.',
+            monthlyFeeDetails: 'There is no monthly fee.',
             customerServiceTitle: 'Customer service',
             customerServiceDetails: 'There are no customer service fees.',
             inactivityDetails: 'There is no inactivity fee.',
@@ -562,7 +562,7 @@ export default {
                 + 'to your bank account using the standard option. This transfer usually completes within 1-3 business'
                 + ' days.',
             electronicFundsInstantDetails: 'There is a fee to transfer funds from your Expensify Payments Account to '
-                + 'your linked debit card using the instant transfer option. This transfer usually completes within'
+                + 'your linked debit card using the instant transfer option. This transfer usually completes within '
                 + 'several minutes. The fee is 1.5% of the transfer amount (with a minimum fee of $0.25).',
             fdicInsuranceBancorp: 'Your funds are eligible for FDIC insurance. Your funds will be held at or '
                 + 'transferred to The Bancorp Bank, an FDIC-insured institution. Once there, your funds are insured up '
