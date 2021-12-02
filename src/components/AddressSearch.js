@@ -23,7 +23,7 @@ const propTypes = {
     value: PropTypes.string,
 
     /** A callback function when the value of this field has changed */
-    onChangeText: PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
 
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -51,35 +51,40 @@ const AddressSearch = (props) => {
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
-        if (GooglePlacesUtils.isAddressValidForVBA(addressComponents)) {
-            // Gather the values from the Google details
-            const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name');
-            const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name');
-            let city = GooglePlacesUtils.getAddressComponent(addressComponents, 'locality', 'long_name');
-            if (!city) {
-                city = GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name');
-                Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: city});
-            }
-            const state = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
-            const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
-
-            // Trigger text change events for each of the individual fields being saved on the server
-            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            props.onChangeText('addressCity', city);
-            props.onChangeText('addressState', state);
-            props.onChangeText('addressZipCode', zipCode);
-        } else {
-            // Clear the values associated to the address, so our validations catch the problem
-            Log.hmmm('[AddressSearch] Search result failed validation: ', {
-                address: details.formatted_address,
-                address_components: addressComponents,
-                place_id: details.place_id,
-            });
-            props.onChangeText('addressStreet', null);
-            props.onChangeText('addressCity', null);
-            props.onChangeText('addressState', null);
-            props.onChangeText('addressZipCode', null);
+        if (!addressComponents) {
+            return;
         }
+
+        // Gather the values from the Google details
+        const streetNumber = GooglePlacesUtils.getAddressComponent(addressComponents, 'street_number', 'long_name') || '';
+        const streetName = GooglePlacesUtils.getAddressComponent(addressComponents, 'route', 'long_name') || '';
+        const addressStreet = `${streetNumber} ${streetName}`.trim();
+        let addressCity = GooglePlacesUtils.getAddressComponent(addressComponents, 'locality', 'long_name');
+        if (!addressCity) {
+            addressCity = GooglePlacesUtils.getAddressComponent(addressComponents, 'sublocality', 'long_name');
+            Log.hmmm('[AddressSearch] Replacing missing locality with sublocality: ', {address: details.formatted_address, sublocality: addressCity});
+        }
+        const addressZipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
+        const addressState = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
+
+        const values = {};
+        if (addressStreet) {
+            values.addressStreet = addressStreet;
+        }
+        if (addressCity) {
+            values.addressCity = addressCity;
+        }
+        if (addressZipCode) {
+            values.addressZipCode = addressZipCode;
+        }
+        if (addressState) {
+            values.addressState = addressState;
+        }
+        if (_.size(values) === 0) {
+            return;
+        }
+
+        props.onChange(values);
     };
 
     return (
@@ -88,6 +93,7 @@ const AddressSearch = (props) => {
             fetchDetails
             suppressDefaultStyles
             enablePoweredByContainer={false}
+            placeholder=""
             onPress={(data, details) => {
                 saveLocationDetails(details);
 
@@ -110,12 +116,7 @@ const AddressSearch = (props) => {
                 containerStyles: props.containerStyles,
                 errorText: props.errorText,
                 onChangeText: (text) => {
-                    const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
-
-                    // Ensure whether an address is selected already or has address value initialized.
-                    if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
-                        saveLocationDetails({});
-                    }
+                    props.onChange({addressStreet: text});
 
                     // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
                     if (_.isEmpty(text)) {
