@@ -1970,7 +1970,8 @@ const styles = {
         position: 'absolute',
         width: '100%',
         top: 20,
-        ...spacing.ph5,
+        ...spacing.pl5,
+        ...spacing.pr5,
     },
 
     growlNotificationDesktopContainer: {
