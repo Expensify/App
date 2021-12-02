@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import lodashGet from 'lodash/get';
 import Avatar from '../components/Avatar';
 import compose from '../libs/compose';
@@ -123,7 +123,7 @@ class ReportDetailsPage extends Component {
                     onBackButtonPress={() => Navigation.goBack()}
                     onCloseButtonPress={() => Navigation.dismissModal(true)}
                 />
-                <View style={[styles.flex1]}>
+                <ScrollView style={[styles.flex1]}>
                     <View style={[styles.m5]}>
                         <View
                             style={styles.reportDetailsTitleContainer}
@@ -198,7 +198,7 @@ class ReportDetailsPage extends Component {
                             />
                         );
                     })}
-                </View>
+                </ScrollView>
             </ScreenWrapper>
         );
     }
