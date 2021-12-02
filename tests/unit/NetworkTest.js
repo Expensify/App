@@ -271,3 +271,35 @@ test('retry network request if auth and credentials are not read from Onyx yet',
         expect(spyHttpUtilsXhr).toHaveBeenCalled();
     });
 });
+
+test('retry network request if connection is lost while request is running', () => {
+    // Given a xhr mock that will fail as if network connection dropped
+    const xhr = jest.spyOn(HttpUtils, 'xhr')
+        .mockImplementationOnce(() => {
+            Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+            return Promise.reject(new Error('Network request failed'));
+        })
+        .mockResolvedValue({jsonCode: 200, fromRetriedResult: true});
+
+    // Given a regular "retriable" request (that is bound to fail)
+    const promise = Network.post('Get');
+
+    return waitForPromisesToResolve()
+        .then(() => {
+            // When network connection is recovered
+            Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // Advance the network request queue by 1 second so that it can realize it's back online
+            jest.advanceTimersByTime(1000);
+            return waitForPromisesToResolve();
+        })
+        .then(() => {
+            // Then the request should be attempted again
+            expect(xhr).toHaveBeenCalledTimes(2);
+
+            // And the promise should be resolved with the 2nd call that succeeded
+            return expect(promise).resolves.toEqual({jsonCode: 200, fromRetriedResult: true});
+        });
+});
