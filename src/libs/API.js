@@ -63,7 +63,7 @@ function isAuthTokenRequired(command) {
 }
 
 /**
- * Determines are we supposed to retry the given request
+ * Determines if we're supposed to retry the given request
  * @param {Object} request
  * @returns {Boolean}
  */
@@ -72,7 +72,7 @@ function shouldRetry(request) {
 }
 
 /**
- * When the request should be retried add it back to the queue
+ * Add the request back to the queue to be retried
  * It will either get retried now, or later when we're back online
  * @param {Object} request
  */
@@ -185,8 +185,6 @@ Network.registerErrorHandler((queuedRequest, error) => {
     // Set an error state and signify we are done loading
     setSessionLoadingAndError(false, 'Cannot connect to server');
 
-    // When the request should be retried add it back to the queue
-    // It will either get retried now, or later when we're back online
     if (shouldRetry(queuedRequest)) {
         retry(queuedRequest);
         return;
