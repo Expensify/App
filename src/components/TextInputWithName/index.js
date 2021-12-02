@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import React from 'react';
 import {TextInput} from 'react-native';
 import textInputWithNamepropTypes from './textInputWithNamepropTypes';
@@ -10,6 +11,9 @@ class TextInputWithName extends React.Component {
         if (!this.textInput) {
             return;
         }
+        if (_.isFunction(this.props.forwardedRef)) {
+            this.props.forwardedRef(this.textInput);
+        }
 
         if (this.props.name) {
             this.textInput.setNativeProps({name: this.props.name});
@@ -19,7 +23,7 @@ class TextInputWithName extends React.Component {
     render() {
         return (
             <TextInput
-                ref={this.props.forwardedRef}
+                ref={el => this.textInput = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
             />

@@ -191,6 +191,7 @@ class BaseExpensiTextInput extends Component {
                                     onChangeText={this.setValue}
                                     secureTextEntry={this.state.passwordHidden}
                                     onPressOut={this.props.onPress}
+                                    name={this.props.name}
                                 />
                                 {this.props.secureTextEntry && (
                                     <Pressable
