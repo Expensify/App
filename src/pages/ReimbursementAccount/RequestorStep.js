@@ -71,11 +71,11 @@ class RequestorStep extends React.Component {
     }
 
     /**
-     * Clear the errors associated to keys in fieldUpdates if found and store the new values in the state.
+     * Clear the errors associated to keys in values if found and store the new values in the state.
      *
-     * @param {Object} fieldUpdates
+     * @param {Object} values
      */
-    clearErrorsAndSetValues(fieldUpdates) {
+    clearErrorsAndSetValues(values) {
         const renamedFields = {
             addressStreet: 'requestorAddressStreet',
             addressCity: 'requestorAddressCity',
@@ -83,7 +83,7 @@ class RequestorStep extends React.Component {
             addressZipCode: 'requestorAddressZipCode',
         };
         const newState = {};
-        _.each(fieldUpdates, (value, inputKey) => {
+        _.each(values, (value, inputKey) => {
             const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
             newState[renamedInputKey] = value;
         });
@@ -91,7 +91,7 @@ class RequestorStep extends React.Component {
         BankAccounts.updateReimbursementAccountDraft(newState);
 
         // Prepare inputKeys for clearing errors
-        const inputKeys = _.keys(fieldUpdates);
+        const inputKeys = _.keys(values);
 
         // dob field has multiple validations/errors, we are handling it temporarily like this.
         if (_.contains(inputKeys, 'dob')) {
