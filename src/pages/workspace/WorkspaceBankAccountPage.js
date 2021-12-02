@@ -3,7 +3,7 @@ import React from 'react';
 import {withOnyx} from 'react-native-onyx';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as Illustrations from '../../components/Icon/Illustrations';
-import Text from '../../components/ExpensifyText';
+import ExpensifyText from '../../components/ExpensifyText';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import compose from '../../libs/compose';
