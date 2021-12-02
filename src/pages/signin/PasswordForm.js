@@ -160,7 +160,7 @@ class PasswordForm extends React.Component {
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    {this.props.visible && <ChangeExpensifyLoginLink />}
+                    {this.props.isVisible && <ChangeExpensifyLoginLink />}
                 </View>
             </>
         );

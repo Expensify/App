@@ -38,14 +38,12 @@ class BaseExpensiTextInput extends Component {
     }
 
     componentDidMount() {
-        if (!this.input) {
+        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
+        if (!this.props.autoFocus || !this.input) {
             return;
         }
 
-        // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (this.props.autoFocus) {
-            this.input.focus();
-        }
+        this.input.focus();
     }
 
     componentDidUpdate(prevProps) {
@@ -195,16 +193,16 @@ class BaseExpensiTextInput extends Component {
                                     onPressOut={this.props.onPress}
                                 />
                                 {this.props.secureTextEntry && (
-                                <Pressable
-                                    accessibilityRole="button"
-                                    style={styles.secureInputEyeButton}
-                                    onPress={this.togglePasswordVisibility}
-                                >
-                                    <Icon
-                                        src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                                        fill={themeColors.icon}
-                                    />
-                                </Pressable>
+                                    <Pressable
+                                        accessibilityRole="button"
+                                        style={styles.secureInputEyeButton}
+                                        onPress={this.togglePasswordVisibility}
+                                    >
+                                        <Icon
+                                            src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                            fill={themeColors.icon}
+                                        />
+                                    </Pressable>
                                 )}
                             </View>
                         </View>
