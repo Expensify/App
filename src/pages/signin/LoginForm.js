@@ -34,7 +34,7 @@ const propTypes = {
     }),
 
     /** Whether the page is visible. */
-    visible: PropTypes.bool,
+    isVisible: PropTypes.bool,
 
     ...windowDimensionsPropTypes,
 
@@ -43,16 +43,15 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
-    visible: false,
+    isVisible: false,
 };
 
 class LoginForm extends React.Component {
     constructor(props) {
         super(props);
-        this.input = null;
         this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-
+        this.clearLogin = this.clearLogin.bind(this);
         this.state = {
             formError: false,
             login: '',
@@ -67,14 +66,13 @@ class LoginForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.visible || !this.props.visible) {
+        if (prevProps.isVisible || !this.props.isVisible) {
             return;
         }
         this.input.focus();
 
         if (this.state.login) {
-            // eslint-disable-next-line react/no-did-update-set-state
-            this.setState({login: ''});
+            this.clearLogin();
         }
     }
 
@@ -92,6 +90,13 @@ class LoginForm extends React.Component {
         if (this.props.account.error) {
             Session.clearAccountMessages();
         }
+    }
+
+    /**
+     * Clear Login from the state
+     */
+    clearLogin() {
+        this.setState({login: ''});
     }
 
     /**
@@ -125,7 +130,7 @@ class LoginForm extends React.Component {
 
     render() {
         return (
-            <View style={!this.props.visible && styles.visuallyHidden}>
+            <>
                 <View style={[styles.mt3]}>
                     <ExpensiTextInput
                         ref={el => this.input = el}
@@ -166,7 +171,7 @@ class LoginForm extends React.Component {
                         onPress={this.validateAndSubmitForm}
                     />
                 </View>
-            </View>
+            </>
         );
     }
 }

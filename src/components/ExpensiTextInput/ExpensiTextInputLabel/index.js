@@ -1,20 +1,14 @@
 import React, {PureComponent} from 'react';
 import {Animated} from 'react-native';
-import * as TextInputUtils from '../../../libs/TextInputUtils';
 import styles from '../../../styles/styles';
 import {propTypes, defaultProps} from './expensiTextInputLabelPropTypes';
 
 class ExpensiTextInputLabel extends PureComponent {
-    constructor(props) {
-        super(props);
-        this.label = null;
-    }
-
     componentDidMount() {
         if (!this.props.for) {
             return;
         }
-        TextInputUtils.setBrowserAttributes(this.label, 'for', this.props.for);
+        this.label.setNativeProps({for: this.props.for});
     }
 
     render() {

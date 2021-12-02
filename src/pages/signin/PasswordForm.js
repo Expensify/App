@@ -16,7 +16,7 @@ import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import * as TextInputUtils from '../../libs/TextInputUtils';
+import * as ComponentUtils from '../../libs/ComponentUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -34,20 +34,19 @@ const propTypes = {
     }),
 
     /** Whether the page is visible. */
-    visible: PropTypes.bool,
+    isVisible: PropTypes.bool,
 
     ...withLocalizePropTypes,
 };
 
 const defaultProps = {
     account: {},
-    visible: false,
+    isVisible: false,
 };
 
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
-        this.input = null;
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -65,7 +64,7 @@ class PasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.visible || !this.props.visible) {
+        if (prevProps.isVisible || !this.props.isVisible) {
             return;
         }
         this.input.focus();
@@ -99,13 +98,13 @@ class PasswordForm extends React.Component {
 
     render() {
         return (
-            <View style={!this.props.visible && styles.visuallyHidden}>
+            <>
                 <View style={[styles.mv3]}>
                     <ExpensiTextInput
                         ref={el => this.input = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType={TextInputUtils.passwordAutocompleteType}
+                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                         textContentType="password"
                         nativeID="password"
                         name="password"
@@ -163,7 +162,7 @@ class PasswordForm extends React.Component {
                     />
                     {this.props.visible && <ChangeExpensifyLoginLink />}
                 </View>
-            </View>
+            </>
         );
     }
 }

@@ -1,0 +1,36 @@
+import React from 'react';
+import {TextInput} from 'react-native';
+import textInputWithNamepropTypes from './textInputWithNamepropTypes';
+
+/**
+ * On web we need to set the native attribure name for accessiblity.
+ */
+class TextInputWithName extends React.Component {
+    componentDidMount() {
+        if (!this.textInput) {
+            return;
+        }
+
+        if (this.props.name) {
+            this.textInput.setNativeProps({name: this.props.name});
+        }
+    }
+
+    render() {
+        return (
+            <TextInput
+                ref={this.props.forwardedRef}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...this.props}
+            />
+        );
+    }
+}
+
+TextInputWithName.propTypes = textInputWithNamepropTypes.propTypes;
+TextInputWithName.defaultProps = textInputWithNamepropTypes.defaultProps;
+
+export default React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <TextInputWithName {...props} forwardedRef={ref} />
+));

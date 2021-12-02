@@ -1,18 +1,18 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, TextInput, View, TouchableWithoutFeedback, Pressable,
+    Animated, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
 import * as baseExpensiTextInputPropTypes from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
-import * as TextInputUtils from '../../libs/TextInputUtils';
 import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import InlineErrorText from '../InlineErrorText';
 import * as styleConst from './styleConst';
+import TextInputWithName from '../TextInputWithName';
 
 class BaseExpensiTextInput extends Component {
     constructor(props) {
@@ -45,9 +45,6 @@ class BaseExpensiTextInput extends Component {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
         if (this.props.autoFocus) {
             this.input.focus();
-        }
-        if (this.props.name) {
-            TextInputUtils.setBrowserAttributes(this.input, 'name', this.props.name);
         }
     }
 
@@ -178,7 +175,7 @@ class BaseExpensiTextInput extends Component {
                                 </>
                             ) : null}
                             <View style={[styles.expensiTextInputAndIconContainer]}>
-                                <TextInput
+                                <TextInputWithName
                                     ref={(ref) => {
                                         if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                         this.input = ref;

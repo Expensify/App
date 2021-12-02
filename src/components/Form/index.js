@@ -1,19 +1,22 @@
 import React from 'react';
-import {View} from 'react-native';
-import * as TextInputUtils from '../libs/TextInputUtils';
+import BaseForm from './BaseForm';
 
 class Form extends React.Component {
     componentDidMount() {
+        if (!this.form) {
+            return;
+        }
+
         // Password Managers need these atributes to be able to identify the form elments properly.
-        TextInputUtils.setBrowserAttributes(this.form, 'method', 'post');
-        TextInputUtils.setBrowserAttributes(this.form, 'action', '/');
+        this.form.setNativeProps({
+            method: 'post',
+            action: '/',
+        });
     }
 
     render() {
         return (
-            <View
-                accessibilityRole={TextInputUtils.accessibilityRoleForm}
-                accessibilityAutoComplete="on"
+            <BaseForm
                 ref={el => this.form = el}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
