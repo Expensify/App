@@ -53,7 +53,7 @@ const webViewStyles = {
     // component.
     tagStyles: {
         em: {
-            fontFamily: fontFamily.GTA_ITALIC,
+            fontFamily: fontFamily.GTA,
             fontStyle: 'italic',
         },
 
@@ -63,7 +63,7 @@ const webViewStyles = {
         },
 
         strong: {
-            fontFamily: fontFamily.GTA_BOLD,
+            fontFamily: fontFamily.GTA,
             fontWeight: 'bold',
         },
 
@@ -1970,7 +1970,8 @@ const styles = {
         position: 'absolute',
         width: '100%',
         top: 20,
-        ...spacing.ph5,
+        ...spacing.pl5,
+        ...spacing.pr5,
     },
 
     growlNotificationDesktopContainer: {
