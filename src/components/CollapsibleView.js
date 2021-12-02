@@ -16,7 +16,7 @@ const defaultProps = {
 };
 
 const CollapsibleView = props => (
-    <View style={props.isVisible && styles.visuallyHidden}>
+    <View style={!props.isVisible && styles.visuallyHidden}>
         {props.children(props.isVisible)}
     </View>
 );
