@@ -10,19 +10,20 @@ import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {Mail, Close} from '../../components/Icon/Expensicons';
+import CONST from '../../CONST';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import MenuItem from '../../components/MenuItem';
 import getBankIcon from '../../components/Icon/BankIcons';
-import {getPaymentMethods} from '../../libs/actions/PaymentMethods';
+import * as PaymentMethods from '../../libs/actions/PaymentMethods';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
 import confettiPop from '../../../assets/images/confetti-pop.gif';
 import Icon from '../../components/Icon';
 import WorkspaceSection from '../workspace/WorkspaceSection';
-import {ConciergeBlue} from '../../components/Icon/Illustrations';
-import {requestResetFreePlanBankAccount} from '../../libs/actions/BankAccounts';
-import {openOldDotLink} from '../../libs/actions/Link';
-import {subscribeToExpensifyCardUpdates} from '../../libs/actions/User';
+import * as Illustrations from '../../components/Icon/Illustrations';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
+import * as Link from '../../libs/actions/Link';
+import * as User from '../../libs/actions/User';
 
 const propTypes = {
     /** Are we loading payment methods? */
@@ -41,7 +42,7 @@ const defaultProps = {
 
 class EnableStep extends React.Component {
     componentDidMount() {
-        getPaymentMethods();
+        PaymentMethods.getPaymentMethods();
     }
 
     render() {
@@ -68,16 +69,16 @@ class EnableStep extends React.Component {
         const bankName = account.addressName;
         const menuItems = [{
             title: this.props.translate('workspace.bankAccount.disconnectBankAccount'),
-            icon: Close,
-            onPress: requestResetFreePlanBankAccount,
+            icon: Expensicons.Close,
+            onPress: BankAccounts.requestResetFreePlanBankAccount,
         }];
         if (!isUsingExpensifyCard) {
             menuItems.unshift({
                 title: this.props.translate('workspace.bankAccount.addWorkEmail'),
-                icon: Mail,
+                icon: Expensicons.Mail,
                 onPress: () => {
-                    openOldDotLink('settings?param={"section":"account","openModal":"secondaryLogin"}');
-                    subscribeToExpensifyCardUpdates();
+                    Link.openOldDotLink(CONST.ADD_SECONDARY_LOGIN_URL);
+                    User.subscribeToExpensifyCardUpdates();
                 },
                 shouldShowRightIcon: true,
             });
@@ -94,7 +95,8 @@ class EnableStep extends React.Component {
                 <View style={[styles.flex1]}>
                     <WorkspaceSection
                         title={!isUsingExpensifyCard ? this.props.translate('workspace.bankAccount.oneMoreThing') : this.props.translate('workspace.bankAccount.allSet')}
-                        IconComponent={() => (!isUsingExpensifyCard ? <Icon src={ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
+                        // eslint-disable-next-line max-len
+                        IconComponent={() => (!isUsingExpensifyCard ? <Icon src={Illustrations.ConciergeBlue} width={80} height={80} /> : <Image source={confettiPop} style={styles.confettiIcon} />)}
                         menuItems={menuItems}
                     >
                         <MenuItem

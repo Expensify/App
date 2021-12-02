@@ -1,7 +1,7 @@
 import moment from 'moment';
 import _ from 'underscore';
 import CONST from '../CONST';
-import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
+import * as CardUtils from './CardUtils';
 import LoginUtil from './LoginUtil';
 
 /**
@@ -109,7 +109,7 @@ function isValidExpirationDate(string) {
     }
 
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${getYearFromExpirationDateString(string)}-${getMonthFromExpirationDateString(string)}-01`;
+    const expirationDate = `${CardUtils.getYearFromExpirationDateString(string)}-${CardUtils.getMonthFromExpirationDateString(string)}-01`;
     return moment(expirationDate).endOf('month').isAfter(moment());
 }
 
@@ -274,6 +274,28 @@ function isValidLengthForFirstOrLastName(name) {
     return name.length <= 50;
 }
 
+/**
+ * Checks the given number is a valid US Routing Number
+ * using ABA routingNumber checksum algorithm: http://www.brainjar.com/js/validation/
+ * @param {String} number
+ * @returns {Boolean}
+ */
+function isValidRoutingNumber(number) {
+    let n = 0;
+    for (let i = 0; i < number.length; i += 3) {
+        n += (parseInt(number.charAt(i), 10) * 3)
+            + (parseInt(number.charAt(i + 1), 10) * 7)
+            + parseInt(number.charAt(i + 2), 10);
+    }
+
+    // If the resulting sum is an even multiple of ten (but not zero),
+    // the ABA routing number is valid.
+    if (n !== 0 && n % 10 === 0) {
+        return true;
+    }
+    return false;
+}
+
 export {
     meetsAgeRequirements,
     isValidAddress,
@@ -293,4 +315,5 @@ export {
     isNumericWithSpecialChars,
     isValidLengthForFirstOrLastName,
     isValidPaypalUsername,
+    isValidRoutingNumber,
 };

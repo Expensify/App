@@ -14,11 +14,9 @@ import styles from '../../../styles/styles';
 import Text from '../../../components/Text';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import {addBillingCard, clearDebitCardFormErrorAndSubmit} from '../../../libs/actions/PaymentMethods';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
-import {
-    isValidAddress, isValidExpirationDate, isValidZipCode, isValidDebitCard, isValidSecurityCode,
-} from '../../../libs/ValidationUtils';
+import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
 import CONST from '../../../CONST';
@@ -96,7 +94,7 @@ class DebitCardPage extends Component {
      * Make sure we reset the onyx values so old errors don't show if this form is displayed later
      */
     componentWillUnmount() {
-        clearDebitCardFormErrorAndSubmit();
+        PaymentMethods.clearDebitCardFormErrorAndSubmit();
     }
 
     /**
@@ -120,21 +118,21 @@ class DebitCardPage extends Component {
             errors.nameOnCard = true;
         }
 
-        if (!isValidDebitCard(this.state.cardNumber.replace(/ /g, ''))) {
+        if (!ValidationUtils.isValidDebitCard(this.state.cardNumber.replace(/ /g, ''))) {
             errors.cardNumber = true;
         }
 
-        if (!isValidExpirationDate(this.state.expirationDate)) {
+        if (!ValidationUtils.isValidExpirationDate(this.state.expirationDate)) {
             errors.expirationDate = true;
         }
 
-        if (!isValidSecurityCode(this.state.securityCode)) {
+        if (!ValidationUtils.isValidSecurityCode(this.state.securityCode)) {
             errors.securityCode = true;
         }
 
-        if (!isValidAddress(this.state.addressStreet)
+        if (!ValidationUtils.isValidAddress(this.state.addressStreet)
             || !this.state.addressState
-            || !isValidZipCode(this.state.addressZipCode)) {
+            || !ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
             errors.addressStreet = true;
         }
 
@@ -154,7 +152,7 @@ class DebitCardPage extends Component {
         if (!this.validate()) {
             return;
         }
-        addBillingCard(this.state);
+        PaymentMethods.addBillingCard(this.state);
     }
 
     /**
@@ -213,7 +211,6 @@ class DebitCardPage extends Component {
                                         value={this.state.expirationDate}
                                         errorText={this.getErrorText('expirationDate')}
                                         keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
-                                        translateX={-10}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
@@ -222,7 +219,6 @@ class DebitCardPage extends Component {
                                         onChangeText={securityCode => this.clearErrorAndSetValue('securityCode', securityCode)}
                                         value={this.state.securityCode}
                                         errorText={this.getErrorText('securityCode')}
-                                        translateX={-10}
                                     />
                                 </View>
                             </View>

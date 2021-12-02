@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {
     View, Image, Pressable,
 } from 'react-native';
-import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -69,7 +70,6 @@ class ImageView extends PureComponent {
         const isScreenWiderThanImage = (this.props.windowWidth / width) > 1;
         const isScreenTallerThanImage = (this.props.windowHeight / height) > 1;
         const aspect = width / height;
-        let scale = this.state.zoomScale;
         if (aspect > 1 && !isScreenWiderThanImage) {
             // In case Width fit Screen width and Height not fit the Screen height
             const fitRate = this.props.windowWidth / width;
@@ -87,13 +87,16 @@ class ImageView extends PureComponent {
         }
 
         // In case image loading is delayed than onLayout callback of the root View caused internet speed.
-        if (scale == 0) {
-            scale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
-        }
-
-        this.setState({
-            imgWidth: width, zoomScale: scale, imgHeight: height, imageLeft: imgLeft, imageTop: imgTop, imageRight: imgRight, imageBottom: imgBottom,
-        });
+        const newZoomScale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
+        this.setState(prevState => ({
+            imgWidth: width,
+            zoomScale: prevState.zoomScale === 0 ? newZoomScale : prevState.zoomScale,
+            imgHeight: height,
+            imageLeft: imgLeft,
+            imageTop: imgTop,
+            imageRight: imgRight,
+            imageBottom: imgBottom,
+        }));
     }
 
     /**
@@ -188,8 +191,9 @@ class ImageView extends PureComponent {
             >
                 <Pressable
                     style={{
-                        ...getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale, this.state.containerHeight, this.state.containerWidth),
-                        ...getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
+                        ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale,
+                            this.state.containerHeight, this.state.containerWidth),
+                        ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
                         ...this.state.isZoomed && this.state.zoomScale > 1 ? styles.pRelative : styles.pAbsolute,
                         ...styles.flex1,
                     }}

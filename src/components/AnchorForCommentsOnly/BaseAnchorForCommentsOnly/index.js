@@ -5,63 +5,89 @@ import lodashGet from 'lodash/get';
 import Text from '../../Text';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
-import {showContextMenu} from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
-import {CONTEXT_MENU_TYPES} from '../../../pages/home/report/ContextMenu/ContextMenuActions';
+import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
+import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
 import AttachmentView from '../../AttachmentView';
 import fileDownload from '../../../libs/fileDownload';
 
 /*
  * This is a default anchor component for regular links.
  */
-const BaseAnchorForCommentsOnly = (props) => {
-    let linkRef;
-    const rest = _.omit(props, _.keys(propTypes));
-    return (
-        props.isAttachment
-            ? (
-                <Pressable onPress={() => {
-                    fileDownload(props.href, props.fileName);
-                }}
-                >
-                    <AttachmentView
-                        sourceURL={props.href}
-                        file={{name: props.fileName}}
-                        shouldShowDownloadIcon
-                    />
-                </Pressable>
-            )
-            : (
-                <PressableWithSecondaryInteraction
-                    onSecondaryInteraction={
-                            (event) => {
-                                showContextMenu(
-                                    CONTEXT_MENU_TYPES.LINK,
-                                    event,
-                                    props.href,
-                                    lodashGet(linkRef, 'current'),
-                                );
-                            }
-                        }
-                >
-                    <Text
-                        ref={el => linkRef = el}
-                        style={StyleSheet.flatten(props.style)}
-                        accessibilityRole="link"
-                        href={props.href}
-                        hrefAttrs={{
-                            rel: props.rel,
-                            target: props.target,
-                        }}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...rest}
-                    >
-                        {props.children}
-                    </Text>
-                </PressableWithSecondaryInteraction>
-            )
+class BaseAnchorForCommentsOnly extends React.Component {
+    constructor(props) {
+        super(props);
 
-    );
-};
+        this.state = {
+            isDownloading: false,
+        };
+        this.processDownload = this.processDownload.bind(this);
+    }
+
+    /**
+     * Initiate file downloading and update downloading flags
+     *
+     * @param {String} href
+     * @param {String} fileName
+     */
+    processDownload(href, fileName) {
+        this.setState({isDownloading: true});
+        fileDownload(href, fileName).then(() => this.setState({isDownloading: false}));
+    }
+
+    render() {
+        let linkRef;
+        const rest = _.omit(this.props, _.keys(propTypes));
+        return (
+            this.props.isAttachment
+                ? (
+                    <Pressable onPress={() => {
+                        if (this.state.isDownloading) {
+                            return;
+                        }
+                        this.processDownload(this.props.href, this.props.fileName);
+                    }}
+                    >
+                        <AttachmentView
+                            sourceURL={this.props.href}
+                            file={{name: this.props.fileName}}
+                            shouldShowDownloadIcon
+                            shouldShowLoadingSpinnerIcon={this.state.isDownloading}
+                        />
+                    </Pressable>
+                )
+                : (
+                    <PressableWithSecondaryInteraction
+                        inline
+                        onSecondaryInteraction={
+                        (event) => {
+                            ReportActionContextMenu.showContextMenu(
+                                ContextMenuActions.CONTEXT_MENU_TYPES.LINK,
+                                event,
+                                this.props.href,
+                                lodashGet(linkRef, 'current'),
+                            );
+                        }
+                    }
+                    >
+                        <Text
+                            ref={el => linkRef = el}
+                            style={StyleSheet.flatten(this.props.style)}
+                            accessibilityRole="link"
+                            href={this.props.href}
+                            hrefAttrs={{
+                                rel: this.props.rel,
+                                target: this.props.target,
+                            }}
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...rest}
+                        >
+                            {this.props.children}
+                        </Text>
+                    </PressableWithSecondaryInteraction>
+                )
+        );
+    }
+}
 
 BaseAnchorForCommentsOnly.propTypes = propTypes;
 BaseAnchorForCommentsOnly.defaultProps = defaultProps;
