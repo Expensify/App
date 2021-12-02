@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {LogBox} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
@@ -39,15 +39,8 @@ const defaultProps = {
 // Relevant thread: https://expensify.slack.com/archives/C03TQ48KC/p1634088400387400
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
-    const googlePlacesRef = useRef();
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
-    useEffect(() => {
-        if (!googlePlacesRef.current) {
-            return;
-        }
-
-        googlePlacesRef.current.setAddressText(props.value);
-    }, []);
+    const [skippedFirstOnChangeText, setSkippedFirstOnChangeText] = useState(false);
 
     const saveLocationDetails = (details) => {
         const addressComponents = details.address_components;
@@ -83,13 +76,11 @@ const AddressSearch = (props) => {
         if (_.size(values) === 0) {
             return;
         }
-
         props.onChange(values);
     };
 
     return (
         <GooglePlacesAutocomplete
-            ref={googlePlacesRef}
             fetchDetails
             suppressDefaultStyles
             enablePoweredByContainer={false}
@@ -115,8 +106,16 @@ const AddressSearch = (props) => {
                 label: props.label,
                 containerStyles: props.containerStyles,
                 errorText: props.errorText,
+                value: props.value,
                 onChangeText: (text) => {
-                    props.onChange({addressStreet: text});
+                    // We use `skippedFirstOnChangeText` to work around a feature of the library:
+                    // The library is calling onChangeText with '' at the start and we don't need this
+                    // https://github.com/FaridSafi/react-native-google-places-autocomplete/blob/47d7223dd48f85da97e80a0729a985bbbcee353f/GooglePlacesAutocomplete.js#L148
+                    if (skippedFirstOnChangeText) {
+                        props.onChange({addressStreet: text});
+                    } else {
+                        setSkippedFirstOnChangeText(true);
+                    }
 
                     // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
                     if (_.isEmpty(text)) {
