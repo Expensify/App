@@ -61,7 +61,8 @@ const AddressSearch = (props) => {
         const addressState = GooglePlacesUtils.getAddressComponent(addressComponents, 'administrative_area_level_1', 'short_name');
 
         const values = {};
-        if (addressStreet) {
+        if (addressStreet && addressStreet.length > props.value.length) {
+            // Don't replace if the user has typed something longer. I.e. maybe the user entered the Apt #
             values.addressStreet = addressStreet;
         }
         if (addressCity) {
