@@ -97,6 +97,7 @@ class AddPlaidBankAccount extends React.Component {
         super(props);
 
         this.selectAccount = this.selectAccount.bind(this);
+        this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
 
         this.state = {
             selectedIndex: undefined,
@@ -155,6 +156,19 @@ class AddPlaidBankAccount extends React.Component {
         });
     }
 
+    /**
+     * @returns {String}
+     */
+    getPlaidLinkToken() {
+        if (!_.isEmpty(this.props.plaidLinkToken)) {
+            return this.props.plaidLinkToken;
+        }
+
+        if (this.props.receivedRedirectURI) {
+            return this.props.plaidLinkOAuthToken;
+        }
+    }
+
     render() {
         const accounts = this.getAccounts();
         const options = _.map(accounts, (account, index) => ({
@@ -162,7 +176,6 @@ class AddPlaidBankAccount extends React.Component {
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
         const hasPlaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) || !_.isEmpty(this.props.plaidLinkOAuthToken);
-        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.plaidLinkOAuthToken;
 
         return (
             <>
@@ -174,7 +187,7 @@ class AddPlaidBankAccount extends React.Component {
                 )}
                 {hasPlaidLinkToken && (
                     <PlaidLink
-                        token={plaidLinkToken}
+                        token={this.getPlaidLinkToken()}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
                             BankAccounts.getPlaidBankAccounts(publicToken, metadata.institution.name);
