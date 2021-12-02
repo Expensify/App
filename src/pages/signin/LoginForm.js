@@ -17,6 +17,7 @@ import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import LoginUtil from '../../libs/LoginUtil';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
     /* Onyx Props */
@@ -39,6 +40,8 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -66,6 +69,7 @@ class LoginForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // Whenever page becomes visible focus the input. We are using withToggleVisibilityView to hide the page instread of unmounting.
         if (prevProps.isVisible || !this.props.isVisible) {
             return;
         }
@@ -185,4 +189,5 @@ export default compose(
     }),
     withWindowDimensions,
     withLocalize,
+    withToggleVisibilityView,
 )(LoginForm);

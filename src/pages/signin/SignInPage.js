@@ -13,7 +13,6 @@ import LoginForm from './LoginForm';
 import PasswordForm from './PasswordForm';
 import ResendValidationForm from './ResendValidationForm';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import CollapsibleView from '../../components/CollapsibleView';
 
 const propTypes = {
     /* Onyx Props */
@@ -89,12 +88,8 @@ class SignInPage extends Component {
                     shouldShowWelcomeScreenshot={showLoginForm}
                 >
                     {/* Both LoginForm and PasswordForm should be present in the UI for Password Managers to work. */}
-                    <CollapsibleView isVisible={showLoginForm}>
-                        {isVisible => <LoginForm isVisible={isVisible} />}
-                    </CollapsibleView>
-                    <CollapsibleView isVisible={showPasswordForm}>
-                        {isVisible => <PasswordForm isVisible={isVisible} />}
-                    </CollapsibleView>
+                    <LoginForm isVisible={showLoginForm} />
+                    <PasswordForm isVisible={showPasswordForm} />
                     {showResendValidationLinkForm && <ResendValidationForm />}
                 </SignInPageLayout>
             </SafeAreaView>

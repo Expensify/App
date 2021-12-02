@@ -17,6 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as ComponentUtils from '../../libs/ComponentUtils';
+import withToggleVisibilityView from '../../components/withToggleVisibilityView';
 
 const propTypes = {
     /* Onyx Props */
@@ -64,6 +65,7 @@ class PasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
+        // Whenever page becomes visible focus the input. We are using withToggleVisibilityView to hide the page instread of unmounting.
         if (prevProps.isVisible || !this.props.isVisible) {
             return;
         }
@@ -175,4 +177,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
+    withToggleVisibilityView,
 )(PasswordForm);
