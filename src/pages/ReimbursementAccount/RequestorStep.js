@@ -55,8 +55,6 @@ class RequestorStep extends React.Component {
 
         // Required fields not validated by `validateIdentity`
         this.requiredFields = [
-            'firstName',
-            'lastName',
             'isControllingOfficer',
         ];
 
@@ -68,7 +66,38 @@ class RequestorStep extends React.Component {
         };
 
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearErrors(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
+    }
+
+    /**
+     * Clear the errors associated to keys in fieldUpdates if found and store the new values in the state.
+     *
+     * @param {Object} fieldUpdates
+     */
+    clearErrorsAndSetValues(fieldUpdates) {
+        const renamedFields = {
+            addressStreet: 'requestorAddressStreet',
+            addressCity: 'requestorAddressCity',
+            addressState: 'requestorAddressState',
+            addressZipCode: 'requestorAddressZipCode',
+        };
+        const newState = {};
+        _.each(fieldUpdates, (value, inputKey) => {
+            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
+            newState[renamedInputKey] = value;
+        });
+        this.setState(newState);
+        BankAccounts.updateReimbursementAccountDraft(newState);
+
+        // Prepare inputKeys for clearing errors
+        const inputKeys = _.keys(fieldUpdates);
+
+        // dob field has multiple validations/errors, we are handling it temporarily like this.
+        if (_.contains(inputKeys, 'dob')) {
+            inputKeys.push('dobAge');
+        }
+        this.clearErrors(inputKeys);
     }
 
     /**
@@ -78,28 +107,7 @@ class RequestorStep extends React.Component {
      * @param {String|Boolean} value
      */
     clearErrorAndSetValue(inputKey, value) {
-        if (inputKey === 'manualAddress') {
-            this.setState({
-                manualAddress: value,
-            });
-        } else {
-            const renamedFields = {
-                addressStreet: 'requestorAddressStreet',
-                addressCity: 'requestorAddressCity',
-                addressState: 'requestorAddressState',
-                addressZipCode: 'requestorAddressZipCode',
-            };
-            const renamedInputKey = lodashGet(renamedFields, inputKey, inputKey);
-            const newState = {[renamedInputKey]: value};
-            this.setState(newState);
-            BankAccounts.updateReimbursementAccountDraft(newState);
-
-            // dob field has multiple validations/errors, we are handling it temporarily like this.
-            if (inputKey === 'dob') {
-                this.clearError('dobAge');
-            }
-            this.clearError(inputKey);
-        }
+        this.clearErrorsAndSetValues({[inputKey]: value});
     }
 
     /**
@@ -109,10 +117,10 @@ class RequestorStep extends React.Component {
         const errors = ValidationUtils.validateIdentity({
             firstName: this.state.firstName,
             lastName: this.state.lastName,
-            street: this.state.requestorAddressStreet,
-            state: this.state.requestorAddressState,
-            city: this.state.requestorAddressCity,
-            zipCode: this.state.requestorAddressZipCode,
+            addressStreet: this.state.requestorAddressStreet,
+            addressState: this.state.requestorAddressState,
+            addressCity: this.state.requestorAddressCity,
+            addressZipCode: this.state.requestorAddressZipCode,
             dob: this.state.dob,
             ssnLast4: this.state.ssnLast4,
         });
@@ -198,17 +206,23 @@ class RequestorStep extends React.Component {
                             </TextLink>
                         </View>
                         <IdentityForm
-                            onFieldChange={this.clearErrorAndSetValue}
+                            onFieldChange={(inputKeyOrUpdatesBatch, value) => {
+                                if (_.isString(inputKeyOrUpdatesBatch)) {
+                                    this.clearErrorAndSetValue(inputKeyOrUpdatesBatch, value);
+                                } else {
+                                    // While we have batched updates to handle clearing errors properly
+                                    this.clearErrorsAndSetValues(inputKeyOrUpdatesBatch);
+                                }
+                            }}
                             values={{
                                 firstName: this.state.firstName,
                                 lastName: this.state.lastName,
-                                street: this.state.requestorAddressStreet,
-                                city: this.state.requestorAddressCity,
-                                state: this.state.requestorAddressState,
-                                zipCode: this.state.requestorAddressZipCode,
+                                addressStreet: this.state.requestorAddressStreet,
+                                addressState: this.state.requestorAddressState,
+                                addressCity: this.state.requestorAddressCity,
+                                addressZipCode: this.state.requestorAddressZipCode,
                                 dob: this.state.dob,
                                 ssnLast4: this.state.ssnLast4,
-                                manualAddress: this.state.manualAddress,
                             }}
                             errors={this.props.reimbursementAccount.errors}
                         />

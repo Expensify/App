@@ -206,7 +206,7 @@ function isValidURL(url) {
  * @returns {Object}
  */
 function validateIdentity(identity) {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
+    const requiredFields = ['firstName', 'lastName', 'addressStreet', 'addressCity', 'addressZipCode', 'addressState', 'ssnLast4', 'dob'];
     const errors = {};
 
     // Check that all required fields are filled
@@ -217,12 +217,12 @@ function validateIdentity(identity) {
         errors[fieldName] = true;
     });
 
-    if (!isValidAddress(identity.street)) {
-        errors.street = true;
+    if (!isValidAddress(identity.addressStreet)) {
+        errors.addressStreet = true;
     }
 
-    if (!isValidZipCode(identity.zipCode)) {
-        errors.zipCode = true;
+    if (!isValidZipCode(identity.addressZipCode)) {
+        errors.addressZipCode = true;
     }
 
     // dob field has multiple validations/errors, we are handling it temporarily like this.

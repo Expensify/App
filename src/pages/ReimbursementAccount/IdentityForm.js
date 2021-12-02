@@ -7,7 +7,6 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
-import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import Text from '../../components/Text';
 
@@ -28,25 +27,22 @@ const propTypes = {
         lastName: PropTypes.string,
 
         /** Address street field */
-        street: PropTypes.string,
+        addressStreet: PropTypes.string,
 
         /** Address city field */
-        city: PropTypes.string,
+        addressCity: PropTypes.string,
 
         /** Address state field */
-        state: PropTypes.string,
+        addressState: PropTypes.string,
 
         /** Address zip code field */
-        zipCode: PropTypes.string,
+        addressZipCode: PropTypes.string,
 
         /** Date of birth field */
         dob: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
 
         /** Last 4 digits of SSN */
         ssnLast4: PropTypes.string,
-
-        /** Whether the address pieces should be entered manually */
-        manualAddress: PropTypes.bool,
     }),
 
     /** Any errors that can arise from form validation */
@@ -60,13 +56,12 @@ const defaultProps = {
     values: {
         firstName: '',
         lastName: '',
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
+        addressStreet: '',
+        addressCity: '',
+        addressState: '',
+        addressZipCode: '',
         dob: '',
         ssnLast4: '',
-        manualAddress: false,
     },
     errors: {},
 };
@@ -76,23 +71,6 @@ const IdentityForm = (props) => {
     // dob field has multiple validations/errors, we are handling it temporarily like this.
     const dobErrorText = (props.errors.dob ? props.translate('bankAccount.error.dob') : '')
         || (props.errors.dobAge ? props.translate('bankAccount.error.age') : '');
-
-    const getFormattedAddressValue = () => {
-        let addressString = '';
-        if (props.values.street) {
-            addressString += `${props.values.street}, `;
-        }
-        if (props.values.city) {
-            addressString += `${props.values.city}, `;
-        }
-        if (props.values.state) {
-            addressString += `${props.values.state}, `;
-        }
-        if (props.values.zipCode) {
-            addressString += `${props.values.zipCode}`;
-        }
-        return addressString;
-    };
 
     return (
         <View style={props.style}>
@@ -131,61 +109,41 @@ const IdentityForm = (props) => {
                 errorText={props.errors.ssnLast4 ? props.translate('bankAccount.error.ssnLast4') : ''}
                 maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
             />
-            {props.values.manualAddress ? (
-                <>
+            <AddressSearch
+                label={props.translate('common.personalAddress')}
+                containerStyles={[styles.mt4]}
+                value={props.values.addressStreet}
+                onChange={props.onFieldChange}
+                errorText={props.errors.addressStreet ? props.translate('bankAccount.error.addressStreet') : ''}
+            />
+            <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
+            <View style={[styles.flexRow, styles.mt4]}>
+                <View style={[styles.flex2, styles.mr2]}>
                     <ExpensiTextInput
-                        label={props.translate('common.personalAddress')}
-                        containerStyles={[styles.mt4]}
-                        value={props.values.street}
-                        onChangeText={value => props.onFieldChange('addressStreet', value)}
-                        errorText={props.errors.street ? props.translate('bankAccount.error.address') : ''}
+                        label={props.translate('common.city')}
+                        value={props.values.addressCity}
+                        onChangeText={value => props.onFieldChange('addressCity', value)}
+                        errorText={props.errors.addressCity ? props.translate('bankAccount.error.addressCity') : ''}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
-                    <View style={[styles.flexRow, styles.mt4]}>
-                        <View style={[styles.flex2, styles.mr2]}>
-                            <ExpensiTextInput
-                                label={props.translate('common.city')}
-                                value={props.values.city}
-                                onChangeText={value => props.onFieldChange('addressCity', value)}
-                                errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                            />
-                        </View>
-                        <View style={[styles.flex1]}>
-                            <StatePicker
-                                value={props.values.state}
-                                onChange={value => props.onFieldChange('addressState', value)}
-                                errorText={props.errors.state ? props.translate('bankAccount.error.addressState') : ''}
-                                hasError={Boolean(props.errors.state)}
-                            />
-                        </View>
-                    </View>
-                    <ExpensiTextInput
-                        label={props.translate('common.zip')}
-                        containerStyles={[styles.mt4]}
-                        keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                        value={props.values.zipCode}
-                        onChangeText={value => props.onFieldChange('addressZipCode', value)}
-                        errorText={props.errors.zipCode ? props.translate('bankAccount.error.zipCode') : ''}
-                        maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+                </View>
+                <View style={[styles.flex1]}>
+                    <StatePicker
+                        value={props.values.addressState}
+                        onChange={value => props.onFieldChange('addressState', value)}
+                        errorText={props.errors.addressState ? props.translate('bankAccount.error.addressState') : ''}
+                        hasError={Boolean(props.errors.addressState)}
                     />
-                </>
-            ) : (
-                <>
-                    <AddressSearch
-                        label={props.translate('common.personalAddress')}
-                        containerStyles={[styles.mt4]}
-                        value={getFormattedAddressValue()}
-                        onChangeText={(fieldName, value) => props.onFieldChange(fieldName, value)}
-                        errorText={props.errors.street ? props.translate('bankAccount.error.addressStreet') : ''}
-                    />
-                    <TextLink
-                        style={[styles.textMicro]}
-                        onPress={() => props.onFieldChange('manualAddress', true)}
-                    >
-                        Can&apos;t find your address? Enter it manually
-                    </TextLink>
-                </>
-            )}
+                </View>
+            </View>
+            <ExpensiTextInput
+                label={props.translate('common.zip')}
+                containerStyles={[styles.mt4]}
+                keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
+                value={props.values.addressZipCode}
+                onChangeText={value => props.onFieldChange('addressZipCode', value)}
+                errorText={props.errors.addressZipCode ? props.translate('bankAccount.error.zipCode') : ''}
+                maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
+            />
         </View>
     );
 };

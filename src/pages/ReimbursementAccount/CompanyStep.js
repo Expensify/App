@@ -93,6 +93,7 @@ class CompanyStep extends React.Component {
 
         this.getErrorText = inputKey => ReimbursementAccountUtils.getErrorText(this.props, this.errorTranslationKeys, inputKey);
         this.clearError = inputKey => ReimbursementAccountUtils.clearError(this.props, inputKey);
+        this.clearErrors = inputKeys => ReimbursementAccountUtils.clearError(this.props, inputKeys);
         this.getErrors = () => ReimbursementAccountUtils.getErrors(this.props);
         this.clearDateErrorsAndSetValue = this.clearDateErrorsAndSetValue.bind(this);
     }
@@ -215,7 +216,7 @@ class CompanyStep extends React.Component {
                             _.each(values, (value, key) => {
                                 this.setValue({[key]: value});
                             });
-                            ReimbursementAccountUtils.clearErrors(this.props, _.keys(values));
+                            this.clearErrors(_.keys(values));
                         }}
                         errorText={this.getErrorText('addressStreet')}
                     />
