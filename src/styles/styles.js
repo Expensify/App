@@ -2111,7 +2111,7 @@ const webViewStyles = {
     // component.
     tagStyles: {
         em: {
-            fontFamily: fontFamily.GTA_ITALIC,
+            fontFamily: fontFamily.GTA,
             fontStyle: 'italic',
         },
 
@@ -2121,7 +2121,7 @@ const webViewStyles = {
         },
 
         strong: {
-            fontFamily: fontFamily.GTA_BOLD,
+            fontFamily: fontFamily.GTA,
             fontWeight: 'bold',
         },
 
