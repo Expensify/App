@@ -17,7 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as ComponentUtils from '../../libs/ComponentUtils';
-import withToggleVisibilityView from '../../components/withToggleVisibilityView';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
     /* Onyx Props */
@@ -38,6 +38,7 @@ const propTypes = {
     isVisible: PropTypes.bool,
 
     ...withLocalizePropTypes,
+    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {

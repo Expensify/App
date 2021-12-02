@@ -4,7 +4,7 @@ import {TextInput} from 'react-native';
 import textInputWithNamepropTypes from './textInputWithNamepropTypes';
 
 /**
- * On web we need to set the native attribure name for accessiblity.
+ * On web we need to set the native attribute name for accessiblity.
  */
 class TextInputWithName extends React.Component {
     componentDidMount() {
