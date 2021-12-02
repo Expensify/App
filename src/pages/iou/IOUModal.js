@@ -11,15 +11,13 @@ import IOUConfirmPage from './steps/IOUConfirmPage';
 import Header from '../../components/Header';
 import styles from '../../styles/styles';
 import Icon from '../../components/Icon';
-import {
-    createIOUSplit, createIOUTransaction, createIOUSplitGroup, setIOUSelectedCurrency,
-} from '../../libs/actions/IOU';
-import {Close, BackArrow} from '../../components/Icon/Expensicons';
+import * as IOU from '../../libs/actions/IOU';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {addSMSDomainIfPhoneNumber, getPersonalDetailsForLogins} from '../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -114,7 +112,7 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
-        const participantsWithDetails = _.map(getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
+        const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
             text: personalDetails.displayName,
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
@@ -147,7 +145,7 @@ class IOUModal extends Component {
 
     componentDidMount() {
         PersonalDetails.fetchLocalCurrency();
-        setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
+        IOU.setIOUSelectedCurrency(this.props.myPersonalDetails.localCurrencyCode);
     }
 
     componentDidUpdate(prevProps) {
@@ -165,7 +163,7 @@ class IOUModal extends Component {
 
         if (prevProps.iou.selectedCurrencyCode
             !== this.props.iou.selectedCurrencyCode) {
-            setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
+            IOU.setIOUSelectedCurrency(this.props.iou.selectedCurrencyCode);
         }
     }
 
@@ -281,7 +279,7 @@ class IOUModal extends Component {
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
         if (splits && CONST.REGEX.NUMBER.test(reportID)) {
-            createIOUSplitGroup({
+            IOU.createIOUSplitGroup({
                 comment: this.state.comment,
 
                 // should send in cents to API
@@ -293,7 +291,7 @@ class IOUModal extends Component {
             return;
         }
         if (splits) {
-            createIOUSplit({
+            IOU.createIOUSplit({
                 comment: this.state.comment,
 
                 // should send in cents to API
@@ -304,13 +302,13 @@ class IOUModal extends Component {
             return;
         }
 
-        createIOUTransaction({
+        IOU.createIOUTransaction({
             comment: this.state.comment,
 
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+            debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
         });
     }
 
@@ -338,7 +336,7 @@ class IOUModal extends Component {
                                                 onPress={this.navigateToPreviousStep}
                                                 style={[styles.touchableButtonImage]}
                                             >
-                                                <Icon src={BackArrow} />
+                                                <Icon src={Expensicons.BackArrow} />
                                             </TouchableOpacity>
                                         </Tooltip>
                                     )}
@@ -351,7 +349,7 @@ class IOUModal extends Component {
                                             accessibilityRole="button"
                                             accessibilityLabel={this.props.translate('common.close')}
                                         >
-                                            <Icon src={Close} />
+                                            <Icon src={Expensicons.Close} />
                                         </TouchableOpacity>
                                     </Tooltip>
                                 </View>
@@ -395,6 +393,7 @@ class IOUModal extends Component {
                                     )}
                                     {currentStep === Steps.IOUConfirm && (
                                         <AnimatedStep
+                                            style={[styles.flex1]}
                                             direction={this.getDirection()}
                                         >
                                             <IOUConfirmPage

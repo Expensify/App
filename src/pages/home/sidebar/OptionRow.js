@@ -8,10 +8,11 @@ import {
     StyleSheet,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
-import styles, {getBackgroundAndBorderStyle, getBackgroundColorStyle} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import {optionPropTypes} from './optionPropTypes';
 import Icon from '../../../components/Icon';
-import {Pencil, Pin, Checkmark} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import MultipleAvatars from '../../../components/MultipleAvatars';
 import themeColors from '../../../styles/themes/default';
 import Hoverable from '../../../components/Hoverable';
@@ -127,11 +128,15 @@ const OptionRow = (props) => {
             };
         },
     );
+
     return (
         <Hoverable>
             {hovered => (
                 <TouchableOpacity
-                    onPress={() => props.onSelectRow(props.option)}
+                    onPress={(e) => {
+                        e.preventDefault();
+                        props.onSelectRow(props.option);
+                    }}
                     disabled={props.disableRowInteractivity}
                     activeOpacity={0.8}
                     style={[
@@ -140,7 +145,7 @@ const OptionRow = (props) => {
                         styles.justifyContentBetween,
                         styles.sidebarLink,
                         styles.sidebarLinkInner,
-                        getBackgroundColorStyle(props.backgroundColor),
+                        StyleUtils.getBackgroundColorStyle(props.backgroundColor),
                         props.optionIsFocused ? styles.sidebarLinkActive : null,
                         hovered && !props.optionIsFocused ? props.hoverStyle : null,
                         props.isDisabled && styles.cursorDisabled,
@@ -160,12 +165,12 @@ const OptionRow = (props) => {
                                         avatarImageURLs={props.option.icons}
                                         size={props.mode === 'compact' ? 'small' : 'default'}
                                         secondAvatarStyle={[
-                                            getBackgroundAndBorderStyle(props.backgroundColor),
+                                            StyleUtils.getBackgroundAndBorderStyle(props.backgroundColor),
                                             props.optionIsFocused
-                                                ? getBackgroundAndBorderStyle(focusedBackgroundColor)
+                                                ? StyleUtils.getBackgroundAndBorderStyle(focusedBackgroundColor)
                                                 : undefined,
                                             hovered && !props.optionIsFocused
-                                                ? getBackgroundAndBorderStyle(hoveredBackgroundColor)
+                                                ? StyleUtils.getBackgroundAndBorderStyle(hoveredBackgroundColor)
                                                 : undefined,
                                         ]}
                                         isDefaultChatRoom={props.option.isDefaultChatRoom}
@@ -201,7 +206,7 @@ const OptionRow = (props) => {
                             {props.showSelectedState && (
                                 <View style={[styles.selectCircle]}>
                                     {props.isSelected && (
-                                        <Icon src={Checkmark} fill={themeColors.iconSuccessFill} />
+                                        <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
                                     )}
                                 </View>
                             )}
@@ -211,7 +216,7 @@ const OptionRow = (props) => {
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             {props.option.hasDraftComment && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pencil} height={16} width={16} />
+                                    <Icon src={Expensicons.Pencil} height={16} width={16} />
                                 </View>
                             )}
                             {props.option.hasOutstandingIOU && (
@@ -219,7 +224,7 @@ const OptionRow = (props) => {
                             )}
                             {props.option.isPinned && (
                                 <View style={styles.ml2}>
-                                    <Icon src={Pin} height={16} width={16} />
+                                    <Icon src={Expensicons.Pin} height={16} width={16} />
                                 </View>
                             )}
                         </View>

@@ -8,9 +8,6 @@ const propTypes = {
     /** Label vertical translate */
     labelTranslateY: PropTypes.instanceOf(Animated.Value).isRequired,
 
-    /** Label horizontal translate */
-    labelTranslateX: PropTypes.instanceOf(Animated.Value).isRequired,
-
     /** Label scale */
     labelScale: PropTypes.instanceOf(Animated.Value).isRequired,
 };

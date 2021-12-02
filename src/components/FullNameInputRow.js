@@ -52,7 +52,6 @@ const FullNameInputRow = (props) => {
                     errorText={props.firstNameError}
                     onChangeText={props.onChangeFirstName}
                     placeholder={props.translate('profilePage.john')}
-                    translateX={-10}
                 />
             </View>
             <View style={[styles.flex1, styles.ml2]}>
@@ -62,7 +61,6 @@ const FullNameInputRow = (props) => {
                     errorText={props.lastNameError}
                     onChangeText={props.onChangeLastName}
                     placeholder={props.translate('profilePage.doe')}
-                    translateX={-10}
                 />
             </View>
         </View>

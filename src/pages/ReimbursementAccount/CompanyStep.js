@@ -7,13 +7,7 @@ import moment from 'moment';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import CONST from '../../CONST';
-import {
-    goToWithdrawalAccountSetupStep,
-    setupWithdrawalAccount,
-    showBankAccountErrorModal,
-    setBankAccountFormValidationErrors,
-    updateReimbursementAccountDraft,
-} from '../../libs/actions/BankAccounts';
+import * as BankAccounts from '../../libs/actions/BankAccounts';
 import Navigation from '../../libs/Navigation/Navigation';
 import Text from '../../components/Text';
 import DatePicker from '../../components/DatePicker';
@@ -23,9 +17,7 @@ import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
-import {
-    isValidDate, isValidPastDate, isRequiredFulfilled, isValidURL, isValidPhoneWithSpecialChars, isValidAddress, isValidZipCode,
-} from '../../libs/ValidationUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import ExpensiPicker from '../../components/ExpensiPicker';
@@ -127,7 +119,7 @@ class CompanyStep extends React.Component {
      */
     setValue(value) {
         this.setState(value);
-        updateReimbursementAccountDraft(value);
+        BankAccounts.updateReimbursementAccountDraft(value);
     }
 
     /**
@@ -159,16 +151,16 @@ class CompanyStep extends React.Component {
         const errors = {};
 
         if (this.state.manualAddress) {
-            if (!isValidAddress(this.state.addressStreet)) {
+            if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
                 errors.addressStreet = true;
             }
 
-            if (!isValidZipCode(this.state.addressZipCode)) {
+            if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
                 errors.addressZipCode = true;
             }
         }
 
-        if (!isValidURL(this.state.website)) {
+        if (!ValidationUtils.isValidURL(this.state.website)) {
             errors.website = true;
         }
 
@@ -176,37 +168,37 @@ class CompanyStep extends React.Component {
             errors.companyTaxID = true;
         }
 
-        if (!isValidDate(this.state.incorporationDate)) {
+        if (!ValidationUtils.isValidDate(this.state.incorporationDate)) {
             errors.incorporationDate = true;
         }
 
-        if (!isValidPastDate(this.state.incorporationDate)) {
+        if (!ValidationUtils.isValidPastDate(this.state.incorporationDate)) {
             errors.incorporationDateFuture = true;
         }
 
-        if (!isValidPhoneWithSpecialChars(this.state.companyPhone)) {
+        if (!ValidationUtils.isValidPhoneWithSpecialChars(this.state.companyPhone)) {
             errors.companyPhone = true;
         }
 
         _.each(this.requiredFields, (inputKey) => {
-            if (isRequiredFulfilled(this.state[inputKey])) {
+            if (ValidationUtils.isRequiredFulfilled(this.state[inputKey])) {
                 return;
             }
 
             errors[inputKey] = true;
         });
-        setBankAccountFormValidationErrors(errors);
+        BankAccounts.setBankAccountFormValidationErrors(errors);
         return _.size(errors) === 0;
     }
 
     submit() {
         if (!this.validate()) {
-            showBankAccountErrorModal();
+            BankAccounts.showBankAccountErrorModal();
             return;
         }
 
         const incorporationDate = moment(this.state.incorporationDate).format(CONST.DATE.MOMENT_FORMAT_STRING);
-        setupWithdrawalAccount({...this.state, incorporationDate});
+        BankAccounts.setupWithdrawalAccount({...this.state, incorporationDate});
     }
 
     render() {
@@ -219,7 +211,7 @@ class CompanyStep extends React.Component {
                     title={this.props.translate('companyStep.headerTitle')}
                     stepCounter={{step: 2, total: 5}}
                     shouldShowBackButton
-                    onBackButtonPress={() => goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
+                    onBackButtonPress={() => BankAccounts.goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT)}
                     onCloseButtonPress={Navigation.dismissModal}
                 />
                 <ReimbursementAccountForm
@@ -268,7 +260,6 @@ class CompanyStep extends React.Component {
                                         onChangeText={value => this.clearErrorAndSetValue('addressCity', value)}
                                         value={this.state.addressCity}
                                         errorText={this.getErrorText('addressCity')}
-                                        translateX={-14}
                                     />
                                 </View>
                                 <View style={[styles.flex1]}>
@@ -335,7 +326,6 @@ class CompanyStep extends React.Component {
                             value={this.state.incorporationDate}
                             placeholder={this.props.translate('companyStep.incorporationDatePlaceholder')}
                             errorText={this.getErrorText('incorporationDate') || this.getErrorText('incorporationDateFuture')}
-                            translateX={-14}
                             maximumDate={new Date()}
                         />
                     </View>
@@ -352,7 +342,7 @@ class CompanyStep extends React.Component {
                         onPress={() => {
                             this.setState((prevState) => {
                                 const newState = {hasNoConnectionToCannabis: !prevState.hasNoConnectionToCannabis};
-                                updateReimbursementAccountDraft(newState);
+                                BankAccounts.updateReimbursementAccountDraft(newState);
                                 return newState;
                             });
                             this.clearError('hasNoConnectionToCannabis');

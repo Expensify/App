@@ -39,6 +39,7 @@ export default {
         recents: 'Recents',
         close: 'Close',
         download: 'Download',
+        downloading: 'Downloading',
         pin: 'Pin',
         unPin: 'Unpin',
         back: 'Back',
@@ -85,6 +86,7 @@ export default {
         confirm: 'Confirm',
         reset: 'Reset',
         done: 'Done',
+        more: 'More',
         debitCard: 'Debit card',
         payPalMe: 'PayPal.me',
     },
@@ -655,6 +657,8 @@ export default {
         common: {
             card: 'Issue corporate cards',
             workspace: 'Workspace',
+            edit: 'Edit workspace',
+            delete: 'Delete Workspace',
             settings: 'General settings',
             reimburse: 'Reimburse receipts',
             bills: 'Pay bills',
@@ -662,9 +666,12 @@ export default {
             travel: 'Book travel',
             members: 'Manage members',
             bankAccount: 'Connect bank account',
+            testTransactions: 'Test transactions',
             issueAndManageCards: 'Issue and manage cards',
             reconcileCards: 'Reconcile cards',
             growlMessageOnSave: 'Your workspace settings were successfully saved!',
+            deleteConfirmation: 'Are you sure you want to delete this workspace?',
+            growlMessageOnDelete: 'Workspace deleted',
         },
         new: {
             newWorkspace: 'New workspace',
@@ -783,5 +790,15 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Change default skin tone',
+    },
+    keyboardShortcutModal: {
+        title: 'Keyboard Shortcuts',
+        subtitle: 'Save time with these handy keyboard shortcuts:',
+        shortcuts: {
+            openShortcutDialog: 'Opens the keyboard shortcuts dialog',
+            escape: 'Escape Dialogs',
+            search: 'Open search dialog',
+            newGroup: 'New group screen',
+        },
     },
 };
