@@ -86,7 +86,7 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
-        // In case image loading is delayed than onLayout callback of the root View caused internet speed
+        // In case image loading is delayed than onLayout callback of the root View caused internet speed.
         if (scale == 0) {
             scale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
         }
