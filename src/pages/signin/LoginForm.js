@@ -34,9 +34,6 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
-    /** Whether the page is visible. */
-    isVisible: PropTypes.bool,
-
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
@@ -46,7 +43,6 @@ const propTypes = {
 
 const defaultProps = {
     account: {},
-    isVisible: false,
 };
 
 class LoginForm extends React.Component {

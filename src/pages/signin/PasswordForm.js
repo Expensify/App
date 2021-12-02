@@ -34,16 +34,12 @@ const propTypes = {
         loading: PropTypes.bool,
     }),
 
-    /** Whether the page is visible. */
-    isVisible: PropTypes.bool,
-
     ...withLocalizePropTypes,
     ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
     account: {},
-    isVisible: false,
 };
 
 class PasswordForm extends React.Component {
