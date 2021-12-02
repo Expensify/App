@@ -18,6 +18,7 @@ import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import * as ValidationUtils from '../../../libs/ValidationUtils';
 import CheckboxWithLabel from '../../../components/CheckboxWithLabel';
+import StatePicker from '../../../components/StatePicker';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
 import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
@@ -130,10 +131,16 @@ class DebitCardPage extends Component {
             errors.securityCode = true;
         }
 
-        if (!ValidationUtils.isValidAddress(this.state.addressStreet)
-            || !this.state.addressState
-            || !ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
+        if (!ValidationUtils.isValidAddress(this.state.addressStreet)) {
             errors.addressStreet = true;
+        }
+
+        if (!ValidationUtils.isValidZipCode(this.state.addressZipCode)) {
+            errors.addressZipCode = true;
+        }
+
+        if (!this.state.addressState) {
+            errors.addressState = true;
         }
 
         if (!this.state.acceptedTerms) {
@@ -226,9 +233,35 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
-                                onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                onChange={(values) => {
+                                    _.each(values, (value, key) => {
+                                        if (key === 'addressCity') {
+                                            return;
+                                        }
+                                        this.clearErrorAndSetValue(key, value);
+                                    });
+                                }}
                                 errorText={this.getErrorText('addressStreet')}
                             />
+                            <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
+                            <View style={[styles.flexRow, styles.mt4]}>
+                                <View style={[styles.flex2, styles.mr2]}>
+                                    <ExpensiTextInput
+                                        label={this.props.translate('common.zip')}
+                                        keyboardType={CONST.KEYBOARD_TYPE.PHONE_PAD}
+                                        onChangeText={value => this.clearErrorAndSetValue('addressZipCode', value)}
+                                        value={this.state.addressZipCode}
+                                        errorText={this.getErrorText('addressZipCode')}
+                                    />
+                                </View>
+                                <View style={[styles.flex1]}>
+                                    <StatePicker
+                                        onChange={value => this.clearErrorAndSetValue('addressState', value)}
+                                        value={this.state.addressState}
+                                        hasError={lodashGet(this.state.errors, 'addressState', false)}
+                                    />
+                                </View>
+                            </View>
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
                                 onPress={() => {
