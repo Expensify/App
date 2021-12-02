@@ -8,21 +8,20 @@ class Onfido extends Component {
         super(props);
         this.baseOnfido = null;
     }
-    
+
     componentWillUnmount() {
         const onfidoOut = lodashGet(this, 'baseOnfido.onfidoOut');
         if (!onfidoOut) {
             return;
         }
-        
+
         onfidoOut.tearDown();
     }
-    
+
     render() {
         return (
             <BaseOnfido
                 ref={e => this.baseOnfido = e}
-                
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
             />
