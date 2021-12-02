@@ -7,7 +7,7 @@ class Form extends React.Component {
             return;
         }
 
-        // Password Managers need these atributes to be able to identify the form elments properly.
+        // Password Managers need these attributes to be able to identify the form elements properly.
         this.form.setNativeProps({
             method: 'post',
             action: '/',

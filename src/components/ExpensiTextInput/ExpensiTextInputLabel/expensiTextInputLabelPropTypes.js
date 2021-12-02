@@ -11,7 +11,7 @@ const propTypes = {
     /** Label scale */
     labelScale: PropTypes.instanceOf(Animated.Value).isRequired,
 
-    /** For attribute for label (only Web) */
+    /** For attribute for label */
     for: PropTypes.string,
 };
 

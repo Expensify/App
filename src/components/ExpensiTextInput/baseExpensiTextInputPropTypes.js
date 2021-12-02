@@ -4,7 +4,7 @@ const propTypes = {
     /** Input label */
     label: PropTypes.string,
 
-    /** Name attribute for the input (only Web) */
+    /** Name attribute for the input */
     name: PropTypes.string,
 
     /** Input value */
