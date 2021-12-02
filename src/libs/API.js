@@ -13,7 +13,7 @@ import * as Network from './Network';
 import updateSessionAuthTokens from './actions/Session/updateSessionAuthTokens';
 import setSessionLoadingAndError from './actions/Session/setSessionLoadingAndError';
 
-let isAuthenticating;
+let pendingAuthTask;
 let credentials;
 let authToken;
 
@@ -115,17 +115,6 @@ Network.registerParameterEnhancer(addDefaultValuesToParameters);
  * @param {Object} originalRequest
  */
 function handleExpiredAuthToken(originalRequest) {
-    // When the authentication process is running, and more API requests will be requeued and they will
-    // be performed after authentication is done.
-    if (isAuthenticating) {
-        retry(originalRequest);
-        return;
-    }
-
-    // Prevent any more requests from being processed while authentication happens
-    Network.pauseRequestQueue();
-    isAuthenticating = true;
-
     // eslint-disable-next-line no-use-before-define
     reauthenticate(originalRequest.command)
         .finally(() => retry(originalRequest));
@@ -217,7 +206,7 @@ Network.registerErrorHandler((queuedRequest, error) => {
  * @param {String} [parameters.twoFactorAuthCode]
  * @param {String} [parameters.email]
  * @param {String} [parameters.authToken]
- * @returns {Promise}
+ * @returns {Promise<{jsonCode: Number}>}
  */
 function Authenticate(parameters) {
     const commandName = 'Authenticate';
@@ -229,7 +218,15 @@ function Authenticate(parameters) {
         'partnerUserSecret',
     ], parameters, commandName);
 
-    return Network.post(commandName, {
+    // Don't run more than one Authentication requests at the same time
+    if (pendingAuthTask) {
+        return pendingAuthTask;
+    }
+
+    // Make any other requests wait while authentication happens
+    Network.pauseRequestQueue();
+
+    pendingAuthTask = Network.post(commandName, {
         // When authenticating for the first time, we pass useExpensifyLogin as true so we check
         // for credentials for the expensify partnerID to let users Authenticate with their expensify user
         // and password.
@@ -276,7 +273,15 @@ function Authenticate(parameters) {
                 }
             }
             return response;
+        })
+        .finally(() => {
+            // The authentication process is finished so the network can be unpaused to continue
+            // processing requests
+            pendingAuthTask = null;
+            Network.unpauseRequestQueue();
         });
+
+    return pendingAuthTask;
 }
 
 /**
@@ -304,18 +309,9 @@ function reauthenticate(command = '') {
             // new authToken
             updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
             authToken = response.authToken;
-
-            // The authentication process is finished so the network can be unpaused to continue
-            // processing requests
-            isAuthenticating = false;
-            Network.unpauseRequestQueue();
         })
 
         .catch((error) => {
-            // If authentication fails, then the network can be unpaused
-            Network.unpauseRequestQueue();
-            isAuthenticating = false;
-
             // When a fetch() fails and the "API is offline" error is thrown we won't log the user out. Most likely they
             // have a spotty connection and will need to try to reauthenticate when they come back online. We will
             // re-throw this error so it can be handled by callers of reauthenticate().
