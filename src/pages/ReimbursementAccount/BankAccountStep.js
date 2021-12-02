@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View, Image, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
@@ -177,62 +177,60 @@ class BankAccountStep extends React.Component {
                     shouldShowBackButton
                 />
                 {!subStep && (
-                    <>
-                        <View style={[styles.flex1]}>
-                            <WorkspaceSection
-                                icon={Illustrations.BankMouseGreen}
-                                title={this.props.translate('workspace.bankAccount.streamlinePayments')}
-                            />
-                            <Text style={[styles.mh5, styles.mb5]}>
-                                {this.props.translate('bankAccount.toGetStarted')}
+                    <ScrollView style={[styles.flex1]}>
+                        <WorkspaceSection
+                            icon={Illustrations.BankMouseGreen}
+                            title={this.props.translate('workspace.bankAccount.streamlinePayments')}
+                        />
+                        <Text style={[styles.mh5, styles.mb5]}>
+                            {this.props.translate('bankAccount.toGetStarted')}
+                        </Text>
+                        <MenuItem
+                            icon={Expensicons.Bank}
+                            title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
+                            onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
+                            disabled={this.props.isPlaidDisabled || !this.props.user.validated}
+                            shouldShowRightIcon
+                        />
+                        {this.props.isPlaidDisabled && (
+                            <Text style={[styles.formError, styles.mh5]}>
+                                {this.props.translate('bankAccount.error.tooManyAttempts')}
                             </Text>
-                            <MenuItem
-                                icon={Expensicons.Bank}
-                                title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
-                                disabled={this.props.isPlaidDisabled || !this.props.user.validated}
-                                shouldShowRightIcon
-                            />
-                            {this.props.isPlaidDisabled && (
-                                <Text style={[styles.formError, styles.mh5]}>
-                                    {this.props.translate('bankAccount.error.tooManyAttempts')}
+                        )}
+                        <MenuItem
+                            icon={Expensicons.Paycheck}
+                            title={this.props.translate('bankAccount.connectManually')}
+                            disabled={!this.props.user.validated}
+                            onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                            shouldShowRightIcon
+                        />
+                        {!this.props.user.validated && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                                <Text style={[styles.mutedTextLabel, styles.mr4]}>
+                                    <Icon src={Expensicons.Exclamation} fill={colors.red} />
                                 </Text>
-                            )}
-                            <MenuItem
-                                icon={Expensicons.Paycheck}
-                                title={this.props.translate('bankAccount.connectManually')}
-                                disabled={!this.props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
-                                shouldShowRightIcon
-                            />
-                            {!this.props.user.validated && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                                    <Text style={[styles.mutedTextLabel, styles.mr4]}>
-                                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                                    </Text>
-                                    <Text style={styles.mutedTextLabel}>
-                                        {this.props.translate('bankAccount.validateAccountError')}
-                                    </Text>
-                                </View>
-                            )}
-                            <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href="https://use.expensify.com/privacy">
-                                    {this.props.translate('common.privacy')}
+                                <Text style={styles.mutedTextLabel}>
+                                    {this.props.translate('bankAccount.validateAccountError')}
+                                </Text>
+                            </View>
+                        )}
+                        <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                            <TextLink href="https://use.expensify.com/privacy">
+                                {this.props.translate('common.privacy')}
+                            </TextLink>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <TextLink
+                                    // eslint-disable-next-line max-len
+                                    href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
+                                >
+                                    {this.props.translate('bankAccount.yourDataIsSecure')}
                                 </TextLink>
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <TextLink
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                                    >
-                                        {this.props.translate('bankAccount.yourDataIsSecure')}
-                                    </TextLink>
-                                    <View style={[styles.ml1]}>
-                                        <Icon src={Expensicons.Lock} fill={colors.blue} />
-                                    </View>
+                                <View style={[styles.ml1]}>
+                                    <Icon src={Expensicons.Lock} fill={colors.blue} />
                                 </View>
                             </View>
                         </View>
-                    </>
+                    </ScrollView>
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <AddPlaidBankAccount
