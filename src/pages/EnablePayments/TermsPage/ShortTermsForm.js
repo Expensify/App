@@ -81,17 +81,19 @@ const ShortTermsForm = () => (
             <View style={styles.shortTermsHorizontalRule} />
             <View style={styles.shortTermsRow}>
                 <View style={[styles.flex4]}>
-                    <Text>{Localize.translateLocal('termsStep.electronicFundsWithdrawal')}</Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1]}>
-                        {Localize.translateLocal('termsStep.instant')}
+                    <Text>
+                        {Localize.translateLocal('termsStep.electronicFundsWithdrawal')}
+                        {' '}
+                        {Localize.translateLocal('termsStep.shortTermsForm.instant')}
                     </Text>
                 </View>
                 <View style={[styles.flex1, styles.termsCenterRight]}>
-                    <Text style={[styles.textStrong, styles.textAlignRight]}>
+                    <Text style={styles.label}>
                         {Localize.translateLocal('termsStep.electronicFundsInstantFee')}
+                        {' '}
                     </Text>
-                    <Text style={[styles.textMicroSupporting, styles.mt1, styles.textAlignRight]}>
-                        {Localize.translateLocal('termsStep.electronicFundsInstantFeeMin')}
+                    <Text style={styles.label}>
+                        {Localize.translateLocal('termsStep.shortTermsForm.electronicFundsInstantFeeMin')}
                     </Text>
                 </View>
             </View>

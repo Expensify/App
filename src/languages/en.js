@@ -521,10 +521,8 @@ export default {
         monthlyFee: 'Monthly fee',
         inactivity: 'Inactivity',
         electronicFundsInstantFee: '1.5%',
-        electronicFundsInstantFeeMin: 'Min $0.25',
         noOverdraftOrCredit: 'No overdraft/credit feature.',
-        electronicFundsWithdrawal: 'Electronic Funds Withdrawal',
-        instant: 'Instant',
+        electronicFundsWithdrawal: 'Electronic funds withdrawal',
         standard: 'Standard',
         shortTermsForm: {
             expensifyPaymentsAccount: 'The Expensify Wallet is issued by The Bancorp Bank.',
@@ -543,6 +541,8 @@ export default {
             generalInfo: 'For general information about prepaid accounts, visit',
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',
             conditionsPhone: 'or calling +1 833-400-0904.',
+            instant: '(instant)',
+            electronicFundsInstantFeeMin: '(min $0.25)',
         },
         longTermsForm: {
             listOfAllFees: 'A list of all Expensify Wallet fees',
@@ -576,6 +576,8 @@ export default {
             printerFriendlyView: 'View printer-friendly version',
             automated: 'Automated',
             liveAgent: 'Live Agent',
+            instant: 'Instant',
+            electronicFundsInstantFeeMin: 'Min $0.25',
         },
     },
     activateStep: {

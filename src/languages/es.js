@@ -521,10 +521,8 @@ export default {
         monthlyFee: 'Cuota mensual',
         inactivity: 'Inactividad',
         electronicFundsInstantFee: '1.5%',
-        electronicFundsInstantFeeMin: 'Mínimo $0.25',
         noOverdraftOrCredit: 'Sin función de sobregiro / crédito',
         electronicFundsWithdrawal: 'Retiro electrónico de fondos',
-        instant: 'Instantáneo',
         standard: 'Estándar',
         shortTermsForm: {
             expensifyPaymentsAccount: 'La billetera Expensify es emitida por The Bancorp Bank.',
@@ -543,6 +541,8 @@ export default {
             generalInfo: 'Para obtener información general sobre cuentas prepagas, visite',
             conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
             conditionsPhone: 'o llamando al +1 833-400-0904.',
+            instant: '(instantáneo)',
+            electronicFundsInstantFeeMin: '(mínimo $0.25)',
         },
         longTermsForm: {
             listOfAllFees: 'Una lista de todas las tarifas de la billetera Expensify',
@@ -578,6 +578,8 @@ export default {
             printerFriendlyView: 'Ver versión para imprimir',
             automated: 'Automatizado',
             liveAgent: 'Agente en vivo',
+            instant: 'Instantáneo',
+            electronicFundsInstantFeeMin: 'Mínimo $0.25',
         },
     },
     activateStep: {

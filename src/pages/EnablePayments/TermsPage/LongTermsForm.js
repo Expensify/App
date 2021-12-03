@@ -51,9 +51,9 @@ const termsData = [
     },
     {
         title: Localize.translateLocal('termsStep.electronicFundsWithdrawal'),
-        subTitle: Localize.translateLocal('termsStep.instant'),
+        subTitle: Localize.translateLocal('termsStep.longTermsForm.instant'),
         rightText: Localize.translateLocal('termsStep.electronicFundsInstantFee'),
-        subRightText: Localize.translateLocal('termsStep.electronicFundsInstantFeeMin'),
+        subRightText: Localize.translateLocal('termsStep.longTermsForm.electronicFundsInstantFeeMin'),
         details: Localize.translateLocal('termsStep.longTermsForm.electronicFundsInstantDetails'),
     },
 ];
