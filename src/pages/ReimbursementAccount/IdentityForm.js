@@ -8,7 +8,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
 import StatePicker from '../../components/StatePicker';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 
 
 const propTypes = {
@@ -116,7 +116,7 @@ const IdentityForm = (props) => {
                 onChange={props.onFieldChange}
                 errorText={props.errors.addressStreet ? props.translate('bankAccount.error.addressStreet') : ''}
             />
-            <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
+            <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</ExpensifyText>
             <View style={[styles.flexRow, styles.mt4]}>
                 <View style={[styles.flex2, styles.mr2]}>
                     <ExpensiTextInput

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import Button from './Button';
+import ExpensifyButton from './ExpensifyButton';
 import ButtonWithDropdown from './ButtonWithDropdown';
 import PopoverMenu from './PopoverMenu';
 
@@ -69,7 +69,7 @@ class ButtonWithMenu extends PureComponent {
                         }}
                     />
                 ) : (
-                    <Button
+                    <ExpensifyButton
                         success
                         isDisabled={this.props.isDisabled}
                         style={[styles.w100]}

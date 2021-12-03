@@ -11,7 +11,7 @@ import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import TextLink from '../../../components/TextLink';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
@@ -275,7 +275,7 @@ class DebitCardPage extends Component {
                                 }}
                                 LabelComponent={() => (
                                     <>
-                                        <Text>{`${this.props.translate('common.iAcceptThe')}`}</Text>
+                                        <ExpensifyText>{`${this.props.translate('common.iAcceptThe')}`}</ExpensifyText>
                                         <TextLink href="https://use.expensify.com/terms">
                                             {`${this.props.translate('addDebitCardPage.expensifyTermsOfService')}`}
                                         </TextLink>
@@ -288,9 +288,9 @@ class DebitCardPage extends Component {
                         </View>
                         {!_.isEmpty(this.props.addDebitCardForm.error) && (
                             <View style={[styles.mh5, styles.mb5]}>
-                                <Text style={[styles.formError]}>
+                                <ExpensifyText style={[styles.formError]}>
                                     {this.props.addDebitCardForm.error}
-                                </Text>
+                                </ExpensifyText>
                             </View>
                         )}
                         <FormAlertWithSubmitButton

@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import lodashGet from 'lodash/get';
-import Text from '../../Text';
+import ExpensifyText from '../../ExpensifyText';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -69,7 +69,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                         }
                     }
                     >
-                        <Text
+                        <ExpensifyText
                             ref={el => linkRef = el}
                             style={StyleSheet.flatten(this.props.style)}
                             accessibilityRole="link"
@@ -82,7 +82,7 @@ class BaseAnchorForCommentsOnly extends React.Component {
                             {...rest}
                         >
                             {this.props.children}
-                        </Text>
+                        </ExpensifyText>
                     </PressableWithSecondaryInteraction>
                 )
         );
