@@ -17,12 +17,8 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-<<<<<<< HEAD
 import Text from '../../components/Text';
-=======
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
-import ExpensifyText from '../../components/ExpensifyText';
->>>>>>> 85799c2f0 (Merge pull request #6259 from Expensify/nmurray-plaidlink-oauth-update)
 
 // Steps
 import BankAccountStep from './BankAccountStep';
