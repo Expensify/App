@@ -2,7 +2,7 @@ import _ from 'underscore';
 import lodashOrderBy from 'lodash/orderBy';
 import moment from 'moment';
 import CONST from '../CONST';
-import * as UserActions from './actions/User';
+import * as User from './actions/User';
 
 /**
  * Get the unicode code of an emoji in base 16.
@@ -72,7 +72,7 @@ function isSingleEmoji(message) {
 
 /**
  * Get the header indices based on the max emojis per row
- * @param {Array} emojis
+ * @param {Object[]} emojis
  * @returns {Number[]}
  */
 function getDynamicHeaderIndices(emojis) {
@@ -89,7 +89,7 @@ function getDynamicHeaderIndices(emojis) {
 /**
  * Get number of empty spaces to be filled to get equal emojis for every row
  * @param {Number} emojiCount
- * @returns {Array}
+ * @returns {Object[]}
  */
 function getDynamicSpacing(emojiCount) {
     const spacerEmojis = [];
@@ -104,10 +104,10 @@ function getDynamicSpacing(emojiCount) {
 }
 
 /**
- * Get a merged array if frequently used emojis exist
- * @param {Array} emojis
- * @param {Array} frequentlyUsedEmojis
- * @returns {Array}
+ * Get a merged array with frequently used emojis
+ * @param {Object[]} emojis
+ * @param {Object[]} frequentlyUsedEmojis
+ * @returns {Object[]}
  */
 function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) {
     if (frequentlyUsedEmojis.length === 0) {
@@ -127,7 +127,7 @@ function mergeEmojisWithFrequentlyUsedEmojis(emojis, frequentlyUsedEmojis = []) 
 
 /**
  * Update the frequently used emojis list by usage and sync with API
- * @param {Array} frequentlyUsedEmojis
+ * @param {Object[]} frequentlyUsedEmojis
  * @param {Object} newEmoji
  */
 function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
@@ -151,7 +151,7 @@ function addToFrequentlyUsedEmojis(frequentlyUsedEmojis, newEmoji) {
     // Second sorting is required so that new emoji is properly placed at sort-ordered location
     frequentEmojiList = lodashOrderBy(frequentEmojiList, ['count', 'lastUpdatedAt'], ['desc', 'desc']);
 
-    UserActions.setFrequentlyUsedEmojis(frequentEmojiList);
+    User.setFrequentlyUsedEmojis(frequentEmojiList);
 }
 
 

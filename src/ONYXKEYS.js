@@ -133,7 +133,7 @@ export default {
     // Store preferred skintone for emoji
     PREFERRED_EMOJI_SKIN_TONE: 'preferredEmojiSkinTone',
 
-    // Store frequently used emojis user wise
+    // Store frequently used emojis for this user
     FREQUENTLY_USED_EMOJIS: 'frequentlyUsedEmojis',
 
     // Stores Workspace ID that will be tied to reimbursement account during setup
