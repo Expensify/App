@@ -78,12 +78,12 @@ function getActiveState() {
  */
 function pushDrawerRoute(route) {
     return (currentState) => {
-        // Parse the state, name, and params from the new route we want to navigate to
+        // Parse the state, name, and params from the new route we want to navigate to.
         const newStateFromRoute = getStateFromPath(route, linkingConfig.config);
         const newScreenName = getScreenNameFromState(newStateFromRoute);
         const newScreenParams = getParamsFromState(newStateFromRoute);
 
-        // When we are navigating away from a non-drawer navigator we need to dismiss any screens pushed onto the main stack.
+        // When we are navigating away from a non-drawer navigator we need to first dismiss any screens pushed onto the main stack.
         if (currentState.type !== 'drawer') {
             navigateBackToRootDrawer();
         }
