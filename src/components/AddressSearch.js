@@ -40,6 +40,10 @@ const defaultProps = {
 // Reference: https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/609#issuecomment-886133839
 const AddressSearch = (props) => {
     const [displayListViewBorder, setDisplayListViewBorder] = useState(false);
+
+    // We use `skippedFirstOnChangeText` to work around a feature of the library:
+    // The library is calling onChangeText with '' at the start and we don't need this
+    // https://github.com/FaridSafi/react-native-google-places-autocomplete/blob/47d7223dd48f85da97e80a0729a985bbbcee353f/GooglePlacesAutocomplete.js#L148
     const [skippedFirstOnChangeText, setSkippedFirstOnChangeText] = useState(false);
 
     const saveLocationDetails = (details) => {
@@ -109,9 +113,6 @@ const AddressSearch = (props) => {
                 errorText: props.errorText,
                 value: props.value,
                 onChangeText: (text) => {
-                    // We use `skippedFirstOnChangeText` to work around a feature of the library:
-                    // The library is calling onChangeText with '' at the start and we don't need this
-                    // https://github.com/FaridSafi/react-native-google-places-autocomplete/blob/47d7223dd48f85da97e80a0729a985bbbcee353f/GooglePlacesAutocomplete.js#L148
                     if (skippedFirstOnChangeText) {
                         props.onChange({addressStreet: text});
                     } else {
