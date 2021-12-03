@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {View} from 'react-native';
 import styles from '../styles/styles';
-import Button from './Button';
+import ExpensifyButton from './ExpensifyButton';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import themeColors from '../styles/themes/default';
@@ -29,7 +29,7 @@ const defaultProps = {
 
 const ButtonWithDropdown = props => (
     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-        <Button
+        <ExpensifyButton
             success
             onPress={props.onButtonPress}
             text={props.buttonText}
@@ -37,7 +37,7 @@ const ButtonWithDropdown = props => (
             shouldRemoveRightBorderRadius
             style={[styles.flex1]}
         />
-        <Button
+        <ExpensifyButton
             success
             style={[styles.buttonDropdown]}
             onPress={props.onDropdownPress}

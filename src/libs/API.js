@@ -1052,6 +1052,16 @@ function Policy_Create(parameters) {
 
 /**
  * @param {Object} parameters
+ * @param {String} [parameters.policyID]
+ * @returns {Promise}
+ */
+function Policy_Delete(parameters) {
+    const commandName = 'Policy_Delete';
+    return Network.post(commandName, parameters);
+}
+
+/**
+ * @param {Object} parameters
  * @param {String} parameters.policyID
  * @param {Array} parameters.emailList
  * @returns {Promise}
@@ -1175,4 +1185,5 @@ export {
     Policy_Create,
     Policy_Employees_Remove,
     PreferredLocale_Update,
+    Policy_Delete,
 };

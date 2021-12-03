@@ -16,8 +16,8 @@ import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import Button from '../../../components/Button';
-import Text from '../../../components/Text';
+import ExpensifyButton from '../../../components/ExpensifyButton';
+import ExpensifyText from '../../../components/ExpensifyText';
 import CONST from '../../../CONST';
 
 const propTypes = {
@@ -118,8 +118,8 @@ class IOUAmountPage extends React.Component {
      * @returns {Boolean}
      */
     validateAmount(amount) {
-        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,3})?$/, 'i');
-        return amount === '' || (decimalNumberRegex.test(amount) && (parseFloat((amount * 100).toFixed(3)).toString().length <= CONST.IOU.AMOUNT_MAX_LENGTH));
+        const decimalNumberRegex = new RegExp(/^\d+(,\d+)*(\.\d{0,2})?$/, 'i');
+        return amount === '' || (decimalNumberRegex.test(amount) && (parseFloat((amount * 100).toFixed(2)).toString().length <= CONST.IOU.AMOUNT_MAX_LENGTH));
     }
 
     /**
@@ -184,17 +184,17 @@ class IOUAmountPage extends React.Component {
                         ? ROUTES.getIouBillCurrencyRoute(this.props.reportID)
                         : ROUTES.getIouRequestCurrencyRoute(this.props.reportID))}
                     >
-                        <Text style={styles.iouAmountText}>
+                        <ExpensifyText style={styles.iouAmountText}>
                             {lodashGet(this.props.currencyList, [this.props.iou.selectedCurrencyCode, 'symbol'])}
-                        </Text>
+                        </ExpensifyText>
                     </TouchableOpacity>
                     {this.props.isSmallScreenWidth
                         ? (
-                            <Text
+                            <ExpensifyText
                                 style={styles.iouAmountText}
                             >
                                 {this.state.amount}
-                            </Text>
+                            </ExpensifyText>
                         ) : (
                             <TextInputAutoWidth
                                 inputStyle={styles.iouAmountTextInput}
@@ -214,7 +214,7 @@ class IOUAmountPage extends React.Component {
                             />
                         ) : <View />}
 
-                    <Button
+                    <ExpensifyButton
                         success
                         style={[styles.w100, styles.mt5]}
                         onPress={() => this.props.onStepComplete(this.state.amount)}

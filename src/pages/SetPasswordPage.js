@@ -14,12 +14,12 @@ import {
 import styles from '../styles/styles';
 import * as Session from '../libs/actions/Session';
 import ONYXKEYS from '../ONYXKEYS';
-import Button from '../components/Button';
+import ExpensifyButton from '../components/ExpensifyButton';
 import SignInPageLayout from './signin/SignInPageLayout';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
 import NewPasswordForm from './settings/NewPasswordForm';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 
 const propTypes = {
     /* Onyx Props */
@@ -106,7 +106,7 @@ class SetPasswordPage extends Component {
                         />
                     </View>
                     <View>
-                        <Button
+                        <ExpensifyButton
                             success
                             style={[styles.mb2]}
                             text={this.props.translate('setPasswordPage.setPassword')}
@@ -116,9 +116,9 @@ class SetPasswordPage extends Component {
                         />
                     </View>
                     {!_.isEmpty(error) && (
-                        <Text style={[styles.formError]}>
+                        <ExpensifyText style={[styles.formError]}>
                             {error}
-                        </Text>
+                        </ExpensifyText>
                     )}
                 </SignInPageLayout>
             </SafeAreaView>

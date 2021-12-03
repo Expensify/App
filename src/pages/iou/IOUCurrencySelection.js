@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ONYXKEYS from '../../ONYXKEYS';
 import * as OptionsListUtils from '../../libs/OptionsListUtils';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import OptionRow from '../home/sidebar/OptionRow';
 import themeColors from '../../styles/themes/default';
 import TextInputWithFocusStyles from '../../components/TextInputWithFocusStyles';
@@ -18,7 +18,7 @@ import compose from '../../libs/compose';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import FixedFooter from '../../components/FixedFooter';
 import * as IOU from '../../libs/actions/IOU';
 
@@ -208,9 +208,9 @@ class IOUCurrencySelection extends Component {
                                     )}
                                     renderSectionHeader={({section: {title}}) => (
                                         <View>
-                                            <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
+                                            <ExpensifyText style={[styles.p5, styles.textMicroBold, styles.colorHeading]}>
                                                 {title}
-                                            </Text>
+                                            </ExpensifyText>
                                         </View>
                                     )}
                                 />
@@ -218,7 +218,7 @@ class IOUCurrencySelection extends Component {
                         </View>
                     </View>
                     <FixedFooter>
-                        <Button
+                        <ExpensifyButton
                             success
                             isDisabled={!this.props.iou.selectedCurrencyCode}
                             style={[styles.w100]}

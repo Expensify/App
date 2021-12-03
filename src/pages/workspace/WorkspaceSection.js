@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import MenuItemList from '../../components/MenuItemList';
 import Icon from '../../components/Icon';
@@ -38,7 +38,7 @@ const WorkspaceSection = (props) => {
             <View style={styles.pageWrapper}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
                     <View style={[styles.flexShrink1]}>
-                        <Text style={[styles.h1]}>{props.title}</Text>
+                        <ExpensifyText style={[styles.h1]}>{props.title}</ExpensifyText>
                     </View>
                     <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
                         {props.icon && <Icon src={props.icon} height={80} width={80} />}
