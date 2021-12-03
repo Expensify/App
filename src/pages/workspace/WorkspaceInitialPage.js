@@ -7,6 +7,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
 import Tooltip from '../../components/Tooltip';
+import ExpensifyText from '../../components/ExpensifyText';
 import ConfirmModal from '../../components/ConfirmModal';
 import Icon from '../../components/Icon';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -188,7 +189,7 @@ class WorkspaceInitialPage extends React.Component {
                                         onPress={this.openEditor}
                                     >
                                         <Tooltip text={this.props.policy.name}>
-                                            <Text
+                                            <ExpensifyText
                                                 numberOfLines={1}
                                                 style={[
                                                     styles.displayName,
@@ -196,7 +197,7 @@ class WorkspaceInitialPage extends React.Component {
                                                 ]}
                                             >
                                                 {this.props.policy.name}
-                                            </Text>
+                                            </ExpensifyText>
                                         </Tooltip>
                                     </Pressable>
                                 )}
