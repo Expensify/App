@@ -2151,7 +2151,6 @@ const styles = {
         borderBottomWidth: 1,
         borderColor: themeColors.shadow,
         ...spacing.mh3,
-        marginTop: 12,
     },
 
     shortTermsLargeHorizontalRule: {
