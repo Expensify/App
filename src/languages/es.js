@@ -529,7 +529,7 @@ export default {
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro de cajero automático',
             cashReload: 'Recarga de efectivo',
-            inNetwork: 'En la red',
+            inNetwork: 'en la red',
             outOfNetwork: 'fuera de la red',
             atmBalanceInquiry: 'Consulta de saldo de cajero automático',
             inOrOutOfNetwork: '(dentro o fuera de la red)',

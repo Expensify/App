@@ -529,7 +529,7 @@ export default {
             perPurchase: 'Per purchase',
             atmWithdrawal: 'ATM withdrawal',
             cashReload: 'Cash reload',
-            inNetwork: 'In-network',
+            inNetwork: 'in-network',
             outOfNetwork: 'out-of-network',
             atmBalanceInquiry: 'ATM balance inquiry',
             inOrOutOfNetwork: '(in-network or out-of-network)',

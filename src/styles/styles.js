@@ -2159,11 +2159,6 @@ const styles = {
         ...spacing.mh3,
     },
 
-    shortTermsBoldText: {
-        fontSize: variables.fontSizeHero,
-        fontWeight: fontWeightBold,
-    },
-
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
