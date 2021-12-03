@@ -50,7 +50,7 @@ class LoginForm extends React.Component {
         super(props);
         this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
-        this.clearLogin = this.clearLogin.bind(this);
+
         this.state = {
             formError: false,
             login: '',
@@ -65,7 +65,6 @@ class LoginForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Whenever page becomes visible focus the input. We are using withToggleVisibilityView to hide the page instread of unmounting.
         if (prevProps.isVisible || !this.props.isVisible) {
             return;
         }

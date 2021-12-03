@@ -62,7 +62,6 @@ class PasswordForm extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        // Whenever page becomes visible focus the input. We are using withToggleVisibilityView to hide the page instread of unmounting.
         if (prevProps.isVisible || !this.props.isVisible) {
             return;
         }
@@ -159,7 +158,7 @@ class PasswordForm extends React.Component {
                         isLoading={this.props.account.loading}
                         onPress={this.validateAndSubmitForm}
                     />
-                    {this.props.isVisible && <ChangeExpensifyLoginLink />}
+                    <ChangeExpensifyLoginLink />
                 </View>
             </>
         );

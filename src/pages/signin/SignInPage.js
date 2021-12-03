@@ -87,7 +87,8 @@ class SignInPage extends Component {
                     shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
                     shouldShowWelcomeScreenshot={showLoginForm}
                 >
-                    {/* Both LoginForm and PasswordForm should be present in the UI for Password Managers to work. */}
+                    {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
+                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
                     <LoginForm isVisible={showLoginForm} />
                     <PasswordForm isVisible={showPasswordForm} />
                     {showResendValidationLinkForm && <ResendValidationForm />}

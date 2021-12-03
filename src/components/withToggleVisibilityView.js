@@ -5,7 +5,7 @@ import styles from '../styles/styles';
 import getComponentDisplayName from '../libs/getComponentDisplayName';
 
 const toggleVisibilityViewPropTypes = {
-    /** Whether the content is viToggleVisibilitysible. */
+    /** Whether the content is visible. */
     isVisible: PropTypes.bool,
 };
 
