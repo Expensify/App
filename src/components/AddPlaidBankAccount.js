@@ -72,6 +72,12 @@ const propTypes = {
 
     /** Additional text to display */
     text: PropTypes.string,
+
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
+    receivedRedirectURI: PropTypes.string,
+
+    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
+    plaidLinkOAuthToken: PropTypes.string,
 };
 
 const defaultProps = {
@@ -82,6 +88,8 @@ const defaultProps = {
     onExitPlaid: () => {},
     onSubmit: () => {},
     text: '',
+    receivedRedirectURI: null,
+    plaidLinkOAuthToken: '',
 };
 
 class AddPlaidBankAccount extends React.Component {
@@ -89,6 +97,7 @@ class AddPlaidBankAccount extends React.Component {
         super(props);
 
         this.selectAccount = this.selectAccount.bind(this);
+        this.getPlaidLinkToken = this.getPlaidLinkToken.bind(this);
 
         this.state = {
             selectedIndex: undefined,
@@ -100,6 +109,12 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     componentDidMount() {
+        // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
+        // Otherwise, clear the existing token and fetch a new one
+        if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
+            return;
+        }
+
         BankAccounts.clearPlaidBankAccountsAndToken();
         BankAccounts.fetchPlaidLinkToken();
     }
@@ -111,6 +126,19 @@ class AddPlaidBankAccount extends React.Component {
      */
     getAccounts() {
         return lodashGet(this.props.plaidBankAccounts, 'accounts', []);
+    }
+
+    /**
+     * @returns {String}
+     */
+    getPlaidLinkToken() {
+        if (!_.isEmpty(this.props.plaidLinkToken)) {
+            return this.props.plaidLinkToken;
+        }
+
+        if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
+            return this.props.plaidLinkOAuthToken;
+        }
     }
 
     /**
@@ -136,27 +164,29 @@ class AddPlaidBankAccount extends React.Component {
         this.props.onSubmit({
             bankName,
             account,
-            plaidLinkToken: this.props.plaidLinkToken,
+            plaidLinkToken: this.getPlaidLinkToken(),
         });
     }
 
     render() {
         const accounts = this.getAccounts();
+        const token = this.getPlaidLinkToken();
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
+
         return (
             <>
-                {(!this.props.plaidLinkToken || this.props.plaidBankAccounts.loading)
-                    && (
-                        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <ActivityIndicator color={themeColors.spinner} size="large" />
-                        </View>
-                    )}
-                {!_.isEmpty(this.props.plaidLinkToken) && (
+                {(!token || this.props.plaidBankAccounts.loading)
+                && (
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        <ActivityIndicator color={themeColors.spinner} size="large" />
+                    </View>
+                )}
+                {token && (
                     <PlaidLink
-                        token={this.props.plaidLinkToken}
+                        token={token}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
                             BankAccounts.fetchPlaidBankAccounts(publicToken, metadata.institution.name);
@@ -169,6 +199,7 @@ class AddPlaidBankAccount extends React.Component {
                         // User prematurely exited the Plaid flow
                         // eslint-disable-next-line react/jsx-props-no-multi-spaces
                         onExit={this.props.onExitPlaid}
+                        receivedRedirectURI={this.props.receivedRedirectURI}
                     />
                 )}
                 {accounts.length > 0 && (
