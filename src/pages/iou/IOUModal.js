@@ -27,7 +27,6 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../ROUTES';
-import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.

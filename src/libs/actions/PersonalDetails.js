@@ -9,7 +9,6 @@ import NetworkConnection from '../NetworkConnection';
 import * as API from '../API';
 import NameValuePair from './NameValuePair';
 import * as ReportUtils from '../reportUtils';
-import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as ValidationUtils from '../ValidationUtils';
