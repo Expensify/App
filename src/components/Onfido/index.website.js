@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import lodashGet from 'lodash/get';
-import BaseOnfido from './BaseOnfido';
+import BaseOnfidoWeb from './BaseOnfidoWeb';
 import onfidoPropTypes from './onfidoPropTypes';
 
 class Onfido extends Component {
@@ -20,7 +20,7 @@ class Onfido extends Component {
 
     render() {
         return (
-            <BaseOnfido
+            <BaseOnfidoWeb
                 ref={e => this.baseOnfido = e}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...this.props}
