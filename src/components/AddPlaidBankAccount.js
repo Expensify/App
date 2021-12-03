@@ -129,6 +129,19 @@ class AddPlaidBankAccount extends React.Component {
     }
 
     /**
+     * @returns {String}
+     */
+    getPlaidLinkToken() {
+        if (!_.isEmpty(this.props.plaidLinkToken)) {
+            return this.props.plaidLinkToken;
+        }
+
+        if (this.props.receivedRedirectURI && this.props.plaidLinkOAuthToken) {
+            return this.props.plaidLinkOAuthToken;
+        }
+    }
+
+    /**
      * @returns {Boolean}
      */
     validate() {
@@ -148,46 +161,32 @@ class AddPlaidBankAccount extends React.Component {
 
         const account = this.getAccounts()[this.state.selectedIndex];
         const bankName = lodashGet(this.props.plaidBankAccounts, 'bankName');
-        const plaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) ? this.props.plaidLinkToken : this.props.plaidLinkOAuthToken;
         this.props.onSubmit({
             bankName,
             account,
-            plaidLinkToken,
+            plaidLinkToken: this.getPlaidLinkToken(),
         });
-    }
-
-    /**
-     * @returns {String}
-     */
-    getPlaidLinkToken() {
-        if (!_.isEmpty(this.props.plaidLinkToken)) {
-            return this.props.plaidLinkToken;
-        }
-
-        if (this.props.receivedRedirectURI) {
-            return this.props.plaidLinkOAuthToken;
-        }
     }
 
     render() {
         const accounts = this.getAccounts();
+        const token = this.getPlaidLinkToken();
         const options = _.map(accounts, (account, index) => ({
             value: index, label: `${account.addressName} ${account.accountNumber}`,
         }));
         const {icon, iconSize} = getBankIcon(this.state.institution.name);
-        const hasPlaidLinkToken = !_.isEmpty(this.props.plaidLinkToken) || !_.isEmpty(this.props.plaidLinkOAuthToken);
 
         return (
             <>
-                {(!hasPlaidLinkToken || this.props.plaidBankAccounts.loading)
+                {(!token || this.props.plaidBankAccounts.loading)
                 && (
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <ActivityIndicator color={themeColors.spinner} size="large" />
                     </View>
                 )}
-                {hasPlaidLinkToken && (
+                {token && (
                     <PlaidLink
-                        token={this.getPlaidLinkToken()}
+                        token={token}
                         onSuccess={({publicToken, metadata}) => {
                             Log.info('[PlaidLink] Success!');
                             BankAccounts.getPlaidBankAccounts(publicToken, metadata.institution.name);

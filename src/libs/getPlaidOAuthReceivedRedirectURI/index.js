@@ -1,4 +1,4 @@
-/*
+/**
  * After a user authenticates their bank in the Plaid OAuth flow, Plaid returns us to the redirectURI we
  * gave them along with a stateID param. We hand off the receivedRedirectUri to PlaidLink to finish connecting
  * the user's account.
