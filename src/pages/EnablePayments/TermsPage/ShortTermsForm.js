@@ -9,14 +9,6 @@ import * as Link from '../../../libs/actions/Link';
 
 const termsData = [
     {
-        title: Localize.translateLocal('termsStep.monthlyFee'),
-        rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-    },
-    {
-        title: Localize.translateLocal('termsStep.shortTermsForm.perPurchase'),
-        rightText: Localize.translateLocal('termsStep.feeAmountZero'),
-    },
-    {
         title: Localize.translateLocal('termsStep.shortTermsForm.atmWithdrawal'),
         subTitle: Localize.translateLocal('termsStep.shortTermsForm.inOrOutOfNetwork'),
         rightText: Localize.translateLocal('common.na'),
@@ -55,6 +47,27 @@ const ShortTermsForm = () => (
         </Text>
         <View style={[styles.shortTermsBorder, styles.p2, styles.mb6]}>
             {getShortTermsSections()}
+
+            <View style={[styles.shortTermsRow, styles.mb6]}>
+                <View style={[styles.flex2]}>
+                    <View style={styles.flexRow}>
+                        <Text>{Localize.translateLocal('termsStep.monthlyFee')}</Text>
+                    </View>
+                    <View style={styles.flexRow}>
+                        <Text style={styles.shortTermsBoldText}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                    </View>
+                </View>
+                <View style={[styles.flex2]}>
+                    <View style={[styles.flex2]}>
+                        <View style={styles.flexRow}>
+                            <Text>{Localize.translateLocal('termsStep.shortTermsForm.perPurchase')}</Text>
+                        </View>
+                        <View style={styles.flexRow}>
+                            <Text style={styles.shortTermsBoldText}>{Localize.translateLocal('termsStep.feeAmountZero')}</Text>
+                        </View>
+                    </View>
+                </View>
+            </View>
 
             <View style={styles.shortTermsHorizontalRule} />
             <View style={styles.shortTermsRow}>
