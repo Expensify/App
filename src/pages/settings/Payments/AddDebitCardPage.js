@@ -243,7 +243,6 @@ class DebitCardPage extends Component {
                                 }}
                                 errorText={this.getErrorText('addressStreet')}
                             />
-                            <Text style={[styles.mutedTextLabel, styles.mt1]}>{this.props.translate('common.noPO')}</Text>
                             <View style={[styles.flexRow, styles.mt4]}>
                                 <View style={[styles.flex2, styles.mr2]}>
                                     <ExpensiTextInput
