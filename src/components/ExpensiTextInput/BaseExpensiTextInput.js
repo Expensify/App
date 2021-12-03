@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
+    // eslint-disable-next-line no-restricted-imports
     Animated, TextInput, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
