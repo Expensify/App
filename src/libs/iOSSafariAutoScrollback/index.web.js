@@ -1,8 +1,6 @@
 /* The autoScrollBack address Mobile Safari-specific issues when the user overscrolls the window while the keyboard is visible */
 import Str from 'expensify-common/lib/str';
 import smoothscrollPolyfill from 'smoothscroll-polyfill';
-import CONST from '../../CONST';
-import getBrowser from '../getBrowser';
 
 const userAgent = navigator.userAgent.toLowerCase();
 
@@ -19,7 +17,7 @@ let isTouching = false;
 
 let scrollbackTimeout;
 
-const isIOS15 = Str.contains(userAgent, 'iphone os 15_');
+const hasAddressBar = Str.contains(userAgent, 'iphone os 15_') && window.outerHeight > 568;
 
 function scrollback() {
     if (isTouching || maxScrollY >= window.scrollY) {
@@ -59,7 +57,7 @@ function scrollbackAfterScroll() {
         const keyboardHeight = baseInnerHeight - window.visualViewport.height;
 
         // The iOS 15 Safari has a 52 pixel tall address label that must be manually added
-        maxScrollY = keyboardHeight + (isIOS15 ? 52 : 0);
+        maxScrollY = keyboardHeight + (hasAddressBar ? 52 : 0);
     }
 
     scheduleScrollback();
@@ -75,9 +73,6 @@ function stopWaitingForScroll() {
 
 
 export default function () {
-    if (!getBrowser() === CONST.BROWSER.SAFARI || !Str.contains(userAgent, 'iphone os 1')) {
-        return;
-    }
     smoothscrollPolyfill.polyfill();
     document.addEventListener('touchstart', touchStarted);
     document.addEventListener('touchend', scrollbackAfterTouch);
