@@ -11,6 +11,7 @@ const ShortTermsForm = () => (
         <ExpensifyText style={styles.mb5}>
             {Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
         </ExpensifyText>
+
         <View style={[styles.shortTermsBorder, styles.p2, styles.mb6]}>
             <View style={[styles.shortTermsRow, styles.mb4]}>
                 <View style={[styles.flex2]}>

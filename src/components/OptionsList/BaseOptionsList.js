@@ -6,7 +6,7 @@ import Log from '../../libs/Log';
 import styles from '../../styles/styles';
 import OptionRow from '../../pages/home/sidebar/OptionRow';
 import SectionList from '../SectionList';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 import {propTypes as optionsListPropTypes, defaultProps as optionsListDefaultProps} from './optionsListPropTypes';
 
 const propTypes = {
@@ -130,9 +130,9 @@ class BaseOptionsList extends Component {
         if (title && shouldShow && !this.props.hideSectionHeaders) {
             return (
                 <View>
-                    <Text style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
+                    <ExpensifyText style={[styles.p5, styles.textMicroBold, styles.colorHeading, styles.textUppercase]}>
                         {title}
-                    </Text>
+                    </ExpensifyText>
                 </View>
             );
         }
@@ -145,9 +145,9 @@ class BaseOptionsList extends Component {
             <View style={this.props.listContainerStyles}>
                 {this.props.headerMessage ? (
                     <View style={[styles.ph5, styles.pb5]}>
-                        <Text style={[styles.textLabel, styles.colorMuted]}>
+                        <ExpensifyText style={[styles.textLabel, styles.colorMuted]}>
                             {this.props.headerMessage}
-                        </Text>
+                        </ExpensifyText>
                     </View>
                 ) : null}
                 <SectionList

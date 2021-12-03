@@ -2,6 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import {View, Image, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
+import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import MenuItem from '../../components/MenuItem';
 import * as Expensicons from '../../components/Icon/Expensicons';
@@ -15,7 +16,7 @@ import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from './exampleCheckImage';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -32,7 +33,18 @@ const propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 
+    /** The OAuth URI + stateID needed to re-initialize the PlaidLink after the user logs into their bank */
+    receivedRedirectURI: PropTypes.string,
+
+    /** During the OAuth flow we need to use the plaidLink token that we initially connected with */
+    plaidLinkOAuthToken: PropTypes.string,
+
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    receivedRedirectURI: null,
+    plaidLinkOAuthToken: '',
 };
 
 class BankAccountStep extends React.Component {
@@ -159,7 +171,9 @@ class BankAccountStep extends React.Component {
         // Disable bank account fields once they've been added in db so they can't be changed
         const isFromPlaid = this.props.achData.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
         const shouldDisableInputs = Boolean(this.props.achData.bankAccountID) || isFromPlaid;
-        const subStep = this.props.achData.subStep;
+        const shouldReinitializePlaidLink = this.props.plaidLinkOAuthToken && this.props.receivedRedirectURI;
+        const subStep = shouldReinitializePlaidLink ? CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID : this.props.achData.subStep;
+
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
@@ -182,9 +196,9 @@ class BankAccountStep extends React.Component {
                             icon={Illustrations.BankMouseGreen}
                             title={this.props.translate('workspace.bankAccount.streamlinePayments')}
                         />
-                        <Text style={[styles.mh5, styles.mb5]}>
+                        <ExpensifyText style={[styles.mh5, styles.mb5]}>
                             {this.props.translate('bankAccount.toGetStarted')}
-                        </Text>
+                        </ExpensifyText>
                         <MenuItem
                             icon={Expensicons.Bank}
                             title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
@@ -193,9 +207,9 @@ class BankAccountStep extends React.Component {
                             shouldShowRightIcon
                         />
                         {this.props.isPlaidDisabled && (
-                            <Text style={[styles.formError, styles.mh5]}>
+                            <ExpensifyText style={[styles.formError, styles.mh5]}>
                                 {this.props.translate('bankAccount.error.tooManyAttempts')}
-                            </Text>
+                            </ExpensifyText>
                         )}
                         <MenuItem
                             icon={Expensicons.Paycheck}
@@ -206,12 +220,12 @@ class BankAccountStep extends React.Component {
                         />
                         {!this.props.user.validated && (
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                                <Text style={[styles.mutedTextLabel, styles.mr4]}>
+                                <ExpensifyText style={[styles.mutedTextLabel, styles.mr4]}>
                                     <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                                </Text>
-                                <Text style={styles.mutedTextLabel}>
+                                </ExpensifyText>
+                                <ExpensifyText style={styles.mutedTextLabel}>
                                     {this.props.translate('bankAccount.validateAccountError')}
-                                </Text>
+                                </ExpensifyText>
                             </View>
                         )}
                         <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
@@ -237,15 +251,17 @@ class BankAccountStep extends React.Component {
                         text={this.props.translate('bankAccount.plaidBodyCopy')}
                         onSubmit={this.addPlaidAccount}
                         onExitPlaid={() => BankAccounts.setBankAccountSubStep(null)}
+                        receivedRedirectURI={this.props.receivedRedirectURI}
+                        plaidLinkOAuthToken={this.props.plaidLinkOAuthToken}
                     />
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && (
                     <ReimbursementAccountForm
                         onSubmit={this.addManualAccount}
                     >
-                        <Text style={[styles.mb5]}>
+                        <ExpensifyText style={[styles.mb5]}>
                             {this.props.translate('bankAccount.checkHelpLine')}
-                        </Text>
+                        </ExpensifyText>
                         <Image
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
@@ -274,9 +290,9 @@ class BankAccountStep extends React.Component {
                             onPress={this.toggleTerms}
                             LabelComponent={() => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text>
+                                    <ExpensifyText>
                                         {this.props.translate('common.iAcceptThe')}
-                                    </Text>
+                                    </ExpensifyText>
                                     <TextLink href="https://use.expensify.com/terms">
                                         {`Expensify ${this.props.translate('common.termsOfService')}`}
                                     </TextLink>
@@ -292,6 +308,8 @@ class BankAccountStep extends React.Component {
 }
 
 BankAccountStep.propTypes = propTypes;
+BankAccountStep.defaultProps = defaultProps;
+
 export default compose(
     withLocalize,
     withOnyx({
