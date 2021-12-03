@@ -24,6 +24,7 @@ import {participantPropTypes} from './optionPropTypes';
 import themeColors from '../../../styles/themes/default';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as App from '../../../libs/actions/App';
+import * as PersonalDetailsUtils from '../../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /** Toggles the navigation menu open and closed */
@@ -83,7 +84,7 @@ const defaultProps = {
     reports: {},
     personalDetails: {},
     myPersonalDetails: {
-        avatar: OptionsListUtils.getDefaultAvatar(),
+        avatar: PersonalDetailsUtils.getDefaultAvatar(),
     },
     network: null,
     currentlyViewedReportID: '',

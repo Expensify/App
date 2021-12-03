@@ -5,6 +5,19 @@ import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
+import * as PersonalDetailsUtils from './PersonalDetailsUtils';
+
+const reportsWithDraft = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT,
+    callback: (hasDraft, key) => {
+        if (!key) {
+            return;
+        }
+
+        reportsWithDraft[key] = hasDraft;
+    },
+});
 
 let sessionEmail;
 Onyx.connect({
@@ -190,6 +203,39 @@ function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, rep
         && moment().tz(currentUserTimezone.selected).utcOffset() !== moment().tz(reportRecipientTimezone.selected).utcOffset();
 }
 
+/**
+ * Returns the appropriate icons for the given chat report using personalDetails if applicable
+ *
+ * @param {Object} report
+ * @param {Object} personalDetails
+ * @returns {String}
+ */
+function getReportIcons(report, personalDetails) {
+    // Default rooms have a specific avatar so we can return any non-empty array
+    if (isDefaultRoom(report)) {
+        return [''];
+    }
+    const sortedParticipants = _.map(report.participants, dmParticipant => ({
+        firstName: lodashGet(personalDetails, [dmParticipant, 'firstName'], ''),
+        avatar: lodashGet(personalDetails, [dmParticipant, 'avatarThumbnail'], '')
+            || PersonalDetailsUtils.getDefaultAvatar(dmParticipant),
+    }))
+        .sort((first, second) => first.firstName - second.firstName);
+    return _.map(sortedParticipants, item => item.avatar);
+}
+
+/**
+ * Determines whether a report has a draft comment.
+ *
+ * @param {Object} report
+ * @return {Boolean}
+ */
+function hasReportDraftComment(report) {
+    return report
+        && reportsWithDraft
+        && lodashGet(reportsWithDraft, `${ONYXKEYS.COLLECTION.REPORTS_WITH_DRAFT}${report.reportID}`, false);
+}
+
 export {
     getReportParticipantsTitle,
     isReportMessageAttachment,
@@ -203,4 +249,6 @@ export {
     isConciergeChatReport,
     hasExpensifyEmails,
     canShowReportRecipientLocalTime,
+    getReportIcons,
+    hasReportDraftComment,
 };

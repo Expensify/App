@@ -8,10 +8,9 @@ import styles from '../styles/styles';
 import ExpensifyText from './ExpensifyText';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
 import compose from '../libs/compose';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '../libs/PersonalDetailsUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import CONST from '../CONST';
-
 
 const personalDetailsPropTypes = PropTypes.shape({
     /** The login of the person (either email or phone number) */
@@ -47,7 +46,7 @@ const ReportWelcomeText = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
-        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
+        PersonalDetailsUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
         ({
             displayName, firstName, login, pronouns,
         }) => {

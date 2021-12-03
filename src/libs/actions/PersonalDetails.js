@@ -13,6 +13,7 @@ import * as OptionsListUtils from '../OptionsListUtils';
 import Growl from '../Growl';
 import * as Localize from '../Localize';
 import * as ValidationUtils from '../ValidationUtils';
+import * as PersonalDetailsUtils from '../PersonalDetailsUtils';
 
 let currentUserEmail = '';
 Onyx.connect({
@@ -38,7 +39,7 @@ function getAvatar(personalDetail, login) {
         return personalDetail.avatarThumbnail;
     }
 
-    return OptionsListUtils.getDefaultAvatar(login);
+    return PersonalDetailsUtils.getDefaultAvatar(login);
 }
 
 /**
@@ -188,7 +189,7 @@ function getFromReportParticipants(reports) {
                     return;
                 }
 
-                const avatars = OptionsListUtils.getReportIcons(report, details);
+                const avatars = ReportUtils.getReportIcons(report, details);
                 const reportName = ReportUtils.isDefaultRoom(report)
                     ? report.reportName
                     : _.chain(report.participants)
@@ -333,7 +334,7 @@ function deleteAvatar(login) {
     // We don't want to save the default avatar URL in the backend since we don't want to allow
     // users the option of removing the default avatar, instead we'll save an empty string
     API.PersonalDetails_Update({details: JSON.stringify({avatar: ''})});
-    mergeLocalPersonalDetails({avatar: OptionsListUtils.getDefaultAvatar(login)});
+    mergeLocalPersonalDetails({avatar: PersonalDetailsUtils.getDefaultAvatar(login)});
     Growl.show(Localize.translateLocal('profilePage.growlMessageOnSave'), CONST.GROWL.SUCCESS, 3000);
 }
 

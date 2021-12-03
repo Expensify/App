@@ -8,6 +8,7 @@ import styles from '../styles/styles';
 import ExpensifyText from './ExpensifyText';
 import themeColors from '../styles/themes/default';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '../libs/PersonalDetailsUtils';
 import OptionsList from './OptionsList';
 import ONYXKEYS from '../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -297,7 +298,7 @@ class IOUConfirmationList extends Component {
         }
         const selectedParticipants = this.getSelectedParticipants();
         const splits = _.map(selectedParticipants, participant => ({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(participant.login),
+            email: PersonalDetailsUtils.addSMSDomainIfPhoneNumber(participant.login),
 
             // We should send in cents to API
             // Cents is temporary and there must be support for other currencies in the future
@@ -305,7 +306,7 @@ class IOUConfirmationList extends Component {
         }));
 
         splits.push({
-            email: OptionsListUtils.addSMSDomainIfPhoneNumber(this.props.myPersonalDetails.login),
+            email: PersonalDetailsUtils.addSMSDomainIfPhoneNumber(this.props.myPersonalDetails.login),
 
             // The user is default and we should send in cents to API
             // USD is temporary and there must be support for other currencies in the future

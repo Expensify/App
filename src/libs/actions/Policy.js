@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 import * as Localize from '../Localize';
 import Navigation from '../Navigation/Navigation';
 import ROUTES from '../../ROUTES';
-import * as OptionsListUtils from '../OptionsListUtils';
+import * as PersonalDetailsUtils from '../OptionsListUtils';
 
 const allPolicies = {};
 Onyx.connect({
@@ -282,7 +282,7 @@ function removeMembers(members, policyID) {
  */
 function invite(logins, welcomeNote, policyID) {
     const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
-    const newEmployeeList = _.map(logins, login => OptionsListUtils.addSMSDomainIfPhoneNumber(login));
+    const newEmployeeList = _.map(logins, login => PersonalDetailsUtils.addSMSDomainIfPhoneNumber(login));
 
     // Make a shallow copy to preserve original data, and concat the login
     const policy = _.clone(allPolicies[key]);

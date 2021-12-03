@@ -17,7 +17,7 @@ import MultipleAvatars from '../../components/MultipleAvatars';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import DisplayNames from '../../components/DisplayNames';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import {participantPropTypes} from './sidebar/optionPropTypes';
 import VideoChatButtonAndMenu from '../../components/VideoChatButtonAndMenu';
 import IOUBadge from '../../components/IOUBadge';
@@ -75,7 +75,7 @@ const HeaderView = (props) => {
     const participants = lodashGet(props.report, 'participants', []);
     const isMultipleParticipant = participants.length > 1;
     const displayNamesWithTooltips = _.map(
-        OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
+        PersonalDetailsUtils.getPersonalDetailsForLogins(participants, props.personalDetails),
         ({displayName, firstName, login}) => {
             const displayNameTrimmed = Str.isSMSLogin(login) ? props.toLocalPhone(displayName) : displayName;
 

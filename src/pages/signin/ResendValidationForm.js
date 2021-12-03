@@ -13,7 +13,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -111,7 +111,7 @@ class ResendValidationForm extends React.Component {
             <>
                 <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Avatar
-                        source={OptionsListUtils.getDefaultAvatar(this.props.credentials.login)}
+                        source={PersonalDetailsUtils.getDefaultAvatar(this.props.credentials.login)}
                         imageStyles={[styles.mr2]}
                     />
                     <View style={[styles.flex1]}>

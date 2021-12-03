@@ -17,7 +17,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
 import AnimatedStep from '../../components/AnimatedStep';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -27,6 +27,7 @@ import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
 import ROUTES from '../../ROUTES';
+import * as PersonalDetailsUtils from '../../libs/PersonalDetailsUtils';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -112,7 +113,7 @@ class IOUModal extends Component {
         this.createTransaction = this.createTransaction.bind(this);
         this.updateComment = this.updateComment.bind(this);
         const participants = lodashGet(props, 'report.participants', []);
-        const participantsWithDetails = _.map(OptionsListUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
+        const participantsWithDetails = _.map(PersonalDetailsUtils.getPersonalDetailsForLogins(participants, props.personalDetails), personalDetails => ({
             login: personalDetails.login,
             text: personalDetails.displayName,
             alternateText: Str.isSMSLogin(personalDetails.login) ? Str.removeSMSDomain(personalDetails.login) : personalDetails.login,
@@ -308,7 +309,7 @@ class IOUModal extends Component {
             // should send in cents to API
             amount: Math.round(this.state.amount * 100),
             currency: this.props.iou.selectedCurrencyCode,
-            debtorEmail: OptionsListUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
+            debtorEmail: PersonalDetailsUtils.addSMSDomainIfPhoneNumber(this.state.participants[0].login),
         });
     }
 

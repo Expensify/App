@@ -15,7 +15,7 @@ import Navigation from '../libs/Navigation/Navigation';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import styles from '../styles/styles';
 import DisplayNames from '../components/DisplayNames';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
+import * as PersonalDetailsUtils from '../libs/PersonalDetailsUtils';
 import * as ReportUtils from '../libs/reportUtils';
 import {participantPropTypes} from './home/sidebar/optionPropTypes';
 import * as Report from '../libs/actions/Report';
@@ -105,7 +105,7 @@ class ReportDetailsPage extends Component {
         const participants = lodashGet(this.props.report, 'participants', []);
         const isMultipleParticipant = participants.length > 1;
         const displayNamesWithTooltips = _.map(
-            OptionsListUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
+            PersonalDetailsUtils.getPersonalDetailsForLogins(participants, this.props.personalDetails),
             ({displayName, firstName, login}) => {
                 const displayNameTrimmed = Str.isSMSLogin(login) ? this.props.toLocalPhone(displayName) : displayName;
 
