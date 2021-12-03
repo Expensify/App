@@ -103,7 +103,7 @@ export default {
                         path: ROUTES.WORKSPACE_INVITE,
                     },
                     ReimbursementAccount: {
-                        path: ROUTES.BANK_ACCOUNT,
+                        path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
                 },
