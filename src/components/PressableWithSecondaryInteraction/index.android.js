@@ -1,6 +1,7 @@
 import _ from 'underscore';
 import React, {forwardRef} from 'react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+// eslint-disable-next-line no-restricted-imports
 import {Pressable, Platform, Text as RNText} from 'react-native';
 import * as pressableWithSecondaryInteractionPropTypes from './pressableWithSecondaryInteractionPropTypes';
 
