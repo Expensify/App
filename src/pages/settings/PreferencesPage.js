@@ -11,7 +11,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import ONYXKEYS from '../../ONYXKEYS';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import NameValuePair from '../../libs/actions/NameValuePair';
 import CONST from '../../CONST';
 import * as User from '../../libs/actions/User';
@@ -66,14 +66,14 @@ const PreferencesPage = (props) => {
             />
             <View style={styles.pageWrapper}>
                 <View style={[styles.settingsPageBody, styles.mb6]}>
-                    <Text style={[styles.formLabel]} numberOfLines={1}>
+                    <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
                         {props.translate('common.notifications')}
-                    </Text>
+                    </ExpensifyText>
                     <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                         <View style={styles.flex4}>
-                            <Text>
+                            <ExpensifyText>
                                 {props.translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             <Switch
@@ -92,9 +92,9 @@ const PreferencesPage = (props) => {
                             value={props.priorityMode}
                         />
                     </View>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
+                    <ExpensifyText style={[styles.textLabel, styles.colorMuted, styles.mb6]}>
                         {priorityModes[props.priorityMode].description}
-                    </Text>
+                    </ExpensifyText>
                     <View style={[styles.mb2]}>
                         <LocalePicker />
                     </View>
@@ -103,14 +103,14 @@ const PreferencesPage = (props) => {
                     {/* and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido */}
                     {props.environment === CONST.ENVIRONMENT.STAGING && (
                         <>
-                            <Text style={[styles.formLabel]} numberOfLines={1}>
+                            <ExpensifyText style={[styles.formLabel]} numberOfLines={1}>
                                 Test Preferences
-                            </Text>
+                            </ExpensifyText>
                             <View style={[styles.flexRow, styles.mb6, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <Text>
+                                    <ExpensifyText>
                                         Use Secure Staging Server
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch

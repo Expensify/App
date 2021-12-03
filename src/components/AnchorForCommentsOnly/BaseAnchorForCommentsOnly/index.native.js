@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import {Linking, StyleSheet, Pressable} from 'react-native';
 import {propTypes, defaultProps} from '../anchorForCommentsOnlyPropTypes';
 import fileDownload from '../../../libs/fileDownload';
-import Text from '../../Text';
+import ExpensifyText from '../../ExpensifyText';
 import PressableWithSecondaryInteraction from '../../PressableWithSecondaryInteraction';
 import * as ReportActionContextMenu from '../../../pages/home/report/ContextMenu/ReportActionContextMenu';
 import * as ContextMenuActions from '../../../pages/home/report/ContextMenu/ContextMenuActions';
@@ -73,14 +73,14 @@ class BaseAnchorForCommentsOnly extends React.Component {
                     }
                         onPress={() => Linking.openURL(this.props.href)}
                     >
-                        <Text
+                        <ExpensifyText
                             ref={el => linkRef = el}
                             style={StyleSheet.flatten(this.props.style)}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                             {...rest}
                         >
                             {this.props.children}
-                        </Text>
+                        </ExpensifyText>
                     </PressableWithSecondaryInteraction>
                 )
         );

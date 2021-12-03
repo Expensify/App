@@ -8,7 +8,7 @@ import Str from 'expensify-common/lib/str';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
-import ExpensiText from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import Timers from '../../../libs/Timers';
 import CONST from '../../../CONST';
 
@@ -60,7 +60,7 @@ class ParticipantLocalTime extends PureComponent {
 
         return (
             <View style={[styles.chatItemComposeSecondaryRow]}>
-                <ExpensiText
+                <ExpensifyText
                     style={[
                         styles.chatItemComposeSecondaryRowSubText,
                         styles.chatItemComposeSecondaryRowOffset,
@@ -74,7 +74,7 @@ class ParticipantLocalTime extends PureComponent {
                             time: this.state.localTime,
                         },
                     )}
-                </ExpensiText>
+                </ExpensifyText>
             </View>
         );
     }

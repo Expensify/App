@@ -17,7 +17,7 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
@@ -176,7 +176,7 @@ class ReimbursementAccountPage extends React.Component {
         if (userHasPhonePrimaryEmail) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
+                    <ExpensifyText>{this.props.translate('bankAccount.hasPhoneLoginError')}</ExpensifyText>
                 </View>
             );
         }
@@ -185,9 +185,9 @@ class ReimbursementAccountPage extends React.Component {
         if (throttledDate) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <Text>
+                    <ExpensifyText>
                         {this.props.translate('bankAccount.hasBeenThrottledError')}
-                    </Text>
+                    </ExpensifyText>
                 </View>
             );
         }

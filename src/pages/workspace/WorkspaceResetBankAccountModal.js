@@ -10,7 +10,7 @@ import reimbursementAccountPropTypes from '../ReimbursementAccount/reimbursement
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import bankAccountPropTypes from '../../components/bankAccountPropTypes';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import BankAccount from '../../libs/models/BankAccount';
 
@@ -40,13 +40,13 @@ const WorkspaceResetBankAccountModal = (props) => {
             confirmText={isInOpenState ? props.translate('workspace.bankAccount.yesDisconnectMyBankAccount') : props.translate('workspace.bankAccount.yesStartOver')}
             cancelText={props.translate('common.cancel')}
             prompt={isInOpenState ? (
-                <Text>
-                    <Text>{props.translate('workspace.bankAccount.disconnectYour')}</Text>
-                    <Text style={styles.textStrong}>
+                <ExpensifyText>
+                    <ExpensifyText>{props.translate('workspace.bankAccount.disconnectYour')}</ExpensifyText>
+                    <ExpensifyText style={styles.textStrong}>
                         {bankShortName}
-                    </Text>
-                    <Text>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</Text>
-                </Text>
+                    </ExpensifyText>
+                    <ExpensifyText>{props.translate('workspace.bankAccount.bankAccountAnyTransactions')}</ExpensifyText>
+                </ExpensifyText>
             ) : props.translate('workspace.bankAccount.clearProgress')}
             danger
             onCancel={BankAccounts.cancelResetFreePlanBankAccount}

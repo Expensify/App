@@ -5,7 +5,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../styles/styles';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import themeColors from '../styles/themes/default';
 import * as OptionsListUtils from '../libs/OptionsListUtils';
 import OptionsList from './OptionsList';
@@ -431,9 +431,9 @@ class IOUConfirmationList extends Component {
                 </View>
                 <FixedFooter>
                     {this.props.network.isOffline && (
-                        <Text style={[styles.formError, styles.pb2]}>
+                        <ExpensifyText style={[styles.formError, styles.pb2]}>
                             {this.props.translate('session.offlineMessage')}
-                        </Text>
+                        </ExpensifyText>
                     )}
                     <ButtonWithMenu
                         options={this.state.confirmationButtonOptions}
