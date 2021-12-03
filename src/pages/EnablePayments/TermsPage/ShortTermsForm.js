@@ -68,14 +68,17 @@ const ShortTermsForm = () => (
         <Text style={styles.mb5}>
             {Localize.translateLocal('termsStep.shortTermsForm.expensifyPaymentsAccount')}
         </Text>
-        <View style={[styles.border, styles.p2, styles.mb6]}>
+        <View style={[styles.shortTermsBorder, styles.p2, styles.mb6]}>
             {getShortTermsSections()}
+
+            <View style={styles.shortTermsLargeHorizontalRule} />
 
             <View style={styles.shortTermsBoldHeadingSection}>
                 <Text style={styles.textStrong}>
                     {Localize.translateLocal('termsStep.shortTermsForm.weChargeOneFee')}
                 </Text>
             </View>
+            <View style={styles.shortTermsHorizontalRule} />
             <View style={styles.shortTermsRow}>
                 <View style={[styles.flex4]}>
                     <Text>{Localize.translateLocal('termsStep.electronicFundsWithdrawal')}</Text>

@@ -538,7 +538,7 @@ export default {
             customerService: 'Customer service',
             automatedOrLive: 'Automated or live agent',
             afterTwelveMonths: 'After 12 months with no transactions',
-            weChargeOneFee: 'We charge 1 type of fee.',
+            weChargeOneFee: 'We charge one type of fee.',
             fdicInsurance: 'Your funds are eligible for FDIC insurance.',
             generalInfo: 'For general information about prepaid accounts, visit',
             conditionsDetails: 'Find details and conditions for all fees and services by visiting',

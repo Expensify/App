@@ -538,7 +538,7 @@ export default {
             customerService: 'Servicio al cliente',
             automatedOrLive: 'Agente automatizado o en vivo',
             afterTwelveMonths: 'Después de 12 meses sin transacciones',
-            weChargeOneFee: 'Cobramos 1 tipo de tarifa.',
+            weChargeOneFee: 'Cobramos un tipo de tarifa.',
             fdicInsurance: 'Sus fondos son elegibles para el seguro de la FDIC.',
             generalInfo: 'Para obtener información general sobre cuentas prepagas, visite',
             conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
