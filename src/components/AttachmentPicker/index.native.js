@@ -6,6 +6,7 @@ import React, {Component} from 'react';
 import {Alert, Linking, View} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import RNDocumentPicker from 'react-native-document-picker';
+import RNFetchBlob from 'rn-fetch-blob';
 import {propTypes as basePropTypes, defaultProps} from './attachmentPickerPropTypes';
 import styles from '../../styles/styles';
 import Popover from '../Popover';
@@ -62,12 +63,22 @@ const documentPickerOptions = {
   * @return {Object}
   */
 function getDataForUpload(fileData) {
-    return {
-        name: fileData.fileName || fileData.name || 'chat_attachment',
-        type: fileData.type,
-        uri: fileData.uri,
-        size: fileData.fileSize || fileData.size,
-    };
+    return new Promise((resolve, reject) => {
+        const fileResult = {
+            name: fileData.fileName || fileData.name || 'chat_attachment',
+            type: fileData.type,
+            uri: fileData.uri,
+            size: fileData.fileSize || fileData.size,
+        };
+        if (_.has(fileData, 'fileSize') || _.has(fileData, 'size')) {
+            return resolve(fileResult);
+        }
+
+        RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+            fileResult.size = stats.size;
+            return resolve(fileResult);
+        }).catch(reject);
+    });
 }
 
 /**
@@ -129,8 +140,11 @@ class AttachmentPicker extends Component {
             return;
         }
 
-        const result = getDataForUpload(attachment);
-        this.completeAttachmentSelection(result);
+        getDataForUpload(attachment).then((result) => {
+            this.completeAttachmentSelection(result);
+        }).catch(() => {
+            this.showGeneralAlert();
+        });
     }
 
     /**
