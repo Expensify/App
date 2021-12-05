@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import SignInPageLayoutNarrow from './SignInPageLayoutNarrow';
-import SignInPageLayoutWide from './SignInPageLayoutWide';
+import SignInPageContent from './SignInPageContent';
+import SignInPageWideContainer from './SignInPageWideContainer';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
@@ -18,26 +18,22 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 };
 
-const SignInPageLayout = props => (
-    !props.isSmallScreenWidth
-        ? (
-            <SignInPageLayoutWide
-                welcomeText={props.welcomeText}
-                isMediumScreenWidth={props.isMediumScreenWidth}
-                shouldShowWelcomeText={props.shouldShowWelcomeText}
-            >
-                {props.children}
-            </SignInPageLayoutWide>
-        )
-        : (
-            <SignInPageLayoutNarrow
-                welcomeText={props.welcomeText}
-                shouldShowWelcomeText={props.shouldShowWelcomeText}
-            >
-                {props.children}
-            </SignInPageLayoutNarrow>
-        )
-);
+const SignInPageLayout = (props) => {
+    const content = (
+        <SignInPageContent
+            welcomeText={props.welcomeText}
+            shouldShowWelcomeText={props.shouldShowWelcomeText}
+        >
+            {props.children}
+        </SignInPageContent>
+    );
+
+    if (props.isSmallScreenWidth) {
+        return content;
+    }
+
+    return <SignInPageWideContainer>{content}</SignInPageWideContainer>;
+};
 
 SignInPageLayout.propTypes = propTypes;
 SignInPageLayout.displayName = 'SignInPageLayout';
