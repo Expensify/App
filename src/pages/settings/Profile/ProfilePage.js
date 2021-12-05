@@ -219,30 +219,30 @@ class ProfilePage extends Component {
                             style={[styles.mt4, styles.mb4]}
                         />
                         <View style={styles.mb6}>
-                            <View style={styles.mb2}>
-                                <ExpensiPicker
-                                    label={this.props.translate('profilePage.preferredPronouns')}
-                                    onChange={(pronouns) => {
-                                        const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
-                                        this.setState({
-                                            pronouns: hasSelfSelectedPronouns ? '' : pronouns,
-                                            hasSelfSelectedPronouns,
-                                        });
-                                    }}
-                                    items={pronounsList}
-                                    placeholder={{
-                                        value: '',
-                                        label: this.props.translate('profilePage.selectYourPronouns'),
-                                    }}
-                                    value={pronounsPickerValue}
-                                />
-                            </View>
+                            <ExpensiPicker
+                                label={this.props.translate('profilePage.preferredPronouns')}
+                                onChange={(pronouns) => {
+                                    const hasSelfSelectedPronouns = pronouns === CONST.PRONOUNS.SELF_SELECT;
+                                    this.setState({
+                                        pronouns: hasSelfSelectedPronouns ? '' : pronouns,
+                                        hasSelfSelectedPronouns,
+                                    });
+                                }}
+                                items={pronounsList}
+                                placeholder={{
+                                    value: '',
+                                    label: this.props.translate('profilePage.selectYourPronouns'),
+                                }}
+                                value={pronounsPickerValue}
+                            />
                             {this.state.hasSelfSelectedPronouns && (
-                                <ExpensiTextInput
-                                    value={this.state.pronouns}
-                                    onChangeText={pronouns => this.setState({pronouns})}
-                                    placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
-                                />
+                                <View style={styles.mt2}>
+                                    <ExpensiTextInput
+                                        value={this.state.pronouns}
+                                        onChangeText={pronouns => this.setState({pronouns})}
+                                        placeholder={this.props.translate('profilePage.selfSelectYourPronoun')}
+                                    />
+                                </View>
                             )}
                         </View>
                         <LoginField
