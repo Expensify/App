@@ -219,7 +219,7 @@ class ProfilePage extends Component {
                             style={[styles.mt4, styles.mb4]}
                         />
                         <View style={styles.mb6}>
-                            <View style={styles.mb1}>
+                            <View style={styles.mb2}>
                                 <ExpensiPicker
                                     label={this.props.translate('profilePage.preferredPronouns')}
                                     onChange={(pronouns) => {
