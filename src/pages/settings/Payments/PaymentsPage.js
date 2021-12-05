@@ -11,10 +11,10 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import Text from '../../../components/Text';
-import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
+import ExpensifyText from '../../../components/ExpensifyText';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal, CreditCard} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
@@ -59,7 +59,7 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        PaymentMethods.getPaymentMethods();
     }
 
     /**
@@ -123,11 +123,11 @@ class PaymentsPage extends React.Component {
                         {
                             Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
                         }
-                        <Text
+                        <ExpensifyText
                             style={[styles.ph5, styles.formLabel]}
                         >
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                        </Text>
+                        </ExpensifyText>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
@@ -146,14 +146,14 @@ class PaymentsPage extends React.Component {
                         {!this.props.payPalMeUsername && (
                             <MenuItem
                                 title={this.props.translate('common.payPalMe')}
-                                icon={PayPal}
+                                icon={Expensicons.PayPal}
                                 onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
                                 wrapperStyle={styles.pr15}
                             />
                         )}
                         <MenuItem
                             title={this.props.translate('common.debitCard')}
-                            icon={CreditCard}
+                            icon={Expensicons.CreditCard}
                             onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
                             wrapperStyle={styles.pr15}
                         />

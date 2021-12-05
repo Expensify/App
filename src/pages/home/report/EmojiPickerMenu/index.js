@@ -3,11 +3,12 @@ import {View, FlatList} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
 import CONST from '../../../../CONST';
-import styles, {getEmojiPickerStyle} from '../../../../styles/styles';
+import styles from '../../../../styles/styles';
+import * as StyleUtils from '../../../../styles/StyleUtils';
 import themeColors from '../../../../styles/themes/default';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../../../components/Text';
+import ExpensifyText from '../../../../components/ExpensifyText';
 import TextInputFocusable from '../../../../components/TextInputFocusable';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
@@ -332,9 +333,9 @@ class EmojiPickerMenu extends Component {
 
         if (header) {
             return (
-                <Text style={styles.emojiHeaderStyle}>
+                <ExpensifyText style={styles.emojiHeaderStyle}>
                     {code}
-                </Text>
+                </ExpensifyText>
             );
         }
 
@@ -356,7 +357,7 @@ class EmojiPickerMenu extends Component {
     render() {
         return (
             <View
-                style={[styles.emojiPickerContainer, getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
+                style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(this.props.isSmallScreenWidth)]}
                 pointerEvents={this.state.arePointerEventsDisabled ? 'none' : 'auto'}
             >
                 {!this.props.isSmallScreenWidth && (
@@ -376,7 +377,7 @@ class EmojiPickerMenu extends Component {
                 )}
                 {this.state.filteredEmojis.length === 0
                     ? (
-                        <Text
+                        <ExpensifyText
                             style={[
                                 styles.disabledText,
                                 styles.emojiPickerList,
@@ -387,7 +388,7 @@ class EmojiPickerMenu extends Component {
                             ]}
                         >
                             {this.props.translate('common.noResultsFound')}
-                        </Text>
+                        </ExpensifyText>
                     )
                     : (
                         <FlatList

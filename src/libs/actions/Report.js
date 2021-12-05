@@ -19,13 +19,11 @@ import Timing from './Timing';
 import * as API from '../API';
 import CONST from '../../CONST';
 import Log from '../Log';
-import {
-    isConciergeChatReport, isDefaultRoom, isReportMessageAttachment, sortReportsByLastVisited, isArchivedRoom,
-} from '../reportUtils';
+import * as ReportUtils from '../reportUtils';
 import Timers from '../Timers';
 import * as ReportActions from './ReportActions';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 
 let currentUserEmail;
 let currentUserAccountID;
@@ -134,13 +132,13 @@ function getParticipantEmailsFromReport({sharedReportList}) {
  * @return {String}
  */
 function getChatReportName(fullReport, chatType) {
-    if (isDefaultRoom({chatType})) {
-        return `#${fullReport.reportName}${(isArchivedRoom({
+    if (ReportUtils.isDefaultRoom({chatType})) {
+        return `#${fullReport.reportName}${(ReportUtils.isArchivedRoom({
             chatType,
             stateNum: fullReport.state,
             statusNum: fullReport.status,
         })
-            ? ` (${translateLocal('common.deleted')})`
+            ? ` (${Localize.translateLocal('common.deleted')})`
             : '')}`;
     }
 
@@ -170,17 +168,21 @@ function getSimplifiedReportObject(report) {
     const isLastMessageAttachment = /<img([^>]+)\/>/gi.test(lastActionMessage);
     const chatType = lodashGet(report, ['reportNameValuePairs', 'chatType'], '');
 
-    // We are removing any html tags from the message html since we cannot access the text version of any comments as
-    // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
-    // We convert the line-breaks in html to space ' ' before striping the tags
-    const lastMessageText = lastActionMessage
-        .replace(/((<br[^>]*>)+)/gi, ' ')
-        .replace(/(<([^>]+)>)/gi, '') || `[${translateLocal('common.deletedCommentMessage')}]`;
+    let lastMessageText = null;
+    if (report.reportActionCount > 0) {
+        // We are removing any html tags from the message html since we cannot access the text version of any comments as
+        // the report only has the raw reportActionList and not the processed version returned by Report_GetHistory
+        // We convert the line-breaks in html to space ' ' before striping the tags
+        lastMessageText = lastActionMessage
+            .replace(/((<br[^>]*>)+)/gi, ' ')
+            .replace(/(<([^>]+)>)/gi, '') || `[${Localize.translateLocal('common.deletedCommentMessage')}]`;
+    }
+
     const reportName = lodashGet(report, ['reportNameValuePairs', 'type']) === 'chat'
         ? getChatReportName(report, chatType)
         : report.reportName;
     const lastActorEmail = lodashGet(report, 'lastActionActorEmail', '');
-    const notificationPreference = isDefaultRoom({chatType})
+    const notificationPreference = ReportUtils.isDefaultRoom({chatType})
         ? lodashGet(report, ['reportNameValuePairs', 'notificationPreferences', currentUserAccountID], 'daily')
         : '';
 
@@ -466,7 +468,7 @@ function fetchIOUReportByID(iouReportID, chatReportID, shouldRedirectIfEmpty = f
     return fetchIOUReport(iouReportID, chatReportID)
         .then((iouReportObject) => {
             if (!iouReportObject && shouldRedirectIfEmpty) {
-                Growl.error(translateLocal('notFound.iouReportNotFound'));
+                Growl.error(Localize.translateLocal('notFound.iouReportNotFound'));
                 Navigation.navigate(ROUTES.REPORT);
                 return;
             }
@@ -536,7 +538,7 @@ function updateReportActionMessage(reportID, sequenceNumber, message) {
     // If this is the most recent message, update the lastMessageText in the report object as well
     if (sequenceNumber === reportMaxSequenceNumbers[reportID]) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-            lastMessageText: message.text || `[${translateLocal('common.deletedCommentMessage')}]`,
+            lastMessageText: message.text || `[${Localize.translateLocal('common.deletedCommentMessage')}]`,
         });
     }
 }
@@ -573,7 +575,8 @@ function updateReportWithNewAction(
         reportID,
 
         // Use updated lastReadSequenceNumber, value may have been modified by setLocalLastRead
-        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0),
+        // Here deletedComments count does not include the new action being added. We can safely assume that newly received action is not deleted.
+        unreadActionCount: newMaxSequenceNumber - (lastReadSequenceNumbers[reportID] || 0) - ReportActions.getDeletedCommentsCount(reportID, lastReadSequenceNumbers[reportID] || 0),
         maxSequenceNumber: reportAction.sequenceNumber,
     };
 
@@ -597,7 +600,7 @@ function updateReportWithNewAction(
     // Add the action into Onyx
     reportActionsToMerge[reportAction.sequenceNumber] = {
         ...reportAction,
-        isAttachment: isReportMessageAttachment(messageText),
+        isAttachment: ReportUtils.isReportMessageAttachment(messageText),
         loading: false,
     };
 
@@ -968,7 +971,7 @@ function fetchAllReports(
 
             // If at this point the user still doesn't have a Concierge report, create it for them.
             // This means they were a participant in reports before their account was created (e.g. default rooms)
-            const hasConciergeChat = _.some(returnedReports, report => isConciergeChatReport(report));
+            const hasConciergeChat = _.some(returnedReports, report => ReportUtils.isConciergeChatReport(report));
             if (!hasConciergeChat) {
                 fetchOrCreateChatReport([currentUserEmail, CONST.EMAIL.CONCIERGE], false);
             }
@@ -993,7 +996,7 @@ function fetchAllReports(
                 // Once we have the reports that are missing actions we will find the intersection between the most
                 // recently accessed reports and reports missing actions. Then we'll fetch the history for a small
                 // set to avoid making too many network requests at once.
-                const reportIDsToFetchActions = _.chain(sortReportsByLastVisited(allReports))
+                const reportIDsToFetchActions = _.chain(ReportUtils.sortReportsByLastVisited(allReports))
                     .map(report => report.reportID)
                     .reverse()
                     .intersection(reportIDsWithMissingActions)
@@ -1115,7 +1118,7 @@ function addAction(reportID, text, file) {
     })
         .then((response) => {
             if (response.jsonCode === 408) {
-                Growl.error(translateLocal('reportActionCompose.fileUploadFailed'));
+                Growl.error(Localize.translateLocal('reportActionCompose.fileUploadFailed'));
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
                     [optimisticReportActionID]: null,
                 });
@@ -1290,7 +1293,7 @@ function handleReportChanged(report) {
     if (report && report.reportID) {
         allReports[report.reportID] = report;
 
-        if (isConciergeChatReport(report)) {
+        if (ReportUtils.isConciergeChatReport(report)) {
             conciergeChatReportID = report.reportID;
         }
     }
@@ -1443,7 +1446,7 @@ function navigateToConciergeChat() {
  * Handle the navigation when report is inaccessible
  */
 function handleInaccessibleReport() {
-    Growl.error(translateLocal('notFound.chatYouLookingForCannotBeFound'));
+    Growl.error(Localize.translateLocal('notFound.chatYouLookingForCannotBeFound'));
     navigateToConciergeChat();
 }
 

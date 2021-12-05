@@ -5,9 +5,10 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import themeColors from '../styles/themes/default';
 import OpacityView from './OpacityView';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
+import CONST from '../CONST';
 
 const propTypes = {
     /** The text for the button label */
@@ -77,7 +78,7 @@ const defaultProps = {
     shouldRemoveLeftBorderRadius: false,
 };
 
-class Button extends Component {
+class ExpensifyButton extends Component {
     constructor(props) {
         super(props);
         this.additionalStyles = _.isArray(this.props.style) ? this.props.style : [this.props.style];
@@ -90,14 +91,15 @@ class Button extends Component {
             return;
         }
 
+        const shortcutConfig = CONST.KEYBOARD_SHORTCUTS.ENTER;
+
         // Setup and attach keypress handler for pressing the button with Enter key
-        this.unsubscribe = KeyboardShortcut.subscribe('Enter', () => {
+        this.unsubscribe = KeyboardShortcut.subscribe(shortcutConfig.shortcutKey, () => {
             if (this.props.isDisabled || this.props.isLoading) {
                 return;
             }
-
             this.props.onPress();
-        }, [], true);
+        }, shortcutConfig.descriptionKey, shortcutConfig.modifiers, true);
     }
 
     componentWillUnmount() {
@@ -119,7 +121,7 @@ class Button extends Component {
         }
 
         const textComponent = (
-            <Text
+            <ExpensifyText
                 selectable={false}
                 style={[
                     styles.buttonText,
@@ -131,7 +133,7 @@ class Button extends Component {
                 ]}
             >
                 {this.props.text}
-            </Text>
+            </ExpensifyText>
         );
 
         if (this.props.icon) {
@@ -188,7 +190,7 @@ class Button extends Component {
     }
 }
 
-Button.propTypes = propTypes;
-Button.defaultProps = defaultProps;
+ExpensifyButton.propTypes = propTypes;
+ExpensifyButton.defaultProps = defaultProps;
 
-export default Button;
+export default ExpensifyButton;

@@ -11,16 +11,16 @@ import Navigation from '../../libs/Navigation/Navigation';
 import styles from '../../styles/styles';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
-import {hideWorkspaceAlertMessage, invite, setWorkspaceErrors} from '../../libs/actions/Policy';
+import * as Policy from '../../libs/actions/Policy';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FormAlertWithSubmitButton from '../../components/FormAlertWithSubmitButton';
 import OptionsSelector from '../../components/OptionsSelector';
-import {getNewChatOptions, getHeaderMessage} from '../../libs/OptionsListUtils';
-import CONST, {EXPENSIFY_EMAILS} from '../../CONST';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
+import CONST from '../../CONST';
 import FullScreenLoadingIndicator from '../../components/FullscreenLoadingIndicator';
-import {openExternalLink} from '../../libs/actions/Link';
-import Text from '../../components/Text';
+import * as Link from '../../libs/actions/Link';
+import ExpensifyText from '../../components/ExpensifyText';
 import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const personalDetailsPropTypes = PropTypes.shape({
@@ -68,7 +68,7 @@ class WorkspaceInvitePage extends React.Component {
         const {
             personalDetails,
             userToInvite,
-        } = getNewChatOptions(
+        } = OptionsListUtils.getNewChatOptions(
             [],
             props.personalDetails,
             props.betas,
@@ -91,7 +91,7 @@ class WorkspaceInvitePage extends React.Component {
 
     getExcludedUsers() {
         const policyEmployeeList = lodashGet(this.props, 'policy.employeeList', []);
-        return [...EXPENSIFY_EMAILS, ...policyEmployeeList];
+        return [...CONST.EXPENSIFY_EMAILS, ...policyEmployeeList];
     }
 
     /**
@@ -158,8 +158,8 @@ class WorkspaceInvitePage extends React.Component {
     }
 
     clearErrors() {
-        setWorkspaceErrors(this.props.route.params.policyID, {});
-        hideWorkspaceAlertMessage(this.props.route.params.policyID);
+        Policy.setWorkspaceErrors(this.props.route.params.policyID, {});
+        Policy.hideWorkspaceAlertMessage(this.props.route.params.policyID);
     }
 
     /**
@@ -187,7 +187,7 @@ class WorkspaceInvitePage extends React.Component {
             const {
                 personalDetails,
                 userToInvite,
-            } = getNewChatOptions(
+            } = OptionsListUtils.getNewChatOptions(
                 [],
                 this.props.personalDetails,
                 this.props.betas,
@@ -214,7 +214,7 @@ class WorkspaceInvitePage extends React.Component {
         }
 
         const logins = _.map(this.state.selectedOptions, option => option.login);
-        invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
+        Policy.invite(logins, this.state.welcomeNote || this.getWelcomeNotePlaceholder(), this.props.route.params.policyID);
     }
 
     /**
@@ -226,13 +226,13 @@ class WorkspaceInvitePage extends React.Component {
             errors.noUserSelected = true;
         }
 
-        setWorkspaceErrors(this.props.route.params.policyID, errors);
+        Policy.setWorkspaceErrors(this.props.route.params.policyID, errors);
         return _.size(errors) <= 0;
     }
 
     render() {
         const sections = this.getSections();
-        const headerMessage = getHeaderMessage(
+        const headerMessage = OptionsListUtils.getHeaderMessage(
             this.state.personalDetails.length !== 0,
             Boolean(this.state.userToInvite),
             this.state.searchValue,
@@ -263,7 +263,7 @@ class WorkspaceInvitePage extends React.Component {
                                         const {
                                             personalDetails,
                                             userToInvite,
-                                        } = getNewChatOptions(
+                                        } = OptionsListUtils.getNewChatOptions(
                                             [],
                                             this.props.personalDetails,
                                             this.props.betas,
@@ -312,7 +312,7 @@ class WorkspaceInvitePage extends React.Component {
                             <Pressable
                                 onPress={(e) => {
                                     e.preventDefault();
-                                    openExternalLink(CONST.PRIVACY_URL);
+                                    Link.openExternalLink(CONST.PRIVACY_URL);
                                 }}
                                 accessibilityRole="link"
                                 href={CONST.PRIVACY_URL}
@@ -320,11 +320,11 @@ class WorkspaceInvitePage extends React.Component {
                             >
                                 {({hovered, pressed}) => (
                                     <View style={[styles.flexRow]}>
-                                        <Text
+                                        <ExpensifyText
                                             style={[styles.mr1, styles.label, (hovered || pressed) ? styles.linkHovered : styles.link]}
                                         >
                                             {this.props.translate('common.privacyPolicy')}
-                                        </Text>
+                                        </ExpensifyText>
                                     </View>
                                 )}
                             </Pressable>

@@ -1,11 +1,12 @@
 import React from 'react';
-import {KeyboardAvoidingView, ScrollView, View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withSafeAreaInsets} from 'react-native-safe-area-context';
 import SVGImage from '../../../components/SVGImage';
-import styles, {getBackgroundColorStyle, getLoginPagePromoStyle, getModalPaddingStyles} from '../../../styles/styles';
+import styles from '../../../styles/styles';
+import * as StyleUtils from '../../../styles/StyleUtils';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
@@ -32,7 +33,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const backgroundStyle = getLoginPagePromoStyle();
+const backgroundStyle = StyleUtils.getLoginPagePromoStyle();
 
 const SignInPageLayoutWide = props => (
     <View style={[styles.flex1, styles.signInPageInner]}>
@@ -53,7 +54,7 @@ const SignInPageLayoutWide = props => (
                         contentContainerStyle={[
                             styles.signInPageWideLeftContentMargin,
                             styles.mb3,
-                            getModalPaddingStyles({
+                            styles.getModalPaddingStyles({
                                 shouldAddBottomSafeAreaPadding: true,
                                 modalContainerStylePaddingBottom: 20,
                                 safeAreaPaddingBottom: props.insets.bottom,
@@ -67,9 +68,9 @@ const SignInPageLayoutWide = props => (
                             />
                         </View>
                         {props.shouldShowWelcomeText && (
-                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                            <ExpensifyText style={[styles.mv5, styles.textLabel, styles.h3]}>
                                 {props.welcomeText}
-                            </Text>
+                            </ExpensifyText>
                         )}
                         {props.children}
                     </LoginKeyboardAvoidingView>
@@ -80,7 +81,7 @@ const SignInPageLayoutWide = props => (
             </ScrollView>
             <View style={[
                 styles.flexGrow1,
-                getBackgroundColorStyle(backgroundStyle.backgroundColor),
+                StyleUtils.getBackgroundColorStyle(backgroundStyle.backgroundColor),
                 props.isMediumScreenWidth && styles.alignItemsCenter,
             ]}
             >

@@ -1,6 +1,9 @@
 import _ from 'underscore';
-import {CommonActions, StackActions, DrawerActions} from '@react-navigation/native';
+import {
+    CommonActions, StackActions, DrawerActions, getStateFromPath,
+} from '@react-navigation/native';
 import lodashGet from 'lodash/get';
+import linkingConfig from './linkingConfig';
 
 /**
  * Go back to the Main Drawer
@@ -48,34 +51,41 @@ function navigateBackToRootDrawer(navigationRef) {
  *
  * @param {String} screenName
  * @param {Object} params
+ * @param {String} path
  * @param {Object} navigationRef
  * @returns {Function}
  */
-function pushDrawerRoute(screenName, params, navigationRef) {
-    return (state) => {
+function pushDrawerRoute(screenName, params, path, navigationRef) {
+    return (currentState) => {
+        let state = currentState;
+
         // Avoid the navigation and refocus the report if we're trying to navigate to our active report
         // We use our RootState as the dispatch's state is relative to the active navigator and might
         // not contain our active report.
         const rootState = navigationRef.current.getRootState();
         const activeReportID = lodashGet(rootState, 'routes[0].state.routes[0].params.reportID', '');
-
+        if (state.type !== 'drawer') {
+            navigateBackToRootDrawer(navigationRef);
+        }
         if (activeReportID === params.reportID) {
-            if (state.type !== 'drawer') {
-                navigateBackToRootDrawer(navigationRef);
-            }
             return DrawerActions.closeDrawer();
         }
 
-        // Non Drawer navigators have routes and not history so we'll fallback to navigate() in the case where we are
-        // unable to push a new screen onto the history stack e.g. navigating to a ReportScreen via a modal screen.
-        // Note: One downside of this is that the history will be reset.
+        // When navigating from non Drawer navigator, get new state for the report and reset the navigation state.
         if (state.type !== 'drawer') {
-            return CommonActions.navigate(screenName, params);
+            state = linkingConfig.getStateFromPath
+                ? linkingConfig.getStateFromPath(path, linkingConfig.config)
+                : getStateFromPath(path, linkingConfig.config);
         }
 
         const screenRoute = {type: 'route', name: screenName};
-        const history = _.map([...(state.history || [])], () => screenRoute);
-        history.push(screenRoute);
+        const history = _.map([...(state.history || [screenRoute])], () => screenRoute);
+
+        // Force drawer to close and show the report screen
+        history.push({
+            type: 'drawer',
+            status: 'closed',
+        });
         return CommonActions.reset({
             ...state,
             routes: [{

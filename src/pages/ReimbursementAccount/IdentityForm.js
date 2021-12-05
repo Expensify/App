@@ -9,7 +9,7 @@ import CONST from '../../CONST';
 import DatePicker from '../../components/DatePicker';
 import TextLink from '../../components/TextLink';
 import StatePicker from '../../components/StatePicker';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 
 
 const propTypes = {
@@ -103,7 +103,6 @@ const IdentityForm = (props) => {
                         value={props.values.firstName}
                         onChangeText={value => props.onFieldChange('firstName', value)}
                         errorText={props.errors.firstName ? props.translate('bankAccount.error.firstName') : ''}
-                        translateX={-10}
                     />
                 </View>
                 <View style={[styles.flex2]}>
@@ -112,7 +111,6 @@ const IdentityForm = (props) => {
                         value={props.values.lastName}
                         onChangeText={value => props.onFieldChange('lastName', value)}
                         errorText={props.errors.lastName ? props.translate('bankAccount.error.lastName') : ''}
-                        translateX={-10}
                     />
                 </View>
             </View>
@@ -142,7 +140,7 @@ const IdentityForm = (props) => {
                         onChangeText={value => props.onFieldChange('addressStreet', value)}
                         errorText={props.errors.street ? props.translate('bankAccount.error.address') : ''}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</Text>
+                    <ExpensifyText style={[styles.mutedTextLabel, styles.mt1]}>{props.translate('common.noPO')}</ExpensifyText>
                     <View style={[styles.flexRow, styles.mt4]}>
                         <View style={[styles.flex2, styles.mr2]}>
                             <ExpensiTextInput
@@ -150,7 +148,6 @@ const IdentityForm = (props) => {
                                 value={props.values.city}
                                 onChangeText={value => props.onFieldChange('addressCity', value)}
                                 errorText={props.errors.city ? props.translate('bankAccount.error.addressCity') : ''}
-                                translateX={-14}
                             />
                         </View>
                         <View style={[styles.flex1]}>

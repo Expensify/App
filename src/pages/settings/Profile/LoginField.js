@@ -1,17 +1,17 @@
 import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import styles from '../../../styles/styles';
 import colors from '../../../styles/colors';
-import {Plus, Checkmark} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import Icon from '../../../components/Icon';
 import ROUTES from '../../../ROUTES';
 import CONST from '../../../CONST';
 import Navigation from '../../../libs/Navigation/Navigation';
-import {resendValidateCode} from '../../../libs/actions/User';
+import * as User from '../../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Button from '../../../components/Button';
+import ExpensifyButton from '../../../components/ExpensifyButton';
 import MenuItem from '../../../components/MenuItem';
 
 const propTypes = {
@@ -47,7 +47,7 @@ class LoginField extends Component {
      * Resend validation code and show the checkmark icon
      */
     onResendClicked() {
-        resendValidateCode(this.props.login.partnerUserID);
+        User.resendValidateCode(this.props.login.partnerUserID);
         this.setState({showCheckmarkIcon: true});
 
         // Revert checkmark back to "Resend" after 5 seconds
@@ -86,42 +86,42 @@ class LoginField extends Component {
 
         return (
             <View style={styles.mb6}>
-                <Text style={styles.formLabel}>{this.props.label}</Text>
+                <ExpensifyText style={styles.formLabel}>{this.props.label}</ExpensifyText>
                 {!this.props.login.partnerUserID ? (
                     <View style={[styles.mln5, styles.mrn5]}>
                         <MenuItem
                             key={`common.add.${this.props.type}`}
                             title={`${this.props.translate('common.add')} ${this.props.label}`}
-                            icon={Plus}
+                            icon={Expensicons.Plus}
                             onPress={() => Navigation.navigate(ROUTES.getSettingsAddLoginRoute(this.props.type))}
                         />
                     </View>
                 ) : (
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                        <Text numberOfLines={1}>
+                        <ExpensifyText numberOfLines={1}>
                             {this.props.type === CONST.LOGIN_TYPE.PHONE
                                 ? this.props.toLocalPhone(this.props.login.partnerUserID)
                                 : this.props.login.partnerUserID}
-                        </Text>
+                        </ExpensifyText>
                         {!this.props.login.validatedDate && (
-                            <Button
+                            <ExpensifyButton
                                 style={[styles.mb2]}
                                 onPress={this.onResendClicked}
                                 ContentComponent={() => (this.state.showCheckmarkIcon ? (
-                                    <Icon fill={colors.black} src={Checkmark} />
+                                    <Icon fill={colors.black} src={Expensicons.Checkmark} />
                                 ) : (
-                                    <Text style={styles.createMenuText}>
+                                    <ExpensifyText style={styles.createMenuText}>
                                         {this.props.translate('common.resend')}
-                                    </Text>
+                                    </ExpensifyText>
                                 ))}
                             />
                         )}
                     </View>
                 )}
                 {note && (
-                    <Text style={[styles.textLabel, styles.colorMuted]}>
+                    <ExpensifyText style={[styles.textLabel, styles.colorMuted]}>
                         {note}
-                    </Text>
+                    </ExpensifyText>
                 )}
             </View>
         );

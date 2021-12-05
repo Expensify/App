@@ -4,7 +4,7 @@ import * as API from '../../src/libs/API';
 import HttpUtils from '../../src/libs/HttpUtils';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import {signInWithTestUser} from '../utils/TestHelper';
+import * as TestHelper from '../utils/TestHelper';
 
 // We are mocking this method so that we can later test to see if it was called and what arguments it was called with.
 // We test HttpUtils.xhr() since this means that our API command turned into a network request and isn't only queued.
@@ -37,7 +37,7 @@ test('Authenticate is called with saved credentials when a session expires', () 
     });
 
     // When we sign in with the test user
-    return signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
+    return TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN, 'Password1', TEST_INITIAL_AUTH_TOKEN)
         .then(() => {
             // Then our re-authentication credentials should be generated and our session data
             // have the correct information + initial authToken.

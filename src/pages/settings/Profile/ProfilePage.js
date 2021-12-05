@@ -9,21 +9,16 @@ import _ from 'underscore';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
-import {
-    getFirstAndLastNameErrors,
-    setPersonalDetails,
-    setAvatar,
-    deleteAvatar,
-} from '../../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../../libs/actions/PersonalDetails';
 import ROUTES from '../../../ROUTES';
 import ONYXKEYS from '../../../ONYXKEYS';
 import CONST from '../../../CONST';
 import styles from '../../../styles/styles';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import LoginField from './LoginField';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
-import Button from '../../../components/Button';
+import ExpensifyButton from '../../../components/ExpensifyButton';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import FixedFooter from '../../../components/FixedFooter';
 import ExpensiTextInput from '../../../components/ExpensiTextInput';
@@ -152,7 +147,7 @@ class ProfilePage extends Component {
             return;
         }
 
-        setPersonalDetails({
+        PersonalDetails.setPersonalDetails({
             firstName: this.state.firstName.trim(),
             lastName: this.state.lastName.trim(),
             pronouns: this.state.pronouns.trim(),
@@ -164,7 +159,7 @@ class ProfilePage extends Component {
     }
 
     validateInputs() {
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
@@ -204,16 +199,16 @@ class ProfilePage extends Component {
                         <AvatarWithImagePicker
                             isUploading={this.props.myPersonalDetails.avatarUploading}
                             avatarURL={this.props.myPersonalDetails.avatar}
-                            onImageSelected={setAvatar}
-                            onImageRemoved={() => deleteAvatar(this.props.myPersonalDetails.login)}
+                            onImageSelected={PersonalDetails.setAvatar}
+                            onImageRemoved={() => PersonalDetails.deleteAvatar(this.props.myPersonalDetails.login)}
                             // eslint-disable-next-line max-len
                             isUsingDefaultAvatar={this.props.myPersonalDetails.avatar.includes('/images/avatars/avatar')}
                             anchorPosition={styles.createMenuPositionProfile}
                             size={CONST.AVATAR_SIZE.LARGE}
                         />
-                        <Text style={[styles.mt6, styles.mb6]}>
+                        <ExpensifyText style={[styles.mt6, styles.mb6]}>
                             {this.props.translate('profilePage.tellUsAboutYourself')}
-                        </Text>
+                        </ExpensifyText>
                         <FullNameInputRow
                             firstName={this.state.firstName}
                             firstNameError={this.state.firstNameError}
@@ -276,7 +271,7 @@ class ProfilePage extends Component {
                         />
                     </ScrollView>
                     <FixedFooter>
-                        <Button
+                        <ExpensifyButton
                             success
                             isDisabled={isButtonDisabled}
                             onPress={this.updatePersonalDetails}

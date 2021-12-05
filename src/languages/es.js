@@ -39,6 +39,7 @@ export default {
         recents: 'Recientes',
         close: 'Cerrar',
         download: 'Descargar',
+        downloading: 'Descargando',
         pin: 'Fijar',
         unPin: 'Desfijar',
         back: 'Volver',
@@ -85,6 +86,7 @@ export default {
         confirm: 'Confirmar',
         reset: 'Restablecer',
         done: 'Listo',
+        more: 'Más',
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
     },
@@ -286,6 +288,12 @@ export default {
         newPassword: 'Nueva contraseña',
         newPasswordPrompt: 'La nueva contraseña debe ser diferente de la antigua, tener al menos 8 caracteres,\n1 letra mayúscula, 1 letra minúscula y 1 número.',
         confirmNewPassword: 'Confirma la nueva contraseña',
+        errors: {
+            currentPassword: 'Contraseña actual es requerido',
+            confirmNewPassword: 'Confirma la nueva contraseña es requerido',
+            newPasswordSameAsOld: 'La nueva contraseña tiene que ser diferente de la antigua',
+            newPassword: 'Su contraseña debe tener al menos 8 caracteres, \n1 letra mayúscula, 1 letra minúscula y 1 número.',
+        },
     },
     addPayPalMePage: {
         enterYourUsernameToGetPaidViaPayPal: 'Escribe tu nombre de usuario para que otros puedan pagarte a través de PayPal.',
@@ -651,6 +659,8 @@ export default {
         common: {
             card: 'Emitir tarjetas corporativas',
             workspace: 'Espacio de trabajo',
+            edit: 'Editar espacio de trabajo',
+            delete: 'Eliminar espacio de trabajo',
             settings: 'Configuración general',
             reimburse: 'Reembolsar recibos',
             bills: 'Pagar facturas',
@@ -658,9 +668,12 @@ export default {
             travel: 'Reservar viaje',
             members: 'Gestionar miembros',
             bankAccount: 'Conectar cuenta bancaria',
+            testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
             growlMessageOnSave: '¡La configuración del espacio de trabajo se ha guardado correctamente!',
+            growlMessageOnDelete: 'Espacio de trabajo eliminado',
+            deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
         },
         new: {
             newWorkspace: 'Nuevo espacio de trabajo',
@@ -779,5 +792,15 @@ export default {
     },
     emojiPicker: {
         skinTonePickerLabel: 'Elige el tono de piel por defecto',
+    },
+    keyboardShortcutModal: {
+        title: 'Atajos de teclado',
+        subtitle: 'Ahorra tiempo con estos atajos de teclado:',
+        shortcuts: {
+            openShortcutDialog: 'Abre el cuadro de diálogo de métodos abreviados de teclado',
+            escape: 'Diálogos de escape',
+            search: 'Abrir diálogo de búsqueda',
+            newGroup: 'Nueva pantalla de grupo',
+        },
     },
 };
