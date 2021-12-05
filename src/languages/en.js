@@ -449,7 +449,7 @@ export default {
         newPasswordPrompt: 'Your password must have at least 8 characters, 1 capital letter, 1 lowercase letter, and 1 number.',
         passwordFormTitle: 'Welcome back to the New Expensify! Please set your password.',
         passwordNotSet: 'We were unable to set your new password correctly.',
-        accountNotValidated: 'We were unable to validate your account. The validation code may have expired.',
+        accountNotValidated: 'This set password link is invalid or has expired. A new one is waiting for you in your email inbox!',
     },
     stepCounter: ({step, total}) => `Step ${step} of ${total}`,
     bankAccount: {

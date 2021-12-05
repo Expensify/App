@@ -97,29 +97,28 @@ class SetPasswordPage extends Component {
                     shouldShowWelcomeText
                     welcomeText={this.props.translate('setPasswordPage.passwordFormTitle')}
                 >
-                    <View style={[styles.mb4]}>
-                        <NewPasswordForm
-                            password={this.state.password}
-                            updatePassword={password => this.setState({password})}
-                            updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
-                            onSubmitEditing={this.validateAndSubmitForm}
-                        />
-                    </View>
-                    <View>
-                        <Button
-                            success
-                            style={[styles.mb2]}
-                            text={this.props.translate('setPasswordPage.setPassword')}
-                            isLoading={this.props.account.loading}
-                            onPress={this.validateAndSubmitForm}
-                            isDisabled={!this.state.isFormValid}
-                        />
-                    </View>
-                    {!_.isEmpty(error) && (
-                        <Text style={[styles.formError]}>
-                            {error}
-                        </Text>
-                    )}
+                    {_.isEmpty(error) ? (
+                        <>
+                            <View style={[styles.mb4]}>
+                                <NewPasswordForm
+                                    password={this.state.password}
+                                    updatePassword={password => this.setState({password})}
+                                    updateIsFormValid={isValid => this.setState({isFormValid: isValid})}
+                                    onSubmitEditing={this.validateAndSubmitForm}
+                                />
+                            </View>
+                            <View>
+                                <Button
+                                    success
+                                    style={[styles.mb2]}
+                                    text={this.props.translate('setPasswordPage.setPassword')}
+                                    isLoading={this.props.account.loading}
+                                    onPress={this.validateAndSubmitForm}
+                                    isDisabled={!this.state.isFormValid}
+                                />
+                            </View>
+                        </>
+                    ) : <ExpensifyText>{error}</ExpensifyText>}
                 </SignInPageLayout>
             </SafeAreaView>
         );
