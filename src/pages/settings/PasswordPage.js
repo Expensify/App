@@ -236,7 +236,6 @@ class PasswordPage extends Component {
                     <FixedFooter style={[styles.flexGrow0]}>
                         <ExpensifyButton
                             success
-                            style={[styles.mb2]}
                             isLoading={this.props.account.loading}
                             text={this.props.translate('common.save')}
                             onPress={this.submit}
