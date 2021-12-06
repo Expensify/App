@@ -86,10 +86,9 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
-        const newZoomScale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
         this.setState(prevState => ({
             imgWidth: width,
-            zoomScale: prevState.zoomScale === 0 ? newZoomScale : prevState.zoomScale,
+            zoomScale: Math.min(prevState.containerWidth / width, prevState.containerHeight / height),
             imgHeight: height,
             imageLeft: imgLeft,
             imageTop: imgTop,
