@@ -52,9 +52,11 @@ class ImageView extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.windowWidth !== this.props.windowWidth || prevProps.windowHeight !== this.props.windowHeight) {
-            this.setImageRegion(this.imageWidth, this.imageHeight);
+        if (prevProps.widthWidth === this.props.windowWidth && prevProps.windowHeight === this.props.windowHeight) {
+            return;
         }
+
+        this.setImageRegion(this.imageWidth, this.imageHeight);
     }
 
     componentWillUnmount() {
