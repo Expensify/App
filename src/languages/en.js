@@ -405,7 +405,7 @@ export default {
         linkHasBeenResent: 'Link has been re-sent',
         weSentYouMagicSignInLink: ({login}) => `We've sent a magic sign in link to ${login}. Check your Inbox and your Spam folder and wait 5-10 minutes before trying again.`,
         resendLink: 'Resend link',
-        validationCodeFailedMessage: 'It looks like there was an error with your validation link. Either the validation link has expired, or your account does not exist.',
+        validationCodeFailedMessage: 'It looks like there was an error with your validation link or it has expired.',
         unvalidatedAccount: 'This account exists but isn\'t validated, please check your inbox for your magic link.',
         newAccount: ({login, loginType}) => `Welcome ${login}, it's always great to see a new face around here! Please check your ${loginType} for a magic link to validate your account.`,
     },

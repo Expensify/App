@@ -318,7 +318,9 @@ function setPassword(password, validateCode, accountID) {
             }
 
             const login = lodashGet(response, 'data.email', null);
-            Onyx.merge(ONYXKEYS.ACCOUNT, {validated: false, validateCodeExpired: true, error: Localize.translateLocal('setPasswordPage.accountNotValidated')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {
+                validated: true, accountExists: true, validateCodeExpired: true, error: Localize.translateLocal('setPasswordPage.accountNotValidated'),
+            });
             if (login) {
                 Onyx.merge(ONYXKEYS.CREDENTIALS, {login});
             }
