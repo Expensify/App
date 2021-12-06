@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -33,7 +33,7 @@ const WorkspaceTravelNoVBAView = props => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{props.translate('workspace.travel.noVBACopy')}</Text>
+                <ExpensifyText>{props.translate('workspace.travel.noVBACopy')}</ExpensifyText>
             </View>
         </WorkspaceSection>
     </>

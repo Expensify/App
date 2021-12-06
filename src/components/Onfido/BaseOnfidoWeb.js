@@ -93,14 +93,6 @@ class Onfido extends React.Component {
         });
     }
 
-    componentWillUnmount() {
-        if (!this.onfidoOut) {
-            return;
-        }
-
-        this.onfidoOut.tearDown();
-    }
-
     render() {
         return (
             <div id={CONST.ONFIDO.CONTAINER_ID} />

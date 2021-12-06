@@ -3,7 +3,7 @@ import {Pressable, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 
 const propTypes = {
     /** Is Success type */
@@ -48,12 +48,12 @@ const Badge = (props) => {
             style={props.pressable ? wrapperStyles : wrapperStyles(false)}
             onPress={props.onPress}
         >
-            <Text
+            <ExpensifyText
                 style={[styles.badgeText, textStyles]}
                 numberOfLines={1}
             >
                 {props.text}
-            </Text>
+            </ExpensifyText>
         </Wrapper>
     );
 };

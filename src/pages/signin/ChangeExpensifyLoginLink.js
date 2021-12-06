@@ -3,7 +3,7 @@ import {TouchableOpacity, View} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import Str from 'expensify-common/lib/str';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import themeColors from '../../styles/themes/default';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -16,35 +16,42 @@ const propTypes = {
     credentials: PropTypes.shape({
         /** The email the user logged in with */
         login: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    credentials: {
+        login: '',
+    },
+};
+
 const ChangeExpensifyLoginLink = props => (
     <View style={[styles.changeExpensifyLoginLinkContainer, styles.mt3]}>
-        <Text>
+        <ExpensifyText>
             {props.translate('common.not')}
             &nbsp;
             {Str.isSMSLogin(props.credentials.login)
                 ? props.toLocalPhone(Str.removeSMSDomain(props.credentials.login))
                 : Str.removeSMSDomain(props.credentials.login)}
             {'? '}
-        </Text>
+        </ExpensifyText>
         <TouchableOpacity
             style={[styles.link]}
             onPress={Session.clearSignInData}
             underlayColor={themeColors.componentBG}
         >
-            <Text style={[styles.link]}>
+            <ExpensifyText style={[styles.link]}>
                 {props.translate('common.goBack')}
                 {'.'}
-            </Text>
+            </ExpensifyText>
         </TouchableOpacity>
     </View>
 );
 
 ChangeExpensifyLoginLink.propTypes = propTypes;
+ChangeExpensifyLoginLink.defaultProps = defaultProps;
 ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
 export default compose(

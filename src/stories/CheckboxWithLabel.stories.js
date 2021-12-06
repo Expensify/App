@@ -1,6 +1,6 @@
 import React from 'react';
 import CheckboxWithLabel from '../components/CheckboxWithLabel';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 import styles from '../styles/styles';
 
 /**
@@ -32,9 +32,9 @@ WithLabelComponent.args = {
     onPress: () => {},
     LabelComponent: () => (
         <>
-            <Text style={[styles.textLarge]}>Test</Text>
-            <Text style={[styles.textMicroBold]}> Test </Text>
-            <Text style={[styles.textMicroSupporting]}>Test</Text>
+            <ExpensifyText style={[styles.textLarge]}>Test</ExpensifyText>
+            <ExpensifyText style={[styles.textMicroBold]}> Test </ExpensifyText>
+            <ExpensifyText style={[styles.textMicroSupporting]}>Test</ExpensifyText>
         </>
     ),
 };
