@@ -99,7 +99,7 @@ const PreferencesPage = (props) => {
                         <LocalePicker />
                     </View>
 
-                    {/* If we are in the staging environment then we have the option to switch from using the staging secure endpoint or the production secure endpoint. This enables QA */}
+                    {/* If we are in the staging environment then we have the option to switch from using the staging secure endpoint or the production secure endpoint.This enables QA */}
                     {/* and internal testers to take advantage of sandbox environments for 3rd party services like Plaid and Onfido */}
                     {props.environment === CONST.ENVIRONMENT.STAGING && (
                         <>
