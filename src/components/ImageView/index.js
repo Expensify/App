@@ -44,9 +44,17 @@ class ImageView extends PureComponent {
             return;
         }
         Image.getSize(this.props.url, (width, height) => {
-            this.setImageRegion(width, height);
+            this.imageWidth = width;
+            this.imageHeight = height;
+            this.setImageRegion(this.imageWidth, this.imageHeight);
         });
         document.addEventListener('mousemove', this.trackMovement.bind(this));
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.windowWidth !== this.props.windowWidth || prevProps.windowHeight !== this.props.windowHeight) {
+            this.setImageRegion(this.imageWidth, this.imageHeight);
+        }
     }
 
     componentWillUnmount() {
@@ -59,8 +67,8 @@ class ImageView extends PureComponent {
 
     /**
      * When open image, set image left/right/top/bottom point and width, height
-     * @param {Boolean} width image width
-     * @param {Boolean} height image height
+     * @param {Number} width image width
+     * @param {Number} height image height
      */
     setImageRegion(width, height) {
         let imgLeft = (this.props.windowWidth - width) / 2;
@@ -99,8 +107,8 @@ class ImageView extends PureComponent {
 
     /**
      * Convert touch point to zoomed point
-     * @param {Boolean} x x point when click zoom
-     * @param {Boolean} y y point when click zoom
+     * @param {Number} x x point when click zoom
+     * @param {Number} y y point when click zoom
      * @returns {Object} converted touch point
      */
     getScrollOffset(x, y) {
