@@ -1,5 +1,5 @@
 import lodashGet from 'lodash/get';
-import {addTrailingForwardSlash} from './libs/Url';
+import * as Url from './libs/Url';
 
 /**
  * This is a file containing constants for all of the routes we want to be able to go to
@@ -15,7 +15,8 @@ const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 
 export default {
-    BANK_ACCOUNT: 'bank-account/:stepToOpen?',
+    BANK_ACCOUNT: 'bank-account',
+    BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
     HOME: '',
@@ -102,7 +103,7 @@ export default {
      * @returns {Object}
      */
     parseReportRouteParams: (route) => {
-        if (!route.startsWith(addTrailingForwardSlash(REPORT))) {
+        if (!route.startsWith(Url.addTrailingForwardSlash(REPORT))) {
             return {};
         }
 

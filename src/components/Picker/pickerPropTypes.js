@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Icon from '../Icon';
 import styles from '../../styles/styles';
-import {DownArrow} from '../Icon/Expensicons';
+import * as Expensicons from '../Icon/Expensicons';
 
 const propTypes = {
     /** A callback method that is called when the value changes and it received the selected value as an argument */
@@ -53,12 +53,12 @@ const defaultProps = {
                     <Icon
                         width={styles.pickerSmall.icon.width}
                         height={styles.pickerSmall.icon.height}
-                        src={DownArrow}
+                        src={Expensicons.DownArrow}
                     />
                 )
                 : (
                     <Icon
-                        src={DownArrow}
+                        src={Expensicons.DownArrow}
                     />
                 )}
         </>

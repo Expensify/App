@@ -12,14 +12,14 @@ import Text from '../../components/Text';
 import styles from '../../styles/styles';
 import ONYXKEYS from '../../ONYXKEYS';
 import Button from '../../components/Button';
-import {isValidPassword} from '../../libs/ValidationUtils';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as User from '../../libs/actions/User';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import {clearAccountMessages} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 
 const propTypes = {
     /* Onyx Props */
@@ -75,7 +75,7 @@ class PasswordPage extends Component {
     }
 
     componentWillUnmount() {
-        clearAccountMessages();
+        Session.clearAccountMessages();
     }
 
     /**
@@ -121,7 +121,7 @@ class PasswordPage extends Component {
             errors.currentPassword = true;
         }
 
-        if (!this.state.newPassword || !isValidPassword(this.state.newPassword)) {
+        if (!this.state.newPassword || !ValidationUtils.isValidPassword(this.state.newPassword)) {
             errors.newPassword = true;
         }
 
@@ -133,7 +133,7 @@ class PasswordPage extends Component {
             errors.newPasswordSameAsOld = true;
         }
 
-        if (isValidPassword(this.state.newPassword) && this.state.confirmNewPassword && !_.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
+        if (ValidationUtils.isValidPassword(this.state.newPassword) && this.state.confirmNewPassword && !_.isEqual(this.state.newPassword, this.state.confirmNewPassword)) {
             errors.confirmPasswordMatch = true;
         }
 

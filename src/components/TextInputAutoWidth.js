@@ -2,7 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import styles, {getAutoGrowTextInputStyle} from '../styles/styles';
+import styles from '../styles/styles';
+import * as StyleUtils from '../styles/StyleUtils';
 import Text from './Text';
 import TextInputFocusable from './TextInputFocusable';
 
@@ -45,7 +46,7 @@ class TextInputAutoWidth extends React.Component {
             <>
                 <View>
                     <TextInputFocusable
-                        style={[this.props.inputStyle, getAutoGrowTextInputStyle(this.state.textInputWidth)]}
+                        style={[this.props.inputStyle, StyleUtils.getAutoGrowTextInputStyle(this.state.textInputWidth)]}
                         ref={this.props.forwardedRef}
                         /* eslint-disable-next-line react/jsx-props-no-spreading */
                         {...propsWithoutStyles}

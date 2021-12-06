@@ -11,8 +11,8 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ButtonWithDropdown from '../../components/ButtonWithDropdown';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import {payIOUReport} from '../../libs/actions/IOU';
-import {fetchIOUReportByID} from '../../libs/actions/Report';
+import * as IOU from '../../libs/actions/IOU';
+import * as Report from '../../libs/actions/Report';
 import IOUPreview from '../../components/ReportActionItem/IOUPreview';
 import IOUTransactions from './IOUTransactions';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
@@ -22,10 +22,8 @@ import PopoverMenu from '../../components/PopoverMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
 import Button from '../../components/Button';
 import Permissions from '../../libs/Permissions';
-import {
-    Cash, PayPal, Venmo, Wallet,
-} from '../../components/Icon/Expensicons';
-import {isValidUSPhone} from '../../libs/ValidationUtils';
+import * as Expensicons from '../../components/Icon/Expensicons';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 
 const propTypes = {
     /** URL Route params */
@@ -108,7 +106,7 @@ class IOUDetailsModal extends Component {
 
     componentDidMount() {
         this.isComponentMounted = true;
-        fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, true);
+        Report.fetchIOUReportByID(this.props.route.params.iouReportID, this.props.route.params.chatReportID, true);
         this.addVenmoPaymentOptionIfAvailable();
         this.addExpensifyPaymentOptionIfAvailable();
     }
@@ -122,7 +120,7 @@ class IOUDetailsModal extends Component {
     }
 
     performIOUPayment() {
-        payIOUReport({
+        IOU.payIOUReport({
             chatReportID: this.props.route.params.chatReportID,
             reportID: this.props.route.params.iouReportID,
             paymentMethodType: this.state.paymentType,
@@ -151,7 +149,7 @@ class IOUDetailsModal extends Component {
             return;
         }
 
-        this.submitterPhoneNumber = _.find(submitterPhoneNumbers, isValidUSPhone);
+        this.submitterPhoneNumber = _.find(submitterPhoneNumbers, ValidationUtils.isValidUSPhone);
         if (!this.submitterPhoneNumber) {
             return;
         }
@@ -193,19 +191,19 @@ class IOUDetailsModal extends Component {
         const paymentTypeOptions = {
             [CONST.IOU.PAYMENT_TYPE.EXPENSIFY]: {
                 text: this.props.translate('iou.settleExpensify'),
-                icon: Wallet,
+                icon: Expensicons.Wallet,
             },
             [CONST.IOU.PAYMENT_TYPE.VENMO]: {
                 text: this.props.translate('iou.settleVenmo'),
-                icon: Venmo,
+                icon: Expensicons.Venmo,
             },
             [CONST.IOU.PAYMENT_TYPE.PAYPAL_ME]: {
                 text: this.props.translate('iou.settlePaypalMe'),
-                icon: PayPal,
+                icon: Expensicons.PayPal,
             },
             [CONST.IOU.PAYMENT_TYPE.ELSEWHERE]: {
                 text: this.props.translate('iou.settleElsewhere'),
-                icon: Cash,
+                icon: Expensicons.Cash,
             },
         };
         const selectedPaymentType = paymentTypeOptions[this.state.paymentType].text;
