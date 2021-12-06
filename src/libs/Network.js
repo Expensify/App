@@ -5,8 +5,7 @@ import HttpUtils from './HttpUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import * as ActiveClientManager from './ActiveClientManager';
 import CONST from '../CONST';
-// eslint-disable-next-line import/no-cycle
-import LogUtil from './Log';
+import createCallback from './createCallback';
 import * as NetworkRequestQueue from './actions/NetworkRequestQueue';
 
 let isReady = false;
@@ -20,10 +19,12 @@ let networkRequestQueue = [];
 // parameters such as authTokens or CSRF tokens, etc.
 let enhanceParameters;
 
-// These handlers must be registered in order to process the response or network errors returned from the queue.
-// The first argument passed will be the queuedRequest object and the second will be either the response or error.
-let onResponse = () => {};
-let onError = () => {};
+// These handlers must be registered so we can process the request, response, and errors returned from the queue.
+// The first argument passed will be the queuedRequest object and the second will be either the parameters, response, or error.
+const [onRequest, registerRequestHandler] = createCallback();
+const [onResponse, registerResponseHandler] = createCallback();
+const [onError, registerErrorHandler] = createCallback();
+const [onRequestSkipped, registerRequestSkippedHandler] = createCallback();
 
 let didLoadPersistedRequests;
 let isOffline;
@@ -120,7 +121,7 @@ function setIsReady(val) {
  */
 function canMakeRequest(request) {
     if (!isReady) {
-        LogUtil.hmmm('Trying to make a request when Network is not ready', {command: request.command, type: request.type});
+        onRequestSkipped({command: request.command, type: request.type});
         return false;
     }
 
@@ -221,6 +222,7 @@ function processNetworkRequestQueue() {
             ? enhanceParameters(queuedRequest.command, requestData)
             : requestData;
 
+        onRequest(queuedRequest, finalParameters);
         HttpUtils.xhr(queuedRequest.command, finalParameters, queuedRequest.type, queuedRequest.shouldUseSecure)
             .then(response => onResponse(queuedRequest, response))
             .catch(error => onError(queuedRequest, error));
@@ -323,23 +325,6 @@ function clearRequestQueue() {
     networkRequestQueue = [];
 }
 
-/**
- * Register a method to call when the authToken expires
- * @param {Function} callback
- */
-function registerResponseHandler(callback) {
-    onResponse = callback;
-}
-
-/**
- * The error handler will handle fetch() errors. Not used for successful responses that might send expected error codes
- * e.g. jsonCode: 407.
- * @param {Function} callback
- */
-function registerErrorHandler(callback) {
-    onError = callback;
-}
-
 export {
     post,
     pauseRequestQueue,
@@ -349,5 +334,7 @@ export {
     clearRequestQueue,
     registerResponseHandler,
     registerErrorHandler,
+    registerRequestHandler,
     setIsReady,
+    registerRequestSkippedHandler,
 };

@@ -4,7 +4,7 @@ import lodashGet from 'lodash/get';
 import Onyx from 'react-native-onyx';
 import moment from 'moment';
 import ONYXKEYS from '../ONYXKEYS';
-import CONST, {EXPENSIFY_EMAILS} from '../CONST';
+import CONST from '../CONST';
 
 let sessionEmail;
 Onyx.connect({
@@ -165,7 +165,7 @@ function isConciergeChatReport(report) {
  * @returns {Boolean}
  */
 function hasExpensifyEmails(emails) {
-    return _.intersection(emails, EXPENSIFY_EMAILS).length > 0;
+    return _.intersection(emails, CONST.EXPENSIFY_EMAILS).length > 0;
 }
 
 /**
@@ -175,7 +175,7 @@ function hasExpensifyEmails(emails) {
  * @param {Object} report
  * @return {Boolean}
  */
-function shouldShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
+function canShowReportRecipientLocalTime(personalDetails, myPersonalDetails, report) {
     const reportParticipants = lodashGet(report, 'participants', []);
     const hasMultipleParticipants = reportParticipants.length > 1;
     const reportRecipient = personalDetails[reportParticipants[0]];
@@ -202,5 +202,5 @@ export {
     isArchivedRoom,
     isConciergeChatReport,
     hasExpensifyEmails,
-    shouldShowReportRecipientLocalTime,
+    canShowReportRecipientLocalTime,
 };

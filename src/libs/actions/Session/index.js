@@ -1,26 +1,25 @@
-/* eslint-disable import/no-cycle */
 import Onyx from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import _ from 'underscore';
 import lodashGet from 'lodash/get';
-import ONYXKEYS from '../../ONYXKEYS';
-import redirectToSignIn from './SignInRedirect';
-import * as API from '../API';
-import CONFIG from '../../CONFIG';
-import Log from '../Log';
-import PushNotification from '../Notification/PushNotification';
-import Timing from './Timing';
-import CONST from '../../CONST';
-import Navigation from '../Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import {translateLocal} from '../translate';
-import * as Network from '../Network';
-import UnreadIndicatorUpdater from '../UnreadIndicatorUpdater';
-import Timers from '../Timers';
-import * as Pusher from '../Pusher/pusher';
-import NetworkConnection from '../NetworkConnection';
-import {getUserDetails} from './User';
-import {isNumericWithSpecialChars} from '../ValidationUtils';
+import ONYXKEYS from '../../../ONYXKEYS';
+import redirectToSignIn from '../SignInRedirect';
+import * as API from '../../API';
+import CONFIG from '../../../CONFIG';
+import Log from '../../Log';
+import PushNotification from '../../Notification/PushNotification';
+import Timing from '../Timing';
+import CONST from '../../../CONST';
+import Navigation from '../../Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import * as Localize from '../../Localize';
+import * as Network from '../../Network';
+import UnreadIndicatorUpdater from '../../UnreadIndicatorUpdater';
+import Timers from '../../Timers';
+import * as Pusher from '../../Pusher/pusher';
+import NetworkConnection from '../../NetworkConnection';
+import * as User from '../User';
+import * as ValidationUtils from '../../ValidationUtils';
 
 let credentials = {};
 Onyx.connect({
@@ -146,16 +145,16 @@ function fetchAccountDetails(login) {
                 }
             } else if (response.jsonCode === 402) {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {
-                    error: isNumericWithSpecialChars(login)
-                        ? translateLocal('messages.errorMessageInvalidPhone')
-                        : translateLocal('loginForm.error.invalidFormatEmailLogin'),
+                    error: ValidationUtils.isNumericWithSpecialChars(login)
+                        ? Localize.translateLocal('messages.errorMessageInvalidPhone')
+                        : Localize.translateLocal('loginForm.error.invalidFormatEmailLogin'),
                 });
             } else {
                 Onyx.merge(ONYXKEYS.ACCOUNT, {error: response.message});
             }
         })
         .catch(() => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('session.offlineMessageRetry')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('session.offlineMessageRetry')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -244,7 +243,7 @@ function signIn(password, twoFactorAuthCode) {
             createTemporaryLogin(authToken, email);
         })
         .catch((error) => {
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal(error.message), loading: false});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal(error.message), loading: false});
         });
 }
 
@@ -264,7 +263,7 @@ function signInWithShortLivedToken(accountID, email, shortLivedToken) {
             email,
         });
         if (response.jsonCode === 200) {
-            getUserDetails();
+            User.getUserDetails();
             Onyx.merge(ONYXKEYS.ACCOUNT, {success: true});
         } else {
             const error = lodashGet(response, 'message', 'Unable to login.');
@@ -317,7 +316,7 @@ function setPassword(password, validateCode, accountID) {
                 return;
             }
 
-            Onyx.merge(ONYXKEYS.ACCOUNT, {error: translateLocal('setPasswordPage.accountNotValidated')});
+            Onyx.merge(ONYXKEYS.ACCOUNT, {error: Localize.translateLocal('setPasswordPage.accountNotValidated')});
         })
         .finally(() => {
             Onyx.merge(ONYXKEYS.ACCOUNT, {loading: false});
@@ -374,22 +373,6 @@ function cleanupSession() {
 
 function clearAccountMessages() {
     Onyx.merge(ONYXKEYS.ACCOUNT, {error: '', success: ''});
-}
-
-/**
- * @param {Boolean} loading
- * @param {String} error
- */
-function setSessionLoadingAndError(loading, error) {
-    Onyx.merge(ONYXKEYS.SESSION, {loading, error});
-}
-
-/**
- * @param {String} authToken
- * @param {String} encryptedAuthToken
- */
-function updateSessionAuthTokens(authToken, encryptedAuthToken) {
-    Onyx.merge(ONYXKEYS.SESSION, {authToken, encryptedAuthToken});
 }
 
 /**
@@ -493,13 +476,6 @@ function authenticatePusher(socketID, channelName, callback) {
 }
 
 /**
- * @param {Boolean} shouldSignOut
- */
-function setShouldSignOut(shouldSignOut) {
-    Onyx.set(ONYXKEYS.SHOULD_SIGN_OUT, shouldSignOut);
-}
-
-/**
  * @param {Boolean} shouldShowComposeInput
  */
 function setShouldShowComposeInput(shouldShowComposeInput) {
@@ -519,11 +495,8 @@ export {
     clearSignInData,
     cleanupSession,
     clearAccountMessages,
-    setSessionLoadingAndError,
-    updateSessionAuthTokens,
     validateEmail,
     authenticatePusher,
     reauthenticatePusher,
-    setShouldSignOut,
     setShouldShowComposeInput,
 };

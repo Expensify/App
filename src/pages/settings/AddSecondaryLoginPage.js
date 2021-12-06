@@ -149,7 +149,6 @@ class AddSecondaryLoginPage extends Component {
                     <FixedFooter style={[styles.flexGrow0]}>
                         <Button
                             success
-                            style={[styles.mb2]}
                             isDisabled={this.validateForm()}
                             isLoading={this.props.user.loading}
                             text={this.props.translate('addSecondaryLoginPage.sendValidation')}

@@ -8,7 +8,7 @@ import ONYXKEYS from '../../ONYXKEYS';
 import * as API from '../API';
 import BankAccount from '../models/BankAccount';
 import Growl from '../Growl';
-import {translateLocal} from '../translate';
+import * as Localize from '../Localize';
 
 /**
  * List of bank accounts. This data should not be stored in Onyx since it contains unmasked PANs.
@@ -109,7 +109,7 @@ function getPlaidBankAccounts(publicToken, bank) {
             plaidBankAccounts = _.filter(response.accounts, account => !account.alreadyExists);
 
             if (plaidBankAccounts.length === 0) {
-                Growl.error(translateLocal('bankAccount.error.noBankAccountAvailable'));
+                Growl.error(Localize.translateLocal('bankAccount.error.noBankAccountAvailable'));
             }
 
             Onyx.merge(ONYXKEYS.PLAID_BANK_ACCOUNTS, {
@@ -606,7 +606,7 @@ function validateBankAccount(bankAccountID, validateCode) {
 
             // If the validation amounts entered were incorrect, show specific error
             if (response.message === CONST.BANK_ACCOUNT.ERROR.INCORRECT_VALIDATION_AMOUNTS) {
-                showBankAccountErrorModal(translateLocal('bankAccount.error.validationAmounts'));
+                showBankAccountErrorModal(Localize.translateLocal('bankAccount.error.validationAmounts'));
                 Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false});
                 return;
             }
@@ -784,9 +784,9 @@ function setupWithdrawalAccount(data) {
                         errors.routingNumber = true;
                         achData.subStep = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_STATE) {
-                        error = translateLocal('bankAccount.error.incorporationState');
+                        error = Localize.translateLocal('bankAccount.error.incorporationState');
                     } else if (response.message === CONST.BANK_ACCOUNT.ERROR.MISSING_INCORPORATION_TYPE) {
-                        error = translateLocal('bankAccount.error.companyType');
+                        error = Localize.translateLocal('bankAccount.error.companyType');
                     } else {
                         console.error(response.message);
                     }
@@ -809,7 +809,7 @@ function setupWithdrawalAccount(data) {
         .catch((response) => {
             Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {loading: false, achData: {...newACHData}});
             console.error(response.stack);
-            showBankAccountErrorModal(translateLocal('common.genericErrorMessage'));
+            showBankAccountErrorModal(Localize.translateLocal('common.genericErrorMessage'));
         });
 }
 

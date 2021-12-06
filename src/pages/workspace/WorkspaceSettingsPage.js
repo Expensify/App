@@ -14,12 +14,12 @@ import Text from '../../components/Text';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
-import {Workspace} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import ExpensiPicker from '../../components/ExpensiPicker';
-import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -58,7 +58,7 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     componentDidMount() {
-        getCurrencyList();
+        PersonalDetails.getCurrencyList();
     }
 
     /**
@@ -142,7 +142,7 @@ class WorkspaceSettingsPage extends React.Component {
                             size={CONST.AVATAR_SIZE.LARGE}
                             DefaultAvatar={() => (
                                 <Icon
-                                    src={Workspace}
+                                    src={Expensicons.Workspace}
                                     height={80}
                                     width={80}
                                     fill={defaultTheme.iconSuccessFill}
