@@ -427,6 +427,13 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    visuallyHidden: {
+        ...visibility('hidden'),
+        overflow: 'hidden',
+        width: 0,
+        height: 0,
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,

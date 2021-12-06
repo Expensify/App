@@ -9,6 +9,7 @@ import ExpensifyText from '../../../components/ExpensifyText';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Form from '../../../components/Form';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -54,9 +55,7 @@ const SignInPageLayoutWide = props => (
                                 {props.welcomeText}
                             </ExpensifyText>
                         )}
-                        <View>
-                            {props.children}
-                        </View>
+                        <Form>{props.children}</Form>
                     </View>
                     <View style={[styles.mv5]}>
                         <TermsAndLicenses />
