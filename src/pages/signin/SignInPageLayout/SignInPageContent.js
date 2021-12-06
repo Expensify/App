@@ -26,15 +26,8 @@ const propTypes = {
     /** Whether to show welcome text on a particular page */
     shouldShowWelcomeText: PropTypes.bool.isRequired,
 
-    /** SafeArea insets */
-    insets: PropTypes.shape(PropTypes.object),
-
     ...withLocalizePropTypes,
     ...windowDimensionsPropTypes,
-};
-
-const defaultProps = {
-    insets: {},
 };
 
 const SignInPageContent = props => (
@@ -95,7 +88,6 @@ const SignInPageContent = props => (
 );
 
 SignInPageContent.propTypes = propTypes;
-SignInPageContent.defaultProps = defaultProps;
 SignInPageContent.displayName = 'SignInPageContent';
 
 export default compose(
