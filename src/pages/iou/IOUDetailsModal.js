@@ -20,7 +20,7 @@ import compose from '../../libs/compose';
 import CONST from '../../CONST';
 import PopoverMenu from '../../components/PopoverMenu';
 import isAppInstalled from '../../libs/isAppInstalled';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import Permissions from '../../libs/Permissions';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import * as ValidationUtils from '../../libs/ValidationUtils';
@@ -243,7 +243,7 @@ class IOUDetailsModal extends Component {
                                         }}
                                     />
                                 ) : (
-                                    <Button
+                                    <ExpensifyButton
                                         success
                                         text={selectedPaymentType}
                                         isLoading={this.props.iou.loading}

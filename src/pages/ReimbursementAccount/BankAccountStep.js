@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import {View, Image} from 'react-native';
+import {View, Image, ScrollView} from 'react-native';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -16,7 +16,7 @@ import AddPlaidBankAccount from '../../components/AddPlaidBankAccount';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import exampleCheckImage from './exampleCheckImage';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -25,6 +25,7 @@ import * as ReimbursementAccountUtils from '../../libs/ReimbursementAccountUtils
 import ReimbursementAccountForm from './ReimbursementAccountForm';
 import reimbursementAccountPropTypes from './reimbursementAccountPropTypes';
 import WorkspaceSection from '../workspace/WorkspaceSection';
+import * as ValidationUtils from '../../libs/ValidationUtils';
 import * as Illustrations from '../../components/Icon/Illustrations';
 
 const propTypes = {
@@ -90,7 +91,7 @@ class BankAccountStep extends React.Component {
         if (!CONST.BANK_ACCOUNT.REGEX.IBAN.test(this.state.accountNumber.trim())) {
             errors.accountNumber = true;
         }
-        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !BankAccounts.validateRoutingNumber(this.state.routingNumber.trim())) {
+        if (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(this.state.routingNumber.trim()) || !ValidationUtils.isValidRoutingNumber(this.state.routingNumber.trim())) {
             errors.routingNumber = true;
         }
         if (!this.state.hasAcceptedTerms) {
@@ -190,62 +191,60 @@ class BankAccountStep extends React.Component {
                     shouldShowBackButton
                 />
                 {!subStep && (
-                    <>
-                        <View style={[styles.flex1]}>
-                            <WorkspaceSection
-                                icon={Illustrations.BankMouseGreen}
-                                title={this.props.translate('workspace.bankAccount.streamlinePayments')}
-                            />
-                            <Text style={[styles.mh5, styles.mb5]}>
-                                {this.props.translate('bankAccount.toGetStarted')}
-                            </Text>
-                            <MenuItem
-                                icon={Expensicons.Bank}
-                                title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
-                                disabled={this.props.isPlaidDisabled || !this.props.user.validated}
-                                shouldShowRightIcon
-                            />
-                            {this.props.isPlaidDisabled && (
-                                <Text style={[styles.formError, styles.mh5]}>
-                                    {this.props.translate('bankAccount.error.tooManyAttempts')}
-                                </Text>
-                            )}
-                            <MenuItem
-                                icon={Expensicons.Paycheck}
-                                title={this.props.translate('bankAccount.connectManually')}
-                                disabled={!this.props.user.validated}
-                                onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
-                                shouldShowRightIcon
-                            />
-                            {!this.props.user.validated && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
-                                    <Text style={[styles.mutedTextLabel, styles.mr4]}>
-                                        <Icon src={Expensicons.Exclamation} fill={colors.red} />
-                                    </Text>
-                                    <Text style={styles.mutedTextLabel}>
-                                        {this.props.translate('bankAccount.validateAccountError')}
-                                    </Text>
-                                </View>
-                            )}
-                            <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
-                                <TextLink href="https://use.expensify.com/privacy">
-                                    {this.props.translate('common.privacy')}
+                    <ScrollView style={[styles.flex1]}>
+                        <WorkspaceSection
+                            icon={Illustrations.BankMouseGreen}
+                            title={this.props.translate('workspace.bankAccount.streamlinePayments')}
+                        />
+                        <ExpensifyText style={[styles.mh5, styles.mb5]}>
+                            {this.props.translate('bankAccount.toGetStarted')}
+                        </ExpensifyText>
+                        <MenuItem
+                            icon={Expensicons.Bank}
+                            title={this.props.translate('bankAccount.connectOnlineWithPlaid')}
+                            onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)}
+                            disabled={this.props.isPlaidDisabled || !this.props.user.validated}
+                            shouldShowRightIcon
+                        />
+                        {this.props.isPlaidDisabled && (
+                            <ExpensifyText style={[styles.formError, styles.mh5]}>
+                                {this.props.translate('bankAccount.error.tooManyAttempts')}
+                            </ExpensifyText>
+                        )}
+                        <MenuItem
+                            icon={Expensicons.Paycheck}
+                            title={this.props.translate('bankAccount.connectManually')}
+                            disabled={!this.props.user.validated}
+                            onPress={() => BankAccounts.setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL)}
+                            shouldShowRightIcon
+                        />
+                        {!this.props.user.validated && (
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.m4]}>
+                                <ExpensifyText style={[styles.mutedTextLabel, styles.mr4]}>
+                                    <Icon src={Expensicons.Exclamation} fill={colors.red} />
+                                </ExpensifyText>
+                                <ExpensifyText style={styles.mutedTextLabel}>
+                                    {this.props.translate('bankAccount.validateAccountError')}
+                                </ExpensifyText>
+                            </View>
+                        )}
+                        <View style={[styles.m5, styles.flexRow, styles.justifyContentBetween]}>
+                            <TextLink href="https://use.expensify.com/privacy">
+                                {this.props.translate('common.privacy')}
+                            </TextLink>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <TextLink
+                                    // eslint-disable-next-line max-len
+                                    href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
+                                >
+                                    {this.props.translate('bankAccount.yourDataIsSecure')}
                                 </TextLink>
-                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <TextLink
-                                        // eslint-disable-next-line max-len
-                                        href="https://community.expensify.com/discussion/5677/deep-dive-how-expensify-protects-your-information/"
-                                    >
-                                        {this.props.translate('bankAccount.yourDataIsSecure')}
-                                    </TextLink>
-                                    <View style={[styles.ml1]}>
-                                        <Icon src={Expensicons.Lock} fill={colors.blue} />
-                                    </View>
+                                <View style={[styles.ml1]}>
+                                    <Icon src={Expensicons.Lock} fill={colors.blue} />
                                 </View>
                             </View>
                         </View>
-                    </>
+                    </ScrollView>
                 )}
                 {subStep === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID && (
                     <AddPlaidBankAccount
@@ -260,9 +259,9 @@ class BankAccountStep extends React.Component {
                     <ReimbursementAccountForm
                         onSubmit={this.addManualAccount}
                     >
-                        <Text style={[styles.mb5]}>
+                        <ExpensifyText style={[styles.mb5]}>
                             {this.props.translate('bankAccount.checkHelpLine')}
-                        </Text>
+                        </ExpensifyText>
                         <Image
                             resizeMode="contain"
                             style={[styles.exampleCheckImage, styles.mb5]}
@@ -291,9 +290,9 @@ class BankAccountStep extends React.Component {
                             onPress={this.toggleTerms}
                             LabelComponent={() => (
                                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                    <Text>
+                                    <ExpensifyText>
                                         {this.props.translate('common.iAcceptThe')}
-                                    </Text>
+                                    </ExpensifyText>
                                     <TextLink href="https://use.expensify.com/terms">
                                         {`Expensify ${this.props.translate('common.termsOfService')}`}
                                     </TextLink>

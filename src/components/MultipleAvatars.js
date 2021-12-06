@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Image, View} from 'react-native';
 import styles from '../styles/styles';
 import Avatar from './Avatar';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 
 const propTypes = {
     /** Array of avatar URL */
@@ -77,12 +77,12 @@ const MultipleAvatars = (props) => {
                         <View
                             style={[singleAvatarStyles, styles.alignItemsCenter, styles.justifyContentCenter]}
                         >
-                            <Text style={props.size === 'small'
+                            <ExpensifyText style={props.size === 'small'
                                 ? styles.avatarInnerTextSmall
                                 : styles.avatarInnerText}
                             >
                                 {`+${props.avatarImageURLs.length - 1}`}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                     )}
                 </View>

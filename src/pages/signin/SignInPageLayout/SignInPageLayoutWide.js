@@ -5,10 +5,11 @@ import SVGImage from '../../../components/SVGImage';
 import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import variables from '../../../styles/variables';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Form from '../../../components/Form';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -50,13 +51,11 @@ const SignInPageLayoutWide = props => (
                             />
                         </View>
                         {props.shouldShowWelcomeText && (
-                            <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                            <ExpensifyText style={[styles.mv5, styles.textLabel, styles.h3]}>
                                 {props.welcomeText}
-                            </Text>
+                            </ExpensifyText>
                         )}
-                        <View>
-                            {props.children}
-                        </View>
+                        <Form>{props.children}</Form>
                     </View>
                     <View style={[styles.mv5]}>
                         <TermsAndLicenses />
@@ -73,6 +72,7 @@ const SignInPageLayoutWide = props => (
                     width="100%"
                     height="100%"
                     src={backgroundStyle.backgroundImageUri}
+                    resizeMode={props.isMediumScreenWidth ? 'contain' : 'cover'}
                 />
             </View>
         </View>
