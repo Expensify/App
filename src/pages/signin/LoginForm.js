@@ -5,8 +5,8 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import Text from '../../components/Text';
+import ExpensifyButton from '../../components/ExpensifyButton';
+import ExpensifyText from '../../components/ExpensifyText';
 import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/withWindowDimensions';
@@ -115,27 +115,26 @@ class LoginForm extends React.Component {
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
                         autoFocus={canFocusInputOnScreenFocus()}
-                        translateX={-18}
                     />
                 </View>
                 {this.state.formError && (
-                    <Text style={[styles.formError]}>
+                    <ExpensifyText style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
-                    </Text>
+                    </ExpensifyText>
                 )}
 
                 {!this.state.formError && !_.isEmpty(this.props.account.error) && (
-                    <Text style={[styles.formError]}>
+                    <ExpensifyText style={[styles.formError]}>
                         {this.props.account.error}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 {!_.isEmpty(this.props.account.success) && (
-                    <Text style={[styles.formSuccess]}>
+                    <ExpensifyText style={[styles.formSuccess]}>
                         {this.props.account.success}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 <View style={[styles.mt5]}>
-                    <Button
+                    <ExpensifyButton
                         success
                         text={this.props.translate('common.continue')}
                         isLoading={this.props.account.loading}

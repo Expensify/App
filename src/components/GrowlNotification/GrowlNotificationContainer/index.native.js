@@ -14,8 +14,8 @@ const GrowlNotificationContainer = props => (
         {insets => (
             <Animated.View
                 style={[
-                    styles.growlNotificationContainer,
                     StyleUtils.getSafeAreaPadding(insets),
+                    styles.growlNotificationContainer,
                     styles.growlNotificationTranslateY(props.translateY),
                 ]}
             >
