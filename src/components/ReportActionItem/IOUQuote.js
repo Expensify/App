@@ -2,7 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
-import Text from '../Text';
+import Str from 'expensify-common/lib/str';
+import ExpensifyText from '../ExpensifyText';
 import styles from '../../styles/styles';
 import reportActionPropTypes from '../../pages/home/report/reportActionPropTypes';
 import withLocalize, {withLocalizePropTypes} from '../withLocalize';
@@ -25,25 +26,20 @@ const defaultProps = {
     onViewDetailsPressed: () => {},
 };
 
-const IOUQuote = ({
-    action,
-    shouldShowViewDetailsLink,
-    onViewDetailsPressed,
-    translate,
-}) => (
+const IOUQuote = props => (
     <View style={[styles.chatItemMessage]}>
-        {_.map(action.message, (fragment, index) => (
-            <View key={`iouQuote-${action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
-                <Text style={[styles.chatItemMessage]}>
-                    {fragment.text}
-                </Text>
-                {shouldShowViewDetailsLink && (
-                    <Text
+        {_.map(props.action.message, (fragment, index) => (
+            <View key={`iouQuote-${props.action.sequenceNumber}-${index}`} style={[styles.alignItemsStart, styles.blockquote]}>
+                <ExpensifyText style={[styles.chatItemMessage]}>
+                    {Str.htmlDecode(fragment.text)}
+                </ExpensifyText>
+                {props.shouldShowViewDetailsLink && (
+                    <ExpensifyText
                         style={[styles.chatItemMessageLink, styles.alignSelfStart]}
-                        onPress={onViewDetailsPressed}
+                        onPress={props.onViewDetailsPressed}
                     >
-                        {translate('iou.viewDetails')}
-                    </Text>
+                        {props.translate('iou.viewDetails')}
+                    </ExpensifyText>
                 )}
             </View>
         ))}

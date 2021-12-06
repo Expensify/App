@@ -2,7 +2,7 @@ import _ from 'underscore';
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 
 const propTypes = {
     /** Text to display */
@@ -19,7 +19,7 @@ const InlineErrorText = (props) => {
     }
 
     return (
-        <Text style={[styles.formError, styles.mt1]}>{props.children}</Text>
+        <ExpensifyText style={[styles.formError, styles.mt1]}>{props.children}</ExpensifyText>
     );
 };
 

@@ -12,7 +12,8 @@ import {
 import PropTypes from 'prop-types';
 import lodashGet from 'lodash/get';
 import Config from '../../CONFIG';
-import styles, {webViewStyles, getFontFamilyMonospace} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import fontFamily from '../../styles/fontFamily';
 import AnchorForCommentsOnly from '../AnchorForCommentsOnly';
 import InlineCodeBlock from '../InlineCodeBlock';
@@ -20,7 +21,7 @@ import AttachmentModal from '../AttachmentModal';
 import ThumbnailImage from '../ThumbnailImage';
 import variables from '../../styles/variables';
 import themeColors from '../../styles/themes/default';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 import withLocalize from '../withLocalize';
 import Navigation from '../../libs/Navigation/Navigation';
 import CONST from '../../CONST';
@@ -83,48 +84,49 @@ function isInsideComment(tnode) {
     return false;
 }
 
-function AnchorRenderer({tnode, key, style}) {
-    const htmlAttribs = tnode.attributes;
+function AnchorRenderer(props) {
+    const htmlAttribs = props.tnode.attributes;
 
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = Boolean(htmlAttribs['data-expensify-source']);
-    const fileName = lodashGet(tnode, 'domNode.children[0].data', '');
-    const parentStyle = lodashGet(tnode, 'parent.styles.nativeTextRet', {});
-    const internalExpensifyPath = (htmlAttribs.href.startsWith(CONST.NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.NEW_EXPENSIFY_URL, ''))
-        || (htmlAttribs.href.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && htmlAttribs.href.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
+    const fileName = lodashGet(props.tnode, 'domNode.children[0].data', '');
+    const parentStyle = lodashGet(props.tnode, 'parent.styles.nativeTextRet', {});
+    const attrHref = htmlAttribs.href || '';
+    const internalExpensifyPath = (attrHref.startsWith(CONST.NEW_EXPENSIFY_URL) && attrHref.replace(CONST.NEW_EXPENSIFY_URL, ''))
+        || (attrHref.startsWith(CONST.STAGING_NEW_EXPENSIFY_URL) && attrHref.replace(CONST.STAGING_NEW_EXPENSIFY_URL, ''));
 
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalExpensifyPath) {
         return (
-            <Text
+            <ExpensifyText
                 style={styles.link}
                 onPress={() => Navigation.navigate(internalExpensifyPath)}
             >
-                <TNodeChildrenRenderer tnode={tnode} />
-            </Text>
+                <TNodeChildrenRenderer tnode={props.tnode} />
+            </ExpensifyText>
         );
     }
 
-    if (!isInsideComment(tnode)) {
+    if (!isInsideComment(props.tnode)) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
-        // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+        // TODO: We should use TextLink, but I'm leaving it as ExpensifyText for now because TextLink breaks the alignment in Android.
         return (
-            <Text
+            <ExpensifyText
                 style={styles.link}
                 onPress={() => {
-                    Linking.openURL(htmlAttribs.href);
+                    Linking.openURL(attrHref);
                 }}
             >
-                <TNodeChildrenRenderer tnode={tnode} />
-            </Text>
+                <TNodeChildrenRenderer tnode={props.tnode} />
+            </ExpensifyText>
         );
     }
 
     return (
         <AnchorForCommentsOnly
-            href={htmlAttribs.href}
+            href={attrHref}
             isAuthTokenRequired={isAttachment}
 
             // Unless otherwise specified open all links in
@@ -134,24 +136,22 @@ function AnchorRenderer({tnode, key, style}) {
             // eslint-disable-next-line react/jsx-props-no-multi-spaces
             target={htmlAttribs.target || '_blank'}
             rel={htmlAttribs.rel || 'noopener noreferrer'}
-            style={{...style, ...parentStyle}}
-            key={key}
+            style={{...props.style, ...parentStyle}}
+            key={props.key}
             fileName={fileName}
         >
-            <TNodeChildrenRenderer tnode={tnode} />
+            <TNodeChildrenRenderer tnode={props.tnode} />
         </AnchorForCommentsOnly>
     );
 }
 
-function CodeRenderer({
-    key, style, TDefaultRenderer, ...defaultRendererProps
-}) {
+function CodeRenderer(props) {
     // We split wrapper and inner styles
     // "boxModelStyle" corresponds to border, margin, padding and backgroundColor
-    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(style);
+    const {boxModelStyle, otherStyle: textStyle} = splitBoxModelStyle(props.style);
 
     // Get the correct fontFamily variant based in the fontStyle and fontWeight
-    const font = getFontFamilyMonospace({
+    const font = StyleUtils.getFontFamilyMonospace({
         fontStyle: textStyle.fontStyle,
         fontWeight: textStyle.fontWeight,
     });
@@ -166,13 +166,15 @@ function CodeRenderer({
         fontStyle: undefined,
     };
 
+    const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style']);
+
     return (
         <InlineCodeBlock
-            TDefaultRenderer={TDefaultRenderer}
+            defaultRendererProps={defaultRendererProps}
+            TDefaultRenderer={props.TDefaultRenderer}
             boxModelStyle={boxModelStyle}
             textStyle={{...textStyle, ...textStyleOverride}}
-            defaultRendererProps={defaultRendererProps}
-            key={key}
+            key={props.key}
         />
     );
 }
@@ -180,21 +182,21 @@ function CodeRenderer({
 function EditedRenderer(props) {
     const defaultRendererProps = _.omit(props, ['TDefaultRenderer', 'style', 'tnode']);
     return (
-        <Text
+        <ExpensifyText
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...defaultRendererProps}
             fontSize={variables.fontSizeSmall}
             color={themeColors.textSupporting}
         >
             {/* Native devices do not support margin between nested text */}
-            <Text style={styles.w1}>{' '}</Text>
+            <ExpensifyText style={styles.w1}>{' '}</ExpensifyText>
             {props.translate('reportActionCompose.edited')}
-        </Text>
+        </ExpensifyText>
     );
 }
 
-function ImgRenderer({tnode}) {
-    const htmlAttribs = tnode.attributes;
+function ImgRenderer(props) {
+    const htmlAttribs = props.tnode.attributes;
 
     // There are two kinds of images that need to be displayed:
     //
@@ -242,7 +244,7 @@ function ImgRenderer({tnode}) {
                 >
                     <ThumbnailImage
                         previewSourceURL={previewSource}
-                        style={webViewStyles.tagStyles.img}
+                        style={styles.webViewStyles.tagStyles.img}
                         isAuthTokenRequired={isAttachment}
                     />
                 </TouchableOpacity>
@@ -289,15 +291,15 @@ const defaultViewProps = {style: {alignItems: 'flex-start'}};
 // context to RenderHTMLSource components. See https://git.io/JRcZb
 // Beware that each prop should be referentialy stable between renders to avoid
 // costly invalidations and commits.
-const BaseHTMLEngineProvider = ({children, textSelectable}) => {
+const BaseHTMLEngineProvider = (props) => {
     // We need to memoize this prop to make it referentially stable.
-    const defaultTextProps = useMemo(() => ({selectable: textSelectable}), [textSelectable]);
+    const defaultTextProps = useMemo(() => ({selectable: props.textSelectable}), [props.textSelectable]);
 
     return (
         <TRenderEngineProvider
             customHTMLElementModels={customHTMLElementModels}
-            baseStyle={webViewStyles.baseFontStyle}
-            tagsStyles={webViewStyles.tagStyles}
+            baseStyle={styles.webViewStyles.baseFontStyle}
+            tagsStyles={styles.webViewStyles.tagStyles}
             enableCSSInlineProcessing={false}
             dangerouslyDisableWhitespaceCollapsing={false}
             systemFonts={EXTRA_FONTS}
@@ -309,7 +311,7 @@ const BaseHTMLEngineProvider = ({children, textSelectable}) => {
                 renderersProps={renderersProps}
                 computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
             >
-                {children}
+                {props.children}
             </RenderHTMLConfigProvider>
         </TRenderEngineProvider>
     );

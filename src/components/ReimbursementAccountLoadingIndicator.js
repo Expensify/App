@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import CONST from '../CONST';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import Navigation from '../libs/Navigation/Navigation';
 import ScreenWrapper from './ScreenWrapper';
@@ -17,13 +17,13 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const ReimbursementAccountLoadingIndicator = ({translate, isSubmittingVerificationsData}) => (
+const ReimbursementAccountLoadingIndicator = props => (
     <ScreenWrapper style={[StyleSheet.absoluteFillObject, styles.reimbursementAccountFullScreenLoading]}>
         <HeaderWithCloseButton
-            title={translate('reimbursementAccountLoadingAnimation.oneMoment')}
+            title={props.translate('reimbursementAccountLoadingAnimation.oneMoment')}
             onCloseButtonPress={Navigation.dismissModal}
         />
-        {isSubmittingVerificationsData ? (
+        {props.isSubmittingVerificationsData ? (
             <View style={[styles.pageWrapper]}>
                 <Image
                     source={{uri: `${CONST.CLOUDFRONT_URL}/images/icons/emptystates/emptystate_reviewing.gif`}}
@@ -32,9 +32,9 @@ const ReimbursementAccountLoadingIndicator = ({translate, isSubmittingVerificati
                     ]}
                 />
                 <View style={[styles.ph6]}>
-                    <Text style={[styles.textAlignCenter]}>
-                        {translate('reimbursementAccountLoadingAnimation.explanationLine')}
-                    </Text>
+                    <ExpensifyText style={[styles.textAlignCenter]}>
+                        {props.translate('reimbursementAccountLoadingAnimation.explanationLine')}
+                    </ExpensifyText>
                 </View>
             </View>
         ) : (

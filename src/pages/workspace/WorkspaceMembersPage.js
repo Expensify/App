@@ -15,10 +15,10 @@ import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
-import {removeMembers} from '../../libs/actions/Policy';
-import Button from '../../components/Button';
+import * as Policy from '../../libs/actions/Policy';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import Checkbox from '../../components/Checkbox';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import ROUTES from '../../ROUTES';
 import ConfirmModal from '../../components/ConfirmModal';
 import personalDetailsPropType from '../personalDetailsPropType';
@@ -27,23 +27,14 @@ import withWindowDimensions, {windowDimensionsPropTypes} from '../../components/
 import OptionRow from '../home/sidebar/OptionRow';
 import CheckboxWithTooltip from '../../components/CheckboxWithTooltip';
 import Hoverable from '../../components/Hoverable';
+import withFullPolicy, {fullPolicyPropTypes, fullPolicyDefaultProps} from './withFullPolicy';
 
 const propTypes = {
-    ...withLocalizePropTypes,
-
-    ...windowDimensionsPropTypes,
-
     /** List of betas */
     betas: PropTypes.arrayOf(PropTypes.string).isRequired,
 
     /** The personal details of the person who is logged in */
     personalDetails: personalDetailsPropType.isRequired,
-
-    /** The policy passed via the route */
-    policy: PropTypes.shape({
-        /** The policy name */
-        name: PropTypes.string,
-    }),
 
     /** URL Route params */
     route: PropTypes.shape({
@@ -53,13 +44,13 @@ const propTypes = {
             policyID: PropTypes.string,
         }),
     }).isRequired,
+
+    ...fullPolicyPropTypes,
+    ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    policy: {
-        name: '',
-    },
-};
+const defaultProps = fullPolicyDefaultProps;
 
 class WorkspaceMembersPage extends React.Component {
     constructor(props) {
@@ -72,6 +63,7 @@ class WorkspaceMembersPage extends React.Component {
         };
 
         this.renderItem = this.renderItem.bind(this);
+        this.inviteUser = this.inviteUser.bind(this);
         this.addUser = this.addUser.bind(this);
         this.removeUser = this.removeUser.bind(this);
         this.askForConfirmationToRemove = this.askForConfirmationToRemove.bind(this);
@@ -91,7 +83,7 @@ class WorkspaceMembersPage extends React.Component {
     removeUsers() {
         // Remove the admin from the list
         const membersToRemove = _.without(this.state.selectedEmployees, this.props.session.email);
-        removeMembers(membersToRemove, this.props.route.params.policyID);
+        Policy.removeMembers(membersToRemove, this.props.route.params.policyID);
         this.setState({
             selectedEmployees: [],
             isRemoveMembersConfirmModalVisible: false,
@@ -235,9 +227,9 @@ class WorkspaceMembersPage extends React.Component {
                     {this.props.session.email === item.login && (
                         <View style={styles.peopleRowCell}>
                             <View style={[styles.badge, styles.peopleBadge]}>
-                                <Text style={[styles.peopleBadgeText]}>
+                                <ExpensifyText style={[styles.peopleBadgeText]}>
                                     {this.props.translate('common.admin')}
-                                </Text>
+                                </ExpensifyText>
                             </View>
                         </View>
                     )}
@@ -280,13 +272,13 @@ class WorkspaceMembersPage extends React.Component {
                 />
                 <View style={[styles.pageWrapper, styles.flex1]}>
                     <View style={[styles.w100, styles.flexRow]}>
-                        <Button
+                        <ExpensifyButton
                             small
                             success
                             text={this.props.translate('common.invite')}
-                            onPress={() => this.inviteUser()}
+                            onPress={this.inviteUser}
                         />
-                        <Button
+                        <ExpensifyButton
                             small
                             danger
                             style={[styles.ml2]}
@@ -304,9 +296,9 @@ class WorkspaceMembersPage extends React.Component {
                                 />
                             </View>
                             <View style={[styles.peopleRowCell, styles.flex1]}>
-                                <Text style={[styles.textStrong, styles.ph5]}>
+                                <ExpensifyText style={[styles.textStrong, styles.ph5]}>
                                     {this.props.translate('workspace.people.selectAll')}
-                                </Text>
+                                </ExpensifyText>
                             </View>
                         </View>
                         <FlatList
@@ -328,12 +320,10 @@ WorkspaceMembersPage.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
+    withFullPolicy,
     withOnyx({
         personalDetails: {
             key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        policy: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`,
         },
         session: {
             key: ONYXKEYS.SESSION,

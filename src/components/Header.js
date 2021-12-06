@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import EnvironmentBadge from './EnvironmentBadge';
 
 const propTypes = {
@@ -22,12 +22,12 @@ const defaultProps = {
 };
 const Header = props => (
     <View style={[styles.flex1, styles.flexRow]}>
-        <View style={[styles.flex1, styles.flexColumn]}>
-            <Text numberOfLines={2} style={[styles.headerText, styles.textLarge]}>
+        <View>
+            <ExpensifyText numberOfLines={2} style={[styles.headerText, styles.textLarge]}>
                 {props.title}
-            </Text>
+            </ExpensifyText>
             {/* If there's no subtitle then display a fragment to avoid an empty space which moves the main title */}
-            {props.subtitle ? <Text style={[styles.mutedTextLabel]}>{props.subtitle}</Text> : <></> }
+            {props.subtitle ? <ExpensifyText style={[styles.mutedTextLabel]}>{props.subtitle}</ExpensifyText> : <></> }
         </View>
         {props.shouldShowEnvironmentBadge && (
             <EnvironmentBadge />

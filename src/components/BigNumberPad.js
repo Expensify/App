@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import Button from './Button';
+import ExpensifyButton from './ExpensifyButton';
 
 const propTypes = {
     /** Callback to inform parent modal with key pressed */
@@ -17,7 +17,7 @@ const padNumbers = [
     ['.', '0', '<'],
 ];
 
-const BigNumberPad = ({numberPressed}) => (
+const BigNumberPad = props => (
     <View style={[styles.flexColumn, styles.w100]}>
         {_.map(padNumbers, (row, rowIndex) => (
             <View key={`NumberPadRow-${rowIndex}`} style={[styles.flexRow, styles.mt3]}>
@@ -26,11 +26,11 @@ const BigNumberPad = ({numberPressed}) => (
                     // avoid unccessary space before the first column.
                     const marginLeft = columnIndex > 0 ? styles.ml3 : {};
                     return (
-                        <Button
+                        <ExpensifyButton
                             key={column}
                             style={[styles.flex1, marginLeft]}
                             text={column}
-                            onPress={() => numberPressed(column)}
+                            onPress={() => props.numberPressed(column)}
                         />
                     );
                 })}

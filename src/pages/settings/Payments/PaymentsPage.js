@@ -11,10 +11,10 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import Text from '../../../components/Text';
-import {getPaymentMethods} from '../../../libs/actions/PaymentMethods';
+import ExpensifyText from '../../../components/ExpensifyText';
+import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
-import {PayPal, CreditCard} from '../../../components/Icon/Expensicons';
+import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
@@ -32,11 +32,15 @@ const propTypes = {
 
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
+
+    /** Username for PayPal.Me */
+    payPalMeUsername: PropTypes.string,
 };
 
 const defaultProps = {
     betas: [],
     isLoadingPaymentMethods: true,
+    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -55,7 +59,7 @@ class PaymentsPage extends React.Component {
     }
 
     componentDidMount() {
-        getPaymentMethods();
+        PaymentMethods.getPaymentMethods();
     }
 
     /**
@@ -119,11 +123,11 @@ class PaymentsPage extends React.Component {
                         {
                             Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
                         }
-                        <Text
+                        <ExpensifyText
                             style={[styles.ph5, styles.formLabel]}
                         >
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                        </Text>
+                        </ExpensifyText>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
@@ -139,15 +143,19 @@ class PaymentsPage extends React.Component {
                             left: this.state.anchorPositionLeft,
                         }}
                     >
-                        <MenuItem
-                            title={this.props.translate('common.payPalMe')}
-                            icon={PayPal}
-                            onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                        />
+                        {!this.props.payPalMeUsername && (
+                            <MenuItem
+                                title={this.props.translate('common.payPalMe')}
+                                icon={Expensicons.PayPal}
+                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
+                                wrapperStyle={styles.pr15}
+                            />
+                        )}
                         <MenuItem
                             title={this.props.translate('common.debitCard')}
-                            icon={CreditCard}
+                            icon={Expensicons.CreditCard}
                             onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
+                            wrapperStyle={styles.pr15}
                         />
                     </Popover>
                 </KeyboardAvoidingView>
@@ -168,6 +176,9 @@ export default compose(
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
             initWithStoredValues: false,
+        },
+        payPalMeUsername: {
+            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(PaymentsPage);

@@ -3,9 +3,9 @@ import React, {Component} from 'react';
 import {View, Pressable} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
-import {skinTones} from '../../../../assets/emojis';
+import * as Emojis from '../../../../assets/emojis';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import getSkinToneEmojiFromIndex from './EmojiPickerMenu/getSkinToneEmojiFromIndex';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 
@@ -68,12 +68,12 @@ class EmojiSkinToneList extends Component {
                                 styles.alignItemsCenter,
                             ]}
                         >
-                            <Text style={[styles.emojiText, styles.ph2, styles.emojiItem]}>
+                            <ExpensifyText style={[styles.emojiText, styles.ph2, styles.emojiItem]}>
                                 {selectedEmoji.code}
-                            </Text>
-                            <Text style={[styles.emojiSkinToneTitle]}>
+                            </ExpensifyText>
+                            <ExpensifyText style={[styles.emojiSkinToneTitle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
-                            </Text>
+                            </ExpensifyText>
                         </Pressable>
                     )
                 }
@@ -82,7 +82,7 @@ class EmojiSkinToneList extends Component {
 
                         <View style={[styles.flexRow, styles.flex1]}>
                             {
-                                _.map(skinTones, skinToneEmoji => (
+                                _.map(Emojis.skinTones, skinToneEmoji => (
                                     <EmojiPickerMenuItem
                                         onPress={() => this.updateSelectedSkinTone(skinToneEmoji)}
                                         onHover={() => this.setState({highlightedIndex: skinToneEmoji.skinTone})}

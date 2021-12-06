@@ -1,22 +1,17 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    Animated, TextInput, View, TouchableWithoutFeedback,
+    Animated, TextInput, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
-import {propTypes, defaultProps} from './baseExpensiTextInputPropTypes';
+import * as baseExpensiTextInputPropTypes from './baseExpensiTextInputPropTypes';
 import themeColors from '../../styles/themes/default';
 import styles from '../../styles/styles';
+import Icon from '../Icon';
+import * as Expensicons from '../Icon/Expensicons';
 import InlineErrorText from '../InlineErrorText';
-
-const ACTIVE_LABEL_TRANSLATE_Y = -12;
-const ACTIVE_LABEL_TRANSLATE_X = (translateX = -22) => translateX;
-const ACTIVE_LABEL_SCALE = 0.8668;
-
-const INACTIVE_LABEL_TRANSLATE_Y = 0;
-const INACTIVE_LABEL_TRANSLATE_X = 0;
-const INACTIVE_LABEL_SCALE = 1;
+import * as styleConst from './styleConst';
 
 class BaseExpensiTextInput extends Component {
     constructor(props) {
@@ -27,10 +22,9 @@ class BaseExpensiTextInput extends Component {
 
         this.state = {
             isFocused: false,
-            labelTranslateY: new Animated.Value(activeLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y),
-            labelTranslateX: new Animated.Value(activeLabel
-                ? ACTIVE_LABEL_TRANSLATE_X(props.translateX) : INACTIVE_LABEL_TRANSLATE_X),
-            labelScale: new Animated.Value(activeLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE),
+            labelTranslateY: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y),
+            labelScale: new Animated.Value(activeLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE),
+            passwordHidden: props.secureTextEntry,
         };
 
         this.input = null;
@@ -39,25 +33,30 @@ class BaseExpensiTextInput extends Component {
         this.onFocus = this.onFocus.bind(this);
         this.onBlur = this.onBlur.bind(this);
         this.setValue = this.setValue.bind(this);
+        this.togglePasswordVisibility = this.togglePasswordVisibility.bind(this);
     }
 
     componentDidMount() {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (this.props.autoFocus && this.input) {
-            this.input.focus();
+        if (!this.props.autoFocus || !this.input) {
+            return;
         }
+
+        this.input.focus();
     }
 
     componentDidUpdate(prevProps) {
         // activate or deactivate the label when value is changed programmatically from outside
-        if (prevProps.value !== this.props.value) {
-            this.value = this.props.value;
+        if (prevProps.value === this.props.value) {
+            return;
+        }
 
-            if (this.props.value) {
-                this.activateLabel();
-            } else if (!this.state.isFocused) {
-                this.deactivateLabel();
-            }
+        this.value = this.props.value;
+
+        if (this.props.value) {
+            this.activateLabel();
+        } else if (!this.state.isFocused) {
+            this.deactivateLabel();
         }
     }
 
@@ -100,32 +99,30 @@ class BaseExpensiTextInput extends Component {
     }
 
     activateLabel() {
-        if (this.value.length >= 0 && !this.isLabelActive) {
-            this.animateLabel(
-                ACTIVE_LABEL_TRANSLATE_Y,
-                ACTIVE_LABEL_TRANSLATE_X(this.props.translateX),
-                ACTIVE_LABEL_SCALE,
-            );
-            this.isLabelActive = true;
+        if (this.value.length < 0 || this.isLabelActive) {
+            return;
         }
+
+        this.animateLabel(
+            styleConst.ACTIVE_LABEL_TRANSLATE_Y,
+            styleConst.ACTIVE_LABEL_SCALE,
+        );
+        this.isLabelActive = true;
     }
 
     deactivateLabel() {
-        if (!this.props.forceActiveLabel && this.value.length === 0) {
-            this.animateLabel(INACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_TRANSLATE_X, INACTIVE_LABEL_SCALE);
-            this.isLabelActive = false;
+        if (this.props.forceActiveLabel || this.value.length !== 0) {
+            return;
         }
+
+        this.animateLabel(styleConst.INACTIVE_LABEL_TRANSLATE_Y, styleConst.INACTIVE_LABEL_SCALE);
+        this.isLabelActive = false;
     }
 
-    animateLabel(translateY, translateX, scale) {
+    animateLabel(translateY, scale) {
         Animated.parallel([
             Animated.spring(this.state.labelTranslateY, {
                 toValue: translateY,
-                duration: 80,
-                useNativeDriver: true,
-            }),
-            Animated.spring(this.state.labelTranslateX, {
-                toValue: translateX,
                 duration: 80,
                 useNativeDriver: true,
             }),
@@ -137,29 +134,20 @@ class BaseExpensiTextInput extends Component {
         ]).start();
     }
 
-    render() {
-        const {
-            label,
-            value,
-            placeholder,
-            errorText,
-            hasError,
-            containerStyles,
-            inputStyle,
-            ignoreLabelTranslateX,
-            innerRef,
-            autoFocus,
-            multiline,
-            ...inputProps
-        } = this.props;
+    togglePasswordVisibility() {
+        this.setState(prevState => ({passwordHidden: !prevState.passwordHidden}));
+    }
 
-        const hasLabel = Boolean(label.length);
+    render() {
+        // eslint-disable-next-line react/forbid-foreign-prop-types
+        const inputProps = _.omit(this.props, _.keys(baseExpensiTextInputPropTypes.propTypes));
+        const hasLabel = Boolean(this.props.label.length);
         return (
             <View>
                 <View
                     style={[
-                        !multiline && styles.componentHeightLarge,
-                        ...containerStyles,
+                        !this.props.multiline && styles.componentHeightLarge,
+                        ...this.props.containerStyles,
                     ]}
                 >
                     <TouchableWithoutFeedback onPress={this.onPress} focusable={false}>
@@ -167,50 +155,60 @@ class BaseExpensiTextInput extends Component {
                             style={[
                                 styles.expensiTextInputContainer,
                                 this.state.isFocused && styles.borderColorFocus,
-                                (hasError || errorText) && styles.borderColorDanger,
+                                (this.props.hasError || this.props.errorText) && styles.borderColorDanger,
                             ]}
                         >
                             {hasLabel ? (
                                 <>
                                     {/* Adding this background to the label only for multiline text input,
-                                    to prevent text overlaping with label when scrolling */}
-                                    {multiline && <View style={styles.expensiTextInputLabelBackground} />}
+                                    to prevent text overlapping with label when scrolling */}
+                                    {this.props.multiline && <View style={styles.expensiTextInputLabelBackground} pointerEvents="none" />}
                                     <ExpensiTextInputLabel
-                                        label={label}
-                                        labelTranslateX={
-                                            ignoreLabelTranslateX
-                                                ? new Animated.Value(0)
-                                                : this.state.labelTranslateX
-                                        }
+                                        label={this.props.label}
                                         labelTranslateY={this.state.labelTranslateY}
                                         labelScale={this.state.labelScale}
                                     />
                                 </>
                             ) : null}
-                            <TextInput
-                                ref={(ref) => {
-                                    if (typeof innerRef === 'function') { innerRef(ref); }
-                                    this.input = ref;
-                                }}
-                                // eslint-disable-next-line
-                                {...inputProps}
-                                value={value}
-                                placeholder={(this.state.isFocused || !label) ? placeholder : null}
-                                placeholderTextColor={themeColors.placeholderText}
-                                underlineColorAndroid="transparent"
-                                style={[inputStyle, !hasLabel && styles.pv0]}
-                                multiline={multiline}
-                                onFocus={this.onFocus}
-                                onBlur={this.onBlur}
-                                onChangeText={this.setValue}
-                                onPressOut={this.props.onPress}
-                            />
+                            <View style={[styles.expensiTextInputAndIconContainer]}>
+                                <TextInput
+                                    ref={(ref) => {
+                                        if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
+                                        this.input = ref;
+                                    }}
+                                    // eslint-disable-next-line
+                                    {...inputProps}
+                                    value={this.value}
+                                    placeholder={(this.state.isFocused || !this.props.label) ? this.props.placeholder : null}
+                                    placeholderTextColor={themeColors.placeholderText}
+                                    underlineColorAndroid="transparent"
+                                    style={[this.props.inputStyle, styles.flex1, styles.w100, !hasLabel && styles.pv0, this.props.secureTextEntry && styles.pr2]}
+                                    multiline={this.props.multiline}
+                                    onFocus={this.onFocus}
+                                    onBlur={this.onBlur}
+                                    onChangeText={this.setValue}
+                                    secureTextEntry={this.state.passwordHidden}
+                                    onPressOut={this.props.onPress}
+                                />
+                                {this.props.secureTextEntry && (
+                                <Pressable
+                                    accessibilityRole="button"
+                                    style={styles.secureInputEyeButton}
+                                    onPress={this.togglePasswordVisibility}
+                                >
+                                    <Icon
+                                        src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                        fill={themeColors.icon}
+                                    />
+                                </Pressable>
+                                )}
+                            </View>
                         </View>
                     </TouchableWithoutFeedback>
                 </View>
-                {!_.isEmpty(errorText) && (
+                {!_.isEmpty(this.props.errorText) && (
                     <InlineErrorText>
-                        {errorText}
+                        {this.props.errorText}
                     </InlineErrorText>
                 )}
             </View>
@@ -218,7 +216,7 @@ class BaseExpensiTextInput extends Component {
     }
 }
 
-BaseExpensiTextInput.propTypes = propTypes;
-BaseExpensiTextInput.defaultProps = defaultProps;
+BaseExpensiTextInput.propTypes = baseExpensiTextInputPropTypes.propTypes;
+BaseExpensiTextInput.defaultProps = baseExpensiTextInputPropTypes.defaultProps;
 
 export default BaseExpensiTextInput;

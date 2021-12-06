@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import MenuItemList from '../../components/MenuItemList';
 import Icon from '../../components/Icon';
@@ -31,33 +31,30 @@ const defaultProps = {
     IconComponent: null,
 };
 
-const WorkspaceSection = ({
-    menuItems,
-    title,
-    icon,
-    children,
-    IconComponent,
-}) => (
-    <>
-        <View style={styles.pageWrapper}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
-                <View style={[styles.flexShrink1]}>
-                    <Text style={[styles.h1]}>{title}</Text>
+const WorkspaceSection = (props) => {
+    const IconComponent = props.IconComponent;
+    return (
+        <>
+            <View style={styles.pageWrapper}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.w100]}>
+                    <View style={[styles.flexShrink1]}>
+                        <ExpensifyText style={[styles.h1]}>{props.title}</ExpensifyText>
+                    </View>
+                    <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
+                        {props.icon && <Icon src={props.icon} height={80} width={80} />}
+                        {IconComponent && <IconComponent />}
+                    </View>
                 </View>
-                <View style={[styles.flexGrow1, styles.flexRow, styles.justifyContentEnd]}>
-                    {icon && <Icon src={icon} height={80} width={80} />}
-                    {IconComponent && <IconComponent />}
+
+                <View style={[styles.w100]}>
+                    {props.children}
                 </View>
             </View>
 
-            <View style={[styles.w100]}>
-                {children}
-            </View>
-        </View>
-
-        {menuItems && <MenuItemList menuItems={menuItems} />}
-    </>
-);
+            {props.menuItems && <MenuItemList menuItems={props.menuItems} />}
+        </>
+    );
+};
 
 WorkspaceSection.displayName = 'WorkspaceSection';
 WorkspaceSection.propTypes = propTypes;

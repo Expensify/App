@@ -22,16 +22,13 @@ const propTypes = {
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
 
-    /** label translate x */
-    translateX: PropTypes.number,
-
     /** input style */
     inputStyle: PropTypes.arrayOf(PropTypes.object),
 
-    /** should ignore labels translate x? */
-    ignoreLabelTranslateX: PropTypes.bool,
-
     forceActiveLabel: PropTypes.bool,
+
+    /** Should the input auto focus? */
+    autoFocus: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -40,9 +37,8 @@ const defaultProps = {
     placeholder: '',
     hasError: false,
     containerStyles: [],
-    translateX: -22,
     inputStyle: [],
-    ignoreLabelTranslateX: false,
+    autoFocus: false,
 
     /**
      * To be able to function as either controlled or uncontrolled component we should not

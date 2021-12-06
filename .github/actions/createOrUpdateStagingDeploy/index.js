@@ -195,14 +195,33 @@ const {execSync} = __nccwpck_require__(3129);
  * @returns {Array}
  */
 function getPullRequestsMergedBetween(fromRef, toRef) {
-    const command = `git log --format="%s" ${fromRef}...${toRef}`;
+    const command = `git log --format="{[%B]}" ${fromRef}...${toRef}`;
     console.log('Getting pull requests merged between the following refs:', fromRef, toRef);
     console.log('Running command: ', command);
     const localGitLogs = execSync(command).toString();
-    return _.map(
-        [...localGitLogs.matchAll(/Merge pull request #(\d{1,6}) from (?!Expensify\/(?:master|main|version-))/g)],
+
+    // Parse the git log into an array of commit messages between the two refs
+    const commitMessages = _.map(
+        [...localGitLogs.matchAll(/{\[([\s\S]*?)\]}/gm)],
         match => match[1],
     );
+    console.log(`A list of commits made between ${fromRef} and ${toRef}:\n${commitMessages}`);
+
+    // We need to find which commit messages correspond to merge commits and get PR numbers.
+    // Additionally, we omit merge commits made while cherry picking using negative lookahead in the regexp.
+    const pullRequestIDs = _.reduce(commitMessages, (mergedPRs, commitMessage) => {
+        const mergeCommits = [
+            ...commitMessage.matchAll(/Merge pull request #(\d{1,6}) from (?!(?:Expensify\/(?:master|main|version-))|(?:([\s\S]*?)\(cherry picked from commit .*\)\s*))/gm),
+        ];
+
+        // Get the PR number of the first match (there should not be multiple matches in one commit message)
+        if (_.size(mergeCommits)) {
+            mergedPRs.push(mergeCommits[0][1]);
+        }
+        return mergedPRs;
+    }, []);
+    console.log(`A list of pull requests merged between ${fromRef} and ${toRef}:\n${pullRequestIDs}`);
+    return pullRequestIDs;
 }
 
 module.exports = {
@@ -233,6 +252,7 @@ const ISSUE_OR_PULL_REQUEST_REGEX = new RegExp(`${GITHUB_BASE_URL_REGEX.source}/
 const APPLAUSE_BOT = 'applausebot';
 const STAGING_DEPLOY_CASH_LABEL = 'StagingDeployCash';
 const DEPLOY_BLOCKER_CASH_LABEL = 'DeployBlockerCash';
+const INTERNAL_QA_LABEL = 'InternalQA';
 
 class GithubUtils {
     /**
@@ -406,6 +426,17 @@ class GithubUtils {
                 );
                 console.log('Filtering out the following automated pull requests:', automatedPRs);
 
+                const internalQAPRMap = _.reduce(
+                    _.filter(data, pr => !_.isEmpty(_.findWhere(pr.labels, {name: INTERNAL_QA_LABEL}))),
+                    (map, pr) => {
+                        // eslint-disable-next-line no-param-reassign
+                        map[pr.html_url] = _.compact(_.pluck(pr.assignees, 'login'));
+                        return map;
+                    },
+                    {},
+                );
+                console.log('Found the following Internal QA PRs:', internalQAPRMap);
+
                 const noQAPRs = _.pluck(
                     _.filter(data, PR => (PR.title || '').toUpperCase().startsWith('[NO QA]')),
                     'html_url',
@@ -416,6 +447,7 @@ class GithubUtils {
 
                 const sortedPRList = _.chain(PRList)
                     .difference(automatedPRs)
+                    .difference(_.keys(internalQAPRMap))
                     .unique()
                     .sortBy(GithubUtils.getPullRequestNumberFromURL)
                     .value();
@@ -435,6 +467,16 @@ class GithubUtils {
                         issueBody += `\r\n\r\n- ${URL}`;
                         issueBody += _.contains(verifiedOrNoQAPRs, URL) ? '\r\n  - [x] QA' : '\r\n  - [ ] QA';
                         issueBody += _.contains(accessibleOrNoQAPRs, URL) ? '\r\n  - [x] Accessibility' : '\r\n  - [ ] Accessibility';
+                    });
+                }
+
+                if (!_.isEmpty(internalQAPRMap)) {
+                    issueBody += '\r\n\r\n\r\n**Internal QA:**';
+                    _.each(internalQAPRMap, (assignees, URL) => {
+                        const assigneeMentions = _.reduce(assignees, (memo, assignee) => `${memo} @${assignee}`, '');
+                        issueBody += `\r\n${_.contains(verifiedOrNoQAPRs, URL) ? '- [x]' : '- [ ]'} `;
+                        issueBody += `${URL}`;
+                        issueBody += ` -${assigneeMentions}`;
                     });
                 }
 

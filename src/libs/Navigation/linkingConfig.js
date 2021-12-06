@@ -27,6 +27,7 @@ export default {
 
             // Main Routes
             SetPassword: ROUTES.SET_PASSWORD_WITH_VALIDATE_CODE,
+            ValidateLogin: ROUTES.VALIDATE_LOGIN,
             [SCREENS.LOG_IN_WITH_SHORT_LIVED_TOKEN]: ROUTES.LOGIN_WITH_SHORT_LIVED_TOKEN,
 
             // Modal Screens
@@ -98,8 +99,11 @@ export default {
                         path: ROUTES.WORKSPACE_BANK_ACCOUNT,
                         exact: true,
                     },
+                    Workspace_Invite: {
+                        path: ROUTES.WORKSPACE_INVITE,
+                    },
                     ReimbursementAccount: {
-                        path: ROUTES.BANK_ACCOUNT,
+                        path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
                 },
@@ -151,6 +155,7 @@ export default {
                 screens: {
                     IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
                     IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
+                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             IOU_Details: {
@@ -166,12 +171,6 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
-                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
-                },
-            },
-            WorkspaceInvite: {
-                screens: {
-                    WorkspaceInvite_Root: ROUTES.WORKSPACE_INVITE,
                 },
             },
             RequestCall: {

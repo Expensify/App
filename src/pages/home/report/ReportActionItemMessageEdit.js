@@ -6,12 +6,12 @@ import ExpensiMark from 'expensify-common/lib/ExpensiMark';
 import reportActionPropTypes from './reportActionPropTypes';
 import styles from '../../../styles/styles';
 import TextInputFocusable from '../../../components/TextInputFocusable';
-import {editReportComment, saveReportActionDraft} from '../../../libs/actions/Report';
-import {scrollToIndex} from '../../../libs/ReportScrollManager';
+import * as Report from '../../../libs/actions/Report';
+import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Button from '../../../components/Button';
+import ExpensifyButton from '../../../components/ExpensifyButton';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 
@@ -28,6 +28,9 @@ const propTypes = {
     /** Position index of the report action in the overall report FlatList view */
     index: PropTypes.number.isRequired,
 
+    /** A ref to forward to the text input */
+    forwardedRef: PropTypes.func,
+
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
 
@@ -35,12 +38,16 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
+const defaultProps = {
+    forwardedRef: () => {},
+};
+
 class ReportActionItemMessageEdit extends React.Component {
     constructor(props) {
         super(props);
         this.updateDraft = this.updateDraft.bind(this);
         this.deleteDraft = this.deleteDraft.bind(this);
-        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000, true);
+        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000);
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -74,14 +81,21 @@ class ReportActionItemMessageEdit extends React.Component {
     updateDraft(newDraft) {
         this.textInput.setNativeProps({text: newDraft});
         this.setState({draft: newDraft});
-        this.debouncedSaveDraft(newDraft);
+
+        // This component is rendered only when draft is set to a non-empty string. In order to prevent component
+        // unmount when user deletes content of textarea, we set previous message instead of empty string.
+        if (newDraft.trim().length > 0) {
+            this.debouncedSaveDraft(newDraft);
+        } else {
+            this.debouncedSaveDraft(this.props.action.message[0].html);
+        }
     }
 
     /**
      * Delete the draft of the comment being edited. This will take the comment out of "edit mode" with the old content.
      */
     deleteDraft() {
-        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, '');
         toggleReportActionComposeView(true, this.props.isSmallScreenWidth);
         ReportActionComposeFocusManager.focus();
     }
@@ -89,9 +103,11 @@ class ReportActionItemMessageEdit extends React.Component {
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
+     * @param {String} newDraft
      */
-    debouncedSaveDraft() {
-        saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
+
+    debouncedSaveDraft(newDraft) {
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
     }
 
     /**
@@ -99,8 +115,12 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
+        // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
+        // debounce here.
+        this.debouncedSaveDraft.cancel();
+
         const trimmedNewDraft = this.state.draft.trim();
-        editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
+        Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
     }
 
@@ -125,29 +145,31 @@ class ReportActionItemMessageEdit extends React.Component {
                 <View style={[styles.chatItemComposeBox, styles.flexRow, styles.chatItemComposeBoxColor]}>
                     <TextInputFocusable
                         multiline
-                        ref={el => this.textInput = el}
+                        ref={(el) => {
+                            this.textInput = el;
+                            this.props.forwardedRef(el);
+                        }}
                         onChangeText={this.updateDraft} // Debounced saveDraftComment
                         onKeyPress={this.triggerSaveOrCancel}
                         defaultValue={this.state.draft}
                         maxLines={16} // This is the same that slack has
                         style={[styles.textInputCompose, styles.flex4]}
                         onFocus={() => {
-                            scrollToIndex({animated: true, index: this.props.index}, true);
+                            ReportScrollManager.scrollToIndex({animated: true, index: this.props.index}, true);
                             toggleReportActionComposeView(false);
                         }}
-                        autoFocus
                         selection={this.state.selection}
                         onSelectionChange={this.onSelectionChange}
                     />
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
-                    <Button
+                    <ExpensifyButton
                         small
                         style={[styles.mr2]}
                         onPress={this.deleteDraft}
                         text={this.props.translate('common.cancel')}
                     />
-                    <Button
+                    <ExpensifyButton
                         small
                         success
                         style={[styles.mr2]}
@@ -161,7 +183,11 @@ class ReportActionItemMessageEdit extends React.Component {
 }
 
 ReportActionItemMessageEdit.propTypes = propTypes;
+ReportActionItemMessageEdit.defaultProps = defaultProps;
 export default compose(
     withLocalize,
     withWindowDimensions,
-)(ReportActionItemMessageEdit);
+)(React.forwardRef((props, ref) => (
+    /* eslint-disable-next-line react/jsx-props-no-spreading */
+    <ReportActionItemMessageEdit {...props} forwardedRef={ref} />
+)));
