@@ -37,6 +37,6 @@ class ExpensiTextInputLabel extends PureComponent {
 }
 
 ExpensiTextInputLabel.propTypes = expensiTextInputLabelPropTypes.propTypes;
-ExpensiTextInputLabel.propTypes = expensiTextInputLabelPropTypes.defaultProps;
+ExpensiTextInputLabel.defaultProps = expensiTextInputLabelPropTypes.defaultProps;
 
 export default ExpensiTextInputLabel;
