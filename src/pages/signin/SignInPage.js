@@ -80,25 +80,25 @@ class SignInPage extends Component {
         // - A login has been entered
         // - AND a GitHub username has been entered OR they already have access to this app
         // - AND an account did not exist or is not validated for that login
-        const showResendValidationLinkForm = this.props.credentials.login && !validAccount;
+        const shouldShowResendValidationLinkForm = this.props.credentials.login && !validAccount;
 
-        const welcomeText = showResendValidationLinkForm
+        const welcomeText = shouldShowResendValidationLinkForm
             ? ''
-            : this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
+            : this.props.translate(`welcomeText.${showPasswordForm ? 'welcomeBack' : 'welcome'}`);
 
         return (
             <>
                 <SafeAreaView style={[styles.signInPage]}>
                     <SignInPageLayout
                         welcomeText={welcomeText}
-                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
+                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !shouldShowResendValidationLinkForm}
                         shouldShowWelcomeScreenshot={showLoginForm}
                     >
                         {showLoginForm && <LoginForm />}
 
                         {showPasswordForm && <PasswordForm />}
 
-                        {showResendValidationLinkForm && <ResendValidationForm />}
+                        {shouldShowResendValidationLinkForm && <ResendValidationForm />}
                     </SignInPageLayout>
                 </SafeAreaView>
             </>
