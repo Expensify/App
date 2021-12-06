@@ -17,6 +17,7 @@ import getEmailKeyboardType from '../../libs/getEmailKeyboardType';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import * as ValidationUtils from '../../libs/ValidationUtils';
 import LoginUtil from '../../libs/LoginUtil';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
     /* Onyx Props */
@@ -36,6 +37,8 @@ const propTypes = {
     ...windowDimensionsPropTypes,
 
     ...withLocalizePropTypes,
+
+    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -45,7 +48,6 @@ const defaultProps = {
 class LoginForm extends React.Component {
     constructor(props) {
         super(props);
-
         this.onTextInput = this.onTextInput.bind(this);
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
@@ -53,6 +55,24 @@ class LoginForm extends React.Component {
             formError: false,
             login: '',
         };
+    }
+
+    componentDidMount() {
+        if (!canFocusInputOnScreenFocus() || !this.input) {
+            return;
+        }
+        this.input.focus();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isVisible || !this.props.isVisible) {
+            return;
+        }
+        this.input.focus();
+
+        if (this.state.login) {
+            this.clearLogin();
+        }
     }
 
     /**
@@ -69,6 +89,13 @@ class LoginForm extends React.Component {
         if (this.props.account.error) {
             Session.clearAccountMessages();
         }
+    }
+
+    /**
+     * Clear Login from the state
+     */
+    clearLogin() {
+        this.setState({login: ''}, this.input.clear);
     }
 
     /**
@@ -105,16 +132,18 @@ class LoginForm extends React.Component {
             <>
                 <View style={[styles.mt3]}>
                     <ExpensiTextInput
+                        ref={el => this.input = el}
                         label={this.props.translate('loginForm.phoneOrEmail')}
                         value={this.state.login}
-                        autoCompleteType="email"
+                        autoCompleteType="username"
                         textContentType="username"
+                        nativeID="username"
+                        name="username"
                         onChangeText={this.onTextInput}
                         onSubmitEditing={this.validateAndSubmitForm}
                         autoCapitalize="none"
                         autoCorrect={false}
                         keyboardType={getEmailKeyboardType()}
-                        autoFocus={canFocusInputOnScreenFocus()}
                     />
                 </View>
                 {this.state.formError && (
@@ -141,7 +170,6 @@ class LoginForm extends React.Component {
                         onPress={this.validateAndSubmitForm}
                     />
                 </View>
-
             </>
         );
     }
@@ -156,4 +184,5 @@ export default compose(
     }),
     withWindowDimensions,
     withLocalize,
+    withToggleVisibilityView,
 )(LoginForm);

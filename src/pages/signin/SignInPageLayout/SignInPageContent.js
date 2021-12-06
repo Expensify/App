@@ -9,6 +9,7 @@ import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
 import ExpensifyText from '../../../components/ExpensifyText';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Form from '../../../components/Form';
 import compose from '../../../libs/compose';
 import scrollViewContentContainerStyles from './signInPageStyles';
 import LoginKeyboardAvoidingView from './LoginKeyboardAvoidingView';
@@ -44,7 +45,7 @@ const SignInPageContent = props => (
             !props.isSmallScreenWidth && styles.ph6,
         ]}
     >
-        <View style={[
+        <Form style={[
             styles.flex1,
             styles.alignSelfStretch,
             props.isSmallScreenWidth && styles.signInPageNarrowContentContainer,
@@ -80,7 +81,7 @@ const SignInPageContent = props => (
                 )}
                 {props.children}
             </LoginKeyboardAvoidingView>
-        </View>
+        </Form>
         <View style={[styles.mb5, styles.alignSelfCenter, props.isSmallScreenWidth && styles.signInPageNarrowContentContainer, styles.ph5]}>
             <TermsAndLicenses />
         </View>
