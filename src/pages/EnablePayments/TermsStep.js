@@ -108,6 +108,7 @@ class TermsStep extends React.Component {
                     )}
                     <ExpensifyButton
                         success
+                        style={styles.mb4}
                         text={this.props.translate('termsStep.enablePayments')}
                         isLoading={this.props.walletTerms.loading}
                         onPress={() => {
