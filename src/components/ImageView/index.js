@@ -86,7 +86,6 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
-        // In case image loading is delayed than onLayout callback of the root View caused internet speed.
         const newZoomScale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
         this.setState(prevState => ({
             imgWidth: width,
