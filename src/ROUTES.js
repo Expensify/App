@@ -24,6 +24,7 @@ export default {
     SETTINGS_PROFILE: 'settings/profile',
     SETTINGS_PREFERENCES: 'settings/preferences',
     SETTINGS_PASSWORD: 'settings/password',
+    SETTINGS_SECURITY: 'settings/security',
     SETTINGS_ABOUT: 'settings/about',
     SETTINGS_APP_DOWNLOAD_LINKS: 'settings/about/app-download-links',
     SETTINGS_PAYMENTS: 'settings/payments',

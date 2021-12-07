@@ -44,6 +44,10 @@ export default {
                         path: ROUTES.SETTINGS_PASSWORD,
                         exact: true,
                     },
+                    Settings_Security: {
+                        path: ROUTES.SETTINGS_SECURITY,
+                        exact: true,
+                    },
                     Settings_Payments: {
                         path: ROUTES.SETTINGS_PAYMENTS,
                         exact: true,

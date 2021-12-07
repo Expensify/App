@@ -163,6 +163,10 @@ const SettingsModalStackNavigator = createModalStackNavigator([
         name: 'Settings_Password',
     },
     {
+        Component: SettingsSecurityPage,
+        name: 'Settings_Security',
+    },
+    {
         Component: SettingsAboutPage,
         name: 'Settings_About',
     },
