@@ -257,6 +257,23 @@ function canProcessRequestImmediately(request) {
 }
 
 /**
+ * @param {Object} data
+ * @returns {Object}
+ */
+function normalizeData(data) {
+    const normalizedData = {};
+    _.each(data, (value, key) => {
+        if (_.isArray(value)) {
+            normalizedData[key] = value.join(',');
+            return;
+        }
+
+        normalizedData[key] = value;
+    });
+    return normalizedData;
+}
+
+/**
  * Perform a queued post request
  *
  * @param {String} command
@@ -266,10 +283,11 @@ function canProcessRequestImmediately(request) {
  * @returns {Promise}
  */
 function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
+    const normalizedData = normalizeData(data);
     return new Promise((resolve, reject) => {
         const request = {
             command,
-            data,
+            data: normalizedData,
             type,
             resolve,
             reject,
