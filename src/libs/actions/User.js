@@ -323,7 +323,7 @@ function setPreferredSkinTone(skinTone) {
 
 /**
  * Sync frequentlyUsedEmojis with Onyx and Server
- * @param {Array} frequentlyUsedEmojis
+ * @param {Object[]} frequentlyUsedEmojis
  */
 
 function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
