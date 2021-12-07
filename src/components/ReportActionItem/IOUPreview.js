@@ -20,7 +20,7 @@ import themeColors from '../../styles/themes/default';
 import Icon from '../Icon';
 import CONST from '../../CONST';
 import * as Expensicons from '../Icon/Expensicons';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 
 const propTypes = {
     /** Additional logic for displaying the pay button */
@@ -111,9 +111,9 @@ const IOUPreview = (props) => {
                             <View style={styles.flexRow}>
                                 <View style={styles.flex1}>
                                     <View style={styles.flexRow}>
-                                        <Text style={styles.h1}>
+                                        <ExpensifyText style={styles.h1}>
                                             {cachedTotal}
-                                        </Text>
+                                        </ExpensifyText>
                                         {!props.iouReport.hasOutstandingIOU && (
                                             <View style={styles.iouPreviewBoxCheckmark}>
                                                 <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />
@@ -128,11 +128,11 @@ const IOUPreview = (props) => {
                                     />
                                 </View>
                             </View>
-                            <Text>
+                            <ExpensifyText>
                                 {props.iouReport.hasOutstandingIOU
                                     ? props.translate('iou.owes', {manager: managerName, owner: ownerName})
                                     : props.translate('iou.paid', {manager: managerName, owner: ownerName})}
-                            </Text>
+                            </ExpensifyText>
                             {(isCurrentUserManager
                                 && !props.shouldHidePayButton
                                 && props.iouReport.stateNum === CONST.REPORT.STATE_NUM.PROCESSING && (
@@ -140,14 +140,14 @@ const IOUPreview = (props) => {
                                     style={[styles.buttonSmall, styles.buttonSuccess, styles.mt4]}
                                     onPress={props.onPayButtonPressed}
                                 >
-                                    <Text
+                                    <ExpensifyText
                                         style={[
                                             styles.buttonSmallText,
                                             styles.buttonSuccessText,
                                         ]}
                                     >
                                         {props.translate('iou.pay')}
-                                    </Text>
+                                    </ExpensifyText>
                                 </TouchableOpacity>
                             ))}
                         </View>

@@ -21,9 +21,10 @@ const expensiPicker = {
     color: themeColors.text,
     fontFamily: fontFamily.GTA,
     fontSize: variables.fontSizeNormal,
-    paddingHorizontal: 11.5,
+    lineHeight: variables.fontSizeNormalHeight,
+    paddingHorizontal: 11,
     paddingBottom: 8,
-    paddingTop: 24,
+    paddingTop: 23,
     height: 52,
     borderWidth: 1,
     borderStyle: 'solid',
@@ -52,7 +53,7 @@ const webViewStyles = {
     // component.
     tagStyles: {
         em: {
-            fontFamily: fontFamily.GTA_ITALIC,
+            fontFamily: fontFamily.GTA,
             fontStyle: 'italic',
         },
 
@@ -62,7 +63,7 @@ const webViewStyles = {
         },
 
         strong: {
-            fontFamily: fontFamily.GTA_BOLD,
+            fontFamily: fontFamily.GTA,
             fontWeight: 'bold',
         },
 
@@ -426,6 +427,13 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    visuallyHidden: {
+        ...visibility('hidden'),
+        overflow: 'hidden',
+        width: 0,
+        height: 0,
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,
@@ -482,7 +490,7 @@ const styles = {
             opacity: 1,
         },
         iconContainer: {
-            top: 7,
+            top: 8,
             right: 9,
             pointerEvents: 'none',
         },
@@ -583,25 +591,28 @@ const styles = {
     componentHeightLarge: {
         height: variables.componentSizeLarge,
     },
+
     expensiTextInputContainer: {
         flex: 1,
-        borderWidth: 1,
         borderRadius: variables.componentBorderRadiusNormal,
-        borderColor: themeColors.border,
         justifyContent: 'center',
         height: '100%',
         backgroundColor: themeColors.componentBG,
+        borderWidth: 1,
+        borderColor: themeColors.border,
         overflow: 'hidden',
     },
+
     expensiTextInputLabel: {
         position: 'absolute',
-        left: 11.5,
-        top: 16,
+        left: 11,
+        top: 0,
         fontSize: variables.fontSizeNormal,
         color: themeColors.textSupporting,
         fontFamily: fontFamily.GTA,
         width: '100%',
     },
+
     expensiTextInputLabelBackground: {
         position: 'absolute',
         top: 0,
@@ -611,9 +622,11 @@ const styles = {
         borderTopRightRadius: variables.componentBorderRadiusNormal,
         borderTopLeftRadius: variables.componentBorderRadiusNormal,
     },
+
     expensiTextInputLabelDesktop: {
         transformOrigin: 'left center',
     },
+
     expensiTextInputLabelTransformation: (translateY, translateX, scale) => ({
         transform: [
             {translateY},
@@ -621,22 +634,32 @@ const styles = {
             {scale},
         ],
     }),
+
     expensiTextInput: {
         fontFamily: fontFamily.GTA,
         fontSize: variables.fontSizeNormal,
+        lineHeight: variables.fontSizeNormalHeight,
         color: themeColors.text,
         height: '100%',
-        paddingTop: 25,
+        paddingTop: 23,
         paddingBottom: 8,
-        paddingHorizontal: 11.5,
+        paddingHorizontal: 11,
+        borderWidth: 0,
         borderRadius: variables.componentBorderRadiusNormal,
-        zIndex: -1,
     },
+
+    expensiTextInputAndIconContainer: {
+        zIndex: -1,
+        flexDirection: 'row',
+    },
+
     expensiTextInputDesktop: addOutlineWidth({}, 0),
-    expensiTextInputAndroid: left => ({
-        padding: 0,
-        left,
-    }),
+
+    secureInputEyeButton: {
+        paddingRight: 11,
+        justifyContent: 'center',
+    },
+
     textInput: {
         backgroundColor: themeColors.componentBG,
         borderRadius: variables.componentBorderRadiusNormal,
@@ -661,23 +684,27 @@ const styles = {
     },
     expensiPickerLabel: {
         position: 'absolute',
-        left: 11.5,
-        top: 8,
+        left: 12,
+        top: 7,
     },
-    expensiPicker: (disabled = false) => ({
+    expensiPicker: (disabled = false, error = false, focused = false) => ({
         iconContainer: {
             pointerEvents: 'none',
             top: 16,
-            right: 12,
+            right: 11,
             zIndex: -1,
         },
         inputWeb: {
             appearance: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             ...expensiPicker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
         inputNative: {
             ...expensiPicker,
+            ...(focused && {borderColor: themeColors.borderFocus}),
+            ...(error && {borderColor: themeColors.badgeDangerBG}),
         },
     }),
 
@@ -785,8 +812,17 @@ const styles = {
         maxWidth: 335,
     },
 
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
+    },
+
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
     },
 
     signInPageWideHeroContent: {
@@ -1951,7 +1987,8 @@ const styles = {
         position: 'absolute',
         width: '100%',
         top: 20,
-        ...spacing.ph5,
+        ...spacing.pl5,
+        ...spacing.pr5,
     },
 
     growlNotificationDesktopContainer: {
@@ -2209,6 +2246,15 @@ const styles = {
         flex: 1,
     },
 
+    threeDotsPopoverOffset: {
+        top: 50,
+        right: 60,
+    },
+
+    googleListView: {
+        transform: [{scale: 0}],
+    },
+
     keyboardShortcutModalContainer: {
         maxWidth: 600,
         maxHeight: '100%',
@@ -2248,10 +2294,6 @@ const styles = {
 
     keyboardShortcutTableFirstRow: {
         borderTopWidth: 0,
-    },
-
-    googleListView: {
-        transform: [{scale: 0}],
     },
 
     iPhoneXSafeArea: {

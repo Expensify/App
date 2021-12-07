@@ -103,7 +103,7 @@ export default {
                         path: ROUTES.WORKSPACE_INVITE,
                     },
                     ReimbursementAccount: {
-                        path: ROUTES.BANK_ACCOUNT,
+                        path: ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN,
                         exact: true,
                     },
                 },
@@ -155,6 +155,7 @@ export default {
                 screens: {
                     IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
                     IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
+                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             IOU_Details: {
@@ -170,7 +171,6 @@ export default {
             EnablePayments: {
                 screens: {
                     EnablePayments_Root: ROUTES.ENABLE_PAYMENTS,
-                    IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
                 },
             },
             RequestCall: {

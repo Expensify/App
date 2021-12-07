@@ -78,7 +78,6 @@ class Datepicker extends React.Component {
                 hasError={this.props.hasError}
                 errorText={this.props.errorText}
                 containerStyles={this.props.containerStyles}
-                translateX={this.props.translateX}
                 disabled={this.props.disabled}
             />
         );

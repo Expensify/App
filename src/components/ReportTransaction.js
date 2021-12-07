@@ -12,7 +12,7 @@ import themeColors from '../styles/themes/default';
 import * as IOU from '../libs/actions/IOU';
 import reportActionPropTypes from '../pages/home/report/reportActionPropTypes';
 import ReportActionItemSingle from '../pages/home/report/ReportActionItemSingle';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 
 const propTypes = {
     /** The chatReport which the transaction is associated with */
@@ -82,9 +82,9 @@ class ReportTransaction extends Component {
                     action={this.props.action}
                     wrapperStyles={[styles.reportTransactionWrapper]}
                 >
-                    <Text style={[styles.chatItemMessage]}>
+                    <ExpensifyText style={[styles.chatItemMessage]}>
                         {this.props.action.message[0].text}
-                    </Text>
+                    </ExpensifyText>
                 </ReportActionItemSingle>
                 {this.props.canBeRejected && (
                     <View style={[styles.flexRow, styles.justifyContentStart]}>
@@ -106,9 +106,9 @@ class ReportTransaction extends Component {
                                     />
                                 )
                                 : (
-                                    <Text style={[styles.buttonSmallText]}>
+                                    <ExpensifyText style={[styles.buttonSmallText]}>
                                         {this.props.rejectButtonLabelText}
-                                    </Text>
+                                    </ExpensifyText>
                                 )
                             }
                         </Pressable>

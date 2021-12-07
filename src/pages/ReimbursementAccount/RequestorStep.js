@@ -11,7 +11,7 @@ import CONST from '../../CONST';
 import TextLink from '../../components/TextLink';
 import Navigation from '../../libs/Navigation/Navigation';
 import CheckboxWithLabel from '../../components/CheckboxWithLabel';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import * as BankAccounts from '../../libs/actions/BankAccounts';
 import IdentityForm from './IdentityForm';
 import * as ValidationUtils from '../../libs/ValidationUtils';
@@ -179,7 +179,7 @@ class RequestorStep extends React.Component {
                     <ReimbursementAccountForm
                         onSubmit={this.submit}
                     >
-                        <Text>{this.props.translate('requestorStep.subtitle')}</Text>
+                        <ExpensifyText>{this.props.translate('requestorStep.subtitle')}</ExpensifyText>
                         <View style={[styles.mb5, styles.mt1, styles.dFlex, styles.flexRow]}>
                             <TextLink
                                 style={[styles.textMicro]}
@@ -188,7 +188,7 @@ class RequestorStep extends React.Component {
                             >
                                 {`${this.props.translate('requestorStep.learnMore')}`}
                             </TextLink>
-                            <Text style={[styles.textMicroSupporting]}>{' | '}</Text>
+                            <ExpensifyText style={[styles.textMicroSupporting]}>{' | '}</ExpensifyText>
                             <TextLink
                                 style={[styles.textMicro, styles.textLink]}
                                 // eslint-disable-next-line max-len
@@ -224,41 +224,41 @@ class RequestorStep extends React.Component {
                             }}
                             LabelComponent={() => (
                                 <View style={[styles.flex1, styles.pr1]}>
-                                    <Text>
+                                    <ExpensifyText>
                                         {this.props.translate('requestorStep.isControllingOfficer')}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                             )}
                             style={[styles.mt4]}
                             hasError={Boolean(this.getErrors().isControllingOfficer)}
                             errorText={this.getErrors().isControllingOfficer ? this.props.translate('requestorStep.isControllingOfficerError') : ''}
                         />
-                        <Text style={[styles.mt3, styles.textMicroSupporting]}>
+                        <ExpensifyText style={[styles.mt3, styles.textMicroSupporting]}>
                             {this.props.translate('requestorStep.onFidoConditions')}
-                            <Text
+                            <ExpensifyText
                                 onPress={() => Link.openExternalLink('https://onfido.com/facial-scan-policy-and-release/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
                                 {`${this.props.translate('requestorStep.onFidoFacialScan')}`}
-                            </Text>
+                            </ExpensifyText>
                             {', '}
-                            <Text
+                            <ExpensifyText
                                 onPress={() => Link.openExternalLink('https://onfido.com/privacy/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.privacyPolicy')}`}
-                            </Text>
+                            </ExpensifyText>
                             {` ${this.props.translate('common.and')} `}
-                            <Text
+                            <ExpensifyText
                                 onPress={() => Link.openExternalLink('https://onfido.com/terms-of-service/')}
                                 style={[styles.textMicro, styles.link]}
                                 accessibilityRole="link"
                             >
                                 {`${this.props.translate('common.termsOfService')}`}
-                            </Text>
-                        </Text>
+                            </ExpensifyText>
+                        </ExpensifyText>
                     </ReimbursementAccountForm>
                 )}
             </>

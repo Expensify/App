@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import TextInputFocusable from './TextInputFocusable';
 
 const propTypes = {
@@ -56,14 +56,14 @@ class TextInputAutoWidth extends React.Component {
                 Text input component doesn't support auto grow by default.
                 We're using a hidden text input to achieve that.
                 This text view is used to calculate width of the input value given textStyle in this component.
-                This text component is intentionally positioned out of the screen.
+                This ExpensifyText component is intentionally positioned out of the screen.
                 */}
-                <Text
+                <ExpensifyText
                     style={[this.props.textStyle, styles.hiddenElementOutsideOfWindow]}
                     onLayout={e => this.setState({textInputWidth: e.nativeEvent.layout.width})}
                 >
                     {this.props.value || this.props.placeholder}
-                </Text>
+                </ExpensifyText>
             </>
         );
     }

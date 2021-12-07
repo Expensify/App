@@ -81,21 +81,19 @@ class SignInPage extends Component {
         const welcomeText = this.props.translate(`welcomeText.${showPasswordForm ? 'phrase4' : 'phrase1'}`);
 
         return (
-            <>
-                <SafeAreaView style={[styles.signInPage]}>
-                    <SignInPageLayout
-                        welcomeText={welcomeText}
-                        shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
-                        shouldShowWelcomeScreenshot={showLoginForm}
-                    >
-                        {showLoginForm && <LoginForm />}
-
-                        {showPasswordForm && <PasswordForm />}
-
-                        {showResendValidationLinkForm && <ResendValidationForm />}
-                    </SignInPageLayout>
-                </SafeAreaView>
-            </>
+            <SafeAreaView style={[styles.signInPage]}>
+                <SignInPageLayout
+                    welcomeText={welcomeText}
+                    shouldShowWelcomeText={showLoginForm || showPasswordForm || !showResendValidationLinkForm}
+                    shouldShowWelcomeScreenshot={showLoginForm}
+                >
+                    {/* LoginForm and PasswordForm must use the isVisible prop. This keeps them mounted, but visually hidden
+                    so that password managers can access the values. Conditionally rendering these components will break this feature. */}
+                    <LoginForm isVisible={showLoginForm} />
+                    <PasswordForm isVisible={showPasswordForm} />
+                    {showResendValidationLinkForm && <ResendValidationForm />}
+                </SignInPageLayout>
+            </SafeAreaView>
         );
     }
 }

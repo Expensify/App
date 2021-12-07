@@ -124,7 +124,6 @@ function create(name = '') {
  * @param {String} policyID
  */
 function navigateToPolicy(policyID) {
-    Navigation.dismissModal();
     Navigation.navigate(policyID ? ROUTES.getWorkspaceInitialRoute(policyID) : ROUTES.HOME);
 }
 
@@ -133,6 +132,33 @@ function navigateToPolicy(policyID) {
  */
 function createAndNavigate(name = '') {
     create(name).then(navigateToPolicy);
+}
+
+/**
+ * Delete the policy
+ *
+ * @param {String} [policyID]
+ * @returns {Promise}
+ */
+function deletePolicy(policyID) {
+    return API.Policy_Delete({policyID})
+        .then((response) => {
+            if (response.jsonCode !== 200) {
+                // Show the user feedback
+                const errorMessage = Localize.translateLocal('workspace.new.genericFailureMessage');
+                Growl.error(errorMessage, 5000);
+                return;
+            }
+
+            Growl.show(Localize.translateLocal('workspace.common.growlMessageOnDelete'), CONST.GROWL.SUCCESS, 3000);
+
+            // Removing the workspace data from Onyx as well
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, null);
+        }).then(() => {
+            Navigation.dismissModal();
+            Navigation.navigate(ROUTES.HOME);
+            return Promise.resolve();
+        });
 }
 
 /**
@@ -381,6 +407,7 @@ export {
     update,
     setWorkspaceErrors,
     hideWorkspaceAlertMessage,
+    deletePolicy,
     createAndNavigate,
     createAndGetPolicyList,
 };
