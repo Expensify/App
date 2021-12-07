@@ -271,10 +271,7 @@ export default {
                 label: 'Desktop',
             },
         },
-        settingsSecurityPage: {
-            security: 'Security',
-            changePassword: 'Change password',
-        },
+        security: 'Security',
         signOut: 'Sign out',
         versionLetter: 'v',
         readTheTermsAndPrivacyPolicy: {

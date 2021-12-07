@@ -17,7 +17,7 @@ const propTypes = {
 const AboutPage = (props) => {
     const menuItems = [
         {
-            translationKey: 'initialSettingsPage.settingsSecurityPage.changePassword', 
+            translationKey: 'passwordPage.changePassword', 
             icon: Expensicons.Link,
             action: () => {
                 Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
@@ -28,7 +28,7 @@ const AboutPage = (props) => {
     return (
         <ScreenWrapper>
             <HeaderWithCloseButton
-                title={props.translate('initialSettingsPage.settingsSecurityPage.security')}
+                title={props.translate('initialSettingsPage.security')}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
                 onCloseButtonPress={() => Navigation.dismissModal(true)}

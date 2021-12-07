@@ -99,7 +99,7 @@ const defaultMenuItems = [
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
-        translationKey: 'initialSettingsPage.settingsSecurityPage.security',
+        translationKey: 'initialSettingsPage.security',
         icon: Expensicons.Lock,
         action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
     },
