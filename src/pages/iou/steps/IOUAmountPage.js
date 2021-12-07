@@ -74,6 +74,8 @@ class IOUAmountPage extends React.Component {
         super(props);
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
+        this.handleLongPressNumberPad = this.handleLongPressNumberPad.bind(this);
+        this.clearDeletionTimer = this.clearDeletionTimer.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
@@ -156,6 +158,33 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
+     * Handle long press key on number pad.
+     * Only handles the '<' key and starts the continious input deletion timer
+     *
+     * @param {String} key
+     */
+    handleLongPressNumberPad(key) {
+        if (key !== '<') {
+            return;
+        }
+
+        const timer = setInterval(() => {
+            this.setState(prevState => ({
+                amount: prevState.amount.slice(0, -1),
+            }));
+        }, 100);
+
+        this.setState({timer});
+    }
+
+    /**
+     * Clear the timer for continious input deletion
+     */
+    clearDeletionTimer() {
+        clearInterval(this.state.timer);
+    }
+
+    /**
      * Update amount on amount change
      * Validate new amount with decimal number regex up to 6 digits and 2 decimal digit
      *
@@ -211,6 +240,8 @@ class IOUAmountPage extends React.Component {
                         ? (
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
+                                numberLongPressed={this.handleLongPressNumberPad}
+                                numberPressOut={this.clearDeletionTimer}
                             />
                         ) : <View />}
 

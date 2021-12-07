@@ -8,6 +8,17 @@ import ExpensifyButton from './ExpensifyButton';
 const propTypes = {
     /** Callback to inform parent modal with key pressed */
     numberPressed: PropTypes.func.isRequired,
+
+    /** Callback to inform parent modal with key long pressed */
+    numberLongPressed: PropTypes.func,
+
+    /** Callback to inform parent modal with key release */
+    numberPressOut: PropTypes.func,
+};
+
+const defaultProps = {
+    numberLongPressed: () => {},
+    numberPressOut: () => {},
 };
 
 const padNumbers = [
@@ -30,7 +41,9 @@ const BigNumberPad = props => (
                             key={column}
                             style={[styles.flex1, marginLeft]}
                             text={column}
+                            onLongPress={() => props.numberLongPressed(column)}
                             onPress={() => props.numberPressed(column)}
+                            onPressOut={props.numberPressOut}
                         />
                     );
                 })}
@@ -41,5 +54,6 @@ const BigNumberPad = props => (
 
 BigNumberPad.propTypes = propTypes;
 BigNumberPad.displayName = 'BigNumberPad';
+BigNumberPad.defaultProps = defaultProps;
 
 export default BigNumberPad;
