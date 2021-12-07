@@ -142,8 +142,9 @@ class AttachmentPicker extends Component {
 
         getDataForUpload(attachment).then((result) => {
             this.completeAttachmentSelection(result);
-        }).catch(() => {
-            this.showGeneralAlert();
+        }).catch((error) => {
+            this.showGeneralAlert(error.message);
+            throw error;
         });
     }
 
