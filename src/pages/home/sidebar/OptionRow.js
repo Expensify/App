@@ -20,7 +20,7 @@ import DisplayNames from '../../../components/DisplayNames';
 import IOUBadge from '../../../components/IOUBadge';
 import colors from '../../../styles/colors';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 
 const propTypes = {
     /** Background Color of the Option Row */
@@ -188,19 +188,19 @@ const OptionRow = (props) => {
                                     shouldUseFullTitle={props.option.isDefaultChatRoom}
                                 />
                                 {props.option.alternateText ? (
-                                    <Text
+                                    <ExpensifyText
                                         style={alternateTextStyle}
                                         numberOfLines={1}
                                     >
                                         {props.option.alternateText}
-                                    </Text>
+                                    </ExpensifyText>
                                 ) : null}
                             </View>
                             {props.option.descriptiveText ? (
                                 <View style={[styles.flexWrap]}>
-                                    <Text style={[styles.textLabel]}>
+                                    <ExpensifyText style={[styles.textLabel]}>
                                         {props.option.descriptiveText}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                             ) : null}
                             {props.showSelectedState && (

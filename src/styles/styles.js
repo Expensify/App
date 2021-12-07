@@ -53,7 +53,7 @@ const webViewStyles = {
     // component.
     tagStyles: {
         em: {
-            fontFamily: fontFamily.GTA_ITALIC,
+            fontFamily: fontFamily.GTA,
             fontStyle: 'italic',
         },
 
@@ -63,7 +63,7 @@ const webViewStyles = {
         },
 
         strong: {
-            fontFamily: fontFamily.GTA_BOLD,
+            fontFamily: fontFamily.GTA,
             fontWeight: 'bold',
         },
 
@@ -425,6 +425,13 @@ const styles = {
         justifyContent: 'center',
         marginRight: 8,
         width: variables.componentSizeNormal,
+    },
+
+    visuallyHidden: {
+        ...visibility('hidden'),
+        overflow: 'hidden',
+        width: 0,
+        height: 0,
     },
 
     loadingVBAAnimation: {
@@ -804,8 +811,17 @@ const styles = {
         maxWidth: 335,
     },
 
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
+    },
+
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
     },
 
     signInPageWideHeroContent: {
@@ -1970,7 +1986,8 @@ const styles = {
         position: 'absolute',
         width: '100%',
         top: 20,
-        ...spacing.ph5,
+        ...spacing.pl5,
+        ...spacing.pr5,
     },
 
     growlNotificationDesktopContainer: {

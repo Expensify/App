@@ -11,7 +11,7 @@ import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import Popover from '../../../components/Popover';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -123,11 +123,11 @@ class PaymentsPage extends React.Component {
                         {
                             Permissions.canUseWallet(this.props.betas) && <CurrentWalletBalance />
                         }
-                        <Text
+                        <ExpensifyText
                             style={[styles.ph5, styles.formLabel]}
                         >
                             {this.props.translate('paymentsPage.paymentMethodsTitle')}
-                        </Text>
+                        </ExpensifyText>
                         <PaymentMethodList
                             onPress={this.paymentMethodPressed}
                             style={[styles.flex4]}
