@@ -23,21 +23,26 @@ LogBox.ignoreLogs([
 ]);
 
 const App = () => (
-    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+    <ComposeProviders
+        components={[
+            SafeAreaProvider,
+            SafeArea,
+            LocaleContextProvider,
+        ]}
+    >
         <CustomStatusBar />
 
-        <ComposeProviders
-            components={[
-                OnyxProvider,
-                SafeAreaProvider,
-                SafeArea,
-                LocaleContextProvider,
-                HTMLEngineProvider,
-            ]}
-        >
-            <Expensify />
-        </ComposeProviders>
-    </ErrorBoundary>
+        <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+            <ComposeProviders
+                components={[
+                    OnyxProvider,
+                    HTMLEngineProvider,
+                ]}
+            >
+                <Expensify />
+            </ComposeProviders>
+        </ErrorBoundary>
+    </ComposeProviders>
 );
 
 App.displayName = 'App';
