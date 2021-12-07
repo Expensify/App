@@ -17,10 +17,10 @@ const propTypes = {
 const AboutPage = (props) => {
     const menuItems = [
         {
-            translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
+            translationKey: 'initialSettingsPage.settingsSecurityPage.changePassword', 
             icon: Expensicons.Link,
             action: () => {
-                Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
+                Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
             },
         },
     ];

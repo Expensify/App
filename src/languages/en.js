@@ -273,10 +273,10 @@ export default {
         },
         settingsSecurityPage: {
             security: 'Security',
+            changePassword: 'Change password',
         },
         signOut: 'Sign out',
         versionLetter: 'v',
-        changePassword: 'Change password',
         readTheTermsAndPrivacyPolicy: {
             phrase1: 'Read the',
             phrase2: 'terms of service',
