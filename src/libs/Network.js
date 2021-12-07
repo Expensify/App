@@ -257,24 +257,6 @@ function canProcessRequestImmediately(request) {
 }
 
 /**
- * @param {Object} data
- * @returns {Object}
- */
-function normalizeData(data) {
-    const normalizedData = {};
-    _.each(data, (value, key) => {
-        // FormData() on native does not support arrays so we send a string instead
-        if (_.isArray(value)) {
-            normalizedData[key] = value.join(',');
-            return;
-        }
-
-        normalizedData[key] = value;
-    });
-    return normalizedData;
-}
-
-/**
  * Perform a queued post request
  *
  * @param {String} command
@@ -284,11 +266,10 @@ function normalizeData(data) {
  * @returns {Promise}
  */
 function post(command, data = {}, type = CONST.NETWORK.METHOD.POST, shouldUseSecure = false) {
-    const normalizedData = normalizeData(data);
     return new Promise((resolve, reject) => {
         const request = {
             command,
-            data: normalizedData,
+            data,
             type,
             resolve,
             reject,
