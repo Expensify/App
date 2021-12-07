@@ -489,7 +489,7 @@ function GetFullPolicy(policyID) {
     const commandName = 'Get';
     const parameters = {
         returnValueList: 'policyList',
-        policyIDList: [policyID],
+        policyIDList: policyID,
     };
     return Network.post(commandName, parameters);
 }
