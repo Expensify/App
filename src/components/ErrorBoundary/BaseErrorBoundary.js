@@ -1,19 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import BootSplash from '../../libs/BootSplash';
 
 const propTypes = {
-    /* A message posted to `onError` (along with error data) when this component intercepts an error */
+    /* A message posted to `logError` (along with error data) when this component intercepts an error */
     errorMessage: PropTypes.string.isRequired,
 
     /* A function to perform the actual logging since different platforms support different tools */
-    onError: PropTypes.func,
+    logError: PropTypes.func,
 
     /* Actual content wrapped by this error boundary */
     children: PropTypes.node.isRequired,
 };
 
 const defaultProps = {
-    onError: () => {},
+    logError: () => {},
 };
 
 /**
@@ -33,7 +34,10 @@ class BaseErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        this.props.onError(this.props.errorMessage, error, errorInfo);
+        this.props.logError(this.props.errorMessage, error, errorInfo);
+
+        // We hide the splash screen since the error might happened during app init
+        BootSplash.hide({fade: true});
     }
 
     render() {

@@ -120,16 +120,7 @@ class Expensify extends PureComponent {
     }
 
     setNavigationReady() {
-        this.setState((state) => {
-            if (state.isNavigationReady) {
-                return state;
-            }
-
-            return {
-                ...state,
-                isNavigationReady: true,
-            };
-        });
+        this.setState({isNavigationReady: true});
     }
 
     isAuthenticated() {
@@ -146,13 +137,14 @@ class Expensify extends PureComponent {
     }
 
     hideSplash() {
-        Log.info('[BootSplash] hiding splash screen', false);
-        BootSplash.hide({fade: true})
+        BootSplash
+            .hide({fade: true})
             .then(() => this.setState({isSplashShown: false}));
     }
 
     reportBootSplashStatus() {
-        BootSplash.getVisibilityStatus()
+        BootSplash
+            .getVisibilityStatus()
             .then((status) => {
                 Log.info('[BootSplash] splash screen status', false, {status});
 
