@@ -99,9 +99,9 @@ const defaultMenuItems = [
         action: () => { Navigation.navigate(ROUTES.SETTINGS_PREFERENCES); },
     },
     {
-        translationKey: 'initialSettingsPage.settingsSecurityPage.changePassword',
+        translationKey: 'initialSettingsPage.settingsSecurityPage.security',
         icon: Expensicons.Lock,
-        action: () => { Navigation.navigate(ROUTES.SETTINGS_PASSWORD); },
+        action: () => { Navigation.navigate(ROUTES.SETTINGS_SECURITY); },
     },
     {
         translationKey: 'common.payments',
