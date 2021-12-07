@@ -263,6 +263,7 @@ function canProcessRequestImmediately(request) {
 function normalizeData(data) {
     const normalizedData = {};
     _.each(data, (value, key) => {
+        // FormData() on native does not support arrays so we send a string instead
         if (_.isArray(value)) {
             normalizedData[key] = value.join(',');
             return;
