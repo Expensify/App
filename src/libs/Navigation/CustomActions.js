@@ -43,11 +43,22 @@ function navigateBackToRootDrawer() {
 }
 
 /**
+ * Extracts the route from state object. Note: In the context where this is used currently the method is dependable.
+ * However, as our navigation system grows in complexity we may need to revisit this to be sure it is returning the expected route object.
+ *
+ * @param {Object} state
+ * @return {Object}
+ */
+function getRouteFromState(state) {
+    return lodashGet(state, 'routes[0].state.routes[0]', {});
+}
+
+/**
  * @param {Object} state
  * @returns {Object}
  */
 function getParamsFromState(state) {
-    return lodashGet(state, 'routes[0].state.routes[0].params', {});
+    return getRouteFromState(state).params || {};
 }
 
 /**
@@ -55,7 +66,7 @@ function getParamsFromState(state) {
  * @returns {String}
  */
 function getScreenNameFromState(state) {
-    return lodashGet(state, 'routes[0].state.routes[0].name', '');
+    return getRouteFromState(state).name || '';
 }
 
 /**
