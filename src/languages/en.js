@@ -271,6 +271,9 @@ export default {
                 label: 'Desktop',
             },
         },
+        settingsSecurityPage: {
+            security: 'Security',
+        },
         signOut: 'Sign out',
         versionLetter: 'v',
         changePassword: 'Change password',

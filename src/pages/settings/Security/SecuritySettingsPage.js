@@ -1,25 +1,63 @@
 import _ from 'underscore';
 import React from 'react';
-import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
-import Navigation from '../../libs/Navigation/Navigation';
-import ROUTES from '../../ROUTES';
-import ExpensifyText from '../../components/ExpensifyText';
-import ScreenWrapper from '../../components/ScreenWrapper';
-import withLocalize from '../../components/withLocalize';
+import {View, ScrollView} from 'react-native';
+import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
+import Navigation from '../../../libs/Navigation/Navigation';
+import ROUTES from '../../../ROUTES';
+import styles from '../../../styles/styles';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import ScreenWrapper from '../../../components/ScreenWrapper';
+import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import MenuItem from '../../../components/MenuItem';
 
-const SecuritySettingsPage = (props) => (
-    <ScreenWrapper>
-        <HeaderWithCloseButton
-            title={props.translate('initialSettingsPage.about')}
-            shouldShowBackButton
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
-            onCloseButtonPress={() => Navigation.dismissModal(true)}
-        />
-            <ExpensifyText text="Replace me" />
-    </ScreenWrapper>
-);
+const propTypes = {
+    ...withLocalizePropTypes,
+};
 
-SecuritySettingsPage.propTypes = propTypes;
-SecuritySettingsPage.displayName = 'SecuritySettingsPage';
+const AboutPage = (props) => {
+    const menuItems = [
+        {
+            translationKey: 'initialSettingsPage.aboutPage.appDownloadLinks',
+            icon: Expensicons.Link,
+            action: () => {
+                Navigation.navigate(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS);
+            },
+        },
+    ];
 
-export default withLocalize(SecuritySettingsPage);
+    return (
+        <ScreenWrapper>
+            <HeaderWithCloseButton
+                title={props.translate('initialSettingsPage.settingsSecurityPage.security')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <ScrollView
+                contentContainerStyle={[
+                    styles.flexGrow1,
+                    styles.flexColumn,
+                    styles.justifyContentBetween,
+                ]}
+            >
+                <View style={[styles.flex1]}>
+                    {_.map(menuItems, item => (
+                        <MenuItem
+                            key={item.translationKey}
+                            title={props.translate(item.translationKey)}
+                            icon={item.icon}
+                            iconRight={item.iconRight}
+                            onPress={() => item.action()}
+                            shouldShowRightIcon
+                        />
+                    ))}
+                </View>
+            </ScrollView>
+        </ScreenWrapper>
+    );
+};
+
+AboutPage.propTypes = propTypes;
+AboutPage.displayName = 'SettingSecurityPage';
+
+export default withLocalize(AboutPage);
