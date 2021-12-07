@@ -32,7 +32,7 @@ const propTypes = {
     reimbursementAccount: reimbursementAccountPropTypes.isRequired,
 };
 
-class ACHContractStep extends React.Component {
+class BeneficialOwnersStep extends React.Component {
     constructor(props) {
         super(props);
 
@@ -295,7 +295,7 @@ class ACHContractStep extends React.Component {
     }
 }
 
-ACHContractStep.propTypes = propTypes;
+BeneficialOwnersStep.propTypes = propTypes;
 export default compose(
     withLocalize,
     withOnyx({
@@ -306,4 +306,4 @@ export default compose(
             key: ONYXKEYS.REIMBURSEMENT_ACCOUNT_DRAFT,
         },
     }),
-)(ACHContractStep);
+)(BeneficialOwnersStep);
