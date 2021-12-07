@@ -427,6 +427,13 @@ const styles = {
         width: variables.componentSizeNormal,
     },
 
+    visuallyHidden: {
+        ...visibility('hidden'),
+        overflow: 'hidden',
+        width: 0,
+        height: 0,
+    },
+
     loadingVBAAnimation: {
         width: 160,
         height: 160,
@@ -804,8 +811,17 @@ const styles = {
         maxWidth: 335,
     },
 
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
+    },
+
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
     },
 
     signInPageWideHeroContent: {

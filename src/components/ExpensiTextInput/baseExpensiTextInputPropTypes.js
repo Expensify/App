@@ -4,6 +4,9 @@ const propTypes = {
     /** Input label */
     label: PropTypes.string,
 
+    /** Name attribute for the input */
+    name: PropTypes.string,
+
     /** Input value */
     value: PropTypes.string,
 
@@ -33,6 +36,7 @@ const propTypes = {
 
 const defaultProps = {
     label: '',
+    name: '',
     errorText: '',
     placeholder: '',
     hasError: false,

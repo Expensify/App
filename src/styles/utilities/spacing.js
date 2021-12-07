@@ -125,10 +125,6 @@ export default {
         marginTop: 24,
     },
 
-    mt40Percentage: {
-        marginTop: '40%',
-    },
-
     mb0: {
         marginBottom: 0,
     },

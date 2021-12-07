@@ -16,9 +16,15 @@ const propTypes = {
     credentials: PropTypes.shape({
         /** The email the user logged in with */
         login: PropTypes.string,
-    }).isRequired,
+    }),
 
     ...withLocalizePropTypes,
+};
+
+const defaultProps = {
+    credentials: {
+        login: '',
+    },
 };
 
 const ChangeExpensifyLoginLink = props => (
@@ -45,6 +51,7 @@ const ChangeExpensifyLoginLink = props => (
 );
 
 ChangeExpensifyLoginLink.propTypes = propTypes;
+ChangeExpensifyLoginLink.defaultProps = defaultProps;
 ChangeExpensifyLoginLink.displayName = 'ChangeExpensifyLoginLink';
 
 export default compose(

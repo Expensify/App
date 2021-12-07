@@ -1,8 +1,7 @@
 import _ from 'underscore';
 import React, {Component} from 'react';
 import {
-    // eslint-disable-next-line no-restricted-imports
-    Animated, TextInput, View, TouchableWithoutFeedback, Pressable,
+    Animated, View, TouchableWithoutFeedback, Pressable,
 } from 'react-native';
 import Str from 'expensify-common/lib/str';
 import ExpensiTextInputLabel from './ExpensiTextInputLabel';
@@ -13,6 +12,7 @@ import Icon from '../Icon';
 import * as Expensicons from '../Icon/Expensicons';
 import InlineErrorText from '../InlineErrorText';
 import * as styleConst from './styleConst';
+import TextInputWithName from '../TextInputWithName';
 
 class BaseExpensiTextInput extends Component {
     constructor(props) {
@@ -168,11 +168,12 @@ class BaseExpensiTextInput extends Component {
                                         label={this.props.label}
                                         labelTranslateY={this.state.labelTranslateY}
                                         labelScale={this.state.labelScale}
+                                        for={this.props.nativeID}
                                     />
                                 </>
                             ) : null}
                             <View style={[styles.expensiTextInputAndIconContainer]}>
-                                <TextInput
+                                <TextInputWithName
                                     ref={(ref) => {
                                         if (typeof this.props.innerRef === 'function') { this.props.innerRef(ref); }
                                         this.input = ref;
@@ -190,18 +191,19 @@ class BaseExpensiTextInput extends Component {
                                     onChangeText={this.setValue}
                                     secureTextEntry={this.state.passwordHidden}
                                     onPressOut={this.props.onPress}
+                                    name={this.props.name}
                                 />
                                 {this.props.secureTextEntry && (
-                                <Pressable
-                                    accessibilityRole="button"
-                                    style={styles.secureInputEyeButton}
-                                    onPress={this.togglePasswordVisibility}
-                                >
-                                    <Icon
-                                        src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
-                                        fill={themeColors.icon}
-                                    />
-                                </Pressable>
+                                    <Pressable
+                                        accessibilityRole="button"
+                                        style={styles.secureInputEyeButton}
+                                        onPress={this.togglePasswordVisibility}
+                                    >
+                                        <Icon
+                                            src={this.state.passwordHidden ? Expensicons.Eye : Expensicons.EyeDisabled}
+                                            fill={themeColors.icon}
+                                        />
+                                    </Pressable>
                                 )}
                             </View>
                         </View>
