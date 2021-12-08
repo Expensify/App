@@ -70,17 +70,14 @@ jobs:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Decrypt Botify GPG key
-        if: github.actor == 'OSBotify'
         run: cd .github/workflows && gpg --quiet --batch --yes --decrypt --passphrase="$LARGE_SECRET_PASSPHRASE" --output OSBotify-private-key.asc OSBotify-private-key.asc.gpg
         env:
           LARGE_SECRET_PASSPHRASE: ${{ secrets.LARGE_SECRET_PASSPHRASE }}
 
       - name: Import Botify GPG Key
-        if: github.actor == 'OSBotify'
         run: cd .github/workflows && gpg --import OSBotify-private-key.asc
 
       - name: Set up git for Botify
-        if: github.actor == 'OSBotify'
         run: |
           git config user.signingkey DBF63700F60F5530
           git config commit.gpgsign true
@@ -89,7 +86,6 @@ jobs:
 
       - name: Create branch for new pull request
         run: |
-          git config user.name ${{ github.actor }}
           git checkout -b ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           git push --set-upstream origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}
 
@@ -122,13 +118,13 @@ jobs:
       - name: Cherry-pick the version-bump to new branch
         run: |
           git fetch
-          git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
+          git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpMergeCommit.outputs.MERGE_COMMIT_SHA }}
 
       - name: Cherry-pick the merge commit of target PR to new branch
         id: cherryPick
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
-          if git cherry-pick -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
+          if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "::set-output name=SHOULD_AUTOMERGE::true"
           else
