@@ -12,8 +12,8 @@ const core = __nccwpck_require__(186);
 const {execSync} = __nccwpck_require__(129);
 const {PLIST_PATH} = __nccwpck_require__(322);
 
-const bundleVersion = execSync(`grep -A1 'CFBundleVersion' ${PLIST_PATH} | grep -v 'CFBundleVersion' | sed 's|[</string>,]||g')`).toString().trim();
-const shortBundleVersion = execSync(`grep -A1 'CFBundleShortVersionString' ${PLIST_PATH} | grep -v 'CFBundleShortVersionString' | sed 's|[</string>,]||g')`).toString().trim();
+const bundleVersion = execSync(`grep -A1 'CFBundleVersion' ${PLIST_PATH} | grep -v 'CFBundleVersion' | sed 's|[</string>,]||g'`).toString().trim();
+const shortBundleVersion = execSync(`grep -A1 'CFBundleShortVersionString' ${PLIST_PATH} | grep -v 'CFBundleShortVersionString' | sed 's|[</string>,]||g'`).toString().trim();
 
 console.log(`Bundle Version: ${bundleVersion}`);
 console.log(`Short Bundle Version: ${shortBundleVersion}`);
