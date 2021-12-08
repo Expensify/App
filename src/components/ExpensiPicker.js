@@ -48,11 +48,6 @@ class ExpensiPicker extends PureComponent {
                     style={[
                         styles.expensiPickerContainer,
                         this.props.isDisabled && styles.inputDisabled,
-<<<<<<< HEAD
-                        this.props.hasError && styles.borderColorDanger,
-                        ...this.props.containerStyles,
-=======
->>>>>>> c1d2c39a4977fb5137fbd48d180b755b11486a7f
                     ]}
                 >
                     {this.props.label && (
