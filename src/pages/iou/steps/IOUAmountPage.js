@@ -159,7 +159,7 @@ class IOUAmountPage extends React.Component {
 
     /**
      * Handle long press key on number pad.
-     * Only handles the '<' key and starts the continious input deletion timer
+     * Only handles the '<' key and starts the continuous input timer.
      *
      * @param {String} key
      */
