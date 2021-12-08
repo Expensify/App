@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {TextInput} from 'react-native';
 import textInputWithNamepropTypes from './textInputWithNamepropTypes';
 
