@@ -13,6 +13,7 @@ import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import * as paymentPropTypes from './paymentPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
+import * as PaymentUtils from '../../../libs/PaymentUtils';
 
 const propTypes = {
     walletTransfer: paymentPropTypes.walletTransferPropTypes,
@@ -38,6 +39,7 @@ class ChooseTransferAccountPage extends React.Component {
      */
     paymentMethodSelected(nativeEvent, account) {
         if (!account) {
+            PaymentUtils.addPaymentMethodType(this.props.walletTransfer.filterPaymentMethodType);
             return;
         }
         PaymentMethods.updateWalletTransferData({selectedAccountID: account});

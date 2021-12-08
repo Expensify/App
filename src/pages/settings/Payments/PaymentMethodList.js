@@ -133,7 +133,7 @@ class PaymentMethodList extends Component {
             type: MENU_ITEM,
             title: addPaymentMethodButtonTitle,
             icon: Expensicons.Plus,
-            onPress: () => PaymentUtils.addPaymentMethodType(this.props.filterList),
+            onPress: e => this.props.onPress(e),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
             iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,

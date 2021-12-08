@@ -82,11 +82,11 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
  * @param {String} paymentType
  */
 function addPaymentMethodType(paymentType) {
-    if (paymentType === CONST.PAYMENT_METHOD_TYPE.PAYPAL) {
+    if (paymentType === CONST.WALLET.PAYMENT_METHOD_TYPE.PAYPAL) {
         Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
     }
 
-    if (paymentType === CONST.PAYMENT_METHOD_TYPE.CARD) {
+    if (paymentType === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD) {
         Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
     }
 }
