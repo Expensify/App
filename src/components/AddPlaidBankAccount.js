@@ -164,7 +164,6 @@ class AddPlaidBankAccount extends React.Component {
             errors.selectedBank = true;
         }
 
-
         if (this.props.isPasswordRequired && _.isEmpty(this.state.password)) {
             errors.password = true;
         }
