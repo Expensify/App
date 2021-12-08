@@ -53,7 +53,7 @@ const BigNumberPad = props => (
 );
 
 BigNumberPad.propTypes = propTypes;
-BigNumberPad.displayName = 'BigNumberPad';
 BigNumberPad.defaultProps = defaultProps;
+BigNumberPad.displayName = 'BigNumberPad';
 
 export default BigNumberPad;
