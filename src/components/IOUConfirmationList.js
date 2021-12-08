@@ -18,6 +18,7 @@ import ExpensiTextInput from './ExpensiTextInput';
 import CONST from '../CONST';
 import ButtonWithMenu from './ButtonWithMenu';
 import SettlementButton from './SettlementButton';
+import Log from '../libs/Log';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -125,6 +126,7 @@ class IOUConfirmationList extends Component {
                     {style: 'currency', currency: props.iou.selectedCurrencyCode},
                 ),
             }),
+            value: props.hasMultipleParticipants ? CONST.IOU.IOU_TYPE.SPLIT : CONST.IOU.IOU_TYPE.REQUEST,
         }];
 
         this.state = {
@@ -142,12 +144,14 @@ class IOUConfirmationList extends Component {
     }
 
     /**
-     * When confirmation button is clicked
+     * @param {String} value
      */
-    onPress() {
+    onPress(value) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            Log.info(`[IOU] Sending money via: ${value}`);
             this.props.onConfirm();
         } else {
+            Log.info(`[IOU] Requesting money via: ${value}`);
             this.props.onConfirm(this.getSplits());
         }
     }
