@@ -9,6 +9,7 @@ import ExpensifyText from './ExpensifyText';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
+import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
     /** The text for the button label */
@@ -167,7 +168,11 @@ class ExpensifyButton extends Component {
             <Pressable
                 onPress={this.props.onPress}
                 onLongPress={this.props.onLongPress}
-                onPressOut={this.props.onPressOut}
+                onPressIn={() => ControlSelection.block()}
+                onPressOut={() => {
+                    this.props.onPressOut();
+                    ControlSelection.unblock();
+                }}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? styles.cursorDisabled : {},
