@@ -3,7 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import TextLink from './TextLink';
 import TextInputWithPrefix from './TextInputWithPrefix';
 
@@ -56,7 +56,7 @@ const TextInputWithLabel = props => (
                 (!_.isEmpty(props.label) && !_.isEmpty(props.helpLinkURL)) ? styles.alignItemsBaseline : undefined,
             ]}
         >
-            {!_.isEmpty(props.label) && <Text style={[styles.formLabel]}>{props.label}</Text>}
+            {!_.isEmpty(props.label) && <ExpensifyText style={[styles.formLabel]}>{props.label}</ExpensifyText>}
             {!_.isEmpty(props.helpLinkURL) && (
                 <TextLink
                     href={props.helpLinkURL}
@@ -69,7 +69,7 @@ const TextInputWithLabel = props => (
         {/* eslint-disable-next-line react/jsx-props-no-spreading */}
         <TextInputWithPrefix {...(_.omit(props, 'helpLinkText', 'helpLinkURL', 'containerStyles', 'label'))} />
         {props.errorText !== '' && (
-            <Text style={[styles.formError]}>{props.errorText}</Text>
+            <ExpensifyText style={[styles.formError]}>{props.errorText}</ExpensifyText>
         )}
     </View>
 );

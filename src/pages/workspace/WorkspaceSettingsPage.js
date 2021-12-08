@@ -9,17 +9,17 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import Navigation from '../../libs/Navigation/Navigation';
 import Permissions from '../../libs/Permissions';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import Text from '../../components/Text';
+import ExpensifyButton from '../../components/ExpensifyButton';
+import ExpensifyText from '../../components/ExpensifyText';
 import compose from '../../libs/compose';
 import * as Policy from '../../libs/actions/Policy';
 import Icon from '../../components/Icon';
-import {Workspace} from '../../components/Icon/Expensicons';
+import * as Expensicons from '../../components/Icon/Expensicons';
 import AvatarWithImagePicker from '../../components/AvatarWithImagePicker';
 import defaultTheme from '../../styles/themes/default';
 import CONST from '../../CONST';
 import ExpensiPicker from '../../components/ExpensiPicker';
-import {getCurrencyList} from '../../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../../libs/actions/PersonalDetails';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import FixedFooter from '../../components/FixedFooter';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -58,7 +58,7 @@ class WorkspaceSettingsPage extends React.Component {
     }
 
     componentDidMount() {
-        getCurrencyList();
+        PersonalDetails.getCurrencyList();
     }
 
     /**
@@ -124,7 +124,7 @@ class WorkspaceSettingsPage extends React.Component {
                 route={this.props.route}
                 footer={(
                     <FixedFooter style={[styles.w100]}>
-                        <Button
+                        <ExpensifyButton
                             success
                             isLoading={this.props.policy.isPolicyUpdating}
                             text={this.props.translate('workspace.editor.save')}
@@ -142,7 +142,7 @@ class WorkspaceSettingsPage extends React.Component {
                             size={CONST.AVATAR_SIZE.LARGE}
                             DefaultAvatar={() => (
                                 <Icon
-                                    src={Workspace}
+                                    src={Expensicons.Workspace}
                                     height={80}
                                     width={80}
                                     fill={defaultTheme.iconSuccessFill}
@@ -173,9 +173,9 @@ class WorkspaceSettingsPage extends React.Component {
                                 isDisabled={hasVBA}
                             />
                         </View>
-                        <Text style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
+                        <ExpensifyText style={[styles.textLabel, styles.colorMuted, styles.mt2]}>
                             {this.props.translate('workspace.editor.currencyInputHelpText')}
-                        </Text>
+                        </ExpensifyText>
                     </View>
                 )}
             </WorkspacePageWithSections>

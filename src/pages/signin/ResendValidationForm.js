@@ -5,15 +5,15 @@ import PropTypes from 'prop-types';
 import _ from 'underscore';
 import Str from 'expensify-common/lib/str';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import Text from '../../components/Text';
-import {reopenAccount, resendValidationLink, resetPassword} from '../../libs/actions/Session';
+import ExpensifyButton from '../../components/ExpensifyButton';
+import ExpensifyText from '../../components/ExpensifyText';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import redirectToSignIn from '../../libs/actions/SignInRedirect';
 import Avatar from '../../components/Avatar';
-import {getDefaultAvatar} from '../../libs/OptionsListUtils';
+import * as OptionsListUtils from '../../libs/OptionsListUtils';
 
 const propTypes = {
     /* Onyx Props */
@@ -74,11 +74,11 @@ class ResendValidationForm extends React.Component {
         });
 
         if (this.props.account.closed) {
-            reopenAccount();
+            Session.reopenAccount();
         } else if (!this.props.account.validated) {
-            resendValidationLink();
+            Session.resendValidationLink();
         } else {
-            resetPassword();
+            Session.resetPassword();
         }
 
         this.successMessageTimer = setTimeout(() => {
@@ -111,32 +111,32 @@ class ResendValidationForm extends React.Component {
             <>
                 <View style={[styles.mt3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
                     <Avatar
-                        source={getDefaultAvatar(this.props.credentials.login)}
+                        source={OptionsListUtils.getDefaultAvatar(this.props.credentials.login)}
                         imageStyles={[styles.mr2]}
                     />
                     <View style={[styles.flex1]}>
-                        <Text style={[styles.textStrong]}>
+                        <ExpensifyText style={[styles.textStrong]}>
                             {login}
-                        </Text>
+                        </ExpensifyText>
                     </View>
                 </View>
                 <View style={[styles.mv5]}>
-                    <Text>
+                    <ExpensifyText>
                         {message}
-                    </Text>
+                    </ExpensifyText>
                 </View>
                 {!_.isEmpty(this.state.formSuccess) && (
-                    <Text style={[styles.formSuccess]}>
+                    <ExpensifyText style={[styles.formSuccess]}>
                         {this.state.formSuccess}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 <View style={[styles.mb4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                     <TouchableOpacity onPress={() => redirectToSignIn()}>
-                        <Text>
+                        <ExpensifyText>
                             {this.props.translate('common.back')}
-                        </Text>
+                        </ExpensifyText>
                     </TouchableOpacity>
-                    <Button
+                    <ExpensifyButton
                         success
                         text={this.props.translate('resendValidationForm.resendLink')}
                         isLoading={this.props.account.loading}

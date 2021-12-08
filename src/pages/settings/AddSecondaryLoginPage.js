@@ -7,11 +7,11 @@ import Str from 'expensify-common/lib/str';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../components/ScreenWrapper';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import styles from '../../styles/styles';
 import * as User from '../../libs/actions/User';
 import ONYXKEYS from '../../ONYXKEYS';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import ROUTES from '../../ROUTES';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
@@ -20,6 +20,7 @@ import compose from '../../libs/compose';
 import FixedFooter from '../../components/FixedFooter';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
 import userPropTypes from './userPropTypes';
+import LoginUtil from '../../libs/LoginUtil';
 
 const propTypes = {
     /* Onyx Props */
@@ -63,19 +64,17 @@ class AddSecondaryLoginPage extends Component {
     }
 
     onSecondaryLoginChange(login) {
-        if (this.formType === CONST.LOGIN_TYPE.EMAIL) {
-            this.setState({login});
-        } else if (this.formType === CONST.LOGIN_TYPE.PHONE
-            && (CONST.REGEX.DIGITS_AND_PLUS.test(login) || login === '')) {
-            this.setState({login});
-        }
+        this.setState({login});
     }
 
     /**
      * Add a secondary login to a user's account
      */
     submitForm() {
-        User.setSecondaryLoginAndNavigate(this.state.login, this.state.password);
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+        User.setSecondaryLoginAndNavigate(login, this.state.password);
     }
 
     /**
@@ -84,8 +83,12 @@ class AddSecondaryLoginPage extends Component {
      * @returns {Boolean}
      */
     validateForm() {
+        const login = this.formType === CONST.LOGIN_TYPE.PHONE
+            ? LoginUtil.getPhoneNumberWithoutSpecialChars(this.state.login)
+            : this.state.login;
+
         const validationMethod = this.formType === CONST.LOGIN_TYPE.PHONE ? Str.isValidPhone : Str.isValidEmail;
-        return !this.state.password || !validationMethod(this.state.login);
+        return !this.state.password || !validationMethod(login);
     }
 
     render() {
@@ -108,11 +111,11 @@ class AddSecondaryLoginPage extends Component {
                         onCloseButtonPress={() => Navigation.dismissModal()}
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={styles.p5}>
-                        <Text style={[styles.mb6]}>
+                        <ExpensifyText style={[styles.mb6]}>
                             {this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
                                 ? 'addSecondaryLoginPage.enterPreferredPhoneNumberToSendValidationLink'
                                 : 'addSecondaryLoginPage.enterPreferredEmailToSendValidationLink')}
-                        </Text>
+                        </ExpensifyText>
                         <View style={styles.mb6}>
                             <ExpensiTextInput
                                 label={this.props.translate(this.formType === CONST.LOGIN_TYPE.PHONE
@@ -138,15 +141,14 @@ class AddSecondaryLoginPage extends Component {
                             />
                         </View>
                         {!_.isEmpty(this.props.user.error) && (
-                            <Text style={styles.formError}>
+                            <ExpensifyText style={styles.formError}>
                                 {this.props.user.error}
-                            </Text>
+                            </ExpensifyText>
                         )}
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <Button
+                        <ExpensifyButton
                             success
-                            style={[styles.mb2]}
                             isDisabled={this.validateForm()}
                             isLoading={this.props.user.loading}
                             text={this.props.translate('addSecondaryLoginPage.sendValidation')}

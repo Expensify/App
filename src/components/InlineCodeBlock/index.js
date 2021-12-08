@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Text} from 'react-native';
 import inlineCodeBlockPropTypes from './inlineCodeBlockPropTypes';
 

@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {
     View, Image, Pressable,
 } from 'react-native';
-import styles, {getZoomCursorStyle, getZoomSizingStyle} from '../../styles/styles';
+import styles from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import canUseTouchScreen from '../../libs/canUseTouchscreen';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../withWindowDimensions';
 
@@ -19,6 +20,8 @@ class ImageView extends PureComponent {
         this.scrollableRef = null;
         this.canUseTouchScreen = canUseTouchScreen();
         this.state = {
+            containerHeight: 0,
+            containerWidth: 0,
             isZoomed: false,
             isDragging: false,
             isMouseDown: false,
@@ -41,8 +44,7 @@ class ImageView extends PureComponent {
             return;
         }
         Image.getSize(this.props.url, (width, height) => {
-            const scale = Math.max(this.props.windowWidth / width, this.props.windowHeight / height);
-            this.setImageRegion(width, height, scale);
+            this.setImageRegion(width, height);
         });
         document.addEventListener('mousemove', this.trackMovement.bind(this));
     }
@@ -59,9 +61,8 @@ class ImageView extends PureComponent {
      * When open image, set image left/right/top/bottom point and width, height
      * @param {Boolean} width image width
      * @param {Boolean} height image height
-     * @param {Boolean} scale zoomscale when click zoom
      */
-    setImageRegion(width, height, scale) {
+    setImageRegion(width, height) {
         let imgLeft = (this.props.windowWidth - width) / 2;
         let imgRight = ((this.props.windowWidth - width) / 2) + width;
         let imgTop = (this.props.windowHeight - height) / 2;
@@ -85,9 +86,16 @@ class ImageView extends PureComponent {
             imgRight = imgLeft + (fitRate * width);
         }
 
-        this.setState({
-            imgWidth: width, imgHeight: height, zoomScale: scale, imageLeft: imgLeft, imageTop: imgTop, imageRight: imgRight, imageBottom: imgBottom,
-        });
+        const newZoomScale = Math.min(this.state.containerWidth / width, this.state.containerHeight / height);
+        this.setState(prevState => ({
+            imgWidth: width,
+            zoomScale: prevState.zoomScale === 0 ? newZoomScale : prevState.zoomScale,
+            imgHeight: height,
+            imageLeft: imgLeft,
+            imageTop: imgTop,
+            imageRight: imgRight,
+            imageBottom: imgBottom,
+        }));
     }
 
     /**
@@ -162,19 +170,32 @@ class ImageView extends PureComponent {
         return (
             <View
                 ref={el => this.scrollableRef = el}
+                onLayout={(e) => {
+                    const {width, height} = e.nativeEvent.layout;
+                    const imageWidth = this.state.imgWidth;
+                    const imageHeight = this.state.imgHeight;
+                    const scale = imageHeight && imageWidth ? Math.min(width / imageWidth, height / imageHeight) : 0;
+                    this.setState({
+                        containerHeight: height,
+                        containerWidth: width,
+                        zoomScale: scale,
+                    });
+                }}
                 style={[
                     styles.imageViewContainer,
                     styles.overflowScroll,
                     styles.noScrollbars,
+                    styles.pRelative,
                 ]}
             >
                 <Pressable
-                    style={[
-                        styles.w100,
-                        styles.h100,
-                        styles.flex1,
-                        getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
-                    ]}
+                    style={{
+                        ...StyleUtils.getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale,
+                            this.state.containerHeight, this.state.containerWidth),
+                        ...StyleUtils.getZoomCursorStyle(this.state.isZoomed, this.state.isDragging),
+                        ...this.state.isZoomed && this.state.zoomScale > 1 ? styles.pRelative : styles.pAbsolute,
+                        ...styles.flex1,
+                    }}
                     onPressIn={(e) => {
                         const {pageX, pageY} = e.nativeEvent;
                         this.setState({
@@ -212,7 +233,10 @@ class ImageView extends PureComponent {
                 >
                     <Image
                         source={{uri: this.props.url}}
-                        style={getZoomSizingStyle(this.state.isZoomed, this.state.imgWidth, this.state.imgHeight, this.state.zoomScale)}
+                        style={[
+                            styles.h100,
+                            styles.w100,
+                        ]}
                         resizeMode={this.state.isZoomed ? 'contain' : 'center'}
                     />
                 </Pressable>

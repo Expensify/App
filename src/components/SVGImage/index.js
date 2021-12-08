@@ -1,12 +1,13 @@
 import React from 'react';
 import {Image} from 'react-native';
-import {getWidthAndHeightStyle} from '../../styles/styles';
+import * as StyleUtils from '../../styles/StyleUtils';
 import propTypes from './propTypes';
 
 const SVGImage = props => (
     <Image
-        style={getWidthAndHeightStyle(props.width, props.height)}
+        style={StyleUtils.getWidthAndHeightStyle(props.width, props.height)}
         source={props.src}
+        resizeMode={props.resizeMode}
     />
 );
 

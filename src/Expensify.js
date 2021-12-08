@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import lodashGet from 'lodash/get';
 import PropTypes from 'prop-types';
 import React, {PureComponent} from 'react';
@@ -14,7 +15,7 @@ import PushNotification from './libs/Notification/PushNotification';
 import UpdateAppModal from './components/UpdateAppModal';
 import Visibility from './libs/Visibility';
 import GrowlNotification from './components/GrowlNotification';
-import {growlRef} from './libs/Growl';
+import * as Growl from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
 import Log from './libs/Log';
 
@@ -74,6 +75,8 @@ class Expensify extends PureComponent {
     }
 
     componentDidMount() {
+        setTimeout(() => this.reportBootSplashStatus(), 30 * 1000);
+
         // This timer is set in the native layer when launching the app and we stop it here so we can measure how long
         // it took for the main app itself to load.
         StartupTimer.stop();
@@ -107,7 +110,7 @@ class Expensify extends PureComponent {
         // that we can remove it again once the content is ready
         const previousAuthToken = lodashGet(prevProps, 'session.authToken', null);
         if (this.getAuthToken() && !previousAuthToken) {
-            BootSplash.show({fade: true});
+            this.showSplash();
         }
 
         if (this.getAuthToken() && this.props.initialReportDataLoaded && this.props.isSidebarLoaded) {
@@ -131,8 +134,28 @@ class Expensify extends PureComponent {
         ActiveClientManager.init();
     }
 
+    showSplash() {
+        Log.info('[BootSplash] showing splash screen', false);
+        BootSplash.show({fade: true});
+    }
+
     hideSplash() {
-        BootSplash.hide({fade: true});
+        Log.info('[BootSplash] hiding splash screen', false);
+        BootSplash.hide({fade: true})
+            .catch(error => Log.alert('[BootSplash] hiding failed', {message: error.message, error}, false));
+    }
+
+    reportBootSplashStatus() {
+        BootSplash.getVisibilityStatus()
+            .then((status) => {
+                Log.info('[BootSplash] splash screen status', false, {status});
+
+                if (status === 'visible') {
+                    const props = _.omit(this.props, ['children', 'session']);
+                    props.hasAuthToken = !_.isEmpty(this.getAuthToken());
+                    Log.alert('[BootSplash] splash screen is still visible', {props}, false);
+                }
+            });
     }
 
     render() {
@@ -144,7 +167,7 @@ class Expensify extends PureComponent {
         }
         return (
             <>
-                <GrowlNotification ref={growlRef} />
+                <GrowlNotification ref={Growl.growlRef} />
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
                 <NavigationRoot authenticated={Boolean(this.getAuthToken())} />

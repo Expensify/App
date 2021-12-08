@@ -4,7 +4,7 @@ import * as OptionsListUtils from '../../src/libs/OptionsListUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import waitForPromisesToResolve from '../utils/waitForPromisesToResolve';
 import CONST from '../../src/CONST';
-import {setReportWithDraft} from '../../src/libs/actions/Report';
+import * as Report from '../../src/libs/actions/Report';
 
 describe('OptionsListUtils', () => {
     // Given a set of reports with both single participants and multiple participants some pinned and some not
@@ -559,7 +559,7 @@ describe('OptionsListUtils', () => {
             },
         };
 
-        return setReportWithDraft(1, true)
+        return Report.setReportWithDraft(1, true)
             .then(() => {
                 // When we call getSidebarOptions() with no search value and default priority mode
                 const results = OptionsListUtils.getSidebarOptions(
@@ -594,7 +594,7 @@ describe('OptionsListUtils', () => {
     });
 
     it('getSidebarOptions() with GSD priority mode',
-        () => setReportWithDraft(1, true)
+        () => Report.setReportWithDraft(1, true)
             .then(() => {
                 // When we call getSidebarOptions() with no search value
                 const results = OptionsListUtils.getSidebarOptions(REPORTS, PERSONAL_DETAILS, 0, CONST.PRIORITY_MODE.GSD);

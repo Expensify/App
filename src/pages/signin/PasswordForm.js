@@ -6,16 +6,18 @@ import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import _ from 'underscore';
 import styles from '../../styles/styles';
-import Button from '../../components/Button';
-import Text from '../../components/Text';
+import ExpensifyButton from '../../components/ExpensifyButton';
+import ExpensifyText from '../../components/ExpensifyText';
 import themeColors from '../../styles/themes/default';
-import {signIn, resetPassword} from '../../libs/actions/Session';
+import * as Session from '../../libs/actions/Session';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import compose from '../../libs/compose';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
+import * as ComponentUtils from '../../libs/ComponentUtils';
+import withToggleVisibilityView, {toggleVisibilityViewPropTypes} from '../../components/withToggleVisibilityView';
 
 const propTypes = {
     /* Onyx Props */
@@ -33,6 +35,7 @@ const propTypes = {
     }),
 
     ...withLocalizePropTypes,
+    ...toggleVisibilityViewPropTypes,
 };
 
 const defaultProps = {
@@ -42,7 +45,6 @@ const defaultProps = {
 class PasswordForm extends React.Component {
     constructor(props) {
         super(props);
-
         this.validateAndSubmitForm = this.validateAndSubmitForm.bind(this);
 
         this.state = {
@@ -50,6 +52,20 @@ class PasswordForm extends React.Component {
             password: '',
             twoFactorAuthCode: '',
         };
+    }
+
+    componentDidMount() {
+        if (!this.input) {
+            return;
+        }
+        this.input.focus();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.isVisible || !this.props.isVisible) {
+            return;
+        }
+        this.input.focus();
     }
 
     /**
@@ -75,7 +91,7 @@ class PasswordForm extends React.Component {
             formError: null,
         });
 
-        signIn(this.state.password, this.state.twoFactorAuthCode);
+        Session.signIn(this.state.password, this.state.twoFactorAuthCode);
     }
 
     render() {
@@ -83,26 +99,27 @@ class PasswordForm extends React.Component {
             <>
                 <View style={[styles.mv3]}>
                     <ExpensiTextInput
+                        ref={el => this.input = el}
                         label={this.props.translate('common.password')}
                         secureTextEntry
-                        autoCompleteType="password"
+                        autoCompleteType={ComponentUtils.PASSWORD_AUTOCOMPLETE_TYPE}
                         textContentType="password"
+                        nativeID="password"
+                        name="password"
                         value={this.state.password}
                         onChangeText={text => this.setState({password: text})}
                         onSubmitEditing={this.validateAndSubmitForm}
-                        autoFocus
-                        translateX={-18}
                         blurOnSubmit={false}
                     />
                     <View style={[styles.changeExpensifyLoginLinkContainer]}>
                         <TouchableOpacity
                             style={[styles.mt2]}
-                            onPress={resetPassword}
+                            onPress={Session.resetPassword}
                             underlayColor={themeColors.componentBG}
                         >
-                            <Text style={[styles.link]}>
+                            <ExpensifyText style={[styles.link]}>
                                 {this.props.translate('passwordForm.forgot')}
-                            </Text>
+                            </ExpensifyText>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -117,25 +134,24 @@ class PasswordForm extends React.Component {
                             onChangeText={text => this.setState({twoFactorAuthCode: text})}
                             onSubmitEditing={this.validateAndSubmitForm}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMERIC}
-                            translateX={-18}
                             blurOnSubmit={false}
                         />
                     </View>
                 )}
 
                 {!this.state.formError && this.props.account && !_.isEmpty(this.props.account.error) && (
-                    <Text style={[styles.formError]}>
+                    <ExpensifyText style={[styles.formError]}>
                         {this.props.account.error}
-                    </Text>
+                    </ExpensifyText>
                 )}
 
                 {this.state.formError && (
-                    <Text style={[styles.formError]}>
+                    <ExpensifyText style={[styles.formError]}>
                         {this.props.translate(this.state.formError)}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 <View>
-                    <Button
+                    <ExpensifyButton
                         success
                         style={[styles.mv3]}
                         text={this.props.translate('common.signIn')}
@@ -157,4 +173,5 @@ export default compose(
     withOnyx({
         account: {key: ONYXKEYS.ACCOUNT},
     }),
+    withToggleVisibilityView,
 )(PasswordForm);

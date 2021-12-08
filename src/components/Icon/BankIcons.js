@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import {CreditCard} from './Expensicons';
+import * as Expensicons from './Expensicons';
 import AmericanExpress from '../../../assets/images/bankicons/american-express.svg';
 import BankOfAmerica from '../../../assets/images/bankicons/bank-of-america.svg';
 import BB_T from '../../../assets/images/bankicons/bb-t.svg';
@@ -101,7 +101,7 @@ function getAssetIcon(bankName, isCard) {
         return USAA;
     }
 
-    return isCard ? CreditCard : GenericBank;
+    return isCard ? Expensicons.CreditCard : GenericBank;
 }
 
 /**
@@ -113,7 +113,7 @@ function getAssetIcon(bankName, isCard) {
 
 export default function getBankIcon(bankName, isCard) {
     const bankIcon = {
-        icon: isCard ? CreditCard : GenericBank,
+        icon: isCard ? Expensicons.CreditCard : GenericBank,
     };
 
     if (bankName) {
@@ -121,7 +121,7 @@ export default function getBankIcon(bankName, isCard) {
     }
 
     // For default Credit Card icon the icon size should not be set.
-    if (!_.contains([CreditCard], bankIcon.icon)) {
+    if (!_.contains([Expensicons.CreditCard], bankIcon.icon)) {
         bankIcon.iconSize = variables.iconSizeExtraLarge;
     }
 

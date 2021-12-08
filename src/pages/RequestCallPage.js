@@ -12,18 +12,18 @@ import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import ONYXKEYS from '../ONYXKEYS';
 import compose from '../libs/compose';
 import FullNameInputRow from '../components/FullNameInputRow';
-import Button from '../components/Button';
+import ExpensifyButton from '../components/ExpensifyButton';
 import FixedFooter from '../components/FixedFooter';
 import CONST from '../CONST';
 import Growl from '../libs/Growl';
-import {requestInboxCall} from '../libs/actions/Inbox';
-import {fetchOrCreateChatReport} from '../libs/actions/Report';
+import * as Inbox from '../libs/actions/Inbox';
+import * as Report from '../libs/actions/Report';
 import personalDetailsPropType from './personalDetailsPropType';
 import ExpensiTextInput from '../components/ExpensiTextInput';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 import KeyboardAvoidingView from '../components/KeyboardAvoidingView';
 import RequestCallIcon from '../../assets/images/request-call.svg';
-import {getFirstAndLastNameErrors} from '../libs/actions/PersonalDetails';
+import * as PersonalDetails from '../libs/actions/PersonalDetails';
 import LoginUtil from '../libs/LoginUtil';
 
 const propTypes = {
@@ -108,7 +108,7 @@ class RequestCallPage extends Component {
             return;
         }
 
-        requestInboxCall({
+        Inbox.requestInboxCall({
             taskID: this.props.route.params.taskID,
             policyID: personalPolicy.id,
             firstName: this.state.firstName,
@@ -189,7 +189,7 @@ class RequestCallPage extends Component {
         }
 
         const phoneNumberError = this.getPhoneNumberError();
-        const {firstNameError, lastNameError} = getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
+        const {firstNameError, lastNameError} = PersonalDetails.getFirstAndLastNameErrors(this.state.firstName, this.state.lastName);
 
         this.setState({
             firstNameError,
@@ -206,7 +206,7 @@ class RequestCallPage extends Component {
                     <HeaderWithCloseButton
                         title={this.props.translate('requestCallPage.title')}
                         shouldShowBackButton
-                        onBackButtonPress={() => fetchOrCreateChatReport([
+                        onBackButtonPress={() => Report.fetchOrCreateChatReport([
                             this.props.session.email,
                             CONST.EMAIL.CONCIERGE,
                         ], true)}
@@ -214,12 +214,12 @@ class RequestCallPage extends Component {
                     />
                     <ScrollView style={styles.flex1} contentContainerStyle={[styles.p5, styles.pt0]}>
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                            <Text style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</Text>
+                            <ExpensifyText style={[styles.h1, styles.flex1]}>{this.props.translate('requestCallPage.subtitle')}</ExpensifyText>
                             <RequestCallIcon width={160} height={100} style={styles.flex1} />
                         </View>
-                        <Text style={[styles.mb4]}>
+                        <ExpensifyText style={[styles.mb4]}>
                             {this.props.translate('requestCallPage.description')}
-                        </Text>
+                        </ExpensifyText>
                         <FullNameInputRow
                             firstName={this.state.firstName}
                             firstNameError={this.state.firstNameError}
@@ -243,7 +243,7 @@ class RequestCallPage extends Component {
                         </View>
                     </ScrollView>
                     <FixedFooter>
-                        <Button
+                        <ExpensifyButton
                             success
                             onPress={this.onSubmit}
                             style={[styles.w100]}
