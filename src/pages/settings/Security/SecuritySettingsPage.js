@@ -14,7 +14,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const AboutPage = (props) => {
+const SecuritySettingsPage = (props) => {
     const menuItems = [
         {
             translationKey: 'passwordPage.changePassword',
@@ -57,7 +57,7 @@ const AboutPage = (props) => {
     );
 };
 
-AboutPage.propTypes = propTypes;
-AboutPage.displayName = 'SettingSecurityPage';
+SecuritySettingsPage.propTypes = propTypes;
+SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
-export default withLocalize(AboutPage);
+export default withLocalize(SecuritySettingsPage);
