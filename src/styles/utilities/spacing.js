@@ -25,6 +25,10 @@ export default {
         marginHorizontal: 4,
     },
 
+    mh3: {
+        marginHorizontal: 12,
+    },
+
     mh5: {
         marginHorizontal: 20,
     },
@@ -250,6 +254,10 @@ export default {
 
     pr2: {
         paddingRight: 8,
+    },
+
+    pr4: {
+        paddingRight: 16,
     },
 
     pr5: {
