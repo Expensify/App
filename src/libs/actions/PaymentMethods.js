@@ -125,7 +125,7 @@ function clearDebitCardFormErrorAndSubmit() {
 function startWalletTransfer(transferAmount) {
     Onyx.set(ONYXKEYS.WALLET_TRANSFER, {
         transferAmount,
-        filterPaymentMethods: null,
+        filterPaymentMethodType: null,
         loading: false,
     });
 }

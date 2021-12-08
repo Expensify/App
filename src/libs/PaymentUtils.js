@@ -11,7 +11,7 @@ import * as Localize from './Localize';
  * @property {String} id
  * @property {String} type
  * @property {Number} [number] Bank or Card number
- * @property {String} [bankname] Bank Name
+ * @property {String} [bankName] Bank Name
 */
 
 /**
@@ -19,7 +19,7 @@ import * as Localize from './Localize';
  * @param {Array} bankAccountList
  * @param {Array} cardList
  * @param {String} [payPalMeUsername]
- * @returns {PaymentMethod}
+ * @returns {Array<PaymentMethod>}
  */
 function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
     const combinedPaymentMethods = [];
@@ -54,12 +54,13 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
             title: card.addressName,
             bankName: card.bank,
             number: card.cardNumber,
-            id: card.cardID,
+            id: card.fundID,
             description: formattedCardNumber,
-            key: `card-${card.cardID}`,
+            key: `card-${card.fundID}`,
             type: 'card',
         });
     });
+
 
     if (payPalMeUsername) {
         combinedPaymentMethods.push({

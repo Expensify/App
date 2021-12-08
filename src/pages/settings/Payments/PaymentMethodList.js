@@ -82,15 +82,20 @@ class PaymentMethodList extends Component {
 
     /**
      * Take all of the different payment methods and create a list that can be easily digested by renderItem
-     * @param {String} filter
      * @return {Array}
      */
-    createPaymentMethodList(filter) {
-        const paymentMethods = PaymentUtils.getPaymentMethodsList(
-            !filter || filter === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK ? this.props.bankAccountList : [],
-            !filter || filter === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD ? this.props.cardList : [],
-            !filter && this.props.payPalMeUsername,
-        );
+    createPaymentMethodList() {
+        let paymentMethods = [];
+        if (_.isEmpty(this.props.filterList)) {
+            paymentMethods = PaymentUtils.getPaymentMethodsList(this.props.bankAccountList, this.props.cardList, this.props.payPalMeUsername);
+        } else {
+            paymentMethods = PaymentUtils.getPaymentMethodsList(
+                this.props.filterList === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK ? this.props.bankAccountList : [],
+                this.props.filterList === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD ? this.props.cardList : [],
+                !this.props.filterList ? this.props.payPalMeUsername : '',
+            );
+        }
+
         const combinedPaymentMethods = _.map(paymentMethods, (method) => {
             let iconProperties;
 
@@ -118,7 +123,7 @@ class PaymentMethodList extends Component {
         }
 
         let addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addPaymentMethod');
-        switch (filter) {
+        switch (this.props.filterList) {
             case CONST.WALLET.PAYMENT_METHOD_TYPE.BANK: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addBankAccount'); break;
             case CONST.WALLET.PAYMENT_METHOD_TYPE.CARD: addPaymentMethodButtonTitle = this.props.translate('paymentMethodList.addDebitCard'); break;
             default: break;
@@ -168,7 +173,7 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
-                    showSelectedState={this.props.enableSelection}
+                    selectable={this.props.enableSelection}
                     selected={this.state.selectedAccountID === item.id}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}
@@ -190,7 +195,7 @@ class PaymentMethodList extends Component {
     render() {
         return (
             <FlatList
-                data={this.createPaymentMethodList(this.props.filterList)}
+                data={this.createPaymentMethodList()}
                 renderItem={this.renderItem}
             />
         );

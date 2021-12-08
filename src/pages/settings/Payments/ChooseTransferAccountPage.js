@@ -58,7 +58,7 @@ class ChooseTransferAccountPage extends React.Component {
                         <PaymentMethodList
                             onPress={this.paymentMethodSelected}
                             enableSelection
-                            filterList={this.props.walletTransfer.filterPaymentMethods}
+                            filterList={this.props.walletTransfer.filterPaymentMethodType}
                             selectedAccountID={this.props.walletTransfer.selectedAccountID}
                         />
                     </View>

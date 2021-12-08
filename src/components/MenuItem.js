@@ -18,7 +18,7 @@ import propTypes from './menuItemPropTypes';
 const defaultProps = {
     badgeText: undefined,
     shouldShowRightIcon: false,
-    showSelectedState: false,
+    selectable: false,
     wrapperStyle: [],
     success: false,
     icon: undefined,
@@ -123,7 +123,7 @@ const MenuItem = props => (
                             />
                         </View>
                     )}
-                    {props.showSelectedState && (
+                    {props.selectable && (
                         <View style={[styles.selectCircle, styles.alignSelfCenter]}>
                             {props.selected && (
                                 <Icon src={Expensicons.Checkmark} fill={themeColors.iconSuccessFill} />

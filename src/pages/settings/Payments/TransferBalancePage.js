@@ -17,8 +17,8 @@ import * as Expensicons from '../../../components/Icon/Expensicons';
 import MenuItem from '../../../components/MenuItem';
 import CONST from '../../../CONST';
 import variables from '../../../styles/variables';
-import Text from '../../../components/Text';
-import Button from '../../../components/Button';
+import ExpensifyText from '../../../components/ExpensifyText';
+import ExpensifyButton from '../../../components/ExpensifyButton';
 import FixedFooter from '../../../components/FixedFooter';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import * as paymentPropTypes from './paymentPropTypes';
@@ -66,12 +66,14 @@ class TransferBalancePage extends React.Component {
                     ),
                 }),
                 icon: Expensicons.Bolt,
+                type: CONST.WALLET.PAYMENT_METHOD_TYPE.CARD,
             },
             {
                 key: CONST.WALLET.PAYMENT_TYPE.ACH,
                 title: this.props.translate('transferAmountPage.ach'),
                 description: this.props.translate('transferAmountPage.achSummary'),
                 icon: Expensicons.Bank,
+                type: CONST.WALLET.PAYMENT_METHOD_TYPE.BANK,
             },
         ];
         PaymentMethods.startWalletTransfer(this.props.userWallet.currentBalance - Fee);
@@ -96,8 +98,7 @@ class TransferBalancePage extends React.Component {
         );
         const defaultAccount = _.find(
             paymentMethods,
-            method => method.id === lodashGet(this.props, 'userWallet.walletLinkedAccount.bankAccountID', '')
-                || method.id === lodashGet(this.props, 'userWallet.walletLinkedAccount.fundID', ''),
+            method => method.id === lodashGet(this.props, 'userWallet.walletLinkedAccountID', ''),
         );
         const selectAccount = this.props.walletTransfer.selectedAccountID
             ? _.find(
@@ -124,34 +125,34 @@ class TransferBalancePage extends React.Component {
                         <CurrentWalletBalance balanceStyles={[styles.text7XLarge]} />
                     </View>
                     <ScrollView style={styles.flexGrow0} contentContainerStyle={styles.p5}>
-                        {_.map(this.paymentTypes, type => (
+                        {_.map(this.paymentTypes, paymentType => (
                             <MenuItem
-                                key={type.key}
-                                title={type.title}
-                                description={type.description}
+                                key={paymentType.key}
+                                title={paymentType.title}
+                                description={paymentType.description}
                                 iconWidth={variables.iconSizeXLarge}
                                 iconHeight={variables.iconSizeXLarge}
-                                icon={type.icon}
-                                success={selectedPaymentType === type.key}
+                                icon={paymentType.icon}
+                                success={selectedPaymentType === paymentType.key}
                                 wrapperStyle={{
                                     ...styles.mt3,
                                     ...styles.pv4,
                                     ...styles.transferBalancePayment,
-                                    ...(selectedPaymentType === type.key
+                                    ...(selectedPaymentType === paymentType.key
                                         && styles.transferBalanceSelectedPayment),
                                 }}
                                 // eslint-disable-next-line react/no-unused-state
                                 onPress={() => {
-                                    PaymentMethods.updateWalletTransferData({filterPaymentMethods: type.type});
+                                    PaymentMethods.updateWalletTransferData({filterPaymentMethodType: paymentType.type});
                                     Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
                                 }}
                             />
                         ))}
-                        <Text
+                        <ExpensifyText
                             style={[styles.pv5, styles.textStrong, styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.translate('transferAmountPage.whichAccount')}
-                        </Text>
+                        </ExpensifyText>
                         {!!selectAccount
                             && (
                                 <MenuItem
@@ -168,7 +169,7 @@ class TransferBalancePage extends React.Component {
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
                                 />
                             )}
-                        <Text
+                        <ExpensifyText
                             style={[
                                 styles.mt5,
                                 styles.mb3,
@@ -178,18 +179,18 @@ class TransferBalancePage extends React.Component {
                             ]}
                         >
                             {this.props.translate('transferAmountPage.fee')}
-                        </Text>
-                        <Text
+                        </ExpensifyText>
+                        <ExpensifyText
                             style={[styles.textLabel, styles.justifyContentStart]}
                         >
                             {this.props.numberFormat(
                                 Fee,
                                 {style: 'currency', currency: 'USD'},
                             )}
-                        </Text>
+                        </ExpensifyText>
                     </ScrollView>
                     <FixedFooter style={[styles.flexGrow0]}>
-                        <Button
+                        <ExpensifyButton
                             success
                             pressOnEnter
                             isLoading={this.props.walletTransfer.loading}
