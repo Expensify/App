@@ -107,7 +107,7 @@ class TransferBalancePage extends React.Component {
             )
             : defaultAccount;
 
-        const selectedPaymentType = selectAccount && selectAccount.type === 'bank' ? CONST.WALLET.PAYMENT_TYPE.ACH : CONST.WALLET.PAYMENT_TYPE.INSTANT;
+        const selectedPaymentType = selectAccount && selectAccount.type === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK ? CONST.WALLET.PAYMENT_TYPE.ACH : CONST.WALLET.PAYMENT_TYPE.INSTANT;
         const transferAmount = (this.props.userWallet.currentBalance - Fee).toFixed(2);
         const canTransfer = transferAmount > Fee;
         const isButtonDisabled = !canTransfer && !selectAccount;
@@ -166,7 +166,10 @@ class TransferBalancePage extends React.Component {
                                         ...styles.mrn5,
                                         ...styles.ph0,
                                     }}
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT)}
+                                    onPress={() => {
+                                        PaymentMethods.updateWalletTransferData({filterPaymentMethodType: selectAccount.type});
+                                        Navigation.navigate(ROUTES.SETTINGS_PAYMENTS_CHOOSE_TRANSFER_ACCOUNT);
+                                    }}
                                 />
                             )}
                         <ExpensifyText

@@ -374,6 +374,7 @@ const CONST = {
         PAYMENT_METHOD_TYPE: {
             BANK: 'bank',
             CARD: 'card',
+            PAYPAL: 'payPalMe',
         },
         PAYMENT_TYPE: {
             INSTANT: 'instant',
