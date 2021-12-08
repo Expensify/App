@@ -4,6 +4,7 @@ import _ from 'underscore';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import ExpensifyButton from './ExpensifyButton';
+import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
     /** Callback to inform parent modal with key pressed */
@@ -43,7 +44,11 @@ const BigNumberPad = props => (
                             text={column}
                             onLongPress={() => props.numberLongPressed(column)}
                             onPress={() => props.numberPressed(column)}
-                            onPressOut={props.numberPressOut}
+                            onPressOut={() => {
+                                props.numberPressOut();
+                                ControlSelection.unblock();
+                            }}
+                            onPressIn={ControlSelection.block}
                         />
                     );
                 })}

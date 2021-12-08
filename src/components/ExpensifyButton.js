@@ -9,7 +9,6 @@ import ExpensifyText from './ExpensifyText';
 import KeyboardShortcut from '../libs/KeyboardShortcut';
 import Icon from './Icon';
 import CONST from '../CONST';
-import ControlSelection from '../libs/ControlSelection';
 
 const propTypes = {
     /** The text for the button label */
@@ -35,6 +34,9 @@ const propTypes = {
 
     /** A function that is called when the button is long pressed */
     onLongPress: PropTypes.func,
+
+    /** A function that is called when the button is pressed */
+    onPressIn: PropTypes.func,
 
     /** A function that is called when the button is released */
     onPressOut: PropTypes.func,
@@ -76,6 +78,7 @@ const defaultProps = {
     large: false,
     onPress: () => {},
     onLongPress: () => {},
+    onPressIn: () => {},
     onPressOut: () => {},
     pressOnEnter: false,
     style: [],
@@ -168,11 +171,8 @@ class ExpensifyButton extends Component {
             <Pressable
                 onPress={this.props.onPress}
                 onLongPress={this.props.onLongPress}
-                onPressIn={() => ControlSelection.block()}
-                onPressOut={() => {
-                    this.props.onPressOut();
-                    ControlSelection.unblock();
-                }}
+                onPressIn={this.props.onPressIn}
+                onPressOut={this.props.onPressOut}
                 disabled={this.props.isLoading || this.props.isDisabled}
                 style={[
                     this.props.isDisabled ? styles.cursorDisabled : {},
