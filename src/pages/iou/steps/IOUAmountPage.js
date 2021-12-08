@@ -178,7 +178,7 @@ class IOUAmountPage extends React.Component {
     }
 
     /**
-     * Clear the timer for continious input deletion
+     * Clear the timer for continuous input.
      */
     clearDeletionTimer() {
         clearInterval(this.state.timer);
