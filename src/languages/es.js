@@ -89,6 +89,7 @@ export default {
         more: 'Más',
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
+        bankAccount: 'Cuenta bancaria',
         join: 'Unirse',
         decline: 'Declinar',
     },
@@ -477,6 +478,7 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
+        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
     },
