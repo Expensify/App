@@ -63,21 +63,20 @@ const documentPickerOptions = {
   * @return {Object}
   */
 function getDataForUpload(fileData) {
-    return new Promise((resolve, reject) => {
-        const fileResult = {
-            name: fileData.fileName || fileData.name || 'chat_attachment',
-            type: fileData.type,
-            uri: fileData.uri,
-            size: fileData.fileSize || fileData.size,
-        };
-        if (_.has(fileData, 'fileSize') || _.has(fileData, 'size')) {
-            return resolve(fileResult);
-        }
+    const fileResult = {
+        name: fileData.fileName || fileData.name || 'chat_attachment',
+        type: fileData.type,
+        uri: fileData.uri,
+        size: fileData.fileSize || fileData.size,
+    };
 
-        RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
-            fileResult.size = stats.size;
-            return resolve(fileResult);
-        }).catch(reject);
+    if (fileResult.size) {
+        return Promise.resolve(fileResult);
+    }
+
+    return RNFetchBlob.fs.stat(fileData.uri.replace('file://', '')).then((stats) => {
+        fileResult.size = stats.size;
+        return fileResult;
     });
 }
 
