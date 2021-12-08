@@ -164,6 +164,7 @@ class IOUAmountPage extends React.Component {
      * @param {String} key
      */
     handleLongPressNumberPad(key) {
+        // Only handles deleting.
         if (key !== '<') {
             return;
         }
