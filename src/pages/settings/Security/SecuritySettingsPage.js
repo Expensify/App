@@ -18,7 +18,7 @@ const AboutPage = (props) => {
     const menuItems = [
         {
             translationKey: 'passwordPage.changePassword', 
-            icon: Expensicons.Link,
+            icon: Expensicons.Lock,
             action: () => {
                 Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
             },
