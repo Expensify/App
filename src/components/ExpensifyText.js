@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+// importing react-native Text as base for ExpensifyText component
 // eslint-disable-next-line no-restricted-imports
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
