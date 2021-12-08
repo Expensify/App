@@ -18,6 +18,8 @@ import GrowlNotification from './components/GrowlNotification';
 import * as Growl from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
 import Log from './libs/Log';
+import ConfirmModal from './components/ConfirmModal';
+import {openOldDotLink} from './libs/actions/Link';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -49,6 +51,12 @@ const propTypes = {
 
     /** Tells us if the sidebar has rendered */
     isSidebarLoaded: PropTypes.bool,
+
+    /** Information about a screen share call requested by a GuidesPlus agent */
+    screenShareRequested: PropTypes.objectOf(PropTypes.shape({
+        accessToken: PropTypes.string,
+        roomName: PropTypes.string,
+    })),
 };
 
 const defaultProps = {
@@ -59,6 +67,7 @@ const defaultProps = {
     updateAvailable: false,
     initialReportDataLoaded: false,
     isSidebarLoaded: false,
+    screenShareRequested: null,
 };
 
 class Expensify extends PureComponent {
@@ -171,6 +180,23 @@ class Expensify extends PureComponent {
                 {/* We include the modal for showing a new update at the top level so the option is always present. */}
                 {this.props.updateAvailable ? <UpdateAppModal /> : null}
                 <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
+                {this.props.screenShareRequested ? (
+                    <ConfirmModal
+                        // TODO add translations
+                        title="Screen Share"
+                        onConfirm={() => {
+                            Onyx.set(ONYXKEYS.SCREEN_SHARE_REQUEST, null);
+                            openOldDotLink(`inbox?action=screenShare&accessToken=${this.props.screenShareRequested.accessToken}&name=${this.props.screenShareRequested.roomName}`);
+                        }}
+                        onCancel={() => {
+                            Onyx.set(ONYXKEYS.SCREEN_SHARE_REQUEST, null);
+                        }}
+                        prompt="Expensify is inviting you to screen share"
+                        confirmText="Join"
+                        cancelText="Decline"
+                        isVisible
+                    />
+                ) : null}
             </>
         );
     }
@@ -191,5 +217,8 @@ export default withOnyx({
     },
     isSidebarLoaded: {
         key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    },
+    screenShareRequested: {
+        key: ONYXKEYS.SCREEN_SHARE_REQUEST,
     },
 })(Expensify);

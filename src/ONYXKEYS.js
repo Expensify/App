@@ -58,8 +58,11 @@ export default {
     // select a currency based on the list
     CURRENCY_LIST: 'currencyList',
 
-    // Indicates whether an update is available and ready to beinstalled.
+    // Indicates whether an update is available and ready to be installed.
     UPDATE_AVAILABLE: 'updateAvailable',
+
+    // Indicates that a request to join a screen share with a GuidesPlus agent was received
+    SCREEN_SHARE_REQUEST: 'screenShareRequest',
 
     // Saves the current country code which is displayed when the user types a phone number without
     // an international code

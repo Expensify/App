@@ -14,6 +14,7 @@ import Log from '../Log';
 import NetworkConnection from '../NetworkConnection';
 import NameValuePair from './NameValuePair';
 import getSkinToneEmojiFromIndex from '../../pages/home/report/EmojiPickerMenu/getSkinToneEmojiFromIndex';
+import {openOldDotLink} from './Link';
 
 let sessionAuthToken = '';
 let sessionEmail = '';
@@ -279,6 +280,15 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.PREFERRED_LOCALE},
             );
         });
+
+    // Subscribe to screen share requests sent by GuidesPlus agents
+    // TODO use const for push notification type
+    Pusher.subscribe(pusherChannelName, 'screenshareRequest', (pushJSON) => {
+        Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
+    }, false,
+    () => {
+        NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
+    });
 }
 
 /**
