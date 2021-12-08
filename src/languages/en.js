@@ -90,6 +90,7 @@ export default {
         more: 'More',
         debitCard: 'Debit card',
         payPalMe: 'PayPal.me',
+        bankAccount: 'Bank account',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Camera permission required',
@@ -494,6 +495,7 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
+        enterPassword: 'Enter Expensify password',
         alreadyAdded: 'This account has already been added.',
         chooseAccountLabel: 'Account',
     },

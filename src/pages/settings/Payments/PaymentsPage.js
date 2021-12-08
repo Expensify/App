@@ -13,18 +13,16 @@ import compose from '../../../libs/compose';
 import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView/index';
 import ExpensifyText from '../../../components/ExpensifyText';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
-import Popover from '../../../components/Popover';
-import * as Expensicons from '../../../components/Icon/Expensicons';
-import MenuItem from '../../../components/MenuItem';
 import getClickedElementLocation from '../../../libs/getClickedElementLocation';
 import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
-import ConfirmModal from '../../../components/ConfirmModal';
 import ONYXKEYS from '../../../ONYXKEYS';
 import * as paymentPropTypes from './paymentPropTypes';
 import Permissions from '../../../libs/Permissions';
-
-const PAYPAL = 'payPalMe';
-const DEBIT_CARD = 'debitCard';
+import AddPaymentMethodMenu from '../../../components/AddPaymentMethodMenu';
+import CONST from '../../../CONST';
+import * as Expensicons from '../../../components/Icon/Expensicons';
+import MenuItem from '../../../components/MenuItem';
+import ConfirmModal from '../../../components/ConfirmModal';
 
 const propTypes = {
     walletTransfer: paymentPropTypes.walletTransferPropTypes,
@@ -35,9 +33,6 @@ const propTypes = {
     /** Are we loading payment methods? */
     isLoadingPaymentMethods: PropTypes.bool,
 
-    /** Username for PayPal.Me */
-    payPalMeUsername: PropTypes.string,
-
     ...withLocalizePropTypes,
 };
 
@@ -47,7 +42,6 @@ const defaultProps = {
     },
     betas: [],
     isLoadingPaymentMethods: true,
-    payPalMeUsername: '',
 };
 
 class PaymentsPage extends React.Component {
@@ -78,7 +72,7 @@ class PaymentsPage extends React.Component {
      */
     paymentMethodPressed(nativeEvent, account) {
         if (account) {
-            if (account === PAYPAL) {
+            if (account === CONST.PAYMENT_METHODS.PAYPAL) {
                 Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
             }
         } else {
@@ -101,13 +95,22 @@ class PaymentsPage extends React.Component {
     addPaymentMethodTypePressed(paymentType) {
         this.hideAddPaymentMenu();
 
-        if (paymentType === PAYPAL) {
+        if (paymentType === CONST.PAYMENT_METHODS.PAYPAL) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+            return;
         }
 
-        if (paymentType === DEBIT_CARD) {
+        if (paymentType === CONST.PAYMENT_METHODS.DEBIT_CARD) {
             Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
+            return;
         }
+
+        if (paymentType === CONST.PAYMENT_METHODS.BANK_ACCOUNT) {
+            Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+            return;
+        }
+
+        throw new Error('Invalid payment method type selected');
     }
 
     /**
@@ -160,29 +163,15 @@ class PaymentsPage extends React.Component {
                             isAddPaymentMenuActive={this.state.shouldShowAddPaymentMenu}
                         />
                     </ScrollView>
-                    <Popover
+                    <AddPaymentMethodMenu
                         isVisible={this.state.shouldShowAddPaymentMenu}
                         onClose={this.hideAddPaymentMenu}
                         anchorPosition={{
                             top: this.state.anchorPositionTop,
                             left: this.state.anchorPositionLeft,
                         }}
-                    >
-                        {!this.props.payPalMeUsername && (
-                            <MenuItem
-                                title={this.props.translate('common.payPalMe')}
-                                icon={Expensicons.PayPal}
-                                onPress={() => this.addPaymentMethodTypePressed(PAYPAL)}
-                                wrapperStyle={styles.pr15}
-                            />
-                        )}
-                        <MenuItem
-                            title={this.props.translate('common.debitCard')}
-                            icon={Expensicons.CreditCard}
-                            onPress={() => this.addPaymentMethodTypePressed(DEBIT_CARD)}
-                            wrapperStyle={styles.pr15}
-                        />
-                    </Popover>
+                        onItemSelected={method => this.addPaymentMethodTypePressed(method)}
+                    />
                     <ConfirmModal
                         title={this.props.translate('paymentsPage.allSet')}
                         onConfirm={PaymentMethods.cancelWalletTransfer}
@@ -217,9 +206,6 @@ export default compose(
         isLoadingPaymentMethods: {
             key: ONYXKEYS.IS_LOADING_PAYMENT_METHODS,
             initWithStoredValues: false,
-        },
-        payPalMeUsername: {
-            key: ONYXKEYS.NVP_PAYPAL_ME_ADDRESS,
         },
     }),
 )(PaymentsPage);
