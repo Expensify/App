@@ -52,6 +52,12 @@ class WorkspaceNewRoomPage extends React.Component {
         this.checkAndModifyRoomName = this.checkAndModifyRoomName.bind(this);
     }
 
+    componentDidMount() {
+        // Workspaces are policies with type === 'free'
+        const workspaces = _.filter(this.props.policies, policy => policy && policy.type === CONST.POLICY.TYPE.FREE);
+        this.setState({workspaceOptions: _.map(workspaces, policy => ({label: policy.name, key: policy.id, value: policy.id}))});
+    }
+
     componentDidUpdate(prevProps) {
         if (this.props.policies.length === prevProps.policies.length) {
             return;
@@ -103,7 +109,7 @@ class WorkspaceNewRoomPage extends React.Component {
 
         const isExistingRoomName = _.some(
             _.values(this.props.reports),
-            report => report.policyID === this.state.policyID && report.reportName === finalRoomName,
+            report => report && report.policyID === this.state.policyID && report.reportName === finalRoomName,
         );
         if (isExistingRoomName) {
             this.setState({error: this.props.translate('newRoomPage.roomAlreadyExists')});
