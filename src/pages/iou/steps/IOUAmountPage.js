@@ -75,7 +75,7 @@ class IOUAmountPage extends React.Component {
 
         this.updateAmountNumberPad = this.updateAmountNumberPad.bind(this);
         this.handleLongPressNumberPad = this.handleLongPressNumberPad.bind(this);
-        this.clearDeletionTimer = this.clearDeletionTimer.bind(this);
+        this.clearLongPressTimer = this.clearLongPressTimer.bind(this);
         this.updateAmount = this.updateAmount.bind(this);
         this.stripCommaFromAmount = this.stripCommaFromAmount.bind(this);
         this.focusTextInput = this.focusTextInput.bind(this);
@@ -241,7 +241,7 @@ class IOUAmountPage extends React.Component {
                             <BigNumberPad
                                 numberPressed={this.updateAmountNumberPad}
                                 numberLongPressed={this.handleLongPressNumberPad}
-                                numberPressOut={this.clearDeletionTimer}
+                                numberPressOut={this.clearLongPressTimer}
                             />
                         ) : <View />}
 
