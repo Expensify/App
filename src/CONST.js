@@ -432,6 +432,12 @@ const CONST = {
         OTHER: 'other',
     },
 
+    PAYMENT_METHODS: {
+        PAYPAL: 'payPalMe',
+        DEBIT_CARD: 'debitCard',
+        BANK_ACCOUNT: 'bankAccount',
+    },
+
     IOU: {
         // Note: These payment types are used when building IOU reportAction message values in the server and should
         // not be changed.
