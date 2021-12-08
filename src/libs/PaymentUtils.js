@@ -89,6 +89,10 @@ function addPaymentMethodType(paymentType) {
     if (paymentType === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD) {
         Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
     }
+
+    if (paymentType === CONST.WALLET.PAYMENT_METHOD_TYPE.BANK) {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT);
+    }
 }
 
 export {
