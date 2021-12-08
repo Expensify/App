@@ -133,7 +133,7 @@ class PaymentMethodList extends Component {
             type: MENU_ITEM,
             title: addPaymentMethodButtonTitle,
             icon: Expensicons.Plus,
-            onPress: e => this.props.onPress(e),
+            onPress: () => PaymentUtils.addPaymentMethodType(this.props.filterList),
             key: 'addPaymentMethodButton',
             disabled: this.props.isLoadingPayments,
             iconFill: this.props.isAddPaymentMenuActive ? StyleUtils.getIconFillColor(CONST.BUTTON_STATES.PRESSED) : null,
@@ -152,6 +152,9 @@ class PaymentMethodList extends Component {
      */
     selectPaymentMethod(e, item) {
         item.onPress(e);
+        if (!item.id) {
+            return;
+        }
         this.setState({selectedAccountID: item.id});
     }
 
@@ -173,7 +176,7 @@ class PaymentMethodList extends Component {
                     icon={item.icon}
                     key={item.key}
                     disabled={item.disabled}
-                    selectable={this.props.enableSelection}
+                    selectable={this.props.enableSelection && item.key !== 'addPaymentMethodButton'}
                     selected={this.state.selectedAccountID === item.id}
                     iconFill={item.iconFill}
                     iconHeight={item.iconSize}

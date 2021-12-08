@@ -1,6 +1,8 @@
 import _ from 'underscore';
 import CONST from '../CONST';
+import ROUTES from '../ROUTES';
 import * as Localize from './Localize';
+import Navigation from './Navigation/Navigation';
 
 /**
  * PaymentMethod Type
@@ -74,7 +76,23 @@ function getPaymentMethodsList(bankAccountList, cardList, payPalMeUsername) {
     return combinedPaymentMethods;
 }
 
+/**
+ * Navigate to the appropriate payment type addition screen
+ *
+ * @param {String} paymentType
+ */
+function addPaymentMethodType(paymentType) {
+    if (paymentType === CONST.PAYMENT_METHOD_TYPE.PAYPAL) {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_PAYPAL_ME);
+    }
+
+    if (paymentType === CONST.PAYMENT_METHOD_TYPE.CARD) {
+        Navigation.navigate(ROUTES.SETTINGS_ADD_DEBIT_CARD);
+    }
+}
+
 export {
     // eslint-disable-next-line import/prefer-default-export
     getPaymentMethodsList,
+    addPaymentMethodType,
 };
