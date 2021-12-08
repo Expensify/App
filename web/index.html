@@ -40,6 +40,13 @@
             outline: 0;
             box-shadow: 0px 0px 0px 1px #0185ff;
         }
+        input:focus-visible, input:focus[data-focusvisible-polyfill],
+        select:focus-visible, select:focus[data-focusvisible-polyfill]  {
+            box-shadow: none;
+        }
+        ::-ms-reveal {
+            display: none;
+        }
     </style>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <link rel="shortcut icon" id="favicon" href="/favicon.png">

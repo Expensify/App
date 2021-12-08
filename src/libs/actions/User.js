@@ -77,6 +77,7 @@ function getUserDetails() {
         nvpNames: [
             CONST.NVP.PAYPAL_ME_ADDRESS,
             CONST.NVP.PREFERRED_EMOJI_SKIN_TONE,
+            CONST.NVP.FREQUENTLY_USED_EMOJIS,
         ].join(','),
     })
         .then((response) => {
@@ -97,6 +98,9 @@ function getUserDetails() {
             const preferredSkinTone = lodashGet(response, `nameValuePairs.${CONST.NVP.PREFERRED_EMOJI_SKIN_TONE}`, {});
             Onyx.merge(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
                 getSkinToneEmojiFromIndex(preferredSkinTone).skinTone);
+
+            const frequentlyUsedEmojis = lodashGet(response, `nameValuePairs.${CONST.NVP.FREQUENTLY_USED_EMOJIS}`, []);
+            Onyx.set(ONYXKEYS.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis);
         });
 }
 
@@ -318,6 +322,15 @@ function setPreferredSkinTone(skinTone) {
 }
 
 /**
+ * Sync frequentlyUsedEmojis with Onyx and Server
+ * @param {Object[]} frequentlyUsedEmojis
+ */
+
+function setFrequentlyUsedEmojis(frequentlyUsedEmojis) {
+    return NameValuePair.set(CONST.NVP.FREQUENTLY_USED_EMOJIS, frequentlyUsedEmojis, ONYXKEYS.FREQUENTLY_USED_EMOJIS);
+}
+
+/**
  * @param {Boolean} shouldUseSecureStaging
  */
 function setShouldUseSecureStaging(shouldUseSecureStaging) {
@@ -343,4 +356,5 @@ export {
     setShouldUseSecureStaging,
     clearUserErrorMessage,
     subscribeToExpensifyCardUpdates,
+    setFrequentlyUsedEmojis,
 };

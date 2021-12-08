@@ -1,8 +1,9 @@
 import React, {PureComponent} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Animated, Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../../../../styles/styles';
-import Button from '../../../../components/Button';
+import ExpensifyButton from '../../../../components/ExpensifyButton';
 import Icon from '../../../../components/Icon';
 import * as Expensicons from '../../../../components/Icon/Expensicons';
 import themeColors from '../../../../styles/themes/default';
@@ -77,7 +78,7 @@ class MarkerBadge extends PureComponent {
                         styles.alignItemsCenter,
                     ]}
                     >
-                        <Button
+                        <ExpensifyButton
                             success
                             small
                             onPress={this.props.onClick}
@@ -101,7 +102,7 @@ class MarkerBadge extends PureComponent {
                             )}
                             shouldRemoveRightBorderRadius
                         />
-                        <Button
+                        <ExpensifyButton
                             success
                             small
                             style={[styles.buttonDropdown]}

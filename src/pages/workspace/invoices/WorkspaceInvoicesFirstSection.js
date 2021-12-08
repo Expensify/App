@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -23,7 +23,7 @@ const WorkspaceInvoicesFirstSection = props => (
         menuItems={[
             {
                 title: props.translate('workspace.invoices.sendInvoice'),
-                onPress: () => Link.openOldDotLink('reports?param={"createInvoice":true}'),
+                onPress: () => Link.openOldDotLink(encodeURI('reports?param={"createInvoice":true}')),
                 icon: Expensicons.Send,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
@@ -40,9 +40,9 @@ const WorkspaceInvoicesFirstSection = props => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <Text>
+            <ExpensifyText>
                 {props.translate('workspace.invoices.invoiceFirstSectionCopy')}
-            </Text>
+            </ExpensifyText>
         </View>
     </WorkspaceSection>
 );

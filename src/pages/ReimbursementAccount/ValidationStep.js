@@ -11,7 +11,7 @@ import * as Report from '../../libs/actions/Report';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import BankAccount from '../../libs/models/BankAccount';
 import TextLink from '../../components/TextLink';
 import ONYXKEYS from '../../ONYXKEYS';
@@ -163,7 +163,7 @@ class ValidationStep extends React.Component {
         return (
             <View style={[styles.flex1, styles.justifyContentBetween]}>
                 <HeaderWithCloseButton
-                    title={this.props.translate('workspace.common.bankAccount')}
+                    title={this.props.translate('workspace.common.testTransactions')}
                     stepCounter={{step: 5, total: 5}}
                     onCloseButtonPress={Navigation.dismissModal}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -172,7 +172,7 @@ class ValidationStep extends React.Component {
                 />
                 {maxAttemptsReached && (
                     <View style={[styles.m5, styles.flex1]}>
-                        <Text>
+                        <ExpensifyText>
                             {this.props.translate('validationStep.maxAttemptsReached')}
                             {' '}
                             {this.props.translate('common.please')}
@@ -181,7 +181,7 @@ class ValidationStep extends React.Component {
                                 {this.props.translate('common.contactUs')}
                             </TextLink>
                             .
-                        </Text>
+                        </ExpensifyText>
                     </View>
                 )}
                 {!maxAttemptsReached && state === BankAccount.STATE.PENDING && (
@@ -189,12 +189,12 @@ class ValidationStep extends React.Component {
                         onSubmit={this.submit}
                     >
                         <View style={[styles.mb2]}>
-                            <Text style={[styles.mb5]}>
+                            <ExpensifyText style={[styles.mb5]}>
                                 {this.props.translate('validationStep.description')}
-                            </Text>
-                            <Text style={[styles.mb2]}>
+                            </ExpensifyText>
+                            <ExpensifyText style={[styles.mb2]}>
                                 {this.props.translate('validationStep.descriptionCTA')}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                         <View style={[styles.mv5, styles.flex1]}>
                             <ExpensiTextInput
@@ -244,9 +244,9 @@ class ValidationStep extends React.Component {
                                 },
                             ]}
                         >
-                            <Text>
+                            <ExpensifyText>
                                 {this.props.translate('validationStep.letsChatText')}
-                            </Text>
+                            </ExpensifyText>
                         </WorkspaceSection>
                     </View>
                 )}

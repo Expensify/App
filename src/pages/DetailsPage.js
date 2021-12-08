@@ -1,11 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
 import Str from 'expensify-common/lib/str';
 import moment from 'moment';
 import styles from '../styles/styles';
-import Text from '../components/Text';
+import ExpensifyText from '../components/ExpensifyText';
 import ONYXKEYS from '../ONYXKEYS';
 import Avatar from '../components/Avatar';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
@@ -93,7 +93,7 @@ const DetailsPage = (props) => {
                 ]}
             >
                 {details ? (
-                    <View>
+                    <ScrollView>
                         <View style={styles.pageWrapper}>
                             <Avatar
                                 containerStyles={[styles.avatarLarge, styles.mb3]}
@@ -101,55 +101,55 @@ const DetailsPage = (props) => {
                                 source={details.avatar}
                             />
                             {details.displayName && (
-                                <Text style={[styles.displayName, styles.mb6]} numberOfLines={1}>
+                                <ExpensifyText style={[styles.displayName, styles.mb6]} numberOfLines={1}>
                                     {isSMSLogin ? props.toLocalPhone(details.displayName) : details.displayName}
-                                </Text>
+                                </ExpensifyText>
                             )}
                             {details.login ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate(isSMSLogin
                                             ? 'common.phoneNumber'
                                             : 'common.email')}
-                                    </Text>
+                                    </ExpensifyText>
                                     <CommunicationsLink
                                         type={isSMSLogin ? CONST.LOGIN_TYPE.PHONE : CONST.LOGIN_TYPE.EMAIL}
                                         value={isSMSLogin ? getPhoneNumber(details) : details.login}
                                     >
                                         <Tooltip text={isSMSLogin ? getPhoneNumber(details) : details.login}>
-                                            <Text numberOfLines={1}>
+                                            <ExpensifyText numberOfLines={1}>
                                                 {isSMSLogin
                                                     ? props.toLocalPhone(getPhoneNumber(details))
                                                     : details.login}
-                                            </Text>
+                                            </ExpensifyText>
                                         </Tooltip>
                                     </CommunicationsLink>
                                 </View>
                             ) : null}
                             {pronouns ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>
+                                    </ExpensifyText>
+                                    <ExpensifyText numberOfLines={1}>
                                         {pronouns}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && details.timezone ? (
                                 <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
+                                    <ExpensifyText style={[styles.formLabel, styles.mb2]} numberOfLines={1}>
                                         {props.translate('detailsPage.localTime')}
-                                    </Text>
-                                    <Text numberOfLines={1}>
+                                    </ExpensifyText>
+                                    <ExpensifyText numberOfLines={1}>
                                         {timezone.format('LT')}
                                         {' '}
                                         {currentTime}
-                                    </Text>
+                                    </ExpensifyText>
                                 </View>
                             ) : null}
                         </View>
-                    </View>
+                    </ScrollView>
                 ) : null}
             </View>
         </ScreenWrapper>

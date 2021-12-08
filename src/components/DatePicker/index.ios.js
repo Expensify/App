@@ -1,4 +1,5 @@
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {Button, View} from 'react-native';
 import RNDatePicker from '@react-native-community/datetimepicker';
 import moment from 'moment';
@@ -74,7 +75,6 @@ class Datepicker extends React.Component {
                     hasError={this.props.hasError}
                     errorText={this.props.errorText}
                     containerStyles={this.props.containerStyles}
-                    translateX={this.props.translateX}
                     onPress={this.showPicker}
                     editable={false}
                     disabled={this.props.disabled}

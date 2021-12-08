@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -27,7 +27,7 @@ const WorkspaceCardVBAWithECardView = props => (
             },
             {
                 title: props.translate('workspace.common.reconcileCards'),
-                onPress: () => Link.openOldDotLink('domain_companycards?param={"section":"cardReconciliation"}'),
+                onPress: () => Link.openOldDotLink(encodeURI('domain_companycards?param={"section":"cardReconciliation"}')),
                 icon: Expensicons.ReceiptSearch,
                 shouldShowRightIcon: true,
                 iconRight: Expensicons.NewWindow,
@@ -35,7 +35,7 @@ const WorkspaceCardVBAWithECardView = props => (
         ]}
     >
         <View style={[styles.mv4]}>
-            <Text>{props.translate('workspace.card.VBAWithECardCopy')}</Text>
+            <ExpensifyText>{props.translate('workspace.card.VBAWithECardCopy')}</ExpensifyText>
         </View>
 
         <UnorderedList

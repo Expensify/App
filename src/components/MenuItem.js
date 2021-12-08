@@ -3,7 +3,7 @@ import React from 'react';
 import {
     View, Pressable,
 } from 'react-native';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import styles from '../styles/styles';
 import * as StyleUtils from '../styles/StyleUtils';
 import themeColors from '../styles/themes/default';
@@ -87,7 +87,7 @@ const MenuItem = props => (
                         </View>
                     )}
                     <View style={[styles.justifyContentCenter, styles.menuItemTextContainer]}>
-                        <Text
+                        <ExpensifyText
                             style={[
                                 styles.popoverMenuText,
                                 styles.ml3,
@@ -96,11 +96,11 @@ const MenuItem = props => (
                             numberOfLines={1}
                         >
                             {props.title}
-                        </Text>
+                        </ExpensifyText>
                         {props.description && (
-                            <Text style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
+                            <ExpensifyText style={[styles.textLabelSupporting, styles.ml3, styles.mt1]}>
                                 {props.description}
-                            </Text>
+                            </ExpensifyText>
                         )}
                     </View>
                 </View>
@@ -108,11 +108,11 @@ const MenuItem = props => (
                     {props.badgeText && <Badge text={props.badgeText} badgeStyles={[styles.alignSelfCenter]} />}
                     {props.subtitle && (
                         <View style={[styles.justifyContentCenter, styles.mr1]}>
-                            <Text
+                            <ExpensifyText
                                 style={styles.textLabelSupporting}
                             >
                                 {props.subtitle}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                     )}
                     {props.shouldShowRightIcon && (

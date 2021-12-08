@@ -6,7 +6,7 @@ import Navigation from '../../libs/Navigation/Navigation';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import styles from '../../styles/styles';
 import CONST from '../../CONST';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import {userWalletPropTypes} from '../settings/Payments/paymentPropTypes';
 
 const propTypes = {
@@ -26,10 +26,10 @@ const ActivateStep = props => (
         />
         <View style={[styles.mh5, styles.flex1]}>
             {props.userWallet.tierName === CONST.WALLET.TIER_NAME.GOLD && (
-                <Text>{props.translate('activateStep.activated')}</Text>
+                <ExpensifyText>{props.translate('activateStep.activated')}</ExpensifyText>
             )}
             {props.userWallet.tierName === CONST.WALLET.TIER_NAME.SILVER && (
-                <Text>{props.translate('activateStep.checkBackLater')}</Text>
+                <ExpensifyText>{props.translate('activateStep.checkBackLater')}</ExpensifyText>
             )}
         </View>
     </ScreenWrapper>
