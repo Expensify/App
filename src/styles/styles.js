@@ -818,8 +818,17 @@ const styles = {
         maxWidth: 335,
     },
 
+    signInPageNarrowContentMargin: {
+        marginTop: '40%',
+    },
+
     signInPageWideLeftContainer: {
         width: 375,
+        maxWidth: 375,
+    },
+
+    signInPageWideLeftContentMargin: {
+        marginTop: '44.5%',
     },
 
     signInPageWideHeroContent: {
@@ -2156,6 +2165,23 @@ const styles = {
         bottom: 0,
     },
 
+    shortTermsBorder: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+    },
+
+    shortTermsHorizontalRule: {
+        borderBottomWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
+    shortTermsLargeHorizontalRule: {
+        borderWidth: 1,
+        borderColor: themeColors.shadow,
+        ...spacing.mh3,
+    },
+
     shortTermsRow: {
         flexDirection: 'row',
         padding: 12,
@@ -2169,7 +2195,7 @@ const styles = {
     shortTermsBoldHeadingSection: {
         paddingRight: 12,
         paddingLeft: 12,
-        marginTop: 16,
+        marginTop: 12,
     },
 
     longTermsRow: {
