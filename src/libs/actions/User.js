@@ -282,8 +282,7 @@ function subscribeToUserEvents() {
         });
 
     // Subscribe to screen share requests sent by GuidesPlus agents
-    // TODO use const for push notification type
-    Pusher.subscribe(pusherChannelName, 'screenshareRequest', (pushJSON) => {
+    Pusher.subscribe(pusherChannelName, Pusher.TYPE.SCREEN_SHARE_REQUEST, (pushJSON) => {
         Onyx.merge(ONYXKEYS.SCREEN_SHARE_REQUEST, pushJSON);
     }, false,
     () => {
