@@ -89,6 +89,7 @@ export default {
         more: 'Más',
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
+        bankAccount: 'Cuenta bancaria',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -475,6 +476,7 @@ export default {
         },
     },
     addPersonalBankAccountPage: {
+        enterPassword: 'Escribe tu contraseña de Expensify',
         alreadyAdded: 'Esta cuenta ya ha sido agregada.',
         chooseAccountLabel: 'Cuenta',
     },

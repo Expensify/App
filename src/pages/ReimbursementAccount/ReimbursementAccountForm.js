@@ -61,6 +61,7 @@ class ReimbursementAccountForm extends React.Component {
                     }}
                     message={this.props.reimbursementAccount.errorModalMessage}
                     isMessageHtml={this.props.reimbursementAccount.isErrorModalMessageHtml}
+                    isLoading={this.props.reimbursementAccount.loading}
                 />
             </ScrollView>
         );
