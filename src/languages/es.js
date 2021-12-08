@@ -89,6 +89,8 @@ export default {
         more: 'Más',
         debitCard: 'Tarjeta de débito',
         payPalMe: 'PayPal.me',
+        join: 'Join',
+        decline: 'Decline',
     },
     attachmentPicker: {
         cameraPermissionRequired: 'Se necesita permiso para usar la cámara',
@@ -804,5 +806,9 @@ export default {
             search: 'Abrir diálogo de búsqueda',
             newGroup: 'Nueva pantalla de grupo',
         },
+    },
+    guides: {
+        screenShare: 'Screen share',
+        screenShareRequest: 'Expensify is inviting you to a screen share',
     },
 };

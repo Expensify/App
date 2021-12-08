@@ -19,7 +19,9 @@ import * as Growl from './libs/Growl';
 import StartupTimer from './libs/StartupTimer';
 import Log from './libs/Log';
 import ConfirmModal from './components/ConfirmModal';
-import {openOldDotLink} from './libs/actions/Link';
+import compose from './libs/compose';
+import withLocalize, {withLocalizePropTypes} from './components/withLocalize';
+import * as User from './libs/actions/User';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -57,6 +59,8 @@ const propTypes = {
         accessToken: PropTypes.string,
         roomName: PropTypes.string,
     })),
+
+    ...withLocalizePropTypes,
 };
 
 const defaultProps = {
@@ -182,18 +186,12 @@ class Expensify extends PureComponent {
                 <NavigationRoot authenticated={Boolean(this.getAuthToken())} />
                 {this.props.screenShareRequested ? (
                     <ConfirmModal
-                        // TODO add translations
-                        title="Screen Share"
-                        onConfirm={() => {
-                            Onyx.set(ONYXKEYS.SCREEN_SHARE_REQUEST, null);
-                            openOldDotLink(`inbox?action=screenShare&accessToken=${this.props.screenShareRequested.accessToken}&name=${this.props.screenShareRequested.roomName}`);
-                        }}
-                        onCancel={() => {
-                            Onyx.set(ONYXKEYS.SCREEN_SHARE_REQUEST, null);
-                        }}
-                        prompt="Expensify is inviting you to screen share"
-                        confirmText="Join"
-                        cancelText="Decline"
+                        title={this.props.translate('guides.screenShare')}
+                        onConfirm={() => User.joinScreenShare(this.props.screenShareRequested.accessToken, this.props.screenShareRequested.roomName)}
+                        onCancel={User.clearScreenShareRequest}
+                        prompt={this.props.translate('guides.screenShareRequest')}
+                        confirmText={this.props.translate('common.join')}
+                        cancelText={this.props.translate('common.decline')}
                         isVisible
                     />
                 ) : null}
@@ -204,21 +202,24 @@ class Expensify extends PureComponent {
 
 Expensify.propTypes = propTypes;
 Expensify.defaultProps = defaultProps;
-export default withOnyx({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-    updateAvailable: {
-        key: ONYXKEYS.UPDATE_AVAILABLE,
-        initWithStoredValues: false,
-    },
-    initialReportDataLoaded: {
-        key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
-    },
-    isSidebarLoaded: {
-        key: ONYXKEYS.IS_SIDEBAR_LOADED,
-    },
-    screenShareRequested: {
-        key: ONYXKEYS.SCREEN_SHARE_REQUEST,
-    },
-})(Expensify);
+export default compose(
+    withLocalize,
+    withOnyx({
+        session: {
+            key: ONYXKEYS.SESSION,
+        },
+        updateAvailable: {
+            key: ONYXKEYS.UPDATE_AVAILABLE,
+            initWithStoredValues: false,
+        },
+        initialReportDataLoaded: {
+            key: ONYXKEYS.INITIAL_REPORT_DATA_LOADED,
+        },
+        isSidebarLoaded: {
+            key: ONYXKEYS.IS_SIDEBAR_LOADED,
+        },
+        screenShareRequested: {
+            key: ONYXKEYS.SCREEN_SHARE_REQUEST,
+        },
+    }),
+)(Expensify);
