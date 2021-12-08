@@ -4,7 +4,7 @@ import {View, TouchableOpacity} from 'react-native';
 import _ from 'underscore';
 import styles from '../styles/styles';
 import Checkbox from './Checkbox';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import InlineErrorText from './InlineErrorText';
 
 const propTypes = {
@@ -68,9 +68,9 @@ const CheckboxWithLabel = (props) => {
                     ]}
                 >
                     {props.label && (
-                        <Text style={[styles.ml2]}>
+                        <ExpensifyText style={[styles.ml2]}>
                             {props.label}
-                        </Text>
+                        </ExpensifyText>
                     )}
                     {LabelComponent && (<LabelComponent />)}
                 </TouchableOpacity>

@@ -17,15 +17,15 @@ import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize
 import compose from '../../libs/compose';
 import styles from '../../styles/styles';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
-import Text from '../../components/Text';
 import getPlaidOAuthReceivedRedirectURI from '../../libs/getPlaidOAuthReceivedRedirectURI';
+import ExpensifyText from '../../components/ExpensifyText';
 
 // Steps
 import BankAccountStep from './BankAccountStep';
 import CompanyStep from './CompanyStep';
 import RequestorStep from './RequestorStep';
 import ValidationStep from './ValidationStep';
-import BeneficialOwnersStep from './BeneficialOwnersStep';
+import ACHContractStep from './ACHContractStep';
 import EnableStep from './EnableStep';
 import ROUTES from '../../ROUTES';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
@@ -177,7 +177,7 @@ class ReimbursementAccountPage extends React.Component {
         if (userHasPhonePrimaryEmail) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <Text>{this.props.translate('bankAccount.hasPhoneLoginError')}</Text>
+                    <ExpensifyText>{this.props.translate('bankAccount.hasPhoneLoginError')}</ExpensifyText>
                 </View>
             );
         }
@@ -186,9 +186,9 @@ class ReimbursementAccountPage extends React.Component {
         if (throttledDate) {
             errorComponent = (
                 <View style={[styles.m5]}>
-                    <Text>
+                    <ExpensifyText>
                         {this.props.translate('bankAccount.hasBeenThrottledError')}
-                    </Text>
+                    </ExpensifyText>
                 </View>
             );
         }
@@ -222,7 +222,7 @@ class ReimbursementAccountPage extends React.Component {
                         <RequestorStep achData={achData} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.ACH_CONTRACT && (
-                        <BeneficialOwnersStep companyName={achData.companyName} />
+                        <ACHContractStep companyName={achData.companyName} />
                     )}
                     {currentStep === CONST.BANK_ACCOUNT.STEP.VALIDATION && (
                         <ValidationStep />

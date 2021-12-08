@@ -5,7 +5,7 @@ import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
 import ROUTES from '../../ROUTES';
 import styles from '../../styles/styles';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import CONST from '../../CONST';
 import * as Expensicons from '../../components/Icon/Expensicons';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -71,7 +71,7 @@ const AboutPage = (props) => {
                     <View style={styles.pageWrapper}>
                         <View style={[styles.settingsPageBody, styles.mb6, styles.alignItemsCenter]}>
                             <Logo height={80} width={80} />
-                            <Text
+                            <ExpensifyText
                                 style={[
                                     styles.textLabel,
                                     styles.alignSelfCenter,
@@ -82,10 +82,10 @@ const AboutPage = (props) => {
                             >
                                 v
                                 {version}
-                            </Text>
-                            <Text style={[styles.baseFontStyle, styles.mv5]}>
+                            </ExpensifyText>
+                            <ExpensifyText style={[styles.baseFontStyle, styles.mv5]}>
                                 {props.translate('initialSettingsPage.aboutPage.description')}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                     </View>
                     {_.map(menuItems, item => (
@@ -100,7 +100,7 @@ const AboutPage = (props) => {
                     ))}
                 </View>
                 <View style={[styles.sidebarFooter]}>
-                    <Text
+                    <ExpensifyText
                         style={[styles.chatItemMessageHeaderTimestamp]}
                         numberOfLines={1}
                     >
@@ -108,29 +108,29 @@ const AboutPage = (props) => {
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase1',
                         )}
                         {' '}
-                        <Text
+                        <ExpensifyText
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => Link.openExternalLink(CONST.TERMS_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase2',
                             )}
-                        </Text>
+                        </ExpensifyText>
                         {' '}
                         {props.translate(
                             'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase3',
                         )}
                         {' '}
-                        <Text
+                        <ExpensifyText
                             style={[styles.chatItemMessageHeaderTimestamp, styles.link]}
                             onPress={() => Link.openExternalLink(CONST.PRIVACY_URL)}
                         >
                             {props.translate(
                                 'initialSettingsPage.readTheTermsAndPrivacyPolicy.phrase4',
                             )}
-                        </Text>
+                        </ExpensifyText>
                         .
-                    </Text>
+                    </ExpensifyText>
                 </View>
             </ScrollView>
         </ScreenWrapper>

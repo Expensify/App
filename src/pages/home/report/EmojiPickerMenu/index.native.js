@@ -7,7 +7,7 @@ import CONST from '../../../../CONST';
 import styles from '../../../../styles/styles';
 import emojis from '../../../../../assets/emojis';
 import EmojiPickerMenuItem from '../EmojiPickerMenuItem';
-import Text from '../../../../components/Text';
+import ExpensifyText from '../../../../components/ExpensifyText';
 import withLocalize, {withLocalizePropTypes} from '../../../../components/withLocalize';
 import EmojiSkinToneList from '../EmojiSkinToneList';
 
@@ -76,9 +76,9 @@ class EmojiPickerMenu extends Component {
 
         if (item.header) {
             return (
-                <Text style={styles.emojiHeaderStyle}>
+                <ExpensifyText style={styles.emojiHeaderStyle}>
                     {item.code}
-                </Text>
+                </ExpensifyText>
             );
         }
 

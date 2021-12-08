@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import styles from '../../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 import * as Expensicons from '../../../components/Icon/Expensicons';
@@ -33,14 +33,14 @@ const WorkspaceReimburseVBAView = props => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>
+                <ExpensifyText>
                     {props.translate('workspace.reimburse.captureNoVBACopyBeforeEmail')}
                     <CopyTextToClipboard
                         text="receipts@expensify.com"
                         textStyles={[styles.textBlue]}
                     />
-                    <Text>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</Text>
-                </Text>
+                    <ExpensifyText>{props.translate('workspace.reimburse.captureNoVBACopyAfterEmail')}</ExpensifyText>
+                </ExpensifyText>
             </View>
         </WorkspaceSection>
 
@@ -58,7 +58,7 @@ const WorkspaceReimburseVBAView = props => (
             ]}
         >
             <View style={[styles.mv4]}>
-                <Text>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</Text>
+                <ExpensifyText>{props.translate('workspace.reimburse.fastReimbursementsVBACopy')}</ExpensifyText>
             </View>
         </WorkspaceSection>
     </>

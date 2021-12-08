@@ -4,8 +4,8 @@ import {Keyboard} from 'react-native';
 import {
     StackActions,
     DrawerActions,
-    useLinkBuilder,
     createNavigationContainerRef,
+    getPathFromState,
 } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import Onyx from 'react-native-onyx';
@@ -15,6 +15,7 @@ import ROUTES from '../../ROUTES';
 import SCREENS from '../../SCREENS';
 import CustomActions from './CustomActions';
 import ONYXKEYS from '../../ONYXKEYS';
+import linkingConfig from './linkingConfig';
 
 let isLoggedIn = false;
 Onyx.connect({
@@ -120,7 +121,7 @@ function navigate(route = ROUTES.HOME) {
     // have a participants route since those should go through linkTo() as they open a different screen.
     const {reportID, isParticipantsRoute} = ROUTES.parseReportRouteParams(route);
     if (reportID && !isParticipantsRoute) {
-        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, navigationRef));
+        navigationRef.current.dispatch(CustomActions.pushDrawerRoute(SCREENS.REPORT, {reportID}, route, navigationRef));
         return;
     }
 
@@ -151,21 +152,16 @@ function dismissModal(shouldOpenDrawer = false) {
 /**
  * Check whether the passed route is currently Active or not.
  *
- * Building path with useLinkBuilder since navigationRef.current.getCurrentRoute().path
+ * Building path with getPathFromState since navigationRef.current.getCurrentRoute().path
  * is undefined in the first navigation.
  *
  * @param {String} routePath Path to check
  * @return {Boolean} is active
  */
 function isActiveRoute(routePath) {
-    const buildLink = useLinkBuilder();
-
     // We remove First forward slash from the URL before matching
     const path = navigationRef.current && navigationRef.current.getCurrentRoute().name
-        ? buildLink(
-            navigationRef.current.getCurrentRoute().name,
-            navigationRef.current.getCurrentRoute().params,
-        ).substring(1)
+        ? getPathFromState(navigationRef.current.getState(), linkingConfig.config).substring(1)
         : '';
     return path === routePath;
 }
