@@ -23,6 +23,13 @@ const SecuritySettingsPage = (props) => {
                 Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
             },
         },
+        {
+            translationKey: 'initialSettingsPage.closeAccount',
+            icon: Expensicons.Lock,
+            action: () => {
+                Navigation.navigate(ROUTES.SETTINGS_PASSWORD);
+            },
+        },
     ];
 
     return (

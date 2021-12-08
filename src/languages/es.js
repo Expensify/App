@@ -271,6 +271,7 @@ export default {
                 label: 'Desktop',
             },
         },
+        closeAccount: 'Cerrar cuenta',
         security: 'Seguridad',
         signOut: 'Desconectar',
         versionLetter: 'v',
