@@ -7,7 +7,7 @@ import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import HeaderWithCloseButton from '../../components/HeaderWithCloseButton';
 import Navigation from '../../libs/Navigation/Navigation';
-import Text from '../../components/Text';
+import ExpensifyText from '../../components/ExpensifyText';
 import compose from '../../libs/compose';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
@@ -109,16 +109,16 @@ class EnableStep extends React.Component {
                             interactive={false}
                             wrapperStyle={[styles.ph0, styles.mb3]}
                         />
-                        <Text>
+                        <ExpensifyText>
                             {!isUsingExpensifyCard
                                 ? this.props.translate('workspace.bankAccount.accountDescriptionNoCards')
                                 : this.props.translate('workspace.bankAccount.accountDescriptionWithCards')}
-                        </Text>
+                        </ExpensifyText>
                     </WorkspaceSection>
                     {this.props.user.isCheckingDomain && (
-                        <Text style={[styles.formError, styles.m5]}>
+                        <ExpensifyText style={[styles.formError, styles.m5]}>
                             {this.props.translate('workspace.card.checkingDomain')}
-                        </Text>
+                        </ExpensifyText>
                     )}
                 </View>
             </View>

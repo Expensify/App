@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import styles from '../../../styles/styles';
 import * as Emojis from '../../../../assets/emojis';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import getSkinToneEmojiFromIndex from './EmojiPickerMenu/getSkinToneEmojiFromIndex';
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 
@@ -68,12 +68,12 @@ class EmojiSkinToneList extends Component {
                                 styles.alignItemsCenter,
                             ]}
                         >
-                            <Text style={[styles.emojiText, styles.ph2, styles.emojiItem]}>
+                            <ExpensifyText style={[styles.emojiText, styles.ph2, styles.emojiItem]}>
                                 {selectedEmoji.code}
-                            </Text>
-                            <Text style={[styles.emojiSkinToneTitle]}>
+                            </ExpensifyText>
+                            <ExpensifyText style={[styles.emojiSkinToneTitle]}>
                                 {this.props.translate('emojiPicker.skinTonePickerLabel')}
-                            </Text>
+                            </ExpensifyText>
                         </Pressable>
                     )
                 }

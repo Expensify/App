@@ -6,9 +6,10 @@ import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Form from '../../../components/Form';
 import compose from '../../../libs/compose';
 import scrollViewContentContainerStyles from './signInPageStyles.js';
 import LoginKeyboardAvoidingView from './LoginKeyboardAvoidingView';
@@ -45,7 +46,7 @@ const SignInPageLayoutNarrow = props => (
         ]}
         contentContainerStyle={scrollViewContentContainerStyles}
     >
-        <View style={[styles.flex1, styles.signInPageNarrowContentContainer, styles.alignSelfStretch, styles.ph5]}>
+        <Form style={[styles.flex1, styles.signInPageNarrowContentContainer, styles.alignSelfStretch, styles.ph5]}>
             <LoginKeyboardAvoidingView
                 behavior="position"
                 contentContainerStyle={[
@@ -65,13 +66,13 @@ const SignInPageLayoutNarrow = props => (
                     />
                 </View>
                 {props.shouldShowWelcomeText && (
-                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                    <ExpensifyText style={[styles.mv5, styles.textLabel, styles.h3]}>
                         {props.welcomeText}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 {props.children}
             </LoginKeyboardAvoidingView>
-        </View>
+        </Form>
         <View style={[styles.mb5, styles.alignSelfCenter, styles.signInPageNarrowContentContainer, styles.ph5]}>
             <TermsAndLicenses />
         </View>

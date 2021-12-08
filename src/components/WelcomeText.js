@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 
 const propTypes = {
 
@@ -20,14 +20,14 @@ const WelcomeText = (props) => {
     const textSize = props.smallFontSize ? styles.textLabel : undefined;
     return (
         <>
-            <Text style={[textSize, styles.textStrong, styles.mb1]}>
+            <ExpensifyText style={[textSize, styles.textStrong, styles.mb1]}>
                 {props.translate('welcomeText.phrase1')}
-            </Text>
-            <Text style={[textSize]}>
+            </ExpensifyText>
+            <ExpensifyText style={[textSize]}>
                 {props.translate('welcomeText.phrase2')}
                 {' '}
                 {props.translate('welcomeText.phrase3')}
-            </Text>
+            </ExpensifyText>
         </>
     );
 };

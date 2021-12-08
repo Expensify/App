@@ -9,7 +9,7 @@ const Picker = props => (
     <RNPickerSelect
         onValueChange={props.onChange}
         items={props.items}
-        style={props.size === 'normal' ? pickerStyles(props.disabled) : styles.pickerSmall}
+        style={props.size === 'normal' ? pickerStyles(props.disabled, props.hasError, props.focused) : styles.pickerSmall}
         useNativeAndroidPickerStyle={false}
         placeholder={props.placeholder}
         value={props.value}

@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import {propTypes, defaultProps} from './displayNamesPropTypes';
 import styles from '../../styles/styles';
 import Tooltip from '../Tooltip';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 
 class DisplayNames extends PureComponent {
     constructor(props) {
@@ -69,21 +69,21 @@ class DisplayNames extends PureComponent {
 
     render() {
         if (!this.props.tooltipEnabled) {
-            // No need for any complex text-splitting, just return a simple text component
+            // No need for any complex text-splitting, just return a simple ExpensifyText component
             return (
-                <Text
+                <ExpensifyText
                     style={this.props.textStyles}
                     numberOfLines={this.props.numberOfLines}
                 >
                     {this.props.fullTitle}
-                </Text>
+                </ExpensifyText>
             );
         }
 
         return (
 
             // Tokenization of string only support 1 numberOfLines on Web
-            <Text
+            <ExpensifyText
                 style={[...this.props.textStyles, styles.pRelative]}
                 onLayout={this.setContainerLayout}
                 numberOfLines={1}
@@ -101,11 +101,11 @@ class DisplayNames extends PureComponent {
                             >
                                 {/*  // We need to get the refs to all the names which will be used to correct
                                     the horizontal position of the tooltip */}
-                                <Text ref={el => this.childRefs[index] = el}>
+                                <ExpensifyText ref={el => this.childRefs[index] = el}>
                                     {displayName}
-                                </Text>
+                                </ExpensifyText>
                             </Tooltip>
-                            {index < this.props.displayNamesWithTooltips.length - 1 && <Text>,&nbsp;</Text>}
+                            {index < this.props.displayNamesWithTooltips.length - 1 && <ExpensifyText>,&nbsp;</ExpensifyText>}
                         </Fragment>
                     ))}
                 {this.props.displayNamesWithTooltips.length > 1 && this.state.isEllipsisActive
@@ -113,11 +113,11 @@ class DisplayNames extends PureComponent {
                         <View style={styles.displayNameTooltipEllipsis}>
                             <Tooltip text={this.props.fullTitle}>
                                 {/* There is some Gap for real ellipsis so we are adding 4 `.` to cover */}
-                                <Text>....</Text>
+                                <ExpensifyText>....</ExpensifyText>
                             </Tooltip>
                         </View>
                     )}
-            </Text>
+            </ExpensifyText>
         );
     }
 }
