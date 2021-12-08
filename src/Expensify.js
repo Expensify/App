@@ -66,7 +66,6 @@ class Expensify extends PureComponent {
 
         // Initialize this client as being an active client
         ActiveClientManager.init();
-        this.hideSplash = this.hideSplash.bind(this);
         this.setNavigationReady = this.setNavigationReady.bind(this);
         this.initializeClient = this.initializeClient.bind(true);
         this.state = {
@@ -110,7 +109,9 @@ class Expensify extends PureComponent {
             const shouldHideSplash = !this.isAuthenticated() || authStackReady;
 
             if (shouldHideSplash) {
-                this.hideSplash();
+                BootSplash
+                    .hide({fade: true})
+                    .then(() => this.setState({isSplashShown: false}));
             }
         }
     }
@@ -134,12 +135,6 @@ class Expensify extends PureComponent {
         }
 
         ActiveClientManager.init();
-    }
-
-    hideSplash() {
-        BootSplash
-            .hide({fade: true})
-            .then(() => this.setState({isSplashShown: false}));
     }
 
     reportBootSplashStatus() {

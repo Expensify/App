@@ -25,22 +25,16 @@ LogBox.ignoreLogs([
 const App = () => (
     <ComposeProviders
         components={[
+            OnyxProvider,
             SafeAreaProvider,
             SafeArea,
             LocaleContextProvider,
+            HTMLEngineProvider,
         ]}
     >
         <CustomStatusBar />
-
         <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-            <ComposeProviders
-                components={[
-                    OnyxProvider,
-                    HTMLEngineProvider,
-                ]}
-            >
-                <Expensify />
-            </ComposeProviders>
+            <Expensify />
         </ErrorBoundary>
     </ComposeProviders>
 );
