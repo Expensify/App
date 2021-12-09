@@ -1,9 +1,10 @@
 import _ from 'underscore';
 import React from 'react';
+// eslint-disable-next-line no-restricted-imports
 import {View, TextInput} from 'react-native';
 import PropTypes from 'prop-types';
 import styles from '../styles/styles';
-import Text from './Text';
+import ExpensifyText from './ExpensifyText';
 import TextLink from './TextLink';
 
 const propTypes = {
@@ -43,7 +44,7 @@ const TextInputWithLabel = props => (
                 (!_.isEmpty(props.label) && !_.isEmpty(props.helpLinkURL)) ? styles.alignItemsBaseline : undefined,
             ]}
         >
-            {!_.isEmpty(props.label) && <Text style={[styles.formLabel]}>{props.label}</Text>}
+            {!_.isEmpty(props.label) && <ExpensifyText style={[styles.formLabel]}>{props.label}</ExpensifyText>}
             {!_.isEmpty(props.helpLinkURL) && (
                 <TextLink
                     href={props.helpLinkURL}
@@ -64,7 +65,7 @@ const TextInputWithLabel = props => (
             {..._.omit(props, ['label', 'errorText'])}
         />
         {props.errorText !== '' && (
-            <Text style={[styles.formError]}>{props.errorText}</Text>
+            <ExpensifyText style={[styles.formError]}>{props.errorText}</ExpensifyText>
         )}
     </View>
 );

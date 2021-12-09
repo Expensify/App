@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Animated, View} from 'react-native';
 import ReactDOM from 'react-dom';
 import getTooltipStyles from '../../styles/getTooltipStyles';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 
 const propTypes = {
     /** Window width */
@@ -76,7 +76,7 @@ const TooltipRenderedOnPageBody = (props) => {
             onLayout={props.measureTooltip}
             style={[tooltipWrapperStyle, animationStyle]}
         >
-            <Text style={tooltipTextStyle} numberOfLines={1}>{props.text}</Text>
+            <ExpensifyText style={tooltipTextStyle} numberOfLines={1}>{props.text}</ExpensifyText>
             <View style={pointerWrapperStyle}>
                 <View style={pointerStyle} />
             </View>

@@ -74,7 +74,6 @@ class WorkspacePageWithSections extends React.Component {
                 />
                 <ScrollView
                     style={[styles.settingsPageBackground, styles.flex1, styles.w100]}
-                    contentContainerStyle={[styles.flex1]}
                 >
                     <View style={[styles.w100, styles.flex1]}>
 

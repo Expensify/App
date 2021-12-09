@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'underscore';
+// eslint-disable-next-line no-restricted-imports
 import {Text as RNText} from 'react-native';
 import fontFamily from '../styles/fontFamily';
 import themeColors from '../styles/themes/default';
@@ -36,7 +37,7 @@ const defaultProps = {
     style: {},
 };
 
-const Text = React.forwardRef(({
+const ExpensifyText = React.forwardRef(({
     color,
     fontSize,
     textAlign,
@@ -68,8 +69,8 @@ const Text = React.forwardRef(({
     );
 });
 
-Text.propTypes = propTypes;
-Text.defaultProps = defaultProps;
-Text.displayName = 'Text';
+ExpensifyText.propTypes = propTypes;
+ExpensifyText.defaultProps = defaultProps;
+ExpensifyText.displayName = 'ExpensifyText';
 
-export default Text;
+export default ExpensifyText;
