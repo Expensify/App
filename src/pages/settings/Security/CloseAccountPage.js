@@ -1,10 +1,13 @@
 import React from 'react';
-import {Text, ScrollView} from 'react-native';
+import {ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
 import Navigation from '../../../libs/Navigation/Navigation';
 import ROUTES from '../../../ROUTES';
 import styles from '../../../styles/styles';
 import ScreenWrapper from '../../../components/ScreenWrapper';
+import ExpensiTextInput from '../../../components/ExpensiTextInput';
+import ExpensifyText from '../../../components/ExpensifyText';
+import KeyboardAvoidingView from '../../../components/KeyboardAvoidingView';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
 
 const propTypes = {
@@ -13,21 +16,34 @@ const propTypes = {
 
 const CloseAccountPage = props => (
     <ScreenWrapper>
-        <HeaderWithCloseButton
-            title={props.translate('closeAccountPage.closeAccount')}
-            shouldShowBackButton
-            onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
-            onCloseButtonPress={() => Navigation.dismissModal(true)}
-        />
-        <ScrollView
-            contentContainerStyle={[
-                styles.flexGrow1,
-                styles.flexColumn,
-                styles.justifyContentBetween,
-            ]}
-        >
-            <Text>___Close Account___</Text>
-        </ScrollView>
+        <KeyboardAvoidingView>
+            <HeaderWithCloseButton
+                title={props.translate('closeAccountPage.closeAccount')}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
+                onCloseButtonPress={() => Navigation.dismissModal(true)}
+            />
+            <ScrollView
+                contentContainerStyle={[
+                    styles.flexGrow1,
+                    styles.flexColumn,
+                    styles.p5,
+                ]}
+            >
+                <ExpensifyText>{props.translate('closeAccountPage.reasonForLeavingPrompt')}</ExpensifyText>
+                <ExpensiTextInput
+                    label={props.translate('closeAccountPage.typeMessageHere')}
+                    containerStyles={[styles.mt5]}
+                />
+                <ExpensifyText style={[styles.mt5]}>
+                    {props.translate('closeAccountPage.closeAccountWarning')}
+                </ExpensifyText>
+                <ExpensiTextInput
+                    label={props.translate('loginForm.phoneOrEmail')}
+                    containerStyles={[styles.mt5]}
+                />
+            </ScrollView>
+        </KeyboardAvoidingView>
     </ScreenWrapper>
 );
 
