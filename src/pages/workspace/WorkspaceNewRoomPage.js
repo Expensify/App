@@ -17,6 +17,8 @@ import CONST from '../../CONST';
 import ExpensifyButton from '../../components/ExpensifyButton';
 import FixedFooter from '../../components/FixedFooter';
 import * as Report from '../../libs/actions/Report';
+import Permissions from '../../libs/Permissions';
+import Log from '../../libs/Log';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -121,6 +123,11 @@ class WorkspaceNewRoomPage extends React.Component {
     }
 
     render() {
+        if (!Permissions.canUseDefaultRooms(this.props.betas)) {
+            Log.info('Not showing create Policy Room page since user is not on default rooms beta');
+            Navigation.dismissModal();
+            return null;
+        }
         const shouldDisableSubmit = Boolean(!this.state.roomName || !this.state.policyID || this.state.error);
         return (
             <ScreenWrapper>
