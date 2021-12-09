@@ -741,7 +741,7 @@ function subscribeToUserEvents() {
             },
         );
         updateReportActionMessage(pushJSON.reportID, pushJSON.sequenceNumber, pushJSON.message);
-    }, false,
+    }, true,
     () => {
         NetworkConnection.triggerReconnectionCallbacks('pusher re-subscribed to private user channel');
     })
