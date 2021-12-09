@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import React from 'react';
 import {Text, ScrollView} from 'react-native';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
@@ -12,7 +11,7 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-const CloseAccountPage = (props) => (
+const CloseAccountPage = props => (
     <ScreenWrapper>
         <HeaderWithCloseButton
             title={props.translate('closeAccountPage.closeAccount')}
