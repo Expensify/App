@@ -145,14 +145,15 @@ class WorkspaceNewRoomPage extends React.Component {
                         value={this.state.roomName.substr(1)}
                         errorText={this.state.error}
                     />
-                    <ExpensiPicker
-                        value={this.state.policyID}
-                        label={this.props.translate('workspace.common.workspace')}
-                        placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
-                        items={this.state.workspaceOptions}
-                        onChange={this.onWorkspaceSelect}
-                        containerStyles={[styles.mb5]}
-                    />
+                    <View style={styles.mb5}>
+                        <ExpensiPicker
+                            value={this.state.policyID}
+                            label={this.props.translate('workspace.common.workspace')}
+                            placeholder={{value: '', label: this.props.translate('newRoomPage.selectAWorkspace')}}
+                            items={this.state.workspaceOptions}
+                            onChange={this.onWorkspaceSelect}
+                        />
+                    </View>
                     <ExpensiPicker
                         value={CONST.REPORT.VISIBILITY.RESTRICTED}
                         label={this.props.translate('newRoomPage.visibility')}
