@@ -124,6 +124,9 @@ class Expensify extends PureComponent {
         this.setState({isNavigationReady: true});
     }
 
+    /**
+     * @returns {boolean}
+     */
     isAuthenticated() {
         const authToken = lodashGet(this.props, 'session.authToken', null);
         return Boolean(authToken);
