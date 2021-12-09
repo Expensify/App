@@ -182,6 +182,11 @@ export default {
                     RequestCall_Root: ROUTES.REQUEST_CALL,
                 },
             },
+            AddressSearch: {
+                screens: {
+                    AddressSearch_Root: ROUTES.ADDRESS_SEARCH,
+                },
+            },
         },
     },
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import ExpensiTextInput from '../../components/ExpensiTextInput';
-import AddressSearch from '../../components/AddressSearch';
+import AddressSearchInput from '../../components/AddressSearchInput';
 import styles from '../../styles/styles';
 import withLocalize, {withLocalizePropTypes} from '../../components/withLocalize';
 import CONST from '../../CONST';
@@ -171,7 +171,7 @@ const IdentityForm = (props) => {
                 </>
             ) : (
                 <>
-                    <AddressSearch
+                    <AddressSearchInput
                         label={props.translate('common.personalAddress')}
                         containerStyles={[styles.mt4]}
                         value={getFormattedAddressValue()}

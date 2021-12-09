@@ -9,6 +9,9 @@ import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
+import ScreenWrapper from './ScreenWrapper';
+import HeaderWithCloseButton from './HeaderWithCloseButton';
+import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -83,72 +86,88 @@ const AddressSearch = (props) => {
     };
 
     return (
-        <GooglePlacesAutocomplete
-            ref={googlePlacesRef}
-            fetchDetails
-            suppressDefaultStyles
-            enablePoweredByContainer={false}
-            onPress={(data, details) => {
-                saveLocationDetails(details);
-
-                // After we select an option, we set displayListViewBorder to false to prevent UI flickering
-                setDisplayListViewBorder(false);
-            }}
-            query={{
-                key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
-                language: props.preferredLocale,
-                types: 'address',
-                components: 'country:us',
-            }}
-            requestUrl={{
-                useOnPlatform: 'web',
-                url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
-            }}
-            textInputProps={{
-                InputComp: ExpensiTextInput,
-                label: props.label,
-                containerStyles: props.containerStyles,
-                errorText: props.errorText,
-                onChangeText: (text) => {
-                    const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
-
-                    // Ensure whether an address is selected already or has address value initialized.
-                    if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
-                        saveLocationDetails({});
-                    }
-
-                    // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
-                    if (_.isEmpty(text)) {
-                        setDisplayListViewBorder(false);
-                    }
-                },
-            }}
-            styles={{
-                textInputContainer: [styles.flexColumn],
-                listView: [
-                    !displayListViewBorder && styles.googleListView,
-                    displayListViewBorder && styles.borderTopRounded,
-                    displayListViewBorder && styles.borderBottomRounded,
-                    displayListViewBorder && styles.mt1,
-                    styles.overflowAuto,
-                    styles.borderLeft,
-                    styles.borderRight,
-                ],
-                row: [
-                    styles.pv4,
-                    styles.ph3,
-                    styles.overflowAuto,
-                ],
-                description: [styles.googleSearchText],
-                separator: [styles.googleSearchSeparator],
-            }}
-            onLayout={(event) => {
-                // We use the height of the element to determine if we should hide the border of the listView dropdown
-                // to prevent a lingering border when there are no address suggestions.
-                // The height of the empty element is 2px (1px height for each top and bottom borders)
-                setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
-            }}
-        />
+        <ScreenWrapper>
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithCloseButton
+                        title={props.translate('common.search')}
+                        onCloseButtonPress={() => Navigation.dismissModal(true)}
+                    />
+                    <View style={[styles.flex1, styles.w100, styles.pRelative]}>
+                        <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
+                        {didScreenTransitionEnd && (
+                            <GooglePlacesAutocomplete
+                                ref={googlePlacesRef}
+                                fetchDetails
+                                suppressDefaultStyles
+                                enablePoweredByContainer={false}
+                                onPress={(data, details) => {
+                                    saveLocationDetails(details);
+                    
+                                    // After we select an option, we set displayListViewBorder to false to prevent UI flickering
+                                    setDisplayListViewBorder(false);
+                                }}
+                                query={{
+                                    key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
+                                    language: props.preferredLocale,
+                                    types: 'address',
+                                    components: 'country:us',
+                                }}
+                                requestUrl={{
+                                    useOnPlatform: 'web',
+                                    url: `${CONFIG.EXPENSIFY.URL_EXPENSIFY_COM}api?command=Proxy_GooglePlaces&proxyUrl=`,
+                                }}
+                                textInputProps={{
+                                    InputComp: ExpensiTextInput,
+                                    label: props.label,
+                                    containerStyles: props.containerStyles,
+                                    errorText: props.errorText,
+                                    onChangeText: (text) => {
+                                        const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
+                    
+                                        // Ensure whether an address is selected already or has address value initialized.
+                                        if (!_.isEmpty(googlePlacesRef.current.getAddressText()) && !isTextValid) {
+                                            saveLocationDetails({});
+                                        }
+                    
+                                        // If the text is empty, we set displayListViewBorder to false to prevent UI flickering
+                                        if (_.isEmpty(text)) {
+                                            setDisplayListViewBorder(false);
+                                        }
+                                    },
+                                }}
+                                styles={{
+                                    textInputContainer: [styles.flexColumn],
+                                    listView: [
+                                        !displayListViewBorder && styles.googleListView,
+                                        displayListViewBorder && styles.borderTopRounded,
+                                        displayListViewBorder && styles.borderBottomRounded,
+                                        displayListViewBorder && styles.mt1,
+                                        styles.overflowAuto,
+                                        styles.borderLeft,
+                                        styles.borderRight,
+                                    ],
+                                    row: [
+                                        styles.pv4,
+                                        styles.ph3,
+                                        styles.overflowAuto,
+                                    ],
+                                    description: [styles.googleSearchText],
+                                    separator: [styles.googleSearchSeparator],
+                                }}
+                                onLayout={(event) => {
+                                    // We use the height of the element to determine if we should hide the border of the listView dropdown
+                                    // to prevent a lingering border when there are no address suggestions.
+                                    // The height of the empty element is 2px (1px height for each top and bottom borders)
+                                    setDisplayListViewBorder(event.nativeEvent.layout.height > 2);
+                                }}
+                            />
+                        )}
+                    </View>
+                    <KeyboardSpacer />
+                </>
+            )}
+        </ScreenWrapper>
     );
 };
 
