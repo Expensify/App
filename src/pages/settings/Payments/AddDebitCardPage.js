@@ -23,7 +23,7 @@ import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
-import AddressSearchInput from '../../../components/AddressSearchInput';
+import AddressSearch from '../../../components/AddressSearch';
 import ROUTES from '../../../ROUTES';
 
 const propTypes = {

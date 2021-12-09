@@ -37,7 +37,6 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
-import AddressSearchPage from '../../../components/AddressSearchPage';
 import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
