@@ -254,11 +254,6 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
     name: 'RequestCall_Root',
 }]);
 
-const AddressSearchModalStackNavigator = createModalStackNavigator([{
-    Component: AddressSearchPage,
-    name: 'AddressSearch_Root',
-}]);
-
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -275,5 +270,4 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     RequestCallModalStackNavigator,
-    AddressSearchModalStackNavigator,
 };

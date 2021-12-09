@@ -69,10 +69,10 @@ const AddressSearch = (props) => {
             const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
-            // props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            // props.onChangeText('addressCity', city);
-            // props.onChangeText('addressState', state);
-            // props.onChangeText('addressZipCode', zipCode);
+            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
+            props.onChangeText('addressCity', city);
+            props.onChangeText('addressState', state);
+            props.onChangeText('addressZipCode', zipCode);
         } else {
             // Clear the values associated to the address, so our validations catch the problem
             Log.hmmm('[AddressSearch] Search result failed validation: ', {
@@ -80,10 +80,10 @@ const AddressSearch = (props) => {
                 address_components: addressComponents,
                 place_id: details.place_id,
             });
-            // props.onChangeText('addressStreet', null);
-            // props.onChangeText('addressCity', null);
-            // props.onChangeText('addressState', null);
-            // props.onChangeText('addressZipCode', null);
+            props.onChangeText('addressStreet', null);
+            props.onChangeText('addressCity', null);
+            props.onChangeText('addressState', null);
+            props.onChangeText('addressZipCode', null);
         }
     };
 

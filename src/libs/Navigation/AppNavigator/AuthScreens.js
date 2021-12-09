@@ -347,12 +347,6 @@ class AuthScreens extends React.Component {
                     component={ModalStackNavigators.IOUSendModalStackNavigator}
                     listeners={modalScreenListeners}
                 />
-                <RootStack.Screen
-                    name="AddressSearch"
-                    options={modalScreenOptions}
-                    component={ModalStackNavigators.AddressSearchModalStackNavigator}
-                    listeners={modalScreenListeners}
-                />
             </RootStack.Navigator>
         );
     }
