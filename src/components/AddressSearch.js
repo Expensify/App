@@ -10,6 +10,7 @@ import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import Navigation from '../libs/Navigation/Navigation';
+import {setAddress} from '../libs/actions/Address';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -22,9 +23,6 @@ const propTypes = {
 
     /** The value to set the field to initially */
     value: PropTypes.string,
-
-    /** A callback function when the value of this field has changed */
-    onChangeText: PropTypes.func.isRequired,
 
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -65,10 +63,12 @@ const AddressSearch = (props) => {
             const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
-            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            props.onChangeText('addressCity', city);
-            props.onChangeText('addressState', state);
-            props.onChangeText('addressZipCode', zipCode);
+            setAddress({
+                addressStreet: `${streetNumber} ${streetName}`,
+                addressCity: city,
+                addressState: state,
+                addressZipCode: zipCode,
+            });
         } else {
             // Clear the values associated to the address, so our validations catch the problem
             Log.hmmm('[AddressSearch] Search result failed validation: ', {
@@ -76,10 +76,12 @@ const AddressSearch = (props) => {
                 address_components: addressComponents,
                 place_id: details.place_id,
             });
-            props.onChangeText('addressStreet', null);
-            props.onChangeText('addressCity', null);
-            props.onChangeText('addressState', null);
-            props.onChangeText('addressZipCode', null);
+            setAddress({
+                addressStreet: null,
+                addressCity: null,
+                addressState: null,
+                addressZipCode: null,
+            });
         }
     };
 
@@ -124,6 +126,7 @@ const AddressSearch = (props) => {
                         setDisplayListViewBorder(false);
                     }
                 },
+                autoFocus: true,
             }}
             styles={{
                 textInputContainer: [styles.flexColumn],

@@ -156,4 +156,7 @@ export default {
 
     // Is report data loading?
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    // AddressSearch temporary result
+    SELECTED_ADDRESS: 'selectedAddress',
 };

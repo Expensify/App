@@ -226,7 +226,7 @@ class DebitCardPage extends Component {
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 onChangeText={() => {}}
-                                value={this.state.addressStreet}
+                                value={''}
                                 errorText={this.getErrorText('addressStreet')}
                                 onFocus={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
                             />

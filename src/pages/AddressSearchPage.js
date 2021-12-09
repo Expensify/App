@@ -28,36 +28,10 @@ const propTypes = {
 class AddressSearchPage extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            addressStreet: '',
-            addressState: '',
-            addressCity: '',
-            addressZipCode: '',
-            errors: {},
-        };
-
-        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
-    }
-
-    /**
-     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
-     *
-     * @param {String} inputKey
-     * @param {String} value
-     */
-     clearErrorAndSetValue(inputKey, value) {
-        this.setState(prevState => ({
-            [inputKey]: value,
-            errors: {
-                ...prevState.errors,
-                [inputKey]: false,
-            },
-        }));
     }
 
     render() {
-        console.log(this.state)
+        const fullAddress = `${this.props.address.addressStreet}, ${this.props.address.addressCity}, ${this.props.address.addressState}`;
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
@@ -73,7 +47,7 @@ class AddressSearchPage extends Component {
                                     label={this.props.translate('addDebitCardPage.billingAddress')}
                                     containerStyles={[styles.mh5]}
                                     onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
-                                    value={this.state.addressStreet}
+                                    value={fullAddress}
                                 />
                             )}
                         </View>
@@ -91,8 +65,8 @@ export default compose(
     withLocalize,
     withWindowDimensions,
     withOnyx({
-        reports: {
-            key: ONYXKEYS.COLLECTION.REPORT,
+        address: {
+            key: ONYXKEYS.SELECTED_ADDRESS,
         },
     }),
 )(AddressSearchPage);
