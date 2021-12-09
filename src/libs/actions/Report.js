@@ -1474,7 +1474,7 @@ function createPolicyRoom(policyID, reportName, visibility) {
             Navigation.navigate(ROUTES.getReportRoute(reportID));
         })
         .catch(() => {
-            Growl.error(translateLocal('newRoomPage.growlMessageOnError'));
+            Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
         });
 }
 

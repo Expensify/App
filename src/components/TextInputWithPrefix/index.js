@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+// eslint-disable-next-line no-restricted-imports
 import {TextInput, View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
