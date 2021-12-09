@@ -160,6 +160,7 @@ export default {
                     IOU_Send_Root: ROUTES.IOU_SEND_WITH_REPORT_ID,
                     IOU_Send_Currency: ROUTES.IOU_SEND_CURRENCY,
                     IOU_Enable_Payments: ROUTES.IOU_ENABLE_PAYMENTS,
+                    IOU_Send_Add_Bank_Account: ROUTES.IOU_SEND_ADD_BANK_ACCOUNT,
                 },
             },
             IOU_Details: {

@@ -25,6 +25,9 @@ import makeCancellablePromise from '../libs/MakeCancellablePromise';
 import ROUTES from '../ROUTES';
 import Navigation from '../libs/Navigation/Navigation';
 import * as PaymentMethodUtils from '../libs/PaymentMethodUtils';
+import Log from '../libs/Log';
+import AddPaymentMethodMenu from './AddPaymentMethodMenu';
+import getClickedElementLocation from '../libs/getClickedElementLocation';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -154,6 +157,9 @@ class IOUConfirmationList extends Component {
         this.state = {
             confirmationButtonOptions,
             participants: formattedParticipants,
+            shouldShowAddPaymentMenu: false,
+            anchorPositionTop: 0,
+            anchorPositionLeft: 0,
         };
 
         this.toggleOption = this.toggleOption.bind(this);
@@ -184,12 +190,21 @@ class IOUConfirmationList extends Component {
 
     /**
      * When confirmation button is clicked
+     *
+     * @param {Event} event
      */
-    onPress() {
+    onPress(event) {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
             // Check to see if user has a valid payment method on file
             if (!PaymentMethodUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
-                // Open popover and then redirect to payment method... this should be moved into SettlementButton
+                // Open popover and then redirect to payment method... this should be moved into SettlementButton eventually
+                Log.info('User does not have valid payment method for Pay with Expensify option. Asking them to add one.');
+                const position = getClickedElementLocation(event.nativeEvent);
+                this.setState({
+                    shouldShowAddPaymentMenu: true,
+                    anchorPositionTop: position.bottom - 286,
+                    anchorPositionLeft: position.right - 356,
+                });
                 return;
             }
 
@@ -450,6 +465,15 @@ class IOUConfirmationList extends Component {
                             {this.props.translate('session.offlineMessage')}
                         </ExpensifyText>
                     )}
+                    <AddPaymentMethodMenu
+                        isVisible={this.state.shouldShowAddPaymentMenu}
+                        onClose={() => this.setState({shouldShowAddPaymentMenu: false})}
+                        anchorPosition={{
+                            top: this.state.anchorPositionTop,
+                            left: this.state.anchorPositionLeft,
+                        }}
+                        shouldShowPaypal={false}
+                    />
                     <ButtonWithMenu
                         options={this.state.confirmationButtonOptions}
                         isDisabled={selectedParticipants.length === 0 || this.props.network.isOffline}
@@ -484,6 +508,12 @@ export default compose(
         },
         userWallet: {
             key: ONYXKEYS.USER_WALLET,
+        },
+        cardList: {
+            key: ONYXKEYS.CARD_LIST,
+        },
+        bankAccountList: {
+            key: ONYXKEYS.BANK_ACCOUNT_LIST,
         },
     }),
 )(IOUConfirmationList);

@@ -96,6 +96,10 @@ const IOUSendModalStackNavigator = createModalStackNavigator([{
     name: 'IOU_Send_Currency',
 },
 {
+    Component: AddPersonalBankAccountPage,
+    name: 'IOU_Send_Add_Bank_Account',
+},
+{
     Component: EnablePaymentsPage,
     name: 'IOU_Enable_Payments',
 }]);

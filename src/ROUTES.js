@@ -50,6 +50,7 @@ export default {
     IOU_ENABLE_PAYMENTS: 'iou/enable-payments',
     IOU_REQUEST_CURRENCY: `${IOU_REQUEST_CURRENCY}/:reportID?`,
     IOU_SEND_CURRENCY: `${IOU_SEND_CURRENCY}/:reportID?`,
+    IOU_SEND_ADD_BANK_ACCOUNT: `${IOU_SEND}/add-bank-account`,
     getIouRequestCurrencyRoute: reportID => `${IOU_REQUEST_CURRENCY}/${reportID}`,
     getIouBillCurrencyRoute: reportID => `${IOU_BILL_CURRENCY}/${reportID}`,
     getIouSendCurrencyRoute: reportID => `${IOU_SEND_CURRENCY}/${reportID}`,
