@@ -24,7 +24,6 @@ import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitBu
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
 import AddressSearch from '../../../components/AddressSearch';
-import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -223,13 +222,12 @@ class DebitCardPage extends Component {
                                     />
                                 </View>
                             </View>
-                            <ExpensiTextInput
+                            <AddressSearch
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
                                 onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                 errorText={this.getErrorText('addressStreet')}
-                                onFocus={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
                             />
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}
