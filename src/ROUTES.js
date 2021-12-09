@@ -15,7 +15,8 @@ const IOU_BILL_CURRENCY = `${IOU_BILL}/currency`;
 const IOU_SEND_CURRENCY = `${IOU_SEND}/currency`;
 
 export default {
-    BANK_ACCOUNT: 'bank-account/:stepToOpen?',
+    BANK_ACCOUNT: 'bank-account',
+    BANK_ACCOUNT_WITH_STEP_TO_OPEN: 'bank-account/:stepToOpen?',
     BANK_ACCOUNT_PERSONAL: 'bank-account/personal',
     getBankAccountRoute: (stepToOpen = '') => `bank-account/${stepToOpen}`,
     HOME: '',
@@ -28,6 +29,7 @@ export default {
     SETTINGS_PAYMENTS: 'settings/payments',
     SETTINGS_ADD_PAYPAL_ME: 'settings/payments/add-paypal-me',
     SETTINGS_ADD_DEBIT_CARD: 'settings/payments/add-debit-card',
+    SETTINGS_ADD_BANK_ACCOUNT: 'settings/payments/add-bank-account',
     SETTINGS_ADD_LOGIN: 'settings/addlogin/:type',
     getSettingsAddLoginRoute: type => `settings/addlogin/${type}`,
     NEW_GROUP: 'new/group',

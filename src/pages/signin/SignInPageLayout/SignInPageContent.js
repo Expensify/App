@@ -6,13 +6,15 @@ import styles from '../../../styles/styles';
 import * as StyleUtils from '../../../styles/StyleUtils';
 import variables from '../../../styles/variables';
 import ExpensifyCashLogo from '../../../components/ExpensifyCashLogo';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import TermsAndLicenses from '../TermsAndLicenses';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
+import Form from '../../../components/Form';
 import compose from '../../../libs/compose';
-import scrollViewContentContainerStyles from './signInPageStyles.js';
+import scrollViewContentContainerStyles from './signInPageStyles';
 import LoginKeyboardAvoidingView from './LoginKeyboardAvoidingView';
 import withKeyboardState from '../../../components/withKeyboardState';
+import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 
 const propTypes = {
     /** The children to show inside the layout */
@@ -25,31 +27,35 @@ const propTypes = {
     /** Whether to show welcome text on a particular page */
     shouldShowWelcomeText: PropTypes.bool.isRequired,
 
-    /** SafeArea insets */
-    insets: PropTypes.shape(PropTypes.object),
-
     ...withLocalizePropTypes,
+    ...windowDimensionsPropTypes,
 };
 
-const defaultProps = {
-    insets: {},
-};
-
-const SignInPageLayoutNarrow = props => (
+const SignInPageContent = props => (
     <ScrollView
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         style={[
             styles.h100,
             styles.alignSelfCenter,
+            !props.isSmallScreenWidth && styles.signInPageWideLeftContainer,
         ]}
-        contentContainerStyle={scrollViewContentContainerStyles}
+        contentContainerStyle={[
+            scrollViewContentContainerStyles,
+            !props.isSmallScreenWidth && styles.ph6,
+        ]}
     >
-        <View style={[styles.flex1, styles.signInPageNarrowContentContainer, styles.alignSelfStretch, styles.ph5]}>
+        <Form style={[
+            styles.flex1,
+            styles.alignSelfStretch,
+            props.isSmallScreenWidth && styles.signInPageNarrowContentContainer,
+            props.isSmallScreenWidth ? styles.ph5 : styles.ph4,
+        ]}
+        >
             <LoginKeyboardAvoidingView
                 behavior="position"
                 contentContainerStyle={[
-                    styles.mt40Percentage,
+                    props.isSmallScreenWidth ? styles.signInPageNarrowContentMargin : styles.signInPageWideLeftContentMargin,
                     styles.mb3,
                     StyleUtils.getModalPaddingStyles({
                         shouldAddBottomSafeAreaPadding: true,
@@ -58,32 +64,38 @@ const SignInPageLayoutNarrow = props => (
                     }),
                 ]}
             >
-                <View style={[styles.componentHeightLarge, styles.mb2]}>
+                <View style={[
+                    styles.componentHeightLarge,
+                    ...(props.isSmallScreenWidth ? [styles.mb2] : [styles.mt6, styles.mb5]),
+                ]}
+                >
                     <ExpensifyCashLogo
                         width={variables.componentSizeLarge}
                         height={variables.componentSizeLarge}
                     />
                 </View>
                 {props.shouldShowWelcomeText && (
-                    <Text style={[styles.mv5, styles.textLabel, styles.h3]}>
+                    <ExpensifyText style={[styles.mv5, styles.textLabel, styles.h3]}>
                         {props.welcomeText}
-                    </Text>
+                    </ExpensifyText>
                 )}
                 {props.children}
             </LoginKeyboardAvoidingView>
-        </View>
-        <View style={[styles.mb5, styles.alignSelfCenter, styles.signInPageNarrowContentContainer, styles.ph5]}>
+        </Form>
+        <View style={[styles.mb5, styles.alignSelfCenter, props.isSmallScreenWidth && styles.signInPageNarrowContentContainer, styles.ph5]}>
             <TermsAndLicenses />
         </View>
     </ScrollView>
 );
 
-SignInPageLayoutNarrow.propTypes = propTypes;
-SignInPageLayoutNarrow.defaultProps = defaultProps;
-SignInPageLayoutNarrow.displayName = 'SignInPageLayoutNarrow';
+SignInPageContent.propTypes = propTypes;
+SignInPageContent.displayName = 'SignInPageContent';
 
 export default compose(
+    withWindowDimensions,
     withLocalize,
+
+    // KeyboardState HOC is needed to trigger recalculation of the UI when keyboard opens or closes
     withKeyboardState,
     withSafeAreaInsets,
-)(SignInPageLayoutNarrow);
+)(SignInPageContent);

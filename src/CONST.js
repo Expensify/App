@@ -1,15 +1,17 @@
 const CLOUDFRONT_URL = 'https://d2k5nsl2zxldvw.cloudfront.net';
 const NEW_EXPENSIFY_URL = 'https://new.expensify.com';
 const PLATFORM_OS_MACOS = 'Mac OS';
+const ANDROID_PACKAGE_NAME = 'com.expensify.chat';
 
 const CONST = {
+    ANDROID_PACKAGE_NAME,
     ANIMATED_TRANSITION: 300,
 
     // 50 megabytes in bytes
     API_MAX_ATTACHMENT_SIZE: 52428800,
     AVATAR_MAX_ATTACHMENT_SIZE: 3145728,
     APP_DOWNLOAD_LINKS: {
-        ANDROID: 'https://play.google.com/store/apps/details?id=com.expensify.chat',
+        ANDROID: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}`,
         IOS: 'https://apps.apple.com/us/app/expensify-cash/id1530278510',
         DESKTOP: `${NEW_EXPENSIFY_URL}/NewExpensify.dmg`,
     },
@@ -178,7 +180,7 @@ const CONST = {
     TERMS_URL: 'https://use.expensify.com/terms',
     PRIVACY_URL: 'https://use.expensify.com/privacy',
     LICENSES_URL: 'https://use.expensify.com/licenses',
-    PLAY_STORE_URL: 'https://play.google.com/store/apps/details?id=com.expensify.chat&hl=en',
+    PLAY_STORE_URL: `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE_NAME}&hl=en`,
     ADD_SECONDARY_LOGIN_URL: encodeURI('settings?param={"section":"account","openModal":"secondaryLogin"}'),
     MANAGE_CARDS_URL: 'domain_companycards',
     FEES_URL: 'https://use.expensify.com/fees',
@@ -287,6 +289,7 @@ const CONST = {
         PREFERRED_LOCALE: 'preferredLocale',
         KYC_MIGRATION: 'expensify_migration_2020_04_28_RunKycVerifications',
         PREFERRED_EMOJI_SKIN_TONE: 'expensify_preferredEmojiSkinTone',
+        FREQUENTLY_USED_EMOJIS: 'expensify_frequentlyUsedEmojis',
     },
     DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
     DEFAULT_ACCOUNT_DATA: {error: '', success: '', loading: false},
@@ -307,6 +310,10 @@ const CONST = {
     },
 
     EMOJI_SPACER: 'SPACER',
+
+    EMOJI_NUM_PER_ROW: 8,
+
+    EMOJI_FREQUENT_ROW_COUNT: 3,
 
     LOGIN_TYPE: {
         PHONE: 'phone',
@@ -423,6 +430,12 @@ const CONST = {
         Opera: 'opera',
         SAFARI: 'safari',
         OTHER: 'other',
+    },
+
+    PAYMENT_METHODS: {
+        PAYPAL: 'payPalMe',
+        DEBIT_CARD: 'debitCard',
+        BANK_ACCOUNT: 'bankAccount',
     },
 
     IOU: {

@@ -41,13 +41,14 @@ import * as User from '../../../libs/actions/User';
 import reportActionPropTypes from './reportActionPropTypes';
 import * as ReportUtils from '../../../libs/reportUtils';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
-import Text from '../../../components/Text';
+import ExpensifyText from '../../../components/ExpensifyText';
 import {participantPropTypes} from '../sidebar/optionPropTypes';
 import currentUserPersonalDetailsPropsTypes from '../../settings/Profile/currentUserPersonalDetailsPropsTypes';
 import ParticipantLocalTime from './ParticipantLocalTime';
 import {withNetwork, withPersonalDetails} from '../../../components/OnyxProvider';
 import DateUtils from '../../../libs/DateUtils';
 import Tooltip from '../../../components/Tooltip';
+import * as EmojiUtils from '../../../libs/EmojiUtils';
 
 const propTypes = {
     /** Beta features list */
@@ -412,8 +413,10 @@ class ReportActionCompose extends React.Component {
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      *
      * @param {String} emoji
+     * @param {Object} emojiObject
      */
-    addEmojiToTextBox(emoji) {
+    addEmojiToTextBox(emoji, emojiObject) {
+        EmojiUtils.addToFrequentlyUsedEmojis(this.props.frequentlyUsedEmojis, emojiObject);
         this.hideEmojiPicker();
         const newComment = this.comment.slice(0, this.state.selection.start)
             + emoji + this.comment.slice(this.state.selection.end, this.comment.length);
@@ -669,6 +672,7 @@ class ReportActionCompose extends React.Component {
                             ref={el => this.emojiSearchInput = el}
                             preferredSkinTone={this.props.preferredSkinTone}
                             updatePreferredSkinTone={this.setPreferredSkinTone}
+                            frequentlyUsedEmojis={this.props.frequentlyUsedEmojis}
                         />
                     </Popover>
                     <Pressable
@@ -717,9 +721,9 @@ class ReportActionCompose extends React.Component {
                                 width={variables.iconSizeExtraSmall}
                                 height={variables.iconSizeExtraSmall}
                             />
-                            <Text style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
+                            <ExpensifyText style={[styles.ml2, styles.chatItemComposeSecondaryRowSubText]}>
                                 {this.props.translate('reportActionCompose.youAppearToBeOffline')}
-                            </Text>
+                            </ExpensifyText>
                         </View>
                     </View>
                 ) : <ReportTypingIndicator reportID={this.props.reportID} />}
@@ -756,6 +760,9 @@ export default compose(
         },
         preferredSkinTone: {
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
+        },
+        frequentlyUsedEmojis: {
+            key: ONYXKEYS.FREQUENTLY_USED_EMOJIS,
         },
     }),
 )(ReportActionCompose);

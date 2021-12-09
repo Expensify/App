@@ -11,7 +11,7 @@ import * as ReportScrollManager from '../../../libs/ReportScrollManager';
 import toggleReportActionComposeView from '../../../libs/toggleReportActionComposeView';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../../../components/withWindowDimensions';
 import withLocalize, {withLocalizePropTypes} from '../../../components/withLocalize';
-import Button from '../../../components/Button';
+import ExpensifyButton from '../../../components/ExpensifyButton';
 import ReportActionComposeFocusManager from '../../../libs/ReportActionComposeFocusManager';
 import compose from '../../../libs/compose';
 
@@ -47,7 +47,7 @@ class ReportActionItemMessageEdit extends React.Component {
         super(props);
         this.updateDraft = this.updateDraft.bind(this);
         this.deleteDraft = this.deleteDraft.bind(this);
-        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000, true);
+        this.debouncedSaveDraft = _.debounce(this.debouncedSaveDraft.bind(this), 1000);
         this.publishDraft = this.publishDraft.bind(this);
         this.triggerSaveOrCancel = this.triggerSaveOrCancel.bind(this);
         this.onSelectionChange = this.onSelectionChange.bind(this);
@@ -81,7 +81,14 @@ class ReportActionItemMessageEdit extends React.Component {
     updateDraft(newDraft) {
         this.textInput.setNativeProps({text: newDraft});
         this.setState({draft: newDraft});
-        this.debouncedSaveDraft(newDraft);
+
+        // This component is rendered only when draft is set to a non-empty string. In order to prevent component
+        // unmount when user deletes content of textarea, we set previous message instead of empty string.
+        if (newDraft.trim().length > 0) {
+            this.debouncedSaveDraft(newDraft);
+        } else {
+            this.debouncedSaveDraft(this.props.action.message[0].html);
+        }
     }
 
     /**
@@ -96,9 +103,11 @@ class ReportActionItemMessageEdit extends React.Component {
     /**
      * Save the draft of the comment. This debounced so that we're not ceaselessly saving your edit. Saving the draft
      * allows one to navigate somewhere else and come back to the comment and still have it in edit mode.
+     * @param {String} newDraft
      */
-    debouncedSaveDraft() {
-        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, this.state.draft);
+
+    debouncedSaveDraft(newDraft) {
+        Report.saveReportActionDraft(this.props.reportID, this.props.action.reportActionID, newDraft);
     }
 
     /**
@@ -106,6 +115,10 @@ class ReportActionItemMessageEdit extends React.Component {
      * the new content.
      */
     publishDraft() {
+        // To prevent re-mount after user saves edit before debounce duration (example: within 1 second), we cancel
+        // debounce here.
+        this.debouncedSaveDraft.cancel();
+
         const trimmedNewDraft = this.state.draft.trim();
         Report.editReportComment(this.props.reportID, this.props.action, trimmedNewDraft);
         this.deleteDraft();
@@ -150,13 +163,13 @@ class ReportActionItemMessageEdit extends React.Component {
                     />
                 </View>
                 <View style={[styles.flexRow, styles.mt1]}>
-                    <Button
+                    <ExpensifyButton
                         small
                         style={[styles.mr2]}
                         onPress={this.deleteDraft}
                         text={this.props.translate('common.cancel')}
                     />
-                    <Button
+                    <ExpensifyButton
                         small
                         success
                         style={[styles.mr2]}
