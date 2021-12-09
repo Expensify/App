@@ -8,7 +8,7 @@ import _ from 'underscore';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
 import HeaderWithCloseButton from '../../../components/HeaderWithCloseButton';
-import Navigation from '../../../libs/Navigation/Navigation';
+import Navigation, { navigationRef } from '../../../libs/Navigation/Navigation';
 import ScreenWrapper from '../../../components/ScreenWrapper';
 import styles from '../../../styles/styles';
 import ExpensifyText from '../../../components/ExpensifyText';
@@ -23,7 +23,7 @@ import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
-import AddressSearch from '../../../components/AddressSearch';
+import ROUTES from '../../../ROUTES';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -222,12 +222,13 @@ class DebitCardPage extends Component {
                                     />
                                 </View>
                             </View>
-                            <AddressSearch
+                            <ExpensiTextInput
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
+                                onChangeText={() => {}}
                                 value={this.state.addressStreet}
-                                onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
                                 errorText={this.getErrorText('addressStreet')}
+                                onFocus={() => Navigation.navigate(ROUTES.ADDRESS_SEARCH)}
                             />
                             <CheckboxWithLabel
                                 isChecked={this.state.acceptedTerms}

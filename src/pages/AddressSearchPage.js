@@ -3,43 +3,21 @@ import React, {Component} from 'react';
 import {View} from 'react-native';
 import PropTypes from 'prop-types';
 import {withOnyx} from 'react-native-onyx';
-import OptionsSelector from '../components/OptionsSelector';
-import * as OptionsListUtils from '../libs/OptionsListUtils';
 import ONYXKEYS from '../ONYXKEYS';
 import styles from '../styles/styles';
 import KeyboardSpacer from '../components/KeyboardSpacer';
 import Navigation from '../libs/Navigation/Navigation';
-import ROUTES from '../ROUTES';
 import withWindowDimensions, {windowDimensionsPropTypes} from '../components/withWindowDimensions';
-import * as Report from '../libs/actions/Report';
 import HeaderWithCloseButton from '../components/HeaderWithCloseButton';
 import ScreenWrapper from '../components/ScreenWrapper';
-import Timing from '../libs/actions/Timing';
-import CONST from '../CONST';
 import FullScreenLoadingIndicator from '../components/FullscreenLoadingIndicator';
 import withLocalize, {withLocalizePropTypes} from '../components/withLocalize';
 import compose from '../libs/compose';
-import personalDetailsPropType from './personalDetailsPropType';
+
+import AddressSearch from '../components/AddressSearch';
 
 const propTypes = {
     /* Onyx Props */
-
-    /** Beta features list */
-    betas: PropTypes.arrayOf(PropTypes.string).isRequired,
-
-    /** All of the personal details for everyone */
-    personalDetails: personalDetailsPropType.isRequired,
-
-    /** All reports shared with the user */
-    reports: PropTypes.shape({
-        reportID: PropTypes.number,
-        reportName: PropTypes.string,
-    }).isRequired,
-
-    /** Session of currently logged in user */
-    session: PropTypes.shape({
-        email: PropTypes.string.isRequired,
-    }).isRequired,
 
     /** Window Dimensions Props */
     ...windowDimensionsPropTypes,
@@ -47,117 +25,39 @@ const propTypes = {
     ...withLocalizePropTypes,
 };
 
-class SearchPage extends Component {
+class AddressSearchPage extends Component {
     constructor(props) {
         super(props);
 
-        Timing.start(CONST.TIMING.SEARCH_RENDER);
-
-        this.selectReport = this.selectReport.bind(this);
-        this.onChangeText = this.onChangeText.bind(this);
-        this.debouncedUpdateOptions = _.debounce(this.updateOptions.bind(this), 75);
-
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
-            props.reports,
-            props.personalDetails,
-            '',
-            props.betas,
-        );
-
         this.state = {
-            searchValue: '',
-            recentReports,
-            personalDetails,
-            userToInvite,
+            addressStreet: '',
+            addressState: '',
+            addressCity: '',
+            addressZipCode: '',
+            errors: {},
         };
-    }
 
-    componentDidMount() {
-        Timing.end(CONST.TIMING.SEARCH_RENDER);
-    }
-
-    onChangeText(searchValue = '') {
-        this.setState({searchValue}, this.debouncedUpdateOptions);
+        this.clearErrorAndSetValue = this.clearErrorAndSetValue.bind(this);
     }
 
     /**
-     * Returns the sections needed for the OptionsSelector
+     * Clear the error associated to inputKey if found and store the inputKey new value in the state.
      *
-     * @returns {Array}
+     * @param {String} inputKey
+     * @param {String} value
      */
-    getSections() {
-        const sections = [{
-            title: this.props.translate('common.recents'),
-            data: this.state.recentReports.concat(this.state.personalDetails),
-            shouldShow: true,
-            indexOffset: 0,
-        }];
-
-        if (this.state.userToInvite) {
-            sections.push(({
-                undefined,
-                data: [this.state.userToInvite],
-                shouldShow: true,
-                indexOffset: 0,
-            }));
-        }
-
-        return sections;
-    }
-
-    updateOptions() {
-        const {
-            recentReports,
-            personalDetails,
-            userToInvite,
-        } = OptionsListUtils.getSearchOptions(
-            this.props.reports,
-            this.props.personalDetails,
-            this.state.searchValue.trim(),
-            this.props.betas,
-        );
-        this.setState({
-            userToInvite,
-            recentReports,
-            personalDetails,
-        });
-    }
-
-    /**
-     * Reset the search value and redirect to the selected report
-     *
-     * @param {Object} option
-     */
-    selectReport(option) {
-        if (!option) {
-            return;
-        }
-
-        if (option.reportID) {
-            this.setState({
-                searchValue: '',
-            }, () => {
-                Navigation.navigate(ROUTES.getReportRoute(option.reportID));
-            });
-        } else {
-            Report.fetchOrCreateChatReport([
-                this.props.session.email,
-                option.login,
-            ]);
-        }
+     clearErrorAndSetValue(inputKey, value) {
+        this.setState(prevState => ({
+            [inputKey]: value,
+            errors: {
+                ...prevState.errors,
+                [inputKey]: false,
+            },
+        }));
     }
 
     render() {
-        const sections = this.getSections();
-        const headerMessage = OptionsListUtils.getHeaderMessage(
-            (this.state.recentReports.length + this.state.personalDetails.length) !== 0,
-            Boolean(this.state.userToInvite),
-            this.state.searchValue,
-        );
+        console.log(this.state)
         return (
             <ScreenWrapper>
                 {({didScreenTransitionEnd}) => (
@@ -169,16 +69,12 @@ class SearchPage extends Component {
                         <View style={[styles.flex1, styles.w100, styles.pRelative]}>
                             <FullScreenLoadingIndicator visible={!didScreenTransitionEnd} />
                             {didScreenTransitionEnd && (
-                            <OptionsSelector
-                                sections={sections}
-                                value={this.state.searchValue}
-                                onSelectRow={this.selectReport}
-                                onChangeText={this.onChangeText}
-                                headerMessage={headerMessage}
-                                hideSectionHeaders
-                                hideAdditionalOptionStates
-                                showTitleTooltip
-                            />
+                                <AddressSearch
+                                    label={this.props.translate('addDebitCardPage.billingAddress')}
+                                    containerStyles={[styles.mh5]}
+                                    onChangeText={(fieldName, value) => this.clearErrorAndSetValue(fieldName, value)}
+                                    value={this.state.addressStreet}
+                                />
                             )}
                         </View>
                         <KeyboardSpacer />
@@ -189,7 +85,7 @@ class SearchPage extends Component {
     }
 }
 
-SearchPage.propTypes = propTypes;
+AddressSearchPage.propTypes = propTypes;
 
 export default compose(
     withLocalize,
@@ -198,14 +94,5 @@ export default compose(
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
         },
-        personalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS,
-        },
-        session: {
-            key: ONYXKEYS.SESSION,
-        },
-        betas: {
-            key: ONYXKEYS.BETAS,
-        },
     }),
-)(SearchPage);
+)(AddressSearchPage);

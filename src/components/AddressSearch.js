@@ -9,6 +9,7 @@ import styles from '../styles/styles';
 import ExpensiTextInput from './ExpensiTextInput';
 import Log from '../libs/Log';
 import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
+import Navigation from '../libs/Navigation/Navigation';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -93,6 +94,7 @@ const AddressSearch = (props) => {
 
                 // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                 setDisplayListViewBorder(false);
+                Navigation.dismissModal();
             }}
             query={{
                 key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
@@ -133,6 +135,7 @@ const AddressSearch = (props) => {
                     styles.overflowAuto,
                     styles.borderLeft,
                     styles.borderRight,
+                    styles.mh5,
                 ],
                 row: [
                     styles.pv4,
