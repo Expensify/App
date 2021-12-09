@@ -121,7 +121,6 @@ class AttachmentPicker extends Component {
 
         this.close = this.close.bind(this);
         this.pickAttachment = this.pickAttachment.bind(this);
-        this.completeAttachmentSelection = () => {};
     }
 
     /**
