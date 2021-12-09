@@ -60,7 +60,7 @@ const documentPickerOptions = {
   * send to the xhr will be handled properly.
   *
   * @param {Object} fileData
-  * @return {Object}
+  * @return {Promise}
   */
 function getDataForUpload(fileData) {
     const fileResult = {
