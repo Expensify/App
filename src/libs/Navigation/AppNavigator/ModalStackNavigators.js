@@ -37,6 +37,7 @@ import WorkspaceBillsPage from '../../../pages/workspace/bills/WorkspaceBillsPag
 import WorkspaceTravelPage from '../../../pages/workspace/travel/WorkspaceTravelPage';
 import WorkspaceMembersPage from '../../../pages/workspace/WorkspaceMembersPage';
 import WorkspaceBankAccountPage from '../../../pages/workspace/WorkspaceBankAccountPage';
+import AddressSearchPage from '../../../components/AddressSearchPage';
 import CONST from '../../../CONST';
 
 const defaultSubRouteOptions = {
@@ -253,6 +254,11 @@ const RequestCallModalStackNavigator = createModalStackNavigator([{
     name: 'RequestCall_Root',
 }]);
 
+const AddressSearchModalStackNavigator = createModalStackNavigator([{
+    Component: AddressSearchPage,
+    name: 'AddressSearch_Root',
+}]);
+
 export {
     IOUBillStackNavigator,
     IOURequestModalStackNavigator,
@@ -269,4 +275,5 @@ export {
     AddPersonalBankAccountModalStackNavigator,
     ReimbursementAccountModalStackNavigator,
     RequestCallModalStackNavigator,
+    AddressSearchModalStackNavigator,
 };
