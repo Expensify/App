@@ -14,9 +14,9 @@ import TextInputWithLabel from '../../components/TextInputWithLabel';
 import ExpensiPicker from '../../components/ExpensiPicker';
 import ONYXKEYS from '../../ONYXKEYS';
 import CONST from '../../CONST';
-import Button from '../../components/Button';
+import ExpensifyButton from '../../components/ExpensifyButton';
 import FixedFooter from '../../components/FixedFooter';
-import {createPolicyRoom} from '../../libs/actions/Report';
+import * as Report from '../../libs/actions/Report';
 
 const propTypes = {
     /** All reports shared with the user */
@@ -85,7 +85,7 @@ class WorkspaceNewRoomPage extends React.Component {
      */
     onSubmit() {
         this.setState({isLoading: true});
-        createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility)
+        Report.createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility)
             .then(() => this.setState({isLoading: false}));
     }
 
@@ -156,7 +156,7 @@ class WorkspaceNewRoomPage extends React.Component {
                     />
                 </View>
                 <FixedFooter>
-                    <Button
+                    <ExpensifyButton
                         isLoading={this.state.isLoading}
                         isDisabled={shouldDisableSubmit}
                         success

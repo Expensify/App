@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import {TextInput, View} from 'react-native';
 import _ from 'underscore';
 import React from 'react';
-import Text from '../Text';
+import ExpensifyText from '../ExpensifyText';
 import styles from '../../styles/styles';
 
 const propTypes = {
@@ -38,7 +38,7 @@ const TextInputWithPrefix = props => (_.isEmpty(props.prefixCharacter)
                     props.errorText && styles.errorOutline,
                 ]}
         >
-            <Text style={[styles.textInputWithPrefix.prefix, {paddingTop: 10}]}>{props.prefixCharacter}</Text>
+            <ExpensifyText style={[styles.textInputWithPrefix.prefix, {paddingTop: 10}]}>{props.prefixCharacter}</ExpensifyText>
             <TextInput
                 style={[
                     styles.textInputWithPrefix.textInput,
