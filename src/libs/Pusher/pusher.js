@@ -124,6 +124,7 @@ function bindEventToChannel(channel, eventName, eventCallback = () => {}, isChun
             eventCallback(data);
             return;
         }
+
         // If we are chunking the requests, we need to construct a rolling list of all packets that have come through
         // Pusher. If we've completed one of these full packets, we'll combine the data and act on the event that it's
         // assigned to.

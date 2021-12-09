@@ -714,7 +714,7 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT},
             );
         });
-    
+
     // Live-update a report's actions when a 'chunked report comment' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_CHUNK, (pushJSON) => {
         Log.info(
@@ -752,6 +752,7 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT},
             );
         });
+
     // Live-update a report's actions when an 'edit comment chunk' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK, (pushJSON) => {
         Log.info(
@@ -771,6 +772,7 @@ function subscribeToUserEvents() {
                 {error, pusherChannelName, eventName: Pusher.TYPE.REPORT_COMMENT_EDIT_CHUNK},
             );
         });
+
     // Live-update a report's pinned state when a 'report toggle pinned' event is received.
     Pusher.subscribe(pusherChannelName, Pusher.TYPE.REPORT_TOGGLE_PINNED, (pushJSON) => {
         Log.info(
