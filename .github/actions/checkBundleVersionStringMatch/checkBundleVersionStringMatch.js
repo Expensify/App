@@ -12,10 +12,10 @@ const hasValue = shortBundleVersion && bundleVersion;
 if (!hasValue) {
     console.log('Failed to get Bundle Versions from plist');
     core.setOutput('BUNDLE_VERSIONS_MATCH', false);
-} else if (shortBundleVersion !== (bundleVersion.split('-') || [''])[0]) {
-    console.log('Bundle Versions do not match');
-    core.setOutput('BUNDLE_VERSIONS_MATCH', false);
-} else {
+} else if (bundleVersion.includes(shortBundleVersion)) {
     console.log('Bundle Versions match');
     core.setOutput('BUNDLE_VERSIONS_MATCH', true);
+} else {
+    console.log('Bundle Versions do not match');
+    core.setOutput('BUNDLE_VERSIONS_MATCH', false);
 }
