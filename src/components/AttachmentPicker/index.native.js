@@ -129,6 +129,7 @@ class AttachmentPicker extends Component {
       * sends the selected attachment to the caller (parent component)
       *
       * @param {ImagePickerResponse|DocumentPickerResponse} attachment
+      * @returns {Promise}
       */
     pickAttachment(attachment) {
         if (!attachment) {
@@ -140,11 +141,8 @@ class AttachmentPicker extends Component {
             return;
         }
 
-        getDataForUpload(attachment).then((result) => {
+        return getDataForUpload(attachment).then((result) => {
             this.completeAttachmentSelection(result);
-        }).catch((error) => {
-            this.showGeneralAlert(error.message);
-            throw error;
         });
     }
 
