@@ -271,7 +271,6 @@ export default {
                 label: 'Desktop',
             },
         },
-        closeAccount: 'Cerrar cuenta',
         security: 'Seguridad',
         signOut: 'Desconectar',
         versionLetter: 'v',
@@ -281,6 +280,15 @@ export default {
             phrase3: 'y',
             phrase4: 'política de privacidad',
         },
+    },
+    closeAccountPage: {
+        closeAccount: 'Cerrar cuenta',
+        reasonForLeavingPrompt: '¡Lamentamos verte partir! ¿Serías tan amable de decirnos por qué, para que podamos mejorar?',
+        typeMessageHere: 'Escribe el mensaje aquí',
+        closeAccountWarning: 'Una vez cerrada tu cuenta no se puede revertir. Esta acción eliminará permanentemente toda la información de tus gastos no enviados. Escribe tu número de teléfono o correo electrónico para confirmar',
+        closeAccountSuccess: 'Cuenta cerrada exitosamente',
+        closeAccountActionRequired: 'Parece que necesitas completar algunas acciones antes de cerrar tu cuenta. Mira la guía aquí e intenta nuevamente',
+        okayGotIt: 'Ok, entendido',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',

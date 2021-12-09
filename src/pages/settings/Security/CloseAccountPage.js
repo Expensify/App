@@ -15,7 +15,7 @@ const propTypes = {
 const CloseAccountPage = (props) => (
     <ScreenWrapper>
         <HeaderWithCloseButton
-            title={props.translate('initialSettingsPage.closeAccount')}
+            title={props.translate('closeAccountPage.closeAccount')}
             shouldShowBackButton
             onBackButtonPress={() => Navigation.navigate(ROUTES.SETTINGS_SECURITY)}
             onCloseButtonPress={() => Navigation.dismissModal(true)}

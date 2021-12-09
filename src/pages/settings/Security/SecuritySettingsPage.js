@@ -24,7 +24,7 @@ const SecuritySettingsPage = (props) => {
             },
         },
         {
-            translationKey: 'initialSettingsPage.closeAccount',
+            translationKey: 'closeAccountPage.closeAccount',
             icon: Expensicons.Lock,
             action: () => {
                 Navigation.navigate(ROUTES.SETTINGS_CLOSE);

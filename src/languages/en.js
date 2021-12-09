@@ -271,7 +271,6 @@ export default {
                 label: 'Desktop',
             },
         },
-        closeAccount: 'Close account',
         security: 'Security',
         signOut: 'Sign out',
         versionLetter: 'v',
@@ -281,6 +280,15 @@ export default {
             phrase3: 'and',
             phrase4: 'privacy policy',
         },
+    },
+    closeAccountPage: {
+        closeAccount: 'Close account',
+        reasonForLeavingPrompt: 'We’d hate to see you go! Would you kindly tell us why, so we can improve?',
+        typeMessageHere: 'Type message here',
+        closeAccountWarning: 'Closing your account cannot be undone. This will permanently delete all of your unsubmitted expense data. Type your phone number or email address to confirm.',
+        closeAccountSuccess: 'Account closed successfully',
+        closeAccountActionRequired: 'Looks like you need to complete some actions before closing your account. Check out the guide here and try again after.',
+        okayGotIt: 'Okay, Got it',
     },
     passwordPage: {
         changePassword: 'Change password',
