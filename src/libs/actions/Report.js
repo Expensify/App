@@ -1458,6 +1458,7 @@ function handleInaccessibleReport() {
  * @return {Promise}
  */
 function createPolicyRoom(policyID, reportName, visibility) {
+    Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, true);
     return API.CreatePolicyRoom({policyID, reportName, visibility})
         .then((response) => {
             if (response.jsonCode !== 200) {
@@ -1475,7 +1476,8 @@ function createPolicyRoom(policyID, reportName, visibility) {
         })
         .catch(() => {
             Growl.error(Localize.translateLocal('newRoomPage.growlMessageOnError'));
-        });
+        })
+        .finally(() => Onyx.set(ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM, false));
 }
 
 export {

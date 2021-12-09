@@ -26,12 +26,16 @@ const propTypes = {
         policyID: PropTypes.string,
     }).isRequired,
 
+    /** Are we loading the createPolicyRoom command */
+    isLoadingCreatePolicyRoom: PropTypes.bool,
+
     ...fullPolicyPropTypes,
 
     ...withLocalizePropTypes,
 };
 const defaultProps = {
     betas: [],
+    isLoadingCreatePolicyRoom: false,
     ...fullPolicyDefaultProps,
 };
 
@@ -43,7 +47,6 @@ class WorkspaceNewRoomPage extends React.Component {
             roomName: '',
             policyID: '',
             visibility: CONST.REPORT.VISIBILITY.RESTRICTED,
-            isLoading: false,
             error: '',
             workspaceOptions: [],
         };
@@ -84,9 +87,7 @@ class WorkspaceNewRoomPage extends React.Component {
      * Called when the "Create Room" button is pressed.
      */
     onSubmit() {
-        this.setState({isLoading: true});
-        Report.createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility)
-            .then(() => this.setState({isLoading: false}));
+        Report.createPolicyRoom(this.state.policyID, this.state.roomName, this.state.visibility);
     }
 
     /**
@@ -157,7 +158,7 @@ class WorkspaceNewRoomPage extends React.Component {
                 </View>
                 <FixedFooter>
                     <ExpensifyButton
-                        isLoading={this.state.isLoading}
+                        isLoading={this.props.isLoadingCreatePolicyRoom}
                         isDisabled={shouldDisableSubmit}
                         success
                         onPress={this.onSubmit}
@@ -184,6 +185,9 @@ export default compose(
         },
         reports: {
             key: ONYXKEYS.COLLECTION.REPORT,
+        },
+        isLoadingCreatePolicyRoom: {
+            key: ONYXKEYS.IS_LOADING_CREATE_POLICY_ROOM,
         },
     }),
     withLocalize,
