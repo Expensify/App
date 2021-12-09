@@ -22,6 +22,9 @@ import Permissions from '../libs/Permissions';
 import isAppInstalled from '../libs/isAppInstalled';
 import * as ValidationUtils from '../libs/ValidationUtils';
 import makeCancellablePromise from '../libs/MakeCancellablePromise';
+import ROUTES from '../ROUTES';
+import Navigation from '../libs/Navigation/Navigation';
+import * as PaymentMethodUtils from '../libs/PaymentMethodUtils';
 
 const propTypes = {
     /** Callback to inform parent modal of success */
@@ -184,6 +187,18 @@ class IOUConfirmationList extends Component {
      */
     onPress() {
         if (this.props.iouType === CONST.IOU.IOU_TYPE.SEND) {
+            // Check to see if user has a valid payment method on file
+            if (!PaymentMethodUtils.hasExpensifyPaymentMethod(this.props.cardList, this.props.bankAccountList)) {
+                // Open popover and then redirect to payment method... this should be moved into SettlementButton
+                return;
+            }
+
+            const hasGoldWallet = this.props.userWallet.tierName && this.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
+            if (!hasGoldWallet) {
+                Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
+                return;
+            }
+
             this.props.onConfirm();
         } else {
             this.props.onConfirm(this.getSplits());
@@ -466,6 +481,9 @@ export default compose(
         },
         betas: {
             key: ONYXKEYS.BETAS,
+        },
+        userWallet: {
+            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IOUConfirmationList);

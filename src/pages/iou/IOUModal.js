@@ -122,7 +122,6 @@ class IOUModal extends Component {
             phoneNumber: lodashGet(personalDetails, 'phoneNumber', ''),
         }));
         this.isSendRequest = props.iouType === CONST.IOU.IOU_TYPE.SEND;
-        this.hasGoldWallet = props.userWallet.tierName && props.userWallet.tiername === CONST.WALLET.TIER_NAME.GOLD;
 
         this.state = {
             previousStepIndex: 0,
@@ -269,12 +268,6 @@ class IOUModal extends Component {
      */
     createTransaction(splits) {
         const reportID = lodashGet(this.props, 'route.params.reportID', '');
-
-        // If the user is trying to send money, then they need to upgrade to a GOLD wallet
-        if (this.isSendRequest && !this.hasGoldWallet) {
-            Navigation.navigate(ROUTES.IOU_ENABLE_PAYMENTS);
-            return;
-        }
 
         // Only splits from a group DM has a reportID
         // Check if reportID is a number
@@ -439,9 +432,6 @@ export default compose(
         },
         myPersonalDetails: {
             key: ONYXKEYS.MY_PERSONAL_DETAILS,
-        },
-        userWallet: {
-            key: ONYXKEYS.USER_WALLET,
         },
     }),
 )(IOUModal);
