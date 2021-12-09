@@ -224,7 +224,6 @@ function subscribe(
                 reject(status);
             });
         } else {
-            debugger;
             bindEventToChannel(channel, eventName, eventCallback, isChunked);
             resolve();
         }
