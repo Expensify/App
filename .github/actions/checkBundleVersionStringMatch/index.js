@@ -23,10 +23,10 @@ if (!hasValue) {
     console.log('Failed to get Bundle Versions from plist');
     core.setOutput('BUNDLE_VERSIONS_MATCH', false);
 } else if (bundleVersion.includes(shortBundleVersion)) {
-    console.log('Bundle Versions match');
+    console.log('Bundle Versions are compatible');
     core.setOutput('BUNDLE_VERSIONS_MATCH', true);
 } else {
-    console.log('Bundle Versions do not match');
+    console.log('Bundle Versions are not compatible');
     core.setOutput('BUNDLE_VERSIONS_MATCH', false);
 }
 
