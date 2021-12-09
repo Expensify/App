@@ -24,6 +24,7 @@ import CurrentWalletBalance from '../../../components/CurrentWalletBalance';
 import * as paymentPropTypes from './paymentPropTypes';
 import * as PaymentMethods from '../../../libs/actions/PaymentMethods';
 import * as PaymentUtils from '../../../libs/PaymentUtils';
+import getBankIcon from '../../../components/Icon/BankIcons';
 
 const propTypes = {
     /** User's wallet information */
@@ -112,6 +113,12 @@ class TransferBalancePage extends React.Component {
         const canTransfer = transferAmount > Fee;
         const isButtonDisabled = !canTransfer || !selectAccount;
 
+        if (selectAccount) {
+            const iconProperties = getBankIcon(selectAccount.bankName, selectAccount.type === CONST.WALLET.PAYMENT_METHOD_TYPE.CARD);
+            selectAccount.icon = iconProperties.icon;
+            selectAccount.iconSize = iconProperties.iconSize;
+        }
+
         return (
             <ScreenWrapper>
                 <KeyboardAvoidingView>
@@ -159,9 +166,9 @@ class TransferBalancePage extends React.Component {
                                     title={selectAccount.title}
                                     description={selectAccount.description}
                                     shouldShowRightIcon
-                                    iconWidth={variables.iconSizeXLarge}
-                                    iconHeight={variables.iconSizeXLarge}
-                                    icon={Expensicons.Bolt}
+                                    iconWidth={selectAccount.iconSize}
+                                    iconHeight={selectAccount.iconSize}
+                                    icon={selectAccount.icon}
                                     wrapperStyle={{
                                         ...styles.mrn5,
                                         ...styles.ph0,
