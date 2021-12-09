@@ -14,9 +14,6 @@ const propTypes = {
     /** Callback to execute when the main button is pressed */
     onPress: PropTypes.func.isRequired,
 
-    /** Callback to execute when a menu item is selected */
-    onChange: PropTypes.func,
-
     /** Whether we should show a loading state for the main button */
     isLoading: PropTypes.bool,
 
@@ -26,6 +23,7 @@ const propTypes = {
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}, {text: 'PayPal', icon: PayPal}, {text: 'Venmo', icon: Venmo}] */
     options: PropTypes.arrayOf(PropTypes.shape({
+        value: PropTypes.string.isRequired,
         text: PropTypes.string.isRequired,
         icon: PropTypes.elementType,
         iconWidth: PropTypes.number,
@@ -35,7 +33,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-    onChange: () => {},
     isLoading: false,
     isDisabled: false,
     menuHeaderText: '',
@@ -63,7 +60,7 @@ class ButtonWithMenu extends PureComponent {
                     <ButtonWithDropdown
                         buttonText={selectedItemText}
                         isLoading={this.props.isLoading}
-                        onButtonPress={this.props.onPress}
+                        onButtonPress={() => this.props.onPress(this.state.selectedItem.value)}
                         onDropdownPress={() => {
                             this.setMenuVisibility(true);
                         }}
@@ -75,7 +72,7 @@ class ButtonWithMenu extends PureComponent {
                         style={[styles.w100]}
                         isLoading={this.props.isLoading}
                         text={selectedItemText}
-                        onPress={this.props.onPress}
+                        onPress={() => this.props.onPress(this.props.options[0].value)}
                         pressOnEnter
                     />
                 )}
@@ -92,7 +89,6 @@ class ButtonWithMenu extends PureComponent {
                             ...item,
                             onSelected: () => {
                                 this.setState({selectedItem: item});
-                                this.props.onChange(item);
                             },
                         }))}
                     />
