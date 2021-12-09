@@ -1,7 +1,7 @@
 import _ from 'underscore';
 import React, {useEffect, useState, useRef} from 'react';
 import PropTypes from 'prop-types';
-import {LogBox} from 'react-native';
+import {LogBox, View} from 'react-native';
 import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete';
 import CONFIG from '../CONFIG';
 import withLocalize, {withLocalizePropTypes} from './withLocalize';
@@ -12,6 +12,8 @@ import * as GooglePlacesUtils from '../libs/GooglePlacesUtils';
 import ScreenWrapper from './ScreenWrapper';
 import HeaderWithCloseButton from './HeaderWithCloseButton';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
+import KeyboardSpacer from './KeyboardSpacer';
+import Navigation from '../libs/Navigation/Navigation';
 
 // The error that's being thrown below will be ignored until we fork the
 // react-native-google-places-autocomplete repo and replace the
@@ -20,13 +22,13 @@ LogBox.ignoreLogs(['VirtualizedLists should never be nested']);
 
 const propTypes = {
     /** The label to display for the field */
-    label: PropTypes.string.isRequired,
+    // label: PropTypes.string.isRequired,
 
     /** The value to set the field to initially */
     value: PropTypes.string,
 
     /** A callback function when the value of this field has changed */
-    onChangeText: PropTypes.func.isRequired,
+    // onChangeText: PropTypes.func.isRequired,
 
     /** Customize the ExpensiTextInput container */
     containerStyles: PropTypes.arrayOf(PropTypes.object),
@@ -67,10 +69,10 @@ const AddressSearch = (props) => {
             const zipCode = GooglePlacesUtils.getAddressComponent(addressComponents, 'postal_code', 'long_name');
 
             // Trigger text change events for each of the individual fields being saved on the server
-            props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
-            props.onChangeText('addressCity', city);
-            props.onChangeText('addressState', state);
-            props.onChangeText('addressZipCode', zipCode);
+            // props.onChangeText('addressStreet', `${streetNumber} ${streetName}`);
+            // props.onChangeText('addressCity', city);
+            // props.onChangeText('addressState', state);
+            // props.onChangeText('addressZipCode', zipCode);
         } else {
             // Clear the values associated to the address, so our validations catch the problem
             Log.hmmm('[AddressSearch] Search result failed validation: ', {
@@ -78,10 +80,10 @@ const AddressSearch = (props) => {
                 address_components: addressComponents,
                 place_id: details.place_id,
             });
-            props.onChangeText('addressStreet', null);
-            props.onChangeText('addressCity', null);
-            props.onChangeText('addressState', null);
-            props.onChangeText('addressZipCode', null);
+            // props.onChangeText('addressStreet', null);
+            // props.onChangeText('addressCity', null);
+            // props.onChangeText('addressState', null);
+            // props.onChangeText('addressZipCode', null);
         }
     };
 
@@ -106,6 +108,7 @@ const AddressSearch = (props) => {
                     
                                     // After we select an option, we set displayListViewBorder to false to prevent UI flickering
                                     setDisplayListViewBorder(false);
+                                    Navigation.goBack();
                                 }}
                                 query={{
                                     key: 'AIzaSyC4axhhXtpiS-WozJEsmlL3Kg3kXucbZus',
@@ -119,8 +122,8 @@ const AddressSearch = (props) => {
                                 }}
                                 textInputProps={{
                                     InputComp: ExpensiTextInput,
-                                    label: props.label,
-                                    containerStyles: props.containerStyles,
+                                    label: 'Address Search',
+                                    containerStyles: [styles.mh5],
                                     errorText: props.errorText,
                                     onChangeText: (text) => {
                                         const isTextValid = !_.isEmpty(text) && _.isEqual(text, props.value);
