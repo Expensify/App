@@ -23,7 +23,7 @@ import CONST from '../../../CONST';
 import FormAlertWithSubmitButton from '../../../components/FormAlertWithSubmitButton';
 import ONYXKEYS from '../../../ONYXKEYS';
 import compose from '../../../libs/compose';
-import AddressSearch from '../../../components/AddressSearch';
+import AddressSearchInput from '../../../components/AddressSearchInput';
 
 const propTypes = {
     addDebitCardForm: PropTypes.shape({
@@ -222,7 +222,7 @@ class DebitCardPage extends Component {
                                     />
                                 </View>
                             </View>
-                            <AddressSearch
+                            <AddressSearchInput
                                 label={this.props.translate('addDebitCardPage.billingAddress')}
                                 containerStyles={[styles.mt4]}
                                 value={this.state.addressStreet}
