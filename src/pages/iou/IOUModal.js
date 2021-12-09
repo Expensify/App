@@ -25,8 +25,6 @@ import Tooltip from '../../components/Tooltip';
 import CONST from '../../CONST';
 import KeyboardAvoidingView from '../../components/KeyboardAvoidingView';
 import * as PersonalDetails from '../../libs/actions/PersonalDetails';
-import userWalletPropTypes from '../EnablePayments/userWalletPropTypes';
-import ROUTES from '../../ROUTES';
 
 /**
  * IOU modal for requesting money and splitting bills.
@@ -78,9 +76,6 @@ const propTypes = {
         avatar: PropTypes.string,
     }).isRequired,
 
-    /** The user's current wallet status and step */
-    userWallet: userWalletPropTypes.userWallet,
-
     ...withLocalizePropTypes,
 };
 
@@ -93,7 +88,6 @@ const defaultProps = {
         localCurrencyCode: CONST.CURRENCY.USD,
     },
     iouType: CONST.IOU.IOU_TYPE.REQUEST,
-    userWallet: {},
 };
 
 // Determines type of step to display within Modal, value provides the title for that page.
