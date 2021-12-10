@@ -148,7 +148,6 @@ class SidebarScreen extends Component {
                             isVisible={this.state.isCreateMenuActive}
                             anchorPosition={styles.createMenuPositionSidebar}
                             onItemSelected={this.onCreateMenuItemSelected}
-                            isSmallScreenWidth={this.props.isSmallScreenWidth}
                             fromSidebarMediumScreen={!this.props.isSmallScreenWidth}
                             menuItems={[
                                 {
