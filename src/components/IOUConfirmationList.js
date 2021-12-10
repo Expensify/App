@@ -399,7 +399,7 @@ class IOUConfirmationList extends Component {
                         <ButtonWithMenu
                             isDisabled={shouldDisableButton}
                             isLoading={isLoading}
-                            onPress={this.onPress}
+                            onPress={(_event, value) => this.onPress(value)}
                             options={this.splitOrRequestOptions}
                         />
                     )}
