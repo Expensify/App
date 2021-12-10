@@ -3,7 +3,7 @@ import lodashGet from 'lodash/get';
 import React, {Component} from 'react';
 import {withOnyx} from 'react-native-onyx';
 import PropTypes from 'prop-types';
-import ExpensiTextInput from '../components/ExpensiTextInput';
+import ExpensiTextInput from './ExpensiTextInput';
 import ONYXKEYS from '../ONYXKEYS';
 import Navigation from '../libs/Navigation/Navigation';
 import ROUTES from '../ROUTES';
